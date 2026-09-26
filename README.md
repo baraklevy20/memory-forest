@@ -28,7 +28,7 @@ cabin appears at the edge of the woods.
 <p align="center"><img src="docs/hover.png" alt="The tooltip on a yellowing tree: its day, its cards, how much is remembered, and how many are being relearned"><br>
 <i>Point at any tree to see its day, and how well you remember it.</i></p>
 
-## Presets
+## Pick your scenery
 
 <table align="center">
   <tr>
@@ -51,6 +51,11 @@ cabin appears at the edge of the woods.
 - Everything is computed on your computer from your own review history. The only thing
   that leaves it is your city's name, and only if you turn on the real weather: it is sent
   to [Open-Meteo](https://open-meteo.com) (free, no account) to look up the forecast.
+
+## Support
+
+If you enjoy Memory Forest, please [give it a thumbs up on AnkiWeb](https://ankiweb.net/shared/review/1255432496) and share it
+with friends who study with Anki. It is what helps other people find it.
 
 ## Feedback
 
