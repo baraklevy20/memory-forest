@@ -1,0 +1,12 @@
+{
+  "label": "Rainy bamboo grove",
+  "preset": {
+    "label": "Rainy bamboo grove",
+    "order": 190,
+    "landscape": "river",
+    "landmark": "none",
+    "weather": "rain",
+    "time": "day",
+    "note": "Tall canes in soft green rain, lanterns floating down the river."
+  }
+}

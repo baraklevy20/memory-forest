@@ -1,0 +1,10 @@
+{
+  "name": "Memory Forest",
+  "package": "memory_forest",
+  "author": "Barak Levy",
+  "homepage": "",
+  "conflicts": [],
+  "min_point_version": 50,
+  "max_point_version": 0,
+  "human_version": "1.0.0"
+}

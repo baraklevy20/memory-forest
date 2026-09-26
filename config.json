@@ -1,0 +1,15 @@
+{
+    "environment": "natural",
+    "weather": "clear",
+    "time_of_day": "golden_hour",
+    "landscape": "lake",
+    "landmark": "none",
+    "city": "",
+    "animations": true,
+    "planting_tooltip": true,
+    "deck_forest_mode": "highlight",
+    "max_width": 800,
+    "debug": false,
+    "test_forest": false,
+    "test_trees": 150
+}

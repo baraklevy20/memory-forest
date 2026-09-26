@@ -1,0 +1,12 @@
+{
+  "label": "Lanterns",
+  "preset": {
+    "label": "Lanterns at night",
+    "order": 90,
+    "landscape": "lake",
+    "landmark": "moon_bridge",
+    "weather": "clear",
+    "time": "night",
+    "note": "Paper lanterns going up over a red moon bridge, and their reflections going down."
+  }
+}

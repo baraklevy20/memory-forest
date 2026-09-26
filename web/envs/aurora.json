@@ -1,0 +1,12 @@
+{
+  "label": "Aurora",
+  "preset": {
+    "label": "Aurora night",
+    "order": 80,
+    "landscape": "lake",
+    "landmark": "none",
+    "weather": "clear",
+    "time": "night",
+    "note": "Northern lights over a snowy range, moving in the still lake below."
+  }
+}

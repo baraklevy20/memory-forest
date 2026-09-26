@@ -1,0 +1,11 @@
+# local state: your config (with your city), weather cache, study history and caches
+meta.json
+user_files/
+dev/payload.js
+dev/gallery.html
+dev/render_baseline.json
+*.ankiaddon
+__pycache__/
+node_modules/
+package-lock.json
+.DS_Store

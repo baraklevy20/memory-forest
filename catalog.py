@@ -1,0 +1,37 @@
+"""What this copy of the add-on can draw, read from the files that are actually here.
+
+Every environment, landscape and landmark is a pair of files under web/: the JS that draws
+it and a small JSON beside it with its label (and, for an environment, the preset that
+shows it off). Nothing else in the add-on lists them, so an edition is simply a set of
+files: leave one out and it is gone from the dialog, the presets and the checks alike.
+
+Nothing here imports aqt, so it also runs in the tests and the dev scripts.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+
+WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+KINDS = ("envs", "landscapes", "landmarks")
+
+
+def entries(kind: str) -> dict:
+    """key -> its JSON, in the order the JSON asks for (then by key)."""
+    folder = os.path.join(WEB, kind)
+    found = {}
+    for name in sorted(os.listdir(folder)):
+        if name.endswith(".json"):
+            with open(os.path.join(folder, name), encoding="utf-8") as f:
+                found[name[:-len(".json")]] = json.load(f)
+
+    def order(item):
+        key, spec = item
+        return ((spec.get("preset") or spec).get("order", 0), key)
+    return dict(sorted(found.items(), key=order))
+
+
+def labels(kind: str) -> dict:
+    """key -> label, for the dropdowns."""
+    return {key: spec["label"] for key, spec in entries(kind).items()}

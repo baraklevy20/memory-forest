@@ -1,0 +1,59 @@
+# Memory Forest
+
+**A pixel-art forest that grows from your Anki study history.** Every day you learn new
+cards plants a tree below your deck list. Trees grow as those cards settle into memory,
+and turn a little yellow when you start to forget them. There is nothing to click and
+nothing to manage: just study, and watch it grow.
+
+<p align="center"><img src="docs/forest.png" alt="A forest of a few hundred days, at golden hour by the lake"></p>
+
+**[Get it on AnkiWeb](https://ankiweb.net/shared/info/XXXXXXXXXX)** · add-on code `XXXXXXXXXX`
+
+## How it works
+
+![The same forest after a week, two months, a year and three years](docs/growth.png)
+
+*After a week, two months, a year and three years.*
+
+Every day you learn new cards, a tree is planted. It starts as a seedling and grows as
+you come to know those cards: within a few weeks it is a young tree, and the days you know
+best keep growing for years, into ancient giants.
+If you start forgetting a day's cards, its tree gets a few yellow leaves, and they turn
+green again once you relearn them. Trees never die.
+
+So the forest is a picture of what you know: its size is how much you have learned, and
+its colour is how well you remember it. Take a week off and a pond appears where the
+missing days would be. Keep studying and animals move in, and after a year a little
+cabin appears at the edge of the woods.
+
+## Presets
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/animated/golden_lake.gif" alt="Golden hour by the lake, animated"><br><sub>Golden hour by the lake</sub></td>
+    <td align="center"><img src="docs/animated/misty_valley.gif" alt="Misty mountain valley, animated"><br><sub>Misty mountain valley</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/animated/aurora.gif" alt="Aurora night, animated"><br><sub>Aurora night</sub></td>
+    <td align="center"><img src="docs/animated/lanterns.gif" alt="Lanterns at night, animated"><br><sub>Lanterns at night</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/animated/bamboo.gif" alt="Rainy bamboo grove, animated"><br><sub>Rainy bamboo grove</sub></td>
+    <td align="center"><img src="docs/animated/synthwave.gif" alt="Synthwave, animated"><br><sub>Synthwave</sub></td>
+  </tr>
+</table>
+
+## Compatibility and privacy
+
+- Anki 2.1.50 or later, on desktop (Windows, macOS, Linux).
+- Everything is computed on your computer from your own review history. The only thing
+  that leaves it is your city's name, and only if you turn on the real weather: it is sent
+  to [Open-Meteo](https://open-meteo.com) (free, no account) to look up the forecast.
+
+## Feedback
+
+Found a bug or have an idea? [Open an issue](https://github.com/baraklevy20/memory-forest/issues).
+
+## License
+
+[MIT](LICENSE). Developing it yourself? See [DEVELOPMENT.md](DEVELOPMENT.md).

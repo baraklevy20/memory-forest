@@ -1,0 +1,20 @@
+# The add-on's Python: runs inside Anki, so aqt/anki are only importable there.
+line-length = 140
+target-version = "py39"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+  "E501",    # long lines are checked by line-length above, not by style
+  "E702",    # the Qt dialog builds widgets two to a line on purpose; it reads better
+  "SIM108",  # a ternary is not always clearer than an if
+  "SIM105",  # an explicit try/except says more than contextlib.suppress here
+  "RUF001",  # the add-on's text uses typographic characters on purpose
+  "RUF003",
+  "RUF005",  # list + list is clearer than unpacking for short option lists
+]
+
+[lint.per-file-ignores]
+# the tests and dev scripts add the add-on folder to sys.path before importing it
+"tests/*" = ["E402", "RUF012", "SIM115"]
+"dev/*" = ["E402", "SIM115"]

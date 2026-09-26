@@ -1,0 +1,13 @@
+{
+  "label": "Natural",
+  "preset": {
+    "key": "golden_lake",
+    "label": "Golden hour by the lake",
+    "order": 10,
+    "landscape": "lake",
+    "landmark": "none",
+    "weather": "clear",
+    "time": "golden_hour",
+    "note": "Low sun across still water, the whole forest lit from one side."
+  }
+}

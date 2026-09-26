@@ -1,0 +1,12 @@
+{
+  "label": "Misty valley",
+  "preset": {
+    "label": "Misty mountain valley",
+    "order": 20,
+    "landscape": "mountains",
+    "landmark": "peak",
+    "weather": "fog",
+    "time": "dawn",
+    "note": "A snow-capped peak over a valley that has not woken up yet."
+  }
+}

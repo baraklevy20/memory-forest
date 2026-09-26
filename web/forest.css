@@ -1,0 +1,55 @@
+/* Memory Forest — panel below the deck list. Uses Anki's own theme variables when present. */
+.af-panel {
+  position: relative;
+  margin: 28px auto 8px;
+  width: 100%;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+.af-scene {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  line-height: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.af-canvas { display: block; max-width: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+.af-tip {
+  position: absolute;
+  z-index: 2;
+  max-width: 280px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(18, 22, 20, 0.92);
+  color: #eef2ec;
+  font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.af-tip i { color: #c9d8c4; font-style: normal; }
+.af-tip[hidden] { display: none; }
+.af-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 16px;
+  margin-top: 8px;
+  font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif;
+  color: var(--fg-subtle, #8a8f8c);
+}
+.af-journal { font-style: italic; }
+.af-top { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.af-cog {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 5px;
+  background: rgba(70, 70, 70, 0.75); color: #d8d8d8; cursor: pointer;
+}
+.af-cog:hover { background: rgba(95, 95, 95, 0.9); color: #fff; }
+.af-cog:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+.af-hint { opacity: 0.65; font-size: 11.5px; }
+.af-info { border-bottom: 1px dotted currentColor; }
+.af-click { cursor: pointer; }
+.af-cap-tip { max-width: 300px; }
+.af-meta { font-variant-numeric: tabular-nums; }
+.af-credit { opacity: 0.75; }

@@ -1,0 +1,12 @@
+{
+  "label": "Synthwave",
+  "preset": {
+    "label": "Synthwave",
+    "order": 230,
+    "landscape": "meadow",
+    "landmark": "none",
+    "weather": "clear",
+    "time": "dusk",
+    "note": "The neon grid running to the horizon, and the banded sun standing on it."
+  }
+}
