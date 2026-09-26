@@ -11,9 +11,8 @@ nothing to manage: just study, and watch it grow.
 
 ## How it works
 
-![The same forest after a week, a month, four months and four years](docs/growth.png)
-
-*After a week, a month, four months and four years.*
+<p align="center"><img src="docs/growth.png" alt="The same forest after a week, a month, four months and four years"><br>
+<i>After a week, a month, four months and four years.</i></p>
 
 Every day you learn new cards, a tree is planted. It starts as a seedling and grows as
 you come to know those cards: within a few weeks it is a young tree, and the days you know
@@ -28,7 +27,7 @@ cabin appears at the edge of the woods.
 
 ## Presets
 
-<table>
+<table align="center">
   <tr>
     <td align="center"><img src="docs/animated/golden_lake.gif" alt="Golden hour by the lake, animated"><br><sub>Golden hour by the lake</sub></td>
     <td align="center"><img src="docs/animated/misty_valley.gif" alt="Misty mountain valley, animated"><br><sub>Misty mountain valley</sub></td>
