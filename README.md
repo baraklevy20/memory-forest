@@ -11,9 +11,9 @@ nothing to manage: just study, and watch it grow.
 
 ## How it works
 
-![The same forest after a week, two months, a year and three years](docs/growth.png)
+![The same forest after a week, a month, four months and four years](docs/growth.png)
 
-*After a week, two months, a year and three years.*
+*After a week, a month, four months and four years.*
 
 Every day you learn new cards, a tree is planted. It starts as a seedling and grows as
 you come to know those cards: within a few weeks it is a young tree, and the days you know
