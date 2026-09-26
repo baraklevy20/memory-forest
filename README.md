@@ -7,7 +7,7 @@ nothing to manage: just study, and watch it grow.
 
 <p align="center"><img src="docs/forest.png" alt="A forest of a few hundred days, at golden hour by the lake"></p>
 
-**[Get it on AnkiWeb](https://ankiweb.net/shared/info/XXXXXXXXXX)** · add-on code `XXXXXXXXXX`
+**[Get it on AnkiWeb](https://ankiweb.net/shared/info/1255432496)** · add-on code `1255432496`
 
 ## How it works
 
