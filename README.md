@@ -1,6 +1,6 @@
 # Memory Forest
 
-**A pixel-art forest that grows from your Anki study history.** Every day you learn new
+**A forest that grows from your Anki study history.** Every day you learn new
 cards plants a tree below your deck list. Trees grow as those cards settle into memory,
 and turn a little yellow when you start to forget them. There is nothing to click and
 nothing to manage: just study, and watch it grow.
@@ -24,6 +24,9 @@ So the forest is a picture of what you know: its size is how much you have learn
 its colour is how well you remember it. Take a week off and a pond appears where the
 missing days would be. Keep studying and animals move in, and after a year a little
 cabin appears at the edge of the woods.
+
+<p align="center"><img src="docs/hover.png" alt="The tooltip on a yellowing tree: its day, its cards, how much is remembered, and how many are being relearned"><br>
+<i>Point at any tree to see its day, and how well you remember it.</i></p>
 
 ## Presets
 
