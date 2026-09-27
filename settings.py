@@ -59,7 +59,8 @@ DECK_OPTIONS = [("highlight", "The main forest, with that deck's trees lit"), ("
 ABOUT = """<b>This is your forest.</b><br><br>
 One tree for every day you have learned new cards: today's is the seedling at the front,
 and the oldest stands at the back. Trees grow as those cards settle into memory, and take
-on a few yellow leaves when some of them slip.<br><br>
+on a few yellow leaves when some of them slip. Days of reviews alone plant no tree,
+but they keep yours healthy.<br><br>
 Real weather comes from <a href="https://open-meteo.com/">Open-Meteo</a>."""
 
 

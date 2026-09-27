@@ -18,10 +18,10 @@ Every day you learn new cards, a tree is planted. It starts as a seedling and gr
 you come to know those cards: within a few weeks it is a young tree, and the days you know
 best keep growing for years, into ancient giants.
 If you start forgetting a day's cards, its tree gets a few yellow leaves, and they turn
-green again once you relearn them. Trees never die.
+green again once you relearn them. Trees never die. Days when you only review don't plant a tree, but they keep the ones you have healthy.
 
 So the forest is a picture of what you know: its size is how much you have learned, and
-its colour is how well you remember it. Take a week off and a pond appears where the
+its colour is how well you remember it. Take two weeks off and a pond appears where the
 missing days would be. Keep studying and animals move in, and after a year a little
 cabin appears at the edge of the woods.
 
