@@ -205,6 +205,14 @@ class StatsTests(unittest.TestCase):
         self.assertNotIn("gap", trees[0])
         self.assertEqual(trees[1]["gap"], 14)
 
+    def test_a_week_off_is_a_pond_and_a_long_weekend_is_not(self):
+        for away, pond in ((fd.BREAK_DAYS - 1, False), (fd.BREAK_DAYS, True)):
+            cards = [card(1, s=30), card(2, s=30)]
+            back = away + 2  # the first day, the days away, then the day you came back
+            fl = {1: (ms(back), ms(1)), 2: (ms(1), ms(1))}
+            trees = fd.build_forest(rows(cards, fl, review_days={back, 1, 0}), CUTOFF, TODAY)["trees"]
+            self.assertEqual("gap" in trees[1], pond, f"{away} days away")
+
     def test_visitors_and_arrivals(self):
         s = {"trees": 50, "longest_streak": 30, "streak": 30, "reviews": 10_020, "today_reviews": 40,
              "ancient": 0, "forest_age": 100, "planted_today": True}

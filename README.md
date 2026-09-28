@@ -21,7 +21,7 @@ If you start forgetting a day's cards, its tree gets a few yellow leaves, and th
 green again once you relearn them. Trees never die. Days when you only review don't plant a tree, but they keep the ones you have healthy.
 
 So the forest is a picture of what you know: its size is how much you have learned, and
-its colour is how well you remember it. Take two weeks off and a pond appears where the
+its colour is how well you remember it. Take a week off and a pond appears where the
 missing days would be. Keep studying and animals move in, and after a year a little
 cabin appears at the edge of the woods.
 

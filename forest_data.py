@@ -46,9 +46,9 @@ DEFAULT_DECAY = 0.5
 # Stability is the number of days until recall falls to this.
 STABILITY_RECALL = 0.9
 
-# A break has to be long enough to be worth marking: a fortnight away shows as a pond
-# and a gap in the planting, a long weekend does not.
-BREAK_DAYS = 14
+# A break has to be long enough to be worth marking: a week away shows as a pond and a
+# gap in the planting, a long weekend does not.
+BREAK_DAYS = 7
 
 # Trees drawn one by one. Older ones become the deep forest at the back: a few receding
 # bands of canopy instead of hundreds of sprites. At a tree a day this keeps well over a

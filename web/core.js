@@ -48,6 +48,8 @@ const colWidth = env => SLOT_SPAN * env.W / (env.layout.perRow + 0.5);
 /* ---------- layout constants ---------- */
 // a pond takes one slot per this many days of the break, within these bounds
 const POND_DAYS_PER_SLOT = 10, POND_SLOTS = [2, 4];
+// ponds keep this many rows apart, so their water never meets
+const POND_APART = 3;
 const TREE_VARIANTS = 4;
 // trees per row grow with the square root of the forest, within bounds; a very big
 // forest gets wider rows so it does not recede forever
@@ -78,37 +80,63 @@ AF.layout = function (trees) {
   trees.forEach((t, i) => {
     if (t.gap) {
       const slots = clamp(Math.ceil(t.gap / POND_DAYS_PER_SLOT), POND_SLOTS[0], POND_SLOTS[1]);
-      for (let k = 0; k < slots; k++) items.push({ pond: true, days: t.gap, slots, first: k === 0, seed: (t.seed ^ (k * 7919 + 17)) >>> 0 });
+      for (let k = 0; k < slots; k++) items.push({ pond: true, group: i, days: t.gap, slots, first: k === 0, seed: (t.seed ^ (k * 7919 + 17)) >>> 0 });
     }
     items.push(Object.assign({}, t, { index: i, variant: t.seed % TREE_VARIANTS }));
   });
   const n = items.length, perRow = clamp(Math.round(Math.sqrt(n) * ROW_SPREAD), ROW_MIN, n > BIG_FOREST_ITEMS ? ROW_MAX_BIG : ROW_MAX);
   // ponds never split across rows and keep the two cells in front clear, so they stay visible
-  const reserved = new Set(); let cell = 0;
+  const reserved = new Set(), water = new Set(); let cell = 0;
   const free = c => { while (reserved.has(c)) c++; return c; };
-  items.forEach(it => {
-    cell = free(cell);
-    if (it.pond && it.first) {
-      // a pond is drawn as one ellipse across its slots, so they have to be consecutive
-      // cells on one row: walk on until that many free cells fit before the row ends
-      while (true) {
-        let run = 0;
-        while (run < it.slots && !reserved.has(cell + run) && (cell + run) % perRow >= cell % perRow) run++;
-        if (run >= it.slots) break;
-        cell = free(cell + run + 1);
-      }
+  // no other pond within POND_APART rows either way, nor a column beyond either end: a
+  // pond reaches over the rows beside it and the rows are staggered, so diagonal
+  // neighbours would touch
+  const crowded = (c, slots) => {
+    const r = Math.floor(c / perRow), c0 = c % perRow;
+    for (let dr = -POND_APART; dr <= POND_APART; dr++) for (let dc = -1; dc <= slots; dc++) {
+      const cc = c0 + dc;
+      if (cc >= 0 && cc < perRow && water.has((r + dr) * perRow + cc)) return true;
     }
+    return false;
+  };
+  // a pond is drawn as one ellipse across its slots, so they have to be consecutive free
+  // cells on one row, clear of other ponds
+  const fits = (c, slots) => {
+    for (let k = 0; k < slots; k++) if (reserved.has(c + k) || (c + k) % perRow < c % perRow) return false;
+    return !crowded(c, slots);
+  };
+  const put = it => {
     it.cell = cell;
     // keep the two cells in front of a pond clear so it stays visible, and the one
     // behind it too: the break should read as a gap in the planting, not a full row
     if (it.pond) {
+      water.add(cell);
       const r = Math.floor(cell / perRow), c = cell % perRow;
       reserved.add((r + 1) * perRow + c);
       reserved.add((r + 2) * perRow + c);
       if (it.first && c > 0) reserved.add(cell - 1);
     }
     cell++;
-  });
+  };
+  // A pond with no room where it falls waits, and the trees after it fill the planting
+  // until there is room: it lands a few trees late rather than leaving holes behind it.
+  const units = [], waiting = [];
+  items.forEach(it => { if (it.pond && !it.first) units[units.length - 1].push(it); else units.push([it]); });
+  const tryWaiting = () => {
+    for (let k = 0; k < waiting.length; k++) {
+      cell = free(cell);
+      if (fits(cell, waiting[k].length)) { waiting.splice(k, 1)[0].forEach(put); k = -1; }
+    }
+  };
+  for (const unit of units) {
+    tryWaiting();
+    cell = free(cell);
+    if (!unit[0].pond) put(unit[0]);
+    else if (fits(cell, unit.length)) unit.forEach(put);
+    else waiting.push(unit);
+  }
+  // any still waiting go past the last tree, where there is always room
+  for (const unit of waiting) { cell = free(cell); while (!fits(cell, unit.length)) cell = free(cell + 1); unit.forEach(put); }
   const rows = Math.max(1, Math.ceil(cell / perRow)), single = rows === 1;
   items.forEach((it, i) => {
     const row = Math.floor(it.cell / perRow), col = it.cell % perRow, r = rng(it.seed || i + 1);
@@ -376,7 +404,7 @@ AF.placeVisitors = function (env) {
       const spr = VISITORS[key], v = list.find(x => x.key === key), frame = spr.frames[inForest[key].graze ? 1 : 0];
       let x0, y0;
       if (key === 'owl') { const h = AF.STAGE_H[p.it.stage] * env.u * p.s; x0 = Math.round(p.x - 2); y0 = Math.round(p.y - h - frame.length + 3); }
-      else if (key === 'heron') { x0 = Math.round(p.x + (p.it.slots - 0.5) * colWidth(env) * p.s * 0.5); y0 = Math.round(p.y - frame.length + 1); }
+      else if (key === 'heron') { const b = AF.pondBox(env, p); x0 = Math.round(b.cx + b.w * 0.2); y0 = Math.round(b.cy - frame.length + 1); }
       else { x0 = Math.round(p.x + 4); y0 = Math.round(p.y - frame.length + 1); }
       paintSprite(lg, frame, x0, y0, spr.pal, visitorColor(env, p.hz));
       if (key === 'owl' && env.mood.time === 'night') { lg.fillStyle = '#f7e27a'; lg.fillRect(x0 + 1, y0 + 2, 1, 1); lg.fillRect(x0 + 3, y0 + 2, 1, 1); }
@@ -426,12 +454,50 @@ const POND_OVERHANG = 1.05, POND_MIN_W = 8, POND_MIN_H = 5, POND_ASPECT = 0.34, 
 // puddles sit in the widest gaps of the front row: at most MAX_PUDDLES, between
 // PUDDLE_MIN_W and PUDDLE_MAX_W wide (in env.u), PUDDLE_ASPECT as deep as wide
 const MAX_PUDDLES = 4, PUDDLE_MIN_W = 4, PUDDLE_MAX_W = 8, PUDDLE_ASPECT = 0.3;
+// a pond reaches back POND_BACK of its depth behind its own row and is at most POND_ROWS
+// row gaps deep, so it stays within the two rows kept clear in front of it; a forest
+// too young for a second row gives it POND_LONE_ROW of the ground instead
+const POND_BACK = 0.35, POND_ROWS = 2.2, POND_LONE_ROW = 0.2, POND_SKY_GAP = 2;
+// a front-row pond may spill this far (of the canvas height) past the last row's line,
+// which still keeps it off a lake's or a river's shore
+const POND_FRONT_SPILL = 0.02;
+// where the rows are squeezed tight a pond may lie as flat as this (in pixels), not to touch the next
+const POND_FLAT_H = 3;
+/* Where a pond's water lies, which its drawing, its hover and anything floating on it all go by.
+ * It spans its own slots and no more: a young forest's zoom enlarges the trees, not the
+ * water, or the ponds at the back swell up over the horizon. It never crosses the horizon
+ * nor runs off the bottom of the ground. */
+AF.pondBox = function (env, p) {
+  const { u, H } = env, it = p.it, persp = p.s / env.layout.zoom;
+  // a landscape that squeezes the rows onto its own ground narrows the slots too:
+  // measure one slot where this pond stands, on the nearer side of any gap it squeezes out
+  const land = AF.landOf(env), step = 1 / (env.layout.perRow + 0.5);
+  const at_x = x => land.placeX ? land.placeX(Object.assign({}, it, { x })) : x;
+  const squeeze = land.placeX ? Math.min(Math.abs(at_x(it.x + step) - at_x(it.x)), Math.abs(at_x(it.x) - at_x(it.x - step))) / step : 1;
+  const colW = colWidth(env) * squeeze;
+  const xs = env.placed.filter(q => q.it.pond && q.it.group === it.group).map(q => q.x);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const top = env.hor + H * ROWS_TOP, bot = H * (env.bot || GROUND_BOTTOM);
+  // the gap to the row in front, or for the front row the one behind it
+  const at = d => Math.pow(clamp(d, 0, 1), 1.1), g = it.rowGap;
+  const rowStep = g ? (bot - top) * Math.max(at(it.depth + g) - at(it.depth), at(it.depth) - at(it.depth - g)) : (bot - top) * POND_LONE_ROW;
+  const w = Math.max(POND_MIN_W * u * persp, it.slots * colW * POND_OVERHANG * persp);
+  let h = Math.min(Math.max(POND_MIN_H, w * POND_ASPECT), Math.max(POND_FLAT_H, rowStep * POND_ROWS), bot - env.hor - POND_SKY_GAP);
+  // hung from its row's own line rather than its slot's jittered one, so ponds a few rows
+  // apart keep the rows between them clear
+  const rowY = g ? top + (bot - top) * at(it.depth) : p.y;
+  let y0 = Math.max(env.hor + POND_SKY_GAP, rowY - h * POND_BACK);
+  // near the front a pond lies flatter rather than rising into the pond behind it; it only
+  // moves up once it is as flat as a pond gets
+  const floor = bot + H * POND_FRONT_SPILL;
+  h = Math.max(POND_FLAT_H, Math.min(h, floor - y0));
+  y0 = Math.min(y0, floor - h);
+  return { cx, cy: y0 + h / 2, w, h, x0: cx - w / 2, x1: cx + w / 2, y0, y1: y0 + h };
+};
 AF.drawPond = function (g, env, p) {
   if (!p.it.first) return;
-  const th = env.theme, u = env.u, colW = colWidth(env);
-  const w = Math.max(POND_MIN_W * u, p.it.slots * colW * POND_OVERHANG) * p.s, h = Math.max(POND_MIN_H, w * POND_ASPECT);
+  const th = env.theme, { cx, cy, w, h } = AF.pondBox(env, p);
   const water = hex((th.frozen ? '#dfe8f0' : th.water) || DEFAULT_WATER);
-  const cx = p.x + (p.it.slots - 1) * 0.5 * colW, cy = p.y - h * 0.3;
   const hz = p.hz * (th.hzStep || 0.1) * 3, c0 = mix(water, hex(th.haze), hz), c1 = mix(c0, [255, 255, 255], 0.45), deep = mix(c0, [0, 0, 0], th.frozen ? 0.06 : 0.18), edge = mix(hex(th.g1), [0, 0, 0], 0.2);
   ellipseFill(g, cx, cy, w, h, (q, x, y) => q > 0.8 ? edge : y < cy - h * 0.2 ? deep : ((x * 3 + y * 7) % 11 === 0 ? c1 : c0));
   const R = rng(p.it.seed), reed = th.snow ? '#8a9a8a' : '#2f4a2a', tip = '#8a6a3a';
@@ -602,8 +668,8 @@ AF.mount = function (root, data, opts) {
       const p = env.placed[i];
       if (p.it.pond) {
         if (!p.it.first) continue;
-        const colW = colWidth(env), cx = p.x + (p.it.slots - 1) * 0.5 * colW;
-        if (Math.abs(mx - cx) < p.it.slots * colW * 0.6 && Math.abs(my - p.y) < 4 * env.u) return { p, pond: true };
+        const b = AF.pondBox(env, p);
+        if (((mx - b.cx) / (b.w / 2)) ** 2 + ((my - b.cy) / (b.h / 2)) ** 2 <= 1) return { p, pond: true };
         continue;
       }
       const b = boxOf(p);
