@@ -29,7 +29,7 @@ ADDON = os.path.dirname(HERE)
 # machine, after upload.
 INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py"))) + (
     "config.json", "manifest.json")
-INCLUDE_DIRS = ("web",)  # walked, so web/envs, web/landscapes and web/landmarks come too
+INCLUDE_DIRS = ("settings", "web")  # walked, so web/envs, web/landscapes and web/landmarks come too
 
 # The shipped defaults: the debug tools (the made-up test forest) stay on this machine.
 RELEASE_CONFIG = {"debug": False, "test_forest": False}

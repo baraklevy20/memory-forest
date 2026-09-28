@@ -32,6 +32,8 @@ sys.path.insert(0, ADDON)
 
 import datetime as dt
 
+import catalog
+import fake_forest
 import forest_data
 import presets
 import scene
@@ -55,7 +57,7 @@ SETTLE_MS, SETTLE_TRIES = 300, 60
 
 
 def scripts() -> str:
-    files = ["core.js", "effects.js", "engines/pixel.js"]
+    files = list(catalog.SCRIPTS)
     for kind in ("envs", "landscapes", "landmarks"):
         d = os.path.join(WEB, kind)
         if os.path.isdir(d):  # a kind can be removed wholesale by deleting its folder
@@ -107,7 +109,7 @@ def scenes(quick: bool) -> list:
 def page(name: str, cfg: dict, n: int) -> str:
     cfg.setdefault("landmark", "none")
     mood = scene.choose_mood(cfg, NOW)
-    f = forest_data.merge_old(forest_data.fake_forest(n))
+    f = forest_data.merge_old(fake_forest.make(n))
     data = {"trees": f["trees"], "stats": f["stats"], "visitors": f["visitors"], "merged": f.get("merged"),
             "forestSeed": f["forest_seed"], "anniversaries": [0] if n > 2 else [], "events": [], "journal": "",
             "mood": mood, "environmentName": name, "animations": False,

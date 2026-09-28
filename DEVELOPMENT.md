@@ -3,21 +3,41 @@
 ## Layout
 
 ```
-__init__.py      Anki hooks, caching, background weather refresh, click-to-browse
-settings.py      the settings dialog (changes apply immediately)
+__init__.py      connects the add-on to Anki: the hooks, and nothing else
+panel.py         the forest panel's HTML and scripts, and redrawing it in place
+payload.py       what a panel is drawn from: cached trees, the day's scene, weather
+actions.py       clicks (settings, browse a tree's cards) and the deck gear menu
+planting.py      the "a new tree was planted" message
+state.py         the config, and what is remembered per profile in user_files/
+settings/        the settings dialog: dialog.py, and one file per tab (changes apply immediately)
 presets.py       the ready-made scenes the dialog offers
-forest_data.py   SQL rows → trees, stats, visitors (no aqt; unit-tested)
+study_log.py     what is read from the collection: cards, review log, Anki days (no aqt)
+forest_data.py   rows → trees, stages, health, ponds and stats (no aqt; unit-tested)
+memory.py        the FSRS forgetting curve (no aqt)
+milestones.py    the animals that move in, and anniversaries (no aqt)
+fake_forest.py   the made-up test forest, for debug (no aqt)
 scene.py         environment/weather/time selection, moon phase, journal
 weather.py       Open-Meteo geocoding + forecast, JSON cache in user_files/
 store.py         the small JSON files under user_files/, written atomically
-web/core.js      layout, themes, runner, tooltips, visitors, ponds
+catalog.py       what this copy can draw, read from the files under web/, and the
+                 scripts every forest loads, in order
+web/util.js      shared helpers; makes window.AnkiForest, so it loads first
+web/layout.js    where the trees, ponds and deep forest stand
+web/scenery.js   the registries environments, landscapes and landmarks add themselves to
+web/theme.js     times of day, and the theme the weather and your numbers make of them
+web/visitors.js  the milestone animals and the cabin
+web/ponds.js     ponds and puddles
+web/tooltips.js  what hovering says
+web/caption.js   the line of numbers under the forest
+web/core.js      the scene runner: mount, draw each frame, hover and click, swap
 web/effects.js   clouds, rain, snow, fireflies, birds, wind…
-web/engines/pixel.js   sky, ground, landscapes, tree sprites and palettes
-catalog.py       what this copy can draw, read from the files under web/
+web/engines/pixel/   the pixel engine: trees.js (sprites, palettes), sky.js, ground.js
+                     (ground, landmark, deep forest), water.js, engine.js (puts it together)
 web/envs/*.js        one file per environment: its look, trees, scenery and effects
 web/envs/*.json      ... and beside it, its label and its preset
 web/landscapes/      one .js and one .json per landscape
 web/landmarks/       one .js and one .json per landmark
+tests/           one test file per module, sharing tests/helpers.py
 dev/             packaging, previews and the render checks
 ```
 

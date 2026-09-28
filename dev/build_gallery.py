@@ -20,8 +20,6 @@ import catalog
 import presets as presets_mod
 import scene
 
-# the gallery shows every environment on one page, so it loads them all
-SCRIPTS = ("core.js", "effects.js", "engines/pixel.js")
 BIG_FOREST = 1000  # trees in the second run of presets
 MAX_WIDTH = 1000
 
@@ -53,6 +51,7 @@ for (const [group, items] of window.SCENE_LIST) {
 def scene_list() -> list:
     import datetime as dt
 
+    import fake_forest
     import forest_data
     now = dt.datetime(2026, 9, 19, 12)
 
@@ -63,7 +62,7 @@ def scene_list() -> list:
         return [title, label, mood, scene.ENVIRONMENTS[mood["environment"]], extra or {}]
 
     def fake(n, **cfg):
-        f = forest_data.merge_old(forest_data.fake_forest(n))
+        f = forest_data.merge_old(fake_forest.make(n))
         return item(f"{n} trees (test forest)", {"trees": f["trees"], "stats": f["stats"], "visitors": f["visitors"],
                                                  "merged": f.get("merged"), "forestSeed": f["forest_seed"], "testForest": True}, **cfg)
 
@@ -120,7 +119,7 @@ def main() -> None:
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "gallery.html")
     with open(os.path.join(HERE, "payload.js"), encoding="utf-8") as f:
         payload = f.read()
-    js = "\n".join(open(os.path.join(WEB, s), encoding="utf-8").read() for s in list(SCRIPTS) + env_scripts())
+    js = "\n".join(open(os.path.join(WEB, s), encoding="utf-8").read() for s in list(catalog.SCRIPTS) + env_scripts())
     css = open(os.path.join(WEB, "forest.css"), encoding="utf-8").read()
     data = json.loads(re.match(r"window\.PAYLOAD = (.*);\s*$", payload, re.S).group(1))
     html = (PAGE.replace("%CSS%", css).replace("%TREES%", str(data["stats"]["trees"]))

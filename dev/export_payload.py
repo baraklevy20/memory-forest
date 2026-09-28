@@ -23,7 +23,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
 import forest_data
+import memory
+import milestones
 import scene
+import study_log
 
 DEFAULT_ROLLOVER_HOUR = 4  # Anki's own default, for a collection that never set one
 MAX_WIDTH = 900
@@ -61,17 +64,17 @@ def main() -> None:
     rollover = int(db.scalar("select val from config where key = 'rollover'") or DEFAULT_ROLLOVER_HOUR)
     crt = int(db.scalar("select crt from col"))
     cutoff = day_cutoff(rollover)
-    today = (cutoff - crt) // forest_data.DAY_SECS - 1
+    today = (cutoff - crt) // study_log.DAY_SECS - 1
 
     started = time.perf_counter()
-    rows = forest_data.load_rows(db, cutoff)
+    rows = study_log.load_rows(db, cutoff)
     forest = forest_data.merge_old(forest_data.build_forest(rows, cutoff, today, time.time()))
     took = (time.perf_counter() - started) * 1000
 
     now = dt.datetime.now()
     cfg = {}
     mood = scene.choose_mood(cfg, now)
-    ann = forest_data.anniversaries(forest["trees"], now.date())
+    ann = milestones.anniversaries(forest["trees"], now.date())
     payload = {
         "trees": forest["trees"], "stats": forest["stats"], "visitors": forest["visitors"], "anniversaries": ann, "merged": forest.get("merged"),
         "mood": mood, "journal": scene.journal(forest, mood, now.date(), ann),
@@ -79,7 +82,7 @@ def main() -> None:
     }
     with open(os.path.join(HERE, "payload.js"), "w", encoding="utf-8") as f:
         f.write("window.PAYLOAD = " + json.dumps(payload, ensure_ascii=False) + ";\n")
-    fsrs = sum(1 for c in rows.cards if forest_data._stability(c[4]) is not None)
+    fsrs = sum(1 for c in rows.cards if memory.stability(c[4]) is not None)
     print(f"{len(forest['trees'])} trees from {len(rows.cards)} cards ({fsrs} with FSRS stability) in {took:.0f} ms")
     print("stats:", json.dumps(forest["stats"]))
     print("visitors:", [v["key"] for v in forest["visitors"]])
