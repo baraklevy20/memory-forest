@@ -8,6 +8,8 @@
     "animations": true,
     "planting_tooltip": true,
     "deck_forest_mode": "highlight",
+    "excluded_decks": [],
+    "ignore_before": "",
     "max_width": 800,
     "debug": false,
     "test_forest": false,

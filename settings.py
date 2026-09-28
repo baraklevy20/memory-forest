@@ -1,15 +1,20 @@
 """The forest's settings dialog. Every change is saved and redrawn immediately, so the
 forest behind the dialog doubles as the preview; Cancel puts everything back.
 
-Three tabs: General (a preset, the real sky, animation, the planting message), Fine-tuning
-(the five settings a preset fills in, and the rarer ones), and About."""
+Four tabs: General (a preset, the real sky, animation, the planting message), Fine-tuning
+(the five settings a preset fills in, and the rarer ones), History (which decks and days
+the forest grows from), and About."""
 
 from __future__ import annotations
+
+import datetime as _dt
 
 from aqt import mw
 from aqt.qt import (
     QCheckBox,
     QComboBox,
+    QDate,
+    QDateEdit,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -22,6 +27,8 @@ from aqt.qt import (
     Qt,
     QTabWidget,
     QTimer,
+    QTreeWidget,
+    QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -55,6 +62,11 @@ APPLY_DEBOUNCE_MS = 250
 # a new city is looked up in the background; check back for a problem after this long
 CITY_RECHECK_MS = 4000
 DECK_OPTIONS = [("highlight", "The main forest, with that deck's trees lit"), ("own", "Their own forest, grown from that deck"), ("off", "No forest")]
+
+DECK_ROLE = Qt.ItemDataRole.UserRole
+DATE_FORMAT = "d MMMM yyyy"
+DECKS_NOTE = "Unticked decks are left out of the forest. Tick them again anytime to bring them back."
+SINCE_NOTE = "The forest starts over from this day. Untick it anytime to bring the rest back."
 
 ABOUT = """<b>This is your forest.</b><br><br>
 One tree for every day you have learned new cards: today's is the seedling at the front,
@@ -188,13 +200,43 @@ class SettingsDialog(QDialog):
             fv.addWidget(_group("Debug", dv))
         fv.addStretch(1)
 
+        # --- History: which decks and days the forest grows from
+        self.excluded = set()
+        for did in cfg.get("excluded_decks") or []:
+            try:
+                self.excluded.add(int(did))
+            except (TypeError, ValueError):
+                pass
+        self.decks = QTreeWidget()
+        self.decks.setHeaderHidden(True)
+        self._fill_decks()
+        since = None
+        try:
+            since = _dt.date.fromisoformat(str(cfg.get("ignore_before") or ""))
+        except ValueError:
+            pass
+        self.since_on = QCheckBox("Leave out everything before")
+        self.since_on.setChecked(since is not None)
+        self.since = QDateEdit()
+        self.since.setCalendarPopup(True)
+        self.since.setDisplayFormat(DATE_FORMAT)
+        self.since.setMaximumDate(QDate.currentDate())
+        self.since.setDate(QDate(since.year, since.month, since.day) if since else QDate.currentDate())
+        deck_box = QVBoxLayout(); deck_box.addWidget(self.decks); deck_box.addWidget(_hint(DECKS_NOTE))
+        sv = QVBoxLayout()
+        since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
+        sv.addLayout(since_row); sv.addWidget(_hint(SINCE_NOTE))
+        history = QWidget(); hv = QVBoxLayout(history)
+        hv.addWidget(_group("Decks", deck_box), 1)
+        hv.addWidget(_group("Start date", sv))
+
         # --- About
         about = QWidget(); av = QVBoxLayout(about)
         text = QLabel(ABOUT); text.setWordWrap(True); text.setTextFormat(Qt.TextFormat.RichText); text.setOpenExternalLinks(True)
         av.addWidget(text); av.addStretch(1)
 
         tabs = QTabWidget()
-        for widget, name in ((general, "General"), (fine, "Fine-tuning"), (about, "About")):
+        for widget, name in ((general, "General"), (fine, "Fine-tuning"), (history, "History"), (about, "About")):
             tabs.addTab(widget, name)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -220,8 +262,48 @@ class SettingsDialog(QDialog):
         self.city.editingFinished.connect(self._changed)
         self.city.editingFinished.connect(lambda: QTimer.singleShot(CITY_RECHECK_MS, self._sync))
         self.max_width.valueChanged.connect(self._changed)
+        self.decks.itemChanged.connect(self._deck_toggled)
+        self.since_on.toggled.connect(self._changed)
+        self.since.dateChanged.connect(self._changed)
         self._reverting = True  # Cancel and shutdown put the old config back; Restore defaults must not
         self._sync()
+
+    def _fill_decks(self) -> None:
+        """The deck tree, one checkbox a deck; filtered decks only borrow cards, so they
+        are not in it."""
+        items: dict = {}
+        for deck in mw.col.decks.all_names_and_ids(include_filtered=False):
+            parent, _sep, leaf = deck.name.rpartition("::")
+            item = QTreeWidgetItem([leaf])
+            item.setData(0, DECK_ROLE, deck.id)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            (items[parent] if parent in items else self.decks.invisibleRootItem()).addChild(item)
+            items[deck.name] = item
+        self._paint_decks()
+
+    def _paint_decks(self) -> None:
+        """Tick every deck that counts. Under an unticked one, its subdecks are unticked
+        and greyed out, but each keeps its own choice for when the parent comes back."""
+        def paint(item, parent_off: bool) -> None:
+            off = parent_off or item.data(0, DECK_ROLE) in self.excluded
+            item.setCheckState(0, Qt.CheckState.Unchecked if off else Qt.CheckState.Checked)
+            item.setDisabled(parent_off)
+            for i in range(item.childCount()):
+                paint(item.child(i), off)
+        self.decks.blockSignals(True)
+        root = self.decks.invisibleRootItem()
+        for i in range(root.childCount()):
+            paint(root.child(i), False)
+        self.decks.blockSignals(False)
+
+    def _deck_toggled(self, item, _column) -> None:
+        did = item.data(0, DECK_ROLE)
+        if item.checkState(0) == Qt.CheckState.Checked:
+            self.excluded.discard(did)
+        else:
+            self.excluded.add(did)
+        self._paint_decks()
+        self._changed()
 
     def _look_values(self) -> dict:
         return {"environment": self.environment.currentData(), "landscape": self.landscape.currentData(),
@@ -272,6 +354,7 @@ class SettingsDialog(QDialog):
         else:
             self.city_status.setVisible(bool(problem))
         self.trees.setEnabled(self.test.isChecked()); self.trees_box.setEnabled(self.test.isChecked())
+        self.since.setEnabled(self.since_on.isChecked())
 
     def _changed(self, *_args) -> None:
         self._sync()
@@ -288,6 +371,9 @@ class SettingsDialog(QDialog):
             "planting_tooltip": self.planting.isChecked(),
             "deck_forest_mode": self.deck_mode.currentData(),
             "max_width": self.max_width.value(),
+            # only decks that still exist, so a deleted one doesn't linger
+            "excluded_decks": sorted(self.excluded & {d.id for d in mw.col.decks.all_names_and_ids(include_filtered=False)}),
+            "ignore_before": self.since.date().toString("yyyy-MM-dd") if self.since_on.isChecked() else "",
             "test_forest": self.test.isChecked(),
             "test_trees": self.trees_box.value(),
         })

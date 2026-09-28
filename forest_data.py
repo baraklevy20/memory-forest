@@ -90,17 +90,28 @@ class Rows:
     today_reviews: int
 
 
-def load_rows(db, day_cutoff: int, dids: list | None = None) -> Rows:
+def load_rows(db, day_cutoff: int, dids: list | None = None,
+              excluded: Iterable | None = None, since: int | None = None) -> Rows:
     """Fetch rows with a DB object exposing .all(sql, *args) and .scalar(sql, *args).
 
     With `dids`, only cards in those decks (a deck and its subdecks) and their reviews count.
+    With `excluded`, cards whose home deck is one of those don't, and neither do their
+    reviews; reviews of deleted cards still do, having no deck left to be excluded by.
+    With `since` (a timestamp in seconds), nothing from before it counts: no review, and no
+    card first studied before it, since its tree would stand before the forest begins.
     Works with Anki's mw.col.db and with the small sqlite3 wrapper in dev/.
     """
     ids = ",".join(str(int(d)) for d in dids) if dids else ""
+    out = ",".join(str(int(d)) for d in excluded) if excluded else ""
     # a card borrowed by a filtered deck has its home deck in odid, which is what
     # Anki's own deck: search follows
-    in_decks = f" and (c.did in ({ids}) or c.odid in ({ids}))" if dids else ""
-    only = f" and cid in (select id from cards c where 1{in_decks})" if dids else ""
+    home = "coalesce(nullif(c.odid, 0), c.did)"
+    in_decks = (f" and (c.did in ({ids}) or c.odid in ({ids}))" if ids else "") + (f" and {home} not in ({out})" if out else "")
+    only = ((f" and cid in (select id from cards c where c.did in ({ids}) or c.odid in ({ids}))" if ids else "")
+            + (f" and cid not in (select id from cards c where {home} in ({out}))" if out else ""))
+    since_ms = int(since) * 1000 if since else 0
+    # every query but the first-and-last one, which needs a card's whole history to date it
+    after = only + (f" and id >= {since_ms}" if since_ms else "")
     cards = db.all(
         "select c.id, c.type, c.queue, c.ivl, c.data "
         "from cards c "
@@ -113,22 +124,24 @@ def load_rows(db, day_cutoff: int, dids: list | None = None) -> Rows:
             f"where ease > 0 and type in {STUDY_TYPES}{only} group by cid"
         )
     }
+    if since_ms:
+        cards = [row for row in cards if first_last.get(row[0], (row[0],))[0] >= since_ms]
     lapse_since_ms = (day_cutoff - LAPSE_WINDOW_DAYS * DAY_SECS) * 1000
     recent_lapses = {
-        row[0] for row in db.all(f"select distinct cid from revlog where type = 1 and ease = 1 and id > ?{only}", lapse_since_ms)
+        row[0] for row in db.all(f"select distinct cid from revlog where type = 1 and ease = 1 and id > ?{after}", lapse_since_ms)
     }
     review_days = {
         row[0]
         for row in db.all(
             f"select distinct (? - 1 - id / 1000) / {DAY_SECS} from revlog "
-            f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}",
+            f"where ease > 0 and type in {STUDY_TYPES} and id < ?{after}",
             day_cutoff,
             day_cutoff * 1000,
         )
     }
-    total = db.scalar(f"select count() from revlog where ease > 0 and type in {STUDY_TYPES}{only}") or 0
+    total = db.scalar(f"select count() from revlog where ease > 0 and type in {STUDY_TYPES}{after}") or 0
     today = db.scalar(
-        f"select count() from revlog where ease > 0 and type in {STUDY_TYPES} and id >= ?{only}",
+        f"select count() from revlog where ease > 0 and type in {STUDY_TYPES} and id >= ?{after}",
         (day_cutoff - DAY_SECS) * 1000,
     ) or 0
     return Rows(cards, first_last, recent_lapses, review_days, total, today)
@@ -172,6 +185,12 @@ def days_ago(ts_seconds: float, day_cutoff: int) -> int:
 def day_date(days: int, day_cutoff: int) -> _dt.date:
     """Calendar date of an Anki day (the day that ends at the matching cutoff)."""
     return _dt.datetime.fromtimestamp(day_cutoff - days * DAY_SECS - DAY_SECS // 2).date()
+
+
+def day_start(date: _dt.date, day_cutoff: int) -> int:
+    """When the Anki day on this calendar date began: at the rollover hour, not midnight."""
+    days = (day_date(0, day_cutoff) - date).days
+    return day_cutoff - (days + 1) * DAY_SECS
 
 
 _S_RE = re.compile(r'"s"\s*:\s*(-?[0-9.]+(?:[eE][-+]?\d+)?)')

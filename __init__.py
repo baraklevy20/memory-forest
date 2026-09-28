@@ -88,21 +88,50 @@ def _save_state(state: dict) -> None:
         pass
 
 
+def excluded_decks(cfg: dict | None = None) -> set:
+    """Every deck left out of the forest: the ones unticked in the settings and all their
+    subdecks, found afresh each time, so a deck made or moved under one later is out too."""
+    out = set()
+    for did in (cfg if cfg is not None else config()).get("excluded_decks") or []:
+        try:
+            out.update(mw.col.decks.deck_and_child_ids(int(did)))
+        except Exception:  # a hand edit, or a deck deleted since
+            continue
+    return out
+
+
+def _since(cfg: dict) -> int | None:
+    """When the forest begins (the Ignore before setting), as a timestamp, or None."""
+    try:
+        date = _dt.date.fromisoformat(str(cfg.get("ignore_before") or ""))
+    except ValueError:
+        return None
+    return forest_data.day_start(date, mw.col.sched.day_cutoff)
+
+
+def _deck_ids(did: int, excluded: set) -> list:
+    """A deck and its subdecks, less those left out of the forest."""
+    return [d for d in mw.col.decks.deck_and_child_ids(did) if d not in excluded]
+
+
 def _forest(did: int | None = None) -> dict:
     """Forest data for the whole collection, or one deck and its subdecks. Recomputed
-    only when the collection or the day changes."""
+    only when the collection, the day or the decks and dates it counts change."""
     col = mw.col
+    cfg = config()
     cutoff = col.sched.day_cutoff
+    excluded, since = excluded_decks(cfg), _since(cfg)
     mod = getattr(col, "mod", None)
+    key = (mod, cutoff, frozenset(excluded), since)
     cached = _forest_cache.get(did)
-    if mod is not None and cached and cached[0] == (mod, cutoff):
+    if mod is not None and cached and cached[0] == key:
         return cached[1]
     started = time.perf_counter()
-    dids = list(col.decks.deck_and_child_ids(did)) if did else None
-    rows = forest_data.load_rows(col.db, cutoff, dids)
+    dids = _deck_ids(did, excluded) if did else None
+    rows = forest_data.load_rows(col.db, cutoff, dids, excluded=excluded, since=since)
     value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
     _log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
-    _forest_cache[did] = ((mod, cutoff), value)
+    _forest_cache[did] = (key, value)
     return value
 
 
@@ -138,7 +167,9 @@ def _new_ancient_today(forest: dict, today: _dt.date) -> bool:
         _save_state(state)
         return False
     if set(days) - set(known):
-        state.update(ancient_days=days, ancient_event=today.isoformat())
+        # the ones known before stay known: a deck left out and brought back again, or an
+        # earlier start date, must not celebrate its old ancient trees a second time
+        state.update(ancient_days=sorted(set(days) | set(known)), ancient_event=today.isoformat())
         _save_state(state)
     return state.get("ancient_event") == today.isoformat()
 
@@ -148,7 +179,7 @@ def _lit_by_deck(forest: dict, did: int, test: bool) -> dict:
     if test:
         lit = {t["ago"] for t in forest["trees"][::TEST_LIT_EVERY]}
     else:
-        dids = list(mw.col.decks.deck_and_child_ids(did))
+        dids = _deck_ids(did, excluded_decks())
         lit = forest_data.load_deck_days(mw.col.db, mw.col.sched.day_cutoff, dids)
     trees = [dict(t, dim=t["ago"] not in lit) for t in forest["trees"]]
     return dict(forest, trees=trees, lit_count=sum(1 for t in trees if not t["dim"]))
@@ -284,6 +315,8 @@ def on_overview(overview, content) -> None:
         deck = mw.col.decks.current()
         if deck.get("dyn"):  # filtered decks borrow cards from elsewhere; skip them
             return
+        if deck["id"] in excluded_decks(cfg):  # left out of the forest: it has none
+            return
         content.table += _panel_html(deck["id"], highlight=mode == "highlight")
     except Exception:
         _log("could not render the deck forest:\n" + traceback.format_exc())
@@ -301,6 +334,8 @@ def on_answer(reviewer, card, ease) -> None:
         return
     try:
         if mw.col.db.scalar("select count() from revlog where cid = ?", card.id) != 1:
+            return
+        if (card.odid or card.did) in excluded_decks(cfg):  # plants nothing in the forest
             return
         state = _load_state()
         if state.get("last_planted") == today:
@@ -328,7 +363,7 @@ def refresh() -> None:
     elif mw.state == "overview":
         mode = config().get("deck_forest_mode", "highlight")
         deck = mw.col.decks.current()
-        if mode in ("highlight", "own") and not deck.get("dyn"):
+        if mode in ("highlight", "own") and not deck.get("dyn") and deck["id"] not in excluded_decks():
             _swap_or_reload(mw.overview.web, mw.overview.refresh, deck["id"], mode == "highlight")
         else:
             mw.overview.refresh()
@@ -350,6 +385,41 @@ def city_problem(city: str) -> str:
     return _weather.failing(city) if city.strip() else ""
 
 
+def save_config(cfg: dict) -> None:
+    """Write the config, leaving out anything at its default (or no longer an option), so a
+    better default in a later version still reaches people who never changed it."""
+    known = mw.addonManager.addonConfigDefaults(__name__) or {}
+    mw.addonManager.writeConfig(__name__, {k: v for k, v in cfg.items() if k in known and known[k] != v})
+
+
+def on_deck_options_menu(menu, did: int) -> None:
+    """Leave a deck out of the forest, or bring it back, from its gear menu in the deck list."""
+    try:
+        deck = mw.col.decks.get(did, default=False)
+        if not deck or deck.get("dyn"):
+            return
+        cfg = config()
+        mine = [int(d) for d in cfg.get("excluded_decks") or [] if str(d).lstrip("-").isdigit()]
+        if did in mine:
+            action = menu.addAction("Bring back into Memory Forest")
+            action.triggered.connect(lambda: _set_excluded([d for d in mine if d != did]))
+        elif did in excluded_decks(cfg):
+            action = menu.addAction("Left out of Memory Forest with its parent deck")
+            action.setEnabled(False)
+        else:
+            action = menu.addAction("Leave out of Memory Forest")
+            action.triggered.connect(lambda: _set_excluded(mine + [did]))
+    except Exception:
+        _log("could not add to the deck menu:\n" + traceback.format_exc())
+
+
+def _set_excluded(dids: list) -> None:
+    cfg = config()
+    cfg["excluded_decks"] = sorted(set(dids))
+    save_config(cfg)
+    refresh()
+
+
 def open_settings() -> None:
     from .settings import open_settings as _open
 
@@ -363,6 +433,15 @@ def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None
     name = mw.col.decks.name_if_exists(did) if did else None
     if name:  # deck names can hold quotes and colons, so let Anki quote it
         terms.insert(0, mw.col.build_search_string(SearchNode(deck=name)))
+    # the decks left out of the forest planted none of its trees (a deck: search takes
+    # their subdecks with them)
+    for out in config().get("excluded_decks") or []:
+        try:
+            out_name = mw.col.decks.name_if_exists(int(out))
+        except (TypeError, ValueError):
+            continue
+        if out_name:
+            terms.append(mw.col.build_search_string(SearchNode(negated=SearchNode(deck=out_name))))
     browser = dialogs.open("Browser", mw)
     browser.search_for(" ".join(terms))
 
@@ -387,5 +466,6 @@ gui_hooks.deck_browser_will_render_content.append(on_deck_browser)
 gui_hooks.overview_will_render_content.append(on_overview)
 gui_hooks.reviewer_did_answer_card.append(on_answer)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
+gui_hooks.deck_browser_will_show_options_menu.append(on_deck_options_menu)
 mw.addonManager.setConfigAction(__name__, open_settings)
 mw.addonManager.setConfigUpdatedAction(__name__, lambda _cfg: refresh())

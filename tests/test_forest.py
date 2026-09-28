@@ -138,6 +138,57 @@ class DeckFilterTests(unittest.TestCase):
         self.assertEqual(fd.load_deck_days(DB(), CUTOFF, [10]), {5})
 
 
+class HistoryFilterTests(unittest.TestCase):
+    """The History tab: decks left out of the forest, and a day it starts from."""
+
+    def setUp(self):
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        con.executescript("""
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
+            create table revlog (id integer, cid integer, ease integer, type integer);
+            create table notes (id integer, tags text);
+        """)
+        # cid, current deck, home deck, the days it was reviewed on (first one first)
+        for cid, did, odid, days in ((1, 10, 0, (9, 2)), (2, 20, 0, (5,)), (3, 99, 20, (5,)), (4, 10, 0, (3, 1))):
+            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}', 0)", (cid, cid, did, odid))
+            con.execute("insert into notes values (?, '')", (cid,))
+            for d in days:
+                con.execute("insert into revlog values (?, ?, 3, 0)", (ms(d), cid))
+        # a deleted card's review: no card left to say which deck it was in
+        con.execute("insert into revlog values (?, 7, 3, 0)", (ms(4),))
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+            def scalar(self, q, *a): return con.execute(q, a).fetchone()[0]
+        self.db = DB()
+
+    def test_a_left_out_deck_plants_nothing_and_its_reviews_dont_count(self):
+        rows = fd.load_rows(self.db, CUTOFF, excluded=[20])
+        # card 3 sits in a filtered deck, but its home is deck 20, so it goes too
+        self.assertEqual(sorted(c[0] for c in rows.cards), [1, 4])
+        self.assertNotIn(5, rows.review_days)
+        # the deleted card's review stays: 4 reviews of decks 10, and that one
+        self.assertEqual(rows.total_reviews, 5)
+        self.assertIn(4, rows.review_days)
+
+    def test_nothing_before_the_start_date_counts(self):
+        rows = fd.load_rows(self.db, CUTOFF, since=ms(4, hour=4) // 1000)
+        # card 1 was first studied 9 days ago, so its tree would stand before the forest
+        self.assertEqual(sorted(c[0] for c in rows.cards), [4])
+        # ... but a review of it since then still counts as a day of study
+        self.assertEqual(rows.review_days, {1, 2, 3, 4})
+        self.assertEqual(rows.total_reviews, 4)
+        # the cards that remain are dated by their whole history, not from the start date
+        tree = fd.build_forest(rows, CUTOFF, TODAY)["trees"]
+        self.assertEqual([t["ago"] for t in tree], [3])
+
+    def test_the_start_date_begins_at_the_rollover_hour(self):
+        today = fd.day_date(0, CUTOFF)
+        self.assertEqual(fd.day_start(today, CUTOFF), CUTOFF - DAY)
+        self.assertEqual(fd.day_start(today - dt.timedelta(days=3), CUTOFF), CUTOFF - 4 * DAY)
+
+
 class StatsTests(unittest.TestCase):
     def test_streaks_survive_until_today_ends(self):
         self.assertEqual(fd._streaks({1, 2, 3, 10, 11}), (3, 3))
