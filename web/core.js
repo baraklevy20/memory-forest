@@ -533,7 +533,10 @@ AF.fmtStrength = d => d >= DAYS_PER_YEAR ? `${(d / DAYS_PER_YEAR).toFixed(1)} ye
 function tipHtml(t, words) {
   const when = t.ago === 0 ? 'today' : t.ago === 1 ? 'yesterday' : `${t.ago} days ago`;
   const lines = [`<b>${esc(fmtDate(t.date))}</b> · ${esc(words.planted)} ${when}`, `${t.n} card${t.n === 1 ? '' : 's'} · ${esc(words.stages[t.stage])}`];
-  if (t.stage >= YOUNG) {
+  if (t.suspended && t.suspended >= t.n) {
+    // every card retired: the tree stands as it was, with nothing left to measure
+    lines.push(t.n === 1 ? 'Its card is suspended' : `All ${t.n} cards suspended`);
+  } else if (t.stage >= YOUNG) {
     // "measured" is false when there is no forgetting curve behind the number, only a
     // count of what has gone wrong lately - so the tooltip must not claim more than that
     const parts = t.measured === false
@@ -542,6 +545,7 @@ function tipHtml(t, words) {
     if (t.strength) parts.push(`lasts ~${AF.fmtStrength(t.strength)}`);
     lines.push(parts.join(' · '));
     if (t.struggling && t.stage >= MATURE) lines.push(`${t.struggling} of ${t.n} relearning or lapsed this week`);
+    if (t.suspended) lines.push(`${t.suspended} of ${t.n} suspended`);
   }
   if (canBrowse()) lines.push(CLICK_HINT);
   return lines.join('<br>');

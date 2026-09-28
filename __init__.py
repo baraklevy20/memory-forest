@@ -109,6 +109,11 @@ def _since(cfg: dict) -> int | None:
     return forest_data.day_start(date, mw.col.sched.day_cutoff)
 
 
+def keeps_suspended(cfg: dict | None = None) -> bool:
+    """Whether suspended cards keep their trees (they do unless switched off)."""
+    return (cfg if cfg is not None else config()).get("keep_suspended", True) not in OFF_VALUES
+
+
 def _deck_ids(did: int, excluded: set) -> list:
     """A deck and its subdecks, less those left out of the forest."""
     return [d for d in mw.col.decks.deck_and_child_ids(did) if d not in excluded]
@@ -120,15 +125,15 @@ def _forest(did: int | None = None) -> dict:
     col = mw.col
     cfg = config()
     cutoff = col.sched.day_cutoff
-    excluded, since = excluded_decks(cfg), _since(cfg)
+    excluded, since, suspended = excluded_decks(cfg), _since(cfg), keeps_suspended(cfg)
     mod = getattr(col, "mod", None)
-    key = (mod, cutoff, frozenset(excluded), since)
+    key = (mod, cutoff, frozenset(excluded), since, suspended)
     cached = _forest_cache.get(did)
     if mod is not None and cached and cached[0] == key:
         return cached[1]
     started = time.perf_counter()
     dids = _deck_ids(did, excluded) if did else None
-    rows = forest_data.load_rows(col.db, cutoff, dids, excluded=excluded, since=since)
+    rows = forest_data.load_rows(col.db, cutoff, dids, excluded=excluded, since=since, suspended=suspended)
     value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
     _log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
     _forest_cache[did] = (key, value)
@@ -180,7 +185,7 @@ def _lit_by_deck(forest: dict, did: int, test: bool) -> dict:
         lit = {t["ago"] for t in forest["trees"][::TEST_LIT_EVERY]}
     else:
         dids = _deck_ids(did, excluded_decks())
-        lit = forest_data.load_deck_days(mw.col.db, mw.col.sched.day_cutoff, dids)
+        lit = forest_data.load_deck_days(mw.col.db, mw.col.sched.day_cutoff, dids, keeps_suspended())
     trees = [dict(t, dim=t["ago"] not in lit) for t in forest["trees"]]
     return dict(forest, trees=trees, lit_count=sum(1 for t in trees if not t["dim"]))
 
@@ -429,7 +434,7 @@ def open_settings() -> None:
 def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None = None) -> None:
     """Open the browser on the cards first studied on that day (same rule as the trees), or
     on everything from that day up to `until_days_ago` when the deep forest is clicked."""
-    terms = forest_data.day_search(days_ago, until_days_ago)
+    terms = forest_data.day_search(days_ago, until_days_ago, keeps_suspended())
     name = mw.col.decks.name_if_exists(did) if did else None
     if name:  # deck names can hold quotes and colons, so let Anki quote it
         terms.insert(0, mw.col.build_search_string(SearchNode(deck=name)))

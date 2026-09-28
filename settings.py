@@ -67,6 +67,7 @@ DECK_ROLE = Qt.ItemDataRole.UserRole
 DATE_FORMAT = "d MMMM yyyy"
 DECKS_NOTE = "Unticked decks are left out of the forest. Tick them again anytime to bring them back."
 SINCE_NOTE = "The forest starts over from this day. Untick it anytime to bring the rest back."
+SUSPENDED_NOTE = "Their trees stay just as they were when the cards were suspended."
 
 ABOUT = """<b>This is your forest.</b><br><br>
 One tree for every day you have learned new cards: today's is the seedling at the front,
@@ -226,8 +227,12 @@ class SettingsDialog(QDialog):
         sv = QVBoxLayout()
         since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
         sv.addLayout(since_row); sv.addWidget(_hint(SINCE_NOTE))
+        self.keep_suspended = QCheckBox("Keep the trees of suspended cards")
+        self.keep_suspended.setChecked(cfg.get("keep_suspended", True) not in OFF_VALUES)
+        kv = QVBoxLayout(); kv.addWidget(self.keep_suspended); kv.addWidget(_hint(SUSPENDED_NOTE))
         history = QWidget(); hv = QVBoxLayout(history)
         hv.addWidget(_group("Decks", deck_box), 1)
+        hv.addWidget(_group("Suspended cards", kv))
         hv.addWidget(_group("Start date", sv))
 
         # --- About
@@ -264,6 +269,7 @@ class SettingsDialog(QDialog):
         self.max_width.valueChanged.connect(self._changed)
         self.decks.itemChanged.connect(self._deck_toggled)
         self.since_on.toggled.connect(self._changed)
+        self.keep_suspended.toggled.connect(self._changed)
         self.since.dateChanged.connect(self._changed)
         self._reverting = True  # Cancel and shutdown put the old config back; Restore defaults must not
         self._sync()
@@ -374,6 +380,7 @@ class SettingsDialog(QDialog):
             # only decks that still exist, so a deleted one doesn't linger
             "excluded_decks": sorted(self.excluded & {d.id for d in mw.col.decks.all_names_and_ids(include_filtered=False)}),
             "ignore_before": self.since.date().toString("yyyy-MM-dd") if self.since_on.isChecked() else "",
+            "keep_suspended": self.keep_suspended.isChecked(),
             "test_forest": self.test.isChecked(),
             "test_trees": self.trees_box.value(),
         })

@@ -91,7 +91,7 @@ class Rows:
 
 
 def load_rows(db, day_cutoff: int, dids: list | None = None,
-              excluded: Iterable | None = None, since: int | None = None) -> Rows:
+              excluded: Iterable | None = None, since: int | None = None, suspended: bool = False) -> Rows:
     """Fetch rows with a DB object exposing .all(sql, *args) and .scalar(sql, *args).
 
     With `dids`, only cards in those decks (a deck and its subdecks) and their reviews count.
@@ -99,6 +99,7 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     reviews; reviews of deleted cards still do, having no deck left to be excluded by.
     With `since` (a timestamp in seconds), nothing from before it counts: no review, and no
     card first studied before it, since its tree would stand before the forest begins.
+    With `suspended`, suspended cards keep their trees (see build_forest for how they count).
     Works with Anki's mw.col.db and with the small sqlite3 wrapper in dev/.
     """
     ids = ",".join(str(int(d)) for d in dids) if dids else ""
@@ -115,7 +116,7 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     cards = db.all(
         "select c.id, c.type, c.queue, c.ivl, c.data "
         "from cards c "
-        f"where c.type != 0 and c.queue != -1{in_decks}"
+        f"where c.type != 0{'' if suspended else ' and c.queue != -1'}{in_decks}"
     )
     first_last = {
         cid: (first, last)
@@ -147,7 +148,7 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     return Rows(cards, first_last, recent_lapses, review_days, total, today)
 
 
-def load_deck_days(db, day_cutoff: int, dids: list) -> set:
+def load_deck_days(db, day_cutoff: int, dids: list, suspended: bool = False) -> set:
     """The `ago` values of the trees a deck would grow, without building its forest.
 
     Deck screens only need to know which of the main forest's trees hold this deck's
@@ -157,21 +158,22 @@ def load_deck_days(db, day_cutoff: int, dids: list) -> set:
     rows = db.all(
         "select distinct (? - 1 - coalesce((select min(r.id) from revlog r "
         f"where r.cid = c.id and r.ease > 0 and r.type in {STUDY_TYPES}), c.id) / 1000) / {DAY_SECS} "
-        f"from cards c where c.type != 0 and c.queue != -1 and (c.did in ({ids}) or c.odid in ({ids}))",
+        f"from cards c where c.type != 0{'' if suspended else ' and c.queue != -1'} and (c.did in ({ids}) or c.odid in ({ids}))",
         day_cutoff,
     )
     return {int(row[0]) for row in rows if row[0] is not None and row[0] >= 0}
 
 
-def day_search(days_ago_from: int, until_days_ago: int | None = None) -> list:
+def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended: bool = False) -> list:
     """Anki search terms for the cards a tree (or the deep forest) holds.
 
     `introduced:N` means "first studied within the last N days", so one day is the
-    difference of two of them. Suspended cards are excluded because the forest does not
-    count them either - without that the tooltip and the browser disagree.
+    difference of two of them. Unless the forest keeps suspended cards (`suspended`), they
+    are excluded, because the forest does not count them either - without that the
+    tooltip and the browser disagree.
     """
     newest = days_ago_from if until_days_ago is None else until_days_ago
-    terms = [f"introduced:{days_ago_from + 1}", "-is:suspended"]
+    terms = [f"introduced:{days_ago_from + 1}"] + ([] if suspended else ["-is:suspended"])
     if newest > 0:
         terms.append(f"-introduced:{newest}")
     return terms
@@ -340,19 +342,24 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
     """
     now_ts = now_ts if now_ts is not None else day_cutoff - DAY_SECS / 2
     cohorts: dict = {}
-    for cid, ctype, _queue, ivl, data in rows.cards:
+    for cid, ctype, queue, ivl, data in rows.cards:
         first_last = rows.first_last.get(cid)
         first_ms = first_last[0] if first_last else cid
         d = days_ago(first_ms / 1000, day_cutoff)
         if d < 0:
             continue
-        c = cohorts.setdefault(d, {"n": 0, "learning": 0, "strengths": [], "struggling": 0, "r": []})
+        c = cohorts.setdefault(d, {"n": 0, "learning": 0, "strengths": [], "struggling": 0, "r": [], "suspended": 0})
         c["n"] += 1
         stability = _stability(data)
         if ctype == 1:  # still in initial learning
             c["learning"] += 1
         else:
             c["strengths"].append(stability if stability is not None else max(ivl, 0))
+        # a suspended card keeps its place in the tree as it stood when it was suspended: it
+        # can neither struggle nor slip any more, so it counts towards neither
+        if queue == -1:
+            c["suspended"] += 1
+            continue
         if ctype == 3 or cid in rows.recent_lapses:
             c["struggling"] += 1
         if stability is not None and first_last:
@@ -363,13 +370,19 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
     for d in sorted(cohorts, reverse=True):  # oldest first
         c = cohorts[d]
         n = c["n"]
+        # health and recall are about the cards still being studied; suspended ones only
+        # hold the tree's size and stage
+        active = n - c["suspended"]
         stage = _stage(c["strengths"], c["learning"] / n, d == 0)
-        health = _health(c["struggling"] / n) if stage >= HEALTH_MIN_STAGE else 0
+        health = _health(c["struggling"] / active) if active and stage >= HEALTH_MIN_STAGE else 0
         strength = round(median(c["strengths"]), 1) if c["strengths"] else 0
-        measured = len(c["r"]) >= n / 2  # most of the day's cards have a forgetting curve
-        remembered = sum(c["r"]) / len(c["r"]) if c["r"] else 1 - c["struggling"] / n
-        trees.append(_tree(today - d, d, day_date(d, day_cutoff).isoformat(), n, stage, health,
-                           remembered, strength, c["struggling"], measured))
+        measured = bool(active) and len(c["r"]) >= active / 2  # most of the day's cards have a forgetting curve
+        remembered = sum(c["r"]) / len(c["r"]) if c["r"] else 1 - c["struggling"] / active if active else 1.0
+        t = _tree(today - d, d, day_date(d, day_cutoff).isoformat(), n, stage, health,
+                  remembered, strength, c["struggling"], measured)
+        if c["suspended"]:
+            t["suspended"] = c["suspended"]
+        trees.append(t)
 
     if trees:
         for resumed, length in _breaks(rows.review_days, trees[0]["ago"]):

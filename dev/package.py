@@ -35,9 +35,12 @@ INCLUDE_DIRS = ("web",)  # walked, so web/envs, web/landscapes and web/landmarks
 RELEASE_CONFIG = {"debug": False, "test_forest": False}
 
 
-def release_config() -> str:
-    with open(os.path.join(ADDON, "config.json"), encoding="utf-8") as f:
-        cfg = json.load(f)
+def release_config(text: str | None = None) -> str:
+    """The config to ship: this folder's, or `text` when given, with the debug tools off."""
+    if text is None:
+        with open(os.path.join(ADDON, "config.json"), encoding="utf-8") as f:
+            text = f.read()
+    cfg = json.loads(text)
     cfg.update(RELEASE_CONFIG)
     return json.dumps(cfg, indent=4) + "\n"
 

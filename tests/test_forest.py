@@ -140,6 +140,54 @@ class DeckFilterTests(unittest.TestCase):
         self.assertEqual(fd.load_deck_days(DB(), CUTOFF, [10]), {5})
 
 
+class SuspendedTests(unittest.TestCase):
+    """Suspended cards keep their trees, frozen as they were: size and stage, but no
+    struggling and no recall."""
+
+    @staticmethod
+    def suspended(cid, ctype=2, s=60):
+        return (cid, ctype, -1, 30, json.dumps({"s": s}))
+
+    def test_a_tree_of_suspended_cards_stands_as_it_was(self):
+        # suspended while relearning: it would otherwise yellow the tree for good
+        cards = [self.suspended(1, ctype=3), self.suspended(2), self.suspended(3)]
+        fl = {i: (ms(40), ms(30)) for i in (1, 2, 3)}
+        tree = fd.build_forest(rows(cards, fl, lapses={2}), CUTOFF, TODAY)["trees"][0]
+        self.assertEqual((tree["n"], tree["stage"], tree["health"], tree["struggling"]), (3, fd.MATURE, 0, 0))
+        self.assertEqual(tree["suspended"], 3)
+        self.assertFalse(tree["measured"])
+
+    def test_health_and_recall_only_weigh_the_cards_still_studied(self):
+        active = [card(i, s=60) for i in range(1, 5)]
+        cards = active + [self.suspended(i) for i in range(5, 21)]
+        fl = {i: (ms(40), ms(2)) for i in range(1, 21)}
+        tree = fd.build_forest(rows(cards, fl, lapses={1, 2}), CUTOFF, TODAY)["trees"][0]
+        # 2 of the 4 studied cards lapsed: half, not a tenth of all 20
+        self.assertEqual((tree["n"], tree["suspended"], tree["health"]), (20, 16, 3))
+        self.assertTrue(tree["measured"])
+
+    def test_the_loader_only_brings_them_when_asked(self):
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        con.executescript("""
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
+            create table revlog (id integer, cid integer, ease integer, type integer);
+            create table notes (id integer, tags text);
+        """)
+        for cid, queue in ((1, 2), (2, -1)):
+            con.execute("insert into cards values (?, ?, 10, 0, 2, ?, 30, '{}', 0)", (cid, cid, queue))
+            con.execute("insert into revlog values (?, ?, 3, 0)", (ms(5), cid))
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+            def scalar(self, q, *a): return con.execute(q, a).fetchone()[0]
+        self.assertEqual([c[0] for c in fd.load_rows(DB(), CUTOFF).cards], [1])
+        self.assertEqual(sorted(c[0] for c in fd.load_rows(DB(), CUTOFF, suspended=True).cards), [1, 2])
+        con.execute("update cards set queue = -1")
+        self.assertEqual(fd.load_deck_days(DB(), CUTOFF, [10]), set())
+        self.assertEqual(fd.load_deck_days(DB(), CUTOFF, [10], suspended=True), {5})
+
+
 class HistoryFilterTests(unittest.TestCase):
     """The History tab: decks left out of the forest, and a day it starts from."""
 
@@ -409,7 +457,7 @@ class SceneTests(unittest.TestCase):
 
 
 class SearchTests(unittest.TestCase):
-    """What clicking a tree asks Anki for. The forest skips suspended cards, so the
+    """What clicking a tree asks Anki for. When the forest skips suspended cards the
     search must too, or the tooltip's count and the browser's list disagree."""
 
     def test_one_day_is_the_difference_of_two_introduced_terms(self):
@@ -424,6 +472,9 @@ class SearchTests(unittest.TestCase):
 
     def test_a_one_day_range_is_the_same_as_that_day(self):
         self.assertEqual(fd.day_search(30, 30), fd.day_search(30))
+
+    def test_a_forest_that_keeps_suspended_cards_finds_them_too(self):
+        self.assertEqual(fd.day_search(5, suspended=True), ["introduced:6", "-introduced:5"])
 
 
 class RetrievabilityTests(unittest.TestCase):

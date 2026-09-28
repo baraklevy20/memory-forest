@@ -10,6 +10,7 @@
     "deck_forest_mode": "highlight",
     "excluded_decks": [],
     "ignore_before": "",
+    "keep_suspended": true,
     "max_width": 800,
     "debug": false,
     "test_forest": false,
