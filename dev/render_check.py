@@ -36,7 +36,8 @@ import forest_data
 import presets
 import scene
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+# $CHROME points elsewhere, as on the CI runners
+CHROME = os.environ.get("CHROME") or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BASELINE = os.path.join(HERE, "render_baseline.json")
 NOW = dt.datetime(2026, 9, 19, 12)
 SCENE_TREES = 200  # the forest every scene is drawn on, unless it is about forest size

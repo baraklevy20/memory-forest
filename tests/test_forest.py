@@ -4,6 +4,8 @@ Run from the repo root:
     python -m unittest discover anki_forest/tests
 """
 
+from __future__ import annotations
+
 import datetime as dt
 import json
 import os
