@@ -42,10 +42,10 @@
 .af-top { display: flex; justify-content: flex-end; margin-bottom: 6px; }
 .af-cog {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 5px;
+  box-sizing: border-box; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 5px;
   background: rgba(70, 70, 70, 0.75); color: #d8d8d8; cursor: pointer;
 }
-.af-cog:hover { background: rgba(95, 95, 95, 0.9); color: #fff; }
+.af-cog:hover { background: rgba(95, 95, 95, 0.9); color: #fff; border: 0; }
 .af-cog:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
 .af-hint { opacity: 0.65; font-size: 11.5px; }
 .af-info { border-bottom: 1px dotted currentColor; }
