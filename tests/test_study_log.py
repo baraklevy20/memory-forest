@@ -18,12 +18,14 @@ class DeckFilterTests(unittest.TestCase):
         import sqlite3
         con = sqlite3.connect(":memory:")
         con.executescript("""
-            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text);
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
             create table revlog (id integer, cid integer, ease integer, type integer);
+            create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck (odid != 0 means a filtered deck borrowed it), day
         for cid, did, odid, days in ((1, 10, 0, 5), (2, 10, 0, 5), (3, 20, 0, 3), (4, 99, 10, 5)):
-            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}')", (cid, cid, did, odid))
+            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}', 0)", (cid, cid, did, odid))
+            con.execute("insert into notes values (?, ?)", (cid, " leech " if cid == 3 else ""))
             con.execute("insert into revlog values (?, ?, 3, 0)", (ms(days), cid))
 
         class DB:
@@ -37,6 +39,9 @@ class DeckFilterTests(unittest.TestCase):
         self.assertEqual([(t["ago"], t["n"]) for t in deck["trees"]], [(5, 3)])
         self.assertEqual(deck["stats"]["reviews"], 3)
         self.assertEqual(study_log.load_deck_days(DB(), CUTOFF, [10]), {5})
+        # the leech (card 3, in deck 20) brings a crow to its own day's tree, and not to deck 10's forest
+        self.assertEqual([(t["ago"], t.get("leeches", 0)) for t in whole["trees"]], [(5, 0), (3, 1)])
+        self.assertFalse(any(t.get("leeches") for t in deck["trees"]))
 
 
 class SuspendedTests(unittest.TestCase):

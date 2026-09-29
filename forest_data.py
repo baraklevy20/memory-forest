@@ -185,6 +185,18 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
             elapsed = max(0.0, (now_ts - first_last[1] / 1000) / DAY_SECS)
             c["r"].append(retrievability(stab, elapsed, data))
 
+    # which day's tree each leech belongs to (a suspended leech is not among the cards
+    # above, so go by its first review)
+    def per_day(cids: set) -> dict:
+        out: dict = {}
+        for cid in cids:
+            fl = rows.first_last.get(cid)
+            d = days_ago((fl[0] if fl else cid) / 1000, day_cutoff)
+            if d >= 0:
+                out[d] = out.get(d, 0) + 1
+        return out
+    leeches = per_day(rows.leeches)
+
     trees = []
     for d in sorted(cohorts, reverse=True):  # oldest first
         c = cohorts[d]
@@ -201,6 +213,8 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
                   remembered, strength, c["struggling"], measured)
         if c["suspended"]:
             t["suspended"] = c["suspended"]
+        if leeches.get(d):
+            t["leeches"] = leeches[d]
         trees.append(t)
 
     if trees:

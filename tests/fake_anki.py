@@ -40,6 +40,7 @@ class DB:
         self.con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text);
             create table revlog (id integer, cid integer, ease integer, type integer);
+            create table notes (id integer, tags text);
         """)
 
     def all(self, sql, *args):
@@ -185,10 +186,10 @@ addon.state.STATE_PATH = os.path.join(_tmp, "state.json")
 addon.payload.log = lambda _msg: None  # "built N trees in M ms", on every build
 
 
-def reset(cards=(), config=None, current_deck: int = 10):
+def reset(cards=(), config=None, current_deck: int = 10, leeches=()):
     """A fresh collection holding `cards` - (cid, deck, first review days ago[, home deck]) -
-    each reviewed once, and `config` over the defaults; the add-on forgets what it cached
-    and remembered."""
+    each reviewed once (the cids in `leeches` tagged leech), and `config` over the defaults;
+    the add-on forgets what it cached and remembered."""
     mw.col = Col()
     mw.col.decks.current_id = current_deck
     mw.state = "deckBrowser"
@@ -197,6 +198,7 @@ def reset(cards=(), config=None, current_deck: int = 10):
         odid = c[3] if len(c) > 3 else 0
         mw.col.db.con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}')", (cid, cid, did, odid))
         mw.col.db.con.execute("insert into revlog values (?, ?, 3, 0)", (ms(days), cid))
+        mw.col.db.con.execute("insert into notes values (?, ?)", (cid, " leech " if cid in leeches else ""))
     mw.addonManager.config = dict(config or {})
     addon.payload._forest_cache.clear()
     addon.planting._planted_today = None

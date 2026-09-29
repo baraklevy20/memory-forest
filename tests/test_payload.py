@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 
 from fake_anki import addon, mw, reset
+from helpers import ms
 
 payload = addon.payload
 
@@ -64,6 +65,17 @@ class PayloadTests(unittest.TestCase):
         reset(CARDS, {"city": "", "weather": "auto"})
         self.assertEqual(addon.live_weather.for_config({"city": "", "weather": "auto"}), (None, None, ""))
         self.assertEqual(payload.payload()["weatherError"], "")
+
+
+    def test_leeches_bring_crows_to_their_own_tree(self):
+        reset([(1, 10, 30), (2, 10, 30), (3, 10, 20)], leeches={2})
+        mw.col.db.con.execute("insert into revlog values (?, 2, 1, 1)", (ms(1),))  # studied lately
+        trees = {t["ago"]: t for t in payload.payload()["trees"]}
+        self.assertEqual((trees[30].get("leeches"), trees[20].get("leeches")), (1, None))
+
+    def test_an_old_leech_brings_no_crow(self):
+        reset([(1, 10, 90)], leeches={1})  # last studied three months ago: an abandoned deck
+        self.assertIsNone(payload.payload()["trees"][0].get("leeches"))
 
 
 if __name__ == "__main__":

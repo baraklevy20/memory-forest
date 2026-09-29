@@ -23,6 +23,8 @@ SCRIPTS = (
     "caption.js", "hover.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
     "engines/pixel/water.js", "engines/pixel/engine.js",
+    # the events, each drawing in the order it loads (see web/events.js)
+    "events.js", "events/crows.js",
 )
 
 

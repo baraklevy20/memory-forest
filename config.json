@@ -14,5 +14,6 @@
     "max_width": 800,
     "debug": false,
     "test_forest": false,
-    "test_trees": 150
+    "test_trees": 150,
+    "debug_leeches": 0
 }

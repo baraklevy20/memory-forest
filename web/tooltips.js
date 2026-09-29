@@ -25,6 +25,7 @@ function tipHtml(t, words) {
     if (t.struggling && t.stage >= MATURE) lines.push(`${t.struggling} of ${t.n} relearning or lapsed this week`);
     if (t.suspended) lines.push(`${t.suspended} of ${t.n} suspended`);
   }
+  if (t.leeches && t.stage >= YOUNG) lines.push(`${t.leeches} leech${t.leeches === 1 ? '' : 'es'} here: the crows stay until ${t.leeches === 1 ? 'it is' : 'they are'} fixed`);
   if (canBrowse()) lines.push(CLICK_HINT);
   return lines.join('<br>');
 }

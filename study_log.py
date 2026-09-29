@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import datetime as _dt
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 DAY_SECS = 86400
 
@@ -18,6 +18,10 @@ LAPSE_WINDOW_DAYS = 7
 # Revlog types 0-3 are real study (learn, review, relearn, filtered). 4+ are manual
 # reschedules and resets, which shouldn't plant or date anything.
 STUDY_TYPES = "(0, 1, 2, 3)"
+
+# Only cards studied within this many days count as a leech: an abandoned deck's old
+# leeches say nothing about how you study now.
+ACTIVE_DAYS = 60
 
 
 @dataclass
@@ -30,6 +34,7 @@ class Rows:
     review_days: set  # days_ago values that had at least one review
     total_reviews: int
     today_reviews: int
+    leeches: set = field(default_factory=set)  # cids of active cards tagged leech (suspended ones too)
 
 
 def load_rows(db, day_cutoff: int, dids: list | None = None,
@@ -87,7 +92,12 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
         f"select count() from revlog where ease > 0 and type in {STUDY_TYPES} and id >= ?{after}",
         (day_cutoff - DAY_SECS) * 1000,
     ) or 0
-    return Rows(cards, first_last, recent_lapses, review_days, total, today)
+    # leeches only count among cards studied lately (see ACTIVE_DAYS)
+    active_ms = (day_cutoff - ACTIVE_DAYS * DAY_SECS) * 1000
+    active = {cid for cid, (_first, last) in first_last.items() if last >= active_ms}
+    leeches = {row[0] for row in db.all(
+        f"select c.id from cards c join notes n on n.id = c.nid where lower(n.tags) like '% leech %'{in_decks}")} & active
+    return Rows(cards, first_last, recent_lapses, review_days, total, today, leeches)
 
 
 def load_deck_days(db, day_cutoff: int, dids: list, suspended: bool = False) -> set:

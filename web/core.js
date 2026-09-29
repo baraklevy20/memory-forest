@@ -69,6 +69,7 @@ AF.mount = function (root, data, opts) {
     engine.frame(g, env, t);
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
+    AF.events.run('front', g, env, t);  // crows
     if (env.fx) AF.fx.front(g, env, t);
     if (env.quantize) env.quantize(g, env.W, env.H);
     pointer.drawMarker(g);
