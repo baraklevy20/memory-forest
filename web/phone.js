@@ -65,7 +65,7 @@ if (!note || !Array.isArray(note.days) || !note.days.length) {
 // the scene is twice as wide as it is tall (ASPECT in core.js); the caption and the line
 // under it need this much of the screen's width beside it, and the forest keeps this
 // margin from the screen's ends
-const SCENE_ASPECT = 2, CAPTION_ROOM = 90, SIDE_MARGIN = 24, RELAYOUT_MS = 200;
+const SCENE_ASPECT = 2, CAPTION_ROOM = 120, SIDE_MARGIN = 24, RELAYOUT_MS = 200;
 // a forest sent this long ago asks for a sync on the computer
 const STALE_MS = 2 * 24 * 60 * MINUTE;
 const portrait = () => window.innerHeight > window.innerWidth;

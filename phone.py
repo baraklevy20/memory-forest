@@ -54,7 +54,8 @@ BACK = "{{FrontSide}}"
 CSS = """.card { margin: 0; padding: 0; }
 .af-panel { margin-top: 12px; }
 .af-phone-note { margin: 6px 12px 12px; font: 11.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #8a8f8c; text-align: center; }
-.af-turn { margin-left: 4px; padding: 2px 8px; border: 1px solid currentColor; border-radius: 10px; background: none; color: inherit; font: inherit; }
+.af-turn { display: block; margin: 8px auto 0; min-height: 40px; padding: 8px 22px; border: 1px solid currentColor; border-radius: 20px;
+           background: none; color: inherit; font: inherit; font-size: 15px; font-weight: 600; }
 .af-turn[hidden] { display: none; }
 .af-sideways { position: fixed; top: 0; left: 0; transform-origin: top left; box-sizing: border-box;
                display: flex; flex-direction: column; justify-content: center; }
