@@ -97,7 +97,8 @@ def _options(col, did: int) -> None:
     back, or bring them up to date - unless the user gave the deck options of their own."""
     deck = col.decks.get(did)
     if deck.get("conf", 1) == 1:  # still on the default options, which may hold no new cards
-        conf = col.decks.add_config(DECK)
+        # the preset outlives the deck (removing one forces a full sync), so reuse it
+        conf = next((c for c in col.decks.all_config() if c["name"] == DECK), None) or col.decks.add_config(DECK)
         deck["conf"] = conf["id"]
         col.decks.save(deck)
     conf = col.decks.config_dict_for_deck_id(did)
@@ -151,9 +152,9 @@ def _keep_new(col, note) -> None:
 
 
 def remove() -> None:
-    """Take the forest off the phone: its note, its deck and the deck's options, and its
-    script in media. The deck only goes if nothing else was put in it. The note type stays:
-    removing one forces a full sync on every device, and it is empty and out of the way."""
+    """Take the forest off the phone: its note, its deck and its script in media. The deck
+    only goes if nothing else was put in it. The note type and the deck's options preset stay:
+    removing either forces a full sync, and they are empty and out of the way."""
     col = mw.col
     m = col.models.by_name(PHONE_NOTETYPE) if col is not None else None
     if m is None:
@@ -168,10 +169,7 @@ def remove() -> None:
             ids = col.decks.deck_and_child_ids(did)
             if len(ids) > 1 or col.db.scalar("select count() from cards where did = ? or odid = ?", did, did):
                 continue  # something else lives here now
-            conf = col.decks.config_dict_for_deck_id(did)
             col.decks.remove([did])
-            if conf and conf.get("name") == DECK and not col.decks.decks_using_config(conf):
-                col.decks.remove_config(conf["id"])
         folder = col.media.dir()
         scripts = [f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js")]
         if scripts:
