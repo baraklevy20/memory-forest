@@ -68,7 +68,7 @@ function blowing(env, t) {
   if (env.blowFrom === undefined) {
     let seen = false;
     const key = 'memory-forest-blown-' + (data.backlog.replay || data.dayNumber);
-    try { seen = window.localStorage.getItem(key) === '1'; window.localStorage.setItem(key, '1'); } catch (e) { /* no storage: it blows on every opening */ }
+    try { seen = window.localStorage.getItem(key) === '1'; window.localStorage.setItem(key, '1'); } catch { /* no storage: it blows on every opening */ }
     env.blowFrom = seen ? null : t;
   }
   if (env.blowFrom === null) return null;
