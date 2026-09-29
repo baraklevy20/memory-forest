@@ -6,12 +6,12 @@ from __future__ import annotations
 from aqt.qt import QCheckBox, QFormLayout, QLineEdit, QWidget
 
 from .. import presets
-from ..events import DEFAULT_STAKES, STAKES_LABELS, STAKES_NOTES
+from ..events import NATURE_LABELS, NATURE_NOTES, nature_level
 from ..live_weather import city_problem
 from ..state import OFF_VALUES
 from .widgets import combo, hint, set_quietly
 
-STAKES_OPTIONS = list(STAKES_LABELS.items())
+NATURE_OPTIONS = list(NATURE_LABELS.items())
 
 
 class GeneralTab(QWidget):
@@ -29,10 +29,10 @@ class GeneralTab(QWidget):
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
         self.phone = QCheckBox("Show my forest on my phone")
         self.phone.setChecked(cfg.get("phone_forest", False) not in OFF_VALUES)
-        self.stakes = combo(STAKES_OPTIONS, cfg.get("stakes") if isinstance(cfg.get("stakes"), str) else DEFAULT_STAKES, DEFAULT_STAKES)
-        self.stakes_note = hint("")
+        self.nature = combo(NATURE_OPTIONS, nature_level(cfg.get("nature")), nature_level(None))
+        self.nature_note = hint("")
         lf = self.form = QFormLayout(self)
-        lf.addRow("Preset", self.preset)
+        lf.addRow("Scenery", self.preset)
         lf.addRow("", self.preset_note)
         lf.addRow("", self.real_sky)
         lf.addRow("City", self.city)
@@ -40,9 +40,9 @@ class GeneralTab(QWidget):
         self.city_status.setStyleSheet("color: #c0392b; font-size: 11px;")
         lf.addRow("", self.city_status)
         lf.addRow("", hint("Live weather for your city, from Open-Meteo. Without a city, only the "
-                           "time of day follows your clock; the weather stays the preset's."))
-        lf.addRow("Stakes", self.stakes)
-        lf.addRow("", self.stakes_note)
+                           "time of day follows your clock; the weather stays the scenery's."))
+        lf.addRow("Nature", self.nature)
+        lf.addRow("", self.nature_note)
         lf.addRow("", self.animations)
         lf.addRow("", self.planting)
         lf.addRow("", self.phone)
@@ -55,7 +55,7 @@ class GeneralTab(QWidget):
         for box in (self.animations, self.planting, self.phone):
             box.toggled.connect(changed)
         self.city.editingFinished.connect(changed)
-        self.stakes.currentIndexChanged.connect(changed)
+        self.nature.currentIndexChanged.connect(changed)
 
     def sync(self, look: dict) -> None:
         """The preset, its note, the real-sky box and the city, in line with the five
@@ -63,7 +63,7 @@ class GeneralTab(QWidget):
         key = presets.match(look)
         set_quietly(self.preset, key)
         spec = presets.by_key().get(key)
-        self.preset_note.setText(spec.note if spec else "Your own mix, from the Fine-tuning tab. Pick a preset to start from one.")
+        self.preset_note.setText(spec.note if spec else "Your own mix, from the Fine-tuning tab. Choose any scenery above to start from it.")
         self.real_sky.blockSignals(True)
         self.real_sky.setChecked(presets.follows_real_sky(look))
         self.real_sky.blockSignals(False)
@@ -77,7 +77,7 @@ class GeneralTab(QWidget):
             self.form.setRowVisible(self.city_status, bool(problem))
         else:
             self.city_status.setVisible(bool(problem))
-        self.stakes_note.setText(STAKES_NOTES.get(self.stakes.currentData(), ""))
+        self.nature_note.setText(NATURE_NOTES.get(self.nature.currentData(), ""))
 
     def values(self) -> dict:
         return {
@@ -85,5 +85,5 @@ class GeneralTab(QWidget):
             "animations": self.animations.isChecked(),
             "planting_tooltip": self.planting.isChecked(),
             "phone_forest": self.phone.isChecked(),
-            "stakes": self.stakes.currentData(),
+            "nature": self.nature.currentData(),
         }

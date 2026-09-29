@@ -78,12 +78,39 @@ const DYING_HOLES = 0.18;  // a crown at the worst health is this full of holes
 // the share of a crown that yellows, by health
 const SICK_SHARE = [0, 0.38, 0.62, 0.85];
 
+/* A tree Wild's fire has caught (`burn`, 1 while it blazes, less for each day studied
+ * since; web/events/fire.js draws the flames): the fire has taken one side of it (AF.burnSide),
+ * reaching REACH_MOST of the way across at first and REACH_LEAST the last day, so the tree
+ * stays itself. That side goes to char in 2x2 clusters, glowing with embers while the fire is
+ * high, with a singed brown edge where it meets the green. Any environment's tree, trunk and all. */
+const REACH_LEAST = 0.18, REACH_MOST = 0.42, RAGGED = 0.22, EMBERS_FROM = 0.5, EMBERS = 0.08;
+const EMBER = [hex('#e0592a'), hex('#ffb347')], SINGE = [hex('#7a4a28'), hex('#9a6236')];
+AF.burnStep = burn => Math.round((burn || 0) * 7);  // a step a day studied (events.FIRE_HEAL_DAYS)
+AF.burnSide = seed => (seed >> 3) & 1;  // 0: from the sprite's left, 1: from its right
+AF.burnReach = burn => REACH_LEAST + (REACH_MOST - REACH_LEAST) * burn;
+function scorch(d, W, H, burn, seed) {
+  const reach = AF.burnReach(burn), side = AF.burnSide(seed);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4;
+    if (!d[i + 3]) continue;
+    // how far into the tree from the burning side, a little further near the top, ragged in 2x2 clusters
+    const u = (side ? W - 1 - x : x) / W, v = y / H;
+    const at = u + (v - 0.5) * 0.15 + (hashStr('burn,' + (x >> 1) + ',' + (y >> 1) + ',' + seed) / 4294967296 - 0.5) * RAGGED;
+    if (at >= reach + 0.08) continue;
+    const l = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+    let c = at >= reach ? SINGE[(x + y) & 1] : [18 + l * 0.2, 15 + l * 0.16, 13 + l * 0.14];
+    if (at < reach && burn >= EMBERS_FROM && hashStr('ember,' + x + ',' + y + ',' + seed) / 4294967296 < EMBERS * burn) c = EMBER[(x + y) & 1];
+    d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2];
+  }
+}
+
 function sprite(t, h, hzq, env) {
   const th = env.theme, sp = env.mood.special;
   const spec = AF.ENVS[sp] || {}, tree = spec.tree || {};
   const EP = spec.pals || {}, P = EP.base || PXT;
   const bark = EP.bark || P.bark;
-  const key = [env.spriteKey, t.stage, t.kind, t.size, t.health, t.variant, t.seed, h, hzq].join('|');
+  const burn = AF.burnStep(t.burn) / 7;
+  const key = [env.spriteKey, t.stage, t.kind, t.size, t.health, t.variant, t.seed, h, hzq, burn].join('|');
   const hit = cache.get(key); if (hit) return hit;
   const R = rng(hashStr([t.stage, t.kind, t.size, t.health, t.variant, h].join('|')));
   const hz = hzq * th.hzStep, pine = t.kind === 1 && t.stage >= YOUNG, ancient = t.stage === ANCIENT;
@@ -112,6 +139,7 @@ function sprite(t, h, hzq, env) {
     put(cx, base - 2, stem); put(cx, base - 3, stem); put(cx, base - 4, stem);
     put(cx - 1, base - 4, leaf); put(cx - 2, base - 5, leaf); put(cx - 1, base - 5, leafL);
     put(cx + 1, base - 5, leaf); put(cx + 2, base - 6, leafL); put(cx + 1, base - 6, leafL);
+    if (burn) scorch(d, W, H, burn, t.seed);
     g.putImageData(img, 0, 0); cache.set(key, cv); return cv;
   }
   const tone = new Int8Array(W * H).fill(-1), inside = (x, y) => x >= 0 && y >= 0 && x < W && y < H && tone[y * W + x] >= 0;
@@ -169,6 +197,7 @@ function sprite(t, h, hzq, env) {
     }
     put(x, y, col);
   }
+  if (burn) scorch(d, W, H, burn, t.seed);
   g.putImageData(img, 0, 0); cache.set(key, cv); return cv;
 }
 

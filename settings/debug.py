@@ -13,13 +13,13 @@ from .widgets import group, hint
 
 TREES_STEP, TREES_PAGE = 10, 250
 TIMELINE_NOTE = ("Days pass on the test forest, and what they bring follows from them as it would: "
-                 "a day away on Merciless, or a week on Wild, brings the asteroid (fewer bring it closer), "
+                 "a day away on Merciless brings the asteroid, and two on Wild a fire (a week of study puts it out), "
                  "and a week of reviewing only lets the grass grow. Studying plants a tree a day. A leech "
                  "brings a crow to a grown tree; curing one sends the oldest crow off and leaves a robin for "
                  "a week. A strike plays once - click its crater, or \"Asteroid struck\" under the forest, "
                  "to watch it again.")
 DEBUG_NOTE = ("These show each event on whatever forest is on screen; set them back to off to "
-              "see your own again. As the real events, they follow the Stakes: Peaceful shows no crows, "
+              "see your own again. As the real events, they follow Nature: Peaceful shows no crows, "
               "tall grass or tumbleweeds. A backlog cleared stays cleared until you move the tumbleweeds "
               "again, or Reset.")
 # what the label calls each kind of day, and what happens (once, and more than once)

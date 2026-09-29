@@ -25,7 +25,7 @@ SCRIPTS = (
     "engines/pixel/water.js", "engines/pixel/engine.js",
     # the events, each drawing in the order it loads (see web/events.js)
     "events.js", "events/crows.js", "events/robins.js", "events/grass.js", "events/tumbleweeds.js",
-    "events/flowers.js", "events/asteroid.js",
+    "events/flowers.js", "events/asteroid.js", "events/fire.js",
 )
 
 

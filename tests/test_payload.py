@@ -68,7 +68,7 @@ class PayloadTests(unittest.TestCase):
 
 
     def test_leeches_bring_crows_to_their_own_tree(self):
-        reset([(1, 10, 30), (2, 10, 30), (3, 10, 20)], {"stakes": "wild"}, leeches={2})
+        reset([(1, 10, 30), (2, 10, 30), (3, 10, 20)], {"nature": "wild"}, leeches={2})
         mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 2, 1, 1)", (ms(1),))  # studied lately
         trees = {t["ago"]: t for t in payload.payload()["trees"]}
         self.assertEqual((trees[30].get("leeches"), trees[20].get("leeches")), (1, None))

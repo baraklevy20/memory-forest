@@ -29,12 +29,12 @@ AF.caption = function (root, data) {
   if (s.streak) items.push([`${s.streak}-day streak`, 'Days in a row with at least one review.']);
   items.push(...AF.events.collect('caption', data, words, animates(data)));  // the asteroid, on its way or struck
   // the scene's name, unless it is the plain default
-  if (data.sceneName) items.push([data.sceneName, data.sceneTip || 'The preset, chosen in the forest settings.']);
+  if (data.sceneName) items.push([data.sceneName, data.sceneTip || 'The scenery, chosen in the forest settings.']);
   if (data.weatherError) {
     const lost = data.weatherError.startsWith('city not found');
     items.push([lost ? 'City not found' : 'Live weather unavailable', lost
-      ? "Open-Meteo does not know that city, so the preset keeps its own weather. Check the spelling, or try its English name, in the forest settings."
-      : `The live weather could not be fetched (${data.weatherError}), so the preset keeps its own weather for now.`]);
+      ? "Open-Meteo does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+      : `The live weather could not be fetched (${data.weatherError}), so the scenery keeps its own weather for now.`]);
   }
   // the weather only when it is live; otherwise it is simply part of the preset
   if (m.source === 'real') {

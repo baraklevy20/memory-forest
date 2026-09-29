@@ -28,6 +28,7 @@ function tipHtml(t, words) {
   if (t.leeches && t.stage >= YOUNG) lines.push(`${t.leeches} leech${t.leeches === 1 ? '' : 'es'} here: the crows stay until ${t.leeches === 1 ? 'it is' : 'they are'} fixed`);
   if (t.cured) lines.push(`${t.cured === 1 ? 'A leech' : `${t.cured} leeches`} here cured: the robin stays a week`);
   if (t.big) lines.push(`<b>A big learning day</b>: ${t.n} new cards, up from ${t.big}`);
+  if (t.burn && AF.fireLine) lines.push(AF.fireLine(t));  // Wild's fire (web/events/fire.js)
   if (canBrowse()) lines.push(CLICK_HINT);
   return lines.join('<br>');
 }

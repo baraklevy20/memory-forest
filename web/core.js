@@ -76,7 +76,7 @@ AF.mount = function (root, data, opts) {
     AF.events.run('grass', g, env, t);  // tall grass, which the animals stand in
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
-    AF.events.run('front', g, env, t);  // crows, a fresh crater's smoke
+    AF.events.run('front', g, env, t);  // crows, a fresh crater's smoke, the fire
     if (env.fx) AF.fx.front(g, env, t);
     if (env.quantize) env.quantize(g, env.W, env.H);
     pointer.drawMarker(g);

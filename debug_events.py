@@ -1,7 +1,7 @@
 """The Debug tab's study events: each one on demand, on whatever forest is showing, and
 the timeline that passes days on the test forest - studying, reviewing only, or away -
-for the events that follow from time passing (the asteroid, the tall grass) to come as
-they would. Only while debug is on."""
+for the events that follow from time passing (the asteroid, the fire, the tall grass) to
+come as they would. Only while debug is on."""
 
 from __future__ import annotations
 
@@ -24,16 +24,17 @@ DEBUG_CLEARS_MAX = 10 ** 6
 
 def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
     """The test forest after the timeline's days have passed (see events.timeline_days):
-    a tree for each day studied, and the Stakes applied as they are to a real forest, as
-    if chosen the day the timeline began - so a day away on Merciless, or a week on Wild,
-    brings the asteroid, and fewer bring it closer. The trees keep their looks as the days
-    go by: each is still the tree of the same day."""
+    a tree for each day studied, and Nature applied as it is to a real forest - so a day
+    away on Merciless brings the asteroid, and two on Wild a fire, which a week of study
+    puts out. The trees keep their looks as the days go by: each is still the tree of the
+    same day."""
     span, new, reviewed, happened = events.timeline_days(steps)
     base = fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX))
     shift = span + 1  # the test forest's own today is the day before the timeline began
     now = _dt.date.today()  # each tree dated by its new age, as the days studied since are
     trees = [dict(t, ago=t["ago"] + shift, date=(now - _dt.timedelta(days=t["ago"] + shift)).isoformat()) for t in base["trees"]]
-    days = {t["ago"] for t in trees} | reviewed
+    # every day before the timeline counts as studied: only its own days away cost anything
+    days = set(range(shift, max((t["ago"] for t in trees), default=shift) + 1)) | reviewed
     today = fake_forest.FAKE_TODAY + shift  # the scheduler's day number, now
     r = random.Random(fake_forest.FAKE_SEED + 1)  # the same trees for the same days, however many are added
     for ago in sorted(new, reverse=True):
@@ -44,17 +45,23 @@ def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
         if resumed <= span and after is not None:
             after["gap"] = length
     _leeches(trees, happened)
-    out = events.apply_stakes(trees, days, extras["stakes"], span)
-    for c in out["craters"]:  # where each lands stays put as days pass: it is that day's
-        c["spot"] = f"timeline-{today - c['ago']}"
     reviews = None  # all the test forest's
-    if out["craters"]:
-        out["latest"]["spot"] = out["craters"][-1]["spot"]
-        extras.update(strike_payload(out, f"debug-{out['latest']['spot']}-{len(base['trees'])}", ago_date))
-        days = {d for d in days if d < out["craters"][-1]["ago"]}
-        reviews = len(days) * fake_forest.FAKE_TODAY_REVIEWS  # only a day's worth for each day since
-    extras.update(doom=out["doom"], stagnation=events.stagnation(out["trees"], days))
-    return forest_data.rebuild(dict(base, test=True), events.mark_big_days(out["trees"]), days, reviews)
+    level = extras["nature"]
+    if level == "merciless":
+        out = events.merciless(trees, days)
+        latest = out["latest"]
+        if latest:  # where it lands stays put as days pass: it is that day's
+            latest["spot"] = f"timeline-{today - latest['ago']}"
+            extras.update(strike_payload(latest, f"debug-{latest['spot']}-{len(base['trees'])}", ago_date))
+        if out["hits"]:
+            days = {d for d in days if d < out["hits"][-1]}
+            reviews = len(days) * fake_forest.FAKE_TODAY_REVIEWS  # only a day's worth for each day since
+        trees = out["trees"]
+        extras["doom"] = out["doom"]
+    elif level == "wild":
+        trees, extras["fire"] = events.set_fire(trees, days, forest_data.MAX_INDIVIDUAL_TREES)
+    extras["stagnation"] = events.stagnation(trees, days)
+    return forest_data.rebuild(dict(base, test=True), events.mark_big_days(trees), days, reviews)
 
 
 def _leeches(trees: list, happened: list) -> None:
@@ -83,8 +90,9 @@ def _leeches(trees: list, happened: list) -> None:
 
 def apply(forest: dict, extras: dict, cfg: dict) -> tuple:
     """The Debug tab's switches, on top of what events_state made of the forest. They
-    follow the Stakes as the real events do: Peaceful keeps the crows, the tall grass and
-    the tumbleweeds away, and the timeline's days bring the asteroid only as they would."""
+    follow Nature as the real events do: Peaceful keeps the crows, the tall grass and the
+    tumbleweeds away, and the timeline's days bring the asteroid or the fire only as they
+    would."""
     steps = events.timeline_steps(cfg.get("debug_timeline"))
     if steps and forest.get("test"):
         forest = _timeline(forest, cfg, steps, extras)
@@ -104,7 +112,7 @@ def apply(forest: dict, extras: dict, cfg: dict) -> tuple:
     if cfg.get("debug_big_days"):
         for t in trees[::DEBUG_BIG_EVERY]:
             t["big"] = max(1, round(t["n"] * DEBUG_BIG_BEAT))  # what the day "beat", for its tooltip
-    if events.calm(extras["stakes"]):
+    if events.calm(extras["nature"]):
         trees = events.calm_trees(trees)
         extras["stagnation"] = 0.0
         if extras.get("backlog"):

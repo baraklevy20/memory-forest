@@ -37,16 +37,16 @@ class DebugEventTests(unittest.TestCase):
         self.assertFalse(any(t.get("cured") for t in self.passed("wild", *steps, ("study", 7))["trees"]))  # a week on, it has gone
 
     def test_tumbleweeds_and_the_backlog_cleared(self):
-        reset(PLANTED, {"debug": True, "stakes": "wild", "debug_backlog": 50})
+        reset(PLANTED, {"debug": True, "nature": "wild", "debug_backlog": 50})
         backlog = payload.payload()["backlog"]
         self.assertEqual((backlog["hell"], backlog["cleared"]), (0.5, False))
         self.assertGreater(backlog["overdue"], 30)  # made up, for its tooltip
         # "Clear the backlog", clicked twice: the tumbleweeds it had blow away, again on each click
-        reset(PLANTED, {"debug": True, "stakes": "wild", "debug_backlog_cleared": 2, "debug_backlog_was": 80})
+        reset(PLANTED, {"debug": True, "nature": "wild", "debug_backlog_cleared": 2, "debug_backlog_was": 80})
         backlog = payload.payload()["backlog"]
         self.assertEqual((backlog["cleared"], backlog["was"], backlog["replay"]), (True, 0.8, "debug-2"))
         # and once the tumbleweeds are back, it is review hell again, not cleared
-        reset(PLANTED, {"debug": True, "stakes": "wild", "debug_backlog_cleared": 2, "debug_backlog": 30})
+        reset(PLANTED, {"debug": True, "nature": "wild", "debug_backlog_cleared": 2, "debug_backlog": 30})
         self.assertFalse(payload.payload()["backlog"]["cleared"])
 
     def test_peaceful_keeps_the_bad_things_away_here_too(self):
@@ -62,8 +62,8 @@ class DebugEventTests(unittest.TestCase):
         self.assertTrue(any(t.get("big") for t in payload.payload()["trees"]))
 
     @staticmethod
-    def passed(stakes, *steps):
-        reset(PLANTED, {"debug": True, "stakes": stakes, "test_forest": True, "test_trees": 40, "debug_timeline": [list(s) for s in steps]})
+    def passed(nature, *steps):
+        reset(PLANTED, {"debug": True, "nature": nature, "test_forest": True, "test_trees": 40, "debug_timeline": [list(s) for s in steps]})
         return payload.payload()
 
     def test_a_day_away_on_merciless_brings_the_asteroid(self):
@@ -73,11 +73,13 @@ class DebugEventTests(unittest.TestCase):
         self.assertEqual((p["trees"], p["visitors"]), ([], []))  # the animals go with the forest
         self.assertEqual(state.load_state().get("strike_days"), None)  # the test forest remembers no strikes
 
-    def test_wild_counts_down_a_week_away(self):
-        p = self.passed("wild", ("away", 3))
-        self.assertEqual((p["craters"], p["doom"]), ([], {"missed": 4, "grace": 7, "left": 3}))  # today is the fourth
-        self.assertEqual(self.passed("wild", ("away", 6))["doom"]["left"], 0)  # tonight
-        self.assertEqual(len(self.passed("wild", ("away", 7))["craters"]), 1)
+    def test_two_days_away_on_wild_start_a_fire_that_a_week_of_study_puts_out(self):
+        self.assertIsNone(self.passed("wild", ("away", 1))["fire"])  # today is the second: not over yet
+        p = self.passed("wild", ("away", 2))
+        self.assertEqual((p["craters"], p["doom"], p["fire"]["trees"], p["fire"]["left"]), ([], None, 2, 7))  # 5% of 40
+        self.assertEqual(len([t for t in p["trees"] if t.get("burn")]), 2)
+        self.assertEqual(self.passed("wild", ("away", 2), ("study", 5))["fire"]["left"], 1)  # today makes six
+        self.assertTrue(self.passed("wild", ("away", 2), ("study", 6))["fire"]["out"])
 
     def test_peaceful_lets_the_days_go_by(self):
         p = self.passed("peaceful", ("away", 30))

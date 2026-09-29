@@ -1,11 +1,16 @@
 """What the way you study does to the forest, besides the trees themselves.
 
-The Stakes setting decides what missing days costs: nothing (Peaceful), or the whole
-forest after a week (Wild) or a single day (Merciless) without reviews. Peaceful only ever
-brings good things: a big day of learning leaves flowers, and a songbird comes when a
-leech is cured. Wild and Merciless add the rest - leeches bring crows, a week without new
-cards lets the grass grow tall, and a pile of overdue reviews brings tumbleweeds, which
-blow away the day it is cleared.
+The Nature setting decides what missing days costs. Peaceful: nothing (a week away leaves a
+pond). Wild: from the second day in a row without reviews a fire takes hold, a little more
+of the forest each day, and it burns until you have studied for a week again. Merciless:
+a single day without reviews and an asteroid wipes out the forest. Nothing of it is
+remembered: it is all read from the days you studied, so changing the setting changes it
+back and forth.
+
+Peaceful only ever brings good things: a big day of learning leaves flowers, and a
+songbird comes when a leech is cured. Wild and Merciless add the rest - leeches bring
+crows, a week without new cards lets the grass grow tall, and a pile of overdue reviews
+brings tumbleweeds, which blow away the day it is cleared.
 
 Nothing here imports aqt, so it runs in the tests and the dev scripts. Days are counted
 as `ago` (0 today, 1 yesterday, ...), as everywhere else in the forest.
@@ -13,33 +18,41 @@ as `ago` (0 today, 1 yesterday, ...), as everywhere else in the forest.
 
 from __future__ import annotations
 
-#: Stakes: how many days in a row without reviews the forest survives (None: forever).
-STAKES = {"peaceful": None, "wild": 7, "merciless": 1}
-STAKES_LABELS = {"peaceful": "Peaceful", "wild": "Wild", "merciless": "Merciless"}
-DEFAULT_STAKES = "peaceful"
+import zlib
 
+NATURE_LABELS = {"peaceful": "Peaceful", "wild": "Wild", "merciless": "Merciless"}
+DEFAULT_NATURE = "peaceful"
 
-def _span(days: int) -> str:
-    return {1: "a single day", 7: "a whole week"}.get(days, f"{days} days in a row")
-
-
-# what each level means, for the settings dialog
-# (the asteroid, the one lasting cost, by name; the rest each level brings only as a hint:
-# it is for the forest to show)
-STAKES_NOTES = {
-    level: ("Missing days costs nothing, and the forest never scolds you." if grace is None else
-            f"Miss {_span(grace)} of reviews and an asteroid wipes out the forest. Bad habits leave marks too, until you fix them.")
-    for level, grace in STAKES.items()
+# what each level means, for the settings dialog (what it costs, by name; the rest each
+# level brings only as a hint: it is for the forest to show)
+NATURE_NOTES = {
+    "peaceful": "Missing days costs nothing, and the forest never scolds you.",
+    "wild": "Miss two days of reviews in a row and a fire breaks out, spreading each day you stay away; "
+            "a week of study puts it out. Bad habits leave marks too, until you fix them. "
+            "Switch back any time and the forest is as it was.",
+    "merciless": "Miss a single day of reviews and an asteroid wipes out the forest. "
+                 "Bad habits leave marks too, until you fix them. Switch back any time and the forest is as it was.",
 }
 
 
-def calm(level: str) -> bool:
-    """Whether these stakes keep the forest to the good things only (Peaceful)."""
-    return STAKES.get(level) is None
+def nature_level(value) -> str:
+    """A setting's value, or the default if it isn't one of the levels."""
+    return value if isinstance(value, str) and value in NATURE_LABELS else DEFAULT_NATURE
 
-# how many days after a strike it is still news: the journal says so, and the caption
-# offers to play it again
+
+def calm(level: str) -> bool:
+    """Whether this nature keeps the forest to the good things only (Peaceful)."""
+    return level == "peaceful"
+
+# how many days after a strike it is still news: the journal says so, the caption offers
+# to play it again, and it plays by itself if it hasn't been seen
 STRIKE_NEWS_DAYS = 7
+
+# Wild's fire: it breaks out on the FIRE_FROM-th day in a row without reviews, and each day
+# away from then on sets FIRE_PER_DAY of the forest burning, up to FIRE_MAX of it. It is out
+# once you have studied on FIRE_HEAL_DAYS days since; staying away FIRE_FROM days again before
+# that fans it up anew. A single day off pauses it, no more.
+FIRE_FROM, FIRE_PER_DAY, FIRE_MAX, FIRE_HEAL_DAYS = 2, 0.05, 0.5, 7
 
 # A big learning day: at least BIG_DAY_JUMP times, and BIG_DAY_MORE cards more than, the
 # most you learned on any day of the BIG_DAY_WINDOW days before it - once there are
@@ -92,21 +105,12 @@ def _runs(review_days: set, oldest: int) -> list:
     return out
 
 
-def strikes(review_days: set, level: str, since_ago: int | None) -> list:
-    """The days the forest was destroyed, oldest first: in each run of missed days long
-    enough, the day it reached the limit. One strike per run, however long the break.
-    Only days on or after `since_ago` (when these stakes were chosen) count, so choosing
-    Merciless never punishes a break from before."""
-    grace = STAKES.get(level)
-    if not grace or since_ago is None or not review_days:
+def strikes(review_days: set) -> list:
+    """The days Merciless's asteroid struck, oldest first: the first day of each run of
+    days without reviews since you first studied - one strike a run, however long."""
+    if not review_days:
         return []
-    out = []
-    # from the first day you ever studied: the days before it are no break
-    for start, end in _runs(review_days, min(max(review_days), since_ago)):
-        first = min(start, since_ago)  # missed days before the stakes were chosen don't count
-        if first - end + 1 >= grace:
-            out.append(first - grace + 1)
-    return out
+    return [start for start, _end in _runs(review_days, min(max(review_days), LOOKBACK_DAYS))]
 
 
 def _streak_before(review_days: set, ago: int) -> int:
@@ -122,50 +126,90 @@ def _streak_before(review_days: set, ago: int) -> int:
 
 def _wipe(trees: list, hits: list, review_days: set) -> tuple:
     """What strikes on the days in `hits` (oldest first) leave: each takes every tree
-    planted from the one before it up to its own day. Returns the craters (one per strike
-    that took anything: its day, the trees it took, the streak it ended), the latest of
-    them with the trees it took (for replaying it), and the trees still standing."""
-    craters, standing, prev = [], [], None
+    planted from the one before it up to its own day. Returns the latest crater (of the
+    strikes that took anything: its day, the trees it took, the streak it ended - the older
+    ones lie under the forest that grew since), with the trees it took (for replaying it),
+    and the trees still standing."""
+    latest, prev = None, None
     for ago in hits:
         lost = [t for t in trees if t["ago"] >= ago and (prev is None or t["ago"] < prev)]
         prev = ago
-        if not lost:
-            continue  # nothing had grown since the last one: no crater, nothing to replay
-        craters.append({"ago": ago, "lost": len(lost), "streak": _streak_before(review_days, ago)})
-        standing = lost
-    latest = dict(craters[-1], before=standing) if craters else None
+        if lost:  # nothing had grown since the last one: no crater, nothing to replay
+            latest = {"ago": ago, "lost": len(lost), "streak": _streak_before(review_days, ago), "before": lost}
     kept = [t for t in trees if not hits or t["ago"] < hits[-1]]
     if hits and kept and kept[0].get("gap"):
         # the break that struck is marked by its crater: no pond for it in the new forest
         kept[0] = {k: v for k, v in kept[0].items() if k != "gap"}
-    return craters, latest, kept
+    return latest, kept
 
 
-def apply_stakes(trees: list, review_days: set, level: str, since_ago: int | None, past: tuple = (),
-                 new: bool = True) -> dict:
-    """What the stakes do to this forest.
+def merciless(trees: list, review_days: set, hold: frozenset = frozenset()) -> dict:
+    """What Merciless does to this forest: a strike for every run of missed days, and the
+    forest starts again after the latest. Strikes on the days in `hold` don't come (yet:
+    the review log may not be all there, another device's reviews still on their way).
 
-    `past` holds the days of strikes already remembered, which stand whatever the level is
-    now: an asteroid resets everything, and changing the setting afterwards can't undo it.
-    With `new` false only those stand, and no new strike comes yet (the review log may not
-    be all there: another device's reviews may still be on their way).
-
-    Returns `hits` (every strike's day, oldest first, to remember), `trees` (only those
-    planted since the last strike), `craters`, `latest` (see _wipe) and `doom` (how near the
-    next strike is, or None).
+    Returns `trees` (only those planted since the last strike), `latest` (its crater, see
+    _wipe, or None) and `doom` (today, with no reviews yet after a day you studied: the
+    asteroid strikes when the day ends).
     """
-    hits = sorted((set(strikes(review_days, level, since_ago)) if new else set()) | set(past), reverse=True)
-    craters, latest, kept = _wipe(trees, hits, review_days)
-    doom = None
-    grace = STAKES.get(level)
-    run = missed_now(review_days)
-    counted = min(run, since_ago + 1) if since_ago is not None else 0  # only days since the stakes were chosen
-    # nothing to warn about before the first review, nor once this break has struck; and
-    # today alone, not yet over, is no break - but on Merciless it is all the grace there is
-    if grace and counted >= min(grace, 2) and review_days and not (hits and hits[-1] < run):
-        # counting today, while it has no reviews yet: the strike comes when the day ends
-        doom = {"missed": counted, "grace": grace, "left": max(0, grace - counted)}
-    return {"hits": hits, "trees": kept, "craters": craters, "latest": latest, "doom": doom}
+    hits = [d for d in strikes(review_days) if d not in hold]
+    latest, kept = _wipe(trees, hits, review_days)
+    doom = {"missed": 1, "grace": 1, "left": 0} if 0 not in review_days and 1 in review_days else None
+    return {"hits": hits, "trees": kept, "latest": latest, "doom": doom}
+
+
+def fire_state(review_days: set) -> dict | None:
+    """Wild's fire as the days studied leave it (see FIRE_*): the `share` of the forest
+    burning, the days studied since (`healed`), the longest run `missed` that fanned it,
+    `began` (the first missed day, as `ago`) and `epoch` (how many days you had studied
+    before it: the same every day, to pick the same trees by), `news` on the days you come
+    back to it, and `out` if today is the day it went out. None when nothing is burning."""
+    if not review_days:
+        return None
+    share, healed, run, missed, began, epoch, out = 0.0, 0, 0, 0, None, 0, False
+    for d in range(min(max(review_days), LOOKBACK_DAYS), -1, -1):
+        if d in review_days:
+            run = 0
+            if share:
+                healed += 1
+                if healed >= FIRE_HEAL_DAYS:
+                    share, out = 0.0, d == 0
+        elif d:  # (today is not over: it is no day missed yet)
+            run += 1
+            out = False
+            if run >= FIRE_FROM:
+                if not share:  # a new fire: the forest that stood when the break began
+                    began = d + run - 1
+                    epoch = sum(1 for x in review_days if x > began)
+                    missed = 0
+                share = min(FIRE_MAX, max(share, FIRE_PER_DAY * (run - FIRE_FROM + 1)))
+                healed, missed = 0, max(missed, run)
+    if not share and not out:
+        return None
+    # news on the days you come back to it: until you have studied, and that day itself
+    news = bool(share) and (healed == 0 or (healed == 1 and 0 in review_days))
+    return {"share": share, "healed": healed, "missed": missed, "began": began, "epoch": epoch, "out": out, "news": news}
+
+
+def set_fire(trees: list, review_days: set, limit: int | None = None) -> tuple:
+    """The trees with Wild's fire on them, and what the page says of it (or None): each
+    burning tree copied with `burn`, 1 while it blazes and less each day you study, down to
+    nothing when it is out. The fire takes FIRE_* of the trees that stood when the break
+    began - among the newest `limit`, the ones drawn one by one - picked by lot, the same
+    ones every day until it is out. The trees given are left alone (they may be cached)."""
+    st = fire_state(review_days)
+    if st is None:
+        return trees, None
+    info = {"left": 0, "trees": 0, "missed": st["missed"], "began": st["began"], "out": st["out"], "news": st["news"]}
+    if not st["share"]:
+        return trees, info
+    pool = [t for t in (trees[-limit:] if limit else trees) if t["ago"] > st["began"]]
+    n = min(len(pool), max(1, round(st["share"] * len(pool)))) if pool else 0
+    lot = lambda t: zlib.crc32(f"fire|{t.get('seed', t['ago'])}|{st['epoch']}".encode())  # noqa: E731
+    burning = {id(t) for t in sorted(pool, key=lot)[:n]}
+    burn = round(1 - st["healed"] / FIRE_HEAL_DAYS, 3)
+    info.update(left=FIRE_HEAL_DAYS - st["healed"], trees=n)
+    return [dict(t, burn=burn) if id(t) in burning else t for t in trees], info
 
 
 # The Debug tab's timeline passes days on the test forest, each step so many days of one
@@ -201,7 +245,7 @@ def timeline_days(steps: list) -> tuple:
     days with reviews, and what happened when: (kind, day, how many times) in order), each
     day as `ago`. Every step's days are over: today is the day after the last of them, and
     goes on as it did - with reviews, unless you were away - so a day away is a whole day
-    missed, as the Stakes count it. What happens, happens on the next day to come (today,
+    missed, as Nature counts it. What happens, happens on the next day to come (today,
     after the last step)."""
     days = [s for s in steps if s[0] in TIMELINE_KINDS]
     span = sum(n for _kind, n in days)

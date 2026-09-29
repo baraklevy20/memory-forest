@@ -9,7 +9,7 @@
     "planting_tooltip": true,
     "phone_forest": false,
     "deck_forest_mode": "highlight",
-    "stakes": "peaceful",
+    "nature": "peaceful",
     "excluded_decks": [],
     "ignore_before": "",
     "keep_suspended": true,

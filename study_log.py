@@ -122,7 +122,7 @@ def _filters(dids: list | None, excluded: Iterable | None, skip: Iterable | None
 def load_review_days(db, day_cutoff: int, excluded: Iterable | None = None, skip: Iterable | None = None) -> set:
     """The days (as `ago`) with at least one review anywhere in the collection but the
     `excluded` decks and the `skip` cards, whatever the forest leaves out or starts after: what
-    the Stakes go by, so leaving a deck out never makes the days you studied only that deck
+    Nature goes by, so leaving a deck out never makes the days you studied only that deck
     count as missed."""
     _in_decks, only = _filters(None, excluded, skip)
     return {day for (day,) in db.all(

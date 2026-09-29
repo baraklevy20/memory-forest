@@ -64,7 +64,7 @@ function rolling(env, t, n) {
 // (a day, or for each `replay` the Debug group asks for), as the forest opens
 function blowing(env, t) {
   const data = env.data;
-  if (env.still || !data.backlog || !data.backlog.cleared || !data.stakes || data.stakes === 'peaceful') return null;
+  if (env.still || !data.backlog || !data.backlog.cleared || !data.nature || data.nature === 'peaceful') return null;
   if (env.blowFrom === undefined) {
     let seen = false;
     const key = 'memory-forest-blown-' + (data.backlog.replay || data.dayNumber);
@@ -83,7 +83,7 @@ AF.events.add('tumbleweeds', {
   // on Merciless they come to rest against the trees, the deeper the hell the more of them
   treeBase(env, lg, p, sw, x, y) {
     const b = env.data.backlog;
-    if (!b || !b.hell || env.data.stakes !== 'merciless' || p.it.pond) return;
+    if (!b || !b.hell || env.data.nature !== 'merciless' || p.it.pond) return;
     if (noise(p.it.seed, 'rest') > b.hell * MOST_RESTING / Math.max(1, env.placed.length)) return;
     weed(lg, x - sw / 2 - 2, y - 3, p.it.seed, palette(env));
   },

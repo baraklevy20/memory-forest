@@ -57,7 +57,7 @@ def _catalogue() -> tuple:
                               p.get("weather", "clear"), p.get("time", "day"), p.get("note", "")))
     # not a scene of its own: a different one of the above each day
     out.append(Preset("daily", "Surprise me daily", DAILY, DAILY, DAILY, DAILY, DAILY,
-                      "A different preset every day, taking turns so each one comes round in order."))
+                      "A different scenery every day, taking turns so each one comes round in order."))
     return tuple(out)
 
 

@@ -1,4 +1,4 @@
-"""What the stakes and the other study events do (events.py), and the milestone animals
+"""What Nature and the other study events do (events.py), and the milestone animals
 and forest rebuilds they lean on."""
 
 from __future__ import annotations
@@ -13,75 +13,75 @@ import forest_data as fd
 
 
 class EventTests(unittest.TestCase):
-    """What the stakes and the other study events do (events.py)."""
+    """What Nature and the other study events do (events.py)."""
 
     @staticmethod
     def trees(agos, n=10):
         return [{"ago": a, "n": n} for a in sorted(agos, reverse=True)]
 
-    def test_peaceful_never_strikes(self):
-        days = set(range(20, 40)) | {1}  # a long break, then back
-        out = events.apply_stakes(self.trees(range(25, 40)), days, "peaceful", 100)
-        self.assertEqual((len(out["trees"]), out["craters"], out["doom"]), (15, [], None))
-
     def test_merciless_one_missed_day_wipes_the_forest(self):
         days = set(range(0, 40)) - {10}  # one day off, ten days ago (so no tree that day either)
-        out = events.apply_stakes(self.trees(days), days, "merciless", 100)
+        out = events.merciless(self.trees(days), days)
         self.assertEqual([t["ago"] for t in out["trees"]], list(range(9, -1, -1)))  # only what came after
-        self.assertEqual(len(out["craters"]), 1)
-        self.assertEqual((out["craters"][0]["ago"], out["craters"][0]["lost"], out["craters"][0]["streak"]), (10, 29, 29))
-
-    def test_wild_forgives_six_days_but_not_seven(self):
-        six = set(range(0, 40)) - set(range(10, 16))
-        self.assertEqual(events.apply_stakes(self.trees(range(0, 40)), six, "wild", 100)["craters"], [])
-        seven = set(range(0, 40)) - set(range(10, 17))
-        out = events.apply_stakes(self.trees(range(0, 40)), seven, "wild", 100)
-        self.assertEqual([c["ago"] for c in out["craters"]], [10])  # the seventh missed day, the newest of the run
+        latest = out["latest"]
+        self.assertEqual((latest["ago"], latest["lost"], latest["streak"], len(latest["before"])), (10, 29, 29, 29))
 
     def test_a_break_that_struck_leaves_a_crater_not_a_pond(self):
-        days = set(range(0, 40)) - set(range(10, 20))  # ten days off, on Wild
-        trees = self.trees(set(range(0, 40)) - set(range(10, 20)))
+        days = set(range(0, 40)) - set(range(10, 20))  # ten days off
+        trees = self.trees(days)
         trees[-10]["gap"] = 10  # the first tree after the break, as build_forest marks it
-        trees[5]["gap"] = 8  # an older pond, from a break before the stakes were chosen
-        out = events.apply_stakes(trees, days, "wild", 100)
-        self.assertEqual(len(out["craters"]), 1)
+        out = events.merciless(trees, days)
+        self.assertTrue(out["latest"])
         self.assertFalse(any(t.get("gap") for t in out["trees"]))
         self.assertEqual(trees[-10]["gap"], 10)  # the forest it was given is left as it was
-        # on Peaceful the same break is a pond
-        self.assertEqual(events.apply_stakes(trees, days, "peaceful", 100)["trees"][-10]["gap"], 10)
 
-    def test_one_crater_per_break_however_long(self):
-        days = set(range(0, 60)) - set(range(10, 30))  # twenty days off, on Merciless
-        self.assertEqual(len(events.apply_stakes(self.trees(range(30, 60)), days, "merciless", 100)["craters"]), 1)
+    def test_one_strike_per_break_however_long_on_its_first_day(self):
+        days = set(range(0, 60)) - set(range(10, 30))  # twenty days off
+        self.assertEqual(events.strikes(days), [29])
 
-    def test_two_breaks_two_craters_each_with_its_own_losses(self):
+    def test_only_the_latest_crater_shows_with_what_it_took(self):
         days = set(range(0, 70)) - {31, 62}  # a month, a day off, a month, a day off
-        out = events.apply_stakes(self.trees(set(range(0, 70)) - {31, 62}), days, "merciless", 100)
-        self.assertEqual([(c["ago"], c["lost"]) for c in out["craters"]], [(62, 7), (31, 30)])
-        self.assertEqual(len(out["latest"]["before"]), 30)  # the trees the latest strike took, to replay it
+        out = events.merciless(self.trees(days), days)
+        self.assertEqual(out["hits"], [62, 31])
+        self.assertEqual((out["latest"]["ago"], out["latest"]["lost"]), (31, 30))  # only what grew since the one before
 
-    def test_only_breaks_after_choosing_the_stakes_count(self):
-        days = set(range(0, 40)) - {20}
-        out = events.apply_stakes(self.trees(range(0, 40)), days, "merciless", 5)  # chosen five days ago
-        self.assertEqual((out["craters"], len(out["trees"])), ([], 40))
+    def test_nothing_is_remembered_the_strikes_come_from_the_days_studied(self):
+        days = set(range(0, 40)) - {10}
+        trees = self.trees(days)
+        self.assertEqual(events.merciless(trees, days), events.merciless(trees, days))
+        self.assertEqual(len(trees), 39)  # and the forest itself is untouched, for Peaceful to show
 
-    def test_the_asteroid_approaches_before_it_strikes(self):
-        days = set(range(3, 40))  # nothing for the last two days, nor yet today
-        doom = events.apply_stakes(self.trees(range(3, 40)), days, "wild", 100)["doom"]
-        self.assertEqual((doom["missed"], doom["left"]), (3, 4))
-        # on Merciless the warning is today itself: strike tonight unless you review
-        doom = events.apply_stakes(self.trees(range(1, 40)), set(range(1, 40)), "merciless", 100)["doom"]
+    def test_a_held_strike_does_not_come_yet(self):
+        days = set(range(0, 40)) - {10, 20}
+        out = events.merciless(self.trees(days), days, hold=frozenset({10}))
+        self.assertEqual((out["hits"], out["latest"]["ago"], len(out["trees"])), ([20], 20, 19))
+
+    def test_the_warning_is_today_itself(self):
+        # studied yesterday, nothing yet today: the asteroid strikes when the day ends
+        doom = events.merciless(self.trees(range(1, 40)), set(range(1, 40)))["doom"]
         self.assertEqual((doom["missed"], doom["left"]), (1, 0))
-        self.assertIsNone(events.apply_stakes(self.trees(range(0, 40)), set(range(0, 40)), "merciless", 100)["doom"])
+        self.assertIsNone(events.merciless(self.trees(range(0, 40)), set(range(0, 40)))["doom"])
+        # nothing yesterday either: it has struck already
+        self.assertIsNone(events.merciless(self.trees(range(2, 40)), set(range(2, 40)))["doom"])
 
-    def test_on_wild_a_morning_before_reviewing_is_no_warning(self):
-        # studied yesterday, nothing yet today: no asteroid until a whole day has gone by
-        self.assertIsNone(events.apply_stakes(self.trees(range(1, 40)), set(range(1, 40)), "wild", 100)["doom"])
-        # nothing yesterday either: now it is on its way, counting today, and strikes in 5 days
-        doom = events.apply_stakes(self.trees(range(2, 40)), set(range(2, 40)), "wild", 100)["doom"]
-        self.assertEqual((doom["missed"], doom["grace"], doom["left"]), (2, 7, 5))
-        # ... but a day missed before the stakes were chosen (today) doesn't count
-        self.assertIsNone(events.apply_stakes(self.trees(range(2, 40)), set(range(2, 40)), "wild", 0)["doom"])
+    def test_no_strikes_without_reviews(self):
+        self.assertEqual(events.strikes(set()), [])  # never studied: no break
+        out = events.merciless([], set())
+        self.assertEqual((out["trees"], out["latest"], out["doom"]), ([], None, None))  # and no endless warning
+        self.assertEqual(events.strikes(set(range(5, 9))), [4])  # nor before the first day you studied
+
+    def test_a_strike_with_nothing_grown_since_leaves_no_crater(self):
+        days = set(range(0, 40)) - {10, 20}
+        trees = self.trees(set(range(21, 40)))  # nothing planted between the two strikes
+        out = events.merciless(trees, days)
+        self.assertEqual(out["hits"], [20, 10])
+        self.assertEqual(out["latest"]["ago"], 20)
+        self.assertEqual(out["trees"], [])
+
+    def test_the_level_is_one_of_three(self):
+        self.assertEqual([events.nature_level(v) for v in ("wild", "stormy", None, 3)], ["wild", "peaceful", "peaceful", "peaceful"])
+        self.assertTrue(events.calm("peaceful") and not events.calm("wild"))
+
 
     def test_big_learning_days(self):
         def big(counts):
@@ -110,33 +110,6 @@ class EventTests(unittest.TestCase):
         self.assertEqual(events._streak_before(days, 11), 28)
         self.assertEqual(events._streak_before(days, 2), 7)  # a break starting yesterday
 
-    def test_no_strikes_without_stakes_or_reviews(self):
-        self.assertEqual(events.strikes({5, 6}, "merciless", None), [])  # stakes never chosen
-        self.assertEqual(events.strikes(set(), "merciless", 100), [])  # never studied: no break
-        out = events.apply_stakes([], set(), "merciless", 10)
-        self.assertEqual((out["trees"], out["craters"], out["doom"]), ([], [], None))  # and no endless warning
-
-    def test_a_strike_with_nothing_grown_since_leaves_no_crater(self):
-        days = set(range(0, 40)) - {10, 20}
-        trees = self.trees(set(range(21, 40)))  # nothing planted between the two strikes
-        out = events.apply_stakes(trees, days, "merciless", 100)
-        self.assertEqual(out["hits"], [20, 10])
-        self.assertEqual([c["ago"] for c in out["craters"]], [20])
-        self.assertEqual(out["latest"]["ago"], 20)
-
-    def test_no_warning_once_the_break_has_struck(self):
-        days = set(range(12, 40))  # eleven days and counting, on Wild: struck at day 5
-        out = events.apply_stakes(self.trees(range(12, 40)), days, "wild", 100)
-        self.assertEqual((out["hits"], out["doom"]), ([5], None))
-
-    def test_a_strike_stands_whatever_the_stakes_become(self):
-        days = set(range(0, 40)) - {10}
-        trees = self.trees(days)
-        struck = events.apply_stakes(trees, days, "merciless", 100)["hits"]
-        for level, since in (("peaceful", 0), ("wild", 0), ("merciless", 0)):  # changed today
-            out = events.apply_stakes(trees, days, level, since, past=struck)
-            self.assertEqual(([c["ago"] for c in out["craters"]], len(out["trees"])), ([10], 10), level)
-
     def test_the_timeline_passes_whole_days_and_today_goes_on_as_the_last(self):
         # two days studying, one reviewing only, one away: today (0) is a day away too
         self.assertEqual(events.timeline_days([["study", 2], ["review", 1], ["away", 1]]), (4, [4, 3], {4, 3, 2}, []))
@@ -161,7 +134,7 @@ class EventTests(unittest.TestCase):
         out = fd.rebuild(forest, kept, set(range(0, 10)))
         self.assertEqual((out["stats"]["trees"], out["stats"]["streak"]), (10, 10))
         self.assertEqual(out["lit_count"], sum(1 for t in kept if not t["dim"]))
-        self.assertEqual(out["review_days"], {1, 2})  # kept for the stakes
+        self.assertEqual(out["review_days"], {1, 2})  # kept for Nature
 
     def test_stagnation_is_reviewing_without_planting(self):
         trees = self.trees([30, 20])  # the newest tree is twenty days old
@@ -199,3 +172,64 @@ class BacklogRuleTests(unittest.TestCase):
         self.assertEqual(events.calm_trees(trees), [{"ago": 1}, {"ago": 0}])
         self.assertEqual(trees[0]["leeches"], 2)
         self.assertTrue(events.calm("peaceful") and not events.calm("wild"))
+
+
+class FireTests(unittest.TestCase):
+    """Wild's fire (events.fire_state, events.set_fire)."""
+
+    @staticmethod
+    def trees(agos):
+        return [{"ago": a, "n": 10, "seed": a * 7919} for a in sorted(agos, reverse=True)]
+
+    def test_one_day_away_is_no_fire_two_are(self):
+        self.assertIsNone(events.fire_state(set(range(0, 40)) - {5}))
+        st = events.fire_state(set(range(0, 40)) - {5, 6})
+        self.assertEqual((st["share"], st["missed"], st["began"], st["healed"]), (events.FIRE_PER_DAY, 2, 6, 5))
+
+    def test_today_is_no_day_missed_yet(self):
+        self.assertIsNone(events.fire_state(set(range(2, 40))))  # yesterday and today so far: one day
+        st = events.fire_state(set(range(3, 40)))
+        self.assertEqual((st["share"], st["healed"], st["news"]), (events.FIRE_PER_DAY, 0, True))
+
+    def test_it_spreads_each_day_up_to_half(self):
+        share = lambda away: events.fire_state(set(range(away + 1, 99)))["share"]  # noqa: E731
+        self.assertEqual([round(share(d), 2) for d in (2, 3, 5)], [0.05, 0.1, 0.2])
+        self.assertEqual(share(11), events.FIRE_MAX)
+        self.assertEqual(share(60), events.FIRE_MAX)
+
+    def test_a_week_of_study_puts_it_out_and_that_day_is_news(self):
+        away = set(range(10, 40))  # nine days away, then back
+        for k in range(1, events.FIRE_HEAL_DAYS):
+            st = events.fire_state(away | set(range(k)) | {0})
+            self.assertEqual(st["healed"], k)
+        st = events.fire_state(away | set(range(events.FIRE_HEAL_DAYS)))
+        self.assertEqual((st["share"], st["out"]), (0.0, True))
+        self.assertIsNone(events.fire_state(away | set(range(1, events.FIRE_HEAL_DAYS + 1))))  # out yesterday: no news today
+
+    def test_the_study_days_count_not_the_calendar(self):
+        days = set(range(0, 40)) - {9, 8, 7, 6} - {4, 2}  # four days away, then back with a day off twice
+        st = events.fire_state(days)
+        self.assertEqual((st["healed"], round(st["share"], 2)), (4, 0.15))  # a single day off only pauses it
+    def test_staying_away_again_fans_it_up_anew(self):
+        days = set(range(20, 60)) | {15, 14, 13} | set(range(0, 6))  # away 16-19, back 3 days, away 6-12, back 6
+        st = events.fire_state(days)
+        self.assertEqual((st["began"], round(st["share"], 2), st["healed"], st["missed"]), (19, 0.3, 6, 7))
+    def test_burning_trees_come_by_lot_the_same_every_day(self):
+        days = set(range(12, 400))  # eleven days away: half the forest
+        trees = self.trees(range(12, 400))
+        out, info = events.set_fire(trees, days)
+        burning = [t["ago"] for t in out if t.get("burn")]
+        self.assertEqual((info["trees"], len(burning), info["left"], info["news"]), (194, 194, events.FIRE_HEAL_DAYS, True))
+        self.assertFalse(any("burn" in t for t in trees))  # the trees given are left alone
+        # a day later, with that day studied: the same trees, a seventh less aflame
+        later = [dict(t, ago=t["ago"] + 1) for t in trees]
+        out, info = events.set_fire(later, {d + 1 for d in days} | {0})
+        self.assertEqual([t["ago"] - 1 for t in out if t.get("burn")], burning)
+        self.assertEqual({t["burn"] for t in out if t.get("burn")}, {round(1 - 1 / events.FIRE_HEAL_DAYS, 3)})
+        self.assertEqual(info["left"], events.FIRE_HEAL_DAYS - 1)
+    def test_only_trees_standing_when_it_broke_out_and_drawn_one_by_one(self):
+        days = set(range(0, 5)) | set(range(8, 300))  # away 5-7, back
+        out, info = events.set_fire(self.trees(days), days, limit=100)
+        burning = [t["ago"] for t in out if t.get("burn")]
+        self.assertEqual(len(burning), info["trees"])
+        self.assertTrue(burning and all(8 <= a <= 102 for a in burning))  # the newest 100, less those planted since

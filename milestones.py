@@ -40,7 +40,8 @@ def visitors(stats: dict, arrived: dict | None = None, today: int | None = None)
 
     Once an animal has come it stays for good: `arrived` holds every one that has (see
     arrivals), and each is new on the day it came (`today`, the scheduler's day number).
-    Only an asteroid sends them away, and then they have to be earned again.
+    Only an asteroid sends them away (see events_state._animals), and then they have to be
+    earned again.
 
     Without `arrived` (the test forest, a deck's own forest) there is nothing remembered, so
     the animals are those today's numbers bring, and new when _arrived_today can tell.

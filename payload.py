@@ -91,7 +91,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     forest = dict(fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test else _forest(None if highlight else did)
     if highlight and did:
         forest = _lit_by_deck(forest, did, test)
-    # the stakes and the other study events; a deck's own forest shows the trees alone
+    # Nature and the other study events; a deck's own forest shows the trees alone
     extras = {}
     if not (did and not highlight):
         forest, extras = events_state.apply(forest, cfg, test)
@@ -152,7 +152,7 @@ def _scene_name(cfg: dict, today: _dt.date) -> dict:
         return {}
     if key == "daily":
         pick = presets.of_the_day(today)
-        return {"sceneName": pick.label, "sceneTip": "Today's preset, from Surprise me daily. Tomorrow brings the next one."}
+        return {"sceneName": pick.label, "sceneTip": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."}
     if key == presets.CUSTOM:
         name = scene.ENVIRONMENTS.get(cfg.get("environment"), "")
         return {"sceneName": name, "sceneTip": "Your own mix, from Fine-tuning in the forest settings."} if name else {}

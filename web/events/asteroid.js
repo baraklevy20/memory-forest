@@ -1,5 +1,5 @@
-/* Memory Forest — the Stakes setting's asteroid: on its way while you miss days, the strike
- * (a meteor shower, then the forest blown apart), and the craters it leaves, healing over
+/* Memory Forest — Merciless's asteroid: on its way on a day with no reviews yet, the strike
+ * (a meteor shower, then the forest blown apart), and the crater it leaves, healing over
  * the months. */
 (function () {
 'use strict';
@@ -83,12 +83,7 @@ function crater(g, cx, cy, lost, age, env) {
 const fmt = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 // (how to watch the latest one again is for the pointer to say: a click, or a tap and a button)
 const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}`;
-// when it strikes: tonight, tomorrow night, or in so many days (each counted to its night:
-// `left` is how many more nights pass before the one it strikes on)
-const doomWhen = d => d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow night' : `in ${d.left} days`;
-const doomText = d => d.left > 0
-  ? `An asteroid is on its way: ${d.missed} of ${d.grace} days without reviews. It strikes ${doomWhen(d)} - review today to turn it back.`
-  : 'An asteroid strikes tonight, when the day ends, unless you review today.';
+const doomText = () => 'An asteroid strikes tonight, when the day ends, unless you review today.';
 const fmtShort = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
 /* ---------- the strike: a meteor shower, then the forest blown apart ---------- */
@@ -258,7 +253,7 @@ AF.events.add('asteroid', {
       animate ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;
-    if (d) items.push([`Asteroid: ${d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow night' : `${d.left} days`}`, doomText(d)]);
+    if (d) items.push(['Asteroid: tonight', doomText(d)]);
     return items;
   },
   // Ready `root` to replay `data`'s latest strike, and play it now if it hasn't been seen

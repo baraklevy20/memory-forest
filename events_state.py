@@ -1,7 +1,8 @@
-"""The events - what the way you study brings to the forest - on Anki's side: the Stakes
-remembered per profile (when they were chosen, every strike so far), and what the page
-needs to show them, with the big days, the tall grass, the cured leeches and the backlog
-of overdue reviews. The rules are in events.py, the drawing in web/events/."""
+"""The events - what the way you study brings to the forest - on Anki's side: what the
+page needs to show the Nature setting's asteroid or fire, the big days, the tall grass, the
+cured leeches and the backlog of overdue reviews. Nature is read afresh from the days you
+studied each time; only what has been shown is remembered (a strike played, the animals
+announced). The rules are in events.py, the drawing in web/events/."""
 
 from __future__ import annotations
 
@@ -12,32 +13,14 @@ from .state import _profile, excluded_decks, load_state, phone_cards, phone_deck
 
 # The profiles a sync has finished for this session, and whether one is under way. Until
 # a sync has brought in what you studied elsewhere (on your phone, say), a day you studied
-# there looks missed here - so no new strike comes before one has, unless the profile
-# doesn't sync at all. The strikes already remembered stand all the same.
+# there looks missed here - so no strike you haven't seen yet comes before one has, unless
+# the profile doesn't sync at all.
 _synced: set = set()
 _syncing = False
 
 
-def stakes_level(cfg: dict) -> str:
-    level = cfg.get("stakes")
-    return level if isinstance(level, str) and level in events.STAKES else events.DEFAULT_STAKES
-
-
-def _stakes_since(level: str) -> int:
-    """How many days ago these stakes were chosen (0: today), remembered per profile, so a
-    break from before choosing them never counts against them. While the settings dialog
-    previews a level it counts from today, and only a level kept once the dialog closes is
-    remembered (Cancel changes nothing)."""
-    from .settings import is_open
-
-    today = mw.col.sched.today
-    state = load_state()
-    if state.get("stakes") != level or not isinstance(state.get("stakes_since"), int):
-        if is_open():
-            return 0
-        state.update(stakes=level, stakes_since=today)
-        save_state(state)
-    return max(0, today - state["stakes_since"])
+def nature_level(cfg: dict) -> str:
+    return events.nature_level(cfg.get("nature"))
 
 
 def sync_started() -> None:
@@ -63,40 +46,18 @@ def _syncs() -> bool:
         return True
 
 
-def can_strike() -> bool:
-    """Whether a new strike may come now: the review log is all there (a sync has finished
-    this session, or the profile doesn't sync), no sync is under way (the forest written for
-    your phone as one starts is made from what is here before it), and the settings dialog
-    isn't previewing (Cancel must undo everything)."""
-    from .settings import is_open
-
-    return not _syncing and (_profile() in _synced or not _syncs()) and not is_open()
+def settled() -> bool:
+    """Whether the review log is all there: a sync has finished this session, or the
+    profile doesn't sync; and no sync is under way (the forest written for your phone as
+    one starts is made from what is here before it)."""
+    return not _syncing and (_profile() in _synced or not _syncs())
 
 
-def _strikes() -> tuple:
-    """Every strike remembered, as days ago, oldest first."""
-    today = mw.col.sched.today
-    days = sorted({d for d in load_state().get("strike_days") or [] if isinstance(d, int)})
-    return tuple(today - d for d in days if d <= today)
-
-
-def _remember_strikes(hits: list) -> None:
-    """Add `hits` (days ago) to the strikes remembered, so no later change of level can
-    undo one."""
-    today = mw.col.sched.today
-    state = load_state()
-    known = {d for d in state.get("strike_days") or [] if isinstance(d, int)}
-    days = known | {today - ago for ago in hits}
-    if days != known:
-        state["strike_days"] = sorted(days)
-        save_state(state)
-
-
-# the days with reviews, as the Stakes count them, until the collection or the day changes
+# the days with reviews, as Nature counts them, until the collection or the day changes
 _days_cache: tuple = (None, set())
 
 
-def _stakes_days() -> set:
+def _nature_days() -> set:
     """The days you studied anything at all (see study_log.load_review_days), but the note
     that carries the forest to your phone: looking at it there is not studying."""
     global _days_cache
@@ -109,19 +70,21 @@ def _stakes_days() -> set:
     return _days_cache[1]
 
 
-def strike_payload(out: dict, seen_key: str, date) -> dict:
-    """What the page needs to show the craters and play the latest strike. The journal
-    speaks of it (`told`) until it has played, and for the rest of that day."""
-    latest = out["latest"]
+def strike_payload(latest: dict, seen_key: str, date, playable: bool = True) -> dict:
+    """What the page needs to show the latest strike's crater and play it. It plays by
+    itself once, while it is news and hasn't been seen (and `playable`: not while the
+    settings dialog previews it); the journal speaks of it (`told`) until it has played,
+    and for the rest of that day."""
     before = forest_data.merge_old({"trees": latest["before"]})
     state = load_state()
-    fresh = state.get("strike_seen") != seen_key
+    news = latest["ago"] <= events.STRIKE_NEWS_DAYS
+    fresh = news and playable and state.get("strike_seen") != seen_key
     return {
-        "craters": [dict({k: v for k, v in c.items() if k != "key"}, date=date(c["ago"])) for c in out["craters"]],
+        "craters": [{"ago": latest["ago"], "lost": latest["lost"], "streak": latest["streak"], "date": date(latest["ago"]),
+                     **({"spot": latest["spot"]} if latest.get("spot") else {})}],
         "strike": {"date": date(latest["ago"]), "lost": latest["lost"], "before": before["trees"], "merged": before.get("merged"),
-                   "seen": seen_key, "fresh": fresh,
-                   "news": latest["ago"] <= events.STRIKE_NEWS_DAYS,
-                   "told": fresh or state.get("strike_seen_day") == mw.col.sched.today},
+                   "seen": seen_key, "fresh": fresh, "news": news,
+                   "told": news and (fresh or state.get("strike_seen_day") == mw.col.sched.today)},
     }
 
 
@@ -161,50 +124,67 @@ def _mark_cured(trees: list, cfg: dict) -> list:
     return [dict(t, cured=cured[t["ago"]]) if cured.get(t["ago"]) else t for t in trees] if cured else trees
 
 
-def _animals(forest: dict, craters: list) -> dict:
-    """The forest with every animal that has come to it since the last asteroid (`craters`),
-    remembered per profile: once come, an animal stays, and is new on the day it came. The
-    first look at a forest remembers the animals it already has without announcing them all
-    at once, and nothing the settings dialog previews is remembered."""
+def _animals(forest: dict, struck: int | None) -> dict:
+    """The forest with every animal that has come to it, remembered per profile for each
+    forest there has been (the whole of it, and the one that grew since each asteroid -
+    `struck`, the day it began again): once come, an animal stays, and is new on the day it
+    came. The first look at a forest remembers the animals it already has without
+    announcing them all at once - so changing the Nature setting back and forth announces
+    nothing - and nothing the settings dialog previews is remembered."""
     from .settings import is_open
 
     today = mw.col.sched.today
-    struck = today - craters[-1]["ago"] if craters else None  # the day the forest began again
+    key = "all" if struck is None else str(struck)
     state = load_state()
-    known = state.get("animals")
-    first = not isinstance(known, dict)
-    if first or state.get("animals_struck") != struck:
-        known = {}  # an asteroid sent them away: they have to be earned again
-    known = {k: v for k, v in known.items() if v is None or type(v) is int}
+    every = state.get("animals")
+    every = every if isinstance(every, dict) and all(isinstance(v, dict) for v in every.values()) else {}
+    known = every.get(key)
+    first = known is None
+    known = {k: v for k, v in (known or {}).items() if v is None or type(v) is int}
     arrived = milestones.arrivals(forest["stats"], known, None if first or is_open() else today)
-    if not is_open() and (arrived != state.get("animals") or state.get("animals_struck") != struck):
-        state.update(animals=arrived, animals_struck=struck)
+    if not is_open() and arrived != every.get(key):
+        state["animals"] = dict(every, **{key: arrived})
         save_state(state)
     return dict(forest, visitors=milestones.visitors(forest["stats"], arrived, today))
 
 
+def _held(days: set) -> frozenset:
+    """The strikes that don't come yet: until the review log is all there (see settled),
+    any you haven't seen - a day studied on another device looks missed until it syncs."""
+    if settled():
+        return frozenset()
+    seen = load_state().get("strike_seen")
+    return frozenset(d for d in events.strikes(days) if ago_date(d) != seen)
+
+
 def apply(forest: dict, cfg: dict, test: bool) -> tuple:
-    """The forest after the stakes have had their say, and everything else the way you
-    study brings to it: (forest, extras for the page)."""
-    level = stakes_level(cfg)
+    """The forest after Nature has had its say, and everything else the way you study
+    brings to it: (forest, extras for the page)."""
+    from .settings import is_open
+
+    level = nature_level(cfg)
     days = forest.get("review_days") or set()
-    extras = {"stakes": level, "craters": [], "strike": None, "doom": None}
+    extras = {"nature": level, "craters": [], "strike": None, "doom": None, "fire": None}
     if not test:
-        since = _stakes_since(level)
-        # the Stakes go by every deck you study, whichever the forest leaves out
-        new = can_strike()
-        out = events.apply_stakes(forest["trees"], _stakes_days(), level, since, _strikes(), new)
-        if new:
-            _remember_strikes(out["hits"])
-        if out["craters"]:
-            extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date))
-            # the forest now: only what grew since, its streak, reviews and animals counted from
-            # there - the animals have to be earned again, as the trees do
-            struck = out["craters"][-1]["ago"]
-            reviews = sum(n for d, n in (forest.get("day_reviews") or {}).items() if d < struck)
-            forest = forest_data.rebuild(forest, out["trees"], {d for d in days if d < struck}, reviews)
-        forest = _animals(forest, out["craters"])
-        extras["doom"] = out["doom"]
+        # Nature goes by every deck you study, whichever the forest leaves out
+        nature_days = _nature_days()
+        struck = None
+        if level == "merciless":
+            out = events.merciless(forest["trees"], nature_days, _held(nature_days))
+            if out["latest"]:
+                extras.update(strike_payload(out["latest"], ago_date(out["latest"]["ago"]), ago_date, not is_open()))
+            if out["hits"]:
+                # the forest now: only what grew since, its streak, reviews and animals counted
+                # from there - the animals have to be earned again, as the trees do
+                hit = out["hits"][-1]
+                struck = mw.col.sched.today - hit
+                reviews = sum(n for d, n in (forest.get("day_reviews") or {}).items() if d < hit)
+                forest = forest_data.rebuild(forest, out["trees"], {d for d in days if d < hit}, reviews)
+            extras["doom"] = out["doom"]
+        elif level == "wild":
+            trees, extras["fire"] = events.set_fire(forest["trees"], nature_days, forest_data.MAX_INDIVIDUAL_TREES)
+            forest = dict(forest, trees=trees)
+        forest = _animals(forest, struck)
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
     extras["stagnation"] = events.stagnation(forest["trees"], days)
     if not test:
@@ -216,6 +196,21 @@ def apply(forest: dict, cfg: dict, test: bool) -> tuple:
         if extras.get("backlog"):
             extras["backlog"] = dict(extras["backlog"], hell=0.0)
     return forest, extras
+
+
+def fire_line(extras: dict) -> str:
+    """The journal's line for Wild's fire: on the days you come back to it (until you have
+    studied), and the day it goes out."""
+    fire = extras.get("fire")
+    if not fire:
+        return ""
+    if fire["out"]:
+        return "The last of the fire is out. Your forest is green again."
+    if not fire["news"]:
+        return ""
+    n = fire["trees"]
+    return (f"A fire broke out while you were away: {n} tree{'s are' if n != 1 else ' is'} burning. "
+            f"Study on {events.FIRE_HEAL_DAYS} days to put it out.")
 
 
 def strike_line(extras: dict) -> str:
@@ -230,12 +225,13 @@ def strike_line(extras: dict) -> str:
 
 def news_line(extras: dict) -> str:
     """The journal's line for what the events brought today, if anything: an asteroid's
-    strike, or a backlog cleared."""
-    if strike_line(extras):
-        return strike_line(extras)
+    strike, a fire, or a backlog cleared."""
+    line = strike_line(extras) or fire_line(extras)
+    if line:
+        return line
     backlog = extras.get("backlog")
     if backlog and backlog["cleared"]:
-        return "You cleared your overdue reviews" + (". The tumbleweeds blew away." if not events.calm(extras["stakes"]) else ".")
+        return "You cleared your overdue reviews" + (". The tumbleweeds blew away." if not events.calm(extras["nature"]) else ".")
     return ""
 
 
