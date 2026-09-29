@@ -126,7 +126,7 @@ AF.env('synthwave', {
     env.visitorTint = '#35e0ff';
     // water and the grid are the same idea here, so a lake keeps its own room and the
     // grid only takes over when there is no water to reflect the sun in
-    env.bot = env.mood.landscape === 'lake' || env.mood.landscape === 'river' ? 0.74 : 0.8;
+    env.bot = env.mood.landscape === 'lake' ? 0.74 : 0.8;
   },
 
   /* the grid itself, scrolling towards the horizon. With a lake in front it runs over

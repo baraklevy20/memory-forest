@@ -1,13 +1,13 @@
-/* A red moon bridge: a steep, near-round arch with a lantern at each end. On a lake or a
- * river it stands at the water's edge in front of the forest, and its reflection closes
- * the arch into a full circle; anywhere else it stands on the far hills. */
+/* A red moon bridge: a steep, near-round arch with a lantern at each end. On a lake it
+ * stands at the water's edge in front of the forest, and its reflection closes the arch
+ * into a full circle; anywhere else it stands on the far hills. */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
 const { hex, mix, layer } = AF.u;
 
 const LACQUER = hex('#d8402e'), LACQUER_D = hex('#8a2420'), RAIL = hex('#2a1a18'), LAMP = hex('#ffd27a');
-const onWater = env => env.mood.landscape === 'lake' || env.mood.landscape === 'river';
+const onWater = env => env.mood.landscape === 'lake';
 
 /* the bridge as a small sprite, and the lamp positions within it */
 function build(env) {

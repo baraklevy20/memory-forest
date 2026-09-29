@@ -140,7 +140,7 @@ AF.deepForest = function (merged, env) {
 AF.place = function (it, W, H, env) {
   const hor = H * HORIZON, top = hor + H * ROWS_TOP, bot = H * (env.bot || GROUND_BOTTOM), z = env.layout.zoom;
   const land = AF.landOf(env);
-  const x = land.placeX ? land.placeX(it) : it.x;  // a landscape may squeeze the rows onto its own ground
+  const x = land.placeX ? land.placeX(it, env) : it.x;  // a landscape may squeeze the rows onto its own ground
   // on a deck screen in "lit" mode, trees without that deck's cards recede into the haze
   // a tree drifts off its row, but never up onto the hills nor off the bottom
   return { x: (SLOT_MARGIN + SLOT_SPAN * x) * W, y: top + (bot - top) * clamp(Math.pow(it.depth, 1.1) + it.jy * it.rowGap, 0, 1), s: (FAR_SCALE + NEAR_GAIN * it.depth) * z, hz: it.dim ? DIM_HAZE : 1 - it.depth };

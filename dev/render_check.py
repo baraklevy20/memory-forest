@@ -24,6 +24,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
@@ -176,20 +177,28 @@ def failed(r: dict) -> bool:
     return bool(r.get("errors")) or r.get("painted", 0) < 1
 
 
+def clock(secs: float) -> str:
+    m, s = divmod(int(secs), 60)
+    return f"{m}:{s:02d}"
+
+
 def run(cases: list) -> dict:
     """Render in parallel, then give anything that failed a second, unhurried try.
 
     Three headless Chromes competing for the CPU can miss a slow scene, and a harness
     that cries wolf is worse than no harness: only a scene that fails on its own counts.
     """
-    out, retry = {}, []
+    out, retry, start = {}, [], time.monotonic()
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        for name, r in pool.map(render, cases):
+        for done, (name, r) in enumerate(pool.map(render, cases), 1):
             out[name] = r
             if failed(r):
                 retry.append(name)
-            else:
-                print(f"ok   {name:<28} painted {r.get('painted', 0):>5}%")
+            # how far along, and at this pace how long is left
+            took = time.monotonic() - start
+            progress = f"[{done}/{len(cases)} {clock(took)} in, ~{clock(took / done * (len(cases) - done))} left]"
+            print(f"ok   {name:<28} painted {r.get('painted', 0):>5}%  {progress}" if not failed(r)
+                  else f"...  {name:<28} will retry  {progress}", flush=True)
     by_name = {c[0]: c for c in cases}
     for name in retry:
         _n, r = render(by_name[name])

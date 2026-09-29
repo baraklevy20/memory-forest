@@ -41,9 +41,15 @@ function spruce(c) {
 }
 
 /* The mountains: a jagged range with snow down its upper slopes, the faces towards the
- * moon lit and the rest in shade, and in front a low dark ridge fringed with spruce. */
+ * moon lit and the rest in shade, and in front a low dark ridge fringed with spruce.
+ * As the far treeline climbs, the range grows with it, so the highest peak always stands
+ * RANGE_CLEAR above the trees (up to RANGE_TOP from the top of the sky); the peaks
+ * spread a little less than they rise, so a big range stays as steep as a small one. */
+const MAIN_PEAK = 46, RANGE_CLEAR = 30, RANGE_TOP = 0.1, RANGE_SPREAD = 0.7;
 function range(env, g) {
-  const { W, hor, u } = env, R = rng(52), night = dark(env.mood);
+  const { W, H, hor, u } = env, R = rng(52), night = dark(env.mood);
+  const S = Math.min((hor - H * RANGE_TOP) / (MAIN_PEAK * u), Math.max(1, (hor - AF.treeLine(env) + RANGE_CLEAR * u) / (MAIN_PEAK * u)));
+  const SW = 1 + (S - 1) * RANGE_SPREAD;
   const rock = night ? ['#3a4e6c', '#1e2c44'] : ['#7a8ca4', '#56687e'];
   const snow = night ? ['#d8e8ee', '#8ea2c0'] : ['#ffffff', '#c4d2e4'];
   // a handful of peaks of very different sizes, one of them clearly the highest, each
@@ -51,8 +57,8 @@ function range(env, g) {
   const peaks = [], n = Math.max(4, Math.round(W / (55 * u)));
   for (let i = 0; i < n; i++) {
     const main = i === Math.floor(n * 0.45);
-    peaks.push({ x: (i + 0.2 + R() * 0.6) / n * W, h: (main ? 46 : 12 + R() * 26) * u,
-                 wl: (main ? 60 : 26 + R() * 40) * u, wr: (main ? 70 : 26 + R() * 40) * u, bend: 0.75 + R() * 0.6 });
+    peaks.push({ x: (i + 0.2 + R() * 0.6) / n * W, h: (main ? MAIN_PEAK : 12 + R() * 26) * u * S,
+                 wl: (main ? 60 : 26 + R() * 40) * u * SW, wr: (main ? 70 : 26 + R() * 40) * u * SW, bend: 0.75 + R() * 0.6 });
   }
   const r1 = R() * 6, r2 = R() * 6;
   const rough = x => (Math.sin(x * 0.37 + r1) * 1.2 + Math.sin(x * 0.11 + r2) * 1.6) * u;  // a broken ridgeline
@@ -185,7 +191,7 @@ AF.env('aurora', {
    * dimmer, rippling with the water */
   frame(g, env, t) {
     const L = env.water;
-    if (!env.curtains || !L || L.river || env.theme.frozen) return;
+    if (!env.curtains || !L || env.theme.frozen) return;
     // the whole sky folds into the water, the horizon at the shore and the top of the
     // sky at the near edge, so the curtains land in view
     const { W, u, hor } = env, ts = t * 0.2, end = L.y0 + L.lh;

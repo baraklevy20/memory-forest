@@ -31,7 +31,7 @@ AF.pondBox = function (env, p) {
   // a landscape that squeezes the rows onto its own ground narrows the slots too:
   // measure one slot where this pond stands, on the nearer side of any gap it squeezes out
   const land = AF.landOf(env), step = 1 / (env.layout.perRow + 0.5);
-  const at_x = x => land.placeX ? land.placeX(Object.assign({}, it, { x })) : x;
+  const at_x = x => land.placeX ? land.placeX(Object.assign({}, it, { x }), env) : x;
   const squeeze = land.placeX ? Math.min(Math.abs(at_x(it.x + step) - at_x(it.x)), Math.abs(at_x(it.x) - at_x(it.x - step))) / step : 1;
   const colW = colWidth(env) * squeeze;
   const xs = env.placed.filter(q => q.it.pond && q.it.group === it.group).map(q => q.x);

@@ -146,7 +146,9 @@ AF.drawVisitors = function (g, env, t) {
   list.forEach((v, i) => {
     const spr = VISITORS[v.key]; if (!spr || i >= slots.length) return;
     const W = env.W, roam = W * ROAM_REACH, period = ROAM_EVERY + i * ROAM_STAGGER, walk = WALK_SECS, k = Math.floor((t + i * ROAM_OFFSET) / period), ph = (t + i * ROAM_OFFSET) - k * period;
-    const spot = n => W * slots[i] + (rng((daySeed(env) + n * 7919 + i * 104729) >>> 0)() - 0.5) * 2 * roam;
+    // a landscape with water across the front keeps each animal to its own bank
+    const home = W * slots[i], land = AF.landOf(env);
+    const spot = n => { const s = home + (rng((daySeed(env) + n * 7919 + i * 104729) >>> 0)() - 0.5) * 2 * roam; return land.dryX ? land.dryX(env, s, baseY, home) : s; };
     const from = spot(k - 1), to = spot(k), moving = !env.still && ph < walk, q = moving ? ph / walk : 1;
     const x = from + (to - from) * q, dir = to >= from ? 1 : -1;
     let frame = spr.frames[moving ? Math.floor(ph * WALK_FPS) % spr.frames.length : (Math.sin(t * 0.7 + i * 2.1) > IDLE_GLANCE ? 1 : 0)], dy = 0;

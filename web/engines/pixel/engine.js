@@ -31,9 +31,11 @@ AF.engines.pixel = {
   },
   sky: drawSky,
   steps(env) {
-    const th = env.theme, { W, H, u } = env, steps = [lg => drawGround(env, lg)];
+    const th = env.theme, { W, H, u } = env, steps = [lg => drawGround(env, lg)], land = AF.landOf(env);
+    // what the landscape lays on the ground before anything stands on it, e.g. a river's bed
+    if (land.bed) steps.push(lg => land.bed(env, lg));
     // a landscape with an open horizon (`noDeep`) has nowhere for a distant treeline
-    if (env.deep && !AF.landOf(env).noDeep) steps.push(lg => deepForest(env, lg));
+    if (env.deep && !land.noDeep) steps.push(lg => deepForest(env, lg));
     let nextFog = th.fog ? FOG_VEIL_FROM : Infinity;
     for (const p of env.placed) {
       if (th.fog && p.it.depth >= nextFog && nextFog < FOG_VEIL_TO) { steps.push(lg => fogVeil(lg, W, H, p.y, th.fog, th.fogAmt || FOG_VEIL_AMT)); nextFog += FOG_VEIL_STEP; }
@@ -57,8 +59,8 @@ AF.engines.pixel = {
       lg.putImageData(img, 0, 0); env.landLit = lit;
     }
     const land = AF.landOf(env);
-    if (land.post) land.post(env);  // a lake or a river builds its reflection here
-    env.lake = env.water && !env.water.river ? env.water : null;
+    if (land.post) land.post(env);  // a lake builds its reflection here, a river finds its open water
+    env.lake = env.water;
   },
   frameBack(g, env, t) {
     const land = AF.landOf(env);

@@ -1,0 +1,12 @@
+{
+  "label": "Cherry blossom",
+  "preset": {
+    "label": "Cherry blossom",
+    "order": 70,
+    "landscape": "river",
+    "landmark": "none",
+    "weather": "clear",
+    "time": "dusk",
+    "note": "Hanami under Fuji: blossoming cherries along the river, lanterns lit at dusk, and petals on the breeze."
+  }
+}

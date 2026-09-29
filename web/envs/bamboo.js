@@ -82,6 +82,44 @@ function calmWater(env) {
   L.rf = cv;
 }
 
+/* one floating lantern on its raft, with a broken warm streak running down from it;
+ * `seen(x, y)` says where the water shows */
+function floatingLantern(g, x, y, lw, flick, reach, k, seen) {
+  const lh = lw + 1;
+  for (let j = 1; j < reach; j++) {
+    if ((j + k) % 3 === 2 || !seen(x + (j % 2), y + j + 1)) continue;
+    g.fillStyle = `rgba(255,190,100,${(0.5 * (1 - j / reach) * flick).toFixed(3)})`;
+    g.fillRect(x + (j % 2), y + j + 1, Math.max(1, lw - 1), 1);
+  }
+  g.fillStyle = `rgba(255,200,120,${(0.12 * flick).toFixed(3)})`; g.fillRect(x - lw, y - lh - 2, lw * 3, lh * 2 + 2);
+  g.fillStyle = `rgba(255,200,120,${(0.18 * flick).toFixed(3)})`; g.fillRect(x - 2, y - lh, lw + 4, lh + 2);
+  g.fillStyle = '#3a2a22'; g.fillRect(x - 1, y + 1, lw + 2, 1);            // the little raft
+  g.fillStyle = LAMP; g.fillRect(x, y - lh + 1, lw, lh);
+  if (lw < 3) return;
+  g.fillStyle = '#fff0c0'; g.fillRect(x + (lw >> 1) - (lw > 3 ? 1 : 0), y - lh + 2, lw > 3 ? 2 : 1, lh - 2);  // the flame inside
+  g.fillStyle = LAMP_D; g.fillRect(x, y, lw, 1);
+  g.fillStyle = '#4a3024'; g.fillRect(x, y - lh, lw, 1);                  // its dark top
+}
+
+/* on a river, nine lanterns come down the channel, and one a tree stands in front of is hidden */
+function riverLanterns(g, env, t) {
+  const S = env.river, land = AF.landOf(env); if (!S.vis) return;
+  const { W, H, u, hor } = env, R = rng(505), tt = env.still ? 0 : t;
+  const seen = (x, y) => x >= 0 && x < W && y >= 0 && y < H && S.vis[y * W + x] === 1;
+  const boats = [];
+  for (let k = 0; k < 9; k++) {
+    const q = ((k + R() * 0.6) / 9 + tt * 0.012) % 1;
+    boats.push({ p: 0.06 + Math.pow(q, 1.2) * 0.94, lane: (R() - 0.5) * 0.9, k });
+  }
+  boats.sort((a, b) => a.p - b.p);
+  for (const { p, lane, k } of boats) {
+    const y = Math.round(hor + p * (H - hor) + Math.sin(tt * 0.8 + k) * 0.5), lw = Math.max(1, Math.round((0.8 + p * 3) * u));
+    const x = Math.round(W * land.center(p) + lane * W * land.halfWidth(p, W) - lw / 2);
+    if (!seen(x + (lw >> 1), y + 1)) continue;  // behind a tree, or off the water
+    floatingLantern(g, x, y, lw, 0.8 + 0.2 * Math.sin(tt * 2.3 + k * 1.7), Math.round((2 + p * 8) * u), k, seen);
+  }
+}
+
 AF.env('bamboo', {
   fx: { init(st, { env }) { calmWater(env); } },
 
@@ -146,31 +184,21 @@ AF.env('bamboo', {
   },
 
   /* the floating lanterns: a slow procession downstream, each with its light running
-   * down into the water beneath it */
+   * down into the water beneath it. On a lake they cross in two lanes; on a river they
+   * come down the channel toward you, growing as they come. */
   frame(g, env, t) {
+    if (env.theme.frozen) return;
+    if (env.river) return riverLanterns(g, env, t);
     const L = env.water;
-    if (!L || env.theme.frozen) return;
-    const { W, u } = env, R = rng(505), n = 13, v = (L.river ? 1.4 : 0.4) * u;
+    if (!L) return;
+    const { W, u } = env, R = rng(505), n = 13, v = 0.4 * u;
     for (let k = 0; k < n; k++) {
       // two lanes: small lanterns far out, bigger ones close to this bank
-      const near = k % 2 === 0, lw = near ? Math.max(4, Math.round(3.6 * u)) : 3, lh = lw + 1;
+      const near = k % 2 === 0, lw = near ? Math.max(4, Math.round(3.6 * u)) : 3;
       const lane = near ? 0.55 + R() * 0.3 : 0.05 + R() * 0.25, y = Math.round(L.y0 + 2 + lane * Math.max(1, L.lh - 4));
       const x = Math.round(((k / n) * (W + 12) + R() * 10 + t * v * (near ? 1 : 0.7)) % (W + 12)) - 6;
       const flick = 0.8 + 0.2 * Math.sin(t * 2.3 + k * 1.7), yb = y + Math.round(Math.sin(t * 0.8 + k) * 0.5);
-      // the reflection: a broken warm streak straight down
-      const reach = Math.min((near ? 10 : 5) * u, L.y0 + L.lh - yb - 2);
-      for (let j = 1; j < reach; j++) {
-        if ((j + k) % 3 === 2) continue;
-        g.fillStyle = `rgba(255,190,100,${(0.5 * (1 - j / reach) * flick).toFixed(3)})`;
-        g.fillRect(x + (j % 2), yb + j + 1, lw - 1, 1);
-      }
-      g.fillStyle = `rgba(255,200,120,${(0.12 * flick).toFixed(3)})`; g.fillRect(x - lw, yb - lh - 2, lw * 3, lh * 2 + 2);
-      g.fillStyle = `rgba(255,200,120,${(0.18 * flick).toFixed(3)})`; g.fillRect(x - 2, yb - lh, lw + 4, lh + 2);
-      g.fillStyle = '#3a2a22'; g.fillRect(x - 1, yb + 1, lw + 2, 1);            // the little raft
-      g.fillStyle = LAMP; g.fillRect(x, yb - lh + 1, lw, lh);
-      g.fillStyle = '#fff0c0'; g.fillRect(x + (lw >> 1) - (lw > 3 ? 1 : 0), yb - lh + 2, lw > 3 ? 2 : 1, lh - 2);  // the flame inside
-      g.fillStyle = LAMP_D; g.fillRect(x, yb, lw, 1);
-      g.fillStyle = '#4a3024'; g.fillRect(x, yb - lh, lw, 1);                  // its dark top
+      floatingLantern(g, x, yb, lw, flick, Math.min((near ? 10 : 5) * u, L.y0 + L.lh - yb - 2), k, () => true);
     }
   },
 });

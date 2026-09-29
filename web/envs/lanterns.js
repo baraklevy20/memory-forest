@@ -121,7 +121,7 @@ AF.env('lanterns', {
    * floating on the water, bobbing a little */
   frame(g, env, t) {
     const L = env.water;
-    if (!env.theme.lanternNight || !L || L.river) return;
+    if (!env.theme.lanternNight || !L) return;
     const { W, H, hor } = env, s = lanterns(env);
     for (const l of s.sky) {
       // the streak sits where the lake mirrors that height of sky, nearer the shore the
