@@ -120,7 +120,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "visitors": forest["visitors"],
         "anniversaries": ann,
         "mood": mood,
-        "journal": events_state.strike_line(extras) or journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs),
+        "journal": events_state.news_line(extras) or journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs),
         "events": evs,
         "merged": forest.get("merged"),
         "forestSeed": forest["forest_seed"],

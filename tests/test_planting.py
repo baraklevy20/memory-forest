@@ -33,7 +33,7 @@ class PlantingTests(unittest.TestCase):
         reset([(1, 10, 0)], {"excluded_decks": [10]})
         answer(1)
         reset([(1, 10, 3)])
-        mw.col.db.con.execute("insert into revlog values (?, 1, 3, 1)", (ms(0),))  # seen before: a review
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 1, 3, 1)", (ms(0),))  # seen before: a review
         answer(1)
         reset([(1, 10, 0)], {"planting_tooltip": False})
         answer(1)

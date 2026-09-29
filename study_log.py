@@ -23,6 +23,10 @@ STUDY_TYPES = "(0, 1, 2, 3)"
 # leeches say nothing about how you study now.
 ACTIVE_DAYS = 60
 
+# A leech whose interval has grown to this many days (mature, as Anki counts it) is cured:
+# it keeps Anki's leech tag, but brings no crow (see events.CURED_DAYS for its songbird).
+CURED_IVL = 21
+
 
 @dataclass
 class Rows:
@@ -35,6 +39,7 @@ class Rows:
     total_reviews: int
     today_reviews: int
     leeches: set = field(default_factory=set)  # cids of active cards tagged leech (suspended ones too)
+    day_reviews: dict = field(default_factory=dict)  # days_ago -> how many reviews that day
 
 
 def load_rows(db, day_cutoff: int, dids: list | None = None,
@@ -49,14 +54,7 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     With `suspended`, suspended cards keep their trees (see build_forest for how they count).
     Works with Anki's mw.col.db and with the small sqlite3 wrapper in dev/.
     """
-    ids = ",".join(str(int(d)) for d in dids) if dids else ""
-    out = ",".join(str(int(d)) for d in excluded) if excluded else ""
-    # a card borrowed by a filtered deck has its home deck in odid, which is what
-    # Anki's own deck: search follows
-    home = "coalesce(nullif(c.odid, 0), c.did)"
-    in_decks = (f" and (c.did in ({ids}) or c.odid in ({ids}))" if ids else "") + (f" and {home} not in ({out})" if out else "")
-    only = ((f" and cid in (select id from cards c where c.did in ({ids}) or c.odid in ({ids}))" if ids else "")
-            + (f" and cid not in (select id from cards c where {home} in ({out}))" if out else ""))
+    in_decks, only = _filters(dids, excluded)
     since_ms = int(since) * 1000 if since else 0
     # every query but the first-and-last one, which needs a card's whole history to date it
     after = only + (f" and id >= {since_ms}" if since_ms else "")
@@ -78,15 +76,16 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     recent_lapses = {
         row[0] for row in db.all(f"select distinct cid from revlog where type = 1 and ease = 1 and id > ?{after}", lapse_since_ms)
     }
-    review_days = {
-        row[0]
-        for row in db.all(
-            f"select distinct (? - 1 - id / 1000) / {DAY_SECS} from revlog "
-            f"where ease > 0 and type in {STUDY_TYPES} and id < ?{after}",
+    day_reviews = {
+        day: n
+        for day, n in db.all(
+            f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
+            f"where ease > 0 and type in {STUDY_TYPES} and id < ?{after} group by 1",
             day_cutoff,
             day_cutoff * 1000,
         )
     }
+    review_days = set(day_reviews)
     total = db.scalar(f"select count() from revlog where ease > 0 and type in {STUDY_TYPES}{after}") or 0
     today = db.scalar(
         f"select count() from revlog where ease > 0 and type in {STUDY_TYPES} and id >= ?{after}",
@@ -96,8 +95,59 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     active_ms = (day_cutoff - ACTIVE_DAYS * DAY_SECS) * 1000
     active = {cid for cid, (_first, last) in first_last.items() if last >= active_ms}
     leeches = {row[0] for row in db.all(
-        f"select c.id from cards c join notes n on n.id = c.nid where lower(n.tags) like '% leech %'{in_decks}")} & active
-    return Rows(cards, first_last, recent_lapses, review_days, total, today, leeches)
+        f"select c.id from cards c join notes n on n.id = c.nid where lower(n.tags) like '% leech %' "
+        f"and c.ivl < {CURED_IVL}{in_decks}")} & active
+    return Rows(cards, first_last, recent_lapses, review_days, total, today, leeches, day_reviews)
+
+
+def _filters(dids: list | None, excluded: Iterable | None) -> tuple:
+    """SQL to add to a query's conditions for the decks that count (see load_rows): one for
+    a query on cards (as c), one for a query on the review log."""
+    ids = ",".join(str(int(d)) for d in dids) if dids else ""
+    out = ",".join(str(int(d)) for d in excluded) if excluded else ""
+    # a card borrowed by a filtered deck has its home deck in odid, which is what
+    # Anki's own deck: search follows
+    home = "coalesce(nullif(c.odid, 0), c.did)"
+    in_decks = (f" and (c.did in ({ids}) or c.odid in ({ids}))" if ids else "") + (f" and {home} not in ({out})" if out else "")
+    only = ((f" and cid in (select id from cards c where c.did in ({ids}) or c.odid in ({ids}))" if ids else "")
+            + (f" and cid not in (select id from cards c where {home} in ({out}))" if out else ""))
+    return in_decks, only
+
+
+def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable | None = None) -> tuple:
+    """(how many reviews are overdue - due before today - and the review counts of the days
+    you studied among the `days` before today), for the whole collection but the `excluded`
+    decks. `today` is the scheduler's day number. A card borrowed by a filtered deck is due
+    when its home deck has it due (odue)."""
+    in_decks, only = _filters(None, excluded)
+    overdue = db.scalar(
+        "select count() from cards c where c.queue in (2, 3) "
+        f"and (case when c.odid != 0 and c.odue != 0 then c.odue else c.due end) < ?{in_decks}", today) or 0
+    counts = [n for _day, n in db.all(
+        f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
+        f"where ease > 0 and type in {STUDY_TYPES} and id >= ? and id < ?{only} group by 1",
+        day_cutoff, (day_cutoff - (days + 1) * DAY_SECS) * 1000, (day_cutoff - DAY_SECS) * 1000)]
+    return overdue, counts
+
+
+def load_cured(db, day_cutoff: int, days: int, excluded: Iterable | None = None) -> dict:
+    """The leeches cured (see CURED_IVL) within the last `days` days and still cured, counted
+    by the day of the tree each belongs to (its first review): {ago: how many}."""
+    in_decks, _only = _filters(None, excluded)
+    since_ms = (day_cutoff - days * DAY_SECS) * 1000
+    out: dict = {}
+    for _cid, first in db.all(
+        f"select c.id, (select min(r.id) from revlog r where r.cid = c.id and r.ease > 0 and r.type in {STUDY_TYPES}) "
+        "from cards c join notes n on n.id = c.nid "
+        f"where lower(n.tags) like '% leech %' and c.queue != -1 and c.ivl >= {CURED_IVL}{in_decks} "
+        f"and exists (select 1 from revlog r where r.cid = c.id and r.ivl >= {CURED_IVL} "
+        f"and r.lastIvl < {CURED_IVL} and r.id >= ?)", since_ms):
+        if first is None:
+            continue
+        ago = days_ago(first / 1000, day_cutoff)
+        if ago >= 0:
+            out[ago] = out.get(ago, 0) + 1
+    return out
 
 
 def load_deck_days(db, day_cutoff: int, dids: list, suspended: bool = False) -> set:

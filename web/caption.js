@@ -51,15 +51,27 @@ AF.caption = function (root, data) {
 /* caption hints use the forest's own tooltip (Anki's webview doesn't show title tooltips) */
 AF.captionTips = function (root) {
   const capTip = document.createElement('div'); capTip.className = 'af-tip af-cap-tip'; capTip.hidden = true; root.append(capTip);
+  // on a touch screen a tap opens an item's tooltip, and a second tap on it acts (see AF.watchHint)
+  let touched = false, armed = null;
+  const place = el => {
+    const pr = root.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const left = Math.min(Math.max(0, r.left - pr.left + r.width / 2 - capTip.offsetWidth / 2), pr.width - capTip.offsetWidth);
+    capTip.style.left = left + 'px'; capTip.style.top = (r.top - pr.top - capTip.offsetHeight - TIP_MARGIN) + 'px';
+  };
   root.querySelectorAll('.af-info').forEach(el => {
+    el.addEventListener('pointerdown', e => { touched = e.pointerType !== 'mouse'; });
     el.addEventListener('mouseenter', () => {
-      capTip.textContent = el.dataset.tip; capTip.hidden = false;
-      const pr = root.getBoundingClientRect(), r = el.getBoundingClientRect();
-      const left = Math.min(Math.max(0, r.left - pr.left + r.width / 2 - capTip.offsetWidth / 2), pr.width - capTip.offsetWidth);
-      capTip.style.left = left + 'px'; capTip.style.top = (r.top - pr.top - capTip.offsetHeight - TIP_MARGIN) + 'px';
+      capTip.textContent = el.dataset.tip;
+      if (el.dataset.act) capTip.insertAdjacentHTML('beforeend', AF.watchHint(touched));
+      capTip.hidden = false;
+      place(el);
     });
-    el.addEventListener('mouseleave', () => { capTip.hidden = true; });
-    if (el.dataset.act) el.addEventListener('click', () => { capTip.hidden = true; root.afCaptionActs[el.dataset.act](root); });
+    el.addEventListener('mouseleave', () => { capTip.hidden = true; armed = null; });
+    if (el.dataset.act) el.addEventListener('click', () => {
+      if (touched && armed !== el) { armed = el; return; }  // the first tap: its tooltip
+      armed = null; capTip.hidden = true;
+      root.afCaptionActs[el.dataset.act](root);
+    });
     else if (el.dataset.cmd && canBrowse()) el.addEventListener('click', () => send(el.dataset.cmd));
   });
 }

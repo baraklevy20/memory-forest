@@ -122,14 +122,15 @@ def _health(struggling_share: float) -> int:
     return level
 
 
-def rebuild(forest: dict, trees: list, review_days: set | None = None) -> dict:
+def rebuild(forest: dict, trees: list, review_days: set | None = None, reviews: int | None = None) -> dict:
     """`forest` with only `trees` standing (after an asteroid, or on the debug timeline):
-    its stats and animals counted again from them, and its streak from `review_days` (by
-    default, the forest's own). Everything else it carries is kept."""
+    its stats and animals counted again from them, its streak from `review_days` (by
+    default, the forest's own), and its reviews from `reviews` (by default, all it had).
+    Everything else it carries is kept."""
     days = forest.get("review_days") or set() if review_days is None else review_days
     streak, longest = _streaks(set(days))
     s = forest["stats"]
-    out = dict(forest, **make_forest(trees, streak, longest, s["reviews"], s["today_reviews"]))
+    out = dict(forest, **make_forest(trees, streak, longest, s["reviews"] if reviews is None else reviews, s["today_reviews"]))
     if "lit_count" in forest:  # a deck's trees lit in the main forest: count what still stands
         out["lit_count"] = sum(1 for t in trees if not t.get("dim"))
     return out
@@ -246,6 +247,7 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
     current, longest = _streaks(rows.review_days)
     forest = make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)
     forest["review_days"] = rows.review_days  # for the events; never sent to the page
+    forest["day_reviews"] = rows.day_reviews  # (and how many each day, to count again from a strike)
     return forest
 
 

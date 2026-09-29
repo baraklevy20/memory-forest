@@ -99,8 +99,9 @@ def phone_payload(page: dict, cfg: dict, now: _dt.datetime, script: str, real: d
         inAnki=False,  # no settings cog, and nothing to click through to
         tooltips=True,
         maxWidth=PHONE_MAX_WIDTH,
-        # a strike plays once, and the phone cannot say it has been seen: the desktop plays it
-        strike=None,
+        # a strike plays once, and the phone cannot say it has been seen: the desktop plays it,
+        # and the phone only when asked (a tap on its crater, or on "Asteroid struck")
+        strike=dict(page["strike"], fresh=False) if page.get("strike") else None,
         days=schedule(cfg, now, real, place, scene_name),
         sun={"rise": _hhmm((real or {}).get("sunrise"), scene.DEFAULT_SUNRISE),
              "set": _hhmm((real or {}).get("sunset"), scene.DEFAULT_SUNSET),

@@ -22,7 +22,7 @@ def studied_every_day_but_the_break(**config):
     for d in range(41):
         if d not in MISSED:
             # on a card of its own (one since deleted), so no tree's first day moves
-            mw.col.db.con.execute("insert into revlog values (?, 999, 3, 1)", (ms(d, 18),))
+            mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", (ms(d, 18),))
 
 
 class StakesTests(unittest.TestCase):
@@ -38,9 +38,9 @@ class StakesTests(unittest.TestCase):
             mw.col.sched.today = TODAY
 
     def test_a_level_only_previewed_in_the_settings_is_not_remembered(self):
-        reset(PLANTED, {"stakes": "chaotic"})
+        reset(PLANTED, {"stakes": "merciless"})
         with mock.patch.object(addon.settings, "is_open", return_value=True):
-            self.assertEqual(addon.events_state._stakes_since("chaotic"), 0)
+            self.assertEqual(addon.events_state._stakes_since("merciless"), 0)
         self.assertNotIn("stakes", state.load_state())
 
     def test_a_break_from_before_choosing_the_stakes_never_strikes(self):
@@ -64,6 +64,20 @@ class StakesTests(unittest.TestCase):
                          "An asteroid took your forest of 21 trees. A new one grows from here.")
         self.assertEqual(len(state.load_state()["strike_days"]), 1)
 
+    def test_the_animals_leave_with_the_forest_and_are_earned_again(self):
+        # enough reviews for the fox, all before the break
+        for stakes in ("peaceful", "wild"):
+            studied_every_day_but_the_break(stakes=stakes)
+            mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                      [(ms(30, 12) + i,) for i in range(10_000)])
+            state.save_state({"stakes": stakes, "stakes_since": TODAY - 60})
+            p = payload.payload()
+            if stakes == "peaceful":
+                self.assertIn("fox", [v["key"] for v in p["visitors"]])
+            else:
+                self.assertEqual(p["visitors"], [])
+                self.assertEqual(p["stats"]["reviews"], 12)  # a review a day since, and the two cards planted since
+
     def test_a_strike_plays_once_and_stands_whatever_the_stakes_become(self):
         studied_every_day_but_the_break(stakes="wild")
         state.save_state({"stakes": "wild", "stakes_since": TODAY - 60})
@@ -84,15 +98,15 @@ class StakesTests(unittest.TestCase):
 
 class GrassTests(unittest.TestCase):
     def test_the_grass_grows_tall_while_you_review_without_new_cards(self):
-        reset([(1, 10, 20)])  # nothing new for twenty days
-        mw.col.db.con.execute("insert into revlog values (?, 999, 3, 1)", (ms(0, 18),))  # reviewing today
+        reset([(1, 10, 20)], {"stakes": "wild"})  # nothing new for twenty days
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", (ms(0, 18),))  # reviewing today
         self.assertGreater(payload.payload()["stagnation"], 0)
 
     def test_not_while_you_are_away_nor_on_a_decks_own_forest(self):
         reset([(1, 10, 20)])  # nothing since, not even a review: a break, not coasting
         self.assertEqual(payload.payload()["stagnation"], 0)
         reset([(1, 10, 20)], {"deck_forest_mode": "own"})
-        mw.col.db.con.execute("insert into revlog values (?, 999, 3, 1)", (ms(0, 18),))
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", (ms(0, 18),))
         self.assertNotIn("stagnation", payload.payload(10))
 
 
@@ -103,6 +117,70 @@ class FlowerTests(unittest.TestCase):
         trees = {t["ago"]: t for t in payload.payload()["trees"]}
         self.assertEqual(trees[3]["big"], 2)  # what it beat: the most in the two weeks before
         self.assertFalse(any(t.get("big") for a, t in trees.items() if a != 3))
+
+
+
+def overdue(n: int) -> None:
+    """`n` more reviews, due yesterday."""
+    for i in range(n):
+        mw.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) "
+                              "values (?, ?, 10, 0, 2, 2, 30, '{}', ?)", (5000 + i, 5000 + i, TODAY - 1))
+
+
+class PeacefulTests(unittest.TestCase):
+    """Peaceful brings the good things only: no crows, no tall grass, no tumbleweeds."""
+
+    def coasting_with_a_leech_and_a_backlog(self, stakes):
+        reset([(1, 10, 30), (2, 10, 20)], {"stakes": stakes}, leeches={1})
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 1, 1, 1)", (ms(0),))  # reviewing today
+        overdue(100)
+        return payload.payload()
+
+    def test_peaceful_keeps_the_bad_things_away(self):
+        p = self.coasting_with_a_leech_and_a_backlog("peaceful")
+        self.assertFalse(any(t.get("leeches") for t in p["trees"]))
+        self.assertEqual((p["stagnation"], p["backlog"]["hell"]), (0, 0))
+        self.assertEqual(p["backlog"]["overdue"], 100)  # still counted, to know when it is cleared
+
+    def test_wild_brings_them(self):
+        p = self.coasting_with_a_leech_and_a_backlog("wild")
+        self.assertTrue(any(t.get("leeches") for t in p["trees"]))
+        self.assertGreater(p["stagnation"], 0)
+        self.assertGreater(p["backlog"]["hell"], 0)
+
+
+class BacklogTests(unittest.TestCase):
+    def test_review_hell_and_the_day_it_is_cleared(self):
+        reset([(1, 10, 5)], {"stakes": "wild"})
+        overdue(60)
+        self.assertEqual(payload.payload()["backlog"], {"overdue": 60, "usual": 1, "hell": 1.0, "cleared": False})
+        mw.col.db.con.execute("delete from cards where id >= 5000")  # all done
+        p = payload.payload()
+        self.assertEqual((p["backlog"]["cleared"], p["backlog"]["was"]), (True, 1.0))  # as deep as it was
+        self.assertEqual(p["journal"], "You cleared your overdue reviews. The tumbleweeds blew away.")
+        self.assertTrue(payload.payload()["backlog"]["cleared"])  # all day long
+
+    def test_a_small_backlog_is_no_hell(self):
+        reset([(1, 10, 5)], {"stakes": "wild"})
+        overdue(20)
+        self.assertEqual(payload.payload()["backlog"]["hell"], 0)
+        mw.col.db.con.execute("delete from cards where id >= 5000")
+        self.assertFalse(payload.payload()["backlog"]["cleared"])  # there was no hell to clear
+
+    def test_a_left_out_deck_brings_no_backlog(self):
+        reset([(1, 10, 5)], {"stakes": "wild", "excluded_decks": [10]})
+        overdue(60)
+        self.assertEqual(payload.payload()["backlog"]["overdue"], 0)
+
+
+class CuredTests(unittest.TestCase):
+    def test_a_cured_leech_brings_a_robin_and_takes_its_crow(self):
+        reset([(1, 10, 30), (2, 10, 20)], {"stakes": "wild"})
+        mw.col.db.con.execute("update cards set ivl = 25 where id = 1")
+        mw.col.db.con.execute("update notes set tags = ' leech ' where id = 1")
+        mw.col.db.con.execute("insert into revlog values (?, 1, 3, 1, 25, 12)", (ms(2),))  # mature two days ago
+        trees = {t["ago"]: t for t in payload.payload()["trees"]}
+        self.assertEqual((trees[30].get("cured"), trees[30].get("leeches"), trees[20].get("cured")), (1, None, None))
 
 
 if __name__ == "__main__":

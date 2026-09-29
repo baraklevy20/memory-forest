@@ -1,5 +1,5 @@
-"""The Fine-tuning tab: the five settings a preset stands for, how and where the forest is
-shown, and (while debug is on) the test forest."""
+"""The Fine-tuning tab: the five settings a preset stands for, and how and where the forest
+is shown."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ from aqt.qt import QFormLayout, QSpinBox, QVBoxLayout, QWidget
 from .. import presets
 from ..scene import ENVIRONMENTS, LANDMARKS, LANDSCAPES, TIME_LABELS, WEATHER_LABELS
 from ..state import MAX_WIDTH_DEFAULT, MAX_WIDTH_MAX, MAX_WIDTH_MIN
-from .debug import DebugGroup
 from .widgets import combo, group, set_quietly
 
 DAILY_OPTION = (presets.DAILY, "Surprise me daily")
@@ -49,11 +48,6 @@ class FineTuningTab(QWidget):
         df.addRow("Maximum width", self.max_width)
         fv.addWidget(group("Scene", ff))
         fv.addWidget(group("Display", df))
-        # the made-up test forest is a developer's tool: only there while debug is on
-        self.debug = DebugGroup(cfg)
-        self.debug_on = bool(cfg.get("debug", False))
-        if self.debug_on:
-            fv.addWidget(self.debug.widget())
         fv.addStretch(1)
 
     def _look_boxes(self) -> tuple:
@@ -74,15 +68,10 @@ class FineTuningTab(QWidget):
         for box in (self.environment, self.landscape, self.landmark, self.weather, self.time, self.deck_mode):
             box.currentIndexChanged.connect(changed)
         self.max_width.valueChanged.connect(changed)
-        self.debug.connect(changed)
-
-    def sync(self) -> None:
-        self.debug.sync()
 
     def values(self) -> dict:
         return {
             **self.look(),
             "deck_forest_mode": self.deck_mode.currentData(),
             "max_width": self.max_width.value(),
-            **self.debug.values(),
         }

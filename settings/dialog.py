@@ -9,13 +9,14 @@ from aqt.qt import QDialog, QDialogButtonBox, QTabWidget, QTimer, QVBoxLayout
 
 from .. import presets
 from .about import AboutTab
+from .debug import DebugTab
 from .fine_tuning import FineTuningTab
 from .general import GeneralTab
 from .history import HistoryTab
 
 DIALOG_MIN_WIDTH = 460
-# the Debug group's rows and timeline buttons need more room than the dialog's usual size
-DEBUG_MIN_WIDTH, DEBUG_MIN_HEIGHT = 620, 800
+# the Debug tab's timeline buttons need more room than the dialog's usual width
+DEBUG_MIN_WIDTH = 760
 # the dialog saves this long after the last change, so dragging a slider is one redraw
 APPLY_DEBOUNCE_MS = 250
 # a new city is looked up in the background; check back for a problem after this long
@@ -36,10 +37,15 @@ class SettingsDialog(QDialog):
         self.general = GeneralTab(cfg)
         self.fine = FineTuningTab(cfg)
         self.history = HistoryTab(cfg)
-        if self.fine.debug_on:
-            self.setMinimumSize(DEBUG_MIN_WIDTH, DEBUG_MIN_HEIGHT)
+        # the made-up test forest and the event switches are a developer's tool: their tab is
+        # only there while debug is on (its values are still kept, so they wait for next time)
+        self.debug = DebugTab(cfg)
+        shown = [(self.general, "General"), (self.fine, "Fine-tuning"), (self.history, "History")]
+        if cfg.get("debug", False):
+            self.setMinimumWidth(DEBUG_MIN_WIDTH)
+            shown.append((self.debug, "Debug"))
         tabs = QTabWidget()
-        for widget, name in ((self.general, "General"), (self.fine, "Fine-tuning"), (self.history, "History"), (AboutTab(), "About")):
+        for widget, name in shown + [(AboutTab(), "About")]:
             tabs.addTab(widget, name)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -57,7 +63,7 @@ class SettingsDialog(QDialog):
         self._debounce.timeout.connect(self.apply)
         self.general.preset.currentIndexChanged.connect(self._preset_chosen)
         self.general.real_sky.toggled.connect(self._real_sky_toggled)
-        for tab in (self.general, self.fine, self.history):
+        for tab in (self.general, self.fine, self.history, self.debug):
             tab.connect(self._changed)
         self.general.city.editingFinished.connect(lambda: QTimer.singleShot(CITY_RECHECK_MS, self._sync))
         self._reverting = True  # Cancel and shutdown put the old config back; Restore defaults must not
@@ -84,8 +90,8 @@ class SettingsDialog(QDialog):
         """Put every tab back in line with the others: the General tab's preset follows the
         five settings on Fine-tuning, whichever tab they were changed on."""
         self.general.sync(self.fine.look())
-        self.fine.sync()
         self.history.sync()
+        self.debug.sync()
 
     def _changed(self, *_args) -> None:
         self._sync()
@@ -95,7 +101,7 @@ class SettingsDialog(QDialog):
         # keep only current options, so settings from older versions don't linger
         known = mw.addonManager.addonConfigDefaults(self.module) or {}
         cfg = {k: v for k, v in self.original.items() if k in known}
-        for tab in (self.fine, self.general, self.history):
+        for tab in (self.fine, self.general, self.history, self.debug):
             cfg.update(tab.values())
         # anything still at its default stays unset, so a better default in a later
         # version still reaches people who never changed it

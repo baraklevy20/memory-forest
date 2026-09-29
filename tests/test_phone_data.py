@@ -85,8 +85,12 @@ class PayloadTests(unittest.TestCase):
         for key in phone_data.DESKTOP_ONLY:
             self.assertNotIn(key, data)
         self.assertEqual((data["trees"], data["journal"]), (PAGE["trees"], PAGE["journal"]))
-        self.assertEqual((data["inAnki"], data["strike"], data["script"], data["v"]),
-                         (False, None, "_memory_forest-abc.js", phone_data.VERSION))
+        self.assertEqual((data["inAnki"], data["script"], data["v"]), (False, "_memory_forest-abc.js", phone_data.VERSION))
+
+    def test_a_strike_only_plays_on_the_phone_when_asked(self):
+        # the desktop plays it and says it has been seen; the phone can't, so it only replays
+        self.assertEqual(self.payload()["strike"], {"fresh": False})
+        self.assertIsNone(phone_data.phone_payload(dict(PAGE, strike=None), {}, NOW, "x.js")["strike"])
 
     def test_the_suns_hours_are_the_citys_or_the_defaults(self):
         self.assertEqual(self.payload()["sun"]["rise"], "06:30")

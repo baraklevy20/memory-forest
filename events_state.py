@@ -1,14 +1,14 @@
 """The events - what the way you study brings to the forest - on Anki's side: the Stakes
 remembered per profile (when they were chosen, every strike so far), and what the page
-needs to show them, with the big days and the tall grass. The rules are in events.py, the
-drawing in web/events/."""
+needs to show them, with the big days, the tall grass, the cured leeches and the backlog
+of overdue reviews. The rules are in events.py, the drawing in web/events/."""
 
 from __future__ import annotations
 
 from aqt import mw
 
 from . import events, forest_data, study_log
-from .state import load_state, save_state
+from .state import excluded_decks, load_state, save_state
 
 
 def stakes_level(cfg: dict) -> str:
@@ -62,6 +62,37 @@ def ago_date(ago: int) -> str:
     return study_log.day_date(ago, mw.col.sched.day_cutoff).isoformat()
 
 
+def _backlog(cfg: dict) -> dict:
+    """The overdue reviews, how deep in review hell they put you, and whether today is the
+    day you cleared them (and if so, how deep it `was`) - remembering, per profile, the last
+    day of review hell, how deep it was then, and the last backlog cleared."""
+    col = mw.col
+    today = col.sched.today
+    overdue, counts = study_log.load_backlog(col.db, today, col.sched.day_cutoff, events.REVIEW_HELL_USUAL_DAYS, excluded_decks(cfg))
+    usual = events.usual_reviews(counts)
+    hell = events.review_hell(overdue, usual)
+    state = load_state()
+    day = lambda key: state.get(key) if type(state.get(key)) is int else None  # noqa: E731
+    cleared = events.backlog_cleared(overdue, today, day("hell_day"), day("backlog_cleared"))
+    remember = {k: today for k, on in (("hell_day", hell > 0), ("backlog_cleared", cleared)) if on and state.get(k) != today}
+    if hell and state.get("hell_level") != round(hell, 3):
+        remember["hell_level"] = round(hell, 3)
+    if remember:
+        state.update(remember)
+        save_state(state)
+    out = {"overdue": overdue, "usual": round(usual), "hell": round(hell, 3), "cleared": cleared}
+    if cleared:
+        level = state.get("hell_level")
+        out["was"] = level if isinstance(level, (int, float)) and 0 < level <= 1 else 0.5
+    return out
+
+
+def _mark_cured(trees: list, cfg: dict) -> list:
+    """The trees, each holding a leech cured lately copied with `cured` (how many)."""
+    cured = study_log.load_cured(mw.col.db, mw.col.sched.day_cutoff, events.CURED_DAYS, excluded_decks(cfg))
+    return [dict(t, cured=cured[t["ago"]]) if cured.get(t["ago"]) else t for t in trees] if cured else trees
+
+
 def apply(forest: dict, cfg: dict, test: bool) -> tuple:
     """The forest after the stakes have had their say, and everything else the way you
     study brings to it: (forest, extras for the page)."""
@@ -74,11 +105,22 @@ def apply(forest: dict, cfg: dict, test: bool) -> tuple:
         _strikes_seen(out["hits"])
         if out["craters"]:
             extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date))
-            # the forest now: only what grew since, its streak and animals counted from there
-            forest = forest_data.rebuild(forest, out["trees"], {d for d in days if d < out["craters"][-1]["ago"]})
+            # the forest now: only what grew since, its streak, reviews and animals counted from
+            # there - the animals have to be earned again, as the trees do
+            struck = out["craters"][-1]["ago"]
+            reviews = sum(n for d, n in (forest.get("day_reviews") or {}).items() if d < struck)
+            forest = forest_data.rebuild(forest, out["trees"], {d for d in days if d < struck}, reviews)
         extras["doom"] = out["doom"]
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
     extras["stagnation"] = events.stagnation(forest["trees"], days)
+    if not test:
+        extras["backlog"] = _backlog(cfg)
+        forest = dict(forest, trees=_mark_cured(forest["trees"], cfg))
+    if events.calm(level):  # Peaceful: the good things only
+        forest = dict(forest, trees=events.calm_trees(forest["trees"]))
+        extras["stagnation"] = 0.0
+        if extras.get("backlog"):
+            extras["backlog"] = dict(extras["backlog"], hell=0.0)
     return forest, extras
 
 
@@ -89,6 +131,17 @@ def strike_line(extras: dict) -> str:
         return ""
     lost = strike["lost"]
     return f"An asteroid took your forest of {lost} tree{'s' if lost != 1 else ''}. A new one grows from here."
+
+
+def news_line(extras: dict) -> str:
+    """The journal's line for what the events brought today, if anything: an asteroid's
+    strike, or a backlog cleared."""
+    if strike_line(extras):
+        return strike_line(extras)
+    backlog = extras.get("backlog")
+    if backlog and backlog["cleared"]:
+        return "You cleared your overdue reviews" + (". The tumbleweeds blew away." if not events.calm(extras["stakes"]) else ".")
+    return ""
 
 
 def mark_seen(key: str) -> None:

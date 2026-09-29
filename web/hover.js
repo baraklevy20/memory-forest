@@ -7,13 +7,17 @@ const AF = window.AnkiForest;
 const { send } = AF.u;
 // the tooltip sits this far from the pointer, and this far inside the scene's edges
 const TIP_OFFSET = 14, TIP_MARGIN = 6;
+// Something that can be watched again (a strike) says so: with a mouse, a click does it; on
+// a touch screen, where a tap is a hover and a click at once, the first tap only opens the
+// tooltip, and a second tap on the same thing does it.
+AF.watchHint = touched => `<br><span class="af-hint">${touched ? 'Tap again' : 'Click'} to watch it again</span>`;
 
 /* Wire up one mounted forest. `env()` is the scene as currently built (it is rebuilt on a
  * resize), and `redraw()` draws a still forest's moment again. Returns what the runner
  * draws of it each frame. */
 AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, redraw }) {
   const words = AF.WORDS;
-  let hover = null, deepHover = null, eventHover = null;
+  let hover = null, deepHover = null, eventHover = null, touched = false, armed = null;  // armed: what one more tap replays
   function drawMarker(g) {
     if (!hover) return;
     const x = Math.round(hover.x), y = Math.round(hover.top - 3);
@@ -51,6 +55,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     return null;
   }
   if (data.tooltips) {
+    canvas.addEventListener('pointerdown', e => { touched = e.pointerType !== 'mouse'; });
     canvas.addEventListener('mousemove', e => {
       const env = current();
       if (!env) return;
@@ -59,9 +64,14 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       const scale = env.W / (canvas.clientWidth || env.W), mx = e.offsetX * scale, my = e.offsetY * scale;
       const hit = pick(env, mx, my);
       deepHover = null; eventHover = null;
+      if (!hit || !hit.event || hit.event.html !== armed) armed = null;  // a tap on something else starts over
       if (!hit) { hover = null; tip.hidden = true; canvas.style.cursor = ''; return; }
       if (hit.visitor) { hover = null; tip.innerHTML = AF.tips.visitor(hit.visitor); canvas.style.cursor = ''; }
-      else if (hit.event) { hover = null; eventHover = hit.event; tip.innerHTML = hit.event.html; canvas.style.cursor = hit.event.replay ? 'pointer' : ''; }
+      else if (hit.event) {
+        hover = null; eventHover = hit.event;
+        tip.innerHTML = hit.event.html + (hit.event.replay ? AF.watchHint(touched) : '');
+        canvas.style.cursor = hit.event.replay ? 'pointer' : '';
+      }
       else if (hit.deep) {
         hover = null;
         tip.innerHTML = AF.tips.deep(hit.deep, words);
@@ -84,7 +94,11 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     });
     canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
     canvas.addEventListener('click', () => {
-      if (eventHover && eventHover.replay) { tip.hidden = true; root.afReplay(); return; }
+      if (eventHover && eventHover.replay) {
+        if (touched && armed !== eventHover.html) { armed = eventHover.html; return; }  // the first tap: its tooltip
+        armed = null; tip.hidden = true; root.afReplay();
+        return;
+      }
       if (data.testForest) return;
       if (deepHover) send(`${data.channel}:browse:${deepHover.from_ago}:${AF.deckFor(data)}:${deepHover.to_ago}`);
       else if (hover && hover.tree) send(`${data.channel}:browse:` + hover.tree.ago + ':' + (data.deckId && !hover.tree.dim ? data.deckId : ''));

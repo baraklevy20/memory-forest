@@ -24,7 +24,7 @@ class DeckFilterTests(unittest.TestCase):
         """)
         # cid, current deck, home deck (odid != 0 means a filtered deck borrowed it), day
         for cid, did, odid, days in ((1, 10, 0, 5), (2, 10, 0, 5), (3, 20, 0, 3), (4, 99, 10, 5)):
-            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}', 0)", (cid, cid, did, odid))
+            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, ?, '{}', 0)", (cid, cid, did, odid, 5 if cid == 3 else 30))
             con.execute("insert into notes values (?, ?)", (cid, " leech " if cid == 3 else ""))
             con.execute("insert into revlog values (?, ?, 3, 0)", (ms(days), cid))
 
@@ -162,3 +162,48 @@ class SearchTests(unittest.TestCase):
 
     def test_a_forest_that_keeps_suspended_cards_finds_them_too(self):
         self.assertEqual(study_log.day_search(5, suspended=True), ["introduced:6", "-introduced:5"])
+
+
+class EventQueryTests(unittest.TestCase):
+    """What the events read on their own: the backlog, and the leeches cured."""
+
+    @staticmethod
+    def db():
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        con.executescript("""
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
+                                due integer, odue integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer);
+            create table notes (id integer, tags text);
+        """)
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+            def scalar(self, q, *a): return con.execute(q, a).fetchone()[0]
+        return con, DB()
+
+    def test_the_backlog_counts_reviews_due_before_today_in_their_home_decks(self):
+        con, db = self.db()
+        # cid, deck, home deck, queue, due, home deck's due
+        for row in ((1, 10, 0, 2, TODAY - 3, 0), (2, 10, 0, 2, TODAY, 0), (3, 10, 0, 0, 5, 0),
+                    (4, 30, 10, 2, 9, TODAY - 1), (5, 20, 0, 3, TODAY - 1, 0), (6, 20, 0, -1, TODAY - 9, 0)):
+            con.execute("insert into cards values (?, ?, ?, ?, 2, ?, 30, '{}', ?, ?)", (row[0], row[0], *row[1:]))
+        for days, n in ((1, 4), (2, 6), (0, 50), (40, 99)):  # today's, and those before the window, don't count
+            for i in range(n):
+                con.execute("insert into revlog values (?, 1, 3, 1, 30, 30)", (ms(days) + i,))
+        # due before today: 1, the filtered deck's 4 (by its home deck's due) and 5 (relearning)
+        overdue, counts = study_log.load_backlog(db, TODAY, CUTOFF, 30)
+        self.assertEqual((overdue, sorted(counts)), (3, [4, 6]))
+        self.assertEqual(study_log.load_backlog(db, TODAY, CUTOFF, 30, excluded=[20])[0], 2)
+
+    def test_a_leech_is_cured_once_it_grows_mature_and_stays_so(self):
+        con, db = self.db()
+        # cid, interval now, tagged, when it grew mature (days ago)
+        for cid, ivl, tagged, matured in ((1, 25, True, 2), (2, 25, True, 30), (3, 25, False, 2), (4, 8, True, 2)):
+            con.execute("insert into cards values (?, ?, 10, 0, 2, 2, ?, '{}', 0, 0)", (cid, cid, ivl))
+            con.execute("insert into notes values (?, ?)", (cid, " leech " if tagged else ""))
+            con.execute("insert into revlog values (?, ?, 3, 0, 1, 0)", (ms(40 + cid), cid))  # first studied
+            con.execute("insert into revlog values (?, ?, 3, 1, 25, 12)", (ms(matured), cid))
+        # only card 1: card 2 was cured a month ago, 3 was never a leech, 4 has lapsed again since
+        self.assertEqual(study_log.load_cured(db, CUTOFF, 7), {41: 1})

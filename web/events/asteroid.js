@@ -78,8 +78,8 @@ function crater(g, cx, cy, lost, age, env) {
 
 /* ---------- tooltips ---------- */
 const fmt = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-const craterHtml = (c, latest) => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}`
-  + (latest ? '<br><span class="af-hint">Click to watch it again</span>' : '');
+// (how to watch the latest one again is for the pointer to say: a click, or a tap and a button)
+const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}`;
 // when it strikes: tonight, tomorrow night, or in so many days (each counted to its night)
 const doomWhen = d => d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow night' : `in ${d.left + 1} days`;
 const doomText = d => d.left > 0
@@ -177,11 +177,11 @@ function playStrike (root, data, done) {
     stats: Object.assign({}, data.stats, { trees: s.lost, streak: latest ? latest.streak : data.stats.streak }) });
   root.afPlaying = true;  // one at a time: a second click mid-strike waits for the next
   AF.mount(root, before, { now: true, noStrike: true });
-  const env0 = root.afEnv, W = env0.W, H = env0.H, st = {}, spot = spot(latest, env0) || { x: W / 2, y: env0.hor };
+  const env0 = root.afEnv, W = env0.W, H = env0.H, st = {}, at = spot(latest, env0) || { x: W / 2, y: env0.hor };
   let g = overlayOn(root).getContext('2d');
   run((t, f) => {
     g.clearRect(0, 0, W, H);
-    shower(g, W, H, Math.min(1, t / SHOWER_SECS), f, spot.x, spot.y, st);
+    shower(g, W, H, Math.min(1, t / SHOWER_SECS), f, at.x, at.y, st);
     return t < SHOWER_SECS;
   }, () => {
     // the rock is down: the forest as it is now goes up, and the old one is torn apart over it
@@ -192,7 +192,7 @@ function playStrike (root, data, done) {
     g = over.getContext('2d');
     run((t, f) => {
       g.clearRect(0, 0, W, H);
-      blownApart(g, W, H, t, f, spot.x, spot.y, blast, src);
+      blownApart(g, W, H, t, f, at.x, at.y, blast, src);
       return t < BLAST_SECS;
     }, () => { over.remove(); root.afPlaying = false; if (done) done(); });
   });
@@ -241,7 +241,7 @@ AF.events.add('asteroid', {
     for (const b of env.craterBoxes || []) {
       if (!inBox(b)) continue;
       const replay = Boolean(animate && b.c === latest);
-      return { html: craterHtml(b.c, replay), replay };
+      return { html: craterHtml(b.c), replay };
     }
     return null;
   },
@@ -250,7 +250,7 @@ AF.events.add('asteroid', {
     const items = [], s = data.strike;
     if (s && s.news) {
       items.push([`Asteroid struck ${fmtShort(s.date)}`, `${s.lost} ${s.lost === 1 ? words.one : words.many} lost.`
-        + (animate ? ' Click to watch it again (or click its crater).' : ' Turn on animations in the forest settings to watch it.'),
+        + (animate ? ' Its crater can play it again too.' : ' Turn on animations in the forest settings to watch it.'),
       animate ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;

@@ -15,6 +15,9 @@
   overflow: hidden;
 }
 .af-canvas { display: block; max-width: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+/* a phone flashes what it takes a tap on, and zooms on a double tap: the forest and its
+ * caption answer taps themselves (a second tap on a strike replays it) */
+.af-canvas, .af-info { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .af-tip {
   position: absolute;
   z-index: 2;
@@ -29,6 +32,7 @@
 }
 .af-tip i { color: #c9d8c4; font-style: normal; }
 .af-tip[hidden] { display: none; }
+
 .af-caption {
   display: flex;
   flex-wrap: wrap;

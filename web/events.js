@@ -36,4 +36,40 @@ AF.events = {
 const { hashStr } = AF.u;
 AF.events.px = (g, x, y, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), 1, 1); };
 AF.events.noise = (a, b) => hashStr(a + ',' + b) / 4294967296;
+
+/* The top of a tree's crown at column x of the forest, as its sprite is drawn, for a bird to
+ * stand on; null past the crown's edge. A crown's top is not its stage's full height: it
+ * rounds off, and each environment draws its own. */
+const crownTops = new WeakMap();  // sprite -> the first row drawn in each of its columns
+AF.events.crownTop = (env, p, x) => {
+  const px = AF.pixel;
+  if (!px || !px.sprite) return null;
+  const h = Math.max(3, Math.round(AF.STAGE_H[p.it.stage] * env.u * p.s));
+  const spr = px.sprite(p.it, h, Math.round(p.hz * px.HAZE_STEPS), env);
+  let tops = crownTops.get(spr);
+  if (!tops) {
+    const d = spr.getContext('2d').getImageData(0, 0, spr.width, spr.height).data;
+    tops = [];
+    for (let cx = 0; cx < spr.width; cx++) {
+      let top = null;
+      for (let cy = 0; cy < spr.height && top === null; cy++) if (d[(cy * spr.width + cx) * 4 + 3] > 0) top = cy;
+      tops.push(top);
+    }
+    crownTops.set(spr, tops);
+  }
+  const x0 = Math.round(p.x - spr.width / 2), y0 = Math.round(p.y - spr.height + 1);
+  let cx = Math.round(x) - x0;
+  if (env.flipLight) cx = spr.width - 1 - cx;  // drawn mirrored
+  const top = cx >= 0 && cx < tops.length ? tops[cx] : null;
+  return top === null ? null : y0 + top;
+};
+/* where a bird with its feet at column x stands: on the crown there, or, past its edge, as
+ * near there as the crown reaches; `fallback` when the crown can't be read */
+AF.events.perch = (env, p, x, fallback) => {
+  for (let k = 0; k < 16; k++) {
+    const at = x + (x < p.x ? k : -k), top = AF.events.crownTop(env, p, at);
+    if (top !== null) return { x: at, y: top };
+  }
+  return { x, y: fallback };
+};
 })();

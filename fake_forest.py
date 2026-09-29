@@ -77,18 +77,24 @@ def make(n: int, seed: int = FAKE_SEED) -> dict:
     today = _dt.date.today()
     prev = None
     for ago in ages:
-        count = r.randint(*FAKE_SMALL_DAY_CARDS) if r.random() < FAKE_SMALL_DAY_CHANCE else r.randint(*FAKE_DAY_CARDS)
-        strength = ago * (FAKE_STRENGTH[0] + r.random() * FAKE_STRENGTH[1])
-        stage = (SEEDLING if ago == 0 else SAPLING if strength < FAKE_SAPLING_DAYS else YOUNG if strength < MATURE_DAYS
-                 else MATURE if strength < OLD_DAYS else OLD if strength < ANCIENT_DAYS else ANCIENT)
-        roll = r.random()
-        health = 0 if stage < HEALTH_MIN_STAGE else sum(1 for step in FAKE_HEALTH_ROLLS if roll >= step)
-        t = make_tree(FAKE_TODAY - ago, ago, (today - _dt.timedelta(days=ago)).isoformat(), count, stage, health,
-                  FAKE_REMEMBERED[0] + r.random() * FAKE_REMEMBERED[1], strength,
-                  int(count * FAKE_STRUGGLING[health]))
+        t = tree(r, FAKE_TODAY - ago, ago, today)
         if prev is not None and prev - ago > BREAK_DAYS:
             t["gap"] = prev - ago - 1
         prev = ago
         trees.append(t)
     return make_forest(trees, n, n, n * FAKE_REVIEWS_PER_TREE, FAKE_TODAY_REVIEWS)  # a streak as long as the forest, so signs that show it can be tried at any size
 
+
+def tree(r: random.Random, day: int, ago: int, today: _dt.date | None = None) -> dict:
+    """One made-up tree, planted on `day` (the scheduler's day number) and `ago` days back
+    from `today`, its numbers drawn from `r`."""
+    today = today or _dt.date.today()
+    count = r.randint(*FAKE_SMALL_DAY_CARDS) if r.random() < FAKE_SMALL_DAY_CHANCE else r.randint(*FAKE_DAY_CARDS)
+    strength = ago * (FAKE_STRENGTH[0] + r.random() * FAKE_STRENGTH[1])
+    stage = (SEEDLING if ago == 0 else SAPLING if strength < FAKE_SAPLING_DAYS else YOUNG if strength < MATURE_DAYS
+             else MATURE if strength < OLD_DAYS else OLD if strength < ANCIENT_DAYS else ANCIENT)
+    roll = r.random()
+    health = 0 if stage < HEALTH_MIN_STAGE else sum(1 for step in FAKE_HEALTH_ROLLS if roll >= step)
+    return make_tree(day, ago, (today - _dt.timedelta(days=ago)).isoformat(), count, stage, health,
+                     FAKE_REMEMBERED[0] + r.random() * FAKE_REMEMBERED[1], strength,
+                     int(count * FAKE_STRUGGLING[health]))
