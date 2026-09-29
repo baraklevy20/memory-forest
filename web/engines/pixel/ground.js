@@ -69,6 +69,7 @@ function drawGround(env, lg) {
     for (let x = 0; x < W; x++) { const near = rd.near(x); lg.fillStyle = th.near; lg.fillRect(x, near, 1, hor - near); if (th.nearLine) { lg.fillStyle = th.nearLine; lg.fillRect(x, near, 1, 1); } }
   }
   if (land.skipGround) {  // a landscape that is its own ground (drawn in its backdrop)
+    AF.events.run('soil', env, lg);  // the bare ground the tall grass takes its colour from
     if (spec.ground) spec.ground(env, lg, R);  // the environment's own scenery, on that ground
     drawMark(env, lg, mark, 'land');
     drawMark(env, lg, mark, 'shore');
@@ -88,6 +89,7 @@ function drawGround(env, lg) {
     }
   }
   lg.putImageData(gi, 0, hor);
+  AF.events.run('soil', env, lg);
   lg.fillStyle = th.grass;
   for (let k = 0; k < W * GRASS_TUFTS; k++) { const x = Math.round(R() * W), y = Math.round(hor + 3 + R() * (H - hor - 3)); lg.fillRect(x - 1, y, 1, 1); lg.fillRect(x, y - 1, 1, 1); lg.fillRect(x + 1, y, 1, 1); }
   if (spec.ground) spec.ground(env, lg, R);
@@ -117,6 +119,14 @@ function groundDetails(env, lg, p, sw) {
   if (spec.groundDetail) spec.groundDetail(env, lg, p, sw, R, x, y);
   if (spec.treeBase && !AF.landOf(env).skipGround) spec.treeBase(env, lg, p, sw);  // no ground, nothing to stand on
 }
+
+/* The colours the forest's broadleaf crowns are drawn in (dark to light, as [r, g, b]), tinted
+ * for the hour as the trees are: for anything that should match the trees, like the tall grass. */
+AF.foliage = function (env) {
+  const EP = AF.envOf(env).pals || {}, th = env.theme, tint = th.tint ? hex(th.tint) : null;
+  const pal = EP.round || (EP.rounds && EP.rounds[0]) || (EP.base && EP.base.round) || PXT.round;
+  return pal.map(c => tint ? mix(c, tint, th.tintAmt) : c);
+};
 
 // the deep forest's distant crowns, in env.u: one every LOBE_GAP (plus up to as much
 // again), LOBE_R across (plus up to LOBE_R_SPREAD), LOBE_H of the band's height (plus up

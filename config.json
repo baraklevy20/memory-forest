@@ -15,5 +15,6 @@
     "debug": false,
     "test_forest": false,
     "test_trees": 150,
-    "debug_leeches": 0
+    "debug_leeches": 0,
+    "debug_stagnation": 0
 }

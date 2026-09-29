@@ -229,7 +229,9 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
                 trees[-1]["gap"] = length  # nowhere left to put it: keep the longer break
 
     current, longest = _streaks(rows.review_days)
-    return make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)
+    forest = make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)
+    forest["review_days"] = rows.review_days  # for the events; never sent to the page
+    return forest
 
 
 def merge_old(forest: dict, limit: int = MAX_INDIVIDUAL_TREES) -> dict:

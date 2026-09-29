@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from aqt.qt import QCheckBox, QFormLayout, QHBoxLayout, QSlider, QSpinBox, Qt, QVBoxLayout
 
-from ..debug_events import DEBUG_LEECHES_MAX
+from ..debug_events import DEBUG_LEECHES_MAX, DEBUG_STAGNATION_MAX
 from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX
 from .widgets import group, hint
 
@@ -37,6 +37,7 @@ class DebugGroup:
                 box.setValue(0)
             return box
         self.leeches = spin("debug_leeches", DEBUG_LEECHES_MAX, " trees")
+        self.stagnation = spin("debug_stagnation", DEBUG_STAGNATION_MAX, "% tall")
 
     def widget(self):
         dv = QVBoxLayout()
@@ -44,13 +45,14 @@ class DebugGroup:
         dv.addWidget(self.test); dv.addLayout(row)
         ef = QFormLayout()
         ef.addRow("Crows (leeches)", self.leeches)
+        ef.addRow("Tall grass", self.stagnation)
         dv.addLayout(ef)
         dv.addWidget(hint(DEBUG_NOTE))
         return group("Debug", dv)
 
     def connect(self, changed) -> None:
         self.test.toggled.connect(changed)
-        for box in (self.trees_box, self.leeches):
+        for box in (self.trees_box, self.leeches, self.stagnation):
             box.valueChanged.connect(changed)
 
     def sync(self) -> None:
@@ -62,4 +64,5 @@ class DebugGroup:
             "test_forest": self.test.isChecked(),
             "test_trees": self.trees_box.value(),
             "debug_leeches": self.leeches.value(),
+            "debug_stagnation": self.stagnation.value(),
         }

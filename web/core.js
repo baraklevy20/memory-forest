@@ -67,6 +67,7 @@ AF.mount = function (root, data, opts) {
     if (engine.frameBack) engine.frameBack(g, env, t);
     g.drawImage(env.fx && env.fx.flash && env.landLit ? env.landLit : env.land, 0, 0);
     engine.frame(g, env, t);
+    AF.events.run('grass', g, env, t);  // tall grass, which the animals stand in
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
     AF.events.run('front', g, env, t);  // crows

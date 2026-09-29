@@ -8,7 +8,7 @@ import time
 
 from aqt import mw
 
-from . import debug_events, fake_forest, forest_data, journal, live_weather, milestones, presets, scene, study_log
+from . import debug_events, events_state, fake_forest, forest_data, journal, live_weather, milestones, presets, scene, study_log
 from .state import (
     MAX_WIDTH_DEFAULT,
     MAX_WIDTH_MAX,
@@ -92,8 +92,10 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         forest = _lit_by_deck(forest, did, test)
     # the study events; a deck's own forest shows the trees alone
     extras = {}
-    if not (did and not highlight) and cfg.get("debug"):
-        forest, extras = debug_events.apply(forest, extras, cfg)
+    if not (did and not highlight):
+        forest, extras = events_state.apply(forest, cfg, test)
+        if cfg.get("debug"):
+            forest, extras = debug_events.apply(forest, extras, cfg)
     now = _dt.datetime.now()
     today = now.date()
     all_trees = forest["trees"]
