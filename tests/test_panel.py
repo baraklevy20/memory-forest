@@ -22,7 +22,9 @@ class PanelTests(unittest.TestCase):
     def test_the_scripts_load_in_order_with_the_boot_script_last(self):
         html = panel._panel_html()
         srcs = re.findall(r'<script src="([^"]+)"', html)
-        names = [s.split("/web/", 1)[1] for s in srcs]
+        # each address carries its file's modification time, so Anki's cache never serves an old copy
+        self.assertTrue(all(re.search(r"\?v=\d+$", s) for s in srcs))
+        names = [s.split("/web/", 1)[1].split("?")[0] for s in srcs]
         self.assertEqual(names[:len(catalog.SCRIPTS)], list(catalog.SCRIPTS))
         self.assertEqual(names[-1], panel.BOOT)
         # between them, the scene's own parts that have a file
@@ -59,7 +61,9 @@ class PanelTests(unittest.TestCase):
         mw.deckBrowser = types.SimpleNamespace(web=web, refresh=lambda: setattr(web, "reloads", web.reloads + 1))
         panel.refresh()
         self.assertEqual(len(web.evaluated), 1)
-        self.assertIn("AnkiForest.swap", web.evaluated[0])
+        # through the panel itself, so another copy of the add-on on the page is never asked
+        self.assertIn(f"getElementById({json.dumps(panel._panel_parts()[0])})", web.evaluated[0])
+        self.assertIn("r.afSwap(", web.evaluated[0])
         self.assertEqual(web.reloads, 0)
 
 

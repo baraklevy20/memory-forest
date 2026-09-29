@@ -3,7 +3,11 @@
  * window.AnkiForest, which every other script adds to. */
 (function () {
 'use strict';
-const AF = window.AnkiForest = window.AnkiForest || { engines: {} };
+// Every copy of the add-on on a page gets an object of its own: the files loaded after this
+// one register themselves on it, and its boot script (forest.js) lets the name go again, so
+// another copy - an older version installed beside this one, or the other edition - can
+// never overwrite this copy's functions.
+const AF = window.AnkiForest = { engines: {} };
 const TAU = Math.PI * 2;
 
 /* ---------- utilities ---------- */

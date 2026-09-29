@@ -18,6 +18,17 @@ WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 BOOT = "forest.js"  # mounts straight away, so it goes last of all
 
 
+def _url(rel: str) -> str:
+    """A file's address for the page, with its modification time on the end. Anki's web
+    view caches add-on files by address, so without it an updated add-on keeps running
+    yesterday's scripts next to today's."""
+    try:
+        stamp = int(os.path.getmtime(os.path.join(WEB_DIR, rel)))
+    except OSError:
+        stamp = 0
+    return f"{WEB}/{rel}?v={stamp}"
+
+
 def _part(kind: str, key: str | None) -> str | None:
     """envs/aurora.js, landscapes/lake.js, landmarks/peak.js - if that file still exists."""
     rel = f"{kind}/{key}.js"
@@ -32,7 +43,7 @@ def _panel_parts(did: int | None = None, highlight: bool = False) -> tuple:
     # only the pieces this scene actually needs are loaded, and each lives in one file of its own
     parts = [_part("envs", mood["special"]), _part("landscapes", mood["landscape"]),
              _part("landmarks", mood["landmark"])]
-    srcs = [f"{WEB}/{s}" for s in SCRIPTS] + [f"{WEB}/{rel}" for rel in parts if rel] + [f"{WEB}/{BOOT}"]
+    srcs = [_url(s) for s in SCRIPTS] + [_url(rel) for rel in parts if rel] + [_url(BOOT)]
     # the panel and its data are named after this add-on's folder, so a second copy of it
     # (the public edition installed beside this one) draws its own forest, not over this one
     root = f"memory-forest-{MODULE}"
@@ -42,9 +53,9 @@ def _panel_parts(did: int | None = None, highlight: bool = False) -> tuple:
 
 def _panel_html(did: int | None = None, highlight: bool = False) -> str:
     root, data, srcs = _panel_parts(did, highlight)
-    boot = f"{WEB}/{BOOT}"
+    boot = _url(BOOT)
     return (
-        f'<link rel="stylesheet" href="{WEB}/forest.css">'
+        f'<link rel="stylesheet" href="{_url("forest.css")}">'
         + f'<div id="{root}" class="af-panel"></div>'
         + f'<script type="application/json" id="{root}-data">{data}</script>'
         + "".join(f'<script src="{src}"></script>' for src in srcs)
@@ -107,6 +118,7 @@ def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False
     except Exception:
         log("could not rebuild the forest:\n" + traceback.format_exc())
         return
-    js = (f"(window.AnkiForest && window.AnkiForest.swap) ? "
-          f"window.AnkiForest.swap({json.dumps(root)}, {data}, {json.dumps(srcs)}) : false")
+    # through the panel itself: another copy of the add-on on the page has a swap of its own
+    js = (f"(function () {{ const r = document.getElementById({json.dumps(root)}); "
+          f"return r && r.afSwap ? r.afSwap({data}, {json.dumps(srcs)}) : false; }})()")
     web.evalWithCallback(js, lambda swapped: None if swapped else reload())

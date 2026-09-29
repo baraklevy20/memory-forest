@@ -13,6 +13,8 @@ AF.mount = function (root, data, opts) {
   // a night-only environment (`night: true`) keeps to the night while the hour is the real one
   if (data.mood.clock && (AF.ENVS[data.mood.special] || {}).night) data = Object.assign({}, data, { mood: Object.assign({}, data.mood, { time: 'night' }) });
   const engine = AF.engines.pixel;
+  // the add-on redraws this forest through the panel itself, never through the shared name
+  root.afSwap = (d, srcs) => AF.swap(root.id, d, srcs);
   const animate = animates(data);
   // an asteroid's strike plays first, if it hasn't been seen (and the page says when it has)
   if (AF.events.first('mount', root, data, opts, animate, () => send(`${data.channel}:struck:${data.strike.seen}`))) return;
@@ -140,15 +142,22 @@ AF.swap = function (id, data, srcs) {
   const root = document.getElementById(id);
   if (!root) return false;
   const have = new Set([...document.scripts].map(s => s.src));
-  const missing = srcs.filter(s => !have.has(new window.URL(s, window.location.href).href));
+  // only a new scene's parts: this copy's own scripts are already running (a changed one,
+  // after an update, waits for the next full redraw rather than run beside the old)
+  const part = /\/(envs|landscapes|landmarks)\//;
+  const missing = srcs.filter(s => part.test(s) && !have.has(new window.URL(s, window.location.href).href));
+  const other = window.AnkiForest;
   const next = i => {
     if (i < missing.length) {
+      // a new scene's file registers itself on whatever object has the name: this copy's
+      window.AnkiForest = AF;
       const el = document.createElement('script');
       el.src = missing[i];
       el.onload = el.onerror = () => next(i + 1);
       document.head.appendChild(el);
       return;
     }
+    window.AnkiForest = other;
     if (AF.clearCaches) AF.clearCaches();  // sprites were drawn for the old scene
     AF.mount(root, data, { now: true });
   };
