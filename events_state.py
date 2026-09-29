@@ -10,5 +10,6 @@ def apply(forest: dict, cfg: dict, test: bool) -> tuple:
     """The forest after the events have had their say, and what the page needs to show
     them: (forest, extras for the page)."""
     days = forest.get("review_days") or set()
+    forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
     extras = {"stagnation": events.stagnation(forest["trees"], days)}
     return forest, extras

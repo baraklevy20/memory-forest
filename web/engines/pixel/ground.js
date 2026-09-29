@@ -118,6 +118,7 @@ function groundDetails(env, lg, p, sw) {
   }
   if (spec.groundDetail) spec.groundDetail(env, lg, p, sw, R, x, y);
   if (spec.treeBase && !AF.landOf(env).skipGround) spec.treeBase(env, lg, p, sw);  // no ground, nothing to stand on
+  AF.events.run('treeBase', env, lg, p, sw, x, y);  // a big day's wildflowers
 }
 
 /* The colours the forest's broadleaf crowns are drawn in (dark to light, as [r, g, b]), tinted

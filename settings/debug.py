@@ -38,6 +38,7 @@ class DebugGroup:
             return box
         self.leeches = spin("debug_leeches", DEBUG_LEECHES_MAX, " trees")
         self.stagnation = spin("debug_stagnation", DEBUG_STAGNATION_MAX, "% tall")
+        self.big = QCheckBox("Big learning days (wildflowers)"); self.big.setChecked(bool(cfg.get("debug_big_days", False)))
 
     def widget(self):
         dv = QVBoxLayout()
@@ -46,12 +47,14 @@ class DebugGroup:
         ef = QFormLayout()
         ef.addRow("Crows (leeches)", self.leeches)
         ef.addRow("Tall grass", self.stagnation)
+        ef.addRow("", self.big)
         dv.addLayout(ef)
         dv.addWidget(hint(DEBUG_NOTE))
         return group("Debug", dv)
 
     def connect(self, changed) -> None:
-        self.test.toggled.connect(changed)
+        for box in (self.test, self.big):
+            box.toggled.connect(changed)
         for box in (self.trees_box, self.leeches, self.stagnation):
             box.valueChanged.connect(changed)
 
@@ -65,4 +68,5 @@ class DebugGroup:
             "test_trees": self.trees_box.value(),
             "debug_leeches": self.leeches.value(),
             "debug_stagnation": self.stagnation.value(),
+            "debug_big_days": self.big.isChecked(),
         }

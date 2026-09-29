@@ -13,9 +13,9 @@ PLANTED = [(i, 10, 40 - i) for i in range(21)] + [(100, 10, 5), (101, 10, 4)]
 
 class DebugEventTests(unittest.TestCase):
     def test_nothing_without_debug_on(self):
-        reset(PLANTED, {"debug": False, "debug_leeches": 3, "debug_stagnation": 50})
+        reset(PLANTED, {"debug": False, "debug_leeches": 3, "debug_stagnation": 50, "debug_big_days": True})
         p = payload.payload()
-        self.assertFalse(any(t.get("leeches") for t in p["trees"]))
+        self.assertFalse(any(t.get("leeches") or t.get("big") for t in p["trees"]))
         self.assertEqual(p["stagnation"], 0)
 
     def test_crows_on_the_newest_grown_trees(self):
@@ -27,6 +27,11 @@ class DebugEventTests(unittest.TestCase):
     def test_tall_grass(self):
         reset(PLANTED, {"debug": True, "debug_stagnation": 50})
         self.assertEqual(payload.payload()["stagnation"], 0.5)
+
+
+    def test_big_learning_days(self):
+        reset(PLANTED, {"debug": True, "debug_big_days": True})
+        self.assertTrue(any(t.get("big") for t in payload.payload()["trees"]))
 
 
 if __name__ == "__main__":

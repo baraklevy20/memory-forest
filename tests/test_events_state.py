@@ -24,5 +24,14 @@ class GrassTests(unittest.TestCase):
         self.assertNotIn("stagnation", payload.payload(10))
 
 
+class FlowerTests(unittest.TestCase):
+    def test_a_big_day_of_learning_is_marked_on_its_tree(self):
+        # two cards a day for a week and more, then eight in one day
+        reset([(i, 10, 20 - i // 2) for i in range(20)] + [(100 + i, 10, 3) for i in range(8)])
+        trees = {t["ago"]: t for t in payload.payload()["trees"]}
+        self.assertEqual(trees[3]["big"], 2)  # what it beat: the most in the two weeks before
+        self.assertFalse(any(t.get("big") for a, t in trees.items() if a != 3))
+
+
 if __name__ == "__main__":
     unittest.main()

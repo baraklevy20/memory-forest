@@ -16,5 +16,6 @@
     "test_forest": false,
     "test_trees": 150,
     "debug_leeches": 0,
-    "debug_stagnation": 0
+    "debug_stagnation": 0,
+    "debug_big_days": false
 }
