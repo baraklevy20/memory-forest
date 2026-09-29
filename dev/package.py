@@ -1,10 +1,11 @@
 """Build the .ankiaddon to upload, with none of this machine's own data in it.
 
-    python anki_forest/dev/package.py [--edition NAME] [out.ankiaddon]
+    python anki_forest/dev/package.py [--edition NAME] [--version X.Y.Z] [out.ankiaddon]
 
 With editions.json present an edition must be named (see dev/editions.py); it ships only
 that edition's scenery, under its own name and package. The public repo has no
-editions.json and ships everything it has.
+editions.json and ships everything it has. --version sets the version Anki shows for it,
+in place of manifest.json's (a release is built from a tag, not from a commit that bumps it).
 
 A plain `zip -r` of the add-on folder would ship meta.json (your config, including the
 city you set), user_files/ (your weather cache and state), dev/payload.js (your own
@@ -88,6 +89,19 @@ def minified(shipping: list) -> dict:
     return texts
 
 
+def manifest(edition: str | None, version: str | None) -> str:
+    """manifest.json to ship: the edition's own, and the release's version when given."""
+    if edition:
+        text = editions.manifest(edition)
+    else:
+        with open(os.path.join(ADDON, "manifest.json"), encoding="utf-8") as f:
+            text = f.read()
+    m = json.loads(text)
+    if version:
+        m["human_version"] = version
+    return json.dumps(m, indent=2) + "\n"
+
+
 def main() -> None:
     args = sys.argv[1:]
     edition = None
@@ -95,6 +109,13 @@ def main() -> None:
         i = args.index("--edition")
         edition = args[i + 1] if i + 1 < len(args) else ""
         del args[i:i + 2]
+    version = None
+    if "--version" in args:
+        i = args.index("--version")
+        version = args[i + 1] if i + 1 < len(args) else ""
+        del args[i:i + 2]
+        if not version:
+            sys.exit("--version needs a value, e.g. 1.2.0")
     if editions.available() and not edition:
         sys.exit("name an edition: --edition " + "|".join(editions.available()))
     keep = editions.scenery(edition) if edition else None
@@ -109,8 +130,8 @@ def main() -> None:
         for path, name in shipping:
             if name == "config.json":
                 z.writestr(name, release_config())
-            elif name == "manifest.json" and edition:
-                z.writestr(name, editions.manifest(edition))
+            elif name == "manifest.json" and (edition or version):
+                z.writestr(name, manifest(edition, version))
             elif name in small:
                 z.writestr(name, small[name])
             else:
