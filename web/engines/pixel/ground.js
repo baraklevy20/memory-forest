@@ -73,6 +73,7 @@ function drawGround(env, lg) {
     if (spec.ground) spec.ground(env, lg, R);  // the environment's own scenery, on that ground
     drawMark(env, lg, mark, 'land');
     drawMark(env, lg, mark, 'shore');
+    AF.events.run('ground', env, lg);  // craters, where the landscape says the ground is
     return;
   }
   drawMark(env, lg, mark, 'land');
@@ -95,6 +96,7 @@ function drawGround(env, lg) {
   if (spec.ground) spec.ground(env, lg, R);
   drawMark(env, lg, mark, 'shore');
   for (const pd of env.puddles || []) AF.drawPuddle(lg, env, pd);
+  AF.events.run('ground', env, lg);  // craters
 }
 
 // a tree's shadow is SHADOW_ALPHA dark at the front, fading with the haze; the snow

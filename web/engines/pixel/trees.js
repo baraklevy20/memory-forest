@@ -65,6 +65,12 @@ const ANCIENT_PINE_W = 1.1;  // an ancient conifer is this much wider again
 // the trunk's height as a share of the tree's: a sapling's, a conifer's, a broadleaf's
 const SAPLING_TRUNK = 0.45, PINE_TRUNK = 0.2, BROAD_TRUNK = 0.32;
 const THICK_TRUNK_H = 16;  // a tree this tall gets a two-pixel trunk even before it is old
+// how many pixels right of a placed tree's centre its trunk ends, for whatever sits beside it
+AF.trunkRight = function (p, env) {
+  const h = Math.max(3, Math.round(AF.STAGE_H[p.it.stage] * env.u * p.s));
+  const tw = p.it.stage === ANCIENT ? 3 : p.it.stage >= OLD || h >= THICK_TRUNK_H ? 2 : 1;
+  return tw - Math.floor(tw / 2);
+};
 // sprites are cached per quarter step of haze; a faded tree on a deck screen is the only
 // one that gets as far as FADED_HZQ (layout.js's DIM_HAZE of 1.5, times HAZE_STEPS)
 const HAZE_STEPS = 4, FADED_HZQ = 6;

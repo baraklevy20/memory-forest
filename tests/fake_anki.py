@@ -74,6 +74,14 @@ class Decks:
         return [types.SimpleNamespace(id=d, name=n) for d, n in DECKS.items() if include_filtered or d not in FILTERED]
 
 
+class QtStub(type):
+    """Any Qt name, and any name on it: enough for the settings dialog's module to import
+    (the tests never open the dialog)."""
+
+    def __getattr__(cls, name):
+        return QtStub(name, (), {})
+
+
 class SearchNode:
     def __init__(self, deck=None, negated=None):
         self.deck, self.negated = deck, negated
@@ -166,6 +174,8 @@ def _install() -> None:
     module("aqt.deckbrowser", DeckBrowser=type("DeckBrowser", (), {}))
     module("aqt.overview", Overview=type("Overview", (), {}))
     module("aqt.utils", tooltip=lambda text, period=None: tooltips.append(text))
+    qt = module("aqt.qt")
+    qt.__getattr__ = lambda name: QtStub(name, (), {})
 
 
 def _load():
@@ -174,7 +184,7 @@ def _load():
     pkg = importlib.util.module_from_spec(spec)
     sys.modules[PACKAGE] = pkg
     spec.loader.exec_module(pkg)
-    for name in ("state", "payload", "panel", "actions", "planting", "live_weather"):
+    for name in ("state", "payload", "panel", "actions", "planting", "live_weather", "events_state", "settings"):
         setattr(pkg, name, importlib.import_module(f"{PACKAGE}.{name}"))
     return pkg
 

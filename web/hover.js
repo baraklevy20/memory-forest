@@ -1,6 +1,6 @@
 /* Memory Forest — pointing at the forest: what is under the pointer (an animal, a tree, a
- * pond, the deep forest), its tooltip, the marker over the tree pointed at, and a click
- * that opens that tree's cards in Anki's browser. */
+ * pond, the deep forest, the asteroid or a crater), its tooltip, the marker over the tree
+ * pointed at, and a click that opens that tree's cards in Anki's browser (or replays a strike). */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
@@ -11,9 +11,9 @@ const TIP_OFFSET = 14, TIP_MARGIN = 6;
 /* Wire up one mounted forest. `env()` is the scene as currently built (it is rebuilt on a
  * resize), and `redraw()` draws a still forest's moment again. Returns what the runner
  * draws of it each frame. */
-AF.hover = function ({ canvas, tip, sceneEl, data, env: current, redraw }) {
+AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, redraw }) {
   const words = AF.WORDS;
-  let hover = null, deepHover = null;
+  let hover = null, deepHover = null, eventHover = null;
   function drawMarker(g) {
     if (!hover) return;
     const x = Math.round(hover.x), y = Math.round(hover.top - 3);
@@ -27,7 +27,10 @@ AF.hover = function ({ canvas, tip, sceneEl, data, env: current, redraw }) {
     return { x0: p.x - w / 2, x1: p.x + w / 2, y0: p.y - h, y1: p.y + env.u };
   }
   function pick(env, mx, my) {
-    for (const b of env.visitorBoxes || []) if (mx >= b.x0 && mx <= b.x1 && my >= b.y0 && my <= b.y1) return { visitor: b.v };
+    const inBox = b => b && mx >= b.x0 && mx <= b.x1 && my >= b.y0 && my <= b.y1;
+    for (const b of env.visitorBoxes || []) if (inBox(b)) return { visitor: b.v };
+    const event = AF.events.first('pick', env, data, mx, my, animate);  // the asteroid, a crater
+    if (event) return { event };
     for (let i = env.placed.length - 1; i >= 0; i--) {
       const p = env.placed[i];
       if (p.it.pond) {
@@ -54,9 +57,10 @@ AF.hover = function ({ canvas, tip, sceneEl, data, env: current, redraw }) {
       const r = canvas.getBoundingClientRect();
       const scale = env.W / (r.width || env.W), mx = (e.clientX - r.left) * scale, my = (e.clientY - r.top) * scale;
       const hit = pick(env, mx, my);
-      deepHover = null;
+      deepHover = null; eventHover = null;
       if (!hit) { hover = null; tip.hidden = true; canvas.style.cursor = ''; return; }
       if (hit.visitor) { hover = null; tip.innerHTML = AF.tips.visitor(hit.visitor); canvas.style.cursor = ''; }
+      else if (hit.event) { hover = null; eventHover = hit.event; tip.innerHTML = hit.event.html; canvas.style.cursor = hit.event.replay ? 'pointer' : ''; }
       else if (hit.deep) {
         hover = null;
         tip.innerHTML = AF.tips.deep(hit.deep, words);
@@ -78,6 +82,7 @@ AF.hover = function ({ canvas, tip, sceneEl, data, env: current, redraw }) {
     });
     canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
     canvas.addEventListener('click', () => {
+      if (eventHover && eventHover.replay) { tip.hidden = true; root.afReplay(); return; }
       if (data.testForest) return;
       if (deepHover) send(`${data.channel}:browse:${deepHover.from_ago}:${AF.deckFor(data)}:${deepHover.to_ago}`);
       else if (hover && hover.tree) send(`${data.channel}:browse:` + hover.tree.ago + ':' + (data.deckId && !hover.tree.dim ? data.deckId : ''));

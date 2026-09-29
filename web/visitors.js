@@ -3,7 +3,7 @@
 'use strict';
 const AF = window.AnkiForest;
 const { rng, hex, mix, rgb } = AF.u;
-const { OLD, ANCIENT } = AF.STAGE;
+const { MATURE, OLD, ANCIENT } = AF.STAGE;
 const { GROUND_BOTTOM } = AF.GEOM;
 
 const VISITORS = {
@@ -25,6 +25,18 @@ const VISITORS = {
   heron: { pal: { g: '#9aa4ae', e: '#1a1a1a', d: '#e0a33a', w: '#e6eaee', k: '#4a4f55' }, frames: [
     ['..gg....', '.gegddd.', '..g.....', '..g.....', '.ggg....', 'gggww...', '.gggw...', '..ggg...', '...k....', '...k....', '..kk....'],
     ['..gg....', '.gggddd.', '..g.....', '..g.....', '.ggg....', 'gggww...', '.gggw...', '..ggg...', '...k....', '...k....', '..kk....']] },
+  // sitting up at the foot of its tree with an acorn in its paws, the tail up against the trunk
+  squirrel: { pal: { t: '#d8955a', T: '#a8622e', r: '#b8672e', d: '#5a2e14', e: '#1a1008', l: '#f2dcb8', a: '#b07a3a', c: '#5a3a1c' }, frames: [
+    ['.tt.......', 'tTTt...r.r', 'tTTTt..rrr', 'tTTTt.rrer', 'tTTtTrrrrl', '.tTTtrrrcc', '..tTtrrlaa', '...tTrrlaa', '....rrrl..', '....dd.dd.'],
+    ['..tt......', '.tTTt..r.r', 'tTTTt..rrr', 'tTTTt.rrer', 'tTTtTrrrrl', '.tTTtrrrcc', '..tTtrrlaa', '...tTrrlaa', '....rrrl..', '....dd.dd.']] },
+  // walking with its nose to the ground
+  bear: { pal: { b: '#5a3e2c', h: '#7a5a40', d: '#3a271a', e: '#0c0604', l: '#c4a47c', n: '#120a06' }, frames: [
+    ['....hhhhhhh......', '..hhbbbbbbbbh....', '.hbbbbbbbbbbbbd.d', '.bbbbbbbbbbbbbddd', '.bbbbbbbbbbbbbbeb', '.bbbbbbbbbbb.bbll', '..bbb..bbb....bln', '..ddd..ddd.......'],
+    ['....hhhhhhh......', '..hhbbbbbbbbh....', '.hbbbbbbbbbbbbd.d', '.bbbbbbbbbbbbbddd', '.bbbbbbbbbbbbbbeb', '.bbbbbbbbbbb.bbll', '...bbb..bbb...bln', '...ddd..ddd......']] },
+  // gliding, and with its wings raised: d dark wings, b body, h its white head and tail, y beak
+  eagle: { flies: true, pal: { d: '#2a2018', b: '#4e3c2c', h: '#f4ede4', y: '#e8b030' }, frames: [
+    ['......hh.....', 'dd...bbhy....', '.dddbbbbbbdd.', '...ddbbbbdd..', '......hh.....'],
+    ['d..........d.', '.dd..hh...dd.', '...dbbhy.d...', '....bbbbbb...', '......hh.....']] },
   cabin: { pal: { c: '#6e6a70', r: '#7a3a2e', R: '#5a2a22', w: '#9a7250', W: '#7a5a3e', o: '#3e2a1c', n: '#2e3a4a' }, frames: [
     ['......cc....', '......cc....', '...rrrrrrr..', '..rrrrrrrrR.', '.rrrrrrrrrRR', 'RRRRRRRRRRRR', '.wWwWwWwWwW.', '.woowWwnnwW.', '.woowWwnnwW.', '.woowWwWwWw.']] }
 };
@@ -42,6 +54,9 @@ const RABBIT_HOPS = 5, RABBIT_HOP_PX = 3;
 // the animals stand this far below the front row (of the height), never off the canvas
 const VISITOR_DROP = 0.025, VISITOR_LOWEST = 0.995;
 const CABIN_X = 0.05, CABIN_SMOKE_PUFFS = 4;
+// a flying animal circles SKY_X, SKY_Y (of the width and height), SKY_RX and SKY_RY across,
+// SKY_TURN radians a second, raising its wings one beat in SKY_FLAP_EVERY (SKY_FLAP_FPS a second)
+const SKY_X = 0.66, SKY_Y = 0.16, SKY_RX = 0.09, SKY_RY = 0.04, SKY_TURN = 0.35, SKY_FLAP_FPS = 2.5, SKY_FLAP_EVERY = 5;
 const FACES_LEFT = { rabbit: true };  // which way each sprite is drawn looking
 
 function paintSprite(g, rows, x0, y0, pal, colorOf, flip = false) {
@@ -64,6 +79,9 @@ AF.placeVisitors = function (env) {
   if (keys.includes('owl') && older.length) inForest.owl = { host: any(older) };
   const ponds = env.placed.filter(p => p.it.pond && p.it.first);
   if (keys.includes('heron') && ponds.length) inForest.heron = { host: any(ponds) };
+  // the squirrels sit at the foot of a grown tree the owl hasn't taken
+  const grown = trees.filter(p => p.it.stage >= MATURE && (!inForest.owl || p !== inForest.owl.host));
+  if (keys.includes('squirrel') && grown.length) inForest.squirrel = { host: any(grown) };
   const band = (lo, hi) => trees.filter(p => p.it.fromFront >= lo && p.it.fromFront <= hi);
   for (const [key, lo, hi] of [['deer', 2, 4], ['stag', 4, 6]]) {
     if (!keys.includes(key)) continue;
@@ -73,8 +91,9 @@ AF.placeVisitors = function (env) {
     const pool = free(band(lo, hi)).length ? free(band(lo, hi)) : free(band(0, 2));
     if (pool.length) inForest[key] = { host: any(pool), graze: true };
   }
-  for (const v of list) if (!inForest[v.key] && v.key !== 'cabin') front.push(v);
-  env.inForest = inForest; env.frontVisitors = front; env.staticBoxes = [];
+  // the rest stand at the front, but the cabin (which has its own corner) and those that fly
+  for (const v of list) if (!inForest[v.key] && v.key !== 'cabin' && !(VISITORS[v.key] || {}).flies) front.push(v);
+  env.inForest = inForest; env.frontVisitors = front; env.flyers = list.filter(v => (VISITORS[v.key] || {}).flies); env.staticBoxes = [];
   const byHost = new Map();
   for (const [key, spot] of Object.entries(inForest)) byHost.set(spot.host, (byHost.get(spot.host) || []).concat([key]));
   env.afterItem = (lg, p) => {
@@ -83,6 +102,7 @@ AF.placeVisitors = function (env) {
       const spr = VISITORS[key], v = list.find(x => x.key === key), frame = spr.frames[inForest[key].graze ? 1 : 0];
       let x0, y0;
       if (key === 'owl') { const h = AF.STAGE_H[p.it.stage] * env.u * p.s; x0 = Math.round(p.x - 2); y0 = Math.round(p.y - h - frame.length + 3); }
+      else if (key === 'squirrel') { x0 = Math.round(p.x) + (AF.trunkRight ? AF.trunkRight(p, env) : 1); y0 = Math.round(p.y - frame.length + 1); }  // on the roots, just right of the trunk
       else if (key === 'heron') { const b = AF.pondBox(env, p); x0 = Math.round(b.cx + b.w * 0.2); y0 = Math.round(b.cy - frame.length + 1); }
       else { x0 = Math.round(p.x + 4); y0 = Math.round(p.y - frame.length + 1); }
       paintSprite(lg, frame, x0, y0, spr.pal, visitorColor(env, p.hz));
@@ -92,10 +112,24 @@ AF.placeVisitors = function (env) {
   };
 };
 
+/* the eagle circles high over the forest, behind the trees */
+AF.drawFlyers = function (g, env, t) {
+  const { W, H } = env, color = visitorColor(env, 0);
+  env.skyBoxes = [];
+  (env.flyers || []).forEach(v => {
+    const spr = VISITORS[v.key], a = env.still ? 1 : t * SKY_TURN;
+    const cx = Math.round(W * SKY_X + Math.cos(a) * W * SKY_RX), cy = Math.round(H * SKY_Y + Math.sin(a) * H * SKY_RY);
+    const frame = spr.frames[!env.still && Math.floor(t * SKY_FLAP_FPS) % SKY_FLAP_EVERY === 0 ? 1 : 0];
+    const x0 = cx - Math.floor(frame[0].length / 2), y0 = cy - Math.floor(frame.length / 2);
+    paintSprite(g, frame, x0, y0, spr.pal, color, Math.sin(a) > 0);  // it faces the way it circles
+    env.skyBoxes.push({ v, x0: x0 - 1, y0: y0 - 1, x1: x0 + frame[0].length + 1, y1: y0 + frame.length + 1 });
+  });
+};
+
 /* the rest stand at the edge of the forest; the cabin sits front-left after a year */
 AF.drawVisitors = function (g, env, t) {
   const list = env.frontVisitors || [], color = visitorColor(env, 0);
-  env.visitorBoxes = (env.staticBoxes || []).slice();
+  env.visitorBoxes = (env.staticBoxes || []).concat(env.skyBoxes || []);
   const baseY = Math.round(env.visitorY || env.H * Math.min(VISITOR_LOWEST, (env.bot || GROUND_BOTTOM) + VISITOR_DROP));
   const cabin = (env.data.visitors || []).find(v => v.key === 'cabin');
   if (cabin) {

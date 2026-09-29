@@ -6,9 +6,12 @@ from __future__ import annotations
 from aqt.qt import QCheckBox, QFormLayout, QLineEdit, QWidget
 
 from .. import presets
+from ..events import DEFAULT_STAKES, STAKES_LABELS, STAKES_NOTES
 from ..live_weather import city_problem
 from ..state import OFF_VALUES
 from .widgets import combo, hint, set_quietly
+
+STAKES_OPTIONS = list(STAKES_LABELS.items())
 
 
 class GeneralTab(QWidget):
@@ -24,6 +27,8 @@ class GeneralTab(QWidget):
         self.animations.setChecked(cfg.get("animations", True) not in OFF_VALUES)
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
+        self.stakes = combo(STAKES_OPTIONS, cfg.get("stakes") if isinstance(cfg.get("stakes"), str) else DEFAULT_STAKES, DEFAULT_STAKES)
+        self.stakes_note = hint("")
         lf = self.form = QFormLayout(self)
         lf.addRow("Preset", self.preset)
         lf.addRow("", self.preset_note)
@@ -34,6 +39,8 @@ class GeneralTab(QWidget):
         lf.addRow("", self.city_status)
         lf.addRow("", hint("Live weather for your city, from Open-Meteo. Without a city, only the "
                            "time of day follows your clock; the weather stays the preset's."))
+        lf.addRow("Stakes", self.stakes)
+        lf.addRow("", self.stakes_note)
         lf.addRow("", self.animations)
         lf.addRow("", self.planting)
 
@@ -41,6 +48,7 @@ class GeneralTab(QWidget):
         for box in (self.animations, self.planting):
             box.toggled.connect(changed)
         self.city.editingFinished.connect(changed)
+        self.stakes.currentIndexChanged.connect(changed)
 
     def sync(self, look: dict) -> None:
         """The preset, its note, the real-sky box and the city, in line with the five
@@ -62,10 +70,12 @@ class GeneralTab(QWidget):
             self.form.setRowVisible(self.city_status, bool(problem))
         else:
             self.city_status.setVisible(bool(problem))
+        self.stakes_note.setText(STAKES_NOTES.get(self.stakes.currentData(), ""))
 
     def values(self) -> dict:
         return {
             "city": self.city.text().strip(),
             "animations": self.animations.isChecked(),
             "planting_tooltip": self.planting.isChecked(),
+            "stakes": self.stakes.currentData(),
         }

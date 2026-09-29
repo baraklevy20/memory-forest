@@ -14,6 +14,8 @@ from .general import GeneralTab
 from .history import HistoryTab
 
 DIALOG_MIN_WIDTH = 460
+# the Debug group's rows and timeline buttons need more room than the dialog's usual size
+DEBUG_MIN_WIDTH, DEBUG_MIN_HEIGHT = 620, 800
 # the dialog saves this long after the last change, so dragging a slider is one redraw
 APPLY_DEBOUNCE_MS = 250
 # a new city is looked up in the background; check back for a problem after this long
@@ -34,6 +36,8 @@ class SettingsDialog(QDialog):
         self.general = GeneralTab(cfg)
         self.fine = FineTuningTab(cfg)
         self.history = HistoryTab(cfg)
+        if self.fine.debug_on:
+            self.setMinimumSize(DEBUG_MIN_WIDTH, DEBUG_MIN_HEIGHT)
         tabs = QTabWidget()
         for widget, name in ((self.general, "General"), (self.fine, "Fine-tuning"), (self.history, "History"), (AboutTab(), "About")):
             tabs.addTab(widget, name)

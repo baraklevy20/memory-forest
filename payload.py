@@ -87,10 +87,10 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     cfg = config()
     # the test forest is a developer's tool, so it only exists while debug is on
     test = bool(cfg.get("debug", False)) and bool(cfg.get("test_forest", False))
-    forest = fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)) if test else _forest(None if highlight else did)
+    forest = dict(fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test else _forest(None if highlight else did)
     if highlight and did:
         forest = _lit_by_deck(forest, did, test)
-    # the study events; a deck's own forest shows the trees alone
+    # the stakes and the other study events; a deck's own forest shows the trees alone
     extras = {}
     if not (did and not highlight):
         forest, extras = events_state.apply(forest, cfg, test)
@@ -114,12 +114,13 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     evs = scene.events(forest["stats"], today, new_ancient)
 
     return {
-        "trees": forest["trees"],
+        # each tree's count of cards known well only adds up to the animals' milestones
+        "trees": [{k: v for k, v in t.items() if k != "mature"} for t in forest["trees"]],
         "stats": forest["stats"],
         "visitors": forest["visitors"],
         "anniversaries": ann,
         "mood": mood,
-        "journal": journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs),
+        "journal": events_state.strike_line(extras) or journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs),
         "events": evs,
         "merged": forest.get("merged"),
         "forestSeed": forest["forest_seed"],

@@ -5,7 +5,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { layer, send } = AF.u;
+const { layer, send, animates } = AF.u;
 const { HORIZON, GROUND_BOTTOM } = AF.GEOM;
 
 /* ---------- the scene runner ---------- */
@@ -13,12 +13,13 @@ AF.mount = function (root, data, opts) {
   // a night-only environment (`night: true`) keeps to the night while the hour is the real one
   if (data.mood.clock && (AF.ENVS[data.mood.special] || {}).night) data = Object.assign({}, data, { mood: Object.assign({}, data.mood, { time: 'night' }) });
   const engine = AF.engines.pixel;
+  const animate = animates(data);
+  // an asteroid's strike plays first, if it hasn't been seen (and the page says when it has)
+  if (AF.events.first('mount', root, data, opts, animate, () => send(`${data.channel}:struck:${data.strike.seen}`))) return;
   // a later mount on the same root (a settings change, swapped in place) retires this one
   const token = {};
   root.afToken = token;
   const current = () => root.afToken === token;
-  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const animate = data.animations && !reduce;
   root.innerHTML = (data.inAnki ? '<div class="af-top"><button type="button" class="af-cog" title="Memory Forest settings" aria-label="Memory Forest settings">' + COG + '</button></div>' : '')
     + '<div class="af-scene"><canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
     + '<div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
@@ -55,6 +56,7 @@ AF.mount = function (root, data, opts) {
     env.g = canvas.getContext('2d', env.quantize ? { willReadFrequently: true } : {});
     // anniversary trees, resolved once instead of scanned for on every frame
     env.glowing = (data.anniversaries || []).map(idx => env.placed.find(q => !q.it.pond && q.it.index === idx)).filter(Boolean);
+    root.afEnv = env;  // for an animation laid over the forest (the asteroid's strike, web/events/asteroid.js)
   }
 
   function frame(ts) {
@@ -64,13 +66,15 @@ AF.mount = function (root, data, opts) {
     g.clearRect(0, 0, env.W, env.H);
     g.drawImage(env.sky, 0, 0);
     if (env.fx) AF.fx.back(g, env, t);
+    AF.events.run('back', g, env, t);  // the asteroid on its way
+    AF.drawFlyers(g, env, t);
     if (engine.frameBack) engine.frameBack(g, env, t);
     g.drawImage(env.fx && env.fx.flash && env.landLit ? env.landLit : env.land, 0, 0);
     engine.frame(g, env, t);
     AF.events.run('grass', g, env, t);  // tall grass, which the animals stand in
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
-    AF.events.run('front', g, env, t);  // crows
+    AF.events.run('front', g, env, t);  // crows, a fresh crater's smoke
     if (env.fx) AF.fx.front(g, env, t);
     if (env.quantize) env.quantize(g, env.W, env.H);
     pointer.drawMarker(g);
@@ -98,7 +102,7 @@ AF.mount = function (root, data, opts) {
     });
   }
   // pointing at the forest: tooltips, the marker over a tree, a click to see its cards
-  const pointer = AF.hover({ canvas, tip, sceneEl, data, env: () => env, redraw: () => { if (!animate) frame(stillAt); } });
+  const pointer = AF.hover({ root, canvas, tip, sceneEl, data, animate, env: () => env, redraw: () => { if (!animate) frame(stillAt); } });
 
   // ~15 frames a second is plenty for drifting clouds and fireflies; pauses when hidden
   function loop() {

@@ -93,6 +93,7 @@ def make_forest(trees: list, streak: int, longest: int, reviews: int, today_revi
         "planted_today": bool(trees and trees[-1]["ago"] == 0),
         "today_cards": trees[-1]["n"] if trees and trees[-1]["ago"] == 0 else 0,
         "ponds": sum(1 for t in trees if t.get("gap")),
+        "mature_cards": sum(t.get("mature", 0) for t in trees),
     }
     return {"trees": trees, "stats": stats, "visitors": visitors(stats),
             "forest_seed": trees[0]["seed"] if trees else 0}
@@ -119,6 +120,19 @@ def _health(struggling_share: float) -> int:
         if struggling_share >= threshold:
             level += 1
     return level
+
+
+def rebuild(forest: dict, trees: list, review_days: set | None = None) -> dict:
+    """`forest` with only `trees` standing (after an asteroid, or on the debug timeline):
+    its stats and animals counted again from them, and its streak from `review_days` (by
+    default, the forest's own). Everything else it carries is kept."""
+    days = forest.get("review_days") or set() if review_days is None else review_days
+    streak, longest = _streaks(set(days))
+    s = forest["stats"]
+    out = dict(forest, **make_forest(trees, streak, longest, s["reviews"], s["today_reviews"]))
+    if "lit_count" in forest:  # a deck's trees lit in the main forest: count what still stands
+        out["lit_count"] = sum(1 for t in trees if not t.get("dim"))
+    return out
 
 
 def _streaks(review_days: set) -> tuple:
@@ -211,6 +225,7 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
         remembered = sum(c["r"]) / len(c["r"]) if c["r"] else 1 - c["struggling"] / active if active else 1.0
         t = make_tree(today - d, d, day_date(d, day_cutoff).isoformat(), n, stage, health,
                   remembered, strength, c["struggling"], measured)
+        t["mature"] = sum(1 for s in c["strengths"] if s >= MATURE_DAYS)
         if c["suspended"]:
             t["suspended"] = c["suspended"]
         if leeches.get(d):

@@ -9,6 +9,8 @@ payload.py       what a panel is drawn from: cached trees, the day's scene, the 
 live_weather.py  the live weather for your city: its cache, and refreshing it in the background
 actions.py       clicks (settings, browse a tree's cards) and the deck gear menu
 planting.py      the "a new tree was planted" message
+events_state.py  the events on Anki's side: the Stakes remembered per profile, and what the page is sent
+debug_events.py  the Debug group's study events and timeline (debug only)
 state.py         the config, and what is remembered per profile in user_files/
 settings/        the settings dialog: dialog.py, and one file per tab (changes apply immediately)
 presets.py       the ready-made scenes the dialog offers
@@ -16,6 +18,7 @@ study_log.py     what is read from the collection: cards, review log, Anki days 
 forest_data.py   rows → trees, stages, health, ponds and stats (no aqt; unit-tested)
 memory.py        the FSRS forgetting curve (no aqt)
 milestones.py    the animals that move in, and anniversaries (no aqt)
+events.py        the events' rules: stakes and strikes, big days, tall grass (no aqt)
 fake_forest.py   the made-up test forest, for debug (no aqt)
 scene.py         environment/weather/time selection, moon phase, night-sky events
 journal.py       the one line under the forest, on the days there is something to say
@@ -36,6 +39,9 @@ web/core.js      the scene runner: mount, draw each frame, swap
 web/effects.js   the moving effects' order; the effects are in web/effects/:
                  weather.js (clouds, rain, snow, lightning, wind, fog) and
                  ambience.js (stars, fireflies, birds, lanterns, petals, falling leaves)
+web/events.js    the events' registry, and the points where the scene calls them; each event
+                 is a file in web/events/: asteroid.js (the Stakes' asteroid, the strike and its
+                 craters), crows.js (leeches), grass.js (tall grass), flowers.js (big days)
 web/engines/pixel/   the pixel engine: trees.js (sprites, palettes), sky.js, ground.js
                      (ground, landmark, deep forest), water.js, engine.js (puts it together)
 web/envs/*.js        one file per environment: its look, trees, scenery and effects

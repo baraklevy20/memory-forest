@@ -36,7 +36,9 @@ function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const canBrowse = () => typeof pycmd === 'function';  // Anki's bridge may not be a window property
 const send = msg => { if (canBrowse()) pycmd(msg); };
-AF.u = { rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send };
+// animations on, and the system not asking for less motion
+const animates = data => data.animations && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+AF.u = { rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates };
 AF.STAGE_H = [4, 8, 13, 19, 27, 38];
 AF.STAGE_NAMES = ['seedling', 'sapling', 'young', 'mature', 'old', 'ancient'];
 AF.STAGE = { SEEDLING: 0, SAPLING: 1, YOUNG: 2, MATURE: 3, OLD: 4, ANCIENT: 5 };

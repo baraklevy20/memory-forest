@@ -8,6 +8,7 @@
     "animations": true,
     "planting_tooltip": true,
     "deck_forest_mode": "highlight",
+    "stakes": "peaceful",
     "excluded_decks": [],
     "ignore_before": "",
     "keep_suspended": true,
@@ -15,6 +16,8 @@
     "debug": false,
     "test_forest": false,
     "test_trees": 150,
+    "debug_missed": 0,
+    "debug_timeline": [],
     "debug_leeches": 0,
     "debug_stagnation": 0,
     "debug_big_days": false

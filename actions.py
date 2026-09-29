@@ -10,7 +10,7 @@ from aqt import dialogs, mw
 from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 
-from . import study_log
+from . import events_state, study_log
 from .panel import refresh
 from .state import MODULE, config, excluded_decks, keeps_suspended, log, save_config
 
@@ -48,6 +48,8 @@ def on_js_message(handled, message, context):
     try:
         if cmd[0] == "settings":
             open_settings()
+        elif cmd[0] == "struck" and len(cmd) > 1:
+            events_state.mark_seen(":".join(cmd[1:]))
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

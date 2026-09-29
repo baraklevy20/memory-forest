@@ -3,7 +3,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { fmtDate, esc, cap, canBrowse, send } = AF.u;
+const { fmtDate, esc, cap, canBrowse, send, animates } = AF.u;
 // the caption's tooltip sits this far above what it explains
 const TIP_MARGIN = 6;
 
@@ -27,6 +27,7 @@ AF.caption = function (root, data) {
     data.testForest ? '' : `${data.channel}:browse:${data.merged.from_ago}:${deckFor(data)}:${data.merged.to_ago}`]);
   if (s.ancient) items.push([`${s.ancient} ancient`, `${cap(words.many)} whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not.`]);
   if (s.streak) items.push([`${s.streak}-day streak`, 'Days in a row with at least one review.']);
+  items.push(...AF.events.collect('caption', data, words, animates(data)));  // the asteroid, on its way or struck
   // the scene's name, unless it is the plain default
   if (data.sceneName) items.push([data.sceneName, data.sceneTip || 'The preset, chosen in the forest settings.']);
   if (data.weatherError) {
@@ -40,8 +41,11 @@ AF.caption = function (root, data) {
     items.push([`Weather: ${WEATHER_NAMES[m.weather] || m.weather}${m.city ? ` in ${m.city}` : ''}${m.temp != null ? `, ${Math.round(m.temp)}°` : ''}`,
       'Live weather from Open-Meteo.']);
   }
-  root.querySelector('.af-meta').innerHTML = items.map(([t, tip, cmd]) =>
-    `<span class="af-info${cmd && canBrowse() ? ' af-click' : ''}" data-tip="${esc(tip)}"${cmd ? ` data-cmd="${esc(cmd)}"` : ''}>${esc(t)}</span>`).join(' · ')
+  // an item's click is a message for Anki, or something done right here on the page
+  root.afCaptionActs = items.map(([, , cmd]) => typeof cmd === 'function' ? cmd : null);
+  root.querySelector('.af-meta').innerHTML = items.map(([t, tip, cmd], i) => typeof cmd === 'function'
+    ? `<span class="af-info af-click" data-tip="${esc(tip)}" data-act="${i}">${esc(t)}</span>`
+    : `<span class="af-info${cmd && canBrowse() ? ' af-click' : ''}" data-tip="${esc(tip)}"${cmd ? ` data-cmd="${esc(cmd)}"` : ''}>${esc(t)}</span>`).join(' · ')
     + (data.credit ? ' <span class="af-credit">· weather by Open-Meteo</span>' : '');
 };
 /* caption hints use the forest's own tooltip (Anki's webview doesn't show title tooltips) */
@@ -55,7 +59,8 @@ AF.captionTips = function (root) {
       capTip.style.left = left + 'px'; capTip.style.top = (r.top - pr.top - capTip.offsetHeight - TIP_MARGIN) + 'px';
     });
     el.addEventListener('mouseleave', () => { capTip.hidden = true; });
-    if (el.dataset.cmd && canBrowse()) el.addEventListener('click', () => send(el.dataset.cmd));
+    if (el.dataset.act) el.addEventListener('click', () => { capTip.hidden = true; root.afCaptionActs[el.dataset.act](root); });
+    else if (el.dataset.cmd && canBrowse()) el.addEventListener('click', () => send(el.dataset.cmd));
   });
 }
 })();

@@ -15,6 +15,8 @@ DEER_STREAK = 30
 STAG_STREAK = 100
 FOX_REVIEWS = 10_000
 CABIN_AGE_DAYS = 365
+# card milestones: mature cards (remembered three weeks and more) bring these three
+SQUIRREL_MATURE, BEAR_MATURE, EAGLE_MATURE = 1_000, 5_000, 10_000
 
 VISITORS = (
     # key, who, why they came, test
@@ -25,6 +27,9 @@ VISITORS = (
     ("heron", "a heron", "a pond formed where you took a break", lambda s: s.get("ponds", 0) >= 1),
     ("stag", "a stag", "you kept a 100-day streak", lambda s: s["longest_streak"] >= STAG_STREAK),
     ("cabin", "a cabin", "your forest turned one year old", lambda s: s["forest_age"] >= CABIN_AGE_DAYS),
+    ("squirrel", "a family of squirrels", "you knew 1,000 cards well", lambda s: s.get("mature_cards", 0) >= SQUIRREL_MATURE),
+    ("bear", "a bear", "you knew 5,000 cards well", lambda s: s.get("mature_cards", 0) >= BEAR_MATURE),
+    ("eagle", "an eagle", "you knew 10,000 cards well", lambda s: s.get("mature_cards", 0) >= EAGLE_MATURE),
 )
 
 

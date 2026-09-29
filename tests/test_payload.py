@@ -77,6 +77,10 @@ class PayloadTests(unittest.TestCase):
         reset([(1, 10, 90)], leeches={1})  # last studied three months ago: an abandoned deck
         self.assertIsNone(payload.payload()["trees"][0].get("leeches"))
 
+    def test_the_cards_each_tree_knows_well_stay_on_this_side(self):
+        reset(CARDS)
+        self.assertTrue(all("mature" not in t for t in payload.payload()["trees"]))  # only for the animals' milestones
+
 
 if __name__ == "__main__":
     unittest.main()
