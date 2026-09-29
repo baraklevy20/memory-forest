@@ -6,7 +6,7 @@ from __future__ import annotations
 from aqt.qt import QCheckBox, QFormLayout, QLineEdit, QWidget
 
 from .. import presets
-from ..payload import city_problem
+from ..live_weather import city_problem
 from ..state import OFF_VALUES
 from .widgets import combo, hint, set_quietly
 

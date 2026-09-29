@@ -20,7 +20,7 @@ KINDS = ("envs", "landscapes", "landmarks")
 # engine uses the parts before it. The panel, the render checks and the gallery all load these.
 SCRIPTS = (
     "util.js", "layout.js", "scenery.js", "theme.js", "visitors.js", "ponds.js", "tooltips.js",
-    "caption.js", "core.js", "effects.js",
+    "caption.js", "hover.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
     "engines/pixel/water.js", "engines/pixel/engine.js",
 )

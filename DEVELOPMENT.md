@@ -5,7 +5,8 @@
 ```
 __init__.py      connects the add-on to Anki: the hooks, and nothing else
 panel.py         the forest panel's HTML and scripts, and redrawing it in place
-payload.py       what a panel is drawn from: cached trees, the day's scene, weather
+payload.py       what a panel is drawn from: cached trees, the day's scene, the numbers
+live_weather.py  the live weather for your city: its cache, and refreshing it in the background
 actions.py       clicks (settings, browse a tree's cards) and the deck gear menu
 planting.py      the "a new tree was planted" message
 state.py         the config, and what is remembered per profile in user_files/
@@ -16,7 +17,8 @@ forest_data.py   rows → trees, stages, health, ponds and stats (no aqt; unit-t
 memory.py        the FSRS forgetting curve (no aqt)
 milestones.py    the animals that move in, and anniversaries (no aqt)
 fake_forest.py   the made-up test forest, for debug (no aqt)
-scene.py         environment/weather/time selection, moon phase, journal
+scene.py         environment/weather/time selection, moon phase, night-sky events
+journal.py       the one line under the forest, on the days there is something to say
 weather.py       Open-Meteo geocoding + forecast, JSON cache in user_files/
 store.py         the small JSON files under user_files/, written atomically
 catalog.py       what this copy can draw, read from the files under web/, and the
@@ -29,15 +31,19 @@ web/visitors.js  the milestone animals and the cabin
 web/ponds.js     ponds and puddles
 web/tooltips.js  what hovering says
 web/caption.js   the line of numbers under the forest
-web/core.js      the scene runner: mount, draw each frame, hover and click, swap
-web/effects.js   clouds, rain, snow, fireflies, birds, wind…
+web/hover.js     pointing at the forest: what is under the pointer, its tooltip, a click
+web/core.js      the scene runner: mount, draw each frame, swap
+web/effects.js   the moving effects' order; the effects are in web/effects/:
+                 weather.js (clouds, rain, snow, lightning, wind, fog) and
+                 ambience.js (stars, fireflies, birds, lanterns, petals, falling leaves)
 web/engines/pixel/   the pixel engine: trees.js (sprites, palettes), sky.js, ground.js
                      (ground, landmark, deep forest), water.js, engine.js (puts it together)
 web/envs/*.js        one file per environment: its look, trees, scenery and effects
 web/envs/*.json      ... and beside it, its label and its preset
 web/landscapes/      one .js and one .json per landscape
 web/landmarks/       one .js and one .json per landmark
-tests/           one test file per module, sharing tests/helpers.py
+tests/           one test file per module, sharing tests/helpers.py; the modules that talk
+                 to Anki run against a stand-in Anki (tests/fake_anki.py)
 dev/             packaging, previews and the render checks
 ```
 

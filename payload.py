@@ -1,16 +1,14 @@
 """Everything one forest panel is drawn from: the trees (cached until the collection
-changes), the day's scene and weather, and the numbers the page shows."""
+changes), the day's scene and weather (live_weather.py), and the numbers the page shows."""
 
 from __future__ import annotations
 
 import datetime as _dt
-import inspect
-import os
 import time
 
 from aqt import mw
 
-from . import fake_forest, forest_data, milestones, presets, scene, study_log
+from . import fake_forest, forest_data, journal, live_weather, milestones, presets, scene, study_log
 from .state import (
     MAX_WIDTH_DEFAULT,
     MAX_WIDTH_MAX,
@@ -19,7 +17,6 @@ from .state import (
     OFF_VALUES,
     TEST_TREES_DEFAULT,
     TEST_TREES_MAX,
-    USER_FILES,
     clamp_int,
     config,
     deck_ids,
@@ -30,14 +27,11 @@ from .state import (
     save_state,
     since,
 )
-from .weather import WeatherCache
 
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
 
-_weather = WeatherCache(os.path.join(USER_FILES, "weather.json"))
 _forest_cache: dict = {}
-_refreshing = False
 
 
 def _forest(did: int | None = None) -> dict:
@@ -59,34 +53,6 @@ def _forest(did: int | None = None) -> dict:
     log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
     _forest_cache[did] = (key, value)
     return value
-
-
-def _maybe_refresh_weather(city: str) -> None:
-    global _refreshing
-    if _refreshing or not _weather.needs_refresh(city):
-        return
-    _refreshing = True
-
-    def done(future) -> None:
-        global _refreshing
-        _refreshing = False
-        try:
-            result = future.result()
-        except Exception:
-            return
-        if result is not None and mw.state == "deckBrowser":
-            from .panel import refresh  # the panel draws from this module, so it is imported late
-            refresh()
-
-    # the weather needs no collection, so it need not wait for one - where this Anki can
-    # be told so (older ones take no `uses_collection`)
-    extra = {"uses_collection": False} if "uses_collection" in inspect.signature(mw.taskman.run_in_background).parameters else {}
-    mw.taskman.run_in_background(lambda: _weather.refresh(city), done, **extra)
-
-
-def city_problem(city: str) -> str:
-    """Why the live weather for `city` is missing, for the settings dialog, or ""."""
-    return _weather.failing(city) if city.strip() else ""
 
 
 def _new_ancient_today(forest: dict, today: _dt.date) -> bool:
@@ -136,14 +102,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     # the page can only glow trees it draws; the journal still names any of them
     ann = [i - merged_count for i in ann_all if i >= merged_count]
 
-    city = (cfg.get("city") or "").strip()
-    real = place = None
-    weather_error = ""
-    if city and (cfg.get("weather") or "auto") == "auto":
-        real, place = _weather.current(city), _weather.place(city)
-        if real is None:  # say so, instead of quietly looking like no city was ever set
-            weather_error = _weather.failing(city)
-        _maybe_refresh_weather(city)
+    real, place, weather_error = live_weather.for_config(cfg)
 
     mood = scene.choose_mood(cfg, now, real, place)
     evs = scene.events(forest["stats"], today, new_ancient)
@@ -154,7 +113,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "visitors": forest["visitors"],
         "anniversaries": ann,
         "mood": mood,
-        "journal": scene.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs),
+        "journal": journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs),
         "events": evs,
         "merged": forest.get("merged"),
         "forestSeed": forest["forest_seed"],

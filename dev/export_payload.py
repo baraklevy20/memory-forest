@@ -23,6 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
 import forest_data
+import journal
 import memory
 import milestones
 import scene
@@ -77,7 +78,7 @@ def main() -> None:
     ann = milestones.anniversaries(forest["trees"], now.date())
     payload = {
         "trees": forest["trees"], "stats": forest["stats"], "visitors": forest["visitors"], "anniversaries": ann, "merged": forest.get("merged"),
-        "mood": mood, "journal": scene.journal(forest, mood, now.date(), ann),
+        "mood": mood, "journal": journal.journal(forest, mood, now.date(), ann),
         "animations": True, "tooltips": True, "maxWidth": MAX_WIDTH, "events": [], "forestSeed": forest["forest_seed"], "credit": False,
     }
     with open(os.path.join(HERE, "payload.js"), "w", encoding="utf-8") as f:
