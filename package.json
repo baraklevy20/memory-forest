@@ -20,6 +20,7 @@
     "payload": "python3 dev/export_payload.py"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "eslint": "^9.13.0"
   }
 }

@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
+import tempfile
 import zipfile
 
 import editions
@@ -30,6 +32,12 @@ ADDON = os.path.dirname(HERE)
 INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py"))) + (
     "config.json", "manifest.json")
 INCLUDE_DIRS = ("settings", "web")  # walked, so web/envs, web/landscapes and web/landmarks come too
+
+# The page's scripts ship minified: half the size, both in the add-on and in the script the
+# phone card loads from the collection's media, which is put together from them at each sync
+# (phone_data.bundle). Each file is minified on its own: each is one self-contained function
+# that shares nothing but window.AnkiForest. This copy (and the public repo) keeps them readable.
+ESBUILD = os.path.join(ADDON, "node_modules", ".bin", "esbuild")
 
 # The shipped defaults: the debug tools (the made-up test forest) stay on this machine.
 RELEASE_CONFIG = {"debug": False, "test_forest": False}
@@ -62,6 +70,24 @@ def files(keep: dict | None = None) -> list:
     return out
 
 
+def minified(shipping: list) -> dict:
+    """Name in the zip -> minified text, for every script under web/ that ships."""
+    scripts = [(path, name) for path, name in shipping if name.startswith("web/") and name.endswith(".js")]
+    if not scripts:
+        return {}
+    if not os.path.exists(ESBUILD):
+        sys.exit("esbuild is missing: run npm install in this folder")
+    web = os.path.join(ADDON, "web")
+    with tempfile.TemporaryDirectory() as out:
+        subprocess.run([ESBUILD, *(path for path, _name in scripts), "--minify", f"--outbase={web}",
+                        f"--outdir={out}", "--log-level=warning"], check=True)
+        texts = {}
+        for path, name in scripts:
+            with open(os.path.join(out, os.path.relpath(path, web)), encoding="utf-8") as f:
+                texts[name] = f.read()
+    return texts
+
+
 def main() -> None:
     args = sys.argv[1:]
     edition = None
@@ -78,12 +104,15 @@ def main() -> None:
     missing = [name for path, name in shipping if not os.path.exists(path)]
     if missing:
         sys.exit("missing: " + ", ".join(missing))
+    small = minified(shipping)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for path, name in shipping:
             if name == "config.json":
                 z.writestr(name, release_config())
             elif name == "manifest.json" and edition:
                 z.writestr(name, editions.manifest(edition))
+            elif name in small:
+                z.writestr(name, small[name])
             else:
                 z.write(path, name)
     with zipfile.ZipFile(out) as z:
