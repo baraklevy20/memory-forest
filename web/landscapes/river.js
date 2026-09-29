@@ -27,7 +27,10 @@ const depth = (y, H) => (y / H - HORIZON) / (1 - HORIZON);
 // right up to the water.
 const TREE_GAP = 0.012, GRAZER_GAP = 0.045, GRAZER_ROWS = 6, POND_SIZE = 0.04;
 // where the front animals stand, as a share of the height, and at most this far below the ground's edge
-const ANIMALS_Y = 0.9, ANIMALS_DROP = 0.025;
+const ANIMALS_Y = 0.945, ANIMALS_DROP = 0.025;
+// the planted rows end here, so every tree stands behind the animals and the cabin (drawn
+// over the forest, not among it) and a strip of open bank is left for them at the front
+const RIVER_BOTTOM = ANIMALS_Y - ANIMALS_DROP;
 // how far beyond the water an animal's centre stays: half the widest front sprite, and a
 // step. Sprites are drawn one pixel per pixel at any scale, so this is not scaled.
 const DRY_MARGIN = 9;
@@ -47,8 +50,12 @@ const dimOf = th => { const s = th.sky; return clamp(1.05 - lum(hex(s[s.length -
 AF.landscape('river', {
   center, halfWidth,
   // the animals along the front stand a little higher than on open ground, where the channel
-  // is narrower, and never below the ground an environment keeps (synthwave's grid is not ground)
-  prepare(env) { env.visitorY = env.H * Math.min(ANIMALS_Y, (env.bot || GROUND_BOTTOM) + ANIMALS_DROP); },
+  // is narrower, and never below the ground an environment keeps (synthwave's grid is not ground);
+  // the forest ends above them, so none of its trees should be in front of them
+  prepare(env) {
+    env.bot = Math.min(env.bot || GROUND_BOTTOM, RIVER_BOTTOM);
+    env.visitorY = env.H * Math.min(ANIMALS_Y, env.bot + ANIMALS_DROP);
+  },
 
   // the rows are squeezed aside so the channel stays open at every depth
   placeX(it, env) {

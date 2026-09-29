@@ -17,6 +17,7 @@
     "compare:quick": "python3 dev/render_check.py compare --quick",
     "audit": "python3 dev/combo_audit.py",
     "gallery": "python3 dev/build_gallery.py",
+    "gif": "python3 dev/make_gif.py",
     "payload": "python3 dev/export_payload.py"
   },
   "devDependencies": {
