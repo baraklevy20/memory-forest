@@ -10,6 +10,12 @@ checks that the pixels have not changed.
     python3 dev/render_check.py baseline       # record hashes of every scene
     python3 dev/render_check.py compare        # ... and check them later
     python3 dev/render_check.py compare --quick  # a subset, when you are in a hurry
+    python3 dev/render_check.py baseline --only cherry_blossom  # just the scenes that use it
+
+--only takes one or more environments, landscapes or landmarks (comma-separated) and keeps
+the scenes that use any of them: `--only cherry_blossom` is its preset and every hour,
+weather and landscape it is drawn in. A baseline made with --only updates those scenes'
+hashes and keeps everyone else's.
 
 Needs Chrome. Scenes render three at a time; the full sweep takes a few minutes.
 """
@@ -211,9 +217,14 @@ def run(cases: list) -> dict:
 def main() -> None:
     what = sys.argv[1] if len(sys.argv) > 1 else "smoke"
     quick = "--quick" in sys.argv
+    only = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
     # The baseline used to cover a fifth of the environments, so a change to synthwave's
     # sun could be reported as "75/75 unchanged". It records the whole matrix now.
     cases = scenes(quick)
+    if only:
+        cases = [c for c in cases if only & {c[1].get("environment"), c[1].get("landscape"), c[1].get("landmark")}]
+        if not cases:
+            sys.exit(f"no scene uses {', '.join(sorted(only))}")
     print(f"{len(cases)} scenes\n")
     results = run(cases)
     bad = {k: v for k, v in results.items() if failed(v)}
@@ -222,8 +233,10 @@ def main() -> None:
     if what in ("baseline", "compare"):
         hashes = {k: hashlib.sha1(v["png"].encode()).hexdigest()[:12] for k, v in results.items() if v.get("png")}
         if what == "baseline":
-            json.dump(hashes, open(BASELINE, "w"), indent=1, sort_keys=True)
-            print(f"\nwrote {len(hashes)} hashes to {os.path.relpath(BASELINE, ADDON)}")
+            # a partial run only refreshes its own scenes
+            kept = json.load(open(BASELINE)) if only and os.path.exists(BASELINE) else {}
+            json.dump({**kept, **hashes}, open(BASELINE, "w"), indent=1, sort_keys=True)
+            print(f"\nwrote {len(hashes)} hashes to {os.path.relpath(BASELINE, ADDON)}" + (f", kept {len(kept.keys() - hashes.keys())} others" if only else ""))
         else:
             old = json.load(open(BASELINE))
             # only scenes both runs drew can be compared: a scene missing from either side

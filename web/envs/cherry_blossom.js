@@ -86,8 +86,8 @@ function limbLine(put, x0, y0, x1, y1, th0, th1, col, colL) {
 
 // tones run outline, shade, mid, lit, highlight
 const T_DAY = [
-  H6(['#6e4a5c', '#d6b4c6', '#eed6e0', '#fbeef3', '#ffffff']),
-  H6(['#6a4052', '#d0a6ba', '#eacad8', '#f9e4ec', '#ffffff']),
+  H6(['#6e4458', '#d8a6bc', '#f0c8d8', '#fbe4ec', '#fff6f9']),
+  H6(['#6a3c50', '#d09ab2', '#eabcd0', '#f8dce8', '#fff0f5']),
 ];
 const T_DUSK = [
   H6(['#3c2240', '#9c6488', '#d2a0bc', '#f4ccdc', '#fff0f4']),
@@ -213,7 +213,7 @@ const TREE = {
  * string and lifted with the tree line as the forest grows, so the snow cap always shows.
  * It can't rise past the lanterns, so as the far treeline climbs its slopes it widens
  * instead, up to FUJI_WIDEN again as wide once the treeline reaches its peak. */
-const FUJI_X = 0.55, FUJI_WIDEN = 0.9;
+const FUJI_X = 0.55, FUJI_WIDEN = 0.9, FUJI_WARM = 0.4;
 function fujiAt(env) {
   const { W, H, hor } = env, line = AF.treeLine(env);
   const y = Math.round(Math.max(H * 0.105, Math.min(H * 0.16, line - H * 0.25)));
@@ -241,8 +241,12 @@ function fuji(env, lg) {
   const th = env.theme, { W, u, hor } = env, C = toner(th), F = fujiAt(env);
   const paint = (c, x, y) => { lg.fillStyle = rgb(c); lg.fillRect(x, y, 1, 1); };
   const P = FUJI[th.yoru ? 'night' : th.dusk ? 'dusk' : 'day'];
-  const snowL = C(P.snowL), snowLs = C(P.snowLs), snowS = C(P.snowS), snowSs = C(P.snowSs);
-  const bodyL = C(P.bodyL), bodyLs = C(P.bodyLs), bodyS = C(P.bodyS), bodySs = C(P.bodySs);
+  // at dawn and golden hour the sky is warm but untinted, so the mountain takes its light
+  // itself: the snow the glow at the horizon, the shadows and rock the air higher up
+  const warm = env.mood.time === 'dawn' || env.mood.time === 'golden_hour', glow = hex(th.sky[th.sky.length - 1]), air = hex(th.sky[2]);
+  const lit = c => (warm ? mix(C(c), glow, FUJI_WARM) : C(c)), shade = c => (warm ? mix(C(c), air, FUJI_WARM * 0.6) : C(c));
+  const snowL = lit(P.snowL), snowLs = lit(P.snowLs), snowS = shade(P.snowS), snowSs = shade(P.snowSs);
+  const bodyL = shade(P.bodyL), bodyLs = shade(P.bodyLs), bodyS = shade(P.bodyS), bodySs = shade(P.bodySs);
   const PK = F.x, PY = F.y, rise = F.rise, crater = Math.max(3, Math.round(4.5 * u)), half = rise * 2.7 * F.widen;
   for (let x = 0; x < W; x++) {
     const d = Math.abs(x + 0.5 - PK) - crater;
