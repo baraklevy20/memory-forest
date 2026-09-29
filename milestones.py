@@ -9,14 +9,16 @@ from __future__ import annotations
 import datetime as _dt
 from collections.abc import Iterable
 
-# The milestones the animals come for; `_arrived_today` watches for the day each is crossed.
+# The milestones the animals come for. The forest remembers the day each animal came
+# (events_state.py), which is when the journal announces it.
 RABBIT_TREES = 50
 DEER_STREAK = 30
 STAG_STREAK = 100
 FOX_REVIEWS = 10_000
 CABIN_AGE_DAYS = 365
-# card milestones: mature cards (remembered three weeks and more) bring these three
-SQUIRREL_MATURE, BEAR_MATURE, EAGLE_MATURE = 1_000, 5_000, 10_000
+# the later ones, years in: a two-year streak, and mature cards (remembered three weeks and more)
+BEAR_STREAK = 730
+SQUIRREL_MATURE, EAGLE_MATURE = 10_000, 25_000
 
 VISITORS = (
     # key, who, why they came, test
@@ -27,24 +29,40 @@ VISITORS = (
     ("heron", "a heron", "a pond formed where you took a break", lambda s: s.get("ponds", 0) >= 1),
     ("stag", "a stag", "you kept a 100-day streak", lambda s: s["longest_streak"] >= STAG_STREAK),
     ("cabin", "a cabin", "your forest turned one year old", lambda s: s["forest_age"] >= CABIN_AGE_DAYS),
-    ("squirrel", "a family of squirrels", "you knew 1,000 cards well", lambda s: s.get("mature_cards", 0) >= SQUIRREL_MATURE),
-    ("bear", "a bear", "you knew 5,000 cards well", lambda s: s.get("mature_cards", 0) >= BEAR_MATURE),
-    ("eagle", "an eagle", "you knew 10,000 cards well", lambda s: s.get("mature_cards", 0) >= EAGLE_MATURE),
+    ("bear", "a bear", "you kept a two-year streak", lambda s: s["longest_streak"] >= BEAR_STREAK),
+    ("squirrel", "a family of squirrels", "you knew 10,000 cards well", lambda s: s.get("mature_cards", 0) >= SQUIRREL_MATURE),
+    ("eagle", "an eagle", "you knew 25,000 cards well", lambda s: s.get("mature_cards", 0) >= EAGLE_MATURE),
 )
 
 
-def visitors(stats: dict) -> list:
+def visitors(stats: dict, arrived: dict | None = None, today: int | None = None) -> list:
     """Milestone animals that have moved in.
 
-    Each test reads today's numbers, so an animal can leave again if the numbers it came
-    for go away - deleting or suspending a day's cards can drop the tree count below 50,
-    or take the last ancient tree with it. The streak ones use the longest-ever streak,
-    which never falls.
+    Once an animal has come it stays for good: `arrived` holds every one that has (see
+    arrivals), and each is new on the day it came (`today`, the scheduler's day number).
+    Only an asteroid sends them away, and then they have to be earned again.
+
+    Without `arrived` (the test forest, a deck's own forest) there is nothing remembered, so
+    the animals are those today's numbers bring, and new when _arrived_today can tell.
     """
     out = []
     for key, label, why, test in VISITORS:
-        if test(stats):
+        if arrived is not None:
+            if key in arrived:
+                out.append({"key": key, "label": label, "why": why, "new": today is not None and arrived[key] == today})
+        elif test(stats):
             out.append({"key": key, "label": label, "why": why, "new": _arrived_today(key, stats)})
+    return out
+
+
+def arrivals(stats: dict, known: dict, today: int | None) -> dict:
+    """`known` - every animal that has come, and the day it came - with those today's
+    numbers bring added, as coming on `today` (None: quietly, on no day to announce, for
+    the first look at a forest that already had them)."""
+    out = dict(known)
+    for key, _label, _why, test in VISITORS:
+        if key not in out and test(stats):
+            out[key] = today
     return out
 
 
@@ -55,6 +73,8 @@ def _arrived_today(key: str, s: dict) -> bool:
         return s["streak"] == DEER_STREAK and s["longest_streak"] == DEER_STREAK
     if key == "stag":
         return s["streak"] == STAG_STREAK and s["longest_streak"] == STAG_STREAK
+    if key == "bear":
+        return s["streak"] == BEAR_STREAK and s["longest_streak"] == BEAR_STREAK
     if key == "cabin":
         return s["forest_age"] == CABIN_AGE_DAYS
     if key == "rabbit":

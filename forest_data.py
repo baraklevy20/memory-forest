@@ -168,6 +168,26 @@ def _breaks(review_days: set, oldest: int) -> list:
     return out
 
 
+def _ponds(trees: list, breaks: list, date_of) -> None:
+    """Mark each break on the first tree planted after it: its `gap` (days away) and the
+    dates it ran (`gap_from`, `gap_to`, from `date_of(days_ago)`).
+
+    Breaks with no tree between them, or only one, were one spell away with a day or two
+    of reviews in it: they make one pond, as long as all the days away together, rather
+    than several ponds side by side. A break after the last tree marks that tree."""
+    ponds: list = []  # [index of the tree after it, days away, days_ago it began, days_ago it ended]
+    for resumed, length in breaks:
+        i = next((k for k, t in enumerate(trees) if t["ago"] <= resumed), len(trees))
+        if ponds and i <= ponds[-1][0] + 1:
+            ponds[-1][1] += length
+            ponds[-1][3] = resumed + 1
+        else:
+            ponds.append([i, length, resumed + length, resumed + 1])
+    for i, days, began, ended in ponds:
+        tree = trees[min(i, len(trees) - 1)]
+        tree.update(gap=days, gap_from=date_of(began), gap_to=date_of(ended))
+
+
 def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None = None) -> dict:
     """Group cards into daily trees and compute everything the renderer shows.
 
@@ -234,15 +254,7 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
         trees.append(t)
 
     if trees:
-        for resumed, length in _breaks(rows.review_days, trees[0]["ago"]):
-            # the pond sits just before the first tree planted after the break; if that
-            # tree already holds one, the next tree takes it, so two breaks never merge
-            # into a single pond claiming their combined length
-            after = next((t for t in trees if t["ago"] <= resumed and not t.get("gap")), None)
-            if after is not None:
-                after["gap"] = length
-            elif trees[-1].get("gap", 0) < length:
-                trees[-1]["gap"] = length  # nowhere left to put it: keep the longer break
+        _ponds(trees, _breaks(rows.review_days, trees[0]["ago"]), lambda d: day_date(d, day_cutoff).isoformat())
 
     current, longest = _streaks(rows.review_days)
     forest = make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)

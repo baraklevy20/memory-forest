@@ -141,24 +141,28 @@ def _wipe(trees: list, hits: list, review_days: set) -> tuple:
     return craters, latest, kept
 
 
-def apply_stakes(trees: list, review_days: set, level: str, since_ago: int | None, past: tuple = ()) -> dict:
+def apply_stakes(trees: list, review_days: set, level: str, since_ago: int | None, past: tuple = (),
+                 new: bool = True) -> dict:
     """What the stakes do to this forest.
 
     `past` holds the days of strikes already remembered, which stand whatever the level is
     now: an asteroid resets everything, and changing the setting afterwards can't undo it.
+    With `new` false only those stand, and no new strike comes yet (the review log may not
+    be all there: another device's reviews may still be on their way).
 
     Returns `hits` (every strike's day, oldest first, to remember), `trees` (only those
     planted since the last strike), `craters`, `latest` (see _wipe) and `doom` (how near the
     next strike is, or None).
     """
-    hits = sorted(set(strikes(review_days, level, since_ago)) | set(past), reverse=True)
+    hits = sorted((set(strikes(review_days, level, since_ago)) if new else set()) | set(past), reverse=True)
     craters, latest, kept = _wipe(trees, hits, review_days)
     doom = None
     grace = STAKES.get(level)
     run = missed_now(review_days)
     counted = min(run, since_ago + 1) if since_ago is not None else 0  # only days since the stakes were chosen
-    # nothing to warn about before the first review, nor once this break has struck
-    if grace and counted and review_days and not (hits and hits[-1] < run):
+    # nothing to warn about before the first review, nor once this break has struck; and
+    # today alone, not yet over, is no break - but on Merciless it is all the grace there is
+    if grace and counted >= min(grace, 2) and review_days and not (hits and hits[-1] < run):
         # counting today, while it has no reviews yet: the strike comes when the day ends
         doom = {"missed": counted, "grace": grace, "left": max(0, grace - counted)}
     return {"hits": hits, "trees": kept, "craters": craters, "latest": latest, "doom": doom}

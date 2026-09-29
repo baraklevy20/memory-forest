@@ -8,7 +8,7 @@ from aqt import mw
 from aqt.utils import tooltip
 
 from . import study_log
-from .state import config, excluded_decks, load_state, log, save_state
+from .state import config, excluded_decks, load_state, log, phone_cards, save_state
 
 PLANTING_TOOLTIP_MS = 3500
 
@@ -28,7 +28,7 @@ def on_answer(reviewer, card, ease) -> None:
     try:
         if mw.col.db.scalar("select count() from revlog where cid = ?", card.id) != 1:
             return
-        if (card.odid or card.did) in excluded_decks(cfg):  # plants nothing in the forest
+        if (card.odid or card.did) in excluded_decks(cfg) or card.id in phone_cards():  # plants nothing in the forest
             return
         state = load_state()
         if state.get("last_planted") == today:

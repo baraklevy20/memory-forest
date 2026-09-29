@@ -43,7 +43,8 @@ class Rows:
 
 
 def load_rows(db, day_cutoff: int, dids: list | None = None,
-              excluded: Iterable | None = None, since: int | None = None, suspended: bool = False) -> Rows:
+              excluded: Iterable | None = None, since: int | None = None, suspended: bool = False,
+              skip: Iterable | None = None) -> Rows:
     """Fetch rows with a DB object exposing .all(sql, *args) and .scalar(sql, *args).
 
     With `dids`, only cards in those decks (a deck and its subdecks) and their reviews count.
@@ -52,9 +53,11 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     With `since` (a timestamp in seconds), nothing from before it counts: no review, and no
     card first studied before it, since its tree would stand before the forest begins.
     With `suspended`, suspended cards keep their trees (see build_forest for how they count).
+    With `skip` (card ids), those cards and their reviews never count, deleted or not: the
+    ones that carry the forest to your phone.
     Works with Anki's mw.col.db and with the small sqlite3 wrapper in dev/.
     """
-    in_decks, only = _filters(dids, excluded)
+    in_decks, only = _filters(dids, excluded, skip)
     since_ms = int(since) * 1000 if since else 0
     # every query but the first-and-last one, which needs a card's whole history to date it
     after = only + (f" and id >= {since_ms}" if since_ms else "")
@@ -76,15 +79,14 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     recent_lapses = {
         row[0] for row in db.all(f"select distinct cid from revlog where type = 1 and ease = 1 and id > ?{after}", lapse_since_ms)
     }
-    day_reviews = {
-        day: n
-        for day, n in db.all(
+    day_reviews = dict(
+        db.all(
             f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
             f"where ease > 0 and type in {STUDY_TYPES} and id < ?{after} group by 1",
             day_cutoff,
             day_cutoff * 1000,
         )
-    }
+    )
     review_days = set(day_reviews)
     total = db.scalar(f"select count() from revlog where ease > 0 and type in {STUDY_TYPES}{after}") or 0
     today = db.scalar(
@@ -100,26 +102,41 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     return Rows(cards, first_last, recent_lapses, review_days, total, today, leeches, day_reviews)
 
 
-def _filters(dids: list | None, excluded: Iterable | None) -> tuple:
-    """SQL to add to a query's conditions for the decks that count (see load_rows): one for
-    a query on cards (as c), one for a query on the review log."""
+def _filters(dids: list | None, excluded: Iterable | None, skip: Iterable | None = None) -> tuple:
+    """SQL to add to a query's conditions for the decks and cards that count (see load_rows):
+    one for a query on cards (as c), one for a query on the review log."""
     ids = ",".join(str(int(d)) for d in dids) if dids else ""
     out = ",".join(str(int(d)) for d in excluded) if excluded else ""
+    cids = ",".join(str(int(c)) for c in skip) if skip else ""
     # a card borrowed by a filtered deck has its home deck in odid, which is what
     # Anki's own deck: search follows
     home = "coalesce(nullif(c.odid, 0), c.did)"
-    in_decks = (f" and (c.did in ({ids}) or c.odid in ({ids}))" if ids else "") + (f" and {home} not in ({out})" if out else "")
+    in_decks = ((f" and (c.did in ({ids}) or c.odid in ({ids}))" if ids else "") + (f" and {home} not in ({out})" if out else "")
+                + (f" and c.id not in ({cids})" if cids else ""))
     only = ((f" and cid in (select id from cards c where c.did in ({ids}) or c.odid in ({ids}))" if ids else "")
-            + (f" and cid not in (select id from cards c where {home} in ({out}))" if out else ""))
+            + (f" and cid not in (select id from cards c where {home} in ({out}))" if out else "")
+            + (f" and cid not in ({cids})" if cids else ""))
     return in_decks, only
 
 
-def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable | None = None) -> tuple:
+def load_review_days(db, day_cutoff: int, excluded: Iterable | None = None, skip: Iterable | None = None) -> set:
+    """The days (as `ago`) with at least one review anywhere in the collection but the
+    `excluded` decks and the `skip` cards, whatever the forest leaves out or starts after: what
+    the Stakes go by, so leaving a deck out never makes the days you studied only that deck
+    count as missed."""
+    _in_decks, only = _filters(None, excluded, skip)
+    return {day for (day,) in db.all(
+        f"select distinct (? - 1 - id / 1000) / {DAY_SECS} from revlog "
+        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}", day_cutoff, day_cutoff * 1000)}
+
+
+def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable | None = None,
+                 skip: Iterable | None = None) -> tuple:
     """(how many reviews are overdue - due before today - and the review counts of the days
     you studied among the `days` before today), for the whole collection but the `excluded`
-    decks. `today` is the scheduler's day number. A card borrowed by a filtered deck is due
-    when its home deck has it due (odue)."""
-    in_decks, only = _filters(None, excluded)
+    decks and the `skip` cards. `today` is the scheduler's day number. A card borrowed by a
+    filtered deck is due when its home deck has it due (odue)."""
+    in_decks, only = _filters(None, excluded, skip)
     overdue = db.scalar(
         "select count() from cards c where c.queue in (2, 3) "
         f"and (case when c.odid != 0 and c.odue != 0 then c.odue else c.due end) < ?{in_decks}", today) or 0
@@ -130,10 +147,10 @@ def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable 
     return overdue, counts
 
 
-def load_cured(db, day_cutoff: int, days: int, excluded: Iterable | None = None) -> dict:
+def load_cured(db, day_cutoff: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None) -> dict:
     """The leeches cured (see CURED_IVL) within the last `days` days and still cured, counted
     by the day of the tree each belongs to (its first review): {ago: how many}."""
-    in_decks, _only = _filters(None, excluded)
+    in_decks, _only = _filters(None, excluded, skip)
     since_ms = (day_cutoff - days * DAY_SECS) * 1000
     out: dict = {}
     for _cid, first in db.all(
@@ -150,17 +167,18 @@ def load_cured(db, day_cutoff: int, days: int, excluded: Iterable | None = None)
     return out
 
 
-def load_deck_days(db, day_cutoff: int, dids: list, suspended: bool = False) -> set:
+def load_deck_days(db, day_cutoff: int, dids: list, suspended: bool = False, skip: Iterable | None = None) -> set:
     """The `ago` values of the trees a deck would grow, without building its forest.
 
     Deck screens only need to know which of the main forest's trees hold this deck's
-    cards, and that is one query instead of the whole pipeline.
+    cards, and that is one query instead of the whole pipeline. The `skip` cards hold none.
     """
     ids = ",".join(str(int(d)) for d in dids)
+    not_skipped, _only = _filters(None, None, skip)
     rows = db.all(
         "select distinct (? - 1 - coalesce((select min(r.id) from revlog r "
         f"where r.cid = c.id and r.ease > 0 and r.type in {STUDY_TYPES}), c.id) / 1000) / {DAY_SECS} "
-        f"from cards c where c.type != 0{'' if suspended else ' and c.queue != -1'} and (c.did in ({ids}) or c.odid in ({ids}))",
+        f"from cards c where c.type != 0{'' if suspended else ' and c.queue != -1'} and (c.did in ({ids}) or c.odid in ({ids})){not_skipped}",
         day_cutoff,
     )
     return {int(row[0]) for row in rows if row[0] is not None and row[0] >= 0}

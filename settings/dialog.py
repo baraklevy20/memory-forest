@@ -5,7 +5,7 @@ everything back. The tabs each live in a file of their own."""
 from __future__ import annotations
 
 from aqt import mw
-from aqt.qt import QDialog, QDialogButtonBox, QTabWidget, QTimer, QVBoxLayout
+from aqt.qt import QDialog, QDialogButtonBox, QEvent, QTabWidget, QTimer, QVBoxLayout
 
 from .. import presets
 from .about import AboutTab
@@ -21,6 +21,8 @@ DEBUG_MIN_WIDTH = 760
 APPLY_DEBOUNCE_MS = 250
 # a new city is looked up in the background; check back for a problem after this long
 CITY_RECHECK_MS = 4000
+# choices about your study data and your phone rather than the forest's look: Restore defaults keeps them
+DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "phone_forest")
 
 
 class SettingsDialog(QDialog):
@@ -101,11 +103,21 @@ class SettingsDialog(QDialog):
         # keep only current options, so settings from older versions don't linger
         known = mw.addonManager.addonConfigDefaults(self.module) or {}
         cfg = {k: v for k, v in self.original.items() if k in known}
-        for tab in (self.fine, self.general, self.history, self.debug):
+        for tab in (self.fine, self.general, self.debug):
             cfg.update(tab.values())
+        cfg.update(self.history.values(self._current()))
         # anything still at its default stays unset, so a better default in a later
         # version still reaches people who never changed it
         return {k: v for k, v in cfg.items() if known.get(k, object()) != v}
+
+    def _current(self) -> dict:
+        return mw.addonManager.getConfig(self.module) or {}
+
+    def changeEvent(self, event) -> None:
+        """Back in the dialog: a deck may have been left out from its gear menu meanwhile."""
+        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow() and hasattr(self, "history"):
+            self.history.reload(self._current())
+        super().changeEvent(event)
 
     def apply(self) -> None:
         mw.addonManager.writeConfig(self.module, self.values())
@@ -124,7 +136,10 @@ class SettingsDialog(QDialog):
     def restore_defaults(self) -> None:
         self._debounce.stop()
         self._reverting = False  # closing must not write the pre-click config back
-        mw.addonManager.writeConfig(self.module, {})
+        known = mw.addonManager.addonConfigDefaults(self.module) or {}
+        current = self._current()
+        mw.addonManager.writeConfig(self.module, {k: current[k] for k in DATA_KEYS
+                                                  if k in current and known.get(k) != current[k]})
         self.on_change()
         self.close()
         self.reopen(self.module, self.on_change)
@@ -140,7 +155,13 @@ class SettingsDialog(QDialog):
         self._debounce.stop()
         if self._reverting:
             known = mw.addonManager.addonConfigDefaults(self.module) or {}
-            mw.addonManager.writeConfig(self.module, {k: v for k, v in self.original.items()
+            cfg = dict(self.original)
+            # a deck left out or brought back from its gear menu meanwhile stays that way
+            current = self._current()
+            self.history.reload(current)
+            if self.history.changed_outside:
+                cfg["excluded_decks"] = current.get("excluded_decks") or []
+            mw.addonManager.writeConfig(self.module, {k: v for k, v in cfg.items()
                                                       if k in known and known.get(k) != v})
             self.on_change()
         super().reject()

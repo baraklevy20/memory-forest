@@ -72,7 +72,8 @@ def save_state(state: dict) -> None:
 def excluded_decks(cfg: dict | None = None) -> set:
     """Every deck left out of the forest: the ones unticked in the settings and all their
     subdecks, found afresh each time, so a deck made or moved under one later is out too.
-    The decks holding the note that takes the forest to your phone are always out."""
+    The deck the add-on keeps for the note that takes the forest to your phone is always out
+    (the note's cards themselves are left out wherever they are: see phone_cards)."""
     out = phone_decks()
     for did in (cfg if cfg is not None else config()).get("excluded_decks") or []:
         try:
@@ -82,16 +83,63 @@ def excluded_decks(cfg: dict | None = None) -> set:
     return out
 
 
+# the deck phone.py makes for the note that takes the forest to your phone
+PHONE_DECK = "Memory Forest"
+# phone_decks' and phone_cards' last answers, and the collection and modification time they were for
+_phone_decks: tuple = (None, None, frozenset())
+_phone_cards: tuple = (None, None, frozenset())
+
+
 def phone_decks() -> set:
-    """Where the cards of the note that carries the forest to your phone are (phone.py):
-    answering one there is looking at the forest, not studying."""
+    """The add-on's own deck for the note that carries the forest to your phone (phone.py),
+    found by its name: the settings and the gear menu don't offer it, and it grows no forest.
+    Never the deck its card happens to be in, which may be one of yours."""
+    global _phone_decks
     try:
-        m = mw.col.models.by_name(PHONE_NOTETYPE)
-        if not m:
-            return set()
-        return set(mw.col.db.list("select distinct did from cards where nid in (select id from notes where mid = ?)", m["id"]))
+        col = mw.col
+        mod = col.mod
+        if _phone_decks[0] is col and _phone_decks[1] == mod:
+            return set(_phone_decks[2])
+        did = col.decks.id_for_name(PHONE_DECK)
+        found = {did} if did else set()
     except Exception:  # no collection yet
         return set()
+    _phone_decks = (col, mod, frozenset(found))
+    return found
+
+
+def phone_cards() -> set:
+    """The cards of the note that carries the forest to your phone, wherever they are now,
+    and every one it ever had here (remembered per profile once seen, since Anki keeps the
+    reviews of a deleted card, and another computer's sync may be what deletes it): answering one is looking at the forest,
+    not studying, so no review of theirs ever counts. Asked several times a redraw, so the
+    answer is kept until the collection next changes."""
+    global _phone_cards
+    try:
+        col = mw.col
+        mod = col.mod
+        if _phone_cards[0] is col and _phone_cards[1] == mod:
+            return set(_phone_cards[2])
+        m = col.models.by_name(PHONE_NOTETYPE)
+        found = set(col.db.list("select id from cards where nid in (select id from notes where mid = ?)", m["id"])) if m else set()
+    except Exception:  # no collection yet
+        return set()
+    if found:  # remembered as soon as seen, so a note deleted by a sync from elsewhere is too
+        remember_phone_cards(found)
+    found |= {c for c in load_state().get("phone_cards") or [] if isinstance(c, int)}
+    _phone_cards = (col, mod, frozenset(found))
+    return found
+
+
+def remember_phone_cards(cids) -> None:
+    """Keep leaving out the reviews of these cards once they are gone (see phone_cards)."""
+    global _phone_cards
+    state = load_state()
+    known = {c for c in state.get("phone_cards") or [] if isinstance(c, int)}
+    if set(cids) - known:
+        state["phone_cards"] = sorted(known | set(cids))
+        save_state(state)
+    _phone_cards = (None, None, frozenset())
 
 
 def since(cfg: dict) -> int | None:

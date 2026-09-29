@@ -46,8 +46,8 @@ class GeneralTab(QWidget):
         lf.addRow("", self.animations)
         lf.addRow("", self.planting)
         lf.addRow("", self.phone)
-        lf.addRow("", hint("Adds a \"Memory Forest\" deck with one card that draws your forest in AnkiDroid "
-                           "and AnkiMobile; study the deck to see it. The forest comes from this computer: "
+        lf.addRow("", hint("Adds a \"Memory Forest\" deck with one card that draws your forest in AnkiDroid; "
+                           "study the deck to see it. The forest comes from this computer: "
                            "it updates each time Anki syncs here, so reviews done on your phone show up "
                            "after this computer syncs them in. Turning this off removes the deck again."))
 

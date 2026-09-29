@@ -4,8 +4,20 @@ from __future__ import annotations
 
 from aqt import colors, props
 from aqt.qt import (
-    QCalendarWidget, QColor, QComboBox, QDateEdit, QGroupBox, QIcon, QLabel, QPixmap, Qt, QTextCharFormat,
-    QToolButton, QTransform, QVBoxLayout, QWidget,
+    QCalendarWidget,
+    QColor,
+    QComboBox,
+    QDateEdit,
+    QGroupBox,
+    QIcon,
+    QLabel,
+    QPixmap,
+    Qt,
+    QTextCharFormat,
+    QToolButton,
+    QTransform,
+    QVBoxLayout,
+    QWidget,
 )
 from aqt.theme import theme_manager
 

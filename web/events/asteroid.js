@@ -17,7 +17,9 @@ const STEP = 1000 / 12;  // the strike animates at 12 frames a second, like a sp
 const craterR = lost => Math.round(6 + 5 * Math.log2(1 + lost / 10));
 // Anywhere across the middle of the ground (CRATER_ACROSS of the width, CRATER_DOWN of the
 // way from the horizon to the front row), or on the ground a landscape names (its craterGround).
-const CRATER_ACROSS = [0.14, 0.86], CRATER_DOWN = [0.5, 0.8];
+// A landscape with water on the ground slides it, and the earth it throws out (CRATER_SPRAY
+// of its radius), onto the nearer bank (its dryX).
+const CRATER_ACROSS = [0.14, 0.86], CRATER_DOWN = [0.5, 0.8], CRATER_SPRAY = 1.5;
 function spot(c, env) {
   const h = hashStr('crater|' + (c.spot || c.date)), land = AF.landOf(env);
   // (null when that landscape has no ground to hold one just now)
@@ -26,7 +28,8 @@ function spot(c, env) {
     x0: env.W * CRATER_ACROSS[0], x1: env.W * CRATER_ACROSS[1],
     y0: env.hor + (env.H * env.bot - env.hor) * CRATER_DOWN[0], y1: env.hor + (env.H * env.bot - env.hor) * CRATER_DOWN[1],
   };
-  return { x: Math.round(box.x0 + (box.x1 - box.x0) * (h % 1000) / 1000), y: Math.round(box.y0 + (box.y1 - box.y0) * ((h >>> 10) % 1000) / 1000) };  // (>>>: the hash is unsigned)
+  const x = box.x0 + (box.x1 - box.x0) * (h % 1000) / 1000, y = Math.round(box.y0 + (box.y1 - box.y0) * ((h >>> 10) % 1000) / 1000);  // (>>>: the hash is unsigned)
+  return { x: Math.round(land.dryX ? land.dryX(env, x, y, x, craterR(c.lost) * CRATER_SPRAY) : x), y };
 }
 
 /* A crater heals, in days since the strike: a scorched pit ringed with thrown-out earth
@@ -80,8 +83,9 @@ function crater(g, cx, cy, lost, age, env) {
 const fmt = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 // (how to watch the latest one again is for the pointer to say: a click, or a tap and a button)
 const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}`;
-// when it strikes: tonight, tomorrow night, or in so many days (each counted to its night)
-const doomWhen = d => d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow night' : `in ${d.left + 1} days`;
+// when it strikes: tonight, tomorrow night, or in so many days (each counted to its night:
+// `left` is how many more nights pass before the one it strikes on)
+const doomWhen = d => d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow night' : `in ${d.left} days`;
 const doomText = d => d.left > 0
   ? `An asteroid is on its way: ${d.missed} of ${d.grace} days without reviews. It strikes ${doomWhen(d)} - review today to turn it back.`
   : 'An asteroid strikes tonight, when the day ends, unless you review today.';
@@ -254,7 +258,7 @@ AF.events.add('asteroid', {
       animate ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;
-    if (d) items.push([`Asteroid: ${d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow' : `${d.left + 1} days`}`, doomText(d)]);
+    if (d) items.push([`Asteroid: ${d.left === 0 ? 'tonight' : d.left === 1 ? 'tomorrow night' : `${d.left} days`}`, doomText(d)]);
     return items;
   },
   // Ready `root` to replay `data`'s latest strike, and play it now if it hasn't been seen

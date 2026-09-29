@@ -15,7 +15,7 @@
 const AF = window.AnkiForest;
 const { hex, mix, rgb, layer, rng, hashStr } = AF.u;
 const H6 = a => a.map(hex);
-const PETALS = ['#fbe0e8', '#f4b8ca', '#e892b0', '#ffffff'];
+const PETALS = ['#fbe0e8', '#f4b8ca', '#e892b0'];
 
 /* ---------- the trees ---------- */
 // tones run outline, shade, mid, lit, highlight
@@ -23,13 +23,15 @@ const DAY_P = [
   H6(['#5a3040', '#cc98b0', '#eec6d4', '#fce6ee', '#ffffff']),
   H6(['#56304e', '#c286a6', '#e4acc6', '#f8cee0', '#fff0f6']),
 ];
+// at dusk and by night they take the trees' own tones for the hour (T_DUSK, T_NIGHT), a shade
+// brighter for being nearest
 const DUSK_P = [
-  H6(['#3a1e36', '#8e5078', '#bc7496', '#e0a0b6', '#f6ccd6']),
-  H6(['#361630', '#7c3866', '#aa5a84', '#d084a4', '#eeb0c4']),
+  H6(['#3c2240', '#9a6488', '#cc9cb8', '#eec6d6', '#fae4ec']),
+  H6(['#381e3a', '#8e5a80', '#c08cac', '#e4b4ca', '#f6d8e4']),
 ];
 const NIGHT_P = [
-  H6(['#140c26', '#3a2656', '#7a4a86', '#d690b8', '#fcdcec']),
-  H6(['#140c26', '#342050', '#6a3e7e', '#c47cac', '#f4c4dc']),
+  H6(['#140e28', '#3e3264', '#7a6aa0', '#bca8d4', '#e2d6ee']),
+  H6(['#140e28', '#382c5c', '#6c5c90', '#a894c4', '#d4c4e6']),
 ];
 const NIWAKI = H6(['#1a3032', '#2a4a4a', '#3a6660', '#56867a', '#86b0a0']);
 const NIWAKI_DUSK = H6(['#10221f', '#1b3634', '#284e4a', '#3a6a60', '#5e8c80']);
@@ -37,6 +39,8 @@ const NIWAKI_N = H6(['#060c18', '#0c1a26', '#142a36', '#1e3c48', '#3a5e6a']);
 const PINES = new Set([NIWAKI, NIWAKI_DUSK, NIWAKI_N]);
 const BARK = { l: hex('#6a4a58'), m: hex('#3e2834'), d: hex('#22141e') };
 const WOOD = hex('#2e1c22'), WOOD_L = hex('#5a3a44');
+// ...and their wood goes this far into the night's blue
+const NIGHT_WOOD = hex('#161634'), NIGHT_WOOD_AMT = 0.4;
 // the lamplight on the undersides: coral and peach, never yellow
 const GLOW = hex('#ff9e86'), GLOW_HI = hex('#ffc2a4');
 
@@ -194,14 +198,15 @@ function yoshino(c) {
   return { top: Math.min(t0, fy), ch: base - Math.min(t0, fy) };
 }
 
+const blossomAt = th => (th.yoru ? T_NIGHT : th.dusk ? T_DUSK : T_DAY);
 const TREE = {
-  pals: { rounds: T_DUSK, pine: NIWAKI, bark: TBARK, leaf: hex('#d8a8c0'), leafL: hex('#f4d4e2') },
+  // (roundAt: the blossom for the hour, which the distant forest and the tall grass take too)
+  pals: { rounds: T_DAY, roundAt: th => blossomAt(th)[0], pine: NIWAKI, bark: TBARK, leaf: hex('#d8a8c0'), leafL: hex('#f4d4e2') },
   tree: {
     width: c => isPine(c) ? Math.max(5, Math.round(c.h * 0.78 * PINE_SCALE)) | 1 : Math.max(5, Math.round(c.h * 1.3)) | 1,
     body: c => (isPine(c) ? niwaki(c) : yoshino(c)),
     palette(c) {
-      const th = c.th, s = c.t.seed, P = th.yoru ? T_NIGHT : th.dusk ? T_DUSK : T_DAY;
-      const round = P[(s >> 1) % 2];
+      const th = c.th, round = blossomAt(th)[(c.t.seed >> 1) % 2];
       return { round, pine: isPine(c) ? (th.yoru ? NIWAKI_N : th.dusk ? NIWAKI_DUSK : NIWAKI) : round };
     },
     pixel: glowPixel,
@@ -275,7 +280,6 @@ function fuji(env, lg) {
   };
   ridge(0.66, 0.07, 1.1, th.far, 0.3);
   ridge(0.8, 0.06, 2.4, th.near, 0.5);
-  env.fujiAt = F;
 }
 
 /* ---------- the moon (clear nights only), clear of the peak ---------- */
@@ -324,11 +328,11 @@ function buildBoughs(env, m) {
   const { W, H, u } = env, th = env.theme, night = th.yoru;
   const [cv, g] = layer(W, H), R = rng(4242);
   const tint = th.tint ? hex(th.tint) : null;
-  const dim = col => rgb(tint && !night ? mix(col, tint, th.tintAmt * 0.6) : col);
+  const dim = col => rgb(tint ? mix(col, tint, th.tintAmt * 0.6) : col);
   const onMoon = (x, y) => m && Math.hypot(x + 0.5 - m.x, y + 0.5 - m.y) < m.r;
   const SIL = hex('#0c0a1e'), BACK = hex('#4a2e5a'), RIM = hex('#d8a8cc');
   const paint = (col, x, y, w = 1, h = 1) => { g.fillStyle = dim(col); g.fillRect(Math.round(x), Math.round(y), w, h); };
-  const wood = (col, x, y) => paint(onMoon(Math.round(x), Math.round(y)) ? SIL : col, x, y);
+  const wood = (col, x, y) => paint(onMoon(Math.round(x), Math.round(y)) ? SIL : night ? mix(col, NIGHT_WOOD, NIGHT_WOOD_AMT) : col, x, y);
   const clusters = [];
   const limb = (x0, y0, cx, cy, x1, y1, t0, t1) => {
     const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 1.3), pts = [];
@@ -356,12 +360,12 @@ function buildBoughs(env, m) {
     }
   }
   const P = night ? NIGHT_P : th.dusk ? DUSK_P : DAY_P;
-  const pal = P[0], pale = night ? NIGHT_P[0] : th.dusk ? DUSK_P[0] : DAY_P[0], deep = P[1];
+  const C = P[0], deep = P[1];
   const puffs = [];
   for (const [bx, by, r0] of clusters) { puffs.push([bx, by, r0]); if (r0 > 2.6) { puffs.push([bx - r0 * 0.8, by + r0 * 0.5, r0 * 0.65]); puffs.push([bx + r0 * 0.8, by + r0 * 0.4, r0 * 0.6]); } }
   puffs.sort((a, b) => a[1] - b[1]);
   for (const [bx, by, r0] of puffs) {
-    const r = r0 * u, v = hashStr(Math.round(bx) + ',' + Math.round(by)) % 4, C = v === 0 ? pale : pal;
+    const r = r0 * u;
     for (let yy = -Math.ceil(r); yy <= r; yy++) for (let xx = -Math.ceil(r); xx <= r; xx++) {
       const q = (xx * xx + yy * yy) / (r * r); if (q > 1 || (q > 0.6 && R() < 0.25)) continue;
       const x = Math.round(bx + xx), y = Math.round(by + yy);
@@ -381,8 +385,8 @@ function buildBoughs(env, m) {
  * Two lanterns each side, none over the summit, so the peak shows in the gap. */
 const LAMP_AT = [0.08, 0.28, 0.72, 0.92];
 function garland(env) {
-  if (env.garland && env.garland.W === env.W) return env.garland;
-  const { W, H } = env, [ax, ay] = boughAt(env, ...TIE[0]), [bx, by] = boughAt(env, ...TIE[1]);
+  if (env.garland) return env.garland;
+  const { H } = env, [ax, ay] = boughAt(env, ...TIE[0]), [bx, by] = boughAt(env, ...TIE[1]);
   const sag = H * 0.02, pts = [], lamps = [];
   const n = Math.ceil(bx - ax);
   for (let i = 0; i <= n; i++) {
@@ -390,7 +394,7 @@ function garland(env) {
     pts.push([Math.round(ax + (bx - ax) * f), Math.round(ay + (by - ay) * f + sag * 4 * f * (1 - f))]);
   }
   LAMP_AT.forEach((f, j) => { const p = pts[Math.round(n * f)]; lamps.push({ x: p[0], y: p[1], red: j % 2 === 0, ph: j * 1.7 }); });
-  return (env.garland = { W, pts, lamps });
+  return (env.garland = { pts, lamps });
 }
 
 /* one chochin: a paper lantern with black caps, glowing from inside after dusk */
@@ -430,11 +434,12 @@ function dot(g, p, x, y, t, cols) {
 }
 const seedOf = (env, k) => (((env.data.forestSeed || 9) ^ k) >>> 0);
 
-const BREEZE_PETALS = 20;
+// the effects' falling petals on a calm day, and the breeze's own drifting ones (fewer at night)
+const BREEZE_PETALS = 20, BREEZE_DRIFT = 80;
 function breeze(g, env, t) {
   const { W, H, u } = env, cols = windCols(env);
   const S = env.cfWind || (env.cfWind = (() => {
-    const R = rng(seedOf(env, 0xb2ee)), n = Math.round(80 * (env.theme.yoru ? 0.6 : 1)), ps = [];
+    const R = rng(seedOf(env, 0xb2ee)), n = Math.round(BREEZE_DRIFT * (env.theme.yoru ? 0.6 : 1)), ps = [];
     for (let i = 0; i < n; i++) ps.push({ x: R(), y: R(), vx: (16 + R() * 10) * u, vy: (5 + R() * 4) * u, ph: R() * 6, c: (R() * 4) | 0, big: R() < 0.1 });
     return ps;
   })());
@@ -680,7 +685,7 @@ AF.env('cherry_blossom', {
     th.rainbow = false;
     th.flies = th.lampsLit ? Math.min(th.flies || 0, 4) : th.flies;
   },
-  prepare(env) { env.fxColors = { petals: ['#fbe0e8', '#f4b8ca', '#e892b0'], leaf: '#f4b8ca' }; env.cfWind = null; env.garland = null; env.cfLamps = null; },
+  prepare(env) { env.fxColors = { petals: ['#fbe0e8', '#f4b8ca', '#e892b0'], leaf: '#f4b8ca' }; },
   tree: TREE.tree,
   sky(env, g) { env.moonAt = env.theme.bigMoon ? paintMoon(env, g) : null; },
   backdrop(env, lg) { fuji(env, lg); },
@@ -709,9 +714,8 @@ AF.env('cherry_blossom', {
       if (env.water && !env.theme.frozen) bandFrame(g, env, t);
       rowFrame(g, env, t);
     }
-    const { W } = env, lit = env.theme.lampsLit;
-    const key = W + ':' + env.H + ':' + (env.moonAt ? env.moonAt.y : '-');
-    if (!env.boughs || env.boughsKey !== key) { env.boughs = buildBoughs(env, env.moonAt); env.boughsKey = key; }
+    const lit = env.theme.lampsLit;
+    if (!env.boughs) env.boughs = buildBoughs(env, env.moonAt);
     g.drawImage(env.boughs, 0, 0);
     const G = garland(env);
     g.fillStyle = '#2a1a22';

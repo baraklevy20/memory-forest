@@ -109,6 +109,31 @@ class StatsTests(unittest.TestCase):
             trees = fd.build_forest(rows(cards, fl, review_days={back, 1, 0}), CUTOFF, TODAY)["trees"]
             self.assertEqual("gap" in trees[1], pond, f"{away} days away")
 
+    def test_one_spell_away_is_one_pond_however_often_you_looked_in(self):
+        # away 11 days, one day's reviews, 78 more, one more, then 27: one pond of 116 days
+        cards = [card(1, s=30), card(2, s=30)]
+        fl = {1: (ms(130), ms(1)), 2: (ms(11), ms(1))}
+        review_days = {130, 118, 39} | set(range(0, 12))
+        trees = fd.build_forest(rows(cards, fl, review_days=review_days), CUTOFF, TODAY)["trees"]
+        self.assertNotIn("gap", trees[0])
+        self.assertEqual(trees[1]["gap"], 11 + 78 + 27)
+        date = lambda d: fd.day_date(d, CUTOFF).isoformat()  # noqa: E731
+        self.assertEqual((trees[1]["gap_from"], trees[1]["gap_to"]), (date(129), date(12)))
+
+    def test_breaks_either_side_of_one_tree_make_one_pond(self):
+        cards = [card(1, s=30), card(2, s=30), card(3, s=30)]
+        fl = {1: (ms(60), ms(1)), 2: (ms(40), ms(1)), 3: (ms(20), ms(1))}
+        review_days = {60, 40} | set(range(0, 21))
+        trees = fd.build_forest(rows(cards, fl, review_days=review_days), CUTOFF, TODAY)["trees"]
+        self.assertEqual([t.get("gap") for t in trees], [None, 19 + 19, None])
+
+    def test_breaks_further_apart_stay_two_ponds(self):
+        cards = [card(i, s=30) for i in range(1, 5)]
+        fl = {1: (ms(80), ms(1)), 2: (ms(60), ms(1)), 3: (ms(59), ms(1)), 4: (ms(40), ms(1))}
+        review_days = {80, 60, 59} | set(range(0, 41))
+        trees = fd.build_forest(rows(cards, fl, review_days=review_days), CUTOFF, TODAY)["trees"]
+        self.assertEqual([t.get("gap") for t in trees], [None, 19, None, 18])
+
     def test_visitors_and_arrivals(self):
         s = {"trees": 50, "longest_streak": 30, "streak": 30, "reviews": 10_020, "today_reviews": 40,
              "ancient": 0, "forest_age": 100, "planted_today": True}

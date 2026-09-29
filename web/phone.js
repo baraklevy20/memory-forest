@@ -66,26 +66,40 @@ if (!note || !Array.isArray(note.days) || !note.days.length) {
 // under it need this much of the screen's width beside it, and the forest keeps this
 // margin from the screen's ends
 const SCENE_ASPECT = 2, CAPTION_ROOM = 90, SIDE_MARGIN = 24, RELAYOUT_MS = 200;
+// a forest sent this long ago asks for a sync on the computer
+const STALE_MS = 2 * 24 * 60 * MINUTE;
 const portrait = () => window.innerHeight > window.innerWidth;
 // going full screen: the forest is turned first, so it fills the screen as it opens
 let entering = false;
 
 const shell = document.createElement('div'), stage = document.createElement('div'), stamp = document.createElement('div');
+const noAnswer = document.createElement('div');
 shell.className = 'af-phone-shell';
 stage.className = 'af-phone-stage';
-stamp.className = 'af-phone-note';
-stamp.textContent = `Sent from Anki on your computer${note.updated ? ', ' + when(note.updated) : ''}. `;
+stamp.className = noAnswer.className = 'af-phone-note';
+const sentAt = new Date(note.updated || '');
+const stale = Date.now() - sentAt.getTime() > STALE_MS;
+stamp.textContent = `Sent from Anki on your computer${note.updated ? ', ' + when(note.updated) : ''}. `
+  + (stale ? 'Open Anki on your computer and sync to bring it up to date. ' : '');
+noAnswer.textContent = 'No need to answer this card: just go back.';
 root.before(shell);
 shell.append(stage);
-stage.append(root, stamp);
+stage.append(root, stamp, noAnswer);
 
 function layout() {
   const side = portrait() && (entering || !!document.fullscreenElement), vw = window.innerWidth, vh = window.innerHeight;
   stage.classList.toggle('af-sideways', side);
   // turned a quarter clockwise about its top left corner, then moved back onto the screen
   Object.assign(stage.style, side
-    ? { width: vh + 'px', height: vw + 'px', transform: `translateX(${vw}px) rotate(90deg)` }
-    : { width: '', height: '', transform: '' });
+    ? { width: vh + 'px', height: vw + 'px', transform: `translateX(${vw}px) rotate(90deg)`, minHeight: '' }
+    : { width: '', height: '', transform: '', minHeight: '' });
+  // outside full screen, the forest and its lines sit in the middle of the screen, not at its top
+  if (!side && !document.fullscreenElement) {
+    const body = window.getComputedStyle(document.body);
+    const above = stage.getBoundingClientRect().top + window.scrollY;
+    const below = parseFloat(body.marginBottom) + parseFloat(body.paddingBottom) || 0;
+    stage.style.minHeight = Math.max(0, vh - above - below) + 'px';
+  }
   const data = forNow(note, new Date());
   // as wide as the screen along the forest, but never taller than the screen across it
   // leaves room for beside the caption (a phone held sideways is only so tall)

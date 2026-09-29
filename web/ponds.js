@@ -73,7 +73,13 @@ AF.findPuddles = function (env) {
   const row = env.placed.filter(p => !p.it.pond && p.it.row === frontRow).sort((a, b) => a.x - b.x);
   const gaps = [];
   for (let i = 1; i < row.length; i++) gaps.push({ x: (row[i - 1].x + row[i].x) / 2, y: Math.round(Math.max(row[i - 1].y, row[i].y) + 2), w: Math.min(row[i].x - row[i - 1].x - 2, PUDDLE_MAX_W * env.u) });
-  return gaps.filter(g => g.w >= PUDDLE_MIN_W * env.u).sort((a, b) => b.w - a.w).slice(0, MAX_PUDDLES);
+  // none where there is water already: a landscape's (a river's channel is the widest gap) or a pond's
+  const land = AF.landOf(env), ponds = env.placed.filter(p => p.it.pond && p.it.first).map(p => AF.pondBox(env, p));
+  const dry = g => {
+    const x0 = g.x - g.w / 2, x1 = g.x + g.w / 2, y1 = g.y + Math.max(2, Math.round(g.w * PUDDLE_ASPECT));
+    return !(land.wet && land.wet(env, x0, x1, g.y)) && !ponds.some(b => x1 > b.x0 && x0 < b.x1 && y1 > b.y0 && g.y < b.y1);
+  };
+  return gaps.filter(g => g.w >= PUDDLE_MIN_W * env.u && dry(g)).sort((a, b) => b.w - a.w).slice(0, MAX_PUDDLES);
 };
 AF.drawPuddle = function (g, env, pd) {
   const c0 = hex(mixHex(env.theme.water || DEFAULT_WATER, env.theme.sky[env.theme.sky.length - 1], 0.4)), c1 = mix(c0, [255, 255, 255], 0.4), h = Math.max(2, Math.round(pd.w * PUDDLE_ASPECT));

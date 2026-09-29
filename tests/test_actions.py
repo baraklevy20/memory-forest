@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from fake_anki import addon, browser, mw, reset
+from fake_anki import addon, browser, mw, reset, tooltips
 
 actions = addon.actions
 
@@ -55,6 +55,7 @@ class ActionTests(unittest.TestCase):
             self.assertEqual(menu.actions[0].text, "Leave out of Memory Forest")
             menu.actions[0].triggered.connect.call_args[0][0]()
             self.assertEqual(mw.addonManager.config["excluded_decks"], [10])
+            self.assertEqual(tooltips, [actions.LEFT_OUT])
             menu = Menu()
             actions.on_deck_options_menu(menu, 11)  # its subdeck goes with it
             self.assertEqual(menu.actions[0].text, "Left out of Memory Forest with its parent deck")
@@ -63,8 +64,16 @@ class ActionTests(unittest.TestCase):
             self.assertEqual(menu.actions[0].text, "Bring back into Memory Forest")
             menu.actions[0].triggered.connect.call_args[0][0]()
             self.assertNotIn("excluded_decks", mw.addonManager.config)
+            self.assertEqual(tooltips[-1], actions.BROUGHT_BACK)
         menu = Menu()
         actions.on_deck_options_menu(menu, 30)  # a filtered deck has no forest to leave
+        self.assertEqual(menu.actions, [])
+
+
+    def test_the_phone_s_deck_has_nothing_in_its_gear_menu(self):
+        menu = Menu()
+        with mock.patch.object(actions, "phone_decks", return_value={20}):
+            actions.on_deck_options_menu(menu, 20)
         self.assertEqual(menu.actions, [])
 
 

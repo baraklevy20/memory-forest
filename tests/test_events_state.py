@@ -96,6 +96,127 @@ class StakesTests(unittest.TestCase):
         self.assertEqual(p["stats"]["trees"], 23)
 
 
+class NoStrikeFromHalfTheStoryTests(unittest.TestCase):
+    """A strike only comes from the whole review log: after a sync has brought in the other
+    devices' reviews, from every deck, and not from the settings dialog's preview."""
+
+    def a_week_away(self, **config):
+        studied_every_day_but_the_break(stakes="wild", **config)
+        state.save_state({"stakes": "wild", "stakes_since": TODAY - 60})
+
+    def test_no_new_strike_before_a_sync_when_the_profile_syncs(self):
+        ev = addon.events_state
+        self.a_week_away()
+        mw.pm.sync_auth = lambda: object()  # logged in to AnkiWeb
+        try:
+            ev._synced.clear()
+            p = payload.payload()  # the deck list, drawn before the startup sync
+            self.assertEqual((p["craters"], p["strike"]), ([], None))
+            ev.sync_started()
+            payload.payload()  # the forest written for your phone as the sync starts
+            self.assertNotIn("strike_days", state.load_state())
+            ev.sync_finished()  # nothing came in: the week away was real
+            p = payload.payload()
+            self.assertEqual((len(p["craters"]), p["strike"]["fresh"]), (1, True))
+            self.assertEqual(len(state.load_state()["strike_days"]), 1)
+            ev._synced.clear()  # a later session: the strike remembered stands before any sync
+            self.assertEqual(len(payload.payload()["craters"]), 1)
+        finally:
+            del mw.pm.sync_auth
+            ev._synced.clear()
+            ev._syncing = False
+
+    def test_days_studied_only_in_a_left_out_deck_are_not_missed(self):
+        self.a_week_away(excluded_decks=[20])
+        mw.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) "
+                              "values (500, 500, 20, 0, 2, 2, 30, '{}', ?)", (TODAY + 30,))
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 500, 3, 1)", [(ms(d),) for d in MISSED])
+        p = payload.payload()
+        self.assertEqual((p["craters"], p["strike"]), ([], None))
+        self.assertEqual(p["stats"]["trees"], 23)  # and the German card still plants nothing
+        # ... but looking at the forest on your phone is not studying
+        reset([])
+        self.a_week_away()
+        mw.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) "
+                              "values (500, 500, 20, 0, 2, 2, 30, '{}', ?)", (TODAY + 30,))
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 500, 3, 1)", [(ms(d),) for d in MISSED])
+        with mock.patch.object(addon.events_state, "phone_decks", return_value={20}):
+            self.assertEqual(len(payload.payload()["craters"]), 1)
+
+    def test_the_settings_preview_never_strikes(self):
+        self.a_week_away()
+        with mock.patch.object(addon.settings, "is_open", return_value=True):
+            p = payload.payload()
+        self.assertEqual((p["craters"], p["strike"]), ([], None))
+        self.assertNotIn("strike_days", state.load_state())
+
+
+class StrikeJournalTests(unittest.TestCase):
+    def test_the_strike_is_news_until_it_has_played_and_that_day(self):
+        # the same week away, and a first card in the new forest today
+        reset(PLANTED[:-2] + [(102, 10, 0)], {"stakes": "wild"})
+        for d in range(41):
+            if d not in MISSED:
+                mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", (ms(d, 18),))
+        state.save_state({"stakes": "wild", "stakes_since": TODAY - 60})
+        p = payload.payload()
+        p["strike"]["news"] = True  # as though it struck lately (see test_a_week_away_on_wild_takes_the_forest)
+        self.assertIn("asteroid", addon.events_state.news_line(p))
+        addon.events_state.mark_seen(p["strike"]["seen"])
+        p = payload.payload()
+        self.assertTrue(addon.events_state.strike_line(dict(p, strike=dict(p["strike"], news=True))))  # all that day
+        s = state.load_state()
+        state.save_state(dict(s, strike_seen_day=TODAY - 1))  # seen yesterday
+        p = payload.payload()
+        self.assertEqual(addon.events_state.strike_line(dict(p, strike=dict(p["strike"], news=True))), "")
+        self.assertEqual(p["journal"], "Your first tree. It holds 1 card.")
+
+
+class AnimalTests(unittest.TestCase):
+    """The animals stay once they have come (only an asteroid sends them away), and each is
+    announced on the day it came."""
+
+    def studied_every_day(self):
+        """A few days' forest, with nothing yet for any animal."""
+        reset([(1, 10, 3)])
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", [(ms(d, 18),) for d in range(4)])
+
+    def fox_reviews(self):
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                  [(ms(30, 12) + i,) for i in range(10_000)])
+        mw.col.mod += 1
+
+    def test_the_first_look_remembers_them_without_announcing_them(self):
+        self.studied_every_day()
+        self.fox_reviews()
+        p = payload.payload()
+        self.assertEqual([(v["key"], v["new"]) for v in p["visitors"]], [("fox", False)])
+        self.assertNotIn("wandered", p["journal"])
+
+    def test_an_animal_is_announced_the_day_it_comes_and_stays(self):
+        self.studied_every_day()
+        self.assertEqual(payload.payload()["visitors"], [])
+        self.fox_reviews()
+        for _ in range(2):  # all day long
+            p = payload.payload()
+            self.assertEqual([(v["key"], v["new"]) for v in p["visitors"]], [("fox", True)])
+            self.assertEqual(p["journal"], "A fox wandered in: you passed 10,000 reviews.")
+        mw.col.db.con.execute("delete from revlog where cid = 999 and id between ? and ?", (ms(30, 12), ms(30, 12) + 10_000))
+        mw.col.mod += 1
+        p = payload.payload()
+        self.assertLess(p["stats"]["reviews"], 10_000)
+        self.assertEqual([v["key"] for v in p["visitors"]], ["fox"])  # it stays
+
+    def test_an_asteroid_sends_them_away(self):
+        studied_every_day_but_the_break()
+        self.fox_reviews()
+        self.assertIn("fox", [v["key"] for v in payload.payload()["visitors"]])
+        mw.addonManager.config["stakes"] = "wild"
+        state.save_state(dict(state.load_state(), stakes="wild", stakes_since=TODAY - 60))
+        p = payload.payload()
+        self.assertEqual((len(p["craters"]), p["visitors"]), (1, []))
+
+
 class GrassTests(unittest.TestCase):
     def test_the_grass_grows_tall_while_you_review_without_new_cards(self):
         reset([(1, 10, 20)], {"stakes": "wild"})  # nothing new for twenty days

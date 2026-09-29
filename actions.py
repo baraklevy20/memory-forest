@@ -9,11 +9,12 @@ from anki.collection import SearchNode
 from aqt import dialogs, mw
 from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
+from aqt.utils import tooltip
 
 from . import events_state, study_log
 from .panel import refresh
 from .phone import follow_setting
-from .state import MODULE, config, excluded_decks, keeps_suspended, log, save_config
+from .state import MODULE, config, excluded_decks, keeps_suspended, log, phone_decks, save_config
 
 
 def settings_changed() -> None:
@@ -66,29 +67,34 @@ def on_js_message(handled, message, context):
     return (True, None)
 
 
+LEFT_OUT = "Left out of your forest. Its ⚙ menu brings it back."
+BROUGHT_BACK = "Back in your forest."
+
+
 def on_deck_options_menu(menu, did: int) -> None:
     """Leave a deck out of the forest, or bring it back, from its gear menu in the deck list."""
     try:
         deck = mw.col.decks.get(did, default=False)
-        if not deck or deck.get("dyn"):
+        if not deck or deck.get("dyn") or did in phone_decks():  # the phone's deck is the forest itself
             return
         cfg = config()
         mine = [int(d) for d in cfg.get("excluded_decks") or [] if str(d).lstrip("-").isdigit()]
         if did in mine:
             action = menu.addAction("Bring back into Memory Forest")
-            action.triggered.connect(lambda: _set_excluded([d for d in mine if d != did]))
+            action.triggered.connect(lambda: _set_excluded([d for d in mine if d != did], BROUGHT_BACK))
         elif did in excluded_decks(cfg):
             action = menu.addAction("Left out of Memory Forest with its parent deck")
             action.setEnabled(False)
         else:
             action = menu.addAction("Leave out of Memory Forest")
-            action.triggered.connect(lambda: _set_excluded(mine + [did]))
+            action.triggered.connect(lambda: _set_excluded(mine + [did], LEFT_OUT))
     except Exception:
         log("could not add to the deck menu:\n" + traceback.format_exc())
 
 
-def _set_excluded(dids: list) -> None:
+def _set_excluded(dids: list, message: str) -> None:
     cfg = config()
     cfg["excluded_decks"] = sorted(set(dids))
     save_config(cfg)
     refresh()
+    tooltip(message)

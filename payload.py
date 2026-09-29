@@ -24,6 +24,7 @@ from .state import (
     keeps_suspended,
     load_state,
     log,
+    phone_cards,
     save_state,
     since,
 )
@@ -40,15 +41,15 @@ def _forest(did: int | None = None) -> dict:
     col = mw.col
     cfg = config()
     cutoff = col.sched.day_cutoff
-    excluded, start, suspended = excluded_decks(cfg), since(cfg), keeps_suspended(cfg)
+    excluded, start, suspended, skip = excluded_decks(cfg), since(cfg), keeps_suspended(cfg), phone_cards()
     mod = getattr(col, "mod", None)
-    key = (mod, cutoff, frozenset(excluded), start, suspended)
+    key = (mod, cutoff, frozenset(excluded), start, suspended, frozenset(skip))
     cached = _forest_cache.get(did)
     if mod is not None and cached and cached[0] == key:
         return cached[1]
     started = time.perf_counter()
     dids = deck_ids(did, excluded) if did else None
-    rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended)
+    rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended, skip=skip)
     value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
     log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
     _forest_cache[did] = (key, value)
@@ -78,7 +79,7 @@ def _lit_by_deck(forest: dict, did: int, test: bool) -> dict:
         lit = {t["ago"] for t in forest["trees"][::TEST_LIT_EVERY]}
     else:
         dids = deck_ids(did, excluded_decks())
-        lit = study_log.load_deck_days(mw.col.db, mw.col.sched.day_cutoff, dids, keeps_suspended())
+        lit = study_log.load_deck_days(mw.col.db, mw.col.sched.day_cutoff, dids, keeps_suspended(), phone_cards())
     trees = [dict(t, dim=t["ago"] not in lit) for t in forest["trees"]]
     return dict(forest, trees=trees, lit_count=sum(1 for t in trees if not t["dim"]))
 

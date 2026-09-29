@@ -51,7 +51,7 @@ AF.layout = function (trees) {
   trees.forEach((t, i) => {
     if (t.gap) {
       const slots = clamp(Math.ceil(t.gap / POND_DAYS_PER_SLOT), POND_SLOTS[0], POND_SLOTS[1]);
-      for (let k = 0; k < slots; k++) items.push({ pond: true, group: i, days: t.gap, slots, first: k === 0, seed: (t.seed ^ (k * 7919 + 17)) >>> 0 });
+      for (let k = 0; k < slots; k++) items.push({ pond: true, group: i, days: t.gap, from: t.gap_from, to: t.gap_to, slots, first: k === 0, seed: (t.seed ^ (k * 7919 + 17)) >>> 0 });
     }
     items.push(Object.assign({}, t, { index: i, variant: t.seed % TREE_VARIANTS }));
   });

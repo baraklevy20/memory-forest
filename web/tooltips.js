@@ -32,7 +32,15 @@ function tipHtml(t, words) {
   return lines.join('<br>');
 }
 const CLICK_HINT = '<span class="af-hint">Click to see these cards</span>';
-function pondHtml(p) { return `<b>A quiet pond</b><br>${p.days} days without reviews`; }
+/* when a break ran, by the month: ", in May 2026", or ", from April to June 2026" */
+function pondWhen(p) {
+  if (!p.to) return '';
+  const a = new Date((p.from || p.to) + 'T12:00:00'), b = new Date(p.to + 'T12:00:00');
+  const month = (d, year) => d.toLocaleDateString(undefined, year ? { month: 'long', year: 'numeric' } : { month: 'long' });
+  if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) return `, in ${month(b, true)}`;
+  return `, from ${month(a, a.getFullYear() !== b.getFullYear())} to ${month(b, true)}`;
+}
+function pondHtml(p) { return `<b>A quiet pond</b><br>${p.days} days without reviews${esc(pondWhen(p))}`; }
 function deepHtml(m, words) {
   const lines = [`<b>${esc(cap(words.deep))}</b>`,
     `${m.count.toLocaleString()} older ${esc(words.many)} · ${m.cards.toLocaleString()} cards`,

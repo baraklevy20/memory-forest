@@ -125,9 +125,11 @@ function groundDetails(env, lg, p, sw) {
 
 /* The colours the forest's broadleaf crowns are drawn in (dark to light, as [r, g, b]), tinted
  * for the hour as the trees are: for anything that should match the trees, like the tall grass. */
+/* an environment's broadleaf colours: for the hour, if its trees change with it (`roundAt`) */
+const crownPal = (EP, th) => (EP.roundAt && EP.roundAt(th)) || EP.round || (EP.rounds && EP.rounds[0]) || (EP.base && EP.base.round) || PXT.round;
 AF.foliage = function (env) {
   const EP = AF.envOf(env).pals || {}, th = env.theme, tint = th.tint ? hex(th.tint) : null;
-  const pal = EP.round || (EP.rounds && EP.rounds[0]) || (EP.base && EP.base.round) || PXT.round;
+  const pal = crownPal(EP, th);
   return pal.map(c => tint ? mix(c, tint, th.tintAmt) : c);
 };
 
@@ -146,7 +148,7 @@ function deepForest(env, lg) {
   const far = d.base;  // just beyond the horizon, so it reads as forest carrying on over the hill
   const EP = AF.envOf(env).pals || {};
   // `base` replaces an environment's tree colours wholesale; the distant bands are trees too
-  const pal = EP.round || (EP.rounds && EP.rounds[0]) || (EP.base && EP.base.round) || PXT.round;
+  const pal = crownPal(EP, th);
   const haze = hex(th.haze), tint = th.tint ? hex(th.tint) : null;
   const R = rng((env.data.forestSeed || 11) ^ 0x5eed);
   const land = AF.landOf(env);

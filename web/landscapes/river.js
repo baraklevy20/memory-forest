@@ -63,10 +63,20 @@ AF.landscape('river', {
     return (sx - 0.02) / 0.96;
   },
 
-  // the animals along the front keep to their own bank, so none walks into the water
-  dryX(env, x, y, home) {
+  // the animals along the front keep to their own bank, so none walks into the water: the
+  // whole stretch it wanders (home, `reach` either way) slides onto the dry ground on home's
+  // side, or shrinks to fit it, so its spots stay apart. A crater keeps off the water the same way.
+  dryX(env, x, y, home, reach = 0) {
     const { W, H, u } = env, p = depth(y, H), cx = W * center(p), hw = W * halfWidth(p, W) + DRY_MARGIN;
-    return clamp(home < cx ? Math.min(x, cx - hw) : Math.max(x, cx + hw), 4 * u, W - 4 * u);
+    const [lo, hi] = home < cx ? [4 * u, cx - hw] : [cx + hw, W - 4 * u], a = home - reach, b = home + reach;
+    if (hi - lo <= b - a) return hi > lo ? lo + (x - a) / Math.max(1, b - a) * (hi - lo) : (lo + hi) / 2;
+    return x + (a < lo ? lo - a : b > hi ? hi - b : 0);
+  },
+
+  // whether the water reaches anywhere between x0 and x1 on row y (a puddle is no use there)
+  wet(env, x0, x1, y) {
+    const { W, H } = env, p = depth(y, H), cx = W * center(p), hw = W * halfWidth(p, W) + 2;
+    return x1 > cx - hw && x0 < cx + hw;
   },
 
   // tall grass grows along the front on both banks, never on the water: the left stretch
@@ -130,15 +140,20 @@ AF.landscape('river', {
     for (let k = 0; k < FLECKS; k++) {
       const q = (R() + t * 0.03 * (0.8 + R() * 0.4)) % 1, off = (R() - 0.5) * 1.3, p = Math.pow(q, 1.3), y = Math.round(hor + p * (H - hor));
       const x = Math.round(W * center(p) + off * W * halfWidth(p, W)), len = 1 + Math.round(p * 5 * u);
-      if (y >= H || x < 0 || x >= W || !S.vis[y * W + x]) continue;
-      g.fillStyle = css(S.glint, (0.25 + p * 0.35) * fa * 0.6); g.fillRect(x, y, len, 1);
+      if (y >= H) continue;
+      // pixel by pixel: a fleck running under a tree's edge stops at it
+      g.fillStyle = css(S.glint, (0.25 + p * 0.35) * fa * 0.6);
+      for (let i = x; i < x + len; i++) if (i >= 0 && i < W && S.vis[y * W + i]) g.fillRect(i, y, 1, 1);
     }
     const o = env.theme.orb; if (!o) return;
     const ox = W * o.x, G = rng(Math.floor(t * 3));
     g.fillStyle = css(S.glint, 0.55);
     for (let y = hor + 4; y < H; y++) {
       const spread = (3 + depth(y, H) * 14) * u;
-      if (G() < 0.55) { const x = Math.round(ox - spread + G() * spread * 2); if (x >= 0 && x < W && S.vis[y * W + x]) g.fillRect(x, y, G() < 0.3 ? 2 : 1, 1); }
+      if (G() < 0.55) {
+        const x = Math.round(ox - spread + G() * spread * 2), len = G() < 0.3 ? 2 : 1;
+        for (let i = x; i < x + len; i++) if (i >= 0 && i < W && S.vis[y * W + i]) g.fillRect(i, y, 1, 1);
+      }
     }
   },
 });

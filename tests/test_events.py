@@ -74,6 +74,15 @@ class EventTests(unittest.TestCase):
         self.assertEqual((doom["missed"], doom["left"]), (1, 0))
         self.assertIsNone(events.apply_stakes(self.trees(range(0, 40)), set(range(0, 40)), "merciless", 100)["doom"])
 
+    def test_on_wild_a_morning_before_reviewing_is_no_warning(self):
+        # studied yesterday, nothing yet today: no asteroid until a whole day has gone by
+        self.assertIsNone(events.apply_stakes(self.trees(range(1, 40)), set(range(1, 40)), "wild", 100)["doom"])
+        # nothing yesterday either: now it is on its way, counting today, and strikes in 5 days
+        doom = events.apply_stakes(self.trees(range(2, 40)), set(range(2, 40)), "wild", 100)["doom"]
+        self.assertEqual((doom["missed"], doom["grace"], doom["left"]), (2, 7, 5))
+        # ... but a day missed before the stakes were chosen (today) doesn't count
+        self.assertIsNone(events.apply_stakes(self.trees(range(2, 40)), set(range(2, 40)), "wild", 0)["doom"])
+
     def test_big_learning_days(self):
         def big(counts):
             trees = [{"ago": len(counts) - i, "n": n} for i, n in enumerate(counts)]

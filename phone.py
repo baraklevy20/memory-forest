@@ -22,9 +22,9 @@ import traceback
 from aqt import mw
 
 from . import live_weather, payload, phone_data
-from .state import OFF_VALUES, PHONE_NOTETYPE, config, log
+from .state import OFF_VALUES, PHONE_DECK, PHONE_NOTETYPE, config, log, remember_phone_cards
 
-DECK = "Memory Forest"
+DECK = PHONE_DECK
 FIELDS = ("About", "Forest")  # never change these: a field added later forces a full sync
 ABOUT = ("Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, "
          "and go back without answering. The add-on rewrites this note at every sync.")
@@ -61,6 +61,8 @@ CSS = """.card { margin: 0; padding: 0; }
 .af-sideways .af-panel { margin: 0 auto; }
 .af-sideways .af-phone-note { margin-bottom: 0; }
 .af-sideways .af-cap-tip { display: none !important; }
+.af-phone-stage { display: flex; flex-direction: column; justify-content: center; }
+.af-phone-note + .af-phone-note { margin-top: -6px; }
 .af-phone-shell:fullscreen { overflow: hidden; }
 .af-phone-shell:fullscreen .af-caption, .af-phone-shell:fullscreen .af-phone-note { display: none; }
 .af-phone-shell:fullscreen .af-phone-stage:not(.af-sideways) { display: flex; flex-direction: column; justify-content: center; height: 100%; }"""
@@ -94,8 +96,11 @@ def _notetype(col) -> dict:
 
 def _options(col, did: int) -> None:
     """Give the forest's deck options that always let its one card show and keep it coming
-    back, or bring them up to date - unless the user gave the deck options of their own."""
-    deck = col.decks.get(did)
+    back, or bring them up to date - unless the user gave the deck options of their own.
+    Only ever the add-on's own deck: never one the card was moved to, nor a filtered deck."""
+    deck = col.decks.get(did, default=False)
+    if not deck or deck.get("dyn"):  # a filtered deck has no options of its own
+        return
     if deck.get("conf", 1) == 1:  # still on the default options, which may hold no new cards
         # the preset outlives the deck (removing one forces a full sync), so reuse it
         conf = next((c for c in col.decks.all_config() if c["name"] == DECK), None) or col.decks.add_config(DECK)
@@ -112,13 +117,16 @@ def _options(col, did: int) -> None:
 
 
 def _note(col):
-    """The note that carries the forest, made (with its note type and deck) if it is missing."""
+    """The note that carries the forest, made (with its note type and deck) if it is missing.
+    Its card may have been moved to another deck since, or borrowed by a filtered one: the
+    options only ever go to the add-on's own deck, and that deck is not made again."""
     m = _notetype(col)
     nids = col.db.list("select id from notes where mid = ? order by id", m["id"])
     if nids:
         note = col.get_note(nids[0])
-        for did in set(col.db.list("select did from cards where nid = ?", note.id)):
-            _options(col, did)
+        mine = col.decks.id_for_name(DECK)
+        if mine:
+            _options(col, mine)
         return note
     note = col.new_note(m)
     note["About"], note["Forest"] = ABOUT, ""
@@ -153,23 +161,23 @@ def _keep_new(col, note) -> None:
 
 def remove() -> None:
     """Take the forest off the phone: its note, its deck and its script in media. The deck
-    only goes if nothing else was put in it. The note type and the deck's options preset stay:
-    removing either forces a full sync, and they are empty and out of the way."""
+    only goes if nothing else was put in it, and a deck the card was moved to stays. The note
+    type and the deck's options preset stay: removing either forces a full sync, and they are
+    empty and out of the way. Anki keeps the reviews of the cards removed, so they are
+    remembered, and those reviews go on being left out of your study (state.phone_cards)."""
     col = mw.col
     m = col.models.by_name(PHONE_NOTETYPE) if col is not None else None
     if m is None:
         return
     try:
         nids = col.db.list("select id from notes where mid = ?", m["id"])
-        dids = set(col.db.list("select distinct did from cards where nid in (select id from notes where mid = ?)", m["id"]))
         if nids:
+            remember_phone_cards(col.db.list("select id from cards where nid in (select id from notes where mid = ?)", m["id"]))
             col.remove_notes(nids)
         mine = col.decks.id_for_name(DECK)
-        for did in dids | ({mine} if mine else set()):
-            ids = col.decks.deck_and_child_ids(did)
-            if len(ids) > 1 or col.db.scalar("select count() from cards where did = ? or odid = ?", did, did):
-                continue  # something else lives here now
-            col.decks.remove([did])
+        if mine and len(col.decks.deck_and_child_ids(mine)) == 1 and not col.db.scalar(
+                "select count() from cards where did = ? or odid = ?", mine, mine):  # nothing else lives here now
+            col.decks.remove([mine])
         folder = col.media.dir()
         scripts = [f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js")]
         if scripts:
