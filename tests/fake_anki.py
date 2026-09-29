@@ -159,7 +159,7 @@ browser = Browser()
 tooltips: list = []
 hooks = types.SimpleNamespace(**{name: [] for name in (
     "deck_browser_will_render_content", "overview_will_render_content", "reviewer_did_answer_card",
-    "webview_did_receive_js_message", "deck_browser_will_show_options_menu")})
+    "webview_did_receive_js_message", "deck_browser_will_show_options_menu", "sync_will_start", "sync_did_finish")})
 
 
 def _install() -> None:

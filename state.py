@@ -21,6 +21,8 @@ MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX = 800, 400, 2000
 TEST_TREES_DEFAULT, TEST_TREES_MAX = 150, 5000
 # a hand-edited "false" (or 0) turns a switch off too
 OFF_VALUES = (False, "false", "False", 0, "0")
+# the note type of the note that takes the forest to your phone (phone.py)
+PHONE_NOTETYPE = "Memory Forest"
 
 
 def config() -> dict:
@@ -69,14 +71,27 @@ def save_state(state: dict) -> None:
 
 def excluded_decks(cfg: dict | None = None) -> set:
     """Every deck left out of the forest: the ones unticked in the settings and all their
-    subdecks, found afresh each time, so a deck made or moved under one later is out too."""
-    out = set()
+    subdecks, found afresh each time, so a deck made or moved under one later is out too.
+    The decks holding the note that takes the forest to your phone are always out."""
+    out = phone_decks()
     for did in (cfg if cfg is not None else config()).get("excluded_decks") or []:
         try:
             out.update(mw.col.decks.deck_and_child_ids(int(did)))
         except Exception:  # a hand edit, or a deck deleted since
             continue
     return out
+
+
+def phone_decks() -> set:
+    """Where the cards of the note that carries the forest to your phone are (phone.py):
+    answering one there is looking at the forest, not studying."""
+    try:
+        m = mw.col.models.by_name(PHONE_NOTETYPE)
+        if not m:
+            return set()
+        return set(mw.col.db.list("select distinct did from cards where nid in (select id from notes where mid = ?)", m["id"]))
+    except Exception:  # no collection yet
+        return set()
 
 
 def since(cfg: dict) -> int | None:

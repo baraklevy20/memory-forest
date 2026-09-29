@@ -54,8 +54,9 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     canvas.addEventListener('mousemove', e => {
       const env = current();
       if (!env) return;
-      const r = canvas.getBoundingClientRect();
-      const scale = env.W / (r.width || env.W), mx = (e.clientX - r.left) * scale, my = (e.clientY - r.top) * scale;
+      // where on the canvas, in its own layout: a forest turned on the page (the phone
+      // card's sideways view) is pointed at the same as an upright one
+      const scale = env.W / (canvas.clientWidth || env.W), mx = e.offsetX * scale, my = e.offsetY * scale;
       const hit = pick(env, mx, my);
       deepHover = null; eventHover = null;
       if (!hit) { hover = null; tip.hidden = true; canvas.style.cursor = ''; return; }
@@ -73,10 +74,11 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         canvas.style.cursor = !hit.pond && data.inAnki && !data.testForest ? 'pointer' : '';
       }
       tip.hidden = false;
-      const sr = sceneEl.getBoundingClientRect();
-      let left = e.clientX - sr.left + TIP_OFFSET, top = e.clientY - sr.top + TIP_OFFSET;
-      if (left + tip.offsetWidth > sr.width - TIP_MARGIN) left = e.clientX - sr.left - tip.offsetWidth - TIP_OFFSET;
-      if (top + tip.offsetHeight > sr.height - TIP_MARGIN) top = e.clientY - sr.top - tip.offsetHeight - TIP_OFFSET;
+      // the pointer within the scene, which holds the canvas and the tip
+      const x = canvas.offsetLeft + e.offsetX, y = canvas.offsetTop + e.offsetY;
+      let left = x + TIP_OFFSET, top = y + TIP_OFFSET;
+      if (left + tip.offsetWidth > sceneEl.clientWidth - TIP_MARGIN) left = x - tip.offsetWidth - TIP_OFFSET;
+      if (top + tip.offsetHeight > sceneEl.clientHeight - TIP_MARGIN) top = y - tip.offsetHeight - TIP_OFFSET;
       tip.style.left = Math.max(TIP_MARGIN, left) + 'px'; tip.style.top = Math.max(TIP_MARGIN, top) + 'px';
       redraw();  // a still forest redraws the same moment, only the marker moves
     });

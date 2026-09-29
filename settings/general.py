@@ -27,6 +27,8 @@ class GeneralTab(QWidget):
         self.animations.setChecked(cfg.get("animations", True) not in OFF_VALUES)
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
+        self.phone = QCheckBox("Show my forest on my phone")
+        self.phone.setChecked(cfg.get("phone_forest", False) not in OFF_VALUES)
         self.stakes = combo(STAKES_OPTIONS, cfg.get("stakes") if isinstance(cfg.get("stakes"), str) else DEFAULT_STAKES, DEFAULT_STAKES)
         self.stakes_note = hint("")
         lf = self.form = QFormLayout(self)
@@ -43,9 +45,14 @@ class GeneralTab(QWidget):
         lf.addRow("", self.stakes_note)
         lf.addRow("", self.animations)
         lf.addRow("", self.planting)
+        lf.addRow("", self.phone)
+        lf.addRow("", hint("Adds a \"Memory Forest\" deck with one card that draws your forest in AnkiDroid "
+                           "and AnkiMobile; study the deck to see it. The forest comes from this computer: "
+                           "it updates each time Anki syncs here, so reviews done on your phone show up "
+                           "after this computer syncs them in. Turning this off removes the deck again."))
 
     def connect(self, changed) -> None:
-        for box in (self.animations, self.planting):
+        for box in (self.animations, self.planting, self.phone):
             box.toggled.connect(changed)
         self.city.editingFinished.connect(changed)
         self.stakes.currentIndexChanged.connect(changed)
@@ -77,5 +84,6 @@ class GeneralTab(QWidget):
             "city": self.city.text().strip(),
             "animations": self.animations.isChecked(),
             "planting_tooltip": self.planting.isChecked(),
+            "phone_forest": self.phone.isChecked(),
             "stakes": self.stakes.currentData(),
         }

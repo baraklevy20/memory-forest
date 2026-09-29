@@ -9,6 +9,8 @@ payload.py       what a panel is drawn from: cached trees, the day's scene, the 
 live_weather.py  the live weather for your city: its cache, and refreshing it in the background
 actions.py       clicks (settings, browse a tree's cards) and the deck gear menu
 planting.py      the "a new tree was planted" message
+phone.py         the forest on your phone: the note, deck and script it syncs in, written at each sync
+phone_data.py    what that note holds: the page's data and the next days' scenes, and the one-file script (no aqt)
 events_state.py  the events on Anki's side: the Stakes remembered per profile, and what the page is sent
 debug_events.py  the Debug group's study events and timeline (debug only)
 state.py         the config, and what is remembered per profile in user_files/
@@ -36,6 +38,7 @@ web/tooltips.js  what hovering says
 web/caption.js   the line of numbers under the forest
 web/hover.js     pointing at the forest: what is under the pointer, its tooltip, a click
 web/core.js      the scene runner: mount, draw each frame, swap
+web/phone.js     the phone card's boot script: today's scene by the phone's clock, then mount
 web/effects.js   the moving effects' order; the effects are in web/effects/:
                  weather.js (clouds, rain, snow, lightning, wind, fog) and
                  ambience.js (stars, fireflies, birds, lanterns, petals, falling leaves)

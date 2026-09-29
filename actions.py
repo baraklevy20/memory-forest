@@ -12,13 +12,20 @@ from aqt.overview import Overview
 
 from . import events_state, study_log
 from .panel import refresh
+from .phone import follow_setting
 from .state import MODULE, config, excluded_decks, keeps_suspended, log, save_config
+
+
+def settings_changed() -> None:
+    """After any change to the config: redraw, and make or take away the phone's deck."""
+    refresh()
+    follow_setting()
 
 
 def open_settings() -> None:
     from .settings import open_settings as _open
 
-    _open(MODULE, refresh)
+    _open(MODULE, settings_changed)
 
 
 def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None = None) -> None:
