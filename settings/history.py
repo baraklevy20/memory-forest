@@ -5,10 +5,10 @@ from __future__ import annotations
 import datetime as _dt
 
 from aqt import mw
-from aqt.qt import QCheckBox, QDate, QDateEdit, QHBoxLayout, Qt, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
+from aqt.qt import QCheckBox, QDate, QHBoxLayout, Qt, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 
 from ..state import OFF_VALUES
-from .widgets import group, hint
+from .widgets import date_field, group, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole
 DATE_FORMAT = "d MMMM yyyy"
@@ -36,9 +36,7 @@ class HistoryTab(QWidget):
             pass
         self.since_on = QCheckBox("Leave out everything before")
         self.since_on.setChecked(since is not None)
-        self.since = QDateEdit()
-        self.since.setCalendarPopup(True)
-        self.since.setDisplayFormat(DATE_FORMAT)
+        self.since = date_field(DATE_FORMAT)
         self.since.setMaximumDate(QDate.currentDate())
         self.since.setDate(QDate(since.year, since.month, since.day) if since else QDate.currentDate())
         deck_box = QVBoxLayout(); deck_box.addWidget(self.decks); deck_box.addWidget(hint(DECKS_NOTE))
