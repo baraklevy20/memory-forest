@@ -226,6 +226,13 @@ class PhoneTests(unittest.TestCase):
         # the note type stays: removing it forces a full sync
         self.assertIsNotNone(self.col.models.by_name(phone.PHONE_NOTETYPE))
 
+    def test_it_says_when_the_deck_has_just_come_or_gone(self):
+        self.assertTrue(phone.follow_setting())  # turned on: the deck is made
+        self.assertFalse(phone.follow_setting())  # another setting changed: nothing to show
+        mw.addonManager.config = {}
+        self.assertTrue(phone.follow_setting())  # turned off: the deck goes
+        self.assertFalse(phone.follow_setting())
+
     def test_a_computer_that_never_had_it_on_leaves_the_deck_alone(self):
         phone.publish()
         mw.addonManager.config = {}

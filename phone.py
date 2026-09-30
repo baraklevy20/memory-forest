@@ -193,16 +193,19 @@ def remove() -> None:
 _was_on: bool | None = None
 
 
-def follow_setting() -> None:
+def follow_setting() -> bool:
     """After the settings change: turned on, the note is made (or brought up to date) now
-    rather than at the next sync; turned off, the deck goes."""
+    rather than at the next sync; turned off, the deck goes. True when the setting was just
+    turned on or off, so the deck may have come or gone."""
     global _was_on
     on = enabled()
     if on:
         publish()
     elif _was_on:
         remove()
+    flipped = on != bool(_was_on)  # (not looked at yet: it was off)
     _was_on = on
+    return flipped
 
 
 def remember_setting() -> None:

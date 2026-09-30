@@ -18,9 +18,12 @@ from .state import MODULE, config, excluded_decks, keeps_suspended, log, phone_d
 
 
 def settings_changed() -> None:
-    """After any change to the config: redraw, and make or take away the phone's deck."""
-    refresh()
-    follow_setting()
+    """After any change to the config: make or take away the phone's deck, and redraw - the
+    whole deck list when that deck has just come or gone, so it shows (or goes) at once."""
+    if follow_setting() and mw.col is not None and mw.state == "deckBrowser":
+        mw.deckBrowser.refresh()
+    else:
+        refresh()
 
 
 def open_settings() -> None:
