@@ -45,12 +45,41 @@ cabin appears at the edge of the woods.
   </tr>
 </table>
 
+## How you study
+
+The forest notices how you study, not just what you learn. Good days leave something
+behind for you to find. Whether bad habits leave a mark too is up to you: pick a
+**Nature** on the General tab of the settings.
+
+<p align="center"><img src="docs/nature/peaceful.gif" alt="A calm forest by the lake, with a pond where days were missed"><br>
+<b>Peaceful</b> (the default): only the good things. Days away cost you nothing.</p>
+
+<p align="center"><img src="docs/nature/wild.gif" alt="Part of the forest on fire, smoke rising from it"><br>
+<b>Wild</b>: bad habits leave marks until you fix them. Miss a day and smoke rises from the
+forest as a warning; miss the next one too and a fire breaks out, spreading while you stay
+away. A week of study puts it out.</p>
+
+<p align="center"><img src="docs/nature/merciless.gif" alt="An asteroid on its way down, over the forest"><br>
+<b>Merciless</b>: a single day without reviews brings down an asteroid on the whole forest,
+and a new one grows from there. Bad habits leave their marks too.</p>
+
+Change your mind at any time: switch back and your forest is just as it was.
+
+## On your phone
+
+Turn on "Show my forest on my phone" on the General tab, and after your next sync a
+Memory Forest deck appears in AnkiDroid: open it to see your forest. It updates each time
+Anki syncs on your computer.
+
 ## Compatibility and privacy
 
-- Anki 2.1.50 or later, on desktop (Windows, macOS, Linux).
+- Anki 2.1.50 or later, on desktop (Windows, macOS, Linux). Your forest can also be shown
+  on your Android phone, in AnkiDroid.
 - Everything is computed on your computer from your own review history. The only thing
   that leaves it is your city's name, and only if you turn on the real weather: it is sent
   to [Open-Meteo](https://open-meteo.com) (free, no account) to look up the forecast.
+- The forest for your phone travels as a note in your own collection, through your usual
+  AnkiWeb sync, like any other card.
 
 ## Support
 
