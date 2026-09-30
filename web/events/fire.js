@@ -1,6 +1,7 @@
 /* Memory Forest — Wild's fire: flames on the side of each tree it has caught, high while you
  * are away and dying down each day you study, a plume of smoke rising off them, and their glow,
- * strongest at night.
+ * strongest at night. The day before it breaks out, a thin wisp of smoke from the trees it
+ * will take (`smoke`), as a warning.
  * The trees' char is in their sprites (web/engines/pixel/trees.js). */
 (function () {
 'use strict';
@@ -18,6 +19,7 @@ const FLAME_H = 0.35, FLAMES_UNTIL = 0.35, GLOW_R = 0.6;
 // swelling to PUFF_R pixels across and leaning DRIFT pixels downwind as they go.
 const PUFFS = 14, PLUME_H = 1.5, PLUME_ADD = 8, PUFF_R = 3, DRIFT = 7;
 const SMOKE = [[78, 72, 68], [104, 98, 94], [134, 128, 124]];  // dark low down, paler as it rises
+const WISP = 0.4;  // the warning's smoke: a plume as thin and low as a tree's this far burnt down
 const GLOW = { night: 0.05, dusk: 0.03, dawn: 0.03 };  // (by day, the sun outshines it)
 
 const blaze = burn => clamp((burn - FLAMES_UNTIL) / (1 - FLAMES_UNTIL), 0, 1);
@@ -101,10 +103,12 @@ AF.events.add('fire', {
       if (k > 0) flames(g, p, c, k, f);
     }
     for (const p of burning) { const c = crown(env, p); if (c.cols.length) plume(g, p, c, p.it.burn, t); }
+    for (const p of env.placed) if (p.it.smoke && !p.it.pond) { const c = crown(env, p); if (c.cols.length) plume(g, p, c, WISP, t); }
   },
   // the caption's item while it burns: [text, tooltip]
   caption(data, words) {
     const fire = data.fire;
+    if (fire && fire.smoke) return [['Smoke: study today', smokeText]];
     if (!fire || !fire.trees) return [];
     const n = fire.trees, left = fire.left;
     return [[`Fire: ${n} ${n === 1 ? words.one : words.many}`,
@@ -112,8 +116,11 @@ AF.events.add('fire', {
   },
 });
 
-/* what a burning tree's tooltip adds */
+const smokeText = 'Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.';
+
+/* what a burning (or smoking) tree's tooltip adds */
 AF.fireLine = t => {
+  if (!t.burn) return `<b>Smoking</b>: ${smokeText}`;
   const left = Math.max(1, Math.round(t.burn * HEAL_DAYS));
   return `<b>On fire</b>: it caught while you were away · green again after ${left} more day${left === 1 ? '' : 's'} of study`;
 };

@@ -199,11 +199,13 @@ def apply(forest: dict, cfg: dict, test: bool) -> tuple:
 
 
 def fire_line(extras: dict) -> str:
-    """The journal's line for Wild's fire: on the days you come back to it (until you have
-    studied), and the day it goes out."""
+    """The journal's line for Wild's fire: the smoke that warns of it, the days you come back
+    to it (until you have studied), and the day it goes out."""
     fire = extras.get("fire")
     if not fire:
         return ""
+    if fire.get("smoke"):
+        return "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire."
     if fire["out"]:
         return "The last of the fire is out. Your forest is green again."
     if not fire["news"]:

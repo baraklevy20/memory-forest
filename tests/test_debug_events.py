@@ -74,7 +74,10 @@ class DebugEventTests(unittest.TestCase):
         self.assertEqual(state.load_state().get("strike_days"), None)  # the test forest remembers no strikes
 
     def test_two_days_away_on_wild_start_a_fire_that_a_week_of_study_puts_out(self):
-        self.assertIsNone(self.passed("wild", ("away", 1))["fire"])  # today is the second: not over yet
+        p = self.passed("wild", ("away", 1))  # today is the second: not over yet, only smoke
+        self.assertEqual((p["fire"]["trees"], p["fire"]["smoke"]), (0, 2))
+        self.assertEqual(len([t for t in p["trees"] if t.get("smoke")]), 2)
+        self.assertIn("Study today", p["journal"])
         p = self.passed("wild", ("away", 2))
         self.assertEqual((p["craters"], p["doom"], p["fire"]["trees"], p["fire"]["left"]), ([], None, 2, 7))  # 5% of 40
         self.assertEqual(len([t for t in p["trees"] if t.get("burn")]), 2)

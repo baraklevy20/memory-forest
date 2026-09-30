@@ -227,6 +227,24 @@ class FireTests(unittest.TestCase):
         self.assertEqual([t["ago"] - 1 for t in out if t.get("burn")], burning)
         self.assertEqual({t["burn"] for t in out if t.get("burn")}, {round(1 - 1 / events.FIRE_HEAL_DAYS, 3)})
         self.assertEqual(info["left"], events.FIRE_HEAL_DAYS - 1)
+    def test_a_day_missed_smokes_until_today_is_studied(self):
+        self.assertEqual(events.smoke_state(set(range(2, 40))), {"began": 1, "epoch": 38})
+        self.assertIsNone(events.smoke_state(set(range(2, 40)) | {0}))  # studied today: no fire coming
+        self.assertIsNone(events.smoke_state(set(range(1, 40))))  # only today so far
+        self.assertIsNone(events.smoke_state(set(range(3, 40))))  # already burning
+        self.assertIsNone(events.smoke_state(set()))
+
+    def test_the_smoking_trees_are_the_ones_that_catch_fire(self):
+        days, trees = set(range(2, 400)), self.trees(range(2, 400))
+        out, info = events.set_fire(trees, days)
+        smoking = [t["ago"] for t in out if t.get("smoke")]
+        self.assertEqual((info["smoke"], info["trees"], len(smoking)), (20, 0, 20))
+        self.assertFalse(any(t.get("burn") for t in out))
+        later = [dict(t, ago=t["ago"] + 1) for t in trees]  # the day went by without reviews
+        out, info = events.set_fire(later, {d + 1 for d in days})
+        self.assertEqual([t["ago"] - 1 for t in out if t.get("burn")], smoking)
+        self.assertEqual(info["smoke"], 0)
+
     def test_only_trees_standing_when_it_broke_out_and_drawn_one_by_one(self):
         days = set(range(0, 5)) | set(range(8, 300))  # away 5-7, back
         out, info = events.set_fire(self.trees(days), days, limit=100)

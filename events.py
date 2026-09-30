@@ -1,8 +1,8 @@
 """What the way you study does to the forest, besides the trees themselves.
 
 The Nature setting decides what missing days costs. Peaceful: nothing (a week away leaves a
-pond). Wild: from the second day in a row without reviews a fire takes hold, a little more
-of the forest each day, and it burns until you have studied for a week again. Merciless:
+pond). Wild: a day without reviews and smoke rises, a warning; from the second day in a row
+a fire takes hold, a little more of the forest each day, and it burns until you have studied for a week again. Merciless:
 a single day without reviews and an asteroid wipes out the forest. Nothing of it is
 remembered: it is all read from the days you studied, so changing the setting changes it
 back and forth.
@@ -27,7 +27,8 @@ DEFAULT_NATURE = "peaceful"
 # level brings only as a hint: it is for the forest to show)
 NATURE_NOTES = {
     "peaceful": "Missing days costs nothing, and the forest never scolds you.",
-    "wild": "Miss two days of reviews in a row and a fire breaks out, spreading each day you stay away; "
+    "wild": "Miss a day of reviews and smoke rises; miss the next too and a fire breaks out, "
+            "spreading each day you stay away; "
             "a week of study puts it out. Bad habits leave marks too, until you fix them. "
             "Switch back any time and the forest is as it was.",
     "merciless": "Miss a single day of reviews and an asteroid wipes out the forest. "
@@ -191,24 +192,48 @@ def fire_state(review_days: set) -> dict | None:
     return {"share": share, "healed": healed, "missed": missed, "began": began, "epoch": epoch, "out": out, "news": news}
 
 
+def smoke_state(review_days: set) -> dict | None:
+    """Wild's warning: the day after a day missed, while today has no reviews yet, smoke
+    rises from the trees that catch fire if today goes by too - `began` and `epoch` as
+    fire_state has them for that fire, so it is the same trees. None when there is no fire
+    to warn of (it only warns of a new one, not of one already burning fanned up)."""
+    run = missed_now(review_days) - 1  # the days before today, missed in a row
+    if not review_days or run != FIRE_FROM - 1 or fire_state(review_days):
+        return None
+    return {"began": run, "epoch": sum(1 for x in review_days if x > run)}
+
+
+def _fire_lot(trees: list, share: float, began: int, epoch: int, limit: int | None) -> set:
+    """The ids of the trees a fire of `share` takes: among the trees that stood when the break
+    began - of the newest `limit`, the ones drawn one by one - picked by lot, the same ones
+    every day of it."""
+    pool = [t for t in (trees[-limit:] if limit else trees) if t["ago"] > began]
+    n = min(len(pool), max(1, round(share * len(pool)))) if pool else 0
+    lot = lambda t: zlib.crc32(f"fire|{t.get('seed', t['ago'])}|{epoch}".encode())  # noqa: E731
+    return {id(t) for t in sorted(pool, key=lot)[:n]}
+
+
 def set_fire(trees: list, review_days: set, limit: int | None = None) -> tuple:
     """The trees with Wild's fire on them, and what the page says of it (or None): each
     burning tree copied with `burn`, 1 while it blazes and less each day you study, down to
-    nothing when it is out. The fire takes FIRE_* of the trees that stood when the break
-    began - among the newest `limit`, the ones drawn one by one - picked by lot, the same
-    ones every day until it is out. The trees given are left alone (they may be cached)."""
+    nothing when it is out. The fire takes FIRE_* of the trees (see _fire_lot). The day
+    before one breaks out, the trees it will take are copied with `smoke` instead, and the
+    page is told `smoke`. The trees given are left alone (they may be cached)."""
     st = fire_state(review_days)
     if st is None:
-        return trees, None
-    info = {"left": 0, "trees": 0, "missed": st["missed"], "began": st["began"], "out": st["out"], "news": st["news"]}
+        warn = smoke_state(review_days)
+        if warn is None:
+            return trees, None
+        smoking = _fire_lot(trees, FIRE_PER_DAY, warn["began"], warn["epoch"], limit)
+        info = {"left": 0, "trees": 0, "missed": FIRE_FROM - 1, "began": warn["began"], "out": False, "news": False,
+                "smoke": len(smoking)}
+        return [dict(t, smoke=1) if id(t) in smoking else t for t in trees], info
+    info = {"left": 0, "trees": 0, "missed": st["missed"], "began": st["began"], "out": st["out"], "news": st["news"], "smoke": 0}
     if not st["share"]:
         return trees, info
-    pool = [t for t in (trees[-limit:] if limit else trees) if t["ago"] > st["began"]]
-    n = min(len(pool), max(1, round(st["share"] * len(pool)))) if pool else 0
-    lot = lambda t: zlib.crc32(f"fire|{t.get('seed', t['ago'])}|{st['epoch']}".encode())  # noqa: E731
-    burning = {id(t) for t in sorted(pool, key=lot)[:n]}
+    burning = _fire_lot(trees, st["share"], st["began"], st["epoch"], limit)
     burn = round(1 - st["healed"] / FIRE_HEAL_DAYS, 3)
-    info.update(left=FIRE_HEAL_DAYS - st["healed"], trees=n)
+    info.update(left=FIRE_HEAL_DAYS - st["healed"], trees=len(burning))
     return [dict(t, burn=burn) if id(t) in burning else t for t in trees], info
 
 
