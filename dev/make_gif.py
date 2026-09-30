@@ -1,9 +1,9 @@
 """Record a preset as an animated GIF, as the README shows them (docs/animated/).
 
-    python3 dev/make_gif.py cherry_blossom          # -> docs/animated/cherry_blossom.gif
-    python3 dev/make_gif.py cherry_blossom bamboo   # several at once
+    python3 dev/make_gif.py bamboo             # -> docs/animated/bamboo.gif
+    python3 dev/make_gif.py bamboo synthwave   # several at once
     python3 dev/make_gif.py --docs                  # every GIF docs/animated/ already has
-    python3 dev/make_gif.py cherry_blossom --trees 150 --seconds 6 --out /tmp
+    python3 dev/make_gif.py bamboo --trees 150 --seconds 6 --out /tmp
 
 It mounts the real files in headless Chrome on the test forest (no study history of
 yours), drives the animation clock by hand so every frame is the same length, and stitches
@@ -107,7 +107,7 @@ def record(key: str, cfg: dict, out: str, n: int, seconds: float, hide: tuple) -
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Record presets as animated GIFs.")
-    ap.add_argument("presets", nargs="*", help="preset keys, e.g. cherry_blossom")
+    ap.add_argument("presets", nargs="*", help="preset keys, e.g. bamboo")
     ap.add_argument("--docs", action="store_true", help="every GIF docs/animated/ already has")
     ap.add_argument("--trees", type=int, default=TREES)
     ap.add_argument("--seconds", type=float, default=SECONDS)

@@ -36,15 +36,12 @@ cabin appears at the edge of the woods.
     <td align="center"><img src="docs/animated/misty_valley.gif" alt="Misty mountain valley, animated"><br><sub>Misty mountain valley</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/animated/cherry_blossom.gif" alt="Cherry blossom, animated"><br><sub>Cherry blossom</sub></td>
     <td align="center"><img src="docs/animated/aurora.gif" alt="Aurora night, animated"><br><sub>Aurora night</sub></td>
-  </tr>
-  <tr>
     <td align="center"><img src="docs/animated/lanterns.gif" alt="Lanterns at night, animated"><br><sub>Lanterns at night</sub></td>
-    <td align="center"><img src="docs/animated/bamboo.gif" alt="Rainy bamboo grove, animated"><br><sub>Rainy bamboo grove</sub></td>
   </tr>
   <tr>
-    <td align="center" colspan="2"><img src="docs/animated/synthwave.gif" alt="Synthwave, animated"><br><sub>Synthwave</sub></td>
+    <td align="center"><img src="docs/animated/bamboo.gif" alt="Rainy bamboo grove, animated"><br><sub>Rainy bamboo grove</sub></td>
+    <td align="center"><img src="docs/animated/synthwave.gif" alt="Synthwave, animated"><br><sub>Synthwave</sub></td>
   </tr>
 </table>
 

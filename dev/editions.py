@@ -33,21 +33,24 @@ def spec(name: str) -> dict:
 
 
 def scenery(name: str) -> dict:
-    """kind -> the keys of that kind this edition ships."""
+    """kind -> the keys of that kind this edition ships, and "presets" -> its preset keys."""
     import sys
     sys.path.insert(0, ADDON)
     import catalog
     envs = catalog.entries("envs")
     wanted = spec(name)["envs"]
     if wanted == ALL:
-        return {kind: set(catalog.entries(kind)) for kind in SCENERY}
+        wanted = list(envs)
+        return {**{kind: set(catalog.entries(kind)) for kind in SCENERY},
+                "presets": {envs[k]["preset"].get("key", k) for k in wanted if envs[k].get("preset")}}
     missing = set(wanted) - set(envs)
     if missing:
         raise SystemExit(f"edition {name!r} lists environments with no files: {', '.join(sorted(missing))}")
-    presets = [envs[k]["preset"] for k in wanted if envs[k].get("preset")]
+    presets = {k: envs[k]["preset"] for k in wanted if envs[k].get("preset")}
     return {"envs": set(wanted),
-            "landscapes": {p["landscape"] for p in presets},
-            "landmarks": {p.get("landmark", "none") for p in presets}}
+            "landscapes": {p["landscape"] for p in presets.values()},
+            "landmarks": {p.get("landmark", "none") for p in presets.values()},
+            "presets": {p.get("key", k) for k, p in presets.items()}}
 
 
 def keeps(rel: str, keep: dict) -> bool:
@@ -55,6 +58,9 @@ def keeps(rel: str, keep: dict) -> bool:
     parts = rel.replace(os.sep, "/").split("/")
     if len(parts) == 3 and parts[0] == "web" and parts[1] in SCENERY:
         return os.path.splitext(parts[2])[0] in keep[parts[1]]
+    # a preset's animated preview (docs/animated/<preset>.gif) goes wherever the preset does
+    if len(parts) == 3 and parts[:2] == ["docs", "animated"]:
+        return os.path.splitext(parts[2])[0] in keep["presets"]
     return True
 
 

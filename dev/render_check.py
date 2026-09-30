@@ -10,10 +10,10 @@ checks that the pixels have not changed.
     python3 dev/render_check.py baseline       # record hashes of every scene
     python3 dev/render_check.py compare        # ... and check them later
     python3 dev/render_check.py compare --quick  # a subset, when you are in a hurry
-    python3 dev/render_check.py baseline --only cherry_blossom  # just the scenes that use it
+    python3 dev/render_check.py baseline --only bamboo  # just the scenes that use it
 
 --only takes one or more environments, landscapes or landmarks (comma-separated) and keeps
-the scenes that use any of them: `--only cherry_blossom` is its preset and every hour,
+the scenes that use any of them: `--only bamboo` is its preset and every hour,
 weather and landscape it is drawn in. A baseline made with --only updates those scenes'
 hashes and keeps everyone else's.
 
