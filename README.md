@@ -67,6 +67,8 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 ## On your phone
 
+<p align="center"><img src="docs/phone.png" alt="The forest filling an AnkiDroid phone screen, turned sideways"></p>
+
 Take your forest with you on your Android phone. Turn on "Show my forest on my phone" on
 the General tab, and after your next sync a Memory Forest deck appears in AnkiDroid: open
 it to see your forest. AnkiDroid can't run add-ons, so what you see there is a copy your
