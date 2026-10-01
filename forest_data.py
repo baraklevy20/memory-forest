@@ -46,9 +46,9 @@ HEALTH_MIN_STAGE = MATURE
 BREAK_DAYS = 7
 
 # Trees drawn one by one. Older ones become the deep forest at the back: a few receding
-# bands of canopy instead of hundreds of sprites. At a tree a day this keeps well over a
-# year individual, and holds the render cost (and the payload) flat however long you study.
-MAX_INDIVIDUAL_TREES = 420
+# bands of canopy instead of hundreds of sprites. At a tree a day this keeps two years
+# individual, and holds the render cost (and the payload) flat however long you study.
+MAX_INDIVIDUAL_TREES = 730
 
 
 def _seed(day: int) -> int:
