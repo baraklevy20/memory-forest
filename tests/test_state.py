@@ -34,6 +34,19 @@ class StateTests(unittest.TestCase):
         for off in (False, "false", 0, "0"):
             self.assertFalse(state.keeps_suspended({"keep_suspended": off}))
 
+    def test_the_scenery_date_is_today_unless_debug_says_otherwise(self):
+        real = dt.date.today()
+        self.assertEqual(state.today({"debug_date": "2026-10-24"}), real)  # debug off: ignored
+        on = {"debug": True, "debug_date": "2026-10-24"}
+        self.assertEqual(state.today(on), dt.date(2026, 10, 24))
+        self.assertEqual(state.today(dict(on, debug_date="")), real)
+        self.assertEqual(state.today(dict(on, debug_date="nonsense")), real)
+
+    def test_days_passed_on_the_test_forest_move_the_scenery_date_on(self):
+        on = {"debug": True, "debug_date": "2026-10-24", "debug_timeline": [["study", 5], ["away", 3]]}
+        self.assertEqual(state.today(on), dt.date(2026, 10, 24))  # only on the test forest
+        self.assertEqual(state.today(dict(on, test_forest=True)), dt.date(2026, 11, 1))
+
     def test_a_hand_edited_number_is_brought_back_in_range(self):
         self.assertEqual(state.clamp_int("abc", 800, 400, 2000), 800)
         self.assertEqual(state.clamp_int(99999, 800, 400, 2000), 2000)

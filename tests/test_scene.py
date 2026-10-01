@@ -58,9 +58,10 @@ class SceneTests(unittest.TestCase):
 
     def test_surprise_me_daily_takes_the_presets_in_turn(self):
         daily = presets.by_key()["daily"].values()
-        days = [dt.datetime(2026, 9, 19, 12) + dt.timedelta(days=d) for d in range(60)]
+        # a stretch after every seasonal preset has first come out, so all of them take turns
+        days = [dt.datetime(2027, 1, 10, 12) + dt.timedelta(days=d) for d in range(60)]
         picks = [scene.choose_mood(daily, d)["environment"] for d in days]
-        turn = [p for p in presets.FOREST_PRESETS if p.key != "daily"]
+        turn = [p for p in presets.available(days[0].date()) if p.key != "daily"]
         self.assertTrue(all(a != b for a, b in zip(picks, picks[1:])), "a new preset every day")
         self.assertEqual(set(picks[:len(turn)]), {p.environment for p in turn}, "every preset comes round")
         # and each day is that preset whole: its landscape, landmark, weather and hour too

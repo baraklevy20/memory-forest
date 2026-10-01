@@ -8,16 +8,23 @@ from aqt.qt import QCheckBox, QFormLayout, QLineEdit, QWidget
 from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, nature_level
 from ..live_weather import city_problem
-from ..state import OFF_VALUES
-from .widgets import combo, hint, set_quietly
+from ..state import OFF_VALUES, today
+from .widgets import combo, hint, set_options, set_quietly
 
 NATURE_OPTIONS = list(NATURE_LABELS.items())
+
+
+def preset_options(day, chosen: str | None) -> list:
+    """The presets to offer on `day`: not a seasonal one before its first week, unless
+    it is the one the settings already are (as the Fine-tuning tab keeps its environment)."""
+    return presets.options(tuple(p for p in presets.FOREST_PRESETS if presets.unlocked(p, day) or p.key == chosen))
 
 
 class GeneralTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
-        self.preset = combo(presets.options(), presets.match(cfg))
+        # a seasonal preset is not offered before its first week
+        self.preset = combo(preset_options(today(cfg), presets.match(cfg)), presets.match(cfg))
         self.preset_note = hint("")
         self.real_sky = QCheckBox("Follow the real weather and time of day")
         self.real_sky.setChecked(presets.follows_real_sky(cfg))
@@ -50,6 +57,10 @@ class GeneralTab(QWidget):
                            "study the deck to see it. The forest comes from this computer: "
                            "it updates each time Anki syncs here, so reviews done on your phone show up "
                            "after this computer syncs them in. Turning this off removes the deck again."))
+
+    def offer(self, day, look: dict) -> None:
+        """The presets there are on `day` (a seasonal one comes out on its first day)."""
+        set_options(self.preset, preset_options(day, presets.match(look)))
 
     def connect(self, changed) -> None:
         for box in (self.animations, self.planting, self.phone):

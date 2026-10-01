@@ -1,0 +1,17 @@
+{
+  "label": "Pumpkin patch",
+  "preset": {
+    "label": "Witch across the moon",
+    "order": 125,
+    "landscape": "meadow",
+    "landmark": "none",
+    "weather": "clear",
+    "time": "dusk",
+    "note": "A witch and her cat cross the harvest moon over a patch of grinning, chuckling jack-o'-lanterns.",
+    "season": {
+      "from": "10-24",
+      "to": "10-31",
+      "first": 2026
+    }
+  }
+}

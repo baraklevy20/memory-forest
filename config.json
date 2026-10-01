@@ -21,5 +21,6 @@
     "debug_backlog": 0,
     "debug_backlog_cleared": 0,
     "debug_backlog_was": 0,
-    "debug_big_days": false
+    "debug_big_days": false,
+    "debug_date": ""
 }

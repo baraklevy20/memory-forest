@@ -197,6 +197,8 @@ _install()
 addon = _load()
 _tmp = tempfile.mkdtemp(prefix="memory-forest-test-")
 addon.state.STATE_PATH = os.path.join(_tmp, "state.json")
+# the seasonal record too: never the real user_files, and fresh for every test
+addon.state.SEASON_PATH = os.path.join(_tmp, "season.json")
 addon.payload.log = lambda _msg: None  # "built N trees in M ms", on every build
 
 
@@ -219,5 +221,6 @@ def reset(cards=(), config=None, current_deck: int = 10, leeches=()):
     addon.planting._planted_today = None
     browser.searches.clear()
     tooltips.clear()
-    if os.path.exists(addon.state.STATE_PATH):
-        os.remove(addon.state.STATE_PATH)
+    for path in (addon.state.STATE_PATH, addon.state.SEASON_PATH):
+        if os.path.exists(path):
+            os.remove(path)

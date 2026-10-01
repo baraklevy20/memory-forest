@@ -22,7 +22,7 @@ import traceback
 from aqt import mw
 
 from . import live_weather, payload, phone_data
-from .state import OFF_VALUES, PHONE_DECK, PHONE_NOTETYPE, config, log, remember_phone_cards
+from .state import OFF_VALUES, PHONE_DECK, PHONE_NOTETYPE, config, follow_season, log, remember_phone_cards, today
 
 DECK = PHONE_DECK
 FIELDS = ("About", "Forest")  # never change these: a field added later forces a full sync
@@ -217,7 +217,7 @@ def remember_setting() -> None:
 def publish() -> None:
     """Write the forest as it is now into the note, if the setting is on and it changed."""
     col = mw.col
-    cfg = config()
+    cfg = follow_season(config())  # before the forest is drawn for it, as the desktop's is
     if col is None or not enabled(cfg):
         return
     try:
@@ -225,7 +225,8 @@ def publish() -> None:
         script = _script(col)
         real, place, _error = live_weather.for_config(cfg)
         name = getattr(payload, "_scene_name", None)
-        data = phone_data.phone_payload(payload.payload(), cfg, _dt.datetime.now(), script, real, place,
+        now = _dt.datetime.combine(today(cfg), _dt.datetime.now().time())  # or the debug date's
+        data = phone_data.phone_payload(payload.payload(), cfg, now, script, real, place,
                                         (lambda date: name(cfg, date)) if name else (lambda _date: {}))
         if not phone_data.same_forest(note["Forest"], data):
             note["Forest"] = phone_data.encode(data)

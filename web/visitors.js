@@ -187,6 +187,9 @@ AF.drawVisitors = function (g, env, t) {
     const flip = FACES_LEFT[v.key] ? dir > 0 : dir < 0;  // face the way it last went
     const x0 = Math.round(x - frame[0].length / 2), y0 = baseY - frame.length + dy;
     paintSprite(g, frame, x0, y0, spr.pal, color, flip);
+    // an environment may dress the animal up (it gets the frame as drawn, and which way it faces)
+    const dress = AF.envOf(env).dressVisitor;
+    if (dress) dress(g, env, { key: v.key, rows: frame, x0, y0, flip, facesLeft: !!FACES_LEFT[v.key] !== flip, color });
     env.visitorBoxes.push({ v, x0, y0, x1: x0 + frame[0].length, y1: baseY });
   });
 };

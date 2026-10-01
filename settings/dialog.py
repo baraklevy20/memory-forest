@@ -8,6 +8,7 @@ from aqt import mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QTabWidget, QTimer, QVBoxLayout
 
 from .. import presets
+from ..state import today
 from .about import AboutTab
 from .debug import DebugTab
 from .fine_tuning import FineTuningTab
@@ -91,6 +92,9 @@ class SettingsDialog(QDialog):
     def _sync(self) -> None:
         """Put every tab back in line with the others: the General tab's preset follows the
         five settings on Fine-tuning, whichever tab they were changed on."""
+        day = today(dict(self._current(), **self.debug.values()))  # the debug date may have moved
+        self.general.offer(day, self.fine.look())
+        self.fine.offer(day)
         self.general.sync(self.fine.look())
         self.history.sync()
         self.debug.sync()
@@ -122,6 +126,13 @@ class SettingsDialog(QDialog):
     def apply(self) -> None:
         mw.addonManager.writeConfig(self.module, self.values())
         self.on_change()
+        # redrawing may have brought or ended a holiday's week (the debug date moved), which
+        # changes the look: show it, so the next change here doesn't write the old one back
+        look = {k: self._current().get(k) for k in presets.LOOK}
+        if look != self.fine.look():
+            self.fine.offer(today(self._current()))
+            self.fine.set_look(look)
+            self._sync()
         # refreshing a deck screen hands focus back to the webview, which would pull it
         # out of this dialog mid-edit
         QTimer.singleShot(0, self._keep_focus)

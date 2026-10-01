@@ -1,0 +1,17 @@
+{
+  "label": "Christmas market",
+  "preset": {
+    "label": "Frozen river market",
+    "order": 112,
+    "landscape": "river",
+    "landmark": "none",
+    "weather": "snow",
+    "time": "dusk",
+    "note": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge.",
+    "season": {
+      "from": "12-18",
+      "to": "12-25",
+      "first": 2026
+    }
+  }
+}

@@ -123,6 +123,20 @@ def hint(text: str) -> QLabel:
     return label
 
 
+def set_options(box: QComboBox, options) -> None:
+    """Offer these options instead, without announcing a change, keeping the current one
+    where it is still offered."""
+    if [(box.itemData(i), box.itemText(i)) for i in range(box.count())] == list(options):
+        return
+    current = box.currentData()
+    box.blockSignals(True)
+    box.clear()
+    for key, label in options:
+        box.addItem(label, key)
+    box.setCurrentIndex(max(box.findData(current), 0))
+    box.blockSignals(False)
+
+
 def set_quietly(box: QComboBox, value) -> None:
     """Point a combo at a value without it announcing a change."""
     box.blockSignals(True)

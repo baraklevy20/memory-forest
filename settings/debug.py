@@ -4,12 +4,15 @@ without waiting for them."""
 
 from __future__ import annotations
 
-from aqt.qt import QCheckBox, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
+import datetime as _dt
+
+from aqt.qt import QCheckBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
 
 from ..debug_events import DEBUG_BACKLOG_MAX
-from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_steps
-from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX
-from .widgets import group, hint
+from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
+from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, forget_seasons
+from .history import DATE_FORMAT
+from .widgets import date_field, group, hint
 
 TREES_STEP, TREES_PAGE = 10, 250
 TIMELINE_NOTE = ("Days pass on the test forest, and what they bring follows from them as it would: "
@@ -22,6 +25,10 @@ DEBUG_NOTE = ("These show each event on whatever forest is on screen; set them b
               "see your own again. As the real events, they follow Nature: Peaceful shows no crows, "
               "tall grass or tumbleweeds. A backlog cleared stays cleared until you move the tumbleweeds "
               "again, or Reset.")
+DATE_NOTE = ("The scenery is chosen for this date: the seasonal presets, Surprise me daily and the "
+             "scenery list all follow it. Days passed on the test forest move it on too, so passing "
+             "a holiday's week brings your own scenery back. Your own forest's days are not moved. "
+             "A holiday changes the scenery once a year; Replay the seasons lets it happen again.")
 # what the label calls each kind of day, and what happens (once, and more than once)
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
 HAPPENINGS = {"leech": ("a card turns leech", "{n} cards turn leech"), "cure": ("a leech cured", "{n} leeches cured")}
@@ -75,6 +82,21 @@ class DebugTab(QWidget):
         self.clear = QPushButton("Clear the backlog")
         self.clear.clicked.connect(self._clear_backlog)
         self.big = QCheckBox("Big learning days (wildflowers)"); self.big.setChecked(bool(cfg.get("debug_big_days", False)))
+        # the date the scenery is chosen for
+        try:
+            pretend = _dt.date.fromisoformat(cfg.get("debug_date") or "")
+        except (TypeError, ValueError):
+            pretend = None
+        self.pretend = QCheckBox("Pretend today is"); self.pretend.setChecked(pretend is not None)
+        self.date = date_field(DATE_FORMAT)
+        # a date counts once it is typed in full, not at every keystroke on the way to it
+        self.date.setKeyboardTracking(False)
+        day = pretend or _dt.date.today()
+        self.date.setDate(QDate(day.year, day.month, day.day))
+        self.date_label = hint("")
+        # a holiday's week changes the scenery once a year: forget that, to see it again
+        self.replay = QPushButton("Replay the seasons")
+        self.replay.clicked.connect(self._replay_seasons)
         self._changed = None
         self._lay_out()
 
@@ -102,7 +124,10 @@ class DebugTab(QWidget):
         ev = QVBoxLayout()
         ev.addLayout(ef)
         ev.addWidget(hint(DEBUG_NOTE))
+        dr = QHBoxLayout(); dr.addWidget(self.pretend); dr.addWidget(self.date); dr.addStretch(1); dr.addWidget(self.replay)
+        dtv = QVBoxLayout(); dtv.addLayout(dr); dtv.addWidget(self.date_label); dtv.addWidget(hint(DATE_NOTE))
         dv = QVBoxLayout(self)
+        dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
         dv.addWidget(group("Study events", ev))
         dv.addStretch(1)
@@ -122,6 +147,11 @@ class DebugTab(QWidget):
         if self._changed:
             self._changed()
 
+    def _replay_seasons(self) -> None:
+        forget_seasons()
+        if self._changed:
+            self._changed()
+
     def _backlog_moved(self, _value) -> None:
         self.clears = 0
 
@@ -137,8 +167,9 @@ class DebugTab(QWidget):
 
     def connect(self, changed) -> None:
         self._changed = changed
-        for box in (self.test, self.big):
+        for box in (self.test, self.big, self.pretend):
             box.toggled.connect(changed)
+        self.date.dateChanged.connect(changed)
         for box in (self.trees_box, self.backlog):
             box.valueChanged.connect(changed)
 
@@ -153,6 +184,18 @@ class DebugTab(QWidget):
                                     or "No days passed yet (needs the test forest)")
         for w in self.timeline_steps + self.happen:
             w.setEnabled(on)
+        self.date.setEnabled(self.pretend.isChecked())
+        day = self._date() or _dt.date.today()
+        passed = timeline_days(self.timeline)[0] if on else 0
+        day += _dt.timedelta(days=passed)
+        self.date_label.setText(f"The scenery is chosen for {day.strftime('%a')} {day.day} {day.strftime('%b %Y')}"
+                                + (f" ({passed} day{'s' if passed != 1 else ''} passed)" if passed else "") + ".")
+
+    def _date(self) -> _dt.date | None:
+        if not self.pretend.isChecked():
+            return None
+        q = self.date.date()
+        return _dt.date(q.year(), q.month(), q.day())
 
     def values(self) -> dict:
         return {
@@ -163,4 +206,5 @@ class DebugTab(QWidget):
             "debug_backlog_cleared": self.clears,
             "debug_backlog_was": self.was,
             "debug_big_days": self.big.isChecked(),
+            "debug_date": self._date().isoformat() if self._date() else "",
         }

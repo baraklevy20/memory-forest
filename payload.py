@@ -21,13 +21,16 @@ from .state import (
     config,
     deck_ids,
     excluded_decks,
+    follow_season,
     keeps_suspended,
     load_state,
     log,
     phone_cards,
     save_state,
+    season_returns,
     since,
 )
+from .state import today as scenery_day
 
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
@@ -85,7 +88,7 @@ def _lit_by_deck(forest: dict, did: int, test: bool) -> dict:
 
 
 def payload(did: int | None = None, highlight: bool = False) -> dict:
-    cfg = config()
+    cfg = follow_season(config())
     # the test forest is a developer's tool, so it only exists while debug is on
     test = bool(cfg.get("debug", False)) and bool(cfg.get("test_forest", False))
     forest = dict(fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test else _forest(None if highlight else did)
@@ -111,7 +114,8 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
 
     real, place, weather_error = live_weather.for_config(cfg)
 
-    mood = scene.choose_mood(cfg, now, real, place)
+    day = scenery_day(cfg)  # today, or the debug date: the scenery is chosen for it
+    mood = scene.choose_mood(cfg, _dt.datetime.combine(day, now.time()), real, place)
     evs = scene.events(forest["stats"], today, new_ancient)
 
     return {
@@ -133,7 +137,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "credit": mood.get("source") == "real",
         "weatherError": weather_error,
         "environmentName": scene.ENVIRONMENTS[mood["environment"]],
-        **_scene_name(cfg, today),
+        **_scene_name(cfg, day),
         "inAnki": True,
         "channel": MODULE,  # clicks go back as "<channel>:...", so only this add-on answers them
         "deckId": did,
@@ -156,4 +160,8 @@ def _scene_name(cfg: dict, today: _dt.date) -> dict:
     if key == presets.CUSTOM:
         name = scene.ENVIRONMENTS.get(cfg.get("environment"), "")
         return {"sceneName": name, "sceneTip": "Your own mix, from Fine-tuning in the forest settings."} if name else {}
+    back = season_returns(cfg, today)
+    if back:
+        return {"sceneName": presets.by_key()[key].label,
+                "sceneTip": f"Seasonal scenery, for this week only. Yours comes back on {back.day} {back.strftime('%B')}."}
     return {"sceneName": presets.by_key()[key].label}

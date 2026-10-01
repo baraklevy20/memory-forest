@@ -7,8 +7,8 @@ from aqt.qt import QFormLayout, QSpinBox, QVBoxLayout, QWidget
 
 from .. import presets
 from ..scene import ENVIRONMENTS, LANDMARKS, LANDSCAPES, TIME_LABELS, WEATHER_LABELS
-from ..state import MAX_WIDTH_DEFAULT, MAX_WIDTH_MAX, MAX_WIDTH_MIN
-from .widgets import combo, group, set_quietly
+from ..state import MAX_WIDTH_DEFAULT, MAX_WIDTH_MAX, MAX_WIDTH_MIN, today
+from .widgets import combo, group, set_options, set_quietly
 
 DAILY_OPTION = (presets.DAILY, "Surprise me daily")
 ENV_OPTIONS = [DAILY_OPTION] + list(ENVIRONMENTS.items())
@@ -20,11 +20,18 @@ DECK_OPTIONS = [("highlight", "The main forest, with that deck's trees lit"), ("
 WIDTH_STEP = 50
 
 
+def env_options(day, chosen: str | None) -> list:
+    """The environments to offer on `day`: not a seasonal preset's before it first comes
+    out, unless it is the one already chosen."""
+    hidden = presets.hidden_environments(day) - {chosen}
+    return [o for o in ENV_OPTIONS if o[0] not in hidden]
+
+
 class FineTuningTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
         base = presets.FOREST_PRESETS[0]
-        self.environment = combo(ENV_OPTIONS, cfg.get("environment", base.environment), base.environment)
+        self.environment = combo(env_options(today(cfg), cfg.get("environment")), cfg.get("environment", base.environment), base.environment)
         self.landscape = combo(LANDSCAPE_OPTIONS, cfg.get("landscape", base.landscape), base.landscape)
         self.landmark = combo(LANDMARK_OPTIONS, cfg.get("landmark", base.landmark), base.landmark)
         self.weather = combo(WEATHER_OPTIONS, cfg.get("weather", base.weather), base.weather)
@@ -57,6 +64,9 @@ class FineTuningTab(QWidget):
     def look(self) -> dict:
         """The five settings a preset stands for, as they are now."""
         return {field: box.currentData() for box, field in self._look_boxes()}
+
+    def offer(self, day) -> None:
+        set_options(self.environment, env_options(day, self.environment.currentData()))
 
     def set_look(self, values: dict) -> None:
         """Fill in some of the five settings, without each announcing a change."""
