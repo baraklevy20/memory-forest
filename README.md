@@ -69,11 +69,10 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 <p align="center"><img src="docs/phone.png" alt="The forest filling an AnkiDroid phone screen, turned sideways"></p>
 
-Take your forest with you on your Android phone. Turn on "Show my forest on my phone" on
-the General tab, and after your next sync a Memory Forest deck appears in AnkiDroid: open
-it to see your forest. AnkiDroid can't run add-ons, so what you see there is a copy your
-computer draws: it is redrawn each time Anki syncs on your computer, and reviews you do on
-your phone show up in it once your computer has synced them in.
+Turn on "Show my forest on my phone" on the General tab. After your next sync, a
+Memory Forest deck appears in AnkiDroid: open it to see your forest.
+
+Your computer draws this copy, so it updates whenever Anki syncs there.
 
 ## Compatibility and privacy
 
@@ -86,11 +85,11 @@ your phone show up in it once your computer has synced them in.
 
 ## Support
 
-If you enjoy Memory Forest, please [give it a thumbs up on AnkiWeb](https://ankiweb.net/shared/review/1255432496) and share it
-with friends who study with Anki. It is what helps other people find it.
+If you enjoy Memory Forest, please [give it a thumbs up on AnkiWeb](https://ankiweb.net/shared/review/1255432496)
+and share it with friends who study with Anki. It is what helps other people find it.
 
-Patreon users get every new scenery first, in Memory Forest Plus, and each one joins this
-version later on: [support Memory Forest on Patreon](https://www.patreon.com/BarakLevy).
+A new scenery arrives every month. Want each one first? [Join on Patreon](https://www.patreon.com/BarakLevy)
+for Memory Forest Plus, and every scenery comes to this version later on.
 
 ## Feedback
 
