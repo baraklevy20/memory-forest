@@ -18,7 +18,8 @@
     "audit": "python3 dev/combo_audit.py",
     "gallery": "python3 dev/build_gallery.py",
     "gif": "python3 dev/make_gif.py",
-    "payload": "python3 dev/export_payload.py"
+    "payload": "python3 dev/export_payload.py",
+    "goats": "python3 dev/goats.py"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

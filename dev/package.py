@@ -31,7 +31,7 @@ ADDON = os.path.dirname(HERE)
 # add-on imports but the list forgot would only show up as a crash on someone else's
 # machine, after upload.
 INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py"))) + (
-    "config.json", "manifest.json")
+    "config.json", "manifest.json", "goats.json")
 INCLUDE_DIRS = ("settings", "web")  # walked, so web/envs, web/landscapes and web/landmarks come too
 
 # The page's scripts ship minified: half the size, both in the add-on and in the script the
