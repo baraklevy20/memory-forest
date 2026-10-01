@@ -89,6 +89,9 @@ your phone show up in it once your computer has synced them in.
 If you enjoy Memory Forest, please [give it a thumbs up on AnkiWeb](https://ankiweb.net/shared/review/1255432496) and share it
 with friends who study with Anki. It is what helps other people find it.
 
+Patreon users get every new scenery first, in Memory Forest Plus, and each one joins this
+version later on: [support Memory Forest on Patreon](https://www.patreon.com/BarakLevy).
+
 ## Feedback
 
 Found a bug or have an idea? [Open an issue](https://github.com/baraklevy20/memory-forest/issues).

@@ -22,7 +22,7 @@ AF.mount = function (root, data, opts) {
   const token = {};
   root.afToken = token;
   const current = () => root.afToken === token;
-  root.innerHTML = (data.inAnki ? '<div class="af-top"><button type="button" class="af-cog" title="Memory Forest settings" aria-label="Memory Forest settings">' + COG + '</button></div>' : '')
+  root.innerHTML = (data.inAnki ? '<div class="af-top"><button type="button" class="af-cog" title="Change scenery and settings" aria-label="Change scenery and settings">' + COG + '</button></div>' : '')
     + '<div class="af-scene"><canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
     + '<div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
   const cog = root.querySelector('.af-cog');

@@ -9,6 +9,7 @@ from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, nature_level
 from ..live_weather import city_problem
 from ..state import OFF_VALUES, today
+from .patreon import banner
 from .widgets import combo, hint, set_options, set_quietly
 
 NATURE_OPTIONS = list(NATURE_LABELS.items())
@@ -39,6 +40,7 @@ class GeneralTab(QWidget):
         self.nature = combo(NATURE_OPTIONS, nature_level(cfg.get("nature")), nature_level(None))
         self.nature_note = hint("")
         lf = self.form = QFormLayout(self)
+        lf.addRow(banner())
         lf.addRow("Scenery", self.preset)
         lf.addRow("", self.preset_note)
         lf.addRow("", self.real_sky)
