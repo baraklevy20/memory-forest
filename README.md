@@ -45,6 +45,18 @@ cabin appears at the edge of the woods.
   </tr>
 </table>
 
+### New in Memory Forest Plus
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="docs/animated/cherry_blossom.gif" alt="Cherry blossom, animated"><br><sub>Cherry blossom</sub></td>
+    <td align="center"><img src="docs/animated/starry_night.gif" alt="Starry night, animated"><br><sub>Starry night</sub></td>
+  </tr>
+</table>
+
+These arrive in Memory Forest Plus first, and come to this version later on.
+[Join on Patreon](https://www.patreon.com/BarakLevy) to get them now.
+
 ## How you study
 
 The forest notices how you study, not just what you learn. Good days leave something

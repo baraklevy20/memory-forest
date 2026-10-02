@@ -38,11 +38,17 @@ def scenery(name: str) -> dict:
     sys.path.insert(0, ADDON)
     import catalog
     envs = catalog.entries("envs")
+    # every edition's presets, so the docs can show off Plus scenery wherever they go
+    shown = set()
+    for other in available().values():
+        keys = list(envs) if other["envs"] == ALL else [k for k in other["envs"] if k in envs]
+        shown |= {envs[k]["preset"].get("key", k) for k in keys if envs[k].get("preset")}
     wanted = spec(name)["envs"]
     if wanted == ALL:
         wanted = list(envs)
         return {**{kind: set(catalog.entries(kind)) for kind in SCENERY},
-                "presets": {envs[k]["preset"].get("key", k) for k in wanted if envs[k].get("preset")}}
+                "presets": {envs[k]["preset"].get("key", k) for k in wanted if envs[k].get("preset")},
+                "shown": shown}
     missing = set(wanted) - set(envs)
     if missing:
         raise SystemExit(f"edition {name!r} lists environments with no files: {', '.join(sorted(missing))}")
@@ -50,7 +56,8 @@ def scenery(name: str) -> dict:
     return {"envs": set(wanted),
             "landscapes": {p["landscape"] for p in presets.values()},
             "landmarks": {p.get("landmark", "none") for p in presets.values()},
-            "presets": {p.get("key", k) for k, p in presets.items()}}
+            "presets": {p.get("key", k) for k, p in presets.items()},
+            "shown": shown}
 
 
 def keeps(rel: str, keep: dict) -> bool:
@@ -58,9 +65,10 @@ def keeps(rel: str, keep: dict) -> bool:
     parts = rel.replace(os.sep, "/").split("/")
     if len(parts) == 3 and parts[0] == "web" and parts[1] in SCENERY:
         return os.path.splitext(parts[2])[0] in keep[parts[1]]
-    # a preset's animated preview (docs/animated/<preset>.gif) goes wherever the preset does
+    # a preset's animated preview (docs/animated/<preset>.gif) goes wherever any edition has
+    # the preset, so the public docs can show what Plus has now; only drafts stay behind
     if len(parts) == 3 and parts[:2] == ["docs", "animated"]:
-        return os.path.splitext(parts[2])[0] in keep["presets"]
+        return os.path.splitext(parts[2])[0] in keep["shown"]
     # and so do its pictures in the settings (settings/scenery/ and scenery_small/<preset>.png)
     if len(parts) == 3 and parts[0] == "settings" and parts[1] in ("scenery", "scenery_small"):
         return os.path.splitext(parts[2])[0] in keep["presets"]
