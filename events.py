@@ -48,6 +48,8 @@ def calm(level: str) -> bool:
 # how many days after a strike it is still news: the journal says so, the caption offers
 # to play it again, and it plays by itself if it hasn't been seen
 STRIKE_NEWS_DAYS = 7
+# a crater has healed away this many days after its strike (asteroid.js's CRATER_GONE)
+CRATER_GONE_DAYS = 400
 
 # Wild's fire: it breaks out on the FIRE_FROM-th day in a row without reviews, and each day
 # away from then on sets FIRE_PER_DAY of the forest burning, up to FIRE_MAX of it. It is out
@@ -127,21 +129,23 @@ def _streak_before(review_days: set, ago: int) -> int:
 
 def _wipe(trees: list, hits: list, review_days: set) -> tuple:
     """What strikes on the days in `hits` (oldest first) leave: each takes every tree
-    planted from the one before it up to its own day. Returns the latest crater (of the
-    strikes that took anything: its day, the trees it took, the streak it ended - the older
-    ones lie under the forest that grew since), with the trees it took (for replaying it),
-    and the trees still standing."""
-    latest, prev = None, None
+    planted from the one before it up to its own day. Returns the craters (one per strike
+    that took anything and hasn't healed away, see CRATER_GONE_DAYS: its day, the trees it
+    took, the streak it ended), oldest first, the latest of them with the trees it took (for
+    replaying it), and the trees still standing."""
+    craters, latest, prev = [], None, None
     for ago in hits:
         lost = [t for t in trees if t["ago"] >= ago and (prev is None or t["ago"] < prev)]
         prev = ago
         if lost:  # nothing had grown since the last one: no crater, nothing to replay
             latest = {"ago": ago, "lost": len(lost), "streak": _streak_before(review_days, ago), "before": lost}
+            if ago <= CRATER_GONE_DAYS:
+                craters.append({k: v for k, v in latest.items() if k != "before"})
     kept = [t for t in trees if not hits or t["ago"] < hits[-1]]
     if hits and kept and kept[0].get("gap"):
         # the break that struck is marked by its crater: no pond for it in the new forest
         kept[0] = {k: v for k, v in kept[0].items() if k != "gap"}
-    return latest, kept
+    return craters, latest, kept
 
 
 def merciless(trees: list, review_days: set, hold: frozenset = frozenset()) -> dict:
@@ -149,14 +153,14 @@ def merciless(trees: list, review_days: set, hold: frozenset = frozenset()) -> d
     forest starts again after the latest. Strikes on the days in `hold` don't come (yet:
     the review log may not be all there, another device's reviews still on their way).
 
-    Returns `trees` (only those planted since the last strike), `latest` (its crater, see
-    _wipe, or None) and `doom` (today, with no reviews yet after a day you studied: the
+    Returns `trees` (only those planted since the last strike), `craters` (every strike's
+    still to be seen, oldest first), `latest` (the last strike's crater, see _wipe, or None) and `doom` (today, with no reviews yet after a day you studied: the
     asteroid strikes when the day ends).
     """
     hits = [d for d in strikes(review_days) if d not in hold]
-    latest, kept = _wipe(trees, hits, review_days)
+    craters, latest, kept = _wipe(trees, hits, review_days)
     doom = {"missed": 1, "grace": 1, "left": 0} if 0 not in review_days and 1 in review_days else None
-    return {"hits": hits, "trees": kept, "latest": latest, "doom": doom}
+    return {"hits": hits, "trees": kept, "craters": craters, "latest": latest, "doom": doom}
 
 
 def fire_state(review_days: set) -> dict | None:

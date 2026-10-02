@@ -40,11 +40,19 @@ class EventTests(unittest.TestCase):
         days = set(range(0, 60)) - set(range(10, 30))  # twenty days off
         self.assertEqual(events.strikes(days), [29])
 
-    def test_only_the_latest_crater_shows_with_what_it_took(self):
+    def test_every_crater_shows_and_the_latest_with_what_it_took(self):
         days = set(range(0, 70)) - {31, 62}  # a month, a day off, a month, a day off
         out = events.merciless(self.trees(days), days)
         self.assertEqual(out["hits"], [62, 31])
+        self.assertEqual([(c["ago"], c["lost"]) for c in out["craters"]], [(62, 7), (31, 30)])  # oldest first
         self.assertEqual((out["latest"]["ago"], out["latest"]["lost"]), (31, 30))  # only what grew since the one before
+        self.assertNotIn("before", out["craters"][-1])  # what it took goes only with the latest
+
+    def test_a_healed_crater_is_gone(self):
+        old = events.CRATER_GONE_DAYS + 10
+        days = set(range(0, old + 20)) - {old, 5}
+        out = events.merciless(self.trees(days), days)
+        self.assertEqual([c["ago"] for c in out["craters"]], [5])
 
     def test_nothing_is_remembered_the_strikes_come_from_the_days_studied(self):
         days = set(range(0, 40)) - {10}

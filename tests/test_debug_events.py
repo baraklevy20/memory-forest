@@ -73,6 +73,12 @@ class DebugEventTests(unittest.TestCase):
         self.assertEqual((p["trees"], p["visitors"]), ([], []))  # the animals go with the forest
         self.assertEqual(state.load_state().get("strike_days"), None)  # the test forest remembers no strikes
 
+    def test_each_strike_on_the_timeline_leaves_its_own_crater(self):
+        p = self.passed("merciless", ("away", 1), ("study", 1), ("away", 1))
+        self.assertEqual([(c["ago"], c["lost"]) for c in p["craters"]], [(3, 40), (1, 1)])
+        self.assertEqual(len({c["spot"] for c in p["craters"]}), 2)  # each where its own day put it
+        self.assertEqual(p["strike"]["lost"], 1)  # the latest is the one to play
+
     def test_two_days_away_on_wild_start_a_fire_that_a_week_of_study_puts_out(self):
         p = self.passed("wild", ("away", 1))  # today is the second: not over yet, only smoke
         self.assertEqual((p["fire"]["trees"], p["fire"]["smoke"]), (0, 2))

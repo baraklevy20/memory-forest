@@ -50,9 +50,10 @@ def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
     if level == "merciless":
         out = events.merciless(trees, days)
         latest = out["latest"]
-        if latest:  # where it lands stays put as days pass: it is that day's
-            latest["spot"] = f"timeline-{today - latest['ago']}"
-            extras.update(strike_payload(latest, f"debug-{latest['spot']}-{len(base['trees'])}", ago_date))
+        if latest:  # where each lands stays put as days pass: it is that day's
+            for c in [*out["craters"], latest]:
+                c["spot"] = f"timeline-{today - c['ago']}"
+            extras.update(strike_payload(out, f"debug-{latest['spot']}-{len(base['trees'])}", ago_date))
         if out["hits"]:
             days = {d for d in days if d < out["hits"][-1]}
             reviews = len(days) * fake_forest.FAKE_TODAY_REVIEWS  # only a day's worth for each day since

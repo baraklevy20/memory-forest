@@ -70,20 +70,21 @@ def _nature_days(cfg: dict, forest: dict, changed=None) -> set:
 _strike: tuple = (None, None)
 
 
-def strike_payload(latest: dict, seen_key: str, date, playable: bool = True) -> dict:
-    """What the page needs to show the latest strike's crater and play it. It plays by
-    itself once, while it is news and hasn't been seen (and `playable`: not while the
-    settings dialog previews it); the journal speaks of it (`told`) until it has played,
-    and for the rest of that day. The forest it took comes along only to play by itself:
-    a replay asks for it (strike_before), as it is a second forest's worth of trees."""
+def strike_payload(out: dict, seen_key: str, date, playable: bool = True) -> dict:
+    """What the page needs to show the craters (events.merciless's `out`) and play the
+    latest strike. It plays by itself once, while it is news and hasn't been seen (and
+    `playable`: not while the settings dialog previews it); the journal speaks of it
+    (`told`) until it has played, and for the rest of that day. The forest it took comes
+    along only to play by itself: a replay asks for it (strike_before), as it is a second
+    forest's worth of trees."""
     global _strike
+    latest = out["latest"]
     _strike = (seen_key, latest)
     state = load_state()
     news = latest["ago"] <= events.STRIKE_NEWS_DAYS
     fresh = news and playable and state.get("strike_seen") != seen_key
     return {
-        "craters": [{"ago": latest["ago"], "lost": latest["lost"], "streak": latest["streak"], "date": date(latest["ago"]),
-                     **({"spot": latest["spot"]} if latest.get("spot") else {})}],
+        "craters": [dict(c, date=date(c["ago"])) for c in out["craters"]],
         "strike": {"date": date(latest["ago"]), "lost": latest["lost"], **(strike_before(seen_key) if fresh else {}),
                    "seen": seen_key, "fresh": fresh, "news": news,
                    "told": news and (fresh or state.get("strike_seen_day") == mw.col.sched.today)},
@@ -188,7 +189,7 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
         if level == "merciless":
             out = events.merciless(forest["trees"], nature_days, _held(nature_days))
             if out["latest"]:
-                extras.update(strike_payload(out["latest"], ago_date(out["latest"]["ago"]), ago_date, not is_open()))
+                extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date, not is_open()))
             if out["hits"]:
                 # the forest now: only what grew since, its streak, reviews and animals counted
                 # from there - the animals have to be earned again, as the trees do
