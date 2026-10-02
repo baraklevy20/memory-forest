@@ -24,6 +24,7 @@ from aqt.qt import (
 PATREON = "https://www.patreon.com/BarakLevy"
 PLUS_PACKAGE = "memory_forest_plus"
 HERE = os.path.dirname(os.path.abspath(__file__))
+ADDON_DIR = os.path.dirname(HERE)
 # pixel art: a full-grown tree from the forest's own engine (15x16) at the left of the button
 # or the thank-you, and a coral heart (7x7) in the heading or the thank-you; each pixel is drawn as a square this many points wide
 TREE = os.path.join(HERE, "patreon_tree.png")
@@ -45,14 +46,19 @@ QPushButton:hover { background: rgba(128, 128, 128, 0.25); }
 """
 
 
+def manifest() -> dict:
+    """The add-on's manifest.json, or nothing if it can't be read."""
+    try:
+        with open(os.path.join(ADDON_DIR, "manifest.json"), encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def is_plus() -> bool:
     """Whether this copy is Memory Forest Plus: each edition's build writes its own package into manifest.json."""
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "manifest.json")
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f).get("package") == PLUS_PACKAGE
-    except (OSError, ValueError):
-        return False
+    return manifest().get("package") == PLUS_PACKAGE
 
 
 def pixel_art(path: str) -> tuple:

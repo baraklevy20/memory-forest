@@ -184,6 +184,38 @@ def load_deck_days(db, day_cutoff: int, dids: list, suspended: bool = False, ski
     return {int(row[0]) for row in rows if row[0] is not None and row[0] >= 0}
 
 
+def load_tree_days(db, day_cutoff: int, skip: Iterable | None = None) -> dict:
+    """Every tree each deck holds, for the settings to count without building a forest:
+    {home deck: {ago: True if a card first studied that day is not suspended}}.
+
+    A card belongs to its home deck (a filtered deck only borrows it) and is dated as
+    build_forest dates it: by its first review, or its id if it has none. The `skip` cards
+    hold no tree. One query; tree_days does the counting for any choice of decks, start
+    and suspended cards.
+    """
+    not_skipped, _only = _filters(None, None, skip)
+    out: dict = {}
+    for did, ago, active in db.all(
+            "select coalesce(nullif(c.odid, 0), c.did), (? - 1 - coalesce((select min(r.id) from revlog r "
+            f"where r.cid = c.id and r.ease > 0 and r.type in {STUDY_TYPES}), c.id) / 1000) / {DAY_SECS}, "
+            f"max(c.queue != -1) from cards c where c.type != 0{not_skipped} group by 1, 2", day_cutoff):
+        if ago is not None and ago >= 0:
+            out.setdefault(did, {})[int(ago)] = bool(active)
+    return out
+
+
+def tree_days(days: dict, dids: Iterable, since_ago: int | None = None, suspended: bool = True) -> set:
+    """The trees (as `ago`) the decks `dids` grow together, from load_tree_days' answer:
+    none older than `since_ago` days, and none made only of suspended cards unless the
+    forest keeps them (`suspended`)."""
+    out = set()
+    for did in dids:
+        for ago, active in days.get(did, {}).items():
+            if (suspended or active) and (since_ago is None or ago <= since_ago):
+                out.add(ago)
+    return out
+
+
 def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended: bool = False) -> list:
     """Anki search terms for the cards a tree (or the deep forest) holds.
 

@@ -9,10 +9,10 @@ A preset pins its own weather and hour. "Follow the real weather and time" sets 
 to Automatic instead, and the preset still counts as chosen. Surprise me daily sets all
 five to `daily`, which takes them from a different preset each day, in turn.
 
-A seasonal preset (a `season` in its JSON) stays out of sight until the first day of its
-week in the year it arrives, and from then on is there like any other. Each year, on the
-first day of its week, everyone's forest changes to it once; the day after, the forest goes
-back to what it was, unless it was changed in the meantime (see `follow_season`).
+A seasonal preset (a `season` in its JSON) is there for its week only, from the year it
+arrives. Each year, on the first day of its week, everyone's forest changes to it once - the
+surprise comes first, and only then can it be picked by hand; the day after the week, it is
+gone again, and the forest goes back to what it was (see `follow_season`).
 
 Nothing here imports aqt, so it also runs in the tests and the dev scripts.
 """
@@ -94,8 +94,12 @@ def by_key(presets=FOREST_PRESETS) -> dict:
 
 
 def unlocked(preset: Preset, date) -> bool:
-    """Whether a preset is out yet: a seasonal one waits for the first day of its first week."""
-    return not preset.season or date >= preset.season[0]
+    """Whether a preset can be had on `date`: a seasonal one only in its week, from the year
+    it arrives."""
+    if not preset.season:
+        return True
+    first, starts, ends = preset.season
+    return date >= first and starts <= (date.month, date.day) <= ends
 
 
 def available(date, presets=FOREST_PRESETS) -> tuple:
@@ -104,14 +108,16 @@ def available(date, presets=FOREST_PRESETS) -> tuple:
 
 
 def hidden_environments(date, presets=FOREST_PRESETS) -> set:
-    """The environments only a preset still waiting for its season uses: not to be offered yet."""
+    """The environments only a seasonal preset out of its week uses: not to be offered."""
     return {p.environment for p in presets if not unlocked(p, date)} - {p.environment for p in available(date, presets)}
 
 
 def of_the_day(date, presets=FOREST_PRESETS) -> Preset:
     """Today's preset for Surprise me daily: they take turns, one a day, so a new one
-    comes every day and each comes round again after as many days as there are."""
-    turn = [p for p in available(date, presets) if p.environment != DAILY]
+    comes every day and each comes round again after as many days as there are. Seasonal
+    presets stay out of the turns: their week brings them to everyone anyway, and coming
+    and going they would change how many there are, and so repeat a day's preset."""
+    turn = [p for p in available(date, presets) if p.environment != DAILY and not p.season]
     return turn[date.toordinal() % len(turn)]
 
 
@@ -145,7 +151,8 @@ def follow_season(cfg: dict, record: dict | None, date, presets=FOREST_PRESETS) 
     On the first day of a seasonal preset's week (or the first day the forest is drawn in
     it) the forest changes to that preset, once a year: changing it back during the week is
     respected. Once the week is over, the settings from before come back - unless they were
-    changed in the meantime, when whatever was chosen stays. The record holds the week in
+    changed in the meantime, when whatever was chosen stays, as long as it is not the
+    seasonal scenery itself, which is gone with its week. The record holds the week in
     progress (`active`: its tag, the settings before and after) and the weeks already had."""
     record = record if isinstance(record, dict) else {}
     done, active = list(record.get("done") or []), record.get("active")
@@ -153,12 +160,16 @@ def follow_season(cfg: dict, record: dict | None, date, presets=FOREST_PRESETS) 
     now = in_season(date, presets)
     tag = f"{now.key}:{date.year}" if now else None
     change = {}
+    gone = hidden_environments(date, presets)
     if isinstance(active, dict) and active.get("tag") != tag:
-        if look == active.get("applied"):  # untouched since: put back what was there
+        # untouched since, or still in the scenery that has gone: put back what was there
+        if look == active.get("applied") or look.get("environment") in gone:
             change = dict(active.get("before") or {})
         if _before_its_week(active.get("tag"), date, presets):  # the clock went back: it hasn't happened yet
             done = [t for t in done if t != active.get("tag")]
         active = None
+    elif look.get("environment") in gone:  # left in a seasonal scenery with no week to go back from
+        change = apply(presets[0].key, look, presets)
     if now and tag not in done:
         before = change or look
         change = apply(now.key, before, presets)
@@ -186,6 +197,19 @@ def match(cfg: dict, presets=FOREST_PRESETS) -> str:
         if all(cfg.get(k) == values[k] for k in keys):
             return p.key
     return CUSTOM
+
+
+def nearest(cfg: dict, presets=FOREST_PRESETS) -> tuple:
+    """(the preset these settings start from; the settings that differ from it). That is
+    the preset of their environment, as each preset has its own: changing the landscape or
+    the landmark makes a mix of that scenery, never another scenery. Settings whose
+    environment no preset on offer has go by the most settings shared (the first in the
+    catalogue winning a tie). Like `match`, following the real sky leaves weather and time
+    out, so they never count as a difference."""
+    keys = [k for k in LOOK if not (follows_real_sky(cfg) and k in SKY)]
+    own = [p for p in presets if p.environment == cfg.get("environment")]
+    best = own[0] if own else max(presets, key=lambda p: sum(cfg.get(k) == p.values()[k] for k in keys))
+    return best, [k for k in keys if cfg.get(k) != best.values()[k]]
 
 
 def options(presets=FOREST_PRESETS) -> list:

@@ -11,11 +11,14 @@ from aqt import mw
 
 from .catalog import SCRIPTS
 from .payload import payload
-from .state import MODULE, config, excluded_decks, log
+from .state import MODULE, config, excluded_decks, log, shows_on_deck_list
 
 WEB = f"/_addons/{MODULE}/web"
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 BOOT = "forest.js"  # mounts straight away, so it goes last of all
+# the panel and its data are named after this add-on's folder, so a second copy of it
+# (the public edition installed beside this one) draws its own forest, not over this one
+ROOT = f"memory-forest-{MODULE}"
 
 
 def _url(rel: str) -> str:
@@ -44,11 +47,8 @@ def _panel_parts(did: int | None = None, highlight: bool = False) -> tuple:
     parts = [_part("envs", mood["special"]), _part("landscapes", mood["landscape"]),
              _part("landmarks", mood["landmark"])]
     srcs = [_url(s) for s in SCRIPTS] + [_url(rel) for rel in parts if rel] + [_url(BOOT)]
-    # the panel and its data are named after this add-on's folder, so a second copy of it
-    # (the public edition installed beside this one) draws its own forest, not over this one
-    root = f"memory-forest-{MODULE}"
     srcs.pop()  # the boot script: the page adds it last, and a swap has no need of it
-    return root, data, srcs
+    return ROOT, data, srcs
 
 
 def _panel_html(did: int | None = None, highlight: bool = False) -> str:
@@ -64,6 +64,8 @@ def _panel_html(did: int | None = None, highlight: bool = False) -> str:
 
 
 def on_deck_browser(deck_browser, content) -> None:
+    if not shows_on_deck_list():  # switched off: only the deck screens have one
+        return
     try:
         # content.tree renders inside a <table>, so a block there would be hoisted above
         # the decks; the start of the stats section sits directly below the deck list.
@@ -102,7 +104,11 @@ def refresh() -> None:
     if mw.col is None:  # still starting up, or between profiles
         return
     if mw.state == "deckBrowser":
-        _swap_or_reload(mw.deckBrowser.web, mw.deckBrowser.refresh)
+        if shows_on_deck_list():
+            _swap_or_reload(mw.deckBrowser.web, mw.deckBrowser.refresh)
+        else:  # a forest just switched off is still on the page: draw the list again without it
+            js = f"!!document.getElementById({json.dumps(ROOT)})"
+            mw.deckBrowser.web.evalWithCallback(js, lambda there: mw.deckBrowser.refresh() if there else None)
     elif mw.state == "overview":
         mode = config().get("deck_forest_mode", "highlight")
         deck = mw.col.decks.current()

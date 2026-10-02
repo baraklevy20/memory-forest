@@ -44,6 +44,26 @@ class PanelTests(unittest.TestCase):
         self.assertTrue(content.stats.startswith('<link rel="stylesheet"'))
         self.assertTrue(content.stats.endswith("<p>stats</p>"))
 
+    def test_the_deck_list_can_go_without_a_forest(self):
+        reset(CARDS, {"main_forest": False})
+        content = types.SimpleNamespace(stats="<p>stats</p>")
+        panel.on_deck_browser(None, content)
+        self.assertEqual(content.stats, "<p>stats</p>")
+        # a deck's own screen still has one
+        reset(CARDS, {"main_forest": False}, current_deck=10)
+        content = types.SimpleNamespace(table="")
+        panel.on_overview(None, content)
+        self.assertTrue(content.table)
+
+    def test_switching_the_deck_list_forest_off_takes_it_away_at_once(self):
+        reset(CARDS, {"main_forest": False})
+        web = Web()
+        mw.deckBrowser = types.SimpleNamespace(web=web, refresh=lambda: setattr(web, "reloads", web.reloads + 1))
+        panel.refresh()
+        # the forest still on the page: the list is drawn again without it, not swapped
+        self.assertNotIn("afSwap", web.evaluated[0])
+        self.assertEqual(web.reloads, 1)
+
     def test_a_deck_screen_follows_the_deck_screens_setting(self):
         for mode, deck, shown in (("highlight", 10, True), ("own", 10, True), ("off", 10, False),
                                   ("highlight", 30, False)):  # 30 is filtered: it borrows cards, so no forest

@@ -1,96 +1,202 @@
 """The General tab: the settings most people ever touch - a preset, the real sky,
-animation and the planting message."""
+Nature, and a few extras - in three groups, with the help kept short."""
 
 from __future__ import annotations
 
-from aqt.qt import QCheckBox, QFormLayout, QLineEdit, QWidget
+import os
+
+from aqt import colors
+from aqt.qt import (
+    QButtonGroup,
+    QCheckBox,
+    QHBoxLayout,
+    QIcon,
+    QLineEdit,
+    QPushButton,
+    QRect,
+    QSize,
+    QSizePolicy,
+    Qt,
+    QVBoxLayout,
+    QWidget,
+)
+from aqt.theme import theme_manager
 
 from .. import presets
-from ..events import NATURE_LABELS, NATURE_NOTES, nature_level
+from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
 from ..state import OFF_VALUES, today
 from .patreon import banner
-from .widgets import combo, hint, set_options, set_quietly
+from .scenery_picker import SceneryBox, crisp
+from .widgets import group, grow_window, hint, set_options, set_quietly
 
-NATURE_OPTIONS = list(NATURE_LABELS.items())
+NATURE_ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nature")
+NATURE_ICON = 16  # points: the icons' own pixels, one a point
+NATURE_GAP = 8
+NATURE_STYLE = """
+QPushButton {{ border: 1px solid {line}; border-radius: 7px; padding: 6px 10px; font-size: 13px;
+              background: rgba(128, 128, 128, 0.10); }}
+QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
+QPushButton:checked {{ border: 2px solid {ring}; padding: 5px 9px; background: rgba(128, 128, 128, 0.16); font-weight: bold; }}
+"""
+CITY_NOTE = "Live weather from Open-Meteo. Leave it empty to follow only your clock."
+PHONE_NOTE = 'Adds a "Memory Forest" deck with one card that shows your forest. It updates when you sync. Untick to remove it.'
+CITY_MIN_W = 120  # points: the city field takes the rest of the real-sky row, but never less
 
 
 def preset_options(day, chosen: str | None) -> list:
-    """The presets to offer on `day`: not a seasonal one before its first week, unless
-    it is the one the settings already are (as the Fine-tuning tab keeps its environment)."""
+    """The presets to offer on `day`: a seasonal one only in its week, unless it is the one
+    the settings already are (as the Fine-tuning tab keeps its environment)."""
     return presets.options(tuple(p for p in presets.FOREST_PRESETS if presets.unlocked(p, day) or p.key == chosen))
+
+
+class NatureChoice(QWidget):
+    """The three Nature levels side by side, each with its icon (drawn by dev/nature_icons.py),
+    the chosen one ringed as a focused field is in Anki."""
+
+    def __init__(self, level: str):
+        super().__init__()
+        self.group = QButtonGroup(self)
+        self.buttons = {}
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(NATURE_GAP)
+        var = theme_manager.var
+        style = NATURE_STYLE.format(line=var(colors.BORDER_SUBTLE), ring=var(colors.BORDER_FOCUS))
+        for key, label in NATURE_LABELS.items():
+            b = QPushButton(QIcon(crisp(os.path.join(NATURE_ICONS, f"{key}.png"))), f" {label}")
+            b.setIconSize(QSize(NATURE_ICON, NATURE_ICON))
+            b.setAutoDefault(False)  # Enter in the dialog means Done
+            b.setCheckable(True)
+            b.setChecked(key == level)
+            b.setCursor(Qt.CursorShape.PointingHandCursor)
+            b.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            b.setStyleSheet(style)
+            self.group.addButton(b)
+            self.buttons[key] = b
+            row.addWidget(b)
+
+    def currentData(self) -> str:
+        return next(k for k, b in self.buttons.items() if b.isChecked())
+
+    def on_change(self, changed) -> None:
+        self.group.buttonToggled.connect(lambda _b, on: on and changed())
 
 
 class GeneralTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
-        # a seasonal preset is not offered before its first week
-        self.preset = combo(preset_options(today(cfg), presets.match(cfg)), presets.match(cfg))
-        self.preset_note = hint("")
+        # a seasonal preset is only offered in its week
+        self.preset = SceneryBox()
+        set_options(self.preset, preset_options(today(cfg), presets.match(cfg)))
+        set_quietly(self.preset, presets.match(cfg))
         self.real_sky = QCheckBox("Follow the real weather and time of day")
         self.real_sky.setChecked(presets.follows_real_sky(cfg))
         self.city = QLineEdit(cfg.get("city", ""))
         self.city.setPlaceholderText("Your city, e.g. Berlin")
-        self.animations = QCheckBox("Animate the forest (clouds, rain, animals)")
+        self.city.setMinimumWidth(CITY_MIN_W)
+        self.animations = QCheckBox("Animate the forest")
         self.animations.setChecked(cfg.get("animations", True) not in OFF_VALUES)
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
         self.phone = QCheckBox("Show my forest on my phone")
         self.phone.setChecked(cfg.get("phone_forest", False) not in OFF_VALUES)
-        self.nature = combo(NATURE_OPTIONS, nature_level(cfg.get("nature")), nature_level(None))
+        self.nature = NatureChoice(nature_level(cfg.get("nature")))
         self.nature_note = hint("")
-        lf = self.form = QFormLayout(self)
-        lf.addRow(banner())
-        lf.addRow("Scenery", self.preset)
-        lf.addRow("", self.preset_note)
-        lf.addRow("", self.real_sky)
-        lf.addRow("City", self.city)
+        self.nature_note.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (its room fits the longest level)
         self.city_status = hint("")
         self.city_status.setStyleSheet("color: #c0392b; font-size: 11px;")
-        lf.addRow("", self.city_status)
-        lf.addRow("", hint("Live weather for your city, from Open-Meteo. Without a city, only the "
-                           "time of day follows your clock; the weather stays the scenery's."))
-        lf.addRow("Nature", self.nature)
-        lf.addRow("", self.nature_note)
-        lf.addRow("", self.animations)
-        lf.addRow("", self.planting)
-        lf.addRow("", self.phone)
-        lf.addRow("", hint("Adds a \"Memory Forest\" deck with one card that draws your forest in AnkiDroid; "
-                           "study the deck to see it. The forest comes from this computer: "
-                           "it updates each time Anki syncs here, so reviews done on your phone show up "
-                           "after this computer syncs them in. Turning this off removes the deck again."))
+        self.city_note = hint(CITY_NOTE)
+        # it keeps its room while the weather isn't live, so ticking the box never grows the tab
+        policy = self.city_note.sizePolicy()
+        policy.setRetainSizeWhenHidden(True)
+        self.city_note.setSizePolicy(policy)
+        # the scenery's card (the group's title names it) and its sky, the city after the real
+        # sky's box on its row; the city and its help only show while the weather is live.
+        # Plain rows rather than a form: a form squeezes its rows around wrapped hints in a group
+        sv = QVBoxLayout()
+        sv.addWidget(self.preset)
+        sky = QHBoxLayout()
+        sky.addWidget(self.real_sky)
+        sky.addWidget(self.city, 1)
+        sv.addLayout(sky)
+        sv.addWidget(self.city_status)
+        sv.addWidget(self.city_note)
+        nv = QVBoxLayout()
+        nv.addWidget(self.nature)
+        nv.addWidget(self.nature_note)
+        ev = QVBoxLayout()
+        for box in (self.animations, self.planting, self.phone):
+            ev.addWidget(box)
+        ev.addWidget(hint(PHONE_NOTE))
+        v = QVBoxLayout(self)
+        v.addWidget(banner())
+        v.addWidget(group("Scenery", sv))
+        v.addWidget(group("Nature", nv))
+        v.addWidget(group("Extras", ev))
+        v.addStretch(1)
 
     def offer(self, day, look: dict) -> None:
         """The presets there are on `day` (a seasonal one comes out on its first day)."""
         set_options(self.preset, preset_options(day, presets.match(look)))
 
+    def scenery_choices(self) -> list:
+        """The presets the Scenery box offers just now, for its picker (Custom isn't one)."""
+        return [self.preset.itemData(i) for i in range(self.preset.count()) if self.preset.itemData(i) != presets.CUSTOM]
+
     def connect(self, changed) -> None:
         for box in (self.animations, self.planting, self.phone):
             box.toggled.connect(changed)
         self.city.editingFinished.connect(changed)
-        self.nature.currentIndexChanged.connect(changed)
+        self.nature.on_change(changed)
 
     def sync(self, look: dict) -> None:
-        """The preset, its note, the real-sky box and the city, in line with the five
+        """The preset's card, the real-sky box and the city, in line with the five
         settings a preset stands for, whichever tab they were changed on."""
         key = presets.match(look)
         set_quietly(self.preset, key)
-        spec = presets.by_key().get(key)
-        self.preset_note.setText(spec.note if spec else "Your own mix, from the Fine-tuning tab. Choose any scenery above to start from it.")
+        self.preset.mixed_from = presets.nearest(look)[0].key if key == presets.CUSTOM else None
+        self.preset.update()  # (its description is drawn from the preset, not set)
         self.real_sky.blockSignals(True)
         self.real_sky.setChecked(presets.follows_real_sky(look))
         self.real_sky.blockSignals(False)
-        self.city.setEnabled(look["weather"] == "auto")
         # the last lookup of this city, if it went wrong
         problem = city_problem(self.city.text()) if look["weather"] == "auto" else ""
         self.city_status.setText("" if not problem else
                                  "Couldn't find this city. Check the spelling, or try its English name." if problem.startswith("city not found")
                                  else "Couldn't reach the weather service; trying again soon.")
-        if hasattr(self.form, "setRowVisible"):  # Qt 6.4+: the row takes no space while hidden
-            self.form.setRowVisible(self.city_status, bool(problem))
-        else:
-            self.city_status.setVisible(bool(problem))
-        self.nature_note.setText(NATURE_NOTES.get(self.nature.currentData(), ""))
+        live = look["weather"] == "auto"
+        self.city.setVisible(live)
+        self.city_note.setVisible(live)
+        self.city_status.setVisible(bool(problem))
+        level = self.nature.currentData()
+        note = NATURE_NOTES.get(level, "")
+        self.nature_note.setText(note if calm(level) else f"{note} {NATURE_SWITCH_NOTE}")
+        self._fit()
+
+    def _fit(self) -> None:
+        """Nature's line asks for room for its longest level from the start, so picking another
+        never makes the dialog grow."""
+        width = self.nature_note.width()
+        if width > 0:
+            metrics = self.nature_note.fontMetrics()
+            texts = [n if calm(k) else f"{n} {NATURE_SWITCH_NOTE}" for k, n in NATURE_NOTES.items()]
+            tallest = max(metrics.boundingRect(QRect(0, 0, width, 10000), Qt.TextFlag.TextWordWrap, t).height() for t in texts)
+            self.nature_note.setMinimumHeight(tallest)
+        grow_window(self)
+
+    def minimumSizeHint(self) -> QSize:
+        """At least the height the wrapped help needs at the tab's width. A dialog goes by its
+        contents' plain size hints, which leave too little room for wrapped text, and the rows
+        are then squeezed (the gap under the scenery card first). Qt asks again whenever
+        anything in the tab changes, so the dialog's minimum always keeps up."""
+        hint = super().minimumSizeHint()
+        width = self.width() if self.width() > 0 else hint.width()
+        return QSize(hint.width(), max(hint.height(), self.heightForWidth(max(width, hint.width()))))
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self._fit()
 
     def values(self) -> dict:
         return {

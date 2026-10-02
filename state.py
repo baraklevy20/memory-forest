@@ -211,6 +211,12 @@ def keeps_suspended(cfg: dict | None = None) -> bool:
     return (cfg if cfg is not None else config()).get("keep_suspended", True) not in OFF_VALUES
 
 
+def shows_on_deck_list(cfg: dict | None = None) -> bool:
+    """Whether the forest is drawn on the deck list (it is unless switched off); a deck's
+    own screen goes by the Deck screens setting instead."""
+    return (cfg if cfg is not None else config()).get("main_forest", True) not in OFF_VALUES
+
+
 def deck_ids(did: int, excluded: set) -> list:
     """A deck and its subdecks, less those left out of the forest."""
     return [d for d in mw.col.decks.deck_and_child_ids(did) if d not in excluded]

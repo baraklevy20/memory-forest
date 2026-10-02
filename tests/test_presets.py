@@ -33,6 +33,14 @@ class PresetTests(unittest.TestCase):
             self.assertEqual(presets.match(real), p.key)
             self.assertEqual(presets.apply(p.key, real), real)
 
+    def test_every_preset_has_its_pictures_for_the_picker_and_the_card(self):
+        # drawn by dev/thumbnails.py (npm run thumbs): run it for a new preset. Surprise me
+        # daily's are mosaics of others', made as they are shown
+        settings = os.path.join(os.path.dirname(presets.__file__), "settings")
+        missing = [f"{p.key} ({folder})" for folder in ("scenery", "scenery_small") for p in presets.FOREST_PRESETS
+                   if p.key != presets.DAILY and not os.path.exists(os.path.join(settings, folder, f"{p.key}.png"))]
+        self.assertEqual(missing, [], "run npm run thumbs for " + ", ".join(missing))
+
     def test_every_environment_is_reachable_from_a_preset(self):
         # an environment no preset offers is one most people will never see
         used = {p.environment for p in presets.FOREST_PRESETS}
@@ -54,6 +62,24 @@ class PresetTests(unittest.TestCase):
     def test_settings_that_match_nothing_are_custom(self):
         odd = dict(presets.FOREST_PRESETS[1].values(), weather="storm", time_of_day="night")
         self.assertEqual(presets.match(odd), presets.CUSTOM)
+
+    def test_a_mix_starts_from_its_environments_preset(self):
+        a, b = presets.FOREST_PRESETS[0], presets.FOREST_PRESETS[1]
+        # a preset itself, with nothing changed
+        self.assertEqual(presets.nearest(b.values()), (b, []))
+        # one setting from another preset: still the first, with that one setting to put back
+        landmark = next(p.landmark for p in presets.FOREST_PRESETS if p.landmark != b.landmark)
+        mix = dict(b.values(), landmark=landmark)
+        self.assertEqual(presets.nearest(mix), (b, ["landmark"]))
+        # following the real sky is never a difference
+        self.assertEqual(presets.nearest(dict(mix, weather="auto", time_of_day="auto")), (b, ["landmark"]))
+        # its own environment decides, however many other settings another scenery shares
+        other = next(p for p in presets.FOREST_PRESETS[2:] if p.environment != b.environment and p.landscape != b.landscape)
+        borrowed = dict(b.values(), landscape=other.landscape, landmark=other.landmark, weather=other.weather, time_of_day=other.time)
+        self.assertEqual(presets.nearest(borrowed)[0], b)
+        # nothing in common with any: the first in the catalogue, all five differing
+        odd = dict.fromkeys(presets.LOOK, "nothing")
+        self.assertEqual(presets.nearest(odd), (a, list(presets.LOOK)))
 
     def test_a_preset_round_trips_through_match(self):
         for p in presets.FOREST_PRESETS:
@@ -100,8 +126,8 @@ CATALOGUE = (PLAIN, OTHER, HARVEST)
 
 
 class SeasonTests(unittest.TestCase):
-    """A seasonal preset hides until its first week, then the forest changes to it once
-    in its week each year, and goes back after unless it was changed in the meantime."""
+    """A seasonal preset is there in its week only, from its first year; the forest changes
+    to it once in that week, and goes back after unless something else was chosen."""
 
     def run_days(self, cfg: dict, days: list, record: dict | None = None) -> tuple:
         for day in days:
@@ -109,12 +135,21 @@ class SeasonTests(unittest.TestCase):
             cfg = dict(cfg, **change)
         return cfg, record
 
-    def test_a_seasonal_preset_hides_until_its_first_week(self):
+    def test_a_seasonal_preset_is_there_in_its_week_only(self):
         self.assertNotIn(HARVEST, presets.available(D(2026, 10, 23), CATALOGUE))
         self.assertEqual(presets.hidden_environments(D(2026, 10, 23), CATALOGUE), {"harvest"})
         self.assertIn(HARVEST, presets.available(D(2026, 10, 24), CATALOGUE))
-        self.assertIn(HARVEST, presets.available(D(2027, 3, 1), CATALOGUE))  # and stays out of season
-        self.assertEqual(presets.hidden_environments(D(2026, 12, 1), CATALOGUE), set())
+        self.assertIn(HARVEST, presets.available(D(2026, 10, 31), CATALOGUE))
+        self.assertNotIn(HARVEST, presets.available(D(2026, 11, 1), CATALOGUE))  # gone with its week
+        self.assertEqual(presets.hidden_environments(D(2027, 3, 1), CATALOGUE), {"harvest"})
+        self.assertIn(HARVEST, presets.available(D(2027, 10, 24), CATALOGUE))  # and back next year
+        self.assertNotIn(HARVEST, presets.available(D(2025, 10, 24), CATALOGUE))  # but not before it arrives
+
+    def test_surprise_me_never_repeats_a_day_round_its_week(self):
+        days = [D(2026, 10, 1) + datetime.timedelta(days=n) for n in range(60)]
+        picks = [presets.of_the_day(day, CATALOGUE) for day in days]
+        self.assertNotIn(HARVEST, picks)
+        self.assertTrue(all(a is not b for a, b in zip(picks, picks[1:])))
 
     def test_surprise_me_never_picks_it_early(self):
         for n in range(60):
@@ -148,6 +183,22 @@ class SeasonTests(unittest.TestCase):
         # and whatever was chosen stays once the week is over
         after, _ = self.run_days(later, [D(2026, 11, 1)], record)
         self.assertEqual(after, chosen)
+
+    def test_picked_again_by_hand_it_still_goes_with_its_week(self):
+        _, record = self.run_days(PLAIN.values(), [D(2026, 10, 24)])
+        _, record = self.run_days(OTHER.values(), [D(2026, 10, 25)], record)
+        # picked again, with a landscape of its own: no longer what the week applied
+        again = dict(HARVEST.values(), landscape="lake")
+        after, record = self.run_days(again, [D(2026, 10, 27), D(2026, 11, 1)], record)
+        self.assertEqual(after, PLAIN.values())
+        self.assertIsNone(record["active"])
+
+    def test_a_forest_left_in_it_with_no_week_to_go_back_from_gets_the_first_preset(self):
+        after, _ = self.run_days(HARVEST.values(), [D(2026, 12, 1)])
+        self.assertEqual(presets.match(after, CATALOGUE), PLAIN.key)
+        real = dict(HARVEST.values(), weather="auto", time_of_day="auto")
+        after, _ = self.run_days(real, [D(2026, 12, 1)])
+        self.assertEqual((presets.match(after, CATALOGUE), after["weather"]), (PLAIN.key, "auto"))
 
     def test_a_clock_put_back_before_its_week_lets_it_happen_again(self):
         # a debug date typed a digit at a time can pass through the week on its way elsewhere

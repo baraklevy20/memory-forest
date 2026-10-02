@@ -61,6 +61,9 @@ def keeps(rel: str, keep: dict) -> bool:
     # a preset's animated preview (docs/animated/<preset>.gif) goes wherever the preset does
     if len(parts) == 3 and parts[:2] == ["docs", "animated"]:
         return os.path.splitext(parts[2])[0] in keep["presets"]
+    # and so do its pictures in the settings (settings/scenery/ and scenery_small/<preset>.png)
+    if len(parts) == 3 and parts[0] == "settings" and parts[1] in ("scenery", "scenery_small"):
+        return os.path.splitext(parts[2])[0] in keep["presets"]
     return True
 
 

@@ -14,6 +14,7 @@ from .debug import DebugTab
 from .fine_tuning import FineTuningTab
 from .general import GeneralTab
 from .history import HistoryTab
+from .scenery_picker import SceneryPicker
 
 DIALOG_MIN_WIDTH = 460
 # the Debug tab's timeline buttons need more room than the dialog's usual width
@@ -65,12 +66,17 @@ class SettingsDialog(QDialog):
         self._debounce = QTimer(self); self._debounce.setSingleShot(True); self._debounce.setInterval(APPLY_DEBOUNCE_MS)
         self._debounce.timeout.connect(self.apply)
         self.general.preset.currentIndexChanged.connect(self._preset_chosen)
+        self.general.preset.open_picker = self._open_picker
         self.general.real_sky.toggled.connect(self._real_sky_toggled)
         for tab in (self.general, self.fine, self.history, self.debug):
             tab.connect(self._changed)
         self.general.city.editingFinished.connect(lambda: QTimer.singleShot(CITY_RECHECK_MS, self._sync))
         self._reverting = True  # Cancel and shutdown put the old config back; Restore defaults must not
         self._sync()
+        # lay the tabs out once before the dialog is first shown, so the General tab can measure
+        # the room its longest help needs, and the dialog opens that big
+        self.layout().activate()
+        self.adjustSize()
 
     def _preset_chosen(self, *_args) -> None:
         """Picking a preset fills the five settings it stands for, on the Fine-tuning tab."""
@@ -78,6 +84,20 @@ class SettingsDialog(QDialog):
         if key != presets.CUSTOM:
             self.fine.set_look(presets.apply(key, self.fine.look()))
         self._changed()
+
+    def _open_picker(self) -> None:
+        """The scenery picker; what it picks is chosen in the Scenery box, which fills in the
+        five settings as choosing from a list would."""
+        box = self.general.preset
+        picker = SceneryPicker(self, self.general.scenery_choices(), box.currentData(), self._day())
+        if picker.exec() == QDialog.DialogCode.Accepted:
+            i = box.findData(picker.current)
+            if i >= 0:
+                box.setCurrentIndex(i)
+
+    def _day(self):
+        """The day the scenery is chosen for (the debug date may have moved it)."""
+        return today(dict(self._current(), **self.debug.values()))
 
     def _real_sky_toggled(self, on: bool) -> None:
         """The real sky sets weather and time to Automatic; turning it off gives the
@@ -92,10 +112,11 @@ class SettingsDialog(QDialog):
     def _sync(self) -> None:
         """Put every tab back in line with the others: the General tab's preset follows the
         five settings on Fine-tuning, whichever tab they were changed on."""
-        day = today(dict(self._current(), **self.debug.values()))  # the debug date may have moved
+        day = self._day()
         self.general.offer(day, self.fine.look())
         self.fine.offer(day)
         self.general.sync(self.fine.look())
+        self.fine.sync()
         self.history.sync()
         self.debug.sync()
 

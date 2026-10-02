@@ -116,6 +116,18 @@ def date_field(display_format: str) -> QDateEdit:
     return box
 
 
+def grow_window(widget: QWidget) -> None:
+    """Grow the window `widget` is in if it now needs more room than it has. A window already
+    up doesn't grow by itself when something inside it asks for more height (a tab whose
+    help text got longer), and its layout then takes the room out of the gaps between rows."""
+    win = widget.window()
+    if win is widget or not win.isVisible():
+        return
+    need = win.minimumSizeHint().height()
+    if win.height() < need:
+        win.resize(win.width(), need)
+
+
 def hint(text: str) -> QLabel:
     label = QLabel(text)
     label.setWordWrap(True)

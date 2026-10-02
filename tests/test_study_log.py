@@ -143,6 +143,50 @@ class HistoryFilterTests(unittest.TestCase):
         self.assertEqual(study_log.day_start(today - dt.timedelta(days=3), CUTOFF), CUTOFF - 4 * DAY)
 
 
+class TreeCountTests(unittest.TestCase):
+    """The History tab's tree counts: one query, then the same trees the forest would grow
+    for any choice of decks, start date and suspended cards."""
+
+    def setUp(self):
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        con.executescript("""
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
+            create table revlog (id integer, cid integer, ease integer, type integer);
+            create table notes (id integer, tags text);
+        """)
+        # cid, current deck, home deck, type, queue (-1 suspended), the days it was reviewed on
+        for cid, did, odid, ctype, queue, days in (
+                (1, 10, 0, 2, 2, (9, 2)), (2, 20, 0, 2, 2, (5,)), (3, 99, 20, 2, 2, (6,)),
+                (4, 10, 0, 2, -1, (3, 1)), (5, 10, 0, 2, 2, (3,)), (6, 20, 0, 2, -1, (7,)),
+                (7, 10, 0, 0, 0, ()), (8, 30, 0, 2, 2, (8,)), (9, 30, 0, 2, 2, (4,))):
+            con.execute("insert into cards values (?, ?, ?, ?, ?, ?, 30, '{}', 0)", (cid, cid, did, odid, ctype, queue))
+            con.execute("insert into notes values (?, '')", (cid,))
+            for d in days:
+                con.execute("insert into revlog values (?, ?, 3, 0)", (ms(d), cid))
+        # a reschedule is not study, so it never dates a card
+        con.execute("insert into revlog values (?, 5, 0, 4)", (ms(12),))
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+            def scalar(self, q, *a): return con.execute(q, a).fetchone()[0]
+        self.db = DB()
+
+    def test_the_counts_match_the_forest(self):
+        days = study_log.load_tree_days(self.db, CUTOFF, skip=[9])
+        # card 3 counts for its home deck, 20, not the filtered deck it sits in; 9 is skipped
+        self.assertEqual(days, {10: {9: True, 3: True}, 20: {5: True, 6: True, 7: False}, 30: {8: True}})
+        for excluded in ([], [20], [10, 30]):
+            for since_ago in (None, 6):
+                for suspended in (False, True):
+                    since = study_log.day_start(study_log.day_date(since_ago, CUTOFF), CUTOFF) if since_ago is not None else None
+                    rows = study_log.load_rows(self.db, CUTOFF, excluded=excluded, since=since, suspended=suspended, skip=[9])
+                    forest = {t["ago"] for t in fd.build_forest(rows, CUTOFF, TODAY)["trees"]}
+                    counted = [d for d in (10, 20, 30) if d not in excluded]
+                    with self.subTest(excluded=excluded, since=since_ago, suspended=suspended):
+                        self.assertEqual(study_log.tree_days(days, counted, since_ago, suspended), forest)
+
+
 class SearchTests(unittest.TestCase):
     """What clicking a tree asks Anki for. When the forest skips suspended cards the
     search must too, or the tooltip's count and the browser's list disagree."""

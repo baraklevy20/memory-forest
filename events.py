@@ -27,13 +27,13 @@ DEFAULT_NATURE = "peaceful"
 # level brings only as a hint: it is for the forest to show)
 NATURE_NOTES = {
     "peaceful": "Missing days costs nothing, and the forest never scolds you.",
-    "wild": "Miss a day of reviews and smoke rises; miss the next too and a fire breaks out, "
-            "spreading each day you stay away; "
-            "a week of study puts it out. Bad habits leave marks too, until you fix them. "
-            "Switch back any time and the forest is as it was.",
+    "wild": "Miss a day of reviews and smoke rises; miss the next too and a fire spreads "
+            "until a week of study puts it out. Bad habits leave marks too.",
     "merciless": "Miss a single day of reviews and an asteroid wipes out the forest. "
-                 "Bad habits leave marks too, until you fix them. Switch back any time and the forest is as it was.",
+                 "Bad habits leave marks too.",
 }
+# said once, on the Nature dropdown, rather than under every level
+NATURE_SWITCH_NOTE = "Switch back any time and the forest is as it was."
 
 
 def nature_level(value) -> str:

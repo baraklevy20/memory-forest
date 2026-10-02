@@ -19,7 +19,9 @@
     "gallery": "python3 dev/build_gallery.py",
     "gif": "python3 dev/make_gif.py",
     "payload": "python3 dev/export_payload.py",
-    "goats": "python3 dev/goats.py"
+    "goats": "python3 dev/goats.py",
+    "thumbs": "python3 dev/thumbnails.py",
+    "nature-icons": "python3 dev/nature_icons.py"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

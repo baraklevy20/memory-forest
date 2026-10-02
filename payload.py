@@ -160,8 +160,12 @@ def _scene_name(cfg: dict, today: _dt.date) -> dict:
     if key == presets.CUSTOM:
         name = scene.ENVIRONMENTS.get(cfg.get("environment"), "")
         return {"sceneName": name, "sceneTip": "Your own mix, from Fine-tuning in the forest settings."} if name else {}
+    spec = presets.by_key()[key]
     back = season_returns(cfg, today)
     if back:
-        return {"sceneName": presets.by_key()[key].label,
+        return {"sceneName": spec.label,
                 "sceneTip": f"Seasonal scenery, for this week only. Yours comes back on {back.day} {back.strftime('%B')}."}
-    return {"sceneName": presets.by_key()[key].label}
+    if spec.season:  # picked by hand in its week: it goes with the week all the same
+        last = presets.season_ends(spec, today) - _dt.timedelta(days=1)
+        return {"sceneName": spec.label, "sceneTip": f"Seasonal scenery, here until {last.day} {last.strftime('%B')}."}
+    return {"sceneName": spec.label}
