@@ -76,6 +76,7 @@ class SettingsDialog(QDialog):
         # the dialog's own timer, so a closed (and deleted) dialog is never called back
         self._city_check = QTimer(self); self._city_check.setSingleShot(True); self._city_check.setInterval(CITY_RECHECK_MS)
         self._city_check.timeout.connect(self._sync)
+        self.finished.connect(self._release)
         self.general.city.editingFinished.connect(self._city_check.start)
         self._reverting = True  # Cancel and shutdown put the old config back; Restore defaults must not
         self._sync()
@@ -183,6 +184,12 @@ class SettingsDialog(QDialog):
         self.on_change()
         self.close()
         self.reopen(self.module, self.on_change)
+
+    def _release(self, *_args) -> None:
+        """Let go of the History tab's tree days as the dialog closes: the dialog's objects
+        hold on to each other, so Python frees them only now and then, and until it did each
+        dialog opened kept a whole collection's worth (MBs on a big one)."""
+        self.history.days = None
 
     def accept(self) -> None:
         self._debounce.stop()

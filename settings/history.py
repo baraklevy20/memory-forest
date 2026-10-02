@@ -185,24 +185,11 @@ class HistoryTab(QWidget):
         since_ago = (self.today - self.since.date().toPyDate()).days if self.since_on.isChecked() else None
         suspended = self.keep_suspended.isChecked()
 
-        def trees(item) -> set:
-            """A deck's trees with those of its subdecks that count, written on its row."""
-            did = item.data(0, DECK_ROLE)
-            out = study_log.tree_days(days, [did], since_ago, suspended) if did in counted else set()
-            for i in range(item.childCount()):
-                out |= trees(item.child(i))
-            if did not in counted:  # its subdecks may count, but it grows nothing itself
-                out = set()
-            item.setText(1, _trees_text(len(out)) if out else "no trees")
-            item.setForeground(1, dim)
-            item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            return out
-
         dim = self.decks.palette().color(QPalette.ColorRole.PlaceholderText)
         self.decks.blockSignals(True)
         root = self.decks.invisibleRootItem()
         for i in range(root.childCount()):
-            trees(root.child(i))
+            self._deck_trees(root.child(i), days, counted, since_ago, suspended, dim)
         self.decks.blockSignals(False)
         # a deck the list doesn't show (a card whose deck is gone) still grows trees, as in the
         # forest; the phone's deck never does
@@ -216,6 +203,21 @@ class HistoryTab(QWidget):
         self._show_first_day(max(everything) if everything else None)
         # the counts come in just after the dialog opens, and can make this tab taller
         grow_window(self)
+
+    def _deck_trees(self, item, days: dict, counted: set, since_ago: int | None, suspended: bool, dim) -> set:
+        """A deck's trees with those of its subdecks that count, written on its row. (A
+        method, not a function nested in recount: one calling itself there held on to itself,
+        and so to the whole collection's tree days, after every count.)"""
+        did = item.data(0, DECK_ROLE)
+        out = study_log.tree_days(days, [did], since_ago, suspended) if did in counted else set()
+        for i in range(item.childCount()):
+            out |= self._deck_trees(item.child(i), days, counted, since_ago, suspended, dim)
+        if did not in counted:  # its subdecks may count, but it grows nothing itself
+            out = set()
+        item.setText(1, _trees_text(len(out)) if out else "no trees")
+        item.setForeground(1, dim)
+        item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        return out
 
     def _show_first_day(self, oldest: int | None) -> None:
         """Without a start date, say which day the forest starts on: the first one studied.
