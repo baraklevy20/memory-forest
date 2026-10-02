@@ -87,6 +87,8 @@ root.before(shell);
 shell.append(stage);
 stage.append(root, stamp, noAnswer);
 
+function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = 'Memory Forest could not draw your forest here.'; }
+
 function layout() {
   const side = portrait() && (entering || !!document.fullscreenElement), vw = window.innerWidth, vh = window.innerHeight;
   stage.classList.toggle('af-sideways', side);
@@ -108,7 +110,27 @@ function layout() {
   // in full screen the forest is shown alone, with no caption to leave room for
   const room = document.fullscreenElement ? 0 : CAPTION_ROOM;
   data.maxWidth = Math.floor(Math.min(data.maxWidth, along, (across - room) * SCENE_ASPECT));
-  AF.mount(root, data, { now: true });
+  // the same forest at the same size as already drawn (going full screen and turning both
+  // ask more than once): nothing to build again. Of layouts that overlap (a tap while the
+  // first is still loading its scenery), the latest is the one drawn
+  const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal]), mine = ++layouts;
+  if (key === drawn && root.afEnv) return Promise.resolve();
+  return AF.loadScripts(scenery(data.mood)).then(() => {
+    if (mine !== layouts) return;
+    drawn = key;
+    AF.mount(root, data, { now: true });
+  }, () => {
+    if (mine === layouts) root.textContent = 'Your forest is on its way: sync once more to fetch its drawing.';
+  }).catch(drawFailed);
+}
+let drawn = '', layouts = 0;
+
+/* Today's scenery: each environment, landscape and landmark is a file of its own in the
+ * collection's media (the note names them), loaded the first time a scene needs it - the
+ * one file the card loads holds everything else. */
+function scenery(mood) {
+  return [['envs', mood.special], ['landscapes', mood.landscape], ['landmarks', mood.landmark]]
+    .map(([kind, key]) => key && (note.parts || {})[`${kind}/${key}.js`]).filter(Boolean);
 }
 
 /* Full screen: the forest alone, without the app's bars and buttons, held in landscape where
@@ -170,5 +192,5 @@ window.addEventListener('resize', relayout);
 document.addEventListener('fullscreenchange', relayout);  // the caption comes and goes with it
 
 try { layout(); }
-catch (e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = 'Memory Forest could not draw your forest here.'; }
+catch (e) { drawFailed(e); }
 })();

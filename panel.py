@@ -9,7 +9,7 @@ import traceback
 
 from aqt import mw
 
-from .catalog import SCRIPTS
+from .catalog import core_scripts, scenery_files
 from .payload import payload
 from .state import MODULE, config, excluded_decks, log, shows_on_deck_list
 
@@ -32,21 +32,13 @@ def _url(rel: str) -> str:
     return f"{WEB}/{rel}?v={stamp}"
 
 
-def _part(kind: str, key: str | None) -> str | None:
-    """envs/aurora.js, landscapes/lake.js, landmarks/peak.js - if that file still exists."""
-    rel = f"{kind}/{key}.js"
-    return rel if key and os.path.exists(os.path.join(WEB_DIR, kind, f"{key}.js")) else None
-
-
 def _panel_parts(did: int | None = None, highlight: bool = False) -> tuple:
     """(element id, data as JSON, scripts before the boot script) for one forest panel."""
     info = payload(did, highlight)
     mood = info["mood"]
     data = json.dumps(info, ensure_ascii=False).replace("</", "<\\/")
     # only the pieces this scene actually needs are loaded, and each lives in one file of its own
-    parts = [_part("envs", mood["special"]), _part("landscapes", mood["landscape"]),
-             _part("landmarks", mood["landmark"])]
-    srcs = [_url(s) for s in SCRIPTS] + [_url(rel) for rel in parts if rel] + [_url(BOOT)]
+    srcs = [_url(s) for s in core_scripts()] + [_url(rel) for rel in scenery_files(mood)] + [_url(BOOT)]
     srcs.pop()  # the boot script: the page adds it last, and a swap has no need of it
     return ROOT, data, srcs
 

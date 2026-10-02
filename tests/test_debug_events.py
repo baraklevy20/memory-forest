@@ -101,10 +101,12 @@ class DebugEventTests(unittest.TestCase):
         self.assertEqual(len(set(dates)), len(dates))
 
     def test_studying_plants_a_tree_a_day_and_keeps_the_old_ones_as_they_were(self):
-        before = {t["day"]: t["seed"] for t in self.passed("wild", ("study", 2))["trees"]}
-        after = {t["day"]: t["seed"] for t in self.passed("wild", ("study", 2), ("study", 3))["trees"]}
+        # a tree's seed comes from its day: the old ones keep theirs, in their places (oldest
+        # first), and the new ones come after them
+        before = [t["seed"] for t in self.passed("wild", ("study", 2))["trees"]]
+        after = [t["seed"] for t in self.passed("wild", ("study", 2), ("study", 3))["trees"]]
         self.assertEqual(len(after), len(before) + 3)
-        self.assertEqual({d: after[d] for d in before}, before)
+        self.assertEqual(after[:len(before)], before)
 
     def test_a_week_reviewing_only_lets_the_grass_grow(self):
         self.assertEqual(self.passed("wild", ("study", 1), ("review", 3))["stagnation"], 0)

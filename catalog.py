@@ -28,6 +28,28 @@ SCRIPTS = (
     "events/flowers.js", "events/asteroid.js", "events/fire.js",
 )
 
+# A release ships SCRIPTS joined into this one file (dev/package.py): a page that loads one
+# script rather than thirty is lighter on the web view, which keeps something of every
+# script it ever loaded, at every redraw of the deck list. This copy has none, and loads the
+# files one by one, as they are edited.
+BUNDLE = "forest.bundle.js"
+
+
+def core_scripts(web: str = WEB) -> tuple:
+    """What a forest loads before its own scenery: the bundle where there is one, or SCRIPTS."""
+    return (BUNDLE,) if os.path.exists(os.path.join(web, BUNDLE)) else SCRIPTS
+
+
+def scenery_files(mood: dict, web: str = WEB) -> list:
+    """The files a scene's environment, landscape and landmark are drawn with (as
+    "envs/aurora.js"), those this copy has: the deck list and the phone load these."""
+    out = []
+    for kind, key in zip(KINDS, (mood.get("special"), mood.get("landscape"), mood.get("landmark"))):
+        rel = f"{kind}/{key}.js"
+        if key and os.path.exists(os.path.join(web, rel)):
+            out.append(rel)
+    return out
+
 
 def entries(kind: str) -> dict:
     """key -> its JSON, in the order the JSON asks for (then by key)."""

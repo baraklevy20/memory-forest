@@ -133,10 +133,11 @@ AF.mount = function (root, data, opts) {
     visible = es[0].isIntersecting;
     if (visible) wake();
   }).observe(sceneEl);
-  const shown = () => {
-    if (!current()) { document.removeEventListener('visibilitychange', shown); return; }
-    if (!document.hidden) wake();
-  };
+  const shown = () => { if (current() && !document.hidden) wake(); };
+  // one listener a forest: the one before goes now (left until the page was next hidden, it
+  // kept each retired forest - and its canvas - alive, one more at every swap)
+  if (root.afShown) document.removeEventListener('visibilitychange', root.afShown);
+  root.afShown = shown;
   document.addEventListener('visibilitychange', shown);
   let lastW = 0, rt;
   if ('ResizeObserver' in window) new ResizeObserver((_es, obs) => {
@@ -151,9 +152,35 @@ AF.mount = function (root, data, opts) {
   requestAnimationFrame(() => idle(() => { lastW = sceneEl.clientWidth; start(); }, { timeout: IDLE_TIMEOUT_MS }));
 };
 
+/* Load scripts onto this copy of the add-on - a scene's environment, landscape and landmark -
+ * one at a time and each once, however many ask: a scene's file registers itself on whatever
+ * object window.AnkiForest is while it runs, so that is this copy until they are all in, and
+ * whatever it was before after. A promise, rejected if one could not be loaded. */
+const loads = new Map();  // src -> its promise
+let queue = Promise.resolve(), waiting = 0, outside;
+AF.loadScripts = srcs => Promise.all(srcs.map(src => {
+  if (!loads.has(src)) {
+    if (waiting++ === 0) outside = window.AnkiForest;
+    const p = queue.catch(() => {}).then(() => new Promise((ok, fail) => {
+      const el = document.createElement('script');
+      el.src = src;
+      el.charset = 'utf-8';
+      // once run, let go: kept, each loaded file held on to the forest that asked for it
+      el.onload = () => { el.onload = el.onerror = null; ok(); };
+      el.onerror = () => { el.onload = el.onerror = null; loads.delete(src); fail(new Error(`could not load ${src}`)); };
+      window.AnkiForest = AF;
+      document.head.appendChild(el);
+    })).finally(() => { if (--waiting === 0) window.AnkiForest = outside; });
+    loads.set(src, p);
+    queue = p;
+  }
+  return loads.get(src);
+}));
+
 /* Redraw a forest already on the page with new data, without reloading the page: load any
  * scripts the new scene needs that the page does not have yet, then mount over the old
- * one. False when that forest is not on this page, so the add-on reloads it instead. */
+ * one - the latest swap asked for, if several overlap. False when that forest is not on this
+ * page, so the add-on reloads it instead. */
 AF.swap = function (id, data, srcs) {
   const root = document.getElementById(id);
   if (!root) return false;
@@ -162,22 +189,9 @@ AF.swap = function (id, data, srcs) {
   // after an update, waits for the next full redraw rather than run beside the old)
   const part = /\/(envs|landscapes|landmarks)\//;
   const missing = srcs.filter(s => part.test(s) && !have.has(new window.URL(s, window.location.href).href));
-  const other = window.AnkiForest;
-  const next = i => {
-    if (i < missing.length) {
-      // a new scene's file registers itself on whatever object has the name: this copy's
-      window.AnkiForest = AF;
-      const el = document.createElement('script');
-      el.src = missing[i];
-      // once run, let go: kept, each scene file loaded held on to this swap's whole forest
-      el.onload = el.onerror = () => { el.onload = el.onerror = null; next(i + 1); };
-      document.head.appendChild(el);
-      return;
-    }
-    window.AnkiForest = other;
-    AF.mount(root, data, { now: true });
-  };
-  next(0);
+  const mine = root.afSwaps = (root.afSwaps || 0) + 1;
+  // a part that won't load: the forest is drawn without it, as before
+  AF.loadScripts(missing).catch(() => {}).then(() => { if (root.afSwaps === mine) AF.mount(root, data, { now: true }); });
   return true;
 };
 

@@ -4,6 +4,7 @@ again, in a stand-in Anki."""
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import shutil
 import tempfile
@@ -203,7 +204,23 @@ class PhoneTests(unittest.TestCase):
                          (phone.DECK, phone.NEW_PER_DAY, phone.REVIEWS_PER_DAY))
         forest = next(iter(self.col.notes.values()))["Forest"]
         self.assertIn('"script":"_memory_forest-', forest)
-        self.assertEqual(len(os.listdir(self.col.media.folder)), 1)
+        # in media: the script, and a file for every piece of scenery this copy ships; the note
+        # names the ones its days draw with
+        sent = json.loads(forest)
+        media = set(os.listdir(self.col.media.folder))
+        self.assertEqual(len(media), 1 + len(addon.phone_data.all_scenery()))
+        self.assertLessEqual({sent["script"], *sent["parts"].values()}, media)
+        self.assertTrue(sent["parts"])
+        # another scenery: the note changes, the media doesn't (it changes once an update)
+        mw.addonManager.config.update(environment="aurora", landscape="lake")
+        phone.publish()
+        again = json.loads(next(iter(self.col.notes.values()))["Forest"])
+        self.assertIn("envs/aurora.js", again["parts"])
+        self.assertEqual(set(os.listdir(self.col.media.folder)), media)
+        # a file taken away (by the other edition of the add-on, say) is written again
+        os.remove(os.path.join(self.col.media.folder, again["parts"]["envs/aurora.js"]))
+        phone.publish()
+        self.assertEqual(set(os.listdir(self.col.media.folder)), media)
         # its deck is never part of the forest, nor offered as a deck to leave out
         self.assertIn(did, addon.state.excluded_decks({}))
 

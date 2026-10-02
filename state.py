@@ -38,13 +38,20 @@ def save_config(cfg: dict) -> None:
     mw.addonManager.writeConfig(MODULE, {k: v for k, v in cfg.items() if k in known and known[k] != v})
 
 
+def debug_available(cfg: dict | None = None) -> bool:
+    """Whether debug is on and this copy has the debug tools to go with it: a release ships
+    without them (dev/package.py), and debug turned on by hand there changes nothing."""
+    cfg = config() if cfg is None else cfg
+    return bool(cfg.get("debug", False)) and os.path.exists(os.path.join(ADDON_DIR, "debug_events.py"))
+
+
 def today(cfg: dict | None = None) -> _dt.date:
     """The date the scenery is chosen for: today, or while debug is on, the debug date
     (if one is set) moved on by the days passed on the test forest's timeline - so passing
     a week there also carries a holiday's week over, as it would in real days."""
     cfg = config() if cfg is None else cfg
     day = _dt.date.today()
-    if not cfg.get("debug"):
+    if not debug_available(cfg):
         return day
     try:
         day = _dt.date.fromisoformat(cfg.get("debug_date") or "") or day

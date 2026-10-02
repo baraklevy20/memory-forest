@@ -8,9 +8,8 @@ from aqt import mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QTabWidget, QTimer, QVBoxLayout
 
 from .. import presets
-from ..state import today
+from ..state import debug_available, today
 from .about import AboutTab
-from .debug import DebugTab
 from .fine_tuning import FineTuningTab
 from .general import GeneralTab
 from .history import HistoryTab
@@ -25,6 +24,29 @@ APPLY_DEBOUNCE_MS = 250
 CITY_RECHECK_MS = 4000
 # choices about your study data and your phone rather than the forest's look: Restore defaults keeps them
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "phone_forest")
+
+
+class NoDebugTab:
+    """What stands in for the Debug tab while debug is off (or in a release, which ships
+    without it - see dev/package.py): nothing to show and nothing changed, so the debug
+    settings the config holds are kept as they are, waiting for next time."""
+
+    def connect(self, _changed) -> None:
+        pass
+
+    def sync(self) -> None:
+        pass
+
+    def values(self) -> dict:
+        return {}
+
+
+def debug_tab(cfg: dict):
+    """The Debug tab while debug is on and this copy has it (state.debug_available); NoDebugTab otherwise."""
+    if not debug_available(cfg):
+        return NoDebugTab()
+    from .debug import DebugTab
+    return DebugTab(cfg)
 
 
 class SettingsDialog(QDialog):
@@ -43,14 +65,11 @@ class SettingsDialog(QDialog):
         self.history = HistoryTab(cfg)
         # the made-up test forest and the event switches are a developer's tool: their tab is
         # only there while debug is on (its values are still kept, so they wait for next time)
-        self.debug = DebugTab(cfg)
+        self.debug = debug_tab(cfg)
         shown = [(self.general, "General"), (self.fine, "Fine-tuning"), (self.history, "History")]
-        if cfg.get("debug", False):
+        if not isinstance(self.debug, NoDebugTab):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))
-        else:  # unshown, it still goes with the dialog: on its own it stayed for good, every time
-            self.debug.setParent(self)
-            self.debug.hide()
         tabs = QTabWidget()
         for widget, name in shown + [(AboutTab(), "About")]:
             tabs.addTab(widget, name)

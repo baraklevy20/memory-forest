@@ -41,6 +41,10 @@ class StateTests(unittest.TestCase):
         self.assertEqual(state.today(on), dt.date(2026, 10, 24))
         self.assertEqual(state.today(dict(on, debug_date="")), real)
         self.assertEqual(state.today(dict(on, debug_date="nonsense")), real)
+        # a release ships without the debug tools: debug turned on by hand there changes nothing
+        with mock.patch.object(state.os.path, "exists", return_value=False):
+            self.assertFalse(state.debug_available(on))
+            self.assertEqual(state.today(on), real)
 
     def test_days_passed_on_the_test_forest_move_the_scenery_date_on(self):
         on = {"debug": True, "debug_date": "2026-10-24", "debug_timeline": [["study", 5], ["away", 3]]}

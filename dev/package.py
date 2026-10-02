@@ -14,17 +14,22 @@ study history) and __pycache__ - the first two of which AnkiWeb rejects outright
 
 from __future__ import annotations
 
+import ast
+import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
+import tokenize
 import zipfile
 
 import editions
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
+sys.path.insert(0, ADDON)
+import catalog
 
 # Everything the add-on needs at runtime, and nothing else. The Python is taken as
 # whatever sits beside __init__.py rather than listed by hand: a new module that the
@@ -33,6 +38,9 @@ ADDON = os.path.dirname(HERE)
 INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py"))) + (
     "config.json", "manifest.json", "goats.json")
 INCLUDE_DIRS = ("settings", "web")  # walked, so web/envs, web/landscapes and web/landmarks come too
+# The developer's debug tools: the add-on runs without them (payload.debug_tools and the
+# settings' debug_tab stand in), and a release ships with debug off.
+DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py")
 
 # The page's scripts ship minified: half the size, both in the add-on and in the script the
 # phone card loads from the collection's media, which is put together from them at each sync
@@ -56,7 +64,7 @@ def release_config(text: str | None = None) -> str:
 
 def files(keep: dict | None = None) -> list:
     """(path, name in the zip) for everything to ship; `keep` narrows the scenery to an edition's."""
-    out = [(os.path.join(ADDON, f), f) for f in INCLUDE_FILES]
+    out = [(os.path.join(ADDON, f), f) for f in INCLUDE_FILES if f not in DEBUG_ONLY]
     for d in INCLUDE_DIRS:
         for root, _dirs, names in os.walk(os.path.join(ADDON, d)):
             if "__pycache__" in root:
@@ -66,6 +74,8 @@ def files(keep: dict | None = None) -> list:
                     continue
                 path = os.path.join(root, n)
                 rel = os.path.relpath(path, ADDON)
+                if rel in DEBUG_ONLY:
+                    continue
                 if keep is None or editions.keeps(rel, keep):
                     out.append((path, rel))
     return out
@@ -87,6 +97,57 @@ def minified(shipping: list) -> dict:
             with open(os.path.join(out, os.path.relpath(path, web)), encoding="utf-8") as f:
                 texts[name] = f.read()
     return texts
+
+
+def _docstrings(tree) -> list:
+    """The docstring expressions of a module and of every class and function in it."""
+    out = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body:
+            first = node.body[0]
+            if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):
+                out.append(first)
+    return out
+
+
+def _shape(text: str) -> tuple:
+    """What running `text` does, and where: its syntax tree with every docstring emptied, and
+    the line each statement starts on (what a traceback reports)."""
+    tree = ast.parse(text)
+    for doc in _docstrings(tree):
+        doc.value.value = ""
+    return ast.dump(tree), [(type(n).__name__, n.lineno) for n in ast.walk(tree) if isinstance(n, ast.stmt)]
+
+
+def stripped(text: str) -> str:
+    """Python without its comments and docstrings, each line where it was: a traceback from
+    someone's machine still names the line it means in this copy. The readable source stays
+    here and in the public repo."""
+    lines = text.splitlines(keepends=True)
+    starts = [0]
+    for line in lines:
+        starts.append(starts[-1] + len(line))
+
+    def at(row: int, col: int, byte_col: bool = False) -> int:
+        line = lines[row - 1]
+        if byte_col:  # ast counts columns in UTF-8 bytes
+            col = len(line.encode("utf-8")[:col].decode("utf-8"))
+        return starts[row - 1] + col
+
+    edits = []  # (start, end, replacement) in characters
+    for doc in _docstrings(ast.parse(text)):
+        edits.append((at(doc.lineno, doc.col_offset, True), at(doc.end_lineno, doc.end_col_offset, True),
+                      '""' + "\n" * (doc.end_lineno - doc.lineno)))
+    for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+        if tok.type == tokenize.COMMENT:
+            edits.append((at(*tok.start), at(*tok.end), ""))
+    out = text
+    for start, end, new in sorted(edits, reverse=True):
+        out = out[:start] + new + out[end:]
+    out = "".join(line.rstrip() + "\n" for line in out.splitlines())
+    if _shape(out) != _shape(text):
+        sys.exit("stripping comments changed what the code does or where it stands")
+    return out
 
 
 def manifest(edition: str | None, version: str | None) -> str:
@@ -126,21 +187,30 @@ def main() -> None:
     if missing:
         sys.exit("missing: " + ", ".join(missing))
     small = minified(shipping)
+    # the page's own scripts go as one file (catalog.BUNDLE), in the order they load
+    core = {f"web/{rel}" for rel in catalog.SCRIPTS}
+    bundled = "\n".join(small[f"web/{rel}"] for rel in catalog.SCRIPTS)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr(f"web/{catalog.BUNDLE}", bundled)
         for path, name in shipping:
+            if name in core:
+                continue
             if name == "config.json":
                 z.writestr(name, release_config())
             elif name == "manifest.json" and (edition or version):
                 z.writestr(name, manifest(edition, version))
             elif name in small:
                 z.writestr(name, small[name])
+            elif name.endswith(".py"):
+                with open(path, encoding="utf-8") as f:
+                    z.writestr(name, stripped(f.read()))
             else:
                 z.write(path, name)
     with zipfile.ZipFile(out) as z:
         names = z.namelist()
     # the whole point of this script: prove none of it got in
     banned = [n for n in names if "meta.json" in n or "user_files" in n or "__pycache__" in n
-              or n.startswith("dev/") or n.startswith("tests/")]
+              or n.startswith("dev/") or n.startswith("tests/") or n in DEBUG_ONLY]
     if banned:
         sys.exit("refusing to ship: " + ", ".join(banned))
     with zipfile.ZipFile(out) as z:

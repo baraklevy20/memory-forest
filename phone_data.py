@@ -12,6 +12,7 @@ Nothing here imports aqt, so it runs in the tests.
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
 import json
 import os
 
@@ -23,6 +24,8 @@ except ImportError:  # tests and dev scripts import these files as top-level mod
 
 # Bumped whenever the note's JSON changes shape, so web/phone.js can tell an old note.
 VERSION = 1
+# A temperature this close to the one the phone already has is not worth an upload of its own
+TEMP_UPLOAD_DEGREES = 3
 # How many days of scenes the note holds: a phone that goes this long without a sync from
 # the computer keeps showing the last of them.
 SCHEDULE_DAYS = 14
@@ -40,14 +43,13 @@ SCRIPT_PREFIX = "_memory_forest-"
 BOOT = "phone.js"
 
 
-def bundle(scripts=catalog.SCRIPTS, web: str = catalog.WEB) -> str:
-    """Every script the forest can use, and every environment, landscape and landmark this
-    copy ships, as one file: a phone has no add-on to load them from. The stylesheet
-    comes along inside it, and web/phone.js goes last to mount the forest."""
-    parts = [os.path.join(web, rel) for rel in scripts]
-    for kind in catalog.KINDS:
-        parts += [os.path.join(web, kind, f"{key}.js") for key in catalog.entries(kind)
-                  if os.path.exists(os.path.join(web, kind, f"{key}.js"))]
+def bundle(scripts=None, web: str = catalog.WEB) -> str:
+    """The scripts every forest uses, as one file: a phone has no add-on to load them from.
+    The stylesheet comes along inside it, and web/phone.js goes last to mount the forest. The
+    scenery is not in it: each environment, landscape and landmark is a file of its own
+    (part_name), and the card loads only today's - parsing all of them at every look was
+    half the work of showing the card."""
+    parts = [os.path.join(web, rel) for rel in (catalog.core_scripts(web) if scripts is None else scripts)]
     with open(os.path.join(web, "forest.css"), encoding="utf-8") as f:
         css = f.read()
     out = ["/* Memory Forest, for the card that shows it on your phone. Written by the add-on: "
@@ -58,6 +60,26 @@ def bundle(scripts=catalog.SCRIPTS, web: str = catalog.WEB) -> str:
         with open(path, encoding="utf-8") as f:
             out.append(f.read())
     return "\n".join(out) + "\n"
+
+
+def scenery(days: list, web: str = catalog.WEB) -> list:
+    """The scenery files (as "envs/aurora.js") the days' scenes draw with, that this copy has."""
+    out = []
+    for day in days:
+        out += [rel for rel in catalog.scenery_files(day.get("mood") or {}, web) if rel not in out]
+    return out
+
+
+def all_scenery(web: str = catalog.WEB) -> list:
+    """Every scenery file this copy ships (as "envs/aurora.js")."""
+    return [f"{kind}/{key}.js" for kind in catalog.KINDS for key in catalog.entries(kind)
+            if os.path.exists(os.path.join(web, kind, f"{key}.js"))]
+
+
+def part_name(rel: str, text: bytes) -> str:
+    """A scenery file's name in the collection's media, named after what is in it too."""
+    kind, key = rel[:-len(".js")].split("/")
+    return f"{SCRIPT_PREFIX}{kind}-{key}-{hashlib.sha1(text).hexdigest()[:10]}.js"
 
 
 def _hhmm(iso: str | None, fallback: _dt.time) -> str:
@@ -88,13 +110,15 @@ def schedule(cfg: dict, now: _dt.datetime, real: dict | None = None, place: dict
 
 
 def phone_payload(page: dict, cfg: dict, now: _dt.datetime, script: str, real: dict | None = None,
-                  place: dict | None = None, scene_name=lambda _date: {}) -> dict:
+                  place: dict | None = None, scene_name=lambda _date: {}, parts: dict | None = None,
+                  days: list | None = None) -> dict:
     """What the note holds: the desktop page's data (`page`, from payload.payload()), less
     what only the deck list can use, with the days' scenes and the script to draw it with."""
     data = {k: v for k, v in page.items() if k not in DESKTOP_ONLY}
     data.update(
         v=VERSION,
         script=script,
+        parts=parts or {},  # "envs/aurora.js" -> its file in media, for the days' scenes (see scenery)
         updated=now.isoformat(timespec="minutes"),
         inAnki=False,  # no settings cog, and nothing to click through to
         tooltips=True,
@@ -102,7 +126,7 @@ def phone_payload(page: dict, cfg: dict, now: _dt.datetime, script: str, real: d
         # a strike plays once, and the phone cannot say it has been seen: the desktop plays it,
         # and the phone only when asked (a tap on its crater, or on "Asteroid struck")
         strike=dict(page["strike"], fresh=False) if page.get("strike") else None,
-        days=schedule(cfg, now, real, place, scene_name),
+        days=schedule(cfg, now, real, place, scene_name) if days is None else days,
         sun={"rise": _hhmm((real or {}).get("sunrise"), scene.DEFAULT_SUNRISE),
              "set": _hhmm((real or {}).get("sunset"), scene.DEFAULT_SUNSET),
              "twilight": int(scene.TWILIGHT.total_seconds() // 60)},
@@ -128,7 +152,18 @@ def same_forest(old: str, new: dict) -> bool:
         return False
 
     def gist(data: dict) -> dict:
-        # when it was written, and how long its live weather holds, change at every sync
+        # when it was written, and how long its live weather holds, change at every sync; and
+        # the temperature with every look at the weather (compared on its own, below)
         days = [{k: v for k, v in d.items() if k != "liveUntil"} for d in data.get("days") or []]
+        for d in days:
+            if isinstance(d.get("mood"), dict):
+                d["mood"] = {k: v for k, v in d["mood"].items() if k != "temp"}
         return dict({k: v for k, v in data.items() if k != "updated"}, days=days)
-    return gist(was) == gist(json.loads(encode(new)))
+
+    def temp(data: dict):
+        mood = ((data.get("days") or [{}])[0].get("mood") or {})
+        return mood.get("temp") if isinstance(mood.get("temp"), (int, float)) else None
+    now = json.loads(encode(new))
+    a, b = temp(was), temp(now)
+    near = a == b or (a is not None and b is not None and abs(a - b) < TEMP_UPLOAD_DEGREES)
+    return near and gist(was) == gist(now)

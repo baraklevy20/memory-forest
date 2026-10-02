@@ -31,14 +31,19 @@ class BundleTests(unittest.TestCase):
         with open(os.path.join(catalog.WEB, "forest.js"), encoding="utf-8") as f:
             self.assertNotIn(f.read(), text)  # the deck list's boot script would mount a second forest
 
-    def test_it_holds_every_environment_landscape_and_landmark_this_copy_ships(self):
+    def test_the_scenery_is_not_in_it_but_each_piece_a_file_of_its_own(self):
         text = phone_data.bundle()
         for kind in catalog.KINDS:
             for key in catalog.entries(kind):
                 path = os.path.join(catalog.WEB, kind, f"{key}.js")
                 if os.path.exists(path):
                     with open(path, encoding="utf-8") as f:
-                        self.assertIn(f.read(), text, f"{kind}/{key}")
+                        self.assertNotIn(f.read(), text, f"{kind}/{key}")
+        days = [{"mood": {"special": "aurora", "landscape": "lake", "landmark": "none"}},
+                {"mood": {"special": "aurora", "landscape": "meadow", "landmark": None}}]
+        self.assertEqual(phone_data.scenery(days), ["envs/aurora.js", "landscapes/lake.js", "landscapes/meadow.js"])
+        self.assertTrue(phone_data.part_name("envs/aurora.js", b"x").startswith(phone_data.SCRIPT_PREFIX + "envs-aurora-"))
+        self.assertNotEqual(phone_data.part_name("envs/aurora.js", b"x"), phone_data.part_name("envs/aurora.js", b"y"))
 
     def test_the_stylesheet_comes_along(self):
         self.assertIn(".af-panel", phone_data.bundle())
@@ -110,6 +115,11 @@ class SameForestTests(unittest.TestCase):
         first = phone_data.phone_payload(PAGE, {"weather": "auto", "city": "Berlin"}, NOW, "s.js", REAL)
         later = phone_data.phone_payload(PAGE, {"weather": "auto", "city": "Berlin"}, NOW + dt.timedelta(minutes=5), "s.js", REAL)
         self.assertTrue(phone_data.same_forest(phone_data.encode(first), later))
+        # a degree or two warmer is not worth an upload; a change of weather's worth is
+        warmer = phone_data.phone_payload(PAGE, {"weather": "auto", "city": "Berlin"}, NOW, "s.js", dict(REAL, temp=14))
+        self.assertTrue(phone_data.same_forest(phone_data.encode(first), warmer))
+        hot = phone_data.phone_payload(PAGE, {"weather": "auto", "city": "Berlin"}, NOW, "s.js", dict(REAL, temp=20))
+        self.assertFalse(phone_data.same_forest(phone_data.encode(first), hot))
 
     def test_a_changed_forest_a_new_day_or_a_new_script_is_not(self):
         old = phone_data.encode(phone_data.phone_payload(PAGE, {}, NOW, "s.js"))

@@ -138,18 +138,58 @@ def _note(col):
     return note
 
 
-def _script(col) -> str:
-    """The drawing, in the collection's media under a name made from what is in it; older
-    copies go, so the next sync removes them from the phone too."""
-    text = phone_data.bundle().encode("utf-8")
-    name = f"{phone_data.SCRIPT_PREFIX}{hashlib.sha1(text).hexdigest()[:10]}.js"
-    folder = col.media.dir()
-    if not os.path.exists(os.path.join(folder, name)):
-        name = col.media.write_data(name, text)
-    old = [f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js") and f != name]
-    if old:
-        col.media.trash_files(old)
-    return name
+# each file's name in media (made from what is in it), worked out once a session and again
+# only if its source changed on disk: {key: (modified times, name)}. Only names are kept: a
+# file's text is made again on the rare occasion it has to be written.
+_names: dict = {}
+# the files the note last needed, so the media folder is only looked through when they change
+_written: tuple = (None, frozenset())
+
+
+def _named(key: str, paths: list, name) -> str:
+    stamp = tuple(os.path.getmtime(p) for p in paths)
+    hit = _names.get(key)
+    if not hit or hit[0] != stamp:
+        hit = _names[key] = (stamp, name())
+    return hit[1]
+
+
+def _read(path: str) -> bytes:
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def _scripts(col, days: list) -> tuple:
+    """(the script the card loads, {scenery file: its name} for the days' scenes): in the
+    collection's media, under names made from what is in them. Every scenery this copy ships
+    is written, not only the days': so changing the scenery uploads nothing new, and the media
+    changes once an update, when the names do. Older copies go, so the next sync removes them
+    from the phone too."""
+    web = phone_data.catalog.WEB
+    core = [os.path.join(web, rel) for rel in phone_data.catalog.core_scripts(web)] + [
+        os.path.join(web, "forest.css"), os.path.join(web, phone_data.BOOT)]
+
+    def bundle() -> bytes:
+        return phone_data.bundle().encode("utf-8")
+    name = _named("bundle", core, lambda: f"{phone_data.SCRIPT_PREFIX}{hashlib.sha1(bundle()).hexdigest()[:10]}.js")
+    files, names = {name: bundle}, {}
+    for rel in phone_data.all_scenery(web):
+        path = os.path.join(web, rel)
+        names[rel] = _named(rel, [path], lambda rel=rel, path=path: phone_data.part_name(rel, _read(path)))
+        files[names[rel]] = lambda path=path: _read(path)
+    global _written
+    here = col.media.dir()
+    # each time, as it costs no more than a look: whatever was taken away since (by another
+    # copy of the add-on, or a sync from a computer on another version) is written again
+    for fname, text in files.items():
+        if not os.path.exists(os.path.join(here, fname)):
+            col.media.write_data(fname, text())
+    if _written != (here, frozenset(files)):
+        old = [f for f in os.listdir(here) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js") and f not in files]
+        if old:
+            col.media.trash_files(old)
+        _written = (here, frozenset(files))
+    return name, {rel: names[rel] for rel in phone_data.scenery(days, web)}  # the note names only the days'
 
 
 def _keep_new(col, note) -> None:
@@ -166,6 +206,7 @@ def remove() -> None:
     type and the deck's options preset stay: removing either forces a full sync, and they are
     empty and out of the way. Anki keeps the reviews of the cards removed, so they are
     remembered, and those reviews go on being left out of your study (state.phone_cards)."""
+    global _written
     col = mw.col
     m = col.models.by_name(PHONE_NOTETYPE) if col is not None else None
     if m is None:
@@ -180,6 +221,7 @@ def remove() -> None:
                 "select count() from cards where did = ? or odid = ?", mine, mine):  # nothing else lives here now
             col.decks.remove([mine])
         folder = col.media.dir()
+        _written = (None, frozenset())  # written again when the setting comes back on
         scripts = [f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js")]
         if scripts:
             col.media.trash_files(scripts)
@@ -222,7 +264,6 @@ def publish() -> None:
         return
     try:
         note = _note(col)
-        script = _script(col)
         real, place, _error = live_weather.for_config(cfg)
         name = getattr(payload, "_scene_name", None)
         now = _dt.datetime.combine(today(cfg), _dt.datetime.now().time())  # or the debug date's
@@ -232,8 +273,10 @@ def publish() -> None:
             # the phone can't ask for the forest a strike took, so it comes along while the
             # strike is news; after that its crater no longer plays it there
             page = dict(page, strike=dict(strike, **(events_state.strike_before(strike["seen"]) or {})))
-        data = phone_data.phone_payload(page, cfg, now, script, real, place,
-                                        (lambda date: name(cfg, date)) if name else (lambda _date: {}))
+        scene_name = (lambda date: name(cfg, date)) if name else (lambda _date: {})
+        days = phone_data.schedule(cfg, now, real, place, scene_name)
+        script, parts = _scripts(col, days)
+        data = phone_data.phone_payload(page, cfg, now, script, real, place, scene_name, parts, days)
         if not phone_data.same_forest(note["Forest"], data):
             note["Forest"] = phone_data.encode(data)
             col.update_note(note, skip_undo_entry=True)

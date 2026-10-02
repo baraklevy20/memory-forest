@@ -5,10 +5,11 @@ from __future__ import annotations
 
 import datetime as _dt
 import time
+from types import SimpleNamespace
 
 from aqt import mw
 
-from . import debug_events, events_state, fake_forest, forest_data, journal, live_weather, milestones, presets, scene, study_log
+from . import events_state, forest_data, journal, live_weather, milestones, presets, scene, study_log
 from .state import (
     MAX_WIDTH_DEFAULT,
     MAX_WIDTH_MAX,
@@ -20,6 +21,7 @@ from .state import (
     changes,
     clamp_int,
     config,
+    debug_available,
     deck_ids,
     excluded_decks,
     follow_season,
@@ -35,6 +37,8 @@ from .state import (
 )
 from .state import today as scenery_day
 
+# what each tree holds that the page never reads (it goes to the phone as well, at every sync)
+PAGE_LEAVES_OUT = ("mature", "day")
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
 
@@ -114,12 +118,22 @@ def _lit_by_deck(forest: dict, did: int, test: bool, cfg: dict, changed=None) ->
     return dict(forest, trees=trees, lit_count=sum(1 for t in trees if not t["dim"]))
 
 
+def debug_tools(cfg: dict):
+    """The debug tools (the made-up test forest, the timeline of events) while debug is on;
+    None otherwise - and in a release, which ships without them (state.debug_available)."""
+    if not debug_available(cfg):
+        return None
+    from . import debug_events, fake_forest
+    return SimpleNamespace(debug_events=debug_events, fake_forest=fake_forest)
+
+
 def payload(did: int | None = None, highlight: bool = False) -> dict:
     cfg = follow_season(config())
     # the test forest is a developer's tool, so it only exists while debug is on
-    test = bool(cfg.get("debug", False)) and bool(cfg.get("test_forest", False))
+    tools = debug_tools(cfg)
+    test = bool(tools) and bool(cfg.get("test_forest", False))
     changed = None if test else changes()  # read once: everything below that is kept goes by it
-    forest = (dict(fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test
+    forest = (dict(tools.fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test
               else _forest(None if highlight else did, cfg, changed))
     if highlight and did:
         forest = _lit_by_deck(forest, did, test, cfg, changed)
@@ -127,8 +141,8 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     extras = {}
     if not (did and not highlight):
         forest, extras = events_state.apply(forest, cfg, test, changed)
-        if cfg.get("debug"):
-            forest, extras = debug_events.apply(forest, extras, cfg)
+        if tools:
+            forest, extras = tools.debug_events.apply(forest, extras, cfg)
     now = _dt.datetime.now()
     today = now.date()
     all_trees = forest["trees"]
@@ -148,8 +162,9 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     evs = scene.events(forest["stats"], today, new_ancient)
 
     return {
-        # each tree's count of cards known well only adds up to the animals' milestones
-        "trees": [{k: v for k, v in t.items() if k != "mature"} for t in forest["trees"]],
+        # each tree's count of cards known well only adds up to the animals' milestones, and
+        # its day number is only for remembering ancient trees: the page needs neither
+        "trees": [{k: v for k, v in t.items() if k not in PAGE_LEAVES_OUT} for t in forest["trees"]],
         "stats": forest["stats"],
         "visitors": forest["visitors"],
         "anniversaries": ann,
