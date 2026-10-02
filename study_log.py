@@ -44,7 +44,7 @@ class Rows:
 
 def load_rows(db, day_cutoff: int, dids: list | None = None,
               excluded: Iterable | None = None, since: int | None = None, suspended: bool = False,
-              skip: Iterable | None = None) -> Rows:
+              skip: Iterable | None = None, log: ReviewLog | None = None) -> Rows:
     """Fetch rows with a DB object exposing .all(sql, *args) and .scalar(sql, *args).
 
     With `dids`, only cards in those decks (a deck and its subdecks) and their reviews count.
@@ -55,6 +55,8 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     With `suspended`, suspended cards keep their trees (see build_forest for how they count).
     With `skip` (card ids), those cards and their reviews never count, deleted or not: the
     ones that carry the forest to your phone.
+    With `log`, the review log's totals come from it, kept from the last call (see
+    ReviewLog): on a big collection, reading the whole log is most of the time this takes.
     Works with Anki's mw.col.db and with the small sqlite3 wrapper in dev/.
     """
     in_decks, only = _filters(dids, excluded, skip)
@@ -66,40 +68,80 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
         "from cards c "
         f"where c.type != 0{'' if suspended else ' and c.queue != -1'}{in_decks}"
     )
-    first_last = {
-        cid: (first, last)
-        for cid, first, last in db.all(
-            f"select cid, min(id), max(id) from revlog "
-            f"where ease > 0 and type in {STUDY_TYPES}{only} group by cid"
-        )
-    }
+    first_last, day_reviews = (log or ReviewLog()).read(db, day_cutoff, only, since_ms)
     if since_ms:
         cards = [row for row in cards if first_last.get(row[0], (row[0],))[0] >= since_ms]
     lapse_since_ms = (day_cutoff - LAPSE_WINDOW_DAYS * DAY_SECS) * 1000
     recent_lapses = {
         row[0] for row in db.all(f"select distinct cid from revlog where type = 1 and ease = 1 and id > ?{after}", lapse_since_ms)
     }
-    day_reviews = dict(
-        db.all(
-            f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
-            f"where ease > 0 and type in {STUDY_TYPES} and id < ?{after} group by 1",
-            day_cutoff,
-            day_cutoff * 1000,
-        )
-    )
-    review_days = set(day_reviews)
-    total = db.scalar(f"select count() from revlog where ease > 0 and type in {STUDY_TYPES}{after}") or 0
-    today = db.scalar(
-        f"select count() from revlog where ease > 0 and type in {STUDY_TYPES} and id >= ?{after}",
-        (day_cutoff - DAY_SECS) * 1000,
-    ) or 0
+    # the totals come from the days' counts: today's is day 0's
+    total, today = sum(day_reviews.values()), day_reviews.get(0, 0)
     # leeches only count among cards studied lately (see ACTIVE_DAYS)
     active_ms = (day_cutoff - ACTIVE_DAYS * DAY_SECS) * 1000
     active = {cid for cid, (_first, last) in first_last.items() if last >= active_ms}
     leeches = {row[0] for row in db.all(
         f"select c.id from cards c join notes n on n.id = c.nid where lower(n.tags) like '% leech %' "
         f"and c.ivl < {CURED_IVL}{in_decks}")} & active
-    return Rows(cards, first_last, recent_lapses, review_days, total, today, leeches, day_reviews)
+    return Rows(cards, first_last, recent_lapses, set(day_reviews), total, today, leeches, dict(day_reviews))
+
+
+class ReviewLog:
+    """The review log's totals for one choice of decks and dates - each card's first and
+    last review, and each day's count of reviews - kept between redraws. Read whole the first
+    time, and after that only the reviews added since: a review session adds a few hundred
+    rows to a log that can hold hundreds of thousands. It is read whole again when the day
+    or the choice changes, or the newest review is gone (an undo).
+
+    A card moved in or out of a deck the forest leaves out, with no review since, changes
+    which of its old reviews count; the add-on reads the log whole again after each sync
+    and at the start of each day (see payload.py), which catches that."""
+
+    def __init__(self):
+        self.key = None
+        self.newest = 0
+        self.first_last: dict = {}
+        self.day_reviews: dict = {}
+
+    def read(self, db, day_cutoff: int, only: str, since_ms: int) -> tuple:
+        """(first_last, day_reviews) as load_rows has always counted them: `only` is
+        _filters' condition on the review log, `since_ms` when the forest begins."""
+        key = (day_cutoff, only, since_ms)
+        newest = db.scalar("select max(id) from revlog") or 0
+        if key != self.key or newest < self.newest:
+            self._read_all(db, day_cutoff, only, since_ms, newest)
+            self.key = key
+        elif newest > self.newest:
+            self._add(db, day_cutoff, only, since_ms, newest)
+        self.newest = newest
+        return self.first_last, self.day_reviews
+
+    def _read_all(self, db, day_cutoff: int, only: str, since_ms: int, newest: int) -> None:
+        # up to `newest` only: a review made meanwhile is added next time, not counted twice.
+        # Not by the cid index: walking the whole table in order is about twice as fast
+        self.first_last = {
+            cid: (first, last)
+            for cid, first, last in db.all(
+                f"select cid, min(id), max(id) from revlog not indexed "
+                f"where ease > 0 and type in {STUDY_TYPES} and id <= ?{only} group by cid", newest)
+        }
+        since = f" and id >= {since_ms}" if since_ms else ""
+        self.day_reviews = dict(
+            db.all(
+                f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
+                f"where ease > 0 and type in {STUDY_TYPES} and id < ? and id <= ?{only}{since} group by 1",
+                day_cutoff, day_cutoff * 1000, newest,
+            )
+        )
+
+    def _add(self, db, day_cutoff: int, only: str, since_ms: int, newest: int) -> None:
+        for cid, rid in db.all(f"select cid, id from revlog where id > ? and id <= ? and ease > 0 "
+                               f"and type in {STUDY_TYPES}{only}", self.newest, newest):
+            first, last = self.first_last.get(cid, (rid, rid))
+            self.first_last[cid] = (min(first, rid), max(last, rid))
+            if rid < day_cutoff * 1000 and rid >= since_ms:
+                day = (day_cutoff - 1 - rid // 1000) // DAY_SECS
+                self.day_reviews[day] = self.day_reviews.get(day, 0) + 1
 
 
 def _filters(dids: list | None, excluded: Iterable | None, skip: Iterable | None = None) -> tuple:

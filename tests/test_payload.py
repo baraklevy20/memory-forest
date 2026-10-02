@@ -48,12 +48,17 @@ class PayloadTests(unittest.TestCase):
         self.assertTrue(p["testForest"])
         self.assertEqual(p["stats"]["trees"], 30)
 
-    def test_the_forest_is_built_once_until_the_collection_changes(self):
+    def test_the_forest_is_built_once_until_the_study_data_changes(self):
         reset(CARDS)
         first = payload._forest()
         self.assertIs(payload._forest(), first)
-        mw.col.mod += 1
-        self.assertIsNot(payload._forest(), first)
+        mw.col.mod += 1  # the collection changed, but not what the forest grows from (a deck picked, say)
+        self.assertIs(payload._forest(), first)
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 1, 3, 1)", (ms(0, 15),))  # a review
+        second = payload._forest()
+        self.assertIsNot(second, first)
+        mw.col.db.con.execute("update cards set mod = 5 where id = 1")  # a card suspended or moved
+        self.assertIsNot(payload._forest(), second)
 
     def test_a_hand_edited_width_stays_in_range(self):
         reset(CARDS, {"max_width": "wide"})

@@ -295,10 +295,20 @@ def mark_big_days(trees: list) -> list:
     `big`: what it beat, the most in the two weeks before. The trees given are left alone
     (they may be cached)."""
     out = []
+    # oldest first, as forests are: the days before a tree are the few just before it in the
+    # list, so the window is found walking back from it (scanning every older tree for each
+    # one took most of a second on a forest of thousands, at every redraw)
+    oldest_first = all(a["ago"] > b["ago"] for a, b in zip(trees, trees[1:]))
     for i, t in enumerate(trees):
         t = {k: v for k, v in t.items() if k != "big"}
         if i >= BIG_DAY_HISTORY:
-            window = [u["n"] for u in trees[:i] if t["ago"] < u["ago"] <= t["ago"] + BIG_DAY_WINDOW]
+            if oldest_first:
+                window, j = [], i - 1
+                while j >= 0 and trees[j]["ago"] <= t["ago"] + BIG_DAY_WINDOW:
+                    window.append(trees[j]["n"])
+                    j -= 1
+            else:
+                window = [u["n"] for u in trees[:i] if t["ago"] < u["ago"] <= t["ago"] + BIG_DAY_WINDOW]
             best = max(window, default=0)
             if best and t["n"] >= best * BIG_DAY_JUMP and t["n"] >= best + BIG_DAY_MORE:
                 t["big"] = best

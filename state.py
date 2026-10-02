@@ -186,6 +186,46 @@ def phone_cards() -> set:
     return found
 
 
+def changes():
+    """Where the study data stands, read cheaply (a few ms on a big collection): the newest
+    review, and the latest change to any card or note - but the note that carries the forest
+    to your phone and its cards, which the add-on rewrites itself at every sync. What the
+    forest is built from can only have changed if this has. (The collection's own modified
+    time changes far more often - picking a deck, the phone's note - and each change used to
+    cost a whole rebuild.) None when the collection can't say."""
+    col = mw.col
+    if col is None:
+        return None
+    cids = ",".join(str(int(c)) for c in phone_cards())
+    not_phone = f" where id not in ({cids})" if cids else ""
+    not_phone_note = f" where id not in (select nid from cards where id in ({cids}))" if cids else ""
+    try:
+        return (getattr(col, "path", None) or id(col), col.db.scalar("select max(id) from revlog"),
+                *col.db.all(f"select max(mod), count() from cards{not_phone}")[0],
+                col.db.scalar(f"select max(mod) from notes{not_phone_note}"))
+    except Exception:  # an older or unusual collection: rebuild every time, as before
+        return None
+
+
+# answers kept until what they were worked out from changes: {name: (key, answer)}
+_remembered: dict = {}
+
+
+def remembered(name: str, key, work):
+    """work(), or the answer it gave last time for `name` if `key` is the same (and not None:
+    then it is worked out afresh). One answer is kept per name."""
+    hit = _remembered.get(name)
+    if key is not None and hit and hit[0] == key:
+        return hit[1]
+    answer = work()
+    _remembered[name] = (key, answer)
+    return answer
+
+
+def forget_remembered() -> None:
+    _remembered.clear()
+
+
 def remember_phone_cards(cids) -> None:
     """Keep leaving out the reviews of these cards once they are gone (see phone_cards)."""
     global _phone_cards

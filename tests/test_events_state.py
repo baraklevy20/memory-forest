@@ -30,7 +30,6 @@ def studied_every_day_but(missed, **config):
     reset(PLANTED, config)
     mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
                               [(ms(d, 18),) for d in range(41) if d not in missed])
-    mw.col.mod += 1  # a new review log: the days studied are read again
 
 
 class NatureTests(unittest.TestCase):
@@ -157,7 +156,6 @@ class StrikeJournalTests(unittest.TestCase):
         reset(PLANTED[:-2] + [(102, 10, 0)], {"nature": "merciless"})
         mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
                                   [(ms(d, 18),) for d in range(41) if d != 3])
-        mw.col.mod += 1
         p = payload.payload()
         self.assertIn("asteroid", addon.events_state.news_line(p))
         addon.events_state.mark_seen(p["strike"]["seen"])
@@ -181,7 +179,7 @@ class AnimalTests(unittest.TestCase):
     def fox_reviews(self):
         mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
                                   [(ms(30, 12) + i,) for i in range(10_000)])
-        mw.col.mod += 1
+        payload.after_sync()  # reviews from a month back only ever come in with a sync
 
     def test_the_first_look_remembers_them_without_announcing_them(self):
         self.studied_every_day()
@@ -199,7 +197,7 @@ class AnimalTests(unittest.TestCase):
             self.assertEqual([(v["key"], v["new"]) for v in p["visitors"]], [("fox", True)])
             self.assertEqual(p["journal"], "A fox wandered in: you passed 10,000 reviews.")
         mw.col.db.con.execute("delete from revlog where cid = 999 and id between ? and ?", (ms(30, 12), ms(30, 12) + 10_000))
-        mw.col.mod += 1
+        payload.after_sync()  # old reviews gone (a sync from elsewhere): read afresh
         p = payload.payload()
         self.assertLess(p["stats"]["reviews"], 10_000)
         self.assertEqual([v["key"] for v in p["visitors"]], ["fox"])  # it stays

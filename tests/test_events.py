@@ -3,6 +3,7 @@ and forest rebuilds they lean on."""
 
 from __future__ import annotations
 
+import random
 import unittest
 
 import helpers  # noqa: F401  (puts the add-on on the path)
@@ -82,6 +83,23 @@ class EventTests(unittest.TestCase):
         self.assertEqual([events.nature_level(v) for v in ("wild", "stormy", None, 3)], ["wild", "peaceful", "peaceful", "peaceful"])
         self.assertTrue(events.calm("peaceful") and not events.calm("wild"))
 
+
+    def test_big_learning_days_found_fast_are_the_same(self):
+        def slow(trees):  # every older tree scanned for each one, as it was
+            out = []
+            for i, t in enumerate(trees):
+                window = [u["n"] for u in trees[:i] if t["ago"] < u["ago"] <= t["ago"] + events.BIG_DAY_WINDOW]
+                best = max(window, default=0)
+                hit = i >= events.BIG_DAY_HISTORY and best and t["n"] >= best * events.BIG_DAY_JUMP and t["n"] >= best + events.BIG_DAY_MORE
+                out.append(best if hit else None)
+            return out
+        rnd = random.Random(3)
+        for _ in range(50):
+            agos = sorted(rnd.sample(range(400), rnd.randint(0, 120)), reverse=True)  # days with gaps between
+            trees = [{"ago": a, "n": rnd.choice([1, 2, 3, 5, 8, 20, 40])} for a in agos]
+            self.assertEqual([t.get("big") for t in events.mark_big_days(trees)], slow(trees))
+            shuffled = rnd.sample(trees, len(trees))  # not oldest first: still the same answer
+            self.assertEqual([t.get("big") for t in events.mark_big_days(shuffled)], slow(shuffled))
 
     def test_big_learning_days(self):
         def big(counts):

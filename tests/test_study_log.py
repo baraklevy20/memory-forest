@@ -126,6 +126,22 @@ class HistoryFilterTests(unittest.TestCase):
         self.assertEqual(rows.total_reviews, 5)
         self.assertIn(4, rows.review_days)
 
+    def test_the_review_log_kept_between_reads_adds_up_as_reading_it_whole(self):
+        log = study_log.ReviewLog()
+        same = lambda **kw: self.assertEqual(  # noqa: E731
+            vars(study_log.load_rows(self.db, CUTOFF, log=log, **kw)), vars(study_log.load_rows(self.db, CUTOFF, **kw)))
+        same(excluded=[20], since=ms(8) // 1000)
+        # reviews come in: a new card's, one of a left-out deck's, and a manual reschedule
+        for rid, cid, ease, rtype in ((ms(0, 9), 4, 3, 1), (ms(0, 10), 2, 3, 1), (ms(0, 11), 1, 0, 4), (ms(0, 12), 8, 3, 0)):
+            self.db.all("insert into revlog values (?, ?, ?, ?)", rid, cid, ease, rtype)
+        same(excluded=[20], since=ms(8) // 1000)
+        self.assertEqual(log.newest, ms(0, 12))
+        # an undo takes the newest review away: read whole again
+        self.db.all("delete from revlog where id = ?", ms(0, 12))
+        same(excluded=[20], since=ms(8) // 1000)
+        # another choice of decks: read whole again
+        same(dids=[10])
+
     def test_nothing_before_the_start_date_counts(self):
         rows = study_log.load_rows(self.db, CUTOFF, since=ms(4, hour=4) // 1000)
         # card 1 was first studied 9 days ago, so its tree would stand before the forest

@@ -39,9 +39,9 @@ class DB:
         self.con = sqlite3.connect(":memory:")
         self.con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
-                                due integer, odue integer default 0);
+                                due integer, odue integer default 0, mod integer default 0);
             create table revlog (id integer, cid integer, ease integer, type integer, ivl integer default 0, lastIvl integer default 0);
-            create table notes (id integer, tags text);
+            create table notes (id integer, tags text, mod integer default 0);
         """)
 
     def all(self, sql, *args):
@@ -215,7 +215,7 @@ def reset(cards=(), config=None, current_deck: int = 10, leeches=()):
         mw.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) values (?, ?, ?, ?, 2, 2, ?, '{}', ?)",
                               (cid, cid, did, odid, 5 if cid in leeches else 30, TODAY + 30))
         mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, ?, 3, 0)", (ms(days), cid))
-        mw.col.db.con.execute("insert into notes values (?, ?)", (cid, " leech " if cid in leeches else ""))
+        mw.col.db.con.execute("insert into notes (id, tags) values (?, ?)", (cid, " leech " if cid in leeches else ""))
     mw.addonManager.config = dict(config or {})
     addon.payload._forest_cache.clear()
     addon.planting._planted_today = None

@@ -17,15 +17,18 @@ from .state import (
     OFF_VALUES,
     TEST_TREES_DEFAULT,
     TEST_TREES_MAX,
+    changes,
     clamp_int,
     config,
     deck_ids,
     excluded_decks,
     follow_season,
+    forget_remembered,
     keeps_suspended,
     load_state,
     log,
     phone_cards,
+    remembered,
     save_state,
     season_returns,
     since,
@@ -36,29 +39,48 @@ from .state import today as scenery_day
 TEST_LIT_EVERY = 5
 
 _forest_cache: dict = {}
+# each forest's review log, read whole once and then only what was added (study_log.ReviewLog)
+_logs: dict = {}
 
 
-def _forest(did: int | None = None) -> dict:
-    """Forest data for the whole collection, or one deck and its subdecks. Recomputed
-    only when the collection, the day or the decks and dates it counts change."""
+def after_sync() -> None:
+    """After a sync, read everything afresh next time: it may have brought in old reviews,
+    moved cards between decks or taken reviews away, none of which state.changes sees (as a
+    review deleted by hand, or by Check Database, isn't seen before the next sync, restart or
+    new day)."""
+    _logs.clear()
+    _forest_cache.clear()
+    forget_remembered()
+
+
+def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> dict:
+    """Forest data for the whole collection, or one deck and its subdecks. Recomputed only
+    when the study data (state.changes, `changed` if already read), the day or the decks and
+    dates it counts change."""
     col = mw.col
-    cfg = config()
+    cfg = config() if cfg is None else cfg
     cutoff = col.sched.day_cutoff
     excluded, start, suspended, skip = excluded_decks(cfg), since(cfg), keeps_suspended(cfg), phone_cards()
-    mod = getattr(col, "mod", None)
-    key = (mod, cutoff, frozenset(excluded), start, suspended, frozenset(skip))
+    changed = changes() if changed is None else changed
+    key = (changed, cutoff, frozenset(excluded), start, suspended, frozenset(skip))
     cached = _forest_cache.get(did)
-    if mod is not None and cached and cached[0] == key:
+    if changed is not None and cached and cached[0] == key:
         return cached[1]
     started = time.perf_counter()
     dids = deck_ids(did, excluded) if did else None
-    rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended, skip=skip)
+    owner, log_ = _logs.get(did, (None, None))
+    here = getattr(col, "path", None) or id(col)  # which collection, without keeping it alive
+    if owner != here:
+        log_ = study_log.ReviewLog()
+    rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended, skip=skip, log=log_)
     value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
     log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
     # the whole collection's, and the last deck screen's: one per deck ever opened adds up
-    for other in [d for d in _forest_cache if d is not None and d != did]:
-        del _forest_cache[other]
+    for kept in (_forest_cache, _logs):
+        for other in [d for d in kept if d is not None and d != did]:
+            del kept[other]
     _forest_cache[did] = (key, value)
+    _logs[did] = (here, log_)
     return value
 
 
@@ -79,13 +101,15 @@ def _new_ancient_today(forest: dict, today: _dt.date) -> bool:
     return state.get("ancient_event") == today.isoformat()
 
 
-def _lit_by_deck(forest: dict, did: int, test: bool) -> dict:
+def _lit_by_deck(forest: dict, did: int, test: bool, cfg: dict, changed=None) -> dict:
     """The main forest with each tree marked dim unless it holds some of this deck's cards."""
     if test:
         lit = {t["ago"] for t in forest["trees"][::TEST_LIT_EVERY]}
     else:
-        dids = deck_ids(did, excluded_decks())
-        lit = study_log.load_deck_days(mw.col.db, mw.col.sched.day_cutoff, dids, keeps_suspended(), phone_cards())
+        col = mw.col
+        dids, suspended, skip = deck_ids(did, excluded_decks(cfg)), keeps_suspended(cfg), phone_cards()
+        lit = remembered("deck_days", changed and (changed, col.sched.day_cutoff, tuple(dids), suspended, frozenset(skip)),
+                         lambda: study_log.load_deck_days(col.db, col.sched.day_cutoff, dids, suspended, skip))
     trees = [dict(t, dim=t["ago"] not in lit) for t in forest["trees"]]
     return dict(forest, trees=trees, lit_count=sum(1 for t in trees if not t["dim"]))
 
@@ -94,13 +118,15 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     cfg = follow_season(config())
     # the test forest is a developer's tool, so it only exists while debug is on
     test = bool(cfg.get("debug", False)) and bool(cfg.get("test_forest", False))
-    forest = dict(fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test else _forest(None if highlight else did)
+    changed = None if test else changes()  # read once: everything below that is kept goes by it
+    forest = (dict(fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX)), test=True) if test
+              else _forest(None if highlight else did, cfg, changed))
     if highlight and did:
-        forest = _lit_by_deck(forest, did, test)
+        forest = _lit_by_deck(forest, did, test, cfg, changed)
     # Nature and the other study events; a deck's own forest shows the trees alone
     extras = {}
     if not (did and not highlight):
-        forest, extras = events_state.apply(forest, cfg, test)
+        forest, extras = events_state.apply(forest, cfg, test, changed)
         if cfg.get("debug"):
             forest, extras = debug_events.apply(forest, extras, cfg)
     now = _dt.datetime.now()
