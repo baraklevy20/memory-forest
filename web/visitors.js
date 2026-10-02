@@ -76,15 +76,24 @@ function visitorColor(env, hz) {
   return col => { if (env.visitorTint) return env.visitorTint; let c = hex(col); if (tint) c = mix(c, tint, th.tintAmt); if (hz) c = mix(c, haze, hz * th.hzStep * 4); return rgb(c); };
 }
 
+/* An environment may keep stretches of the scene clear of animals and the cabin
+ * (`keepClear`: [from, to] pairs, as shares of the width), e.g. where something of its own
+ * stands in front of everything. In pixels here. */
+const clearSpans = env => (AF.envOf(env).keepClear || []).map(([a, b]) => [a * env.W, b * env.W]);
+const inClear = (env, x0, x1) => clearSpans(env).some(([a, b]) => x1 > a && x0 < b);
+
 /* animals that live inside the forest are drawn into the land at the right depth */
 AF.placeVisitors = function (env) {
-  const list = env.data.visitors || [], keys = list.map(v => v.key), trees = env.placed.filter(p => !p.it.pond);
+  const list = env.data.visitors || [], keys = list.map(v => v.key);
+  // no animal's tree (nor pond) stands in a stretch the environment keeps clear
+  const open = p => !inClear(env, p.x - 6, p.x + 10);
+  const trees = env.placed.filter(p => !p.it.pond && open(p));
   const inForest = {}, front = [];
   const R = rng(daySeed(env)), any = pool => pool[Math.floor(R() * pool.length)];
   // the owl perches on one of the oldest trees, the heron wades at one of the ponds
   const old = trees.filter(p => p.it.stage === ANCIENT), older = old.length ? old : trees.filter(p => p.it.stage === OLD);
   if (keys.includes('owl') && older.length) inForest.owl = { host: any(older) };
-  const ponds = env.placed.filter(p => p.it.pond && p.it.first);
+  const ponds = env.placed.filter(p => p.it.pond && p.it.first && open(p));
   if (keys.includes('heron') && ponds.length) inForest.heron = { host: any(ponds) };
   // the squirrels sit at the foot of a grown tree the owl hasn't taken
   const grown = trees.filter(p => p.it.stage >= MATURE && (!inForest.owl || p !== inForest.owl.host));
@@ -141,8 +150,9 @@ function frontWay(env, baseY) {
   const cw = VISITORS.cabin.frames[0][0].length, ch = VISITORS.cabin.frames[0].length;
   const ponds = env.placed.filter(p => p.it.pond && p.it.first).map(p => AF.pondBox(env, p)).filter(b => b.y1 > baseY - FRONT_TALLEST);
   const pondAt = x0 => ponds.some(b => x0 + cw + FRONT_CLEAR > b.x0 && x0 - FRONT_CLEAR < b.x1 && baseY > b.y0 && baseY - ch < b.y1);
+  const takenAt = x0 => pondAt(x0) || inClear(env, x0, x0 + cw);
   const left = Math.round(env.W * CABIN_X), right = env.W - left - cw;
-  return (env.frontWay = { ponds, cabinX: pondAt(left) && !pondAt(right) ? right : left });
+  return (env.frontWay = { ponds, cabinX: takenAt(left) && !takenAt(right) ? right : left });
 }
 
 /* the rest stand at the edge of the forest; the cabin sits front-left after a year (or front-right) */
@@ -171,6 +181,7 @@ AF.drawVisitors = function (g, env, t) {
     const half = spr.frames[0][0].length / 2 + FRONT_CLEAR, lo = half, hi = W - half, cabinW = VISITORS.cabin.frames[0][0].length;
     const blocks = way.ponds.map(b => [b.x0 - half, b.x1 + half]);
     if (cabin) blocks.push([way.cabinX - half, way.cabinX + cabinW + half]);
+    for (const [a, b] of clearSpans(env)) blocks.push([a - half, b + half]);
     const blocked = x => blocks.some(([a, b]) => x > a && x < b) || (land.wet && land.wet(env, x - half, x + half, baseY));
     const aside = x => {
       const hit = blocks.find(([a, b]) => x > a && x < b); if (!hit) return x;

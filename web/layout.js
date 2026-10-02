@@ -129,7 +129,9 @@ AF.layout = function (trees) {
  * one sprite each: more bands the further back your forest goes. */
 AF.deepForest = function (merged, env) {
   const u = env.u, n = merged.count;
-  const bands = clamp(Math.round(Math.log2(Math.max(2, n / DEEP_TREES_PER_BAND))), 1, DEEP_MAX_BANDS);
+  // an environment may stop it at fewer bands (`deepBands`), to keep more of its sky
+  const most = Math.min(DEEP_MAX_BANDS, AF.envOf(env).deepBands || DEEP_MAX_BANDS);
+  const bands = clamp(Math.round(Math.log2(Math.max(2, n / DEEP_TREES_PER_BAND))), 1, most);
   // It rises from the horizon, each band standing higher and hazier than the last, the way
   // distance reads in this view. The near trees cover its foot; its tops carry on above them.
   const base = Math.round(env.hor + DEEP_BASE * u), h = Math.round((AF.DEEP.crown + bands * AF.DEEP.step) * u);
