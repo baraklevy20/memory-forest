@@ -55,6 +55,9 @@ def _forest(did: int | None = None) -> dict:
     rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended, skip=skip)
     value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
     log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
+    # the whole collection's, and the last deck screen's: one per deck ever opened adds up
+    for other in [d for d in _forest_cache if d is not None and d != did]:
+        del _forest_cache[other]
     _forest_cache[did] = (key, value)
     return value
 

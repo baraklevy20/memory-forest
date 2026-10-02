@@ -55,6 +55,7 @@ function when(iso) {
 
 let note;
 try { note = JSON.parse(json.textContent); } catch { note = null; }
+json.remove();  // read once (the template read it first): its text would stay on the page as long as the card
 if (!note || !Array.isArray(note.days) || !note.days.length) {
   root.textContent = 'Your forest arrives with the next sync from Anki on your computer.';
   return;

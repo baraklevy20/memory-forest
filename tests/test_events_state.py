@@ -64,6 +64,19 @@ class NatureTests(unittest.TestCase):
         addon.actions.on_js_message((False, None), f"{state.MODULE}:struck:{p['strike']['seen']}", addon.actions.DeckBrowser())
         self.assertFalse(payload.payload()["strike"]["fresh"])
 
+    def test_the_forest_a_strike_took_comes_only_to_play_it(self):
+        studied_every_day_but({3}, nature="merciless")
+        p = payload.payload()
+        self.assertEqual(len(p["strike"]["before"]), 23)  # it plays by itself: the page needs it now
+        seen = p["strike"]["seen"]
+        message = lambda key: f"{state.MODULE}:strike:{key}"  # noqa: E731
+        addon.actions.on_js_message((False, None), f"{state.MODULE}:struck:{seen}", addon.actions.DeckBrowser())
+        self.assertNotIn("before", payload.payload()["strike"])  # seen: a replay asks for it
+        handled, got = addon.actions.on_js_message((False, None), message(seen), addon.actions.DeckBrowser())
+        self.assertEqual((handled, len(got["before"])), (True, 23))
+        self.assertEqual(addon.actions.on_js_message((False, None), message("another"), addon.actions.DeckBrowser()),
+                         (True, None))  # not the latest strike: nothing to play
+
     def test_the_settings_preview_shows_the_crater_without_playing_it(self):
         studied_every_day_but({3}, nature="merciless")
         with mock.patch.object(addon.settings, "is_open", return_value=True):

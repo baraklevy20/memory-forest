@@ -1,5 +1,5 @@
 /* Memory Forest — pixel engine, part 1: the tree sprites, their palettes, and the painter and
- * sprite cache the other parts share. Loaded before the rest of web/engines/pixel/. */
+ * shared scratch canvas the sprites are drawn on. Loaded before the rest of web/engines/pixel/. */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
@@ -23,8 +23,9 @@ const PXT = {
 const GOLD = hex('#c9d97c');
 const SNOW_W = hex('#f4f7fb'), SNOW_L = hex('#d6dfeb');
 
-const cache = new Map();  // built sprites, keyed by look; cleared when the panel resizes
-AF.clearCaches = () => cache.clear();
+// every sprite is drawn on this one canvas, used straight away (into the land, or read for a
+// crown's top) and drawn over by the next: a canvas each, kept, was hundreds of them per page
+const scratch = layer(1, 1);
 
 /* crown shapes fill a tone map (0 outline .. 4 highlight) */
 function roundCrown(tone, W, H, w, top, ch, cx, blobsN, R, hole, pick) {
@@ -110,8 +111,6 @@ function sprite(t, h, hzq, env) {
   const EP = spec.pals || {}, P = EP.base || PXT;
   const bark = EP.bark || P.bark;
   const burn = AF.burnStep(t.burn) / 7;
-  const key = [env.spriteKey, t.stage, t.kind, t.size, t.health, t.variant, t.seed, h, hzq, burn].join('|');
-  const hit = cache.get(key); if (hit) return hit;
   const R = rng(hashStr([t.stage, t.kind, t.size, t.health, t.variant, h].join('|')));
   const hz = hzq * th.hzStep, pine = t.kind === 1 && t.stage >= YOUNG, ancient = t.stage === ANCIENT;
   const tint = th.tint ? hex(th.tint) : null, haze = hex(th.haze), rim = th.rim ? hex(th.rim) : null;
@@ -120,7 +119,9 @@ function sprite(t, h, hzq, env) {
   else if (tree.width) w = tree.width({ t, h, pine, ancient, env }) || 0;
   if (!w) { const f = pine ? PINE_W[t.size] * (ancient ? ANCIENT_PINE_W : 1) : (ancient ? ANCIENT_W : BROAD_W)[t.size]; w = Math.max(3, Math.round(h * f)); if (w % 2 === 0) w++; }
   const W = w + 4, H = (t.stage === SEEDLING ? SEEDLING_W : h) + 2;
-  const [cv, g] = layer(W, H), img = g.createImageData(W, H), d = img.data;
+  const [cv, g] = scratch;
+  cv.width = W; cv.height = H;  // which also clears it
+  const img = g.createImageData(W, H), d = img.data;
   // a tree faded out on a deck screen goes cool grey, not into a warm haze where it would
   // read as yellowing
   const faded = hzq >= FADED_HZQ, FADE = [142, 152, 168];
@@ -140,7 +141,7 @@ function sprite(t, h, hzq, env) {
     put(cx - 1, base - 4, leaf); put(cx - 2, base - 5, leaf); put(cx - 1, base - 5, leafL);
     put(cx + 1, base - 5, leaf); put(cx + 2, base - 6, leafL); put(cx + 1, base - 6, leafL);
     if (burn) scorch(d, W, H, burn, t.seed);
-    g.putImageData(img, 0, 0); cache.set(key, cv); return cv;
+    g.putImageData(img, 0, 0); return cv;
   }
   const tone = new Int8Array(W * H).fill(-1), inside = (x, y) => x >= 0 && y >= 0 && x < W && y < H && tone[y * W + x] >= 0;
   const hole = t.health === 3 ? DYING_HOLES : 0, pick = l => l > 0.5 ? 4 : l > 0.15 ? 3 : l > -0.3 ? 2 : 1;
@@ -198,7 +199,7 @@ function sprite(t, h, hzq, env) {
     put(x, y, col);
   }
   if (burn) scorch(d, W, H, burn, t.seed);
-  g.putImageData(img, 0, 0); cache.set(key, cv); return cv;
+  g.putImageData(img, 0, 0); return cv;
 }
 
 AF.pixel = { PXT, SNOW_L, H6, sprite, HAZE_STEPS };

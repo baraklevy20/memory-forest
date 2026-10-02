@@ -48,6 +48,9 @@ class SettingsDialog(QDialog):
         if cfg.get("debug", False):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))
+        else:  # unshown, it still goes with the dialog: on its own it stayed for good, every time
+            self.debug.setParent(self)
+            self.debug.hide()
         tabs = QTabWidget()
         for widget, name in shown + [(AboutTab(), "About")]:
             tabs.addTab(widget, name)
@@ -70,7 +73,10 @@ class SettingsDialog(QDialog):
         self.general.real_sky.toggled.connect(self._real_sky_toggled)
         for tab in (self.general, self.fine, self.history, self.debug):
             tab.connect(self._changed)
-        self.general.city.editingFinished.connect(lambda: QTimer.singleShot(CITY_RECHECK_MS, self._sync))
+        # the dialog's own timer, so a closed (and deleted) dialog is never called back
+        self._city_check = QTimer(self); self._city_check.setSingleShot(True); self._city_check.setInterval(CITY_RECHECK_MS)
+        self._city_check.timeout.connect(self._sync)
+        self.general.city.editingFinished.connect(self._city_check.start)
         self._reverting = True  # Cancel and shutdown put the old config back; Restore defaults must not
         self._sync()
         # lay the tabs out once before the dialog is first shown, so the General tab can measure
@@ -90,7 +96,9 @@ class SettingsDialog(QDialog):
         five settings as choosing from a list would."""
         box = self.general.preset
         picker = SceneryPicker(self, self.general.scenery_choices(), box.currentData(), self._day())
-        if picker.exec() == QDialog.DialogCode.Accepted:
+        accepted = picker.exec() == QDialog.DialogCode.Accepted
+        picker.deleteLater()  # a child of the dialog: kept, every picker opened stays until it closes
+        if accepted:
             i = box.findData(picker.current)
             if i >= 0:
                 box.setCurrentIndex(i)

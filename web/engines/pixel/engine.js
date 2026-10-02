@@ -27,7 +27,6 @@ AF.engines.pixel = {
 
     env.flipLight = !!(th.orb && th.orb.x > FLIP_LIGHT_X && spec.flipLight !== false);
     env.ridges = ridges(env);
-    env.spriteKey = [env.mood.special, env.mood.time, env.mood.weather, th.snow ? 'w' : '', th.deepSnow ? 'W' : '', th.flat ? 'f' : ''].join('/');
   },
   sky: drawSky,
   steps(env) {

@@ -121,12 +121,15 @@ AF.mount = function (root, data, opts) {
     frame(animate ? performance.now() : stillAt);
     if (animate && !running) { running = true; loop(); }
   }
-  if ('IntersectionObserver' in window) new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(sceneEl);
+  if ('IntersectionObserver' in window) new IntersectionObserver((es, obs) => {
+    if (!current()) { obs.disconnect(); return; }  // a later mount took over: let this scene go
+    visible = es[0].isIntersecting;
+  }).observe(sceneEl);
   let lastW = 0, rt;
   if ('ResizeObserver' in window) new ResizeObserver((_es, obs) => {
     if (!current()) { obs.disconnect(); return; }
     const w = sceneEl.clientWidth; if (!env || Math.abs(w - lastW) < RESIZE_MIN_PX) return; lastW = w;
-    clearTimeout(rt); rt = setTimeout(() => { if (AF.clearCaches) AF.clearCaches(); build(); frame(animate ? performance.now() : stillAt); }, RESIZE_DEBOUNCE_MS);
+    clearTimeout(rt); rt = setTimeout(() => { build(); frame(animate ? performance.now() : stillAt); }, RESIZE_DEBOUNCE_MS);
   }).observe(sceneEl);
   // build after the deck list has painted, so the forest never delays it - unless this is a
   // swap, where the old forest was just cleared and waiting would show an empty panel
@@ -153,12 +156,12 @@ AF.swap = function (id, data, srcs) {
       window.AnkiForest = AF;
       const el = document.createElement('script');
       el.src = missing[i];
-      el.onload = el.onerror = () => next(i + 1);
+      // once run, let go: kept, each scene file loaded held on to this swap's whole forest
+      el.onload = el.onerror = () => { el.onload = el.onerror = null; next(i + 1); };
       document.head.appendChild(el);
       return;
     }
     window.AnkiForest = other;
-    if (AF.clearCaches) AF.clearCaches();  // sprites were drawn for the old scene
     AF.mount(root, data, { now: true });
   };
   next(0);

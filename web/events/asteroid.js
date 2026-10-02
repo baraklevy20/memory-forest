@@ -168,6 +168,10 @@ function run(draw, done) {
   requestAnimationFrame(tick);
 }
 
+/* Whether the strike `s` can be played again: the page has the forest it took, or can
+ * ask Anki for it (the phone can't). */
+const replayable = s => Boolean(s && (s.before || AF.u.canBrowse()));
+
 /* Show `data`'s latest strike happening: the forest it took, the shower, the blast, and
  * then the forest as it is now. `done` runs at the end (to say it has been seen). */
 function playStrike (root, data, done) {
@@ -236,10 +240,10 @@ AF.events.add('asteroid', {
   pick(env, data, mx, my, animate) {
     const inBox = b => b && mx >= b.x0 && mx <= b.x1 && my >= b.y0 && my <= b.y1;
     if (data.doom && inBox(env.doomBox)) return { html: doomText(data.doom) };
-    const craters = data.craters || [], latest = data.strike && craters[craters.length - 1];
+    const craters = data.craters || [], latest = replayable(data.strike) && craters[craters.length - 1];
     for (const b of env.craterBoxes || []) {
       if (!inBox(b)) continue;
-      const replay = Boolean(animate && b.c === latest);
+      const replay = Boolean(animate && latest && b.c === latest);
       return { html: craterHtml(b.c), replay };
     }
     return null;
@@ -248,9 +252,10 @@ AF.events.add('asteroid', {
   caption(data, words, animate) {
     const items = [], s = data.strike;
     if (s && s.news) {
+      const again = animate && replayable(s);
       items.push([`Asteroid struck ${fmtShort(s.date)}`, `${s.lost} ${s.lost === 1 ? words.one : words.many} lost.`
-        + (animate ? ' Its crater can play it again too.' : ' Turn on animations in the forest settings to watch it.'),
-      animate ? root => root.afReplay() : undefined]);
+        + (again ? ' Its crater can play it again too.' : animate ? '' : ' Turn on animations in the forest settings to watch it.'),
+      again ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;
     if (d) items.push(['Asteroid: tonight', doomText(d)]);
@@ -260,7 +265,16 @@ AF.events.add('asteroid', {
   // (`seen` says it has). True while it plays: it mounts the forest itself as it goes.
   mount(root, data, opts, animate, seen) {
     const s = data.strike;
-    root.afReplay = () => { if (s && !root.afPlaying) playStrike(root, data); };
+    root.afReplay = () => {
+      if (!s || root.afPlaying) return;
+      if (s.before) { playStrike(root, data); return; }
+      // the forest it took isn't on the page (it would be a second forest to carry): ask for it
+      root.afPlaying = true;
+      pycmd(`${data.channel}:strike:${s.seen}`, got => {
+        root.afPlaying = false;
+        if (got && got.before && root.afEnv && root.afEnv.data.strike === s) { s.before = got.before; s.merged = got.merged; playStrike(root, data); }
+      });
+    };
     if (!s || !s.fresh || (opts && opts.noStrike)) return false;
     if (!animate) { seen(); return false; }  // nothing to watch: seen, not saved up for the day animations come on
     playStrike(root, data, seen);

@@ -17,11 +17,21 @@ def is_open() -> bool:
     return _open is not None and _open.isVisible()
 
 
+def _closed(dialog: SettingsDialog) -> None:
+    global _open
+    if _open is dialog:  # Restore defaults opens the next one before this one is gone
+        _open = None
+
+
 def open_settings(module: str, on_change) -> None:
     global _open
     if _open is not None and _open.isVisible():
         _open.raise_(); _open.activateWindow()
         return
-    _open = SettingsDialog(module, on_change, open_settings)
-    _open.setWindowModality(Qt.WindowModality.NonModal)
-    _open.show()
+    dialog = SettingsDialog(module, on_change, open_settings)
+    # a closed dialog goes, picker and all: kept, each one opened stayed in memory for good
+    dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+    dialog.finished.connect(lambda _result: _closed(dialog))
+    dialog.setWindowModality(Qt.WindowModality.NonModal)
+    _open = dialog
+    dialog.show()

@@ -70,22 +70,39 @@ def _nature_days() -> set:
     return _days_cache[1]
 
 
+# the latest strike the page was told of, (its key, the crater as events.merciless gave it),
+# for the forest it took when a click asks to play it again
+_strike: tuple = (None, None)
+
+
 def strike_payload(latest: dict, seen_key: str, date, playable: bool = True) -> dict:
     """What the page needs to show the latest strike's crater and play it. It plays by
     itself once, while it is news and hasn't been seen (and `playable`: not while the
     settings dialog previews it); the journal speaks of it (`told`) until it has played,
-    and for the rest of that day."""
-    before = forest_data.merge_old({"trees": latest["before"]})
+    and for the rest of that day. The forest it took comes along only to play by itself:
+    a replay asks for it (strike_before), as it is a second forest's worth of trees."""
+    global _strike
+    _strike = (seen_key, latest)
     state = load_state()
     news = latest["ago"] <= events.STRIKE_NEWS_DAYS
     fresh = news and playable and state.get("strike_seen") != seen_key
     return {
         "craters": [{"ago": latest["ago"], "lost": latest["lost"], "streak": latest["streak"], "date": date(latest["ago"]),
                      **({"spot": latest["spot"]} if latest.get("spot") else {})}],
-        "strike": {"date": date(latest["ago"]), "lost": latest["lost"], "before": before["trees"], "merged": before.get("merged"),
+        "strike": {"date": date(latest["ago"]), "lost": latest["lost"], **(strike_before(seen_key) if fresh else {}),
                    "seen": seen_key, "fresh": fresh, "news": news,
                    "told": news and (fresh or state.get("strike_seen_day") == mw.col.sched.today)},
     }
+
+
+def strike_before(seen_key: str) -> dict | None:
+    """The forest the strike `seen_key` took, to play it: None if the page asks for one it
+    is no longer the latest of."""
+    key, latest = _strike
+    if key != seen_key or latest is None:
+        return None
+    before = forest_data.merge_old({"trees": latest["before"]})
+    return {"before": before["trees"], "merged": before.get("merged")}
 
 
 def ago_date(ago: int) -> str:

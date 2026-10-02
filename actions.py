@@ -61,6 +61,8 @@ def on_js_message(handled, message, context):
             open_settings()
         elif cmd[0] == "struck" and len(cmd) > 1:
             events_state.mark_seen(":".join(cmd[1:]))
+        elif cmd[0] == "strike" and len(cmd) > 1:  # a replay asks for the forest it took
+            return (True, events_state.strike_before(":".join(cmd[1:])))
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

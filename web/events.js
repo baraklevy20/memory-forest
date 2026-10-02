@@ -40,27 +40,27 @@ AF.events.noise = (a, b) => hashStr(a + ',' + b) / 4294967296;
 /* The top of a tree's crown at column x of the forest, as its sprite is drawn, for a bird to
  * stand on; null past the crown's edge. A crown's top is not its stage's full height: it
  * rounds off, and each environment draws its own. */
-const crownTops = new WeakMap();  // sprite -> the first row drawn in each of its columns
+const crownTops = new WeakMap();  // placed tree -> its sprite's size and the first row drawn in each column
 AF.events.crownTop = (env, p, x) => {
   const px = AF.pixel;
   if (!px || !px.sprite) return null;
-  const h = Math.max(3, Math.round(AF.STAGE_H[p.it.stage] * env.u * p.s));
-  const spr = px.sprite(p.it, h, Math.round(p.hz * px.HAZE_STEPS), env);
-  let tops = crownTops.get(spr);
-  if (!tops) {
-    const d = spr.getContext('2d').getImageData(0, 0, spr.width, spr.height).data;
-    tops = [];
-    for (let cx = 0; cx < spr.width; cx++) {
+  let spr = crownTops.get(p);
+  if (!spr) {  // read once per tree, the first time a bird looks: sprites aren't kept
+    const h = Math.max(3, Math.round(AF.STAGE_H[p.it.stage] * env.u * p.s));
+    const cv = px.sprite(p.it, h, Math.round(p.hz * px.HAZE_STEPS), env), width = cv.width, height = cv.height;
+    const d = cv.getContext('2d').getImageData(0, 0, width, height).data, tops = [];
+    for (let cx = 0; cx < width; cx++) {
       let top = null;
-      for (let cy = 0; cy < spr.height && top === null; cy++) if (d[(cy * spr.width + cx) * 4 + 3] > 0) top = cy;
+      for (let cy = 0; cy < height && top === null; cy++) if (d[(cy * width + cx) * 4 + 3] > 0) top = cy;
       tops.push(top);
     }
-    crownTops.set(spr, tops);
+    spr = { width, height, tops };
+    crownTops.set(p, spr);
   }
   const x0 = Math.round(p.x - spr.width / 2), y0 = Math.round(p.y - spr.height + 1);
   let cx = Math.round(x) - x0;
   if (env.flipLight) cx = spr.width - 1 - cx;  // drawn mirrored
-  const top = cx >= 0 && cx < tops.length ? tops[cx] : null;
+  const top = cx >= 0 && cx < spr.tops.length ? spr.tops[cx] : null;
   return top === null ? null : y0 + top;
 };
 /* where a bird with its feet at column x stands: on the crown there, or, past its edge, as

@@ -10,6 +10,7 @@ if (!root || !json || !AF) return;
 window.AnkiForest = undefined;
 let data;
 try { data = JSON.parse(json.textContent); } catch (e) { console.error('Memory Forest could not read its data:', e); root.remove(); return; }
+json.remove();  // read once: its text would stay on the page as long as the page
 try { AF.mount(root, data); }
 catch (e) { console.error('Memory Forest could not draw the forest:', e); root.remove(); }
 })();

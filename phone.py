@@ -21,7 +21,7 @@ import traceback
 
 from aqt import mw
 
-from . import live_weather, payload, phone_data
+from . import events_state, live_weather, payload, phone_data
 from .state import OFF_VALUES, PHONE_DECK, PHONE_NOTETYPE, config, follow_season, log, remember_phone_cards, today
 
 DECK = PHONE_DECK
@@ -226,7 +226,13 @@ def publish() -> None:
         real, place, _error = live_weather.for_config(cfg)
         name = getattr(payload, "_scene_name", None)
         now = _dt.datetime.combine(today(cfg), _dt.datetime.now().time())  # or the debug date's
-        data = phone_data.phone_payload(payload.payload(), cfg, now, script, real, place,
+        page = payload.payload()
+        strike = page.get("strike")
+        if strike and strike.get("news") and "before" not in strike:
+            # the phone can't ask for the forest a strike took, so it comes along while the
+            # strike is news; after that its crater no longer plays it there
+            page = dict(page, strike=dict(strike, **(events_state.strike_before(strike["seen"]) or {})))
+        data = phone_data.phone_payload(page, cfg, now, script, real, place,
                                         (lambda date: name(cfg, date)) if name else (lambda _date: {}))
         if not phone_data.same_forest(note["Forest"], data):
             note["Forest"] = phone_data.encode(data)
