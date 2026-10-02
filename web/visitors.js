@@ -65,7 +65,15 @@ const SKY_X = 0.66, SKY_Y = 0.16, SKY_RX = 0.09, SKY_RY = 0.04, SKY_TURN = 0.35,
 const FACES_LEFT = { rabbit: true };  // which way each sprite is drawn looking
 
 function paintSprite(g, rows, x0, y0, pal, colorOf, flip = false) {
-  rows.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch === '.') continue; g.fillStyle = colorOf(pal[ch] || '#000000', ch); g.fillRect(x0 + (flip ? row.length - 1 - xx : xx), y0 + yy, 1, 1); } });
+  let style = null;
+  rows.forEach((row, yy) => {
+    for (let xx = 0; xx < row.length; xx++) {
+      const ch = row[xx]; if (ch === '.') continue;
+      const c = colorOf(pal[ch] || '#000000', ch);
+      if (c !== style) g.fillStyle = style = c;
+      g.fillRect(x0 + (flip ? row.length - 1 - xx : xx), y0 + yy, 1, 1);
+    }
+  });
 }
 /* the line the animals at the front and the cabin stand on */
 const frontY = env => Math.round(env.visitorY || env.H * Math.min(VISITOR_LOWEST, (env.bot || GROUND_BOTTOM) + VISITOR_DROP));
@@ -73,7 +81,18 @@ const frontY = env => Math.round(env.visitorY || env.H * Math.min(VISITOR_LOWEST
 const daySeed = env => ((env.data.forestSeed || 3) ^ Math.imul((env.data.dayNumber || 0) + 1, 2654435761)) >>> 0;
 function visitorColor(env, hz) {
   const th = env.theme, tint = th.tint ? hex(th.tint) : null, haze = hex(th.haze);
-  return col => { if (env.visitorTint) return env.visitorTint; let c = hex(col); if (tint) c = mix(c, tint, th.tintAmt); if (hz) c = mix(c, haze, hz * th.hzStep * 4); return rgb(c); };
+  // worked out once a scene for each colour and haze: the animals are drawn every frame
+  const seen = env.visitorColors || (env.visitorColors = new Map());
+  return col => {
+    if (env.visitorTint) return env.visitorTint;
+    const key = hz + '|' + col;
+    let out = seen.get(key);
+    if (out === undefined) {
+      let c = hex(col); if (tint) c = mix(c, tint, th.tintAmt); if (hz) c = mix(c, haze, hz * th.hzStep * 4);
+      seen.set(key, out = rgb(c));
+    }
+    return out;
+  };
 }
 
 /* An environment may keep stretches of the scene clear of animals and the cabin

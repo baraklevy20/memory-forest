@@ -35,7 +35,7 @@ AF.mount = function (root, data, opts) {
   const layout = AF.layout(data.trees);
   // with animations off the forest is one still moment: every redraw uses this time
   const stillAt = performance.now();
-  let env = null, visible = true, running = false;
+  let env = null, visible = true, running = false, asleep = true;
 
   function build() {
     const cssW = Math.max(MIN_CSS_W, Math.min(sceneEl.clientWidth || data.maxWidth, data.maxWidth));
@@ -106,16 +106,23 @@ AF.mount = function (root, data, opts) {
   // pointing at the forest: tooltips, the marker over a tree, a click to see its cards
   const pointer = AF.hover({ root, canvas, tip, sceneEl, data, animate, env: () => env, redraw: () => { if (!animate) frame(stillAt); } });
 
-  // ~15 frames a second is plenty for drifting clouds and fireflies; pauses when hidden
+  // ~15 frames a second is plenty for drifting clouds and fireflies. Between frames it sleeps,
+  // rather than waking at every refresh of the screen to check the time; off screen, or on a
+  // hidden page, it stops altogether until the forest is seen again (wake)
   function loop() {
+    if (!asleep) return;
+    asleep = false;
     let last = 0;
     const tick = ts => {
-      if (!current()) return;  // swapped out: let this forest's loop end
-      if (visible && !document.hidden && ts - last > FRAME_MS) { last = ts; frame(ts); }
-      requestAnimationFrame(tick);
+      if (!current() || !visible || document.hidden) { asleep = true; return; }  // swapped out, or unseen
+      if (ts - last <= FRAME_MS) { requestAnimationFrame(tick); return; }  // woke a refresh early: no faster than ~15 a second
+      last = ts;
+      frame(ts);
+      setTimeout(() => requestAnimationFrame(tick), Math.max(0, FRAME_MS - FRAME_WAKE_MS - (performance.now() - ts)));
     };
     requestAnimationFrame(tick);
   }
+  const wake = () => { if (running && current()) loop(); };
   function start() {
     build();
     frame(animate ? performance.now() : stillAt);
@@ -124,7 +131,13 @@ AF.mount = function (root, data, opts) {
   if ('IntersectionObserver' in window) new IntersectionObserver((es, obs) => {
     if (!current()) { obs.disconnect(); return; }  // a later mount took over: let this scene go
     visible = es[0].isIntersecting;
+    if (visible) wake();
   }).observe(sceneEl);
+  const shown = () => {
+    if (!current()) { document.removeEventListener('visibilitychange', shown); return; }
+    if (!document.hidden) wake();
+  };
+  document.addEventListener('visibilitychange', shown);
   let lastW = 0, rt;
   if ('ResizeObserver' in window) new ResizeObserver((_es, obs) => {
     if (!current()) { obs.disconnect(); return; }
@@ -169,6 +182,7 @@ AF.swap = function (id, data, srcs) {
 };
 
 const FRAME_MS = 66;  // ~15 frames a second
+const FRAME_WAKE_MS = 8;  // the sleep between frames ends this early, as the next one waits for the screen's refresh
 // the canvas is drawn at a few hundred pixels across and scaled up by a whole number:
 // one step per CSS_W_PER_SCALE CSS pixels, at least MIN_PIXEL_SCALE; env.u is one
 // BASE_W-th of its width, so everything is sized the same at any scale

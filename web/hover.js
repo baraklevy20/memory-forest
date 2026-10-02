@@ -17,7 +17,7 @@ AF.watchHint = touched => `<br><span class="af-hint">${touched ? 'Tap again' : '
  * draws of it each frame. */
 AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, redraw }) {
   const words = AF.WORDS;
-  let hover = null, deepHover = null, eventHover = null, touched = false, armed = null;  // armed: what one more tap replays
+  let hover = null, deepHover = null, eventHover = null, touched = false, armed = null, shown = null;  // armed: what one more tap replays; shown: the tip as written
   function drawMarker(g) {
     if (!hover) return;
     const x = Math.round(hover.x), y = Math.round(hover.top - 3);
@@ -65,24 +65,29 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       const hit = pick(env, mx, my);
       deepHover = null; eventHover = null;
       if (!hit || !hit.event || hit.event.html !== armed) armed = null;  // a tap on something else starts over
-      if (!hit) { hover = null; tip.hidden = true; canvas.style.cursor = ''; return; }
-      if (hit.visitor) { hover = null; tip.innerHTML = AF.tips.visitor(hit.visitor); canvas.style.cursor = ''; }
+      if (!hit) { hover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; return; }
+      let html;
+      if (hit.visitor) { hover = null; html = AF.tips.visitor(hit.visitor); canvas.style.cursor = ''; }
       else if (hit.event) {
         hover = null; eventHover = hit.event;
-        tip.innerHTML = hit.event.html + (hit.event.replay ? AF.watchHint(touched) : '');
+        html = hit.event.html + (hit.event.replay ? AF.watchHint(touched) : '');
         canvas.style.cursor = hit.event.replay ? 'pointer' : '';
       }
       else if (hit.deep) {
         hover = null;
-        tip.innerHTML = AF.tips.deep(hit.deep, words);
+        html = AF.tips.deep(hit.deep, words);
         canvas.style.cursor = data.inAnki && !data.testForest ? 'pointer' : '';
         deepHover = hit.deep;
       }
       else {
         hover = { x: hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it };
-        tip.innerHTML = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, words);
+        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, words);
         canvas.style.cursor = !hit.pond && data.inAnki && !data.testForest ? 'pointer' : '';
       }
+      // the same thing pointed at as before: the tip only follows the pointer (rewriting it, and
+      // redrawing a still forest, on every move of the mouse was most of the cost of pointing)
+      const changed = html !== shown || tip.hidden;
+      if (changed) { tip.innerHTML = shown = html; }
       tip.hidden = false;
       // the pointer within the scene, which holds the canvas and the tip
       const x = canvas.offsetLeft + e.offsetX, y = canvas.offsetTop + e.offsetY;
@@ -90,9 +95,9 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       if (left + tip.offsetWidth > sceneEl.clientWidth - TIP_MARGIN) left = x - tip.offsetWidth - TIP_OFFSET;
       if (top + tip.offsetHeight > sceneEl.clientHeight - TIP_MARGIN) top = y - tip.offsetHeight - TIP_OFFSET;
       tip.style.left = Math.max(TIP_MARGIN, left) + 'px'; tip.style.top = Math.max(TIP_MARGIN, top) + 'px';
-      redraw();  // a still forest redraws the same moment, only the marker moves
+      if (changed) redraw();  // a still forest redraws the same moment, only the marker moves
     });
-    canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
+    canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
     canvas.addEventListener('click', () => {
       if (eventHover && eventHover.replay) {
         if (touched && armed !== eventHover.html) { armed = eventHover.html; return; }  // the first tap: its tooltip

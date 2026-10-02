@@ -4,7 +4,6 @@
 'use strict';
 const AF = window.AnkiForest;
 const { rng, clamp } = AF.u;
-const { px } = AF.events;
 
 // Long blades bending over the same way, as if in a breeze: more of them, and taller, the
 // longer it goes on. Each blade takes the colour of the ground it grows from, with a touch of
@@ -26,21 +25,44 @@ function hides(flowers, x0, x1, top, y) {
   for (let x = Math.floor(x0) - 1; x <= Math.ceil(x1) + 1; x++) { const f = flowers.get(x); if (f !== undefined && f >= top - 1 && f <= y + 1) return true; }
   return false;
 }
-function drawGrass(g, env, s, t) {
-  const pal = AF.foliage ? AF.foliage(env) : GRASS_GREENS, R = rng(0x9a55), gust = env.still ? 0 : Math.sin(t * 0.8) * 0.15;
-  const spec = AF.envOf(env), path = spec.pathAt && (y => spec.pathAt(env, y)), flowers = env.flowerCols;
+/* The blades, worked out once a scene: where each stands, how tall, and the colour of each of
+ * its pixels, root to tip (only the bend changes from frame to frame, with the breeze). None
+ * when there is no bare ground read to colour them from: then each frame reads the live one. */
+function blades(env, s, g) {
+  if (env.grassBlades && env.grassBlades.s === s) return env.grassBlades.rows;
+  const pal = AF.foliage ? AF.foliage(env) : GRASS_GREENS, R = rng(0x9a55), rows = [];
+  let live = false;
   for (const [x0, x1, y, groundY] of grassRows(env)) {
-    const ground = (env.grassSoil && env.grassSoil.get(groundY)) || g.getImageData(0, groundY, env.W, 1).data;
+    const soil = env.grassSoil && env.grassSoil.get(groundY);
+    live = live || !soil;
+    const ground = soil || g.getImageData(0, groundY, env.W, 1).data, list = [];
     for (let x = x0; x <= x1; x++) {
       if (R() > 0.25 + s * 0.6) continue;
-      const h = 2 + Math.round(R() * (3 + s * 9)), bend = 0.5 + gust;
-      if (path) { const [a, b] = path(y); if (x + h * bend >= a - 1 && x <= b + 1) continue; }
-      if (flowers && hides(flowers, x, x + h * bend, y - h, y)) continue;  // a big day's flowers stay in sight
-      const root = [ground[x * 4], ground[x * 4 + 1], ground[x * 4 + 2]];
+      const h = 2 + Math.round(R() * (3 + s * 9)), root = [ground[x * 4], ground[x * 4 + 1], ground[x * 4 + 2]], cols = [];
       for (let k = 0; k < h; k++) {
         const part = k > h - 2 ? 2 : k > h * 0.4 ? 1 : 0, leaf = pal[part + 2], f = GRASS_SHADE[part];
         const c = root.map((v, i) => clamp(Math.round((v * (1 - GRASS_TREE) + leaf[i] * GRASS_TREE) * f), 0, 255));
-        px(g, x + Math.round((k / h) ** 2 * h * bend), y - k, `rgb(${c[0]},${c[1]},${c[2]})`);
+        cols.push(`rgb(${c[0]},${c[1]},${c[2]})`);
+      }
+      list.push({ x, h, cols });
+    }
+    rows.push({ y, list });
+  }
+  if (!live) env.grassBlades = { s, rows };
+  return rows;
+}
+function drawGrass(g, env, s, t) {
+  const gust = env.still ? 0 : Math.sin(t * 0.8) * 0.15, bend = 0.5 + gust;
+  const spec = AF.envOf(env), path = spec.pathAt && (y => spec.pathAt(env, y)), flowers = env.flowerCols;
+  let style = null;
+  for (const { y, list } of blades(env, s, g)) {
+    const [a, b] = path ? path(y) : [0, -1];
+    for (const { x, h, cols } of list) {
+      if (path && x + h * bend >= a - 1 && x <= b + 1) continue;
+      if (flowers && hides(flowers, x, x + h * bend, y - h, y)) continue;  // a big day's flowers stay in sight
+      for (let k = 0; k < h; k++) {
+        if (style !== cols[k]) g.fillStyle = style = cols[k];
+        g.fillRect(x + Math.round((k / h) ** 2 * h * bend), y - k, 1, 1);
       }
     }
   }

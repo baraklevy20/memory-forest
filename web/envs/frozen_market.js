@@ -79,6 +79,7 @@ function palsFor(th) {
 const MINE = new Set();
 // the fairy lights, the bows and the berries: only ever white, ice, blue and red
 const FAIRY_ON = H6(['#f4f8ff', '#b4dcff', '#6e9cff', '#ff5e6e']), FAIRY_OFF = H6(['#c4ccd8', '#8ea6c0', '#4e66a0', '#a84a54']);
+const FAIRY_OFF_STYLE = FAIRY_OFF.map(c => rgb(c));  // as drawn, made once
 const BOW = { on: H6(['#5e0c18', '#b01c2c', '#e8404c', '#ff8a90']), off: H6(['#4a0e16', '#8e1a26', '#c0343e', '#e06a70']) };
 const RIMC = { dusk: hex('#d8a0b4'), night: hex('#7a8cc8'), dawn: hex('#f0c8c8'), day: null };
 
@@ -282,6 +283,8 @@ const TC = {
 const LIT = { core: hex('#ffd98c'), edge: hex('#f2a656'), deep: hex('#c8703a'), spill: hex('#8a5a48') };
 const GLASS = H6(['#e8404c', '#4a78ff', '#a050d8', '#ffc870', '#40b0c8']);
 const TREE_LIGHTS = H6(['#f4f8ff', '#ff4e5e', '#5a8cff', '#c8e4ff']), TREE_LIGHTS_DIM = H6(['#8a9ab4', '#8a2a36', '#2e4a8a', '#7e9ab8']);
+// the great tree's lights as drawn: lit, halfway and dim, made once
+const LIGHT_STYLES = { on: TREE_LIGHTS.map(c => rgb(c)), half: TREE_LIGHTS.map((c, i) => rgb(mix(c, TREE_LIGHTS_DIM[i], 0.5))), dim: TREE_LIGHTS_DIM.map(c => rgb(c)) };
 function colours(th) {
   const k = th.xh === 'dusk' ? 0.4 : dk(th), o = {};  // at dusk the facades keep a little more of their colour
   for (const key in TC) {
@@ -1493,12 +1496,16 @@ AF.env('frozen_market', {
       const F = T.car, f = Math.floor(t * 3) % CAR_FRAMES;
       g.drawImage(F.frames[f], F.x0, T.y0 + F.y0);
       // the great tree's lights: slow waves of silver, red and blue
-      const on = lampsOn(env.theme);
+      const on = lampsOn(env.theme), lit = LIGHT_STYLES;
+      // one fill a colour (each light its own pixel), its strings made once
+      const by = new Map();
       for (const [x, y, c, ph] of T.lights) {
         const a = Math.sin(t * 1.3 + ph + x * 0.2);
-        const col = !on ? TREE_LIGHTS_DIM[c] : a > 0.2 ? TREE_LIGHTS[c] : a > -0.6 ? mix(TREE_LIGHTS[c], TREE_LIGHTS_DIM[c], 0.5) : TREE_LIGHTS_DIM[c];
-        g.fillStyle = rgb(col); g.fillRect(x, y, 1, 1);
+        const col = !on ? lit.dim[c] : a > 0.2 ? lit.on[c] : a > -0.6 ? lit.half[c] : lit.dim[c];
+        let path = by.get(col); if (!path) by.set(col, path = new window.Path2D());
+        path.rect(x, y, 1, 1);
       }
+      for (const [col, path] of by) { g.fillStyle = col; g.fill(path); }
     },
     front(g, env, t, st, layer) {
       if (layer === 'air') {
@@ -1517,11 +1524,13 @@ AF.env('frozen_market', {
       }
       if (layer === 'crowns') {
         // fairy lights on the near trees, twinkling
+        const off = FAIRY_OFF.map(() => null);
         for (const [x, y, c, ph, sp] of st.tw || []) {
           const a = Math.sin(t * sp + ph);
           if (a > -0.3) continue;
-          g.fillStyle = rgb(FAIRY_OFF[c]); g.fillRect(x, y, 1, 1);
+          (off[c] || (off[c] = new window.Path2D())).rect(x, y, 1, 1);
         }
+        off.forEach((path, c) => { if (path) { g.fillStyle = FAIRY_OFF_STYLE[c]; g.fill(path); } });
         return;
       }
       if (layer !== 'sky') return;
@@ -1552,13 +1561,15 @@ AF.env('frozen_market', {
         const rise = (s.steam ? 10 : 15) * u;
         const x = s.x + Math.sin(a * 4 + p.sw) * (s.steam ? 1 : 1.4) * a * 2 + a * a * (s.steam ? 2 : 9) * u, y = s.y - a * rise;
         const r = (s.steam ? 0.7 + a * 1.4 : 0.9 + a * 2.4) * u, dens = (1 - a) * (1 - a) * (s.steam ? 14 : 15);
-        g.fillStyle = s.steam ? SM[1] : SM[0];
+        const puff = new window.Path2D();  // one fill a puff, in the same order as before
         for (let Y = Math.floor(y - r); Y <= y + r; Y++) for (let X = Math.floor(x - r); X <= x + r; X++) {
           if (X < 0 || X >= W || Y < 0 || Y >= M2.h || !M2.a[Y * W + X]) continue;
           const q = ((X + 0.5 - x) ** 2 + (Y + 0.5 - y) ** 2) / (r * r);
           if (q > 1 || bay(X, Y) >= dens * (1 - q * 0.5)) continue;
-          g.fillRect(X, Y, 1, 1);
+          puff.rect(X, Y, 1, 1);
         }
+        g.fillStyle = s.steam ? SM[1] : SM[0];
+        g.fill(puff);
       }
       // glints on the ice
       if (st.iceGlint) {

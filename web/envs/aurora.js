@@ -177,13 +177,16 @@ AF.env('aurora', {
     back(g, env, t, st) {
       if (!st.aur) return;
       const { W, u } = env, ts = t * 0.2, hem = Math.max(1, Math.round(u * 1.5));
-      for (const a of st.aur) for (let x = 0; x < W; x++) {
-        const { y0, hh, col } = column(a, x, ts, u), s1 = Math.round(hh * 0.3), s2 = Math.round(hh * 0.62);
+      // each curtain's columns, kept for the frame: the water's reflection draws the same ones
+      const cols = st.aur.map(a => { const out = []; for (let x = 0; x < W; x++) out.push(column(a, x, ts, u)); return out; });
+      env.curtainCols = { t, cols };
+      st.aur.forEach((a, i) => { for (let x = 0; x < W; x++) {
+        const { y0, hh, col } = cols[i][x], s1 = Math.round(hh * 0.3), s2 = Math.round(hh * 0.62);
         g.fillStyle = col[0]; g.fillRect(x, y0 - hem, 1, hem);
         g.fillStyle = col[1]; g.fillRect(x, y0 - s1, 1, s1 - hem);
         g.fillStyle = col[2]; g.fillRect(x, y0 - s2, 1, s2 - s1);
         g.fillStyle = col[3]; g.fillRect(x, y0 - hh, 1, hh - s2);
-      }
+      } });
     },
   },
 
@@ -196,16 +199,17 @@ AF.env('aurora', {
     // sky at the near edge, so the curtains land in view
     const { W, u, hor } = env, ts = t * 0.2, end = L.y0 + L.lh;
     const row = y => L.y0 + Math.round((hor - y) * (L.lh - 2) / hor);
+    const kept = env.curtainCols && env.curtainCols.t === t ? env.curtainCols.cols : null;
     g.save(); g.globalAlpha = 0.55;
-    for (const a of env.curtains) for (let x = 0; x < W; x++) {
-      const { y0, hh, col } = column(a, x, ts, u), wob = Math.round(Math.sin(t * 0.9 + x * 0.3));
+    env.curtains.forEach((a, i) => { for (let x = 0; x < W; x++) {
+      const { y0, hh, col } = kept ? kept[i][x] : column(a, x, ts, u), wob = Math.round(Math.sin(t * 0.9 + x * 0.3));
       const spans = [[y0 - 1, y0, col[0]], [y0 - Math.round(hh * 0.3), y0 - 1, col[1]], [y0 - Math.round(hh * 0.62), y0 - Math.round(hh * 0.3), col[2]]];
       for (const [ya, yb, c] of spans) {
         const r0 = Math.max(L.y0, row(yb)), r1 = Math.min(end, row(ya) + 1);
         if (r1 <= r0) continue;
         g.fillStyle = c; g.fillRect(x + wob, r0, 1, r1 - r0);
       }
-    }
+    } });
     g.restore();
   },
 });
