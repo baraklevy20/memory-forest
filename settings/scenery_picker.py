@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import os
 
-from aqt import colors
 from aqt.qt import (
     QAbstractButton,
     QColor,
@@ -44,6 +43,7 @@ from aqt.qt import (
 from aqt.theme import theme_manager
 
 from .. import presets
+from .palette import color
 from .widgets import hint
 
 # each preset's picture, drawn by dev/thumbnails.py: a piece of its scene in the scene's own
@@ -399,7 +399,7 @@ class _Tile(QAbstractButton):
         p.setClipPath(path)
         p.drawPixmap(frame.topLeft(), self.pix)  # (a pixel a point, so no smoothing comes into it)
         p.restore()
-        ring = QColor(theme_manager.var(colors.BORDER_FOCUS))
+        ring = QColor(color("BORDER_FOCUS"))
         if self.isChecked() or self.hasFocus():
             pen = QPen(ring if self.isChecked() else self.palette().color(QPalette.ColorRole.Mid))
             pen.setWidthF(RING if self.isChecked() else 1.5)
@@ -463,9 +463,8 @@ class SceneryPicker(QDialog):
         self.search.setClearButtonEnabled(True)
         self.search.setFixedWidth(SEARCH_W)
         self.search.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
-        var = theme_manager.var
-        self.search.setStyleSheet(SEARCH_STYLE.format(line=var(colors.BORDER_SUBTLE), focus=var(colors.BORDER_FOCUS),
-                                                      ground=var(colors.CANVAS_CODE)))
+        self.search.setStyleSheet(SEARCH_STYLE.format(line=color("BORDER_SUBTLE"), focus=color("BORDER_FOCUS"),
+                                                      ground=color("CANVAS_CODE")))
         self.search.textChanged.connect(lambda _text: self._layout())
         self.none_found = hint("No scenery has that in its name.")
         self.none_found.hide()
@@ -500,7 +499,7 @@ class SceneryPicker(QDialog):
         head.addStretch(1)
         head.addWidget(self.search)
         self.note = hint("")
-        self.note.setStyleSheet(f"color: {theme_manager.var(colors.FG_SUBTLE)}; font-size: 12px;")
+        self.note.setStyleSheet(f"color: {color('FG_SUBTLE')}; font-size: 12px;")
         # the window's default button, so macOS draws it blue (Enter still picks the tile with
         # the focus, or the first scenery the search leaves: keyPressEvent takes it first)
         cancel = QPushButton("Close")
@@ -609,5 +608,5 @@ def _rule() -> QFrame:
     line = QFrame()
     line.setFrameShape(QFrame.Shape.HLine)
     line.setFrameShadow(QFrame.Shadow.Plain)
-    line.setStyleSheet(f"color: {theme_manager.var(colors.BORDER_SUBTLE)};")
+    line.setStyleSheet(f"color: {color('BORDER_SUBTLE')};")
     return line

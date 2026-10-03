@@ -88,7 +88,7 @@ Your computer draws this copy, so it updates whenever Anki syncs there.
 
 ## Compatibility and privacy
 
-- Anki 2.1.55 or later, on a computer (Windows, macOS, Linux). AnkiDroid can show a copy
+- Anki 2.1.50 or later, on a computer (Windows, macOS, Linux). AnkiDroid can show a copy
   of your forest that your computer sends it (see On your phone).
 - Everything is computed on your computer from your own review history. The only thing
   that leaves it is your city's name, and only if you turn on the real weather: it is sent

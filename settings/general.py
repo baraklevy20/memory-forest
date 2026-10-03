@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import os
 
-from aqt import colors
 from aqt.qt import (
     QButtonGroup,
     QCheckBox,
@@ -20,12 +19,12 @@ from aqt.qt import (
     QVBoxLayout,
     QWidget,
 )
-from aqt.theme import theme_manager
 
 from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
 from ..state import OFF_VALUES, phone_on, set_phone_on, today
+from .palette import color
 from .patreon import banner
 from .scenery_picker import SceneryBox, crisp
 from .widgets import group, grow_window, hint, set_options, set_quietly
@@ -61,8 +60,7 @@ class NatureChoice(QWidget):
         row = QHBoxLayout(self)
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(NATURE_GAP)
-        var = theme_manager.var
-        style = NATURE_STYLE.format(line=var(colors.BORDER_SUBTLE), ring=var(colors.BORDER_FOCUS))
+        style = NATURE_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"))
         for key, label in NATURE_LABELS.items():
             b = QPushButton(QIcon(crisp(os.path.join(NATURE_ICONS, f"{key}.png"))), f" {label}")
             b.setIconSize(QSize(NATURE_ICON, NATURE_ICON))

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from aqt import colors, props
 from aqt.qt import (
     QCalendarWidget,
     QColor,
@@ -19,7 +18,8 @@ from aqt.qt import (
     QVBoxLayout,
     QWidget,
 )
-from aqt.theme import theme_manager
+
+from .palette import chevron, color, radius
 
 # room inside a group's frame, and between its title and the frame (the title is a label
 # of its own, because native styles such as macOS's set it flush on the frame)
@@ -62,15 +62,15 @@ def date_field(display_format: str) -> QDateEdit:
     box.setCalendarPopup(True)
     box.setDisplayFormat(display_format)
     box.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
-    var = theme_manager.var
+    arrow = chevron()
     box.setStyleSheet(f"""
     QDateEdit {{
         padding: 2px 4px 2px 6px;
-        border: 1px solid {var(colors.BORDER_SUBTLE)};
-        border-radius: {var(props.BORDER_RADIUS)};
-        background: {var(colors.CANVAS_CODE)};
+        border: 1px solid {color("BORDER_SUBTLE")};
+        border-radius: {radius()};
+        background: {color("CANVAS_CODE")};
     }}
-    QDateEdit:focus, QDateEdit:on {{ border-color: {var(colors.BORDER_FOCUS)}; }}
+    QDateEdit:focus, QDateEdit:on {{ border-color: {color("BORDER_FOCUS")}; }}
     QDateEdit QLineEdit {{ border: none; background: transparent; padding: 0; }}
     QDateEdit::drop-down {{
         subcontrol-origin: border;
@@ -78,41 +78,40 @@ def date_field(display_format: str) -> QDateEdit:
         width: 20px;
         border: none;
     }}
-    QDateEdit::down-arrow {{ image: url({theme_manager.themed_icon("mdi:chevron-down")}); }}
-    """)
+    """ + (f"QDateEdit::down-arrow {{ image: url({arrow}); }}" if arrow else ""))
     cal = box.calendarWidget()
     cal.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
     cal.setStyleSheet(f"""
-    QCalendarWidget QWidget#qt_calendar_navigationbar {{ background: {var(colors.CANVAS_ELEVATED)}; }}
+    QCalendarWidget QWidget#qt_calendar_navigationbar {{ background: {color("CANVAS_ELEVATED")}; }}
     QCalendarWidget QToolButton {{
-        color: {var(colors.FG)};
+        color: {color("FG")};
         background: transparent;
         border: none;
-        border-radius: {var(props.BORDER_RADIUS)};
+        border-radius: {radius()};
         padding: 3px 6px;
     }}
-    QCalendarWidget QToolButton:hover {{ background: {var(colors.BUTTON_BG)}; }}
+    QCalendarWidget QToolButton:hover {{ background: {color("BUTTON_BG")}; }}
     QCalendarWidget QToolButton::menu-indicator {{ image: none; }}
     QCalendarWidget QAbstractItemView {{
-        background: {var(colors.CANVAS_ELEVATED)};
-        color: {var(colors.FG)};
-        selection-background-color: {var(colors.BORDER_FOCUS)};
+        background: {color("CANVAS_ELEVATED")};
+        color: {color("FG")};
+        selection-background-color: {color("BORDER_FOCUS")};
         selection-color: white;
         outline: none;
     }}
-    QCalendarWidget QAbstractItemView:disabled {{ color: {var(colors.FG_DISABLED)}; }}
+    QCalendarWidget QAbstractItemView:disabled {{ color: {color("FG_DISABLED")}; }}
     """)
     # weekends like any other day
     plain = QTextCharFormat()
-    plain.setForeground(QColor(var(colors.FG)))
+    plain.setForeground(QColor(color("FG")))
     for day in (Qt.DayOfWeek.Saturday, Qt.DayOfWeek.Sunday):
         cal.setWeekdayTextFormat(day, plain)
     # Anki ships only an up and a down chevron, so the month arrows are the down one turned
-    chevron = QPixmap(theme_manager.themed_icon("mdi:chevron-down"))
+    down = QPixmap(arrow) if arrow else QPixmap()  # an Anki without themed icons: Qt's own arrows
     for name, angle in (("qt_calendar_prevmonth", 90), ("qt_calendar_nextmonth", -90)):
         button = cal.findChild(QToolButton, name)
-        if button is not None and not chevron.isNull():
-            button.setIcon(QIcon(chevron.transformed(QTransform().rotate(angle))))
+        if button is not None and not down.isNull():
+            button.setIcon(QIcon(down.transformed(QTransform().rotate(angle))))
     return box
 
 
