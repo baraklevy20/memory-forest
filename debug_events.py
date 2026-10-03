@@ -10,7 +10,7 @@ import random
 
 from . import events, fake_forest, forest_data
 from .events_state import ago_date, strike_payload
-from .state import TEST_TREES_DEFAULT, TEST_TREES_MAX, clamp_int
+from .state import TEST_TREES_DEFAULT, TEST_TREES_MAX, clamp_int, load_state, save_state
 
 # the Debug tab's range for how deep the review hell (in percent); a big day's flowers on
 # every DEBUG_BIG_EVERY-th tree, each having "beaten" DEBUG_BIG_BEAT of its own cards (the
@@ -20,6 +20,12 @@ DEBUG_BIG_EVERY, DEBUG_BIG_BEAT = 9, 0.7
 # the usual day's reviews a made-up review hell is measured against, when there is none to go by
 DEBUG_USUAL = 50
 DEBUG_CLEARS_MAX = 10 ** 6
+
+
+def new_timeline_run() -> None:
+    """A timeline starts anew: its strikes land elsewhere than the last run's did, rather
+    than each day of every run on the same spot as that day of the one before."""
+    save_state(dict(load_state(), timeline_run=random.randrange(10 ** 6)))
 
 
 def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
@@ -50,9 +56,10 @@ def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
     if level == "merciless":
         out = events.merciless(trees, days)
         latest = out["latest"]
-        if latest:  # where each lands stays put as days pass: it is that day's
+        if latest:  # where each lands stays put as days pass: it is that day's, in this run
+            run = load_state().get("timeline_run", 0)
             for c in [*out["craters"], latest]:
-                c["spot"] = f"timeline-{today - c['ago']}"
+                c["spot"] = f"timeline-{run}-{today - c['ago']}"
             extras.update(strike_payload(out, f"debug-{latest['spot']}-{len(base['trees'])}", ago_date))
         if out["hits"]:
             days = {d for d in days if d < out["hits"][-1]}

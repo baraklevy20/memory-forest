@@ -8,7 +8,7 @@ import datetime as _dt
 
 from aqt.qt import QCheckBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
 
-from ..debug_events import DEBUG_BACKLOG_MAX
+from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
 from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, forget_seasons
 from .history import DATE_FORMAT
@@ -136,6 +136,8 @@ class DebugTab(QWidget):
         """Pass the days asked for, of this kind, or have something happen once (None
         starts the timeline over)."""
         n = 1 if kind in TIMELINE_HAPPENINGS else self.days.value()
+        if not self.timeline:
+            new_timeline_run()  # its strikes land somewhere new
         if kind is None:
             self.timeline = []
             self.clears = 0  # and no backlog cleared either

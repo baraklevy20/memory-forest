@@ -79,6 +79,12 @@ class DebugEventTests(unittest.TestCase):
         self.assertEqual(len({c["spot"] for c in p["craters"]}), 2)  # each where its own day put it
         self.assertEqual(p["strike"]["lost"], 1)  # the latest is the one to play
 
+    def test_a_new_timeline_strikes_somewhere_new(self):
+        first = self.passed("merciless", ("away", 1))["craters"][0]["spot"]
+        self.assertEqual(self.passed("merciless", ("away", 1))["craters"][0]["spot"], first)  # stays put as it is redrawn
+        addon.debug_events.new_timeline_run()
+        self.assertNotEqual(payload.payload()["craters"][0]["spot"], first)
+
     def test_two_days_away_on_wild_start_a_fire_that_a_week_of_study_puts_out(self):
         p = self.passed("wild", ("away", 1))  # today is the second: not over yet, only smoke
         self.assertEqual((p["fire"]["trees"], p["fire"]["smoke"]), (0, 2))

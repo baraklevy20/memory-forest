@@ -90,7 +90,7 @@ const fmtShort = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined
 // The page first draws the forest as it stood, lets the shower fall on it, then puts up the
 // forest as it is now and tears the old one apart over it, pixel by pixel, from the point
 // where the rock came down.
-const SHOWER_SECS = 2.4, BLAST_SECS = 3.2;
+const SHOWER_SECS = 2.4, BLAST_SECS = 3.2, BLAST_REACH = 0.12;
 function fireball(g, W, H, q, f, cx, cy, from, st) {
   const x = from.x + (cx - from.x) * q, y = from.y + (cy - from.y) * q, len = Math.hypot(cx - from.x, cy - from.y);
   const ux = (from.x - cx) / len, uy = (from.y - cy) / len, X = Math.round(x), Y = Math.round(y);
@@ -132,7 +132,8 @@ function shower(g, W, H, q, f, cx, cy, st) {
   if (q > 0.5) fireball(g, W, H, (q - 0.5) / 0.5, f, cx, cy, { x: W + 30, y: -35 }, st);  // then the big one
 }
 function blownApart(g, W, H, a, f, cx, cy, st, src) {
-  const top = Math.round(H * 0.25), ground = Math.round(H * 0.8), e = 1 - (1 - Math.min(1, a / 1.5)) ** 2, R = e * W * 0.62;
+  // the blast reaches past the far edge, wherever the rock came down (BLAST_REACH beyond it)
+  const top = Math.round(H * 0.25), ground = Math.round(H * 0.8), e = 1 - (1 - Math.min(1, a / 1.5)) ** 2, R = e * (Math.max(cx, W - cx) + W * BLAST_REACH);
   if (!st.data) { st.data = src.getContext('2d').getImageData(0, 0, W, H).data; st.bits = []; st.done = new Set(); }
   for (let x = 0; x < W; x++) {
     if (Math.abs(x - cx) > R) { g.drawImage(src, x, top, 1, ground - top, x, top, 1, ground - top); continue; }
