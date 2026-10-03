@@ -63,6 +63,9 @@ def scenery(name: str) -> dict:
 def keeps(rel: str, keep: dict) -> bool:
     """Whether a path relative to the add-on belongs in an edition with this scenery."""
     parts = rel.replace(os.sep, "/").split("/")
+    # experiments (web/drafts/, see catalog.DRAFTS) stay in this copy: no edition, and so not the public repo
+    if len(parts) > 2 and parts[:2] == ["web", "drafts"]:
+        return False
     if len(parts) == 3 and parts[0] == "web" and parts[1] in SCENERY:
         return os.path.splitext(parts[2])[0] in keep[parts[1]]
     # a preset's animated preview (docs/animated/<preset>.gif) goes wherever any edition has

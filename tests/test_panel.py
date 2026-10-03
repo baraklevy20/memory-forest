@@ -27,9 +27,11 @@ class PanelTests(unittest.TestCase):
         names = [s.split("/web/", 1)[1].split("?")[0] for s in srcs]
         self.assertEqual(names[:len(catalog.SCRIPTS)], list(catalog.SCRIPTS))
         self.assertEqual(names[-1], panel.BOOT)
-        # between them, the scene's own parts that have a file
+        # then this copy's experiments, and between them and the boot script the scene's own parts that have a file
+        drafts = catalog.draft_scripts()
+        self.assertEqual(names[len(catalog.SCRIPTS):len(catalog.SCRIPTS) + len(drafts)], list(drafts))
         mood = json.loads(re.search(r'-data">(.*?)</script>', html, re.S).group(1))["mood"]
-        for rel in names[len(catalog.SCRIPTS):-1]:
+        for rel in names[len(catalog.SCRIPTS) + len(drafts):-1]:
             self.assertIn(rel.split("/")[0], ("envs", "landscapes", "landmarks"))
             self.assertIn(rel.split("/")[1][:-3], (mood["special"], mood["landscape"], mood["landmark"]))
 
