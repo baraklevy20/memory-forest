@@ -53,7 +53,9 @@ PICTURE_W, PICTURE_H = 192, 108
 SEARCH_FROM = 12  # tiles before the picker offers a search
 SEARCH_W = 220
 COLUMNS = 4
-MAX_H = 720  # points the picker may grow to before it scrolls
+MAX_H = 720  # points the picker may grow to before it scrolls (less on a screen without the room)
+MIN_H = 240  # ... and never less than this, however small the screen says it is
+TITLE_BAR_ROOM = 48  # points kept free on the screen for the picker's title bar and edges
 COLUMN_GAP, ROW_GAP = 16, 10
 MARGIN = 20  # points round the picker's edge
 SECTION_GAP = 14  # points above a section's title, after the first
@@ -70,6 +72,11 @@ CARD_LINE, CARD_NOTE_GAP = 18, 4  # the name's line, and the room under it befor
 CUSTOM_NOTE = "Your own mix from Fine-tuning. Pick a scenery to start again from it."
 # how far its fill stands off the window's colour (as QColor.lighter/darker take it), and more under the pointer
 CARD_LIFT_DARK, CARD_LIFT_LIGHT, CARD_HOVER = 160, 104, 110
+# the keys that open the picker from the Scenery card, and those a dropdown would step or jump
+# through its list with, which do nothing there (letters jump too, unless Ctrl or Cmd is down)
+OPEN_KEYS = (Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Space, Qt.Key.Key_F4)
+STEP_KEYS = (Qt.Key.Key_Home, Qt.Key.Key_End, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown)
+JUMP_KEEPS = (Qt.KeyboardModifier.ControlModifier, Qt.KeyboardModifier.MetaModifier, Qt.KeyboardModifier.AltModifier)
 # Surprise me daily's tile: these four, in quarters
 DAILY_MOSAIC = ("aurora", "synthwave", "lanterns", "bamboo")
 
@@ -238,12 +245,29 @@ class SceneryBox(QComboBox):
         self.setFixedHeight(CARD_H)  # (never squeezed, whatever else in the tab grows)
         self.setAttribute(Qt.WidgetAttribute.WA_Hover)  # (to redraw as the pointer comes and goes)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)  # (not a dropdown's wheel focus: the wheel does nothing here)
 
     def showPopup(self) -> None:
         if self.open_picker:
             self.open_picker()
         else:
             super().showPopup()
+
+    def wheelEvent(self, event) -> None:
+        """Scrolling over the card scrolls the tab, never the scenery (a dropdown's wheel would
+        change the forest at each notch, Custom too)."""
+        event.ignore()
+
+    def keyPressEvent(self, event) -> None:
+        """The keys that would step through a dropdown's list open the picker instead; letters
+        and Home/End, which would jump to a choice, do nothing."""
+        key = event.key()
+        if key in OPEN_KEYS:
+            self.showPopup()
+        elif key in STEP_KEYS or (event.text().strip() and not any(event.modifiers() & m for m in JUMP_KEEPS)):
+            event.accept()
+        else:
+            super().keyPressEvent(event)
 
     def sizeHint(self) -> QSize:
         return QSize(super().sizeHint().width(), CARD_H)
@@ -477,8 +501,8 @@ class SceneryPicker(QDialog):
         head.addWidget(self.search)
         self.note = hint("")
         self.note.setStyleSheet(f"color: {theme_manager.var(colors.FG_SUBTLE)}; font-size: 12px;")
-        # the window's default button, so macOS draws it blue (Enter still picks the first
-        # scenery the search leaves: keyPressEvent takes it first)
+        # the window's default button, so macOS draws it blue (Enter still picks the tile with
+        # the focus, or the first scenery the search leaves: keyPressEvent takes it first)
         cancel = QPushButton("Close")
         cancel.setDefault(True)
         cancel.clicked.connect(self.reject)
@@ -506,23 +530,29 @@ class SceneryPicker(QDialog):
         # are, up to MAX_H
         tile_w = (self.tiles[0].sizeHint().width() if self.tiles else PICTURE_W) + COLUMN_GAP - 2 * RING
         scrollbar = self.scroll.verticalScrollBar().sizeHint().width()
-        self.resize(COLUMNS * tile_w - COLUMN_GAP + 2 * RING + 2 * (MARGIN - RING) + scrollbar, MAX_H)
+        tallest = _room_on_screen(parent)
+        self.resize(COLUMNS * tile_w - COLUMN_GAP + 2 * RING + 2 * (MARGIN - RING) + scrollbar, tallest)
         self._layout()
         rest = self.sizeHint().height() - self.scroll.sizeHint().height()  # the title, the note, the rules
-        self.resize(self.width(), min(MAX_H, body.sizeHint().height() + rest))
+        self.resize(self.width(), min(tallest, body.sizeHint().height() + rest))
 
     def _pick(self, key: str) -> None:
         self.current = key
         self.accept()
 
     def keyPressEvent(self, event) -> None:
-        """Enter picks the first scenery a search leaves; with nothing searched it is Close's,
-        as the window's default button."""
-        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and self.search.text().strip():
-            first = next((t.preset.key for t in self.tiles if t.isVisible()), None)
-            if first:
-                self._pick(first)
-            return
+        """Enter picks the tile with the focus (Tab and the arrows move it), else the first
+        scenery a search leaves; with neither it is Close's, as the window's default button."""
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            focused = self.focusWidget()
+            if isinstance(focused, _Tile):
+                self._pick(focused.preset.key)
+                return
+            if self.search.text().strip():
+                first = next((t.preset.key for t in self.tiles if t.isVisible()), None)
+                if first:
+                    self._pick(first)
+                return
         super().keyPressEvent(event)
 
     def resizeEvent(self, event) -> None:
@@ -559,6 +589,20 @@ class SceneryPicker(QDialog):
         if preset is None:
             preset = presets.by_key().get(self.current)
         self.note.setText(preset.note if preset else "")
+
+
+def _room_on_screen(parent) -> int:
+    """How tall the picker may be: MAX_H, or less on a small screen (the one `parent` is on),
+    leaving room for the window's title bar."""
+    screen = None
+    try:
+        screen = parent.window().screen() if parent is not None else None
+    except AttributeError:  # (QWidget.screen is Qt 5.14 and later)
+        pass
+    screen = screen or QGuiApplication.primaryScreen()
+    if screen is None:
+        return MAX_H
+    return max(MIN_H, min(MAX_H, screen.availableGeometry().height() - TITLE_BAR_ROOM))
 
 
 def _rule() -> QFrame:

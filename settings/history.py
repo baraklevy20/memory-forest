@@ -48,6 +48,18 @@ def _ids(cfg: dict) -> set:
     return out
 
 
+def outside_moves(before: set, after: set, left_out: set, brought_back: set) -> tuple:
+    """The decks left out and brought back from outside the dialog, `left_out` and
+    `brought_back` so far, once the config has gone from `before` to `after` behind its back."""
+    added, removed = after - before, before - after
+    return (left_out | added) - removed, (brought_back | removed) - added
+
+
+def undo_here(original: set, left_out: set, brought_back: set) -> set:
+    """The decks left out as the dialog opened, with only the changes made outside it."""
+    return (original - brought_back) | left_out
+
+
 class HistoryTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
@@ -55,6 +67,11 @@ class HistoryTab(QWidget):
         # what the config held when last read or written here: a deck left out from its gear
         # menu while the dialog is open changes it behind the dialog's back
         self.known = set(self.excluded)
+        # as the dialog opened, and what was changed behind its back since: Cancel undoes only
+        # what was changed here
+        self.original = set(self.excluded)
+        self.left_out_outside: set = set()
+        self.brought_back_outside: set = set()
         self.changed_outside = False
         # {home deck: {ago: has a card not suspended}}, once the collection has been read
         self.days: dict | None = None
@@ -149,12 +166,18 @@ class HistoryTab(QWidget):
         if outside == self.known:
             return
         self.changed_outside = True
+        self.left_out_outside, self.brought_back_outside = outside_moves(
+            self.known, outside, self.left_out_outside, self.brought_back_outside)
         # keep what was changed here and not saved yet
         self.excluded = (outside | (self.excluded - self.known)) - (self.known - self.excluded)
         self.known = outside
         self._paint_decks()
         self._show_left_out()
         self.recount()
+
+    def cancelled(self) -> list:
+        """The decks left out once Cancel undoes what was changed here (call reload first)."""
+        return sorted(undo_here(self.original, self.left_out_outside, self.brought_back_outside))
 
     def _paint_decks(self) -> None:
         """Tick every deck that counts. Under an unticked one, its subdecks are unticked

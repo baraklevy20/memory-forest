@@ -5,9 +5,10 @@ everything back. The tabs each live in a file of their own."""
 from __future__ import annotations
 
 from aqt import mw
-from aqt.qt import QDialog, QDialogButtonBox, QEvent, QTabWidget, QTimer, QVBoxLayout
+from aqt.qt import QDialog, QDialogButtonBox, QEvent, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
 from .. import presets
+from ..events import NATURE_LABELS, nature_level
 from ..state import debug_available, today
 from .about import AboutTab
 from .fine_tuning import FineTuningTab
@@ -24,6 +25,17 @@ APPLY_DEBOUNCE_MS = 250
 CITY_RECHECK_MS = 4000
 # choices about your study data and your phone rather than the forest's look: Restore defaults keeps them
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "phone_forest")
+RESTORE_TITLE = "Restore defaults"
+RESTORE_QUESTION = "Put the settings back to their defaults?"
+RESTORE_NOTE = ("This resets the scenery, Fine-tuning, Nature (to {nature}), your city, animation "
+                "and the planting message. It keeps the decks you left out, the start date, suspended "
+                "cards and the forest on your phone.\n\nCancel can't undo this.")
+
+
+def restore_note(defaults: dict) -> str:
+    """What Restore defaults asks before it does anything: what it resets, and what it keeps
+    (DATA_KEYS)."""
+    return RESTORE_NOTE.format(nature=NATURE_LABELS[nature_level(defaults.get("nature"))])
 
 
 class NoDebugTab:
@@ -193,13 +205,28 @@ class SettingsDialog(QDialog):
             if focused:
                 focused.setFocus()
 
+    def _restore_confirmed(self, known: dict) -> bool:
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Icon.Question)
+        box.setWindowTitle(RESTORE_TITLE)
+        box.setText(RESTORE_QUESTION)
+        box.setInformativeText(restore_note(known))
+        restore = box.addButton(RESTORE_TITLE, QMessageBox.ButtonRole.AcceptRole)
+        keep = box.addButton(QMessageBox.StandardButton.Cancel)
+        box.setDefaultButton(keep)
+        box.setEscapeButton(keep)
+        box.exec()
+        return box.clickedButton() is restore
+
     def restore_defaults(self) -> None:
+        known = mw.addonManager.addonConfigDefaults(self.module) or {}
+        if not self._restore_confirmed(known):
+            return
         self._debounce.stop()
         self._reverting = False  # closing must not write the pre-click config back
-        known = mw.addonManager.addonConfigDefaults(self.module) or {}
-        current = self._current()
-        mw.addonManager.writeConfig(self.module, {k: current[k] for k in DATA_KEYS
-                                                  if k in current and known.get(k) != current[k]})
+        # the kept settings as the dialog has them, a change not saved yet included (values()
+        # leaves out what is at its default)
+        mw.addonManager.writeConfig(self.module, {k: v for k, v in self.values().items() if k in DATA_KEYS})
         self.on_change()
         self.close()
         self.reopen(self.module, self.on_change)
@@ -222,11 +249,11 @@ class SettingsDialog(QDialog):
         if self._reverting:
             known = mw.addonManager.addonConfigDefaults(self.module) or {}
             cfg = dict(self.original)
-            # a deck left out or brought back from its gear menu meanwhile stays that way
-            current = self._current()
-            self.history.reload(current)
+            # a deck left out or brought back from its gear menu meanwhile stays that way; only
+            # what was changed here is undone
+            self.history.reload(self._current())
             if self.history.changed_outside:
-                cfg["excluded_decks"] = current.get("excluded_decks") or []
+                cfg["excluded_decks"] = self.history.cancelled()
             mw.addonManager.writeConfig(self.module, {k: v for k, v in cfg.items()
                                                       if k in known and known.get(k) != v})
             self.on_change()
