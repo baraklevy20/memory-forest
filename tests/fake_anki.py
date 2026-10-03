@@ -135,6 +135,12 @@ class AddonManager:
     def addonConfigDefaults(self, _module):
         return dict(self.defaults)
 
+    def all_addon_meta(self):
+        return []  # no other add-ons: the public repo's copy is the base edition, which looks for Plus
+
+    def addonsFolder(self, dir_name=None):
+        return os.path.join(os.path.dirname(ADDON_DIR), dir_name or "")
+
     def setWebExports(self, *_a):
         pass
 
