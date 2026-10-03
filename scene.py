@@ -140,7 +140,7 @@ def choose_mood(cfg: dict, now: _dt.datetime, real: dict | None = None, place: d
         landscape = base.landscape
     if landmark not in LANDMARKS:  # one that no longer exists
         landmark = base.landmark
-    # `clock`: the hour is the real one, so a night-only environment may overrule it
+    # `clock`: the hour is the real one, which the phone follows on its own clock
     mood = {"time": time, "clock": time_cfg not in TIMES, "weather": weather, "special": environment, "wind": windy,
             "environment": environment, "landscape": landscape, "landmark": landmark,
             "moon": round(moon_phase(now), 3), "source": source}

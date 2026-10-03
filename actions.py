@@ -14,7 +14,7 @@ from aqt.utils import tooltip
 from . import events_state, study_log
 from .panel import refresh
 from .phone import follow_setting
-from .state import MODULE, config, excluded_decks, keeps_suspended, log, phone_decks, save_config
+from .state import MODULE, PHONE_NOTETYPE, config, excluded_decks, keeps_suspended, log, phone_decks, save_config
 
 
 def settings_changed() -> None:
@@ -48,6 +48,10 @@ def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None
             continue
         if out_name:
             terms.append(mw.col.build_search_string(SearchNode(negated=SearchNode(deck=out_name))))
+    # nor did the note that carries the forest to your phone, wherever its card is: opened on
+    # the phone, it would be one card more than the tooltip says (found by its note type, as
+    # state.phone_cards finds it)
+    terms.append(mw.col.build_search_string(SearchNode(negated=SearchNode(note=PHONE_NOTETYPE))))
     browser = dialogs.open("Browser", mw)
     browser.search_for(" ".join(terms))
 

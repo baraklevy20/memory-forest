@@ -21,7 +21,7 @@ class SceneTests(unittest.TestCase):
 
     def test_environment_weather_and_time_are_independent(self):
         m = scene.choose_mood({"environment": "aurora", "weather": "snow", "time_of_day": "auto"}, self.NOW)
-        # the hour is the clock's, and says so: a night-only environment overrules it in the page
+        # the hour is the clock's, and says so: the phone follows its own
         self.assertEqual((m["special"], m["weather"], m["time"], m["clock"]), ("aurora", "snow", "day", True))
         m = scene.choose_mood({"environment": "synthwave", "weather": "rain", "time_of_day": "dawn"}, self.NOW)
         self.assertEqual((m["special"], m["weather"], m["time"], m["clock"]), ("synthwave", "rain", "dawn", False))

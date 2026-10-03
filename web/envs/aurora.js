@@ -108,7 +108,6 @@ function column(a, x, ts, u) {
 
 
 AF.env('aurora', {
-  night: true,  // with the real hour on, it keeps to the night
 
   /* a cold, dark night over snow */
   theme(th, mood, night) {

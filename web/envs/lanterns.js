@@ -77,7 +77,6 @@ function paintLantern(g, x, y, size) {
 const sizeAt = (y, hor) => y < hor * 0.28 ? 0 : y < hor * 0.6 ? 1 : 2;
 
 AF.env('lanterns', {
-  night: true,  // with the real hour on, it keeps to the night
 
   look: (mood, night) => night ? AF.TIMES.plum_night : null,
 

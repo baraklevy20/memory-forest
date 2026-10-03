@@ -34,6 +34,9 @@ gui_hooks.deck_browser_will_show_options_menu.append(on_deck_options_menu)
 gui_hooks.sync_will_start.append(events_state.sync_started)
 gui_hooks.sync_did_finish.append(events_state.sync_finished)
 gui_hooks.sync_did_finish.append(payload.after_sync)  # before the forest for your phone is written
+# a collection opened in place of the one before (a .colpkg imported, a backup restored) has
+# its path, so nothing read from the old one may be kept for it
+gui_hooks.collection_did_load.append(payload.collection_loaded)
 # the forest for your phone: written before each sync, and again after one brings reviews in
 # (and the phone setting, as another computer may have left it)
 gui_hooks.sync_will_start.append(publish_for_phone)

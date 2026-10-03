@@ -6,9 +6,8 @@ const AF = window.AnkiForest;
 
 /* ---------- environments ----------
  * Each environment lives in web/envs/<key>.js and registers itself here: its look, its
- * tweaks to the theme, its tree colours and its scenery, and `night: true` if it only
- * makes sense after dark. Delete that file and the environment is gone - nothing else in
- * the add-on mentions it by name. */
+ * tweaks to the theme, its tree colours and its scenery. Delete that file and the
+ * environment is gone - nothing else in the add-on mentions it by name. */
 // kept if already there: a second copy of the add-on on the same page (the public
 // edition beside this one) adds to these rather than wiping what the first registered
 AF.ENVS = AF.ENVS || {};

@@ -85,8 +85,8 @@ class QtStub(type):
 
 
 class SearchNode:
-    def __init__(self, deck=None, negated=None):
-        self.deck, self.negated = deck, negated
+    def __init__(self, deck=None, note=None, negated=None):
+        self.deck, self.note, self.negated = deck, note, negated
 
 
 _collections = itertools.count(1)
@@ -112,6 +112,8 @@ class Col:
     def build_search_string(self, node) -> str:
         if node.negated is not None:
             return "-" + self.build_search_string(node.negated)
+        if node.note is not None:
+            return f'"note:{node.note}"'
         return f'"deck:{node.deck}"'
 
 
@@ -174,7 +176,7 @@ browser = Browser()
 tooltips: list = []
 hooks = types.SimpleNamespace(**{name: [] for name in (
     "deck_browser_will_render_content", "overview_will_render_content", "reviewer_did_answer_card",
-    "webview_did_receive_js_message", "deck_browser_will_show_options_menu", "sync_will_start", "sync_did_finish")})
+    "webview_did_receive_js_message", "deck_browser_will_show_options_menu", "sync_will_start", "sync_did_finish", "collection_did_load")})
 
 
 def _install() -> None:

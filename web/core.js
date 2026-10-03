@@ -10,8 +10,6 @@ const { HORIZON, GROUND_BOTTOM } = AF.GEOM;
 
 /* ---------- the scene runner ---------- */
 AF.mount = function (root, data, opts) {
-  // a night-only environment (`night: true`) keeps to the night while the hour is the real one
-  if (data.mood.clock && (AF.ENVS[data.mood.special] || {}).night) data = Object.assign({}, data, { mood: Object.assign({}, data.mood, { time: 'night' }) });
   const engine = AF.engines.pixel;
   // the add-on redraws this forest through the panel itself, never through the shared name
   root.afSwap = (d, srcs) => AF.swap(root.id, d, srcs);
@@ -130,7 +128,7 @@ AF.mount = function (root, data, opts) {
   }
   if ('IntersectionObserver' in window) new IntersectionObserver((es, obs) => {
     if (!current()) { obs.disconnect(); return; }  // a later mount took over: let this scene go
-    visible = es[0].isIntersecting;
+    visible = es[es.length - 1].isIntersecting;  // several queued: the latest is how it stands now
     if (visible) wake();
   }).observe(sceneEl);
   const shown = () => { if (current() && !document.hidden) wake(); };

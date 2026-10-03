@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from fake_anki import addon, mw, reset
+from fake_anki import Col, addon, hooks, mw, reset
 from helpers import ms
 
 payload = addon.payload
@@ -59,6 +59,34 @@ class PayloadTests(unittest.TestCase):
         self.assertIsNot(second, first)
         mw.col.db.con.execute("update cards set mod = 5 where id = 1")  # a card suspended or moved
         self.assertIsNot(payload._forest(), second)
+
+    def test_the_deck_list_keeps_the_last_deck_s_forest(self):
+        reset(CARDS)
+        deck = payload._forest(10)
+        payload._forest()  # back on the deck list: the whole collection's is built beside it
+        self.assertIn(10, payload._logs)
+        self.assertIs(payload._forest(10), deck)  # and the deck opened again reads nothing afresh
+        payload._forest(20)  # another deck: only the latest deck's is kept
+        self.assertEqual(set(payload._forest_cache), {None, 20})
+        self.assertEqual(set(payload._logs), {None, 20})
+
+    def test_a_collection_put_in_place_of_the_last_is_read_afresh(self):
+        reset(CARDS)
+        mw.col.path = "/profile/collection.anki2"
+        self.assertEqual(len(payload._forest()["trees"]), 2)
+        # a backup restored (or a .colpkg imported): the same path, and a review older than
+        # any the review log has read, which reading on from where it stopped never sees
+        mw.col = Col()
+        mw.col.path = "/profile/collection.anki2"
+        for cid, did, days in CARDS[:3] + [(9, 10, 7)]:
+            mw.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) values (?, ?, ?, 0, 2, 2, 30, '{}', ?)",
+                                  (cid, cid, did, mw.col.sched.today + 30))
+            mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, ?, 3, 0)", (ms(days), cid))
+            mw.col.db.con.execute("insert into notes (id, tags) values (?, '')", (cid,))
+        self.assertIn(payload.collection_loaded, hooks.collection_did_load)
+        for hook in hooks.collection_did_load:
+            hook(mw.col)
+        self.assertEqual([t["ago"] for t in payload._forest()["trees"]], [7, 5, 3])
 
     def test_a_hand_edited_width_stays_in_range(self):
         reset(CARDS, {"max_width": "wide"})

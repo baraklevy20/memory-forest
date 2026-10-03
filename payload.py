@@ -57,6 +57,14 @@ def after_sync() -> None:
     forget_remembered()
 
 
+def collection_loaded(_col=None) -> None:
+    """A collection was opened: the profile's, or one put in its place - a .colpkg imported,
+    a backup restored, a full sync downloaded. That one has the same path as the one before,
+    so the review log kept for it (only read on from where it stopped) and everything worked
+    out from it must go, or the totals, streak and ponds stay the old collection's."""
+    after_sync()
+
+
 def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> dict:
     """Forest data for the whole collection, or one deck and its subdecks. Recomputed only
     when the study data (state.changes, `changed` if already read), the day or the decks and
@@ -79,10 +87,13 @@ def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> di
     rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended, skip=skip, log=log_)
     value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
     log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
-    # the whole collection's, and the last deck screen's: one per deck ever opened adds up
-    for kept in (_forest_cache, _logs):
-        for other in [d for d in kept if d is not None and d != did]:
-            del kept[other]
+    # the whole collection's, and the last deck screen's: one per deck ever opened adds up.
+    # Only a deck's own build lets the one before go: the whole collection's leaves it, so
+    # going back to the deck list and opening the same deck again reads nothing afresh
+    if did is not None:
+        for kept in (_forest_cache, _logs):
+            for other in [d for d in kept if d is not None and d != did]:
+                del kept[other]
     _forest_cache[did] = (key, value)
     _logs[did] = (here, log_)
     return value

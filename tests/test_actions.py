@@ -8,6 +8,8 @@ from unittest import mock
 from fake_anki import addon, browser, mw, reset, tooltips
 
 actions = addon.actions
+# the phone's note plants no tree, so the browser leaves it out like the tooltip does
+NOT_PHONE = f'-"note:{addon.state.PHONE_NOTETYPE}"'
 
 
 class Menu:
@@ -27,23 +29,23 @@ class ActionTests(unittest.TestCase):
 
     def test_a_tree_opens_the_browser_on_its_day(self):
         actions.browse_day(5)
-        self.assertEqual(browser.searches, ["introduced:6 -introduced:5"])
+        self.assertEqual(browser.searches, [f"introduced:6 -introduced:5 {NOT_PHONE}"])
 
     def test_on_a_deck_screen_only_that_decks_cards(self):
         actions.browse_day(5, 10)
-        self.assertEqual(browser.searches, ['"deck:French" introduced:6 -introduced:5'])
+        self.assertEqual(browser.searches, [f'"deck:French" introduced:6 -introduced:5 {NOT_PHONE}'])
 
     def test_the_deep_forest_spans_its_days_and_leaves_out_left_out_decks(self):
         reset(config={"excluded_decks": [20], "keep_suspended": False})
         actions.browse_day(400, None, 30)
-        self.assertEqual(browser.searches, ['introduced:401 -is:suspended -introduced:30 -"deck:German"'])
+        self.assertEqual(browser.searches, [f'introduced:401 -is:suspended -introduced:30 -"deck:German" {NOT_PHONE}'])
 
     def test_only_this_add_ons_messages_are_answered(self):
         context = actions.DeckBrowser()
         self.assertEqual(actions.on_js_message((False, None), "someone_else:browse:5", context), (False, None))
         self.assertEqual(actions.on_js_message((False, None), f"{addon.state.MODULE}:browse:5", object()), (False, None))
         self.assertEqual(actions.on_js_message((False, None), f"{addon.state.MODULE}:browse:5::", context), (True, None))
-        self.assertEqual(browser.searches, ["introduced:6 -introduced:5"])
+        self.assertEqual(browser.searches, [f"introduced:6 -introduced:5 {NOT_PHONE}"])
         with mock.patch.object(actions, "open_settings") as opened:
             actions.on_js_message((False, None), f"{addon.state.MODULE}:settings", context)
             opened.assert_called_once()
