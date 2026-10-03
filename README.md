@@ -67,9 +67,9 @@ behind for you to find. Whether bad habits leave a mark too is up to you: pick a
 <b>Peaceful</b> (the default): only the good things. Days away cost you nothing.</p>
 
 <p align="center"><img src="docs/nature/wild.gif" alt="Part of the forest on fire, smoke rising from it"><br>
-<b>Wild</b>: bad habits leave marks until you fix them. Miss a day and smoke rises from the
-forest as a warning; miss the next one too and a fire breaks out, spreading while you stay
-away. A week of study puts it out.</p>
+<b>Wild</b>: bad habits leave marks until you fix them. Miss two days in a row and smoke rises
+from the forest as a warning; miss a third and a fire breaks out, spreading while you stay
+away. A weekend off is fine. Seven days of study put it out.</p>
 
 <p align="center"><img src="docs/nature/merciless.gif" alt="An asteroid on its way down, over the forest"><br>
 <b>Merciless</b>: a single day without reviews brings down an asteroid on the whole forest,
@@ -88,7 +88,7 @@ Your computer draws this copy, so it updates whenever Anki syncs there.
 
 ## Compatibility and privacy
 
-- Anki 2.1.50 or later, on a computer (Windows, macOS, Linux). AnkiDroid can show a copy
+- Anki 2.1.55 or later, on a computer (Windows, macOS, Linux). AnkiDroid can show a copy
   of your forest that your computer sends it (see On your phone).
 - Everything is computed on your computer from your own review history. The only thing
   that leaves it is your city's name, and only if you turn on the real weather: it is sent
