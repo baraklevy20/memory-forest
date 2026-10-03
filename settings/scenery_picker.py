@@ -28,6 +28,7 @@ from aqt.qt import (
     QPixmap,
     QPoint,
     QPointF,
+    QPolygonF,
     QPushButton,
     QRect,
     QRectF,
@@ -418,7 +419,9 @@ class _Tile(QAbstractButton):
             tick.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
             p.setPen(tick)
             x, y, w = badge.left(), badge.top(), BADGE
-            p.drawPolyline([QPointF(x + w * 0.28, y + w * 0.52), QPointF(x + w * 0.44, y + w * 0.67), QPointF(x + w * 0.72, y + w * 0.36)])
+            # a QPolygonF, not a list: Anki 2.1.50's PyQt 6.2 takes no list here
+            p.drawPolyline(QPolygonF([QPointF(x + w * 0.28, y + w * 0.52), QPointF(x + w * 0.44, y + w * 0.67),
+                                      QPointF(x + w * 0.72, y + w * 0.36)]))
         p.setPen(self.palette().color(QPalette.ColorRole.WindowText))
         name = QRectF(RING, frame.bottom() + NAME_GAP, PICTURE_W, self.fontMetrics().height())
         p.drawText(name, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
