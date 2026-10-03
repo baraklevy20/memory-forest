@@ -116,7 +116,7 @@ AF.events.add('fire', {
   },
 });
 
-const smokeText = 'Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.';
+const smokeText = 'Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire.';
 
 /* what a burning (or smoking) tree's tooltip adds */
 AF.fireLine = t => {

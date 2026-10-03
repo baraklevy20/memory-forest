@@ -83,7 +83,7 @@ function crater(g, cx, cy, lost, age, env) {
 const fmt = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 // (how to watch the latest one again is for the pointer to say: a click, or a tap and a button)
 const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}`;
-const doomText = () => 'An asteroid strikes tonight, when the day ends, unless you review today.';
+const doomText = () => 'An asteroid strikes when Anki\'s day ends, unless you review before then.';
 const fmtShort = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
 /* ---------- the strike: a meteor shower, then the forest blown apart ---------- */

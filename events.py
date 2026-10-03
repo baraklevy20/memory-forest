@@ -9,7 +9,7 @@ back and forth.
 
 Peaceful only ever brings good things: a big day of learning leaves flowers, and a
 songbird comes when a leech is cured. Wild and Merciless add the rest - leeches bring
-crows, a week without new cards lets the grass grow tall, and a pile of overdue reviews
+crows, a week without new cards (while there are some left to learn) lets the grass grow tall, and a pile of overdue reviews
 brings tumbleweeds, which blow away the day it is cleared.
 
 Nothing here imports aqt, so it runs in the tests and the dev scripts. Days are counted
@@ -27,8 +27,8 @@ DEFAULT_NATURE = "peaceful"
 # level brings only as a hint: it is for the forest to show)
 NATURE_NOTES = {
     "peaceful": "Missing days costs nothing, and the forest never scolds you.",
-    "wild": "Miss a day of reviews and smoke rises; miss the next too and a fire spreads "
-            "until a week of study puts it out. Bad habits leave marks too.",
+    "wild": "Miss two days of reviews in a row and smoke rises; miss a third and a fire spreads "
+            "until seven days of study put it out. Bad habits leave marks too.",
     "merciless": "Miss a single day of reviews and an asteroid wipes out the forest. "
                  "Bad habits leave marks too.",
 }
@@ -54,8 +54,8 @@ CRATER_GONE_DAYS = 400
 # Wild's fire: it breaks out on the FIRE_FROM-th day in a row without reviews, and each day
 # away from then on sets FIRE_PER_DAY of the forest burning, up to FIRE_MAX of it. It is out
 # once you have studied on FIRE_HEAL_DAYS days since; staying away FIRE_FROM days again before
-# that fans it up anew. A single day off pauses it, no more.
-FIRE_FROM, FIRE_PER_DAY, FIRE_MAX, FIRE_HEAL_DAYS = 2, 0.05, 0.5, 7
+# that fans it up anew. Two days off (a weekend) pause it, no more.
+FIRE_FROM, FIRE_PER_DAY, FIRE_MAX, FIRE_HEAL_DAYS = 3, 0.05, 0.5, 7
 
 # A big learning day: at least BIG_DAY_JUMP times, and BIG_DAY_MORE cards more than, the
 # most you learned on any day of the BIG_DAY_WINDOW days before it - once there are
@@ -197,8 +197,8 @@ def fire_state(review_days: set) -> dict | None:
 
 
 def smoke_state(review_days: set) -> dict | None:
-    """Wild's warning: the day after a day missed, while today has no reviews yet, smoke
-    rises from the trees that catch fire if today goes by too - `began` and `epoch` as
+    """Wild's warning: after FIRE_FROM - 1 days missed in a row, while today has no reviews
+    yet, smoke rises from the trees that catch fire if today goes by too - `began` and `epoch` as
     fire_state has them for that fire, so it is the same trees. None when there is no fire
     to warn of (it only warns of a new one, not of one already burning fanned up)."""
     run = missed_now(review_days) - 1  # the days before today, missed in a row

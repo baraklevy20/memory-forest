@@ -44,6 +44,14 @@ function forNow(note, now) {
   const data = Object.assign({}, note, { mood, credit, dayNumber: day.dayNumber, sceneName: day.sceneName, sceneTip: day.sceneTip });
   if (!sent) {  // what happened on the day the computer sent this is old news by now
     Object.assign(data, { journal: '', anniversaries: [], events: [] });
+    // and its warnings were for that day only: the asteroid due that night, the smoke that
+    // asked for a review that day, the tumbleweeds blowing away as the backlog was cleared
+    data.doom = null;
+    if (note.fire && note.fire.smoke) {
+      data.fire = Object.assign({}, note.fire, { smoke: 0 });
+      data.trees = (note.trees || []).map(t => (t.smoke ? Object.assign({}, t, { smoke: 0 }) : t));
+    }
+    if (note.backlog && note.backlog.cleared) data.backlog = Object.assign({}, note.backlog, { cleared: false });
   }
   return data;
 }

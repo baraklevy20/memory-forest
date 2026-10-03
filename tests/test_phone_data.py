@@ -128,6 +128,20 @@ class SameForestTests(unittest.TestCase):
         self.assertFalse(phone_data.same_forest(old, phone_data.phone_payload(PAGE, {}, NOW + dt.timedelta(days=1), "s.js")))
         self.assertFalse(phone_data.same_forest(old, phone_data.phone_payload(PAGE, {}, NOW, "t.js")))
 
+    def test_live_weather_running_out_is_sent_again(self):
+        cfg = {"weather": "auto", "city": "Berlin"}
+        first = phone_data.encode(phone_data.phone_payload(PAGE, cfg, NOW, "s.js", REAL))
+        half = dt.timedelta(hours=phone_data.LIVE_WEATHER_HOURS / 2)
+        # a sync soon after: the phone's live weather has hours left, nothing to write
+        soon = phone_data.phone_payload(PAGE, cfg, NOW + half - dt.timedelta(minutes=10), "s.js", REAL)
+        self.assertTrue(phone_data.same_forest(first, soon))
+        # past half its hours: written again, so it does not run out while the computer syncs
+        later = phone_data.phone_payload(PAGE, cfg, NOW + half + dt.timedelta(minutes=10), "s.js", REAL)
+        self.assertFalse(phone_data.same_forest(first, later))
+        # without live weather, time alone never asks for a write
+        plain = phone_data.encode(phone_data.phone_payload(PAGE, {}, NOW, "s.js"))
+        self.assertTrue(phone_data.same_forest(plain, phone_data.phone_payload(PAGE, {}, NOW + 2 * half, "s.js")))
+
     def test_an_empty_or_hand_edited_field_is_not(self):
         new = phone_data.phone_payload(PAGE, {}, NOW, "s.js")
         for old in ("", "not json", "[]"):

@@ -31,8 +31,8 @@ def new_timeline_run() -> None:
 def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
     """The test forest after the timeline's days have passed (see events.timeline_days):
     a tree for each day studied, and Nature applied as it is to a real forest - so a day
-    away on Merciless brings the asteroid, and two on Wild a fire, which a week of study
-    puts out. The trees keep their looks as the days go by: each is still the tree of the
+    away on Merciless brings the asteroid, and three on Wild a fire, which seven days of
+    study put out. The trees keep their looks as the days go by: each is still the tree of the
     same day."""
     span, new, reviewed, happened = events.timeline_days(steps)
     base = fake_forest.make(clamp_int(cfg.get("test_trees"), TEST_TREES_DEFAULT, 0, TEST_TREES_MAX))

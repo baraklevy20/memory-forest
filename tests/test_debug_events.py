@@ -85,16 +85,16 @@ class DebugEventTests(unittest.TestCase):
         addon.debug_events.new_timeline_run()
         self.assertNotEqual(payload.payload()["craters"][0]["spot"], first)
 
-    def test_two_days_away_on_wild_start_a_fire_that_a_week_of_study_puts_out(self):
-        p = self.passed("wild", ("away", 1))  # today is the second: not over yet, only smoke
+    def test_three_days_away_on_wild_start_a_fire_that_a_week_of_study_puts_out(self):
+        p = self.passed("wild", ("away", 2))  # today is the third: not over yet, only smoke
         self.assertEqual((p["fire"]["trees"], p["fire"]["smoke"]), (0, 2))
         self.assertEqual(len([t for t in p["trees"] if t.get("smoke")]), 2)
         self.assertIn("Study today", p["journal"])
-        p = self.passed("wild", ("away", 2))
+        p = self.passed("wild", ("away", 3))
         self.assertEqual((p["craters"], p["doom"], p["fire"]["trees"], p["fire"]["left"]), ([], None, 2, 7))  # 5% of 40
         self.assertEqual(len([t for t in p["trees"] if t.get("burn")]), 2)
-        self.assertEqual(self.passed("wild", ("away", 2), ("study", 5))["fire"]["left"], 1)  # today makes six
-        self.assertTrue(self.passed("wild", ("away", 2), ("study", 6))["fire"]["out"])
+        self.assertEqual(self.passed("wild", ("away", 3), ("study", 5))["fire"]["left"], 1)  # today makes six
+        self.assertTrue(self.passed("wild", ("away", 3), ("study", 6))["fire"]["out"])
 
     def test_peaceful_lets_the_days_go_by(self):
         p = self.passed("peaceful", ("away", 30))
@@ -116,7 +116,9 @@ class DebugEventTests(unittest.TestCase):
 
     def test_a_week_reviewing_only_lets_the_grass_grow(self):
         self.assertEqual(self.passed("wild", ("study", 1), ("review", 3))["stagnation"], 0)
-        self.assertGreater(self.passed("wild", ("study", 1), ("review", 8))["stagnation"], 0)
+        p = self.passed("wild", ("study", 1), ("review", 8))
+        self.assertGreater(p["stagnation"], 0)
+        self.assertIn("The grass is growing tall", p["journal"])  # and the journal says why
 
 
 if __name__ == "__main__":

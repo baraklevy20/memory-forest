@@ -23,8 +23,9 @@ DEBUG_MIN_WIDTH = 760
 APPLY_DEBOUNCE_MS = 250
 # a new city is looked up in the background; check back for a problem after this long
 CITY_RECHECK_MS = 4000
-# choices about your study data and your phone rather than the forest's look: Restore defaults keeps them
-DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "phone_forest")
+# choices about your study data rather than the forest's look: Restore defaults keeps them (and the
+# phone switch, which lives in the collection, it never touches)
+DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended")
 RESTORE_TITLE = "Restore defaults"
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("This resets the scenery, Fine-tuning, Nature (to {nature}), your city, animation "

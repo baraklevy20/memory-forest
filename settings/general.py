@@ -25,7 +25,7 @@ from aqt.theme import theme_manager
 from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
-from ..state import OFF_VALUES, today
+from ..state import OFF_VALUES, phone_on, set_phone_on, today
 from .patreon import banner
 from .scenery_picker import SceneryBox, crisp
 from .widgets import group, grow_window, hint, set_options, set_quietly
@@ -100,7 +100,12 @@ class GeneralTab(QWidget):
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
         self.phone = QCheckBox("Show my forest on my phone")
-        self.phone.setChecked(cfg.get("phone_forest", False) not in OFF_VALUES)
+        # the collection's setting, not the add-on config's: it is written as it is ticked
+        # (the dialog then makes or takes away the deck), and put back on Cancel
+        self.phone_was = phone_on()
+        self.phone.setChecked(self.phone_was)
+        self.phone.toggled.connect(self._phone_toggled)
+        self._watching_cancel = False
         self.nature = NatureChoice(nature_level(cfg.get("nature")))
         self.nature_note = hint("")
         self.nature_note.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (its room fits the longest level)
@@ -135,6 +140,22 @@ class GeneralTab(QWidget):
         v.addWidget(group("Nature", nv))
         v.addWidget(group("Extras", ev))
         v.addStretch(1)
+
+    def _phone_toggled(self, on: bool) -> None:
+        set_phone_on(on)
+        dialog = self.window()
+        if not self._watching_cancel and dialog is not self:
+            dialog.rejected.connect(self._phone_put_back)
+            self._watching_cancel = True
+
+    def _phone_put_back(self) -> None:
+        """Cancel puts the phone setting back as the dialog found it, as it does the add-on
+        config - but not when Restore defaults closed the dialog: that keeps it as it is."""
+        if not getattr(self.window(), "_reverting", True) or phone_on() == self.phone_was:
+            return
+        set_phone_on(self.phone_was)
+        from ..actions import settings_changed
+        settings_changed()
 
     def offer(self, day, look: dict) -> None:
         """The presets there are on `day` (a seasonal one comes out on its first day)."""
@@ -203,6 +224,5 @@ class GeneralTab(QWidget):
             "city": self.city.text().strip(),
             "animations": self.animations.isChecked(),
             "planting_tooltip": self.planting.isChecked(),
-            "phone_forest": self.phone.isChecked(),
             "nature": self.nature.currentData(),
         }

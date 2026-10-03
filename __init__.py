@@ -18,8 +18,8 @@ from aqt import gui_hooks, mw
 from . import events_state, payload
 from .actions import on_deck_options_menu, on_js_message, open_settings, settings_changed
 from .panel import on_deck_browser, on_overview
+from .phone import after_sync as publish_after_sync
 from .phone import publish as publish_for_phone
-from .phone import remember_setting
 from .planting import on_answer
 
 mw.addonManager.setWebExports(__name__, r"web/.*\.(js|css)")
@@ -35,8 +35,8 @@ gui_hooks.sync_will_start.append(events_state.sync_started)
 gui_hooks.sync_did_finish.append(events_state.sync_finished)
 gui_hooks.sync_did_finish.append(payload.after_sync)  # before the forest for your phone is written
 # the forest for your phone: written before each sync, and again after one brings reviews in
+# (and the phone setting, as another computer may have left it)
 gui_hooks.sync_will_start.append(publish_for_phone)
-gui_hooks.sync_did_finish.append(publish_for_phone)
+gui_hooks.sync_did_finish.append(publish_after_sync)
 mw.addonManager.setConfigAction(__name__, open_settings)
 mw.addonManager.setConfigUpdatedAction(__name__, lambda _cfg: settings_changed())
-remember_setting()  # so that only turning the phone setting off removes its deck

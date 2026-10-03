@@ -207,20 +207,37 @@ class FireTests(unittest.TestCase):
     def trees(agos):
         return [{"ago": a, "n": 10, "seed": a * 7919} for a in sorted(agos, reverse=True)]
 
-    def test_one_day_away_is_no_fire_two_are(self):
+    def test_two_days_away_is_no_fire_three_are(self):
         self.assertIsNone(events.fire_state(set(range(0, 40)) - {5}))
-        st = events.fire_state(set(range(0, 40)) - {5, 6})
-        self.assertEqual((st["share"], st["missed"], st["began"], st["healed"]), (events.FIRE_PER_DAY, 2, 6, 5))
+        self.assertIsNone(events.fire_state(set(range(0, 40)) - {5, 6}))
+        st = events.fire_state(set(range(0, 40)) - {5, 6, 7})
+        self.assertEqual((st["share"], st["missed"], st["began"], st["healed"]), (events.FIRE_PER_DAY, 3, 7, 5))
+
+    def test_a_weekend_away_is_no_fire_nor_stops_it_healing(self):
+        # Saturday and Sunday off, studied the rest of the week, for months: whichever day
+        # today is (studied by now), nothing burns
+        for today in range(7):
+            days = {d for d in range(120) if (d + today) % 7 not in (5, 6)} | {0}
+            self.assertIsNone(events.fire_state(days))
+            trees = self.trees(days)
+            self.assertEqual(events.set_fire(trees, days), (trees, None))
+        # a fire four days away lit is out on the seventh day studied, a weekend off between:
+        # back Monday to Friday, Saturday and Sunday off, then Monday and today, Tuesday
+        days = set(range(40)) - {2, 3} - {9, 10, 11, 12}
+        st = events.fire_state(days)
+        self.assertEqual((st["share"], st["out"]), (0.0, True))
+        st = events.fire_state({d - 1 for d in days if d})  # yesterday: the sixth day studied
+        self.assertEqual((round(st["share"], 2), st["healed"]), (0.1, 6))
 
     def test_today_is_no_day_missed_yet(self):
-        self.assertIsNone(events.fire_state(set(range(2, 40))))  # yesterday and today so far: one day
-        st = events.fire_state(set(range(3, 40)))
+        self.assertIsNone(events.fire_state(set(range(3, 40))))  # two days and today so far: two days
+        st = events.fire_state(set(range(4, 40)))
         self.assertEqual((st["share"], st["healed"], st["news"]), (events.FIRE_PER_DAY, 0, True))
 
     def test_it_spreads_each_day_up_to_half(self):
         share = lambda away: events.fire_state(set(range(away + 1, 99)))["share"]  # noqa: E731
-        self.assertEqual([round(share(d), 2) for d in (2, 3, 5)], [0.05, 0.1, 0.2])
-        self.assertEqual(share(11), events.FIRE_MAX)
+        self.assertEqual([round(share(d), 2) for d in (3, 4, 6)], [0.05, 0.1, 0.2])
+        self.assertEqual(share(12), events.FIRE_MAX)
         self.assertEqual(share(60), events.FIRE_MAX)
 
     def test_a_week_of_study_puts_it_out_and_that_day_is_news(self):
@@ -233,16 +250,18 @@ class FireTests(unittest.TestCase):
         self.assertIsNone(events.fire_state(away | set(range(1, events.FIRE_HEAL_DAYS + 1))))  # out yesterday: no news today
 
     def test_the_study_days_count_not_the_calendar(self):
-        days = set(range(0, 40)) - {9, 8, 7, 6} - {4, 2}  # four days away, then back with a day off twice
+        days = set(range(0, 40)) - {10, 9, 8, 7, 6} - {4, 3}  # five days away, then back with two days off
         st = events.fire_state(days)
-        self.assertEqual((st["healed"], round(st["share"], 2)), (4, 0.15))  # a single day off only pauses it
+        self.assertEqual((st["healed"], round(st["share"], 2)), (4, 0.15))  # two days off only pause it
+
     def test_staying_away_again_fans_it_up_anew(self):
         days = set(range(20, 60)) | {15, 14, 13} | set(range(0, 6))  # away 16-19, back 3 days, away 6-12, back 6
         st = events.fire_state(days)
-        self.assertEqual((st["began"], round(st["share"], 2), st["healed"], st["missed"]), (19, 0.3, 6, 7))
+        self.assertEqual((st["began"], round(st["share"], 2), st["healed"], st["missed"]), (19, 0.25, 6, 7))
+
     def test_burning_trees_come_by_lot_the_same_every_day(self):
-        days = set(range(12, 400))  # eleven days away: half the forest
-        trees = self.trees(range(12, 400))
+        days = set(range(13, 400))  # twelve days away: half the forest
+        trees = self.trees(range(13, 400))
         out, info = events.set_fire(trees, days)
         burning = [t["ago"] for t in out if t.get("burn")]
         self.assertEqual((info["trees"], len(burning), info["left"], info["news"]), (194, 194, events.FIRE_HEAL_DAYS, True))
@@ -253,15 +272,16 @@ class FireTests(unittest.TestCase):
         self.assertEqual([t["ago"] - 1 for t in out if t.get("burn")], burning)
         self.assertEqual({t["burn"] for t in out if t.get("burn")}, {round(1 - 1 / events.FIRE_HEAL_DAYS, 3)})
         self.assertEqual(info["left"], events.FIRE_HEAL_DAYS - 1)
-    def test_a_day_missed_smokes_until_today_is_studied(self):
-        self.assertEqual(events.smoke_state(set(range(2, 40))), {"began": 1, "epoch": 38})
-        self.assertIsNone(events.smoke_state(set(range(2, 40)) | {0}))  # studied today: no fire coming
+    def test_two_days_missed_smoke_until_today_is_studied(self):
+        self.assertEqual(events.smoke_state(set(range(3, 40))), {"began": 2, "epoch": 37})
+        self.assertIsNone(events.smoke_state(set(range(3, 40)) | {0}))  # studied today: no fire coming
+        self.assertIsNone(events.smoke_state(set(range(2, 40))))  # one day and today so far
         self.assertIsNone(events.smoke_state(set(range(1, 40))))  # only today so far
-        self.assertIsNone(events.smoke_state(set(range(3, 40))))  # already burning
+        self.assertIsNone(events.smoke_state(set(range(4, 40))))  # already burning
         self.assertIsNone(events.smoke_state(set()))
 
     def test_the_smoking_trees_are_the_ones_that_catch_fire(self):
-        days, trees = set(range(2, 400)), self.trees(range(2, 400))
+        days, trees = set(range(3, 400)), self.trees(range(3, 400))
         out, info = events.set_fire(trees, days)
         smoking = [t["ago"] for t in out if t.get("smoke")]
         self.assertEqual((info["smoke"], info["trees"], len(smoking)), (20, 0, 20))

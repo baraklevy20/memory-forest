@@ -13,8 +13,8 @@ from .state import _profile, excluded_decks, load_state, phone_cards, phone_deck
 
 # The profiles a sync has finished for this session, and whether one is under way. Until
 # a sync has brought in what you studied elsewhere (on your phone, say), a day you studied
-# there looks missed here - so no strike you haven't seen yet comes before one has, unless
-# the profile doesn't sync at all.
+# there looks missed here - so no strike, fire, smoke or doom that hasn't shown yet comes
+# before one has, unless the profile doesn't sync at all.
 _synced: set = set()
 _syncing = False
 
@@ -166,11 +166,51 @@ def _animals(forest: dict, struck: int | None) -> dict:
 
 def _held(days: set) -> frozenset:
     """The strikes that don't come yet: until the review log is all there (see settled),
-    any you haven't seen - a day studied on another device looks missed until it syncs."""
+    any newer than the last one shown - a day studied on another device looks missed until
+    it syncs. The ones shown before stay, each with its own trees."""
     if settled():
         return frozenset()
-    seen = load_state().get("strike_seen")
-    return frozenset(d for d in events.strikes(days) if ago_date(d) != seen)
+    last = _last_shown("strike")
+    return frozenset(d for d in events.strikes(days) if last is None or ago_date(d) > last)
+
+
+def _last_shown(kind: str) -> str | None:
+    """The day (an ISO date) of the last `kind` shown once the review log was all there:
+    a strike (or the strike played, strike_seen), a fire, its smoke, or a doom."""
+    state = load_state()
+    shown = state.get("shown") if isinstance(state.get("shown"), dict) else {}
+    # (dates only: the debug timeline's strikes are seen by keys of their own)
+    days = [d for d in (shown.get(kind), state.get("strike_seen") if kind == "strike" else None)
+            if isinstance(d, str) and d[:1].isdigit()]
+    return max(days, default=None)
+
+
+def _shows(kind: str, day: str, remember: bool) -> bool:
+    """Whether Wild's fire or smoke, or Merciless's doom - `kind`, of `day` (an ISO date) -
+    shows. Once the review log is all there (see settled) it does, and is remembered (unless
+    not `remember`: the settings dialog's preview); before that, only if it showed so
+    already, as a day studied on another device looks missed until it syncs."""
+    if not settled():
+        return _last_shown(kind) == day
+    if remember:
+        _remember_shown(kind, day)
+    return True
+
+
+def _remember_shown(kind: str, day: str) -> None:
+    state = load_state()
+    shown = state.get("shown") if isinstance(state.get("shown"), dict) else {}
+    if shown.get(kind) != day:
+        state["shown"] = dict(shown, **{kind: day})
+        save_state(state)
+
+
+def _new_cards_left(cfg: dict, changed=None) -> bool:
+    """Whether the decks the forest grows from have any new cards left to learn (suspended
+    ones aside): with none, you have learned them all, and only reviewing is no stagnation."""
+    col, excluded, skip = mw.col, excluded_decks(cfg), phone_cards()
+    return remembered("new_left", changed and (changed, frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.has_new_cards(col.db, excluded, skip))
 
 
 def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
@@ -186,10 +226,13 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
         # Nature goes by every deck you study, whichever the forest leaves out
         nature_days = _nature_days(cfg, forest, changed)
         struck = None
+        live = not is_open()  # (what the settings dialog previews is not remembered as shown)
         if level == "merciless":
             out = events.merciless(forest["trees"], nature_days, _held(nature_days))
+            if out["hits"] and settled() and live:
+                _remember_shown("strike", ago_date(out["hits"][-1]))
             if out["latest"]:
-                extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date, not is_open()))
+                extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date, live))
             if out["hits"]:
                 # the forest now: only what grew since, its streak, reviews and animals counted
                 # from there - the animals have to be earned again, as the trees do
@@ -197,13 +240,21 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
                 struck = mw.col.sched.today - hit
                 reviews = sum(n for d, n in (forest.get("day_reviews") or {}).items() if d < hit)
                 forest = forest_data.rebuild(forest, out["trees"], {d for d in days if d < hit}, reviews)
-            extras["doom"] = out["doom"]
+            # tonight's asteroid, only once it is sure no review today is still on its way
+            if out["doom"] and _shows("doom", ago_date(0), live):
+                extras["doom"] = out["doom"]
         elif level == "wild":
-            trees, extras["fire"] = events.set_fire(forest["trees"], nature_days, forest_data.MAX_INDIVIDUAL_TREES)
-            forest = dict(forest, trees=trees)
+            trees, fire = events.set_fire(forest["trees"], nature_days, forest_data.MAX_INDIVIDUAL_TREES)
+            # smoke or a fire, only once the days it goes by are sure (the day it goes out is
+            # good news: that may come any time)
+            kind = "smoke" if fire and fire["smoke"] else "fire" if fire and fire["trees"] else None
+            if kind is None or _shows(kind, ago_date(fire["began"]), live):
+                forest, extras["fire"] = dict(forest, trees=trees), fire
         forest = _animals(forest, struck)
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
     extras["stagnation"] = events.stagnation(forest["trees"], days)
+    if extras["stagnation"] and not test and not _new_cards_left(cfg, changed):
+        extras["stagnation"] = 0.0  # every card learned: reviewing alone is what is left to do
     if not test:
         extras["backlog"] = _backlog(cfg, changed)
         forest = dict(forest, trees=_mark_cured(forest["trees"], cfg, changed))
@@ -222,7 +273,7 @@ def fire_line(extras: dict) -> str:
     if not fire:
         return ""
     if fire.get("smoke"):
-        return "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire."
+        return "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
     if fire["out"]:
         return "The last of the fire is out. Your forest is green again."
     if not fire["news"]:

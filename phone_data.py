@@ -143,7 +143,7 @@ def encode(data: dict) -> str:
 
 def same_forest(old: str, new: dict) -> bool:
     """Whether a note already holds this forest (whenever it was written), so a sync that
-    changed nothing uploads nothing."""
+    changed nothing uploads nothing - unless the live weather it holds is running out."""
     try:
         was = json.loads(old)
     except ValueError:
@@ -163,7 +163,14 @@ def same_forest(old: str, new: dict) -> bool:
     def temp(data: dict):
         mood = ((data.get("days") or [{}])[0].get("mood") or {})
         return mood.get("temp") if isinstance(mood.get("temp"), (int, float)) else None
+    def live_until(data: dict):
+        until = ((data.get("days") or [{}])[0]).get("liveUntil")
+        return until if isinstance(until, (int, float)) else None
     now = json.loads(encode(new))
     a, b = temp(was), temp(now)
     near = a == b or (a is not None and b is not None and abs(a - b) < TEMP_UPLOAD_DEGREES)
-    return near and gist(was) == gist(now)
+    # live weather the phone is about to drop (less than half its hours left, by the new
+    # note's own reckoning) is sent again, so it stays live while the computer keeps syncing
+    held, fresh = live_until(was), live_until(now)
+    expiring = held is not None and fresh is not None and held < fresh - LIVE_WEATHER_HOURS * 3600 * 1000 / 2
+    return near and not expiring and gist(was) == gist(now)

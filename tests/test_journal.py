@@ -48,3 +48,25 @@ class JournalTests(unittest.TestCase):
         self.assertIn("fox", journal.journal(forest, mood, dt.date(2026, 9, 19), [0]))
         forest["visitors"] = []
         self.assertIn("turned a year old", journal.journal(forest, mood, dt.date(2026, 9, 19), [0]))
+
+    def test_the_night_sky_is_only_spoken_of_when_it_is_clear(self):
+        forest = {"trees": [{"date": "2025-09-19", "n": 30, "ago": 0}], "visitors": [],
+                  "stats": {"trees": 40, "streak": 12, "planted_today": False, "today_cards": 0}}
+        say = lambda weather, time="night", evs=("meteor_shower",): journal.journal(  # noqa: E731
+            forest, {"weather": weather, "special": "none", "time": time}, dt.date(2026, 9, 19), [], list(evs))
+        self.assertEqual(say("clear"), "Meteors are falling tonight.")
+        self.assertEqual(say("after_rain"), "Meteors are falling tonight.")
+        self.assertEqual(say("cloudy"), "")  # drawn behind no clouds: not said either
+        self.assertEqual(say("clear", "day"), "")
+        self.assertEqual(say("cloudy", evs=("harvest_moon",)), "")
+        self.assertEqual(say("cloudy", evs=("new_ancient",)), "One of your trees became ancient today.")
+        self.assertEqual(say("clear", evs=("new_ancient",)), "One of your trees became ancient today. Watch for a shooting star.")
+
+    def test_the_tall_grass_says_why_it_is_there(self):
+        stats = {"trees": 40, "streak": 12, "planted_today": False, "today_cards": 0}
+        mood = {"weather": "clear", "special": "none", "time": "day"}
+        for ago, line in ((9, "a week"), (20, "2 weeks"), (30, "4 weeks")):
+            forest = {"trees": [{"date": "2025-09-19", "n": 30, "ago": ago}], "visitors": [], "stats": stats}
+            self.assertEqual(journal.journal(forest, mood, dt.date(2026, 9, 19), [], stagnation=0.5),
+                             f"The grass is growing tall: no new cards for {line}.")
+        self.assertEqual(journal.journal(forest, mood, dt.date(2026, 9, 19), [], stagnation=0.0), "")

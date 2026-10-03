@@ -126,6 +126,18 @@ class HistoryFilterTests(unittest.TestCase):
         self.assertEqual(rows.total_reviews, 5)
         self.assertIn(4, rows.review_days)
 
+    def test_new_cards_left_only_in_the_decks_that_count(self):
+        self.assertFalse(study_log.has_new_cards(self.db))  # every card studied
+        # a new card borrowed by a filtered deck, its home deck 20
+        self.db.all("insert into cards values (50, 50, 99, 20, 0, 0, 0, '{}', 1)")
+        self.assertTrue(study_log.has_new_cards(self.db))
+        self.assertFalse(study_log.has_new_cards(self.db, excluded=[20]))
+        self.assertFalse(study_log.has_new_cards(self.db, skip=[50]))
+        self.db.all("update cards set queue = -1 where id = 50")  # suspended: not to learn
+        self.assertFalse(study_log.has_new_cards(self.db))
+        self.db.all("update cards set queue = -2 where id = 50")  # buried: back tomorrow
+        self.assertTrue(study_log.has_new_cards(self.db))
+
     def test_the_review_log_kept_between_reads_adds_up_as_reading_it_whole(self):
         log = study_log.ReviewLog()
         same = lambda **kw: self.assertEqual(  # noqa: E731

@@ -10,19 +10,26 @@ answered anyway is made new again, and the deck never counts towards the forest.
 
 Nothing is created until the setting is on, and turning it off takes the deck and note
 away again (remove); only the empty note type stays, since removing one forces a full sync.
+The setting lives in the collection (state.phone_on): one per profile, synced with it, so
+turned off on one computer, the next sync takes the deck away on the others too.
 """
 
 from __future__ import annotations
 
 import datetime as _dt
 import hashlib
+import json
 import os
 import traceback
 
 from aqt import mw
 
 from . import events_state, live_weather, payload, phone_data
-from .state import OFF_VALUES, PHONE_DECK, PHONE_NOTETYPE, config, follow_season, log, remember_phone_cards, today
+from .state import PHONE_DECK, PHONE_NOTETYPE, config, follow_season, log, phone_on, remember_phone_cards, today
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+# Plus's package (editions.json) and name as Anki shows it, and this folder's package in development
+PLUS_PACKAGE, PLUS_NAME, DEV_PACKAGE = "memory_forest_plus", "Memory Forest Plus", "anki_forest"
 
 DECK = PHONE_DECK
 FIELDS = ("About", "Forest")  # never change these: a field added later forces a full sync
@@ -69,16 +76,74 @@ CSS = """.card { margin: 0; padding: 0; }
 .af-phone-shell:fullscreen .af-phone-stage:not(.af-sideways) { display: flex; flex-direction: column; justify-content: center; height: 100%; }"""
 
 
-def enabled(cfg: dict | None = None) -> bool:
-    return (cfg if cfg is not None else config()).get("phone_forest", False) not in OFF_VALUES
+def enabled(col=None) -> bool:
+    return phone_on(col)
 
 
-def _notetype(col) -> dict:
-    """The note type, made on first use, with its template brought up to date: changing a
-    template's text needs no full sync, only adding or removing fields and templates does."""
+def _manifest(folder: str) -> dict:
+    """An add-on's manifest.json, or nothing if it can't be read."""
+    try:
+        with open(os.path.join(folder, "manifest.json"), encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _is_plus(folder: str, meta=None) -> bool:
+    """Whether the add-on in `folder` is Memory Forest Plus: each edition's build writes its
+    own package into manifest.json, and installed from a file, its folder is named after it."""
+    names = (os.path.basename(folder.rstrip(os.sep)), _manifest(folder).get("package"), getattr(meta, "provided_name", None))
+    return PLUS_PACKAGE in names or PLUS_NAME in names
+
+
+def steps_aside() -> bool:
+    """Whether this copy leaves the phone to Memory Forest Plus: both editions write the same
+    note, and each would take away the other's files and write it again at every sync, so
+    with both installed only Plus does, whenever it is enabled: the setting is the
+    collection's, so both editions see the same. Only the base edition steps aside (Plus and a copy in development never do), and if the
+    other add-on can't be found out, this one writes as it always has."""
+    if _manifest(HERE).get("package") in (PLUS_PACKAGE, DEV_PACKAGE):
+        return False
+    try:
+        am = mw.addonManager
+        for meta in am.all_addon_meta():
+            folder = am.addonsFolder(meta.dir_name)
+            if not meta.enabled or os.path.abspath(folder) == HERE or not _is_plus(folder, meta):
+                continue
+            return True
+    except Exception:
+        log("could not tell whether Memory Forest Plus is installed:\n" + traceback.format_exc())
+    return False
+
+
+def _same_named(col) -> list:
+    """Every note type of ours, oldest first. Two computers that each turned the setting on
+    before they synced each made one, and a sync brings both under the one name: the oldest
+    is the one used, on every computer alike."""
     mm = col.models
-    m = mm.by_name(PHONE_NOTETYPE)
-    if m is None:
+    try:
+        ids = sorted(e.id for e in mm.all_names_and_ids() if e.name == PHONE_NOTETYPE)
+    except AttributeError:  # an Anki without it: the one its name finds
+        m = mm.by_name(PHONE_NOTETYPE)
+        return [m] if m else []
+    return [m for m in (mm.get(i) for i in ids) if m]
+
+
+def _up_to_date(mm, m) -> None:
+    t = m["tmpls"][0]
+    if (t["qfmt"], t["afmt"], m["css"]) != (FRONT, BACK, CSS):
+        t["qfmt"], t["afmt"], m["css"] = FRONT, BACK, CSS
+        mm.update_dict(m)
+
+
+def _notetype(col) -> list:
+    """Our note types (oldest first), made on first use, with their template brought up to
+    date: changing a template's text needs no full sync, only adding or removing fields and
+    templates does."""
+    mm = col.models
+    found = _same_named(col)
+    if not found:
         m = mm.new(PHONE_NOTETYPE)
         for name in FIELDS:
             mm.add_field(m, mm.new_field(name))
@@ -87,12 +152,10 @@ def _notetype(col) -> dict:
         mm.add_template(m, t)
         m["css"] = CSS
         mm.add(m)
-        return mm.by_name(PHONE_NOTETYPE)
-    t = m["tmpls"][0]
-    if (t["qfmt"], t["afmt"], m["css"]) != (FRONT, BACK, CSS):
-        t["qfmt"], t["afmt"], m["css"] = FRONT, BACK, CSS
-        mm.update_dict(m)
-    return m
+        return [mm.by_name(PHONE_NOTETYPE)]
+    for m in found:
+        _up_to_date(mm, m)
+    return found
 
 
 def _options(col, did: int) -> None:
@@ -120,16 +183,26 @@ def _options(col, did: int) -> None:
 def _note(col):
     """The note that carries the forest, made (with its note type and deck) if it is missing.
     Its card may have been moved to another deck since, or borrowed by a filtered one: the
-    options only ever go to the add-on's own deck, and that deck is not made again."""
-    m = _notetype(col)
-    nids = col.db.list("select id from notes where mid = ? order by id", m["id"])
+    options only ever go to the add-on's own deck, and that deck is not made again. Two
+    computers that each made a note before they synced leave two: the oldest stays, on every
+    computer alike, and the others go."""
+    types_ = _notetype(col)
+    mids = [m["id"] for m in types_]
+    nids = col.db.list(f"select id from notes where mid in ({','.join('?' * len(mids))}) order by id", *mids)
     if nids:
+        if len(types_) > 1:  # (state.phone_cards finds the cards by the note type's name alone)
+            remember_phone_cards(col.card_ids_of_note(nids[0]))
+        if len(nids) > 1:
+            extra = nids[1:]
+            remember_phone_cards([cid for nid in extra for cid in col.card_ids_of_note(nid)])
+            col.remove_notes(extra)
+            log(f"took away {len(extra)} extra note{'s' if len(extra) != 1 else ''} for your phone, made on another computer")
         note = col.get_note(nids[0])
         mine = col.decks.id_for_name(DECK)
         if mine:
             _options(col, mine)
         return note
-    note = col.new_note(m)
+    note = col.new_note(types_[0])
     note["About"], note["Forest"] = ABOUT, ""
     did = col.decks.id(DECK)
     _options(col, did)
@@ -205,62 +278,66 @@ def remove() -> None:
     only goes if nothing else was put in it, and a deck the card was moved to stays. The note
     type and the deck's options preset stay: removing either forces a full sync, and they are
     empty and out of the way. Anki keeps the reviews of the cards removed, so they are
-    remembered, and those reviews go on being left out of your study (state.phone_cards)."""
+    remembered, and those reviews go on being left out of your study (state.phone_cards).
+    With nothing left to take away, it does nothing: it runs at every sync while the setting
+    is off."""
     global _written
     col = mw.col
-    m = col.models.by_name(PHONE_NOTETYPE) if col is not None else None
-    if m is None:
+    if col is None or steps_aside():
         return
     try:
-        nids = col.db.list("select id from notes where mid = ?", m["id"])
+        mids = [m["id"] for m in _same_named(col)]
+        if not mids:  # never turned on in this collection
+            return
+        ours = f"select id from notes where mid in ({','.join('?' * len(mids))})"
+        nids = col.db.list(ours, *mids)
         if nids:
-            remember_phone_cards(col.db.list("select id from cards where nid in (select id from notes where mid = ?)", m["id"]))
+            remember_phone_cards(col.db.list(f"select id from cards where nid in ({ours})", *mids))
             col.remove_notes(nids)
         mine = col.decks.id_for_name(DECK)
+        gone = bool(nids)
         if mine and len(col.decks.deck_and_child_ids(mine)) == 1 and not col.db.scalar(
                 "select count() from cards where did = ? or odid = ?", mine, mine):  # nothing else lives here now
             col.decks.remove([mine])
+            gone = True
         folder = col.media.dir()
         _written = (None, frozenset())  # written again when the setting comes back on
         scripts = [f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js")]
         if scripts:
             col.media.trash_files(scripts)
-        log("took the forest off your phone")
+        if gone or scripts:
+            log("took the forest off your phone")
     except Exception:
         log("could not take the forest off your phone:\n" + traceback.format_exc())
 
 
-# whether the setting was on when last looked at: only turning it off removes the deck, so a
-# computer that never had it on leaves alone the one another computer keeps
-_was_on: bool | None = None
-
-
 def follow_setting() -> bool:
     """After the settings change: turned on, the note is made (or brought up to date) now
-    rather than at the next sync; turned off, the deck goes. True when the setting was just
-    turned on or off, so the deck may have come or gone."""
-    global _was_on
-    on = enabled()
-    if on:
-        publish()
-    elif _was_on:
-        remove()
-    flipped = on != bool(_was_on)  # (not looked at yet: it was off)
-    _was_on = on
-    return flipped
+    rather than at the next sync; turned off, the deck goes. True when the deck has just
+    come or gone."""
+    col = mw.col
+    if col is None:
+        return False
+    had = bool(col.decks.id_for_name(DECK))
+    publish()
+    return had != bool(col.decks.id_for_name(DECK))
 
 
-def remember_setting() -> None:
-    """Note whether the setting is on, before anything can change it."""
-    global _was_on
-    _was_on = enabled()
+def after_sync() -> None:
+    """Once a sync has brought in the setting as the other computers left it."""
+    publish()
 
 
 def publish() -> None:
-    """Write the forest as it is now into the note, if the setting is on and it changed."""
+    """Write the forest as it is now into the note, if the setting is on and it changed;
+    with the setting off, take away whatever is left of it (turned off on another computer,
+    say)."""
     col = mw.col
     cfg = follow_season(config())  # before the forest is drawn for it, as the desktop's is
-    if col is None or not enabled(cfg):
+    if col is None or steps_aside():
+        return
+    if not enabled(col):
+        remove()
         return
     try:
         note = _note(col)

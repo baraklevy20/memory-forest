@@ -29,6 +29,13 @@ class Models:
     def by_name(self, name):
         return next((dict(m) for m in self.by_id.values() if m["name"] == name), None)
 
+    def all_names_and_ids(self):
+        return [types.SimpleNamespace(name=m["name"], id=m["id"]) for m in self.by_id.values()]
+
+    def get(self, mid):
+        m = self.by_id.get(mid)
+        return dict(m) if m else None
+
     def new(self, name):
         return {"name": name, "flds": [], "tmpls": [], "css": ""}
 
@@ -180,13 +187,17 @@ class PhoneTests(unittest.TestCase):
         decks = mock.patch.dict(fake_anki.DECKS)
         decks.start()
         self.addCleanup(decks.stop)
-        reset(config={"phone_forest": True})
+        reset()
         mw.col = self.col = Col()
         self.addCleanup(shutil.rmtree, self.col.media.folder, True)
-        phone._was_on = None
+        self.switch(True)
         quiet = mock.patch.object(phone, "log", lambda _msg: None)
         quiet.start()
         self.addCleanup(quiet.stop)
+
+    def switch(self, on):
+        """The setting, as the collection holds it (ticked here, or synced from elsewhere)."""
+        self.col.set_config(addon.state.PHONE_SWITCH, on)
 
     def cards(self):
         """(deck, type, queue) of the phone note's cards."""
@@ -235,7 +246,7 @@ class PhoneTests(unittest.TestCase):
     def test_turning_it_off_takes_the_note_and_deck_away(self):
         phone.follow_setting()
         did = self.col.decks.id_for_name(phone.DECK)
-        mw.addonManager.config = {}
+        self.switch(False)
         phone.follow_setting()
         self.assertEqual(self.col.notes, {})
         self.assertIsNone(self.col.decks.name_if_exists(did))
@@ -246,16 +257,27 @@ class PhoneTests(unittest.TestCase):
     def test_it_says_when_the_deck_has_just_come_or_gone(self):
         self.assertTrue(phone.follow_setting())  # turned on: the deck is made
         self.assertFalse(phone.follow_setting())  # another setting changed: nothing to show
-        mw.addonManager.config = {}
+        self.switch(False)
         self.assertTrue(phone.follow_setting())  # turned off: the deck goes
         self.assertFalse(phone.follow_setting())
 
-    def test_a_computer_that_never_had_it_on_leaves_the_deck_alone(self):
+    def test_turned_off_on_another_computer_the_next_sync_takes_it_away(self):
         phone.publish()
-        mw.addonManager.config = {}
-        phone.remember_setting()
-        phone.follow_setting()
-        self.assertEqual(len(self.col.notes), 1)
+        self.switch(False)  # what the sync brought in
+        messages = []
+        with mock.patch.object(phone, "log", messages.append):
+            phone.after_sync()
+            self.assertEqual(self.col.notes, {})
+            self.assertIsNone(self.col.decks.id_for_name(phone.DECK))
+            self.assertEqual(os.listdir(self.col.media.folder), [])
+            self.assertEqual(messages, ["took the forest off your phone"])
+            phone.publish()  # every sync after that: nothing left to do, and nothing said
+            self.assertEqual(messages, ["took the forest off your phone"])
+
+    def test_off_in_a_collection_that_never_had_it_makes_nothing(self):
+        self.switch(False)
+        phone.publish()
+        self.assertEqual((self.col.notes, self.col.models.by_id), ({}, {}))
 
     def test_removing_keeps_a_deck_that_holds_other_cards(self):
         phone.publish()
@@ -273,8 +295,7 @@ class PhoneTests(unittest.TestCase):
                                     [(ms(d), cid) for d in range(7)])
         self.col.db.con.execute("update cards set type = 2, queue = 2 where id = ?", (cid,))
         self.assertEqual(addon.state.phone_cards(), {cid})
-        mw.addonManager.config = {}
-        phone._was_on = True
+        self.switch(False)
         phone.follow_setting()
         self.assertEqual(self.col.db.scalar("select count() from cards"), 0)
         # the card is gone, its reviews stay (as in Anki), and they are still not study
@@ -332,6 +353,122 @@ class PhoneTests(unittest.TestCase):
         phone.remove()
         self.assertEqual(self.col.decks.name_if_exists(20), "German")
         self.assertIsNone(self.col.decks.name_if_exists(mine))
+
+    def test_two_notes_from_two_computers_become_one(self):
+        phone.publish()
+        # another computer turned it on before the two synced: its note came in with the sync
+        m = self.col.models.by_name(phone.PHONE_NOTETYPE)
+        other = self.col.new_note(m)
+        self.col.add_note(other, self.col.decks.id_for_name(phone.DECK))
+        first = min(self.col.notes)
+        phone.publish()
+        self.assertEqual(list(self.col.notes), [first])  # the oldest stays, on every computer alike
+        self.assertIn(other.id, addon.state.phone_cards())  # its card's reviews stay left out
+
+    def test_two_note_types_of_the_same_name_keep_one_note(self):
+        phone.publish()
+        # the other computer made its own note type too, and the sync brought both
+        mm = self.col.models
+        dup = mm.new(phone.PHONE_NOTETYPE)
+        for name in phone.FIELDS:
+            mm.add_field(dup, mm.new_field(name))
+        mm.add_template(dup, mm.new_template("Forest"))
+        mm.add(dup)
+        other = self.col.new_note(dup)
+        self.col.add_note(other, self.col.decks.id_for_name(phone.DECK))
+        first = min(self.col.notes)
+        phone.publish()
+        self.assertEqual(list(self.col.notes), [first])
+        self.assertEqual(mm.get(dup["id"])["tmpls"][0]["qfmt"], phone.FRONT)  # both brought up to date
+        self.assertIn(other.id, addon.state.phone_cards())
+        # turning it off takes the notes of both away
+        self.col.add_note(self.col.new_note(dup), self.col.decks.id_for_name(phone.DECK))
+        phone.remove()
+        self.assertEqual(self.col.notes, {})
+
+
+class EditionTests(unittest.TestCase):
+    """Memory Forest and Memory Forest Plus installed together: only Plus writes the note."""
+
+    def setUp(self):
+        self.folder = tempfile.mkdtemp(prefix="memory-forest-addons-")
+        self.addCleanup(shutil.rmtree, self.folder, True)
+        self.metas, self.configs = [], {}
+        am = types.SimpleNamespace(all_addon_meta=lambda: list(self.metas),
+                                   addonsFolder=lambda d: os.path.join(self.folder, d),
+                                   getConfig=lambda d: self.configs.get(d))
+        patch = mock.patch.object(phone.mw, "addonManager", am)
+        patch.start()
+        self.addCleanup(patch.stop)
+        quiet = mock.patch.object(phone, "log", lambda _msg: None)
+        quiet.start()
+        self.addCleanup(quiet.stop)
+        self.me("memory_forest")
+
+    def me(self, package):
+        """This copy, with `package` in its manifest."""
+        here = self.install("1255432496", package, "Memory Forest")
+        patch = mock.patch.object(phone, "HERE", here)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def install(self, dir_name, package, name, enabled=True):
+        path = os.path.join(self.folder, dir_name)
+        os.makedirs(path, exist_ok=True)
+        if package:
+            with open(os.path.join(path, "manifest.json"), "w", encoding="utf-8") as f:
+                json.dump({"package": package, "name": name}, f)
+        self.metas.append(types.SimpleNamespace(dir_name=dir_name, enabled=enabled, provided_name=name))
+        self.configs[dir_name] = {}
+        return path
+
+    def test_alone_it_writes(self):
+        self.install("2000", "something_else", "Another add-on")
+        self.assertFalse(phone.steps_aside())
+
+    def test_the_base_edition_leaves_the_phone_to_plus(self):
+        self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus")
+        self.assertTrue(phone.steps_aside())
+
+    def test_found_by_its_name_too(self):
+        self.install("memory_forest_plus", None, "Memory Forest Plus")
+        self.assertTrue(phone.steps_aside())
+
+    def test_not_to_a_plus_that_is_disabled(self):
+        self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus", enabled=False)
+        self.assertFalse(phone.steps_aside())
+
+    def test_plus_and_a_copy_in_development_never_step_aside(self):
+        self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus")
+        for package in ("memory_forest_plus", "anki_forest"):
+            with open(os.path.join(phone.HERE, "manifest.json"), "w", encoding="utf-8") as f:
+                json.dump({"package": package}, f)
+            self.assertFalse(phone.steps_aside(), package)
+
+    def test_if_the_add_ons_cant_be_read_it_writes_as_before(self):
+        def broken():
+            raise RuntimeError("no add-on manager")
+        phone.mw.addonManager.all_addon_meta = broken
+        self.assertFalse(phone.steps_aside())
+
+    def test_stepping_aside_writes_and_removes_nothing(self):
+        decks = mock.patch.dict(fake_anki.DECKS)
+        decks.start()
+        self.addCleanup(decks.stop)
+        col = Col()
+        self.addCleanup(shutil.rmtree, col.media.folder, True)
+        self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus")
+        col.set_config(addon.state.PHONE_SWITCH, True)
+        with mock.patch.object(phone.mw, "col", col), mock.patch.object(phone, "config", lambda: {}):
+            phone.publish()
+            self.assertEqual(col.notes, {})
+            phone.remove()  # nor takes away Plus's note
+            self.metas.pop()
+            phone.publish()
+            self.assertEqual(len(col.notes), 1)
+            self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus")
+            phone.remove()
+            self.assertEqual(len(col.notes), 1)
 
 
 if __name__ == "__main__":

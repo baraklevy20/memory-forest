@@ -16,7 +16,7 @@ from .widgets import date_field, group, hint
 
 TREES_STEP, TREES_PAGE = 10, 250
 TIMELINE_NOTE = ("Days pass on the test forest, and what they bring follows from them as it would: "
-                 "a day away on Merciless brings the asteroid, one on Wild smoke and two a fire (a week of study puts it out), "
+                 "a day away on Merciless brings the asteroid, two on Wild smoke and three a fire (seven days of study put it out), "
                  "and a week of reviewing only lets the grass grow. Studying plants a tree a day. A leech "
                  "brings a crow to a grown tree; curing one sends the oldest crow off and leaves a robin for "
                  "a week. A strike plays once - click its crater, or \"Asteroid struck\" under the forest, "

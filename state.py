@@ -25,10 +25,25 @@ TEST_TREES_DEFAULT, TEST_TREES_MAX = 150, 5000
 OFF_VALUES = (False, "false", "False", 0, "0")
 # the note type of the note that takes the forest to your phone (phone.py)
 PHONE_NOTETYPE = "Memory Forest"
+# the "Show my forest on my phone" switch, in the collection's own config: one per profile,
+# synced with it, so every computer (and both editions) sees the same
+PHONE_SWITCH = "memoryForestPhone"
 
 
 def config() -> dict:
     return mw.addonManager.getConfig(MODULE) or {}
+
+
+def phone_on(col=None) -> bool:
+    """Whether the forest goes to the phone in this collection."""
+    col = mw.col if col is None else col
+    return col is not None and col.get_config(PHONE_SWITCH, False) not in OFF_VALUES
+
+
+def set_phone_on(on: bool, col=None) -> None:
+    col = mw.col if col is None else col
+    if col is not None:
+        col.set_config(PHONE_SWITCH, bool(on))
 
 
 def save_config(cfg: dict) -> None:

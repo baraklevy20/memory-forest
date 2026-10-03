@@ -14,6 +14,7 @@ user_files/.
 from __future__ import annotations
 
 import importlib.util
+import itertools
 import json
 import os
 import sqlite3
@@ -88,12 +89,25 @@ class SearchNode:
         self.deck, self.negated = deck, negated
 
 
+_collections = itertools.count(1)
+
+
 class Col:
     def __init__(self):
+        # each its own path, as in Anki: the add-on's caches go by it, and an id() can come
+        # round again for the next test's collection
+        self.path = f"/fake/collection-{next(_collections)}.anki2"
         self.db = DB()
         self.decks = Decks()
         self.sched = types.SimpleNamespace(day_cutoff=CUTOFF, today=TODAY)
         self.mod = 1
+        self.conf: dict = {}  # the collection's own config, synced with it
+
+    def get_config(self, key, default=None):
+        return self.conf.get(key, default)
+
+    def set_config(self, key, value):
+        self.conf[key] = value
 
     def build_search_string(self, node) -> str:
         if node.negated is not None:

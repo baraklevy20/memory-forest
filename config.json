@@ -7,7 +7,6 @@
     "city": "",
     "animations": true,
     "planting_tooltip": true,
-    "phone_forest": false,
     "main_forest": true,
     "deck_forest_mode": "highlight",
     "nature": "peaceful",

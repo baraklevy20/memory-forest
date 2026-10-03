@@ -49,7 +49,7 @@ class RestoreDefaultsTests(unittest.TestCase):
             self.assertIn(kept, note)
 
     def test_what_it_says_it_keeps_is_what_it_keeps(self):
-        self.assertEqual(set(dialog.DATA_KEYS), {"excluded_decks", "ignore_before", "keep_suspended", "phone_forest"})
+        self.assertEqual(set(dialog.DATA_KEYS), {"excluded_decks", "ignore_before", "keep_suspended"})
 
 
 if __name__ == "__main__":
