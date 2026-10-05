@@ -134,19 +134,14 @@ def settings():
         tabs.setCurrentIndex(0)
 
     def picker():
-        # built as the dialog builds it (settings/dialog.py, _open_picker), but shown rather
-        # than run modally: a picker that fails to paint would otherwise keep Anki waiting
+        # the General tab's picker, its tiles painted (the moving ones at their first frame)
         dialog = state["dialog"]
-        pickers = sys.modules[f"{FOREST}.settings.scenery_picker"]
-        box = dialog.general.preset
-        p = pickers.SceneryPicker(dialog, dialog.general.scenery_choices(), box.currentData(), dialog._day())
         try:
-            p.show()
+            picker = dialog.general.picker
             QApplication.processEvents()
-            p.grab()
+            picker.grab()
+            result["steps"].append(f"picker: {len(picker.tiles)} tiles")
         finally:
-            p.close()
-            p.deleteLater()
             dialog.reject()
 
     step("settings", open_all)

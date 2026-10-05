@@ -61,14 +61,19 @@ def page(cfg: dict, n: int, frames: int, hide: tuple) -> str:
             "tooltips": False, "maxWidth": PANEL_PX, "testForest": True}
     step = 1000 / FPS
     return (f"<!doctype html><meta charset=utf-8><style>body{{margin:0}}.af-panel{{width:{PANEL_PX}px;margin:0;padding:0}}</style>"
-            # the clock is ours: animation frames wait in a queue until pump() runs them at a
-            # time we choose, and performance.now() says that time too
-            "<script>let NOW_MS = 0; const Q = [];"
+            # the clock is ours: animation frames and timers wait in a queue until pump() runs
+            # them at a time we choose, and performance.now() says that time too (the loop sleeps
+            # between frames on a timer, so timers have to keep our time as well)
+            "<script>let NOW_MS = 0, TID = 0; const Q = [], T = [];"
             "window.requestAnimationFrame = cb => { Q.push(cb); return Q.length; };"
+            "window.setTimeout = (cb, ms) => { T.push({ id: ++TID, at: NOW_MS + (+ms || 0), cb }); return TID; };"
+            "window.clearTimeout = id => { const i = T.findIndex(t => t.id === id); if (i >= 0) T.splice(i, 1); };"
             "window.requestIdleCallback = cb => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 50 }), 0);"
             "performance.now = () => NOW_MS; window.ERRS = [];"
             "window.onerror = (m, f, l, c, e) => { window.ERRS.push(String((e && e.stack) || m)); };"
-            "function pump(ms) { NOW_MS = ms; const run = Q.splice(0); run.forEach(cb => cb(ms)); }</script>"
+            "function pump(ms) { NOW_MS = ms;"
+            " for (let due; (due = T.filter(t => t.at <= ms)).length;) due.forEach(t => { T.splice(T.indexOf(t), 1); t.cb(); });"
+            " const run = Q.splice(0); run.forEach(cb => cb(ms)); }</script>"
             "<div class='af-panel' id=p></div><pre id=o></pre>"
             f"<script>{scripts()}</script><script>window.D = {json.dumps(data)};</script>"
             f"<script>NOW_MS = {START_MS};"

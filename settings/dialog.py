@@ -9,12 +9,11 @@ from aqt.qt import QDialog, QDialogButtonBox, QEvent, QMessageBox, QTabWidget, Q
 
 from .. import presets
 from ..events import NATURE_LABELS, nature_level
-from ..state import debug_available, today
+from ..state import debug_available, debug_edition, today
 from .about import AboutTab
 from .fine_tuning import FineTuningTab
 from .general import GeneralTab
 from .history import HistoryTab
-from .scenery_picker import SceneryPicker
 
 DIALOG_MIN_WIDTH = 460
 # the Debug tab's timeline buttons need more room than the dialog's usual width
@@ -101,7 +100,6 @@ class SettingsDialog(QDialog):
         self._debounce = QTimer(self); self._debounce.setSingleShot(True); self._debounce.setInterval(APPLY_DEBOUNCE_MS)
         self._debounce.timeout.connect(self.apply)
         self.general.preset.currentIndexChanged.connect(self._preset_chosen)
-        self.general.preset.open_picker = self._open_picker
         self.general.real_sky.toggled.connect(self._real_sky_toggled)
         for tab in (self.general, self.fine, self.history, self.debug):
             tab.connect(self._changed)
@@ -124,18 +122,6 @@ class SettingsDialog(QDialog):
             self.fine.set_look(presets.apply(key, self.fine.look()))
         self._changed()
 
-    def _open_picker(self) -> None:
-        """The scenery picker; what it picks is chosen in the Scenery box, which fills in the
-        five settings as choosing from a list would."""
-        box = self.general.preset
-        picker = SceneryPicker(self, self.general.scenery_choices(), box.currentData(), self._day())
-        accepted = picker.exec() == QDialog.DialogCode.Accepted
-        picker.deleteLater()  # a child of the dialog: kept, every picker opened stays until it closes
-        if accepted:
-            i = box.findData(picker.current)
-            if i >= 0:
-                box.setCurrentIndex(i)
-
     def _day(self):
         """The day the scenery is chosen for (the debug date may have moved it)."""
         return today(dict(self._current(), **self.debug.values()))
@@ -154,7 +140,7 @@ class SettingsDialog(QDialog):
         """Put every tab back in line with the others: the General tab's preset follows the
         five settings on Fine-tuning, whichever tab they were changed on."""
         day = self._day()
-        self.general.offer(day, self.fine.look())
+        self.general.offer(day, self.fine.look(), debug_edition(dict(self._current(), **self.debug.values())))
         self.fine.offer(day)
         self.general.sync(self.fine.look())
         self.fine.sync()

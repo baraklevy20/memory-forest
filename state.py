@@ -4,6 +4,7 @@ set them, the per-profile state file, and which decks and days the forest counts
 from __future__ import annotations
 
 import datetime as _dt
+import json
 import os
 
 from aqt import mw
@@ -58,6 +59,33 @@ def debug_available(cfg: dict | None = None) -> bool:
     without them (dev/package.py), and debug turned on by hand there changes nothing."""
     cfg = config() if cfg is None else cfg
     return bool(cfg.get("debug", False)) and os.path.exists(os.path.join(ADDON_DIR, "debug_events.py"))
+
+
+# the editions the Debug tab can pretend this copy is (editions.json, which only this copy has)
+EDITIONS_FILE = os.path.join(ADDON_DIR, "editions.json")
+DEBUG_EDITIONS = ("base", "plus")
+
+
+def debug_edition(cfg: dict | None = None) -> str:
+    """While debug is on, the edition this copy pretends to be ("base" or "plus"), or "" for
+    itself: every scenery here, and its own manifest's say on whether it is Plus."""
+    cfg = config() if cfg is None else cfg
+    edition = cfg.get("debug_edition") or ""
+    return edition if edition in DEBUG_EDITIONS and debug_available(cfg) else ""
+
+
+def edition_presets(edition: str) -> set | None:
+    """The preset keys `edition` ships, from editions.json, or None for every one here (no
+    edition, or no editions.json to read it from)."""
+    if not edition:
+        return None
+    try:
+        with open(EDITIONS_FILE, encoding="utf-8") as f:
+            envs = json.load(f)[edition]["envs"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return {p.key for p in presets.FOREST_PRESETS
+            if envs == "*" or p.environment in envs or p.key == presets.DAILY}
 
 
 def today(cfg: dict | None = None) -> _dt.date:

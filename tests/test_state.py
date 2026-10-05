@@ -43,6 +43,25 @@ class StateTests(unittest.TestCase):
         for mode, value in state.ANIMATION_VALUES.items():  # what the settings write reads back the same
             self.assertEqual(state.animation_mode({"animations": value}), mode)
 
+    def test_the_debug_edition_needs_debug_on_and_names_an_edition(self):
+        self.assertEqual(state.debug_edition({"debug_edition": "base"}), "")  # debug off: ignored
+        on = {"debug": True}
+        self.assertEqual(state.debug_edition(dict(on, debug_edition="base")), "base")
+        self.assertEqual(state.debug_edition(dict(on, debug_edition="plus")), "plus")
+        self.assertEqual(state.debug_edition(dict(on, debug_edition="nonsense")), "")
+        with mock.patch.object(state.os.path, "exists", return_value=False):  # a release
+            self.assertEqual(state.debug_edition(dict(on, debug_edition="base")), "")
+
+    def test_an_edition_offers_only_the_presets_it_ships(self):
+        self.assertIsNone(state.edition_presets(""))
+        base, plus = state.edition_presets("base"), state.edition_presets("plus")
+        if base is None:
+            self.skipTest("no editions.json: the public repo is one edition")
+        self.assertIn(state.presets.DAILY, base)
+        self.assertNotIn("cherry_blossom", base)
+        self.assertIn("cherry_blossom", plus)
+        self.assertLess(base, plus)
+
     def test_the_scenery_date_is_today_unless_debug_says_otherwise(self):
         real = dt.date.today()
         self.assertEqual(state.today({"debug_date": "2026-10-24"}), real)  # debug off: ignored

@@ -15,6 +15,9 @@ ADDON = os.path.dirname(HERE)
 EDITIONS = os.path.join(ADDON, "editions.json")
 SCENERY = ("envs", "landscapes", "landmarks")
 ALL = "*"
+# the sceneries Plus has and the base does not, which the base edition's picker shows locked
+# (settings/scenery_picker.py); dev/thumbnails.py writes it, from editions.json
+PLUS_LIST = os.path.join(ADDON, "settings", "plus.json")
 
 
 def available() -> dict:
@@ -72,10 +75,37 @@ def keeps(rel: str, keep: dict) -> bool:
     # the preset, so the public docs can show what Plus has now; only drafts stay behind
     if len(parts) == 3 and parts[:2] == ["docs", "animated"]:
         return os.path.splitext(parts[2])[0] in keep["shown"]
-    # and so do its pictures in the settings (settings/scenery/ and scenery_small/<preset>.png)
-    if len(parts) == 3 and parts[0] == "settings" and parts[1] in ("scenery", "scenery_small"):
-        return os.path.splitext(parts[2])[0] in keep["presets"]
+    # and so does its picker tile (settings/scenery/<preset>.png, and scenery_anim/<preset>.gif),
+    # which the base edition shows locked
+    if len(parts) == 3 and parts[:2] in (["settings", "scenery"], ["settings", "scenery_anim"]):
+        return os.path.splitext(parts[2])[0] in keep["shown"]
     return True
+
+
+def plus_only() -> list:
+    """What settings/plus.json lists: each preset Plus has and the base does not, as {key,
+    label, note}, in the catalogue's order; none in the public repo, which has no editions.
+    One kept to its holiday week is left out: it shows nowhere outside that week."""
+    editions = available()
+    if "plus" not in editions or "base" not in editions:
+        return []
+    import sys
+    sys.path.insert(0, ADDON)
+    import catalog
+    base = scenery("base")["presets"]
+    out = []
+    for key, spec in catalog.entries("envs").items():
+        preset = spec.get("preset")
+        if not preset or preset.get("season") or (editions["plus"]["envs"] != ALL and key not in editions["plus"]["envs"]):
+            continue
+        k = preset.get("key", key)
+        if k not in base:
+            out.append({"key": k, "label": preset["label"], "note": preset.get("note", "")})
+    return out
+
+
+def plus_list_text() -> str:
+    return json.dumps(plus_only(), indent=2, ensure_ascii=False) + "\n"
 
 
 def manifest(name: str) -> str:

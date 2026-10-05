@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import datetime as _dt
 
-from aqt.qt import QCheckBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
+from aqt.qt import QCheckBox, QComboBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
 
 from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
-from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, forget_seasons
+from ..state import DEBUG_EDITIONS, TEST_TREES_DEFAULT, TEST_TREES_MAX, forget_seasons
 from .history import DATE_FORMAT
 from .widgets import date_field, group, hint
 
@@ -29,6 +29,10 @@ DATE_NOTE = ("The scenery is chosen for this date: the seasonal presets, Surpris
              "scenery list all follow it. Days passed on the test forest move it on too, so passing "
              "a holiday's week brings your own scenery back. Your own forest's days are not moved. "
              "A holiday changes the scenery once a year; Replay the seasons lets it happen again.")
+EDITION_NOTE = ("Which edition this copy acts as: the sceneries offered, the Plus ones the picker shows "
+                "locked, and the Patreon banner and About tab (those two on reopening the settings). "
+                "The forest on screen keeps whatever scenery is chosen.")
+EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plus": "Memory Forest Plus"}
 # what the label calls each kind of day, and what happens (once, and more than once)
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
 HAPPENINGS = {"leech": ("a card turns leech", "{n} cards turn leech"), "cure": ("a leech cured", "{n} leeches cured")}
@@ -97,6 +101,12 @@ class DebugTab(QWidget):
         # a holiday's week changes the scenery once a year: forget that, to see it again
         self.replay = QPushButton("Replay the seasons")
         self.replay.clicked.connect(self._replay_seasons)
+        # the edition this copy pretends to be (state.debug_edition)
+        self.edition = QComboBox()
+        for key in ("",) + DEBUG_EDITIONS:
+            self.edition.addItem(EDITION_LABELS[key], key)
+        i = self.edition.findData(cfg.get("debug_edition") or "")
+        self.edition.setCurrentIndex(max(0, i))
         self._changed = None
         self._lay_out()
 
@@ -126,7 +136,10 @@ class DebugTab(QWidget):
         ev.addWidget(hint(DEBUG_NOTE))
         dr = QHBoxLayout(); dr.addWidget(self.pretend); dr.addWidget(self.date); dr.addStretch(1); dr.addWidget(self.replay)
         dtv = QVBoxLayout(); dtv.addLayout(dr); dtv.addWidget(self.date_label); dtv.addWidget(hint(DATE_NOTE))
+        er = QHBoxLayout(); er.addWidget(self.edition); er.addStretch(1)
+        etv = QVBoxLayout(); etv.addLayout(er); etv.addWidget(hint(EDITION_NOTE))
         dv = QVBoxLayout(self)
+        dv.addWidget(group("Edition", etv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
         dv.addWidget(group("Study events", ev))
@@ -172,6 +185,7 @@ class DebugTab(QWidget):
         for box in (self.test, self.big, self.pretend):
             box.toggled.connect(changed)
         self.date.dateChanged.connect(changed)
+        self.edition.currentIndexChanged.connect(changed)
         for box in (self.trees_box, self.backlog):
             box.valueChanged.connect(changed)
 
@@ -209,4 +223,5 @@ class DebugTab(QWidget):
             "debug_backlog_was": self.was,
             "debug_big_days": self.big.isChecked(),
             "debug_date": self._date().isoformat() if self._date() else "",
+            "debug_edition": self.edition.currentData() or "",
         }

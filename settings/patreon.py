@@ -57,7 +57,12 @@ def manifest() -> dict:
 
 
 def is_plus() -> bool:
-    """Whether this copy is Memory Forest Plus: each edition's build writes its own package into manifest.json."""
+    """Whether this copy is Memory Forest Plus: each edition's build writes its own package into
+    manifest.json (or, while debug is on, the edition the Debug tab pretends it is)."""
+    from ..state import debug_edition
+    pretend = debug_edition()
+    if pretend:
+        return pretend == "plus"
     return manifest().get("package") == PLUS_PACKAGE
 
 

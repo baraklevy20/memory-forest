@@ -8,6 +8,7 @@ import os
 from aqt.qt import (
     QButtonGroup,
     QCheckBox,
+    QComboBox,
     QHBoxLayout,
     QIcon,
     QLabel,
@@ -24,10 +25,10 @@ from aqt.qt import (
 from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
-from ..state import ANIMATION_VALUES, animation_mode, phone_on, set_phone_on, today
+from ..state import ANIMATION_VALUES, animation_mode, debug_edition, edition_presets, phone_on, set_phone_on, today
 from .palette import color
 from .patreon import banner
-from .scenery_picker import SceneryBox, crisp
+from .scenery_picker import SceneryPicker, crisp
 from .widgets import combo, group, grow_window, hint, set_options, set_quietly
 
 NATURE_ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nature")
@@ -45,10 +46,13 @@ ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
 CITY_MIN_W = 120  # points: the city field takes the rest of the real-sky row, but never less
 
 
-def preset_options(day, chosen: str | None) -> list:
-    """The presets to offer on `day`: a seasonal one only in its week, unless it is the one
-    the settings already are (as the Fine-tuning tab keeps its environment)."""
-    return presets.options(tuple(p for p in presets.FOREST_PRESETS if presets.unlocked(p, day) or p.key == chosen))
+def preset_options(day, chosen: str | None, edition: str = "") -> list:
+    """The presets to offer on `day`: a seasonal one only in its week, and only the ones the
+    edition the Debug tab pretends this is ships - unless it is the one the settings already
+    are (as the Fine-tuning tab keeps its environment)."""
+    ships = edition_presets(edition)
+    return presets.options(tuple(p for p in presets.FOREST_PRESETS if p.key == chosen
+                                 or (presets.unlocked(p, day) and (ships is None or p.key in ships))))
 
 
 class NatureChoice(QWidget):
@@ -86,10 +90,15 @@ class NatureChoice(QWidget):
 class GeneralTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
-        # a seasonal preset is only offered in its week
-        self.preset = SceneryBox()
-        set_options(self.preset, preset_options(today(cfg), presets.match(cfg)))
+        # the choices and the chosen one, in a dropdown that is never shown: the picker's tiles
+        # stand for it (a seasonal preset is only offered in its week)
+        self.preset = QComboBox(self)
+        self.preset.setVisible(False)
+        day = today(cfg)
+        set_options(self.preset, preset_options(day, presets.match(cfg), debug_edition(cfg)))
         set_quietly(self.preset, presets.match(cfg))
+        self.picker = SceneryPicker(self._picked, animation_mode(cfg) != "off")
+        self.picker.set_choices(self.scenery_choices(), presets.match(cfg), day)
         self.real_sky = QCheckBox("Follow the real weather and time of day")
         self.real_sky.setChecked(presets.follows_real_sky(cfg))
         self.city = QLineEdit(cfg.get("city", ""))
@@ -97,6 +106,8 @@ class GeneralTab(QWidget):
         self.city.setMinimumWidth(CITY_MIN_W)
         # On, Off, or Follow system (still while the system asks for reduced motion)
         self.animations = combo(ANIMATION_OPTIONS, animation_mode(cfg))
+        # the tiles move unless the forest is off (Qt can't tell what the system asks for)
+        self.animations.currentIndexChanged.connect(lambda _i: self.picker.animate(self.animations.currentData() != "off"))
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
         self.phone = QCheckBox("Show my forest on my phone")
@@ -116,11 +127,11 @@ class GeneralTab(QWidget):
         policy = self.city_note.sizePolicy()
         policy.setRetainSizeWhenHidden(True)
         self.city_note.setSizePolicy(policy)
-        # the scenery's card (the group's title names it) and its sky, the city after the real
+        # the scenery's picker (the group's title names it) and its sky, the city after the real
         # sky's box on its row; the city and its help only show while the weather is live.
         # Plain rows rather than a form: a form squeezes its rows around wrapped hints in a group
         sv = QVBoxLayout()
-        sv.addWidget(self.preset)
+        sv.addWidget(self.picker)
         sky = QHBoxLayout()
         sky.addWidget(self.real_sky)
         sky.addWidget(self.city, 1)
@@ -162,12 +173,20 @@ class GeneralTab(QWidget):
         from ..actions import settings_changed
         settings_changed()
 
-    def offer(self, day, look: dict) -> None:
-        """The presets there are on `day` (a seasonal one comes out on its first day)."""
-        set_options(self.preset, preset_options(day, presets.match(look)))
+    def offer(self, day, look: dict, edition: str = "") -> None:
+        """The presets there are on `day` (a seasonal one comes out on its first day), in
+        `edition` (see preset_options)."""
+        set_options(self.preset, preset_options(day, presets.match(look), edition))
+        self.picker.set_choices(self.scenery_choices(), presets.match(look), day)
+
+    def _picked(self, key: str) -> None:
+        """A tile clicked: chosen as choosing it from a list would (the dialog fills in the rest)."""
+        i = self.preset.findData(key)
+        if i >= 0:
+            self.preset.setCurrentIndex(i)
 
     def scenery_choices(self) -> list:
-        """The presets the Scenery box offers just now, for its picker (Custom isn't one)."""
+        """The presets offered just now, for the picker (Custom isn't one)."""
         return [self.preset.itemData(i) for i in range(self.preset.count()) if self.preset.itemData(i) != presets.CUSTOM]
 
     def connect(self, changed) -> None:
@@ -182,8 +201,7 @@ class GeneralTab(QWidget):
         settings a preset stands for, whichever tab they were changed on."""
         key = presets.match(look)
         set_quietly(self.preset, key)
-        self.preset.mixed_from = presets.nearest(look)[0].key if key == presets.CUSTOM else None
-        self.preset.update()  # (its description is drawn from the preset, not set)
+        self.picker.set_current(key)
         self.real_sky.blockSignals(True)
         self.real_sky.setChecked(presets.follows_real_sky(look))
         self.real_sky.blockSignals(False)

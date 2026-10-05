@@ -1,13 +1,16 @@
-"""Draw the two pictures of each preset the settings show: the real scene, rendered in headless
+"""Draw each preset's still picture for the settings: the real scene, rendered in headless
 Chrome on a young test forest, a piece of it (sky, horizon and the first trees) in the
-scene's own pixels. settings/scenery/<preset>.png is the picker's tile; settings/scenery_small/
-<preset>.png the Scenery card's, from the scene drawn as small as the engine draws it.
+scene's own pixels, settings/scenery/<preset>.png. The picker's tile shows it while the
+forest is still (dev/tile_gifs.py draws the moving one), and Fine-tuning and Surprise me
+daily's mosaic use it too.
 
     python3 dev/thumbnails.py              # every preset
     python3 dev/thumbnails.py aurora bamboo  # just these presets, by key
 
 Run it for a new preset, or after changing how one looks; the tests fail while a preset has
-no picture. Each edition ships only its own presets' pictures (dev/editions.py). Needs Chrome.
+no picture. Each edition ships only its own presets' pictures, and the base the Plus ones'
+picker tiles too, which it shows locked; settings/plus.json, which lists those, is rewritten
+here as well (dev/editions.py). Needs Chrome.
 """
 
 from __future__ import annotations
@@ -25,20 +28,19 @@ ADDON = os.path.dirname(HERE)
 sys.path.insert(0, ADDON)
 sys.path.insert(0, HERE)
 
+import editions
 import render_check
 from render_check import WORKERS, render
 
 import catalog
 import presets
 
-# Each picture, in the scene's own pixels (16:9): a piece of the scene rather than all of it
-# shrunk, so every pixel of the art is kept, and the settings show it a pixel a point. The
-# big one is cut from the scene at the panel's usual width; the small one from the scene at
-# the narrowest panel the engine draws (120x60 pixels), so it holds nearly all of it.
+# The picture, in the scene's own pixels (16:9): a piece of the scene rather than all of it
+# shrunk, so every pixel of the art is kept, and the settings show it a pixel a point; cut
+# from the scene at the panel's usual width.
 # (folder, width, height, panel width in CSS pixels)
 SIZES = (
     (os.path.join(ADDON, "settings", "scenery"), 192, 108, 700),
-    (os.path.join(ADDON, "settings", "scenery_small"), 96, 54, 240),
 )
 # A young forest: enough trees to show the scenery's own kind (bamboo, say, or mushrooms),
 # few enough that the land and its landmark still show between them.
@@ -92,6 +94,9 @@ def main() -> None:
                 picture = thumbnail(base64.b64decode(r["png"].split(",", 1)[1]), key, width, height)
                 picture.save(os.path.join(out, f"{key}.png"), optimize=True)
                 print(f"  {key} {width}x{height}")
+    if editions.available():
+        with open(editions.PLUS_LIST, "w", encoding="utf-8") as f:
+            f.write(editions.plus_list_text())
     if failed:
         raise SystemExit(f"{len(failed)} failed: {', '.join(failed)}")
 

@@ -33,13 +33,14 @@ class PresetTests(unittest.TestCase):
             self.assertEqual(presets.match(real), p.key)
             self.assertEqual(presets.apply(p.key, real), real)
 
-    def test_every_preset_has_its_pictures_for_the_picker_and_the_card(self):
-        # drawn by dev/thumbnails.py (npm run thumbs): run it for a new preset. Surprise me
-        # daily's are mosaics of others', made as they are shown
+    def test_every_preset_has_its_still_and_moving_picture(self):
+        # drawn by dev/thumbnails.py (npm run thumbs) and dev/tile_gifs.py: run both for a new
+        # preset. Surprise me daily's is a mosaic of others', made as it is shown
         settings = os.path.join(os.path.dirname(presets.__file__), "settings")
-        missing = [f"{p.key} ({folder})" for folder in ("scenery", "scenery_small") for p in presets.FOREST_PRESETS
-                   if p.key != presets.DAILY and not os.path.exists(os.path.join(settings, folder, f"{p.key}.png"))]
-        self.assertEqual(missing, [], "run npm run thumbs for " + ", ".join(missing))
+        missing = [f"{p.key} ({folder})" for folder, ext in (("scenery", "png"), ("scenery_anim", "gif"))
+                   for p in presets.FOREST_PRESETS
+                   if p.key != presets.DAILY and not os.path.exists(os.path.join(settings, folder, f"{p.key}.{ext}"))]
+        self.assertEqual(missing, [], "run npm run thumbs and dev/tile_gifs.py for " + ", ".join(missing))
 
     def test_every_environment_is_reachable_from_a_preset(self):
         # an environment no preset offers is one most people will never see
@@ -228,3 +229,28 @@ class SeasonTests(unittest.TestCase):
                 first, starts, ends = p.season
                 self.assertLessEqual(starts, ends, p.key)
                 self.assertEqual((first.month, first.day), starts, f"{p.key} first appears on the first day of its week")
+
+
+class PlusTileTests(unittest.TestCase):
+    """The base edition's picker shows the Plus sceneries locked: settings/plus.json lists
+    them, and the base build ships their picker tiles (dev/editions.py)."""
+
+    def setUp(self):
+        import sys
+        sys.path.insert(0, os.path.join(os.path.dirname(presets.__file__), "dev"))
+        import editions
+        self.editions = editions
+        if not editions.available():
+            self.skipTest("no editions.json: the public repo is one edition")
+
+    def test_the_plus_list_is_up_to_date(self):
+        with open(self.editions.PLUS_LIST, encoding="utf-8") as f:
+            self.assertEqual(f.read(), self.editions.plus_list_text(), "run npm run thumbs to rewrite settings/plus.json")
+
+    def test_the_base_ships_the_plus_tiles_but_not_their_scenery(self):
+        keep = self.editions.scenery("base")
+        for entry in self.editions.plus_only():
+            key = entry["key"]
+            self.assertTrue(self.editions.keeps(f"settings/scenery/{key}.png", keep), key)
+            self.assertTrue(self.editions.keeps(f"settings/scenery_anim/{key}.gif", keep), key)
+            self.assertFalse(self.editions.keeps(f"web/envs/{key}.js", keep), key)
