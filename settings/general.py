@@ -10,6 +10,7 @@ from aqt.qt import (
     QCheckBox,
     QHBoxLayout,
     QIcon,
+    QLabel,
     QLineEdit,
     QPushButton,
     QRect,
@@ -23,11 +24,11 @@ from aqt.qt import (
 from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
-from ..state import OFF_VALUES, phone_on, set_phone_on, today
+from ..state import ANIMATION_VALUES, animation_mode, phone_on, set_phone_on, today
 from .palette import color
 from .patreon import banner
 from .scenery_picker import SceneryBox, crisp
-from .widgets import group, grow_window, hint, set_options, set_quietly
+from .widgets import combo, group, grow_window, hint, set_options, set_quietly
 
 NATURE_ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nature")
 NATURE_ICON = 16  # points: the icons' own pixels, one a point
@@ -40,6 +41,7 @@ QPushButton:checked {{ border: 2px solid {ring}; padding: 5px 9px; background: r
 """
 CITY_NOTE = "Live weather from Open-Meteo. Leave it empty to follow only your clock."
 PHONE_NOTE = 'Adds a "Memory Forest" deck with one card that shows your forest. It updates when you sync. Untick to remove it.'
+ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
 CITY_MIN_W = 120  # points: the city field takes the rest of the real-sky row, but never less
 
 
@@ -93,8 +95,8 @@ class GeneralTab(QWidget):
         self.city = QLineEdit(cfg.get("city", ""))
         self.city.setPlaceholderText("Your city, e.g. Berlin")
         self.city.setMinimumWidth(CITY_MIN_W)
-        self.animations = QCheckBox("Animate the forest")
-        self.animations.setChecked(cfg.get("animations", True) not in OFF_VALUES)
+        # On, Off, or Follow system (still while the system asks for reduced motion)
+        self.animations = combo(ANIMATION_OPTIONS, animation_mode(cfg))
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
         self.phone = QCheckBox("Show my forest on my phone")
@@ -129,7 +131,12 @@ class GeneralTab(QWidget):
         nv.addWidget(self.nature)
         nv.addWidget(self.nature_note)
         ev = QVBoxLayout()
-        for box in (self.animations, self.planting, self.phone):
+        motion = QHBoxLayout()
+        motion.addWidget(QLabel("Animate the forest"))
+        motion.addWidget(self.animations)
+        motion.addStretch(1)
+        ev.addLayout(motion)
+        for box in (self.planting, self.phone):
             ev.addWidget(box)
         ev.addWidget(hint(PHONE_NOTE))
         v = QVBoxLayout(self)
@@ -164,7 +171,8 @@ class GeneralTab(QWidget):
         return [self.preset.itemData(i) for i in range(self.preset.count()) if self.preset.itemData(i) != presets.CUSTOM]
 
     def connect(self, changed) -> None:
-        for box in (self.animations, self.planting, self.phone):
+        self.animations.currentIndexChanged.connect(lambda _i: changed())
+        for box in (self.planting, self.phone):
             box.toggled.connect(changed)
         self.city.editingFinished.connect(changed)
         self.nature.on_change(changed)
@@ -220,7 +228,7 @@ class GeneralTab(QWidget):
     def values(self) -> dict:
         return {
             "city": self.city.text().strip(),
-            "animations": self.animations.isChecked(),
+            "animations": ANIMATION_VALUES[self.animations.currentData()],
             "planting_tooltip": self.planting.isChecked(),
             "nature": self.nature.currentData(),
         }

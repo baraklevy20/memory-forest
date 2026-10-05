@@ -11,13 +11,14 @@ from aqt import mw
 
 from . import events_state, forest_data, journal, live_weather, milestones, presets, scene, study_log
 from .state import (
+    ANIMATION_VALUES,
     MAX_WIDTH_DEFAULT,
     MAX_WIDTH_MAX,
     MAX_WIDTH_MIN,
     MODULE,
-    OFF_VALUES,
     TEST_TREES_DEFAULT,
     TEST_TREES_MAX,
+    animation_mode,
     changes,
     clamp_int,
     config,
@@ -187,7 +188,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "forestSeed": forest["forest_seed"],
         "dayNumber": today.toordinal(),  # the animals take new places each day
         "testForest": test,
-        "animations": cfg.get("animations", True) not in OFF_VALUES,
+        "animations": ANIMATION_VALUES[animation_mode(cfg)],
         "tooltips": True,
         "maxWidth": clamp_int(cfg.get("max_width"), MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX),
         "credit": mood.get("source") == "real",

@@ -34,6 +34,15 @@ class StateTests(unittest.TestCase):
         for off in (False, "false", 0, "0"):
             self.assertFalse(state.keeps_suspended({"keep_suspended": off}))
 
+    def test_animations_are_on_off_or_following_the_system(self):
+        self.assertEqual(state.animation_mode({}), "on")
+        self.assertEqual(state.animation_mode({"animations": True}), "on")
+        for off in (False, "false", 0, "0"):
+            self.assertEqual(state.animation_mode({"animations": off}), "off")
+        self.assertEqual(state.animation_mode({"animations": "system"}), "system")
+        for mode, value in state.ANIMATION_VALUES.items():  # what the settings write reads back the same
+            self.assertEqual(state.animation_mode({"animations": value}), mode)
+
     def test_the_scenery_date_is_today_unless_debug_says_otherwise(self):
         real = dt.date.today()
         self.assertEqual(state.today({"debug_date": "2026-10-24"}), real)  # debug off: ignored

@@ -40,8 +40,10 @@ function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const canBrowse = () => typeof pycmd === 'function';  // Anki's bridge may not be a window property
 const send = msg => { if (canBrowse()) pycmd(msg); };
-// the "Animate the forest" box alone decides: a system asking for less motion doesn't override it
-const animates = data => data.animations;
+// "Animate the forest": on, off, or 'system' (still while the system asks for less motion)
+const animates = data => data.animations === 'system'
+  ? !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+  : Boolean(data.animations);
 AF.u = { rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates };
 AF.STAGE_H = [4, 8, 13, 19, 27, 38];
 AF.STAGE_NAMES = ['seedling', 'sapling', 'young', 'mature', 'old', 'ancient'];

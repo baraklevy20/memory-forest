@@ -268,6 +268,17 @@ def since(cfg: dict) -> int | None:
     return study_log.day_start(date, mw.col.sched.day_cutoff)
 
 
+# "Animate the forest": the config holds true, false or "system" (still while the system asks
+# for reduced motion), and the page gets the same
+ANIMATION_VALUES = {"on": True, "off": False, "system": "system"}
+
+
+def animation_mode(cfg: dict | None = None) -> str:
+    """"on", "off" or "system": how the forest animates (on unless set otherwise)."""
+    value = (cfg if cfg is not None else config()).get("animations", True)
+    return "system" if value == "system" else "off" if value in OFF_VALUES else "on"
+
+
 def keeps_suspended(cfg: dict | None = None) -> bool:
     """Whether suspended cards keep their trees (they do unless switched off)."""
     return (cfg if cfg is not None else config()).get("keep_suspended", True) not in OFF_VALUES
