@@ -1,6 +1,6 @@
 # The add-on's Python: runs inside Anki, so aqt/anki are only importable there.
 line-length = 140
-target-version = "py39"
+target-version = "py38"
 
 [lint]
 select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
