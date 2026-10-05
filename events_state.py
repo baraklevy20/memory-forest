@@ -258,11 +258,20 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
     if not test:
         extras["backlog"] = _backlog(cfg, changed)
         forest = dict(forest, trees=_mark_cured(forest["trees"], cfg, changed))
-    if events.calm(level):  # Peaceful: the good things only
-        forest = dict(forest, trees=events.calm_trees(forest["trees"]))
+    return keep_calm(forest, extras, cfg)
+
+
+def keep_calm(forest: dict, extras: dict, cfg: dict) -> tuple:
+    """(forest, extras) with the bad things taken out on Peaceful - the crows, the tall grass,
+    the tumbleweeds - whichever forest it is: every forest drawn goes through here."""
+    if not events.calm(nature_level(cfg)):
+        return forest, extras
+    forest = dict(forest, trees=events.calm_trees(forest["trees"]))
+    extras = dict(extras)
+    if "stagnation" in extras:
         extras["stagnation"] = 0.0
-        if extras.get("backlog"):
-            extras["backlog"] = dict(extras["backlog"], hell=0.0)
+    if extras.get("backlog"):
+        extras["backlog"] = dict(extras["backlog"], hell=0.0)
     return forest, extras
 
 

@@ -327,26 +327,49 @@ def overdue(n: int) -> None:
 
 
 class PeacefulTests(unittest.TestCase):
-    """Peaceful brings the good things only: no crows, no tall grass, no tumbleweeds."""
+    """Peaceful brings the good things only: no crows, no tall grass, no tumbleweeds - on
+    every forest. Wild and Merciless bring them all."""
 
-    def coasting_with_a_leech_and_a_backlog(self, nature):
-        reset([(1, 10, 30), (2, 10, 20)], {"nature": nature}, leeches={1})
-        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 1, 1, 1)", (ms(0),))  # reviewing today
+    VIEWS = {"main": (None, None), "highlight": ("highlight", 10), "own": ("own", 10)}
+
+    def coasting_with_a_leech_and_a_backlog(self, nature, view="main"):
+        mode, did = self.VIEWS[view]
+        reset([(1, 10, 30), (2, 10, 20)], {"nature": nature, **({"deck_forest_mode": mode} if mode else {})}, leeches={1})
+        # a review every day since (no day missed: Merciless's asteroid would take the crows
+        # with the forest), the one today on the leech
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                  [(ms(d, 18),) for d in range(1, 31)])
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 1, 1, 1)", (ms(0),))
         overdue(100)
         a_new_card()
-        return payload.payload()
+        return payload.payload(did, highlight=mode == "highlight")
 
     def test_peaceful_keeps_the_bad_things_away(self):
-        p = self.coasting_with_a_leech_and_a_backlog("peaceful")
-        self.assertFalse(any(t.get("leeches") for t in p["trees"]))
-        self.assertEqual((p["stagnation"], p["backlog"]["hell"]), (0, 0))
-        self.assertEqual(p["backlog"]["overdue"], 100)  # still counted, to know when it is cleared
+        for view in ("main", "highlight"):
+            with self.subTest(view=view):
+                p = self.coasting_with_a_leech_and_a_backlog("peaceful", view)
+                self.assertFalse(any(t.get("leeches") for t in p["trees"]))
+                self.assertEqual((p["stagnation"], p["backlog"]["hell"]), (0, 0))
+                self.assertEqual(p["backlog"]["overdue"], 100)  # still counted, to know when it is cleared
 
-    def test_wild_brings_them(self):
-        p = self.coasting_with_a_leech_and_a_backlog("wild")
-        self.assertTrue(any(t.get("leeches") for t in p["trees"]))
-        self.assertGreater(p["stagnation"], 0)
-        self.assertGreater(p["backlog"]["hell"], 0)
+    def test_wild_and_merciless_bring_them(self):
+        for nature in ("wild", "merciless"):
+            for view in ("main", "highlight"):
+                with self.subTest(nature=nature, view=view):
+                    p = self.coasting_with_a_leech_and_a_backlog(nature, view)
+                    self.assertEqual(p["craters"], [])  # nothing struck: the crows are there to see
+                    self.assertTrue(any(t.get("leeches") for t in p["trees"]))
+                    self.assertGreater(p["stagnation"], 0)
+                    self.assertGreater(p["backlog"]["hell"], 0)
+
+    def test_a_decks_own_forest_is_the_trees_alone(self):
+        # no grass, no backlog on any nature; the crows come with the trees, but not on Peaceful
+        for nature in ("peaceful", "wild", "merciless"):
+            with self.subTest(nature=nature):
+                p = self.coasting_with_a_leech_and_a_backlog(nature, "own")
+                self.assertNotIn("stagnation", p)
+                self.assertNotIn("backlog", p)
+                self.assertEqual(any(t.get("leeches") for t in p["trees"]), nature != "peaceful")
 
 
 class BacklogTests(unittest.TestCase):
