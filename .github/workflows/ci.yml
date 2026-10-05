@@ -53,9 +53,10 @@ jobs:
           python-version: "3.13"
       - run: npm run ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'render' || 'render:quick' }}
 
-  # the Ankis a release is checked in: dev/old_anki.py's RELEASE_ANKIS, read here so the two
-  # never part
-  ankis:
+  # the Ankis a release is checked in, the oldest supported to the newest: dev/old_anki.py's
+  # RELEASE_ANKIS, read here so the two never part
+  anki-versions:
+    name: Anki versions
     runs-on: ubuntu-24.04
     outputs:
       list: ${{ steps.list.outputs.list }}
@@ -67,13 +68,14 @@ jobs:
   # the add-on, built as it ships, run by itself in each of those Ankis (dev/old_anki.py
   # --check): the macOS builds, downloaded from Anki's releases and kept in the cache; the
   # Intel-only ones (before 2.1.50, and the Qt5 builds) run under Rosetta
-  old-anki:
-    needs: ankis
+  anki:
+    name: Anki ${{ matrix.anki }}
+    needs: anki-versions
     runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
-        anki: ${{ fromJSON(needs.ankis.outputs.list) }}
+        anki: ${{ fromJSON(needs.anki-versions.outputs.list) }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -96,6 +98,6 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: old-anki-${{ matrix.anki }}
+          name: anki-${{ matrix.anki }}
           path: ${{ steps.results.outputs.dir }}
           if-no-files-found: ignore
