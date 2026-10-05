@@ -11,7 +11,7 @@ const GLITTER_CHANCE = 0.7;
 AF.drawWater = function (g, env, t) {
   const L = env.water; if (!L) return;
   const W = env.W, still = env.theme.frozen;
-  for (let j = 0; j < L.lh; j++) { const off = still ? 0 : Math.round(Math.sin(t * 0.9 + j * 0.7) * (j < 3 ? 0 : 1 + j / L.lh)); g.drawImage(L.rf, 0, j, W, 1, off, L.y0 + j, W, 1); }
+  for (let j = 0; j < L.lh; j++) { const off = still ? 0 : Math.round(Math.sin(t * AF.u.cyc(0.9) + j * 0.7) * (j < 3 ? 0 : 1 + j / L.lh)); g.drawImage(L.rf, 0, j, W, 1, off, L.y0 + j, W, 1); }
   const o = env.theme.orb;
   if (o && !still) { const ox = Math.round(W * o.x), R = rng(Math.floor(t * 2)); g.fillStyle = o.kind === 'moon' ? 'rgba(238,241,248,.75)' : 'rgba(255,240,200,.7)';
     for (let j = 1; j < L.lh; j += 2) { const hw = 1 + Math.round(j * 0.35); for (let k = 0; k < 2; k++) if (R() < GLITTER_CHANCE) g.fillRect(ox - hw + Math.round(R() * hw * 2), L.y0 + j, 1 + (R() < 0.3 ? 1 : 0), 1); } }

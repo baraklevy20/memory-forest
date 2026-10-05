@@ -14,6 +14,7 @@ AF.mount = function (root, data, opts) {
   // the add-on redraws this forest through the panel itself, never through the shared name
   root.afSwap = (d, srcs) => AF.swap(root.id, d, srcs);
   const animate = animates(data);
+  AF.LOOP = data.loop || null;  // seconds, for a recording that loops (util.js); never set by the add-on
   // an asteroid's strike plays first, if it hasn't been seen (and the page says when it has)
   if (AF.events.first('mount', root, data, opts, animate, () => send(`${data.channel}:struck:${data.strike.seen}`))) return;
   // a later mount on the same root (a settings change, swapped in place) retires this one
@@ -61,7 +62,8 @@ AF.mount = function (root, data, opts) {
 
   function frame(ts) {
     if (!env) return;
-    const g = env.g, t = ts / 1000;
+    // in loop mode (AF.LOOP, see util.js) the clock wraps, so the recording repeats exactly
+    const g = env.g, t = AF.LOOP ? (ts / 1000) % AF.LOOP : ts / 1000;
     env.t = t;  // the moment being drawn, for an engine that hit-tests moving things
     g.clearRect(0, 0, env.W, env.H);
     g.drawImage(env.sky, 0, 0);
@@ -87,14 +89,14 @@ AF.mount = function (root, data, opts) {
     env.glowing.forEach(p => {
       const h = AF.STAGE_H[p.it.stage] * env.u * p.s, cx = Math.round(p.x), cy = Math.round(p.y - h * 0.55);
       g.save(); g.globalCompositeOperation = 'lighter';
-      g.fillStyle = `rgba(255,226,150,${0.06 + 0.03 * Math.sin(t * 1.4)})`;
+      g.fillStyle = `rgba(255,226,150,${0.06 + 0.03 * Math.sin(t * AF.u.cyc(1.4))})`;
       for (const k of GLOW_DISCS) {
         const r = Math.max(2, Math.round(h * k));
         for (let dy = -r; dy <= r; dy++) { const w = Math.round(Math.sqrt(r * r - dy * dy)); g.fillRect(cx - w, cy + dy, w * 2, 1); }
       }
       g.restore();
       for (let i = 0; i < GLOW_SPARKLES; i++) {
-        const a = i / GLOW_SPARKLES * Math.PI * 2 + t * 0.3, on = Math.sin(t * 2.2 + i * 1.7) > 0.2;
+        const a = i / GLOW_SPARKLES * Math.PI * 2 + t * AF.u.cyc(0.3), on = Math.sin(t * AF.u.cyc(2.2) + i * 1.7) > 0.2;
         if (!on) continue;
         g.fillStyle = '#ffe6a0';
         g.fillRect(Math.round(cx + Math.cos(a) * h * 0.6), Math.round(cy + Math.sin(a) * h * 0.5), 1, 1);

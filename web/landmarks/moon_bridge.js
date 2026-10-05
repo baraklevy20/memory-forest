@@ -40,7 +40,7 @@ function build(env) {
 }
 
 function glow(g, x, y, u, t) {
-  const a = 0.2 + 0.05 * Math.sin(t * 2 + x), r = Math.max(2, Math.round(2 * u));
+  const a = 0.2 + 0.05 * Math.sin(t * AF.u.cyc(2) + x), r = Math.max(2, Math.round(2 * u));
   g.fillStyle = `rgba(255,210,122,${a})`; g.fillRect(x - r, y - 1, 2 * r + 1, r + 3);
   g.fillStyle = `rgba(255,210,122,${a * 0.6})`; g.fillRect(x - r - 1, y, 2 * r + 3, r + 1); g.fillRect(x - 1, y - r, 3, 2 * r + 3);
 }
@@ -67,7 +67,7 @@ AF.landmark('moon_bridge', {
     // feet on the waterline; the reflection hangs below, row by row, rippling like the rest
     const top = L.y0 - b.H, still = env.theme.frozen;
     for (let j = 0; j < b.H && j < L.lh; j++) {
-      const off = still ? 0 : Math.round(Math.sin(t * 0.9 + j * 0.7) * (j < 2 ? 0 : 1));
+      const off = still ? 0 : Math.round(Math.sin(t * AF.u.cyc(0.9) + j * 0.7) * (j < 2 ? 0 : 1));
       g.globalAlpha = 0.75 - 0.4 * j / b.H;
       g.drawImage(b.refl, 0, b.H - 1 - j, b.W, 1, b.x + off, L.y0 + j, b.W, 1);
     }

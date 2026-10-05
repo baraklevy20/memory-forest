@@ -41,6 +41,10 @@ function lanterns(env) {
   for (let i = 0; i < 5; i++) sky.push({ river: false, x: R(), f: R(), v: (0.5 + R() * 0.4) * u });
   // floating lanterns on the lake
   if (env.mood.landscape === 'lake') for (let i = 0; i < 3; i++) water.push({ fx: R(), fy: R(), ph: R() * 6 });
+  // the river in path order, each with the one ahead of it: in loop mode a lantern rises
+  // into that one's place by the loop's end (AF.u.handover)
+  const river = sky.filter(l => l.river).sort((a, b) => a.f - b.f);
+  river.forEach((l, i) => { l.next = river[(i + 1) % river.length]; l.wrap = i === river.length - 1 ? 1 : 0; });
   return (env.lanternSet = { sky, water });
 }
 
@@ -49,11 +53,13 @@ function at(env, l, t) {
   const { W, H, u, hor } = env, o = env.theme.orb;
   let x, y;
   if (l.river) {
-    const f = (l.f + t * l.v) % 1, spread = l.spread * 0.5 * (10 + 26 * f) * u;
+    const h = AF.LOOP ? AF.u.handover(0, t) : 0, n = l.next;
+    const f = AF.LOOP ? (l.f + (n.f + l.wrap - l.f) * h) % 1 : (l.f + t * l.v) % 1;
+    const spread = (AF.LOOP ? l.spread + (n.spread - l.spread) * h : l.spread) * 0.5 * (10 + 26 * f) * u;
     x = W * (0.12 + 0.72 * f) + spread * 0.6; y = hor * (0.92 - 0.84 * f) + spread;
   } else {
-    const span = hor * 0.95, k = ((l.f * span + t * l.v) % span) / span;
-    x = W * l.x + Math.sin(t * 0.2 + l.f * 9) * 2 * u; y = hor * 0.95 - k * span;
+    const span = hor * 0.95, k = ((l.f * span + t * AF.u.trip(l.v, span)) % span) / span;
+    x = W * l.x + Math.sin(t * AF.u.cyc(0.2) + l.f * 9) * 2 * u; y = hor * 0.95 - k * span;
   }
   if (y <= 2 || y >= hor) return null;
   if (o && Math.hypot(x - W * o.x, y - H * o.y) < o.r * u + 5) return null;
@@ -134,7 +140,7 @@ AF.env('lanterns', {
     }
     for (const w of s.water) {
       const x = Math.round(W * (0.04 + 0.92 * w.fx)), y = Math.round(L.y0 + 3 + w.fy * (Math.min(H, L.y0 + L.lh) - L.y0 - 7));
-      const bob = Math.round(Math.sin(t * 0.8 + w.ph) * 0.6);
+      const bob = Math.round(Math.sin(t * AF.u.cyc(0.8) + w.ph) * 0.6);
       g.fillStyle = 'rgba(255,170,90,.28)'; g.fillRect(x, y + 3, 3, 3); g.fillRect(x + 1, y + 6, 1, 2);
       g.fillStyle = '#6a2a22'; g.fillRect(x - 1, y + 2 + bob, 5, 1);
       g.fillStyle = '#ffd67a'; g.fillRect(x, y + bob, 3, 2);

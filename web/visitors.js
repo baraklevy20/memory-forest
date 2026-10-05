@@ -152,7 +152,7 @@ AF.drawFlyers = function (g, env, t) {
   const { W, H } = env, color = visitorColor(env, 0);
   env.skyBoxes = [];
   (env.flyers || []).forEach(v => {
-    const spr = VISITORS[v.key], a = env.still ? 1 : t * SKY_TURN;
+    const spr = VISITORS[v.key], a = env.still ? 1 : t * AF.u.cyc(SKY_TURN);
     const cx = Math.round(W * SKY_X + Math.cos(a) * W * SKY_RX), cy = Math.round(H * SKY_Y + Math.sin(a) * H * SKY_RY);
     const frame = spr.frames[!env.still && Math.floor(t * SKY_FLAP_FPS) % SKY_FLAP_EVERY === 0 ? 1 : 0];
     const x0 = cx - Math.floor(frame[0].length / 2), y0 = cy - Math.floor(frame.length / 2);
@@ -209,9 +209,9 @@ AF.drawVisitors = function (g, env, t) {
     };
     const spot = n => { const s = home + (rng((daySeed(env) + n * 7919 + i * 104729) >>> 0)() - 0.5) * 2 * roam; return aside(land.dryX ? land.dryX(env, s, baseY, home, roam) : s); };
     // (two spots the same, or all but, and it stays put rather than walking on the spot)
-    const from = spot(k - 1), to = spot(k), moving = !env.still && ph < walk && Math.abs(to - from) >= 1, q = moving ? ph / walk : 1;
+    const from = spot(k - 1), to = spot(k), moving = !env.still && !AF.LOOP && ph < walk && Math.abs(to - from) >= 1, q = moving ? ph / walk : 1;
     const x = from + (to - from) * q, dir = to >= from ? 1 : -1;
-    let frame = spr.frames[moving ? Math.floor(ph * WALK_FPS) % spr.frames.length : (Math.sin(t * 0.7 + i * 2.1) > IDLE_GLANCE ? spr.frames.length - 1 : 0)], dy = 0;
+    let frame = spr.frames[moving ? Math.floor(ph * WALK_FPS) % spr.frames.length : (Math.sin(t * AF.u.cyc(0.7) + i * 2.1) > IDLE_GLANCE ? spr.frames.length - 1 : 0)], dy = 0;
     // a rabbit hops rather than walks
     if (v.key === 'rabbit') { frame = spr.frames[0]; if (moving) dy = -Math.round(Math.abs(Math.sin(q * Math.PI * RABBIT_HOPS)) * RABBIT_HOP_PX); }
     const flip = FACES_LEFT[v.key] ? dir > 0 : dir < 0;  // face the way it last went

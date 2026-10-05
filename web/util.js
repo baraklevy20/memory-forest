@@ -44,7 +44,29 @@ const send = msg => { if (canBrowse()) pycmd(msg); };
 const animates = data => data.animations === 'system'
   ? !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
   : Boolean(data.animations);
-AF.u = { rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates };
+/* Loop mode, for a recording that repeats seamlessly (Commit Forest): the clock wraps every
+ * AF.LOOP seconds, and each motion is rounded to a whole number of cycles in that time, so the
+ * last frame leads straight back into the first. Off (null) in the add-on, where these give
+ * back what they are given. */
+AF.LOOP = null;
+// an angular speed (rad/s), as used in sin(t * w)
+const cyc = w => AF.LOOP ? Math.round(w * AF.LOOP / TAU) * TAU / AF.LOOP : w;
+// a period in seconds, as used in (t + phase) % p
+const per = p => AF.LOOP ? AF.LOOP / Math.max(1, Math.round(AF.LOOP / p)) : p;
+// a speed across a span that wraps, as used in (x + t * v) % span
+const drift = (v, span) => AF.LOOP ? Math.round(v * AF.LOOP / span) * span / AF.LOOP : v;
+// the same for something that must be seen to travel (a bird): at least one whole trip a loop
+const trip = (v, span) => AF.LOOP ? Math.max(1, Math.round(v * AF.LOOP / span)) * span / AF.LOOP : v;
+/* A procession too slow to finish a trip in a loop instead hands over: by the loop's end
+ * item k has taken item k + 1's place, and looks like it. `handover(k, t)` is k's place in
+ * the line at time t (k itself outside loop mode); `along(values, at)` reads a per-item
+ * value at such a place, eased from one item's to the next one's. */
+const handover = (k, t) => AF.LOOP ? k + (t % AF.LOOP) / AF.LOOP : k;
+function along(values, at) {
+  const n = values.length, i = Math.floor(at), f = at - i, a = values[((i % n) + n) % n], b = values[(((i + 1) % n) + n) % n];
+  return a + (b - a) * f;
+}
+AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates };
 AF.STAGE_H = [4, 8, 13, 19, 27, 38];
 AF.STAGE_NAMES = ['seedling', 'sapling', 'young', 'mature', 'old', 'ancient'];
 AF.STAGE = { SEEDLING: 0, SAPLING: 1, YOUNG: 2, MATURE: 3, OLD: 4, ANCIENT: 5 };

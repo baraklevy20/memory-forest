@@ -136,7 +136,7 @@ AF.env('synthwave', {
     if (env.water) {  // chrome water: the sun's stripes lying on it, shivering
       const L = env.water, cx = Math.round(W * 0.5);
       for (let i = 0; i < 9; i++) {
-        const y = Math.round(L.y0 + 2 + i * 2.2), wob = Math.sin(t * 1.3 + i * 0.7) * 2;
+        const y = Math.round(L.y0 + 2 + i * 2.2), wob = Math.sin(t * AF.u.cyc(1.3) + i * 0.7) * 2;
         if (y > L.y0 + L.lh) break;
         g.fillStyle = i % 2 ? 'rgba(255,79,154,.5)' : 'rgba(255,211,92,.45)';
         g.fillRect(Math.round(cx - 20 + wob), y, 40, 1);
@@ -153,7 +153,7 @@ AF.env('synthwave', {
     g.fillStyle = grid.far; pxLine(g, 0, top, W, top);
     let last = top;
     for (let k = 0; k < 7; k++) {
-      const z = ((k + t * 0.6) % 7) / 7, y = Math.round(top + (H - top) * z * z);
+      const z = ((k + t * AF.u.drift(0.6, 1)) % 7) / 7, y = Math.round(top + (H - top) * z * z);
       if (y - last < 3) continue;
       g.fillStyle = z < 0.45 ? grid.far : grid.near; pxLine(g, 0, y, W, y); last = y;
     }

@@ -59,7 +59,7 @@ part('deck', {
   },
   back(g, env, t, st) {
     const { W } = env;
-    for (const c of st.deck) { const x = ((c.x + t * c.v) % (W + c.img.width)) - c.img.width; g.drawImage(c.img, Math.round(x), c.y); }
+    for (const c of st.deck) { const x = ((c.x + t * AF.u.drift(c.v, W + c.img.width)) % (W + c.img.width)) - c.img.width; g.drawImage(c.img, Math.round(x), c.y); }
   },
 });
 
@@ -73,7 +73,7 @@ part('clouds', {
   },
   back(g, env, t, st) {
     const { W } = env;
-    for (const c of st.clouds) { const x = ((c.x + t * c.v * 0.9) % (W + c.img.width)) - c.img.width; g.drawImage(c.img, Math.round(x), c.y); }
+    for (const c of st.clouds) { const x = ((c.x + t * AF.u.drift(c.v * 0.9, W + c.img.width)) % (W + c.img.width)) - c.img.width; g.drawImage(c.img, Math.round(x), c.y); }
   },
 });
 
@@ -88,7 +88,7 @@ part('rain', {
     const { W, H } = env;
     if (st.far.length) {
       g.fillStyle = st.C.rainFar;
-      for (const d of st.far) { const y = Math.round((d.y + t * d.v) % H), x = Math.round(((d.x - t * d.v * st.drift) % W + W) % W); g.fillRect(x, y, 1, 2); }
+      for (const d of st.far) { const y = Math.round((d.y + t * AF.u.drift(d.v, H)) % H), x = Math.round(((d.x - t * AF.u.drift(d.v * st.drift, W)) % W + W) % W); g.fillRect(x, y, 1, 2); }
     }
   },
   front(g, env, t, st) {
@@ -96,7 +96,7 @@ part('rain', {
     if (st.drops.length) {
       g.fillStyle = th.rainLight ? C.rainLight : C.rain;
       const dx = st.drift > 0.2 ? 2 : 1;
-      for (const d of st.drops) { const y = Math.round((d.y + t * d.v) % H), x = Math.round(((d.x - t * d.v * st.drift) % W + W) % W); g.fillRect(x, y, 1, 2); g.fillRect(x - dx, y + 2, 1, 2); }
+      for (const d of st.drops) { const y = Math.round((d.y + t * AF.u.drift(d.v, H)) % H), x = Math.round(((d.x - t * AF.u.drift(d.v * st.drift, W)) % W + W) % W); g.fillRect(x, y, 1, 2); g.fillRect(x - dx, y + 2, 1, 2); }
     }
   },
 });
@@ -107,7 +107,7 @@ part('splashes', {
   },
   front(g, env, t, st) {
     for (const s of st.splashes) {
-      const ph = ((t + s.ph) % s.per) / s.per; if (ph > 0.14) continue;
+      const ph = ((t + s.ph) % AF.u.per(s.per)) / AF.u.per(s.per); if (ph > 0.14) continue;
       g.fillStyle = st.C.splash;
       if (ph < 0.07) g.fillRect(s.x, s.y - 1, 1, 1);
       else { g.fillRect(s.x - 1, s.y - 1, 1, 1); g.fillRect(s.x + 1, s.y - 1, 1, 1); g.fillRect(s.x, s.y - 2, 1, 1); }
@@ -124,7 +124,7 @@ part('snow', {
     if (st.flakes.length) {
       g.fillStyle = st.C.snow;
       for (const f of st.flakes) {
-        const y = Math.round((f.y + t * f.v) % H), x = Math.round((((f.x + Math.sin(t * 0.6 + f.ph) * 4 * u + t * 2 * u) % W) + W) % W), s = f.big ? 2 : 1;
+        const y = Math.round((f.y + t * AF.u.drift(f.v, H)) % H), x = Math.round((((f.x + Math.sin(t * AF.u.cyc(0.6) + f.ph) * 4 * u + t * AF.u.drift(2 * u, W)) % W) + W) % W), s = f.big ? 2 : 1;
         g.fillRect(x, y, s, s);
       }
     }
@@ -142,7 +142,7 @@ part('glints', {
   front(g, env, t, st) {
     const C = st.C;
     for (const gl of st.glints) {
-      const a = Math.max(0, Math.sin(t * gl.sp + gl.ph)); if (a < 0.6) continue;
+      const a = Math.max(0, Math.sin(t * AF.u.cyc(gl.sp) + gl.ph)); if (a < 0.6) continue;
       g.fillStyle = `rgba(${C.glint},${a})`; g.fillRect(gl.x, gl.y, 1, 1);
       if (a > 0.9) { g.fillStyle = `rgba(${C.glint},${a * 0.4})`; g.fillRect(gl.x - 1, gl.y, 3, 1); g.fillRect(gl.x, gl.y - 1, 1, 3); }
     }
@@ -156,7 +156,7 @@ part('wind', {
   },
   front(g, env, t, st) {
     const { W, u } = env;
-    if (st.leaves.length && !env.still) {
+    if (st.leaves.length && !env.still && !AF.LOOP) {  // (a gust would come round every loop)
       const per = GUST_WINDOW, gi = Math.floor(t / per), ph = (t - gi * per) / GUST_SECS;
       if (rng(gi * 11 + 1)() < GUST_CHANCE && ph < 1) for (const l of st.leaves) {
         const q = ph * 1.3 - l.off * 0.3; if (q < 0 || q > 1) continue;
@@ -179,7 +179,7 @@ part('rings', {
   },
   front(g, env, t, st) {
     for (const r of st.rings) {
-      const q = ((t + r.ph) % r.per) / r.per; if (q > 0.5) continue;
+      const q = ((t + r.ph) % AF.u.per(r.per)) / AF.u.per(r.per); if (q > 0.5) continue;
       const rad = 1 + Math.round(q * 6); g.fillStyle = `rgba(230,240,250,${0.7 * (1 - q * 2)})`;
       g.fillRect(r.x - rad, r.y, 1, 1); g.fillRect(r.x + rad, r.y, 1, 1); g.fillRect(r.x - (rad >> 1), r.y - 1, rad, 1); g.fillRect(r.x - (rad >> 1), r.y + 1, rad, 1);
     }
@@ -195,7 +195,7 @@ part('fogBanks', {
   },
   front(g, env, t, st) {
     const { W } = env;
-    for (const b of st.banks) { const x = ((b.x + t * b.v) % (W + b.cv.width)) - b.cv.width; g.drawImage(b.cv, Math.round(x), b.y); }
+    for (const b of st.banks) { const x = ((b.x + t * AF.u.drift(b.v, W + b.cv.width)) % (W + b.cv.width)) - b.cv.width; g.drawImage(b.cv, Math.round(x), b.y); }
   },
 });
 
@@ -205,7 +205,7 @@ part('lightning', {
   back(g, env, t, st) {
     const th = env.theme, { W, H, u, hor } = env;
     st.flash = 0;
-    if (th.lightning && !env.still) {
+    if (th.lightning && !env.still && !AF.LOOP) {
       const per = LIGHTNING_WINDOW, i = Math.floor(t / per), ph = t - i * per - rng(i * 7 + 3)() * 12;
       if (rng(i * 13 + 5)() < LIGHTNING_CHANCE && (ph >= 0 && ph < 0.07 || (ph > 0.16 && ph < 0.22))) {
         st.flash = 1;

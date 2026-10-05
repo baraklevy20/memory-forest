@@ -93,7 +93,7 @@ AF.env('misty_valley', {
     if (!env.mvBeams) env.mvBeams = [beams(env, 0), beams(env, 0.12)];
     // the light shifts from one set of beams to the other over a couple of minutes
     // moonbeams are only a ghost of the dawn's
-    const k = 0.5 + 0.5 * Math.sin(t * TAU / BEAM_CYCLE), m = env.theme.orb.kind === 'moon' ? 0.35 : 0.8;
+    const k = 0.5 + 0.5 * Math.sin(t * AF.u.cyc(TAU / BEAM_CYCLE)), m = env.theme.orb.kind === 'moon' ? 0.35 : 0.8;
     g.save();
     g.globalAlpha = (1 - k * 0.8) * m; g.drawImage(env.mvBeams[0], 0, 0);
     g.globalAlpha = (0.2 + k * 0.8) * m; g.drawImage(env.mvBeams[1], 0, 0);

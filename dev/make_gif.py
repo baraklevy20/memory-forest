@@ -4,6 +4,7 @@
     python3 dev/make_gif.py bamboo synthwave   # several at once
     python3 dev/make_gif.py --docs                  # every GIF docs/animated/ already has
     python3 dev/make_gif.py bamboo --trees 150 --seconds 6 --out /tmp
+    python3 dev/make_gif.py bamboo --loop 8         # a seamless 8-second loop (the engine's loop mode)
 
 It mounts the real files in headless Chrome on the test forest (no study history of
 yours), drives the animation clock by hand so every frame is the same length, and stitches
@@ -51,7 +52,7 @@ START_MS = 20000
 CHROME_TIMEOUT_SECS = 300
 
 
-def page(cfg: dict, n: int, frames: int, hide: tuple) -> str:
+def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None) -> str:
     mood = scene.choose_mood(dict(cfg, landmark=cfg.get("landmark", "none")), NOW)
     f = forest_data.merge_old(fake_forest.make(n))
     visitors = [v for v in f["visitors"] if v["key"] not in hide]
@@ -59,7 +60,12 @@ def page(cfg: dict, n: int, frames: int, hide: tuple) -> str:
             "forestSeed": f["forest_seed"], "anniversaries": [], "events": [], "journal": "",
             "mood": mood, "environmentName": "", "animations": True,
             "tooltips": False, "maxWidth": PANEL_PX, "testForest": True}
-    step = 1000 / FPS
+    if loop:
+        data["loop"] = loop  # every motion repeats in this many seconds (AF.LOOP, web/util.js)
+    # a loop takes its frames exactly one apart from its first moment, so the frame after the
+    # last would be the first again; otherwise a little over a frame apart, so the loop's
+    # frame timer never skips one
+    step, first = (1000 / FPS, 0) if loop else (1000 / FPS + 0.5, 1)
     return (f"<!doctype html><meta charset=utf-8><style>body{{margin:0}}.af-panel{{width:{PANEL_PX}px;margin:0;padding:0}}</style>"
             # the clock is ours: animation frames and timers wait in a queue until pump() runs
             # them at a time we choose, and performance.now() says that time too (the loop sleeps
@@ -81,16 +87,16 @@ def page(cfg: dict, n: int, frames: int, hide: tuple) -> str:
             "catch (e) { window.ERRS.push('mount: ' + (e.stack || e)); }"
             "const shots = [], c = document.querySelector('canvas');"
             # each pump is one frame: the loop draws when more than its frame time has passed
-            f"for (let i = 1; i <= {frames}; i++) {{ pump({START_MS} + i * {step + 0.5}); shots.push(c.toDataURL()); }}"
+            f"for (let i = {first}; i < {first} + {frames}; i++) {{ pump({START_MS} + i * {step}); shots.push(c.toDataURL()); }}"
             "document.getElementById('o').textContent = JSON.stringify({ errors: window.ERRS, w: c.width, h: c.height, shots });"
             "</script>")
 
 
-def record(key: str, cfg: dict, out: str, n: int, seconds: float, hide: tuple) -> None:
-    frames = round(seconds * FPS)
+def record(key: str, cfg: dict, out: str, n: int, seconds: float, hide: tuple, loop: float | None = None) -> None:
+    frames = round((loop or seconds) * FPS)
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "page.html")
-        open(path, "w", encoding="utf-8").write(page(cfg, n, frames, hide))
+        open(path, "w", encoding="utf-8").write(page(cfg, n, frames, hide, loop))
         dom = subprocess.run([CHROME, "--headless=new", "--disable-gpu", f"--window-size={PANEL_PX + 40},600",
                               "--virtual-time-budget=60000", "--dump-dom", "file://" + path],
                              capture_output=True, text=True, timeout=CHROME_TIMEOUT_SECS).stdout
@@ -117,6 +123,7 @@ def main() -> None:
     ap.add_argument("--trees", type=int, default=TREES)
     ap.add_argument("--seconds", type=float, default=SECONDS)
     ap.add_argument("--out", default=DOCS, help="the folder to write to")
+    ap.add_argument("--loop", type=float, help="record one seamless loop of this many seconds (overrides --seconds)")
     ap.add_argument("--hide", default=",".join(HIDE), help="animals left out, comma-separated ('' shows every one)")
     a = ap.parse_args()
     by_key = {p.key: p for p in presets.FOREST_PRESETS}
@@ -130,7 +137,7 @@ def main() -> None:
         sys.exit(f"no preset called {', '.join(unknown)}; there are: {', '.join(by_key)}")
     os.makedirs(a.out, exist_ok=True)
     for k in dict.fromkeys(keys):
-        record(k, dict(by_key[k].values()), os.path.join(a.out, k + ".gif"), a.trees, a.seconds, tuple(filter(None, a.hide.split(","))))
+        record(k, dict(by_key[k].values()), os.path.join(a.out, k + ".gif"), a.trees, a.seconds, tuple(filter(None, a.hide.split(","))), a.loop)
 
 
 if __name__ == "__main__":

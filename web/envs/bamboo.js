@@ -106,17 +106,20 @@ function riverLanterns(g, env, t) {
   const S = env.river, land = AF.landOf(env); if (!S.vis) return;
   const { W, H, u, hor } = env, R = rng(505), tt = env.still ? 0 : t;
   const seen = (x, y) => x >= 0 && x < W && y >= 0 && y < H && S.vis[y * W + x] === 1;
-  const boats = [];
+  const boats = [], gaps = [], lanes = [];
+  for (let k = 0; k < 9; k++) { gaps.push(R()); lanes.push(R()); }
   for (let k = 0; k < 9; k++) {
-    const q = ((k + R() * 0.6) / 9 + tt * 0.012) % 1;
-    boats.push({ p: 0.06 + Math.pow(q, 1.2) * 0.94, lane: (R() - 0.5) * 0.9, k });
+    // in loop mode a lantern floats down into the next one's place and takes on its lane (handover)
+    const at = AF.u.handover(k, tt), lane = (AF.u.along(lanes, at) - 0.5) * 0.9;
+    const q = ((at + AF.u.along(gaps, at) * 0.6) / 9 + (AF.LOOP ? 0 : tt * 0.012)) % 1;
+    boats.push({ p: 0.06 + Math.pow(q, 1.2) * 0.94, lane, at });
   }
   boats.sort((a, b) => a.p - b.p);
-  for (const { p, lane, k } of boats) {
-    const y = Math.round(hor + p * (H - hor) + Math.sin(tt * 0.8 + k) * 0.5), lw = Math.max(1, Math.round((0.8 + p * 3) * u));
+  for (const { p, lane, at } of boats) {
+    const y = Math.round(hor + p * (H - hor) + Math.sin(tt * AF.u.cyc(0.8) + at) * 0.5), lw = Math.max(1, Math.round((0.8 + p * 3) * u));
     const x = Math.round(W * land.center(p) + lane * W * land.halfWidth(p, W) - lw / 2);
     if (!seen(x + (lw >> 1), y + 1)) continue;  // behind a tree, or off the water
-    floatingLantern(g, x, y, lw, 0.8 + 0.2 * Math.sin(tt * 2.3 + k * 1.7), Math.round((2 + p * 8) * u), k, seen);
+    floatingLantern(g, x, y, lw, 0.8 + 0.2 * Math.sin(tt * AF.u.cyc(2.3) + at * 1.7), Math.round((2 + p * 8) * u), Math.floor(at), seen);
   }
 }
 
@@ -196,8 +199,8 @@ AF.env('bamboo', {
       // two lanes: small lanterns far out, bigger ones close to this bank
       const near = k % 2 === 0, lw = near ? Math.max(4, Math.round(3.6 * u)) : 3;
       const lane = near ? 0.55 + R() * 0.3 : 0.05 + R() * 0.25, y = Math.round(L.y0 + 2 + lane * Math.max(1, L.lh - 4));
-      const x = Math.round(((k / n) * (W + 12) + R() * 10 + t * v * (near ? 1 : 0.7)) % (W + 12)) - 6;
-      const flick = 0.8 + 0.2 * Math.sin(t * 2.3 + k * 1.7), yb = y + Math.round(Math.sin(t * 0.8 + k) * 0.5);
+      const x = Math.round(((k / n) * (W + 12) + R() * 10 + t * AF.u.drift(v * (near ? 1 : 0.7), W + 12)) % (W + 12)) - 6;
+      const flick = 0.8 + 0.2 * Math.sin(t * AF.u.cyc(2.3) + k * 1.7), yb = y + Math.round(Math.sin(t * AF.u.cyc(0.8) + k) * 0.5);
       floatingLantern(g, x, yb, lw, flick, Math.min((near ? 10 : 5) * u, L.y0 + L.lh - yb - 2), k, () => true);
     }
   },
