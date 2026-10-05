@@ -9,7 +9,7 @@ from __future__ import annotations
 from aqt import mw
 
 from . import events, forest_data, milestones, study_log
-from .state import _profile, excluded_decks, load_state, phone_cards, phone_decks, remembered, save_state, since
+from .state import _profile, deck_ids, excluded_decks, load_state, phone_cards, phone_decks, remembered, save_state, since
 
 # The profiles a sync has finished for this session, and whether one is under way. Until
 # a sync has brought in what you studied elsewhere (on your phone, say), a day you studied
@@ -53,13 +53,14 @@ def settled() -> bool:
     return not _syncing and (_profile() in _synced or not _syncs())
 
 
-def _nature_days(cfg: dict, forest: dict, changed=None) -> set:
+def _nature_days(cfg: dict, forest: dict, changed=None, own: bool = False) -> set:
     """The days you studied anything at all (see study_log.load_review_days), but the note
     that carries the forest to your phone: looking at it there is not studying. With no deck
-    left out and no start date, those are the forest's own days, already read."""
+    left out and no start date, those are the main forest's own days, already read (a deck's
+    `own` forest has only that deck's)."""
     col = mw.col
     phone, cards = phone_decks(), phone_cards()
-    if excluded_decks(cfg) == phone and since(cfg) is None and forest.get("review_days") is not None:
+    if not own and excluded_decks(cfg) == phone and since(cfg) is None and forest.get("review_days") is not None:
         return forest["review_days"]
     return remembered("nature_days", changed and (changed, col.sched.day_cutoff, frozenset(phone), frozenset(cards)),
                       lambda: study_log.load_review_days(col.db, col.sched.day_cutoff, phone, cards))
@@ -132,25 +133,37 @@ def _backlog(cfg: dict, changed=None) -> dict:
     return out
 
 
-def _mark_cured(trees: list, cfg: dict, changed=None) -> list:
-    """The trees, each holding a leech cured lately copied with `cured` (how many)."""
+def _pond_days(cfg: dict, changed=None) -> set:
+    """The days the main forest's ponds go by: a review in any deck it grows from."""
     col, excluded, skip = mw.col, excluded_decks(cfg), phone_cards()
-    cured = remembered("cured", changed and (changed, col.sched.day_cutoff, frozenset(excluded), frozenset(skip)),
-                       lambda: study_log.load_cured(col.db, col.sched.day_cutoff, events.CURED_DAYS, excluded, skip))
+    return remembered("pond_days", changed and (changed, col.sched.day_cutoff, frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.load_review_days(col.db, col.sched.day_cutoff, excluded, skip))
+
+
+def _mark_cured(trees: list, cfg: dict, changed=None, dids: list | None = None) -> list:
+    """The trees, each holding a leech cured lately copied with `cured` (how many): of the
+    whole collection, or of the `dids` decks for a deck's own forest."""
+    col, excluded, skip = mw.col, excluded_decks(cfg), phone_cards()
+    key = (changed, col.sched.day_cutoff, frozenset(excluded), frozenset(skip), dids and tuple(dids))
+    cured = remembered("cured", changed and key,
+                       lambda: study_log.load_cured(col.db, col.sched.day_cutoff, events.CURED_DAYS, excluded, skip, dids))
     return [dict(t, cured=cured[t["ago"]]) if cured.get(t["ago"]) else t for t in trees] if cured else trees
 
 
-def _animals(forest: dict, struck: int | None) -> dict:
+def _animals(forest: dict, struck: int | None, did: int | None = None) -> dict:
     """The forest with every animal that has come to it, remembered per profile for each
     forest there has been (the whole of it, and the one that grew since each asteroid -
-    `struck`, the day it began again): once come, an animal stays, and is new on the day it
-    came. The first look at a forest remembers the animals it already has without
-    announcing them all at once - so changing the Nature setting back and forth announces
-    nothing - and nothing the settings dialog previews is remembered."""
+    `struck`, the day it began again - and the same for each deck's own forest, `did`): once
+    come, an animal stays, and is new on the day it came. The first look at a forest
+    remembers the animals it already has without announcing them all at once - so changing
+    the Nature setting back and forth announces nothing - and nothing the settings dialog
+    previews is remembered."""
     from .settings import is_open
 
     today = mw.col.sched.today
     key = "all" if struck is None else str(struck)
+    if did is not None:  # a deck's own forest earns its own
+        key = f"deck {did} {key}"
     state = load_state()
     every = state.get("animals")
     every = every if isinstance(every, dict) and all(isinstance(v, dict) for v in every.values()) else {}
@@ -205,26 +218,35 @@ def _remember_shown(kind: str, day: str) -> None:
         save_state(state)
 
 
-def _new_cards_left(cfg: dict, changed=None) -> bool:
-    """Whether the decks the forest grows from have any new cards left to learn (suspended
-    ones aside): with none, you have learned them all, and only reviewing is no stagnation."""
+def _new_cards_left(cfg: dict, changed=None, dids: list | None = None) -> bool:
+    """Whether the decks the forest grows from (all of them, or the `dids` decks) have any new
+    cards left to learn (suspended ones aside): with none, you have learned them all, and
+    only reviewing is no stagnation."""
     col, excluded, skip = mw.col, excluded_decks(cfg), phone_cards()
-    return remembered("new_left", changed and (changed, frozenset(excluded), frozenset(skip)),
-                      lambda: study_log.has_new_cards(col.db, excluded, skip))
+    return remembered("new_left", changed and (changed, frozenset(excluded), frozenset(skip), dids and tuple(dids)),
+                      lambda: study_log.has_new_cards(col.db, excluded, skip, dids))
 
 
-def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
+def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = None) -> tuple:
     """The forest after Nature has had its say, and everything else the way you study
-    brings to it: (forest, extras for the page). What is read from the collection is kept
-    until `changed` (state.changes) is different."""
+    brings to it: (forest, extras for the page). `did` for a forest of that deck's own: it
+    goes through all the same, the trees' own events (crows, robins, flowers, grass) from
+    that deck's cards, and the rest (Nature, the ponds, the backlog) from every deck you
+    study, as on the main forest. What is read from the collection is kept until `changed`
+    (state.changes) is different."""
     from .settings import is_open
 
     level = nature_level(cfg)
     days = forest.get("review_days") or set()
+    dids = deck_ids(did, excluded_decks(cfg)) if did is not None and not test else None
     extras = {"nature": level, "craters": [], "strike": None, "doom": None, "fire": None}
+    reviewing = days
     if not test:
         # Nature goes by every deck you study, whichever the forest leaves out
-        nature_days = _nature_days(cfg, forest, changed)
+        nature_days = _nature_days(cfg, forest, changed, own=did is not None)
+        if did is not None:  # as on the main forest: coasting is reviewing anywhere, a break is from every deck
+            reviewing = nature_days
+            forest = dict(forest, trees=forest_data.with_ponds(forest["trees"], _pond_days(cfg, changed), ago_date))
         struck = None
         live = not is_open()  # (what the settings dialog previews is not remembered as shown)
         if level == "merciless":
@@ -250,14 +272,14 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None) -> tuple:
             kind = "smoke" if fire and fire["smoke"] else "fire" if fire and fire["trees"] else None
             if kind is None or _shows(kind, ago_date(fire["began"]), live):
                 forest, extras["fire"] = dict(forest, trees=trees), fire
-        forest = _animals(forest, struck)
+        forest = _animals(forest, struck, did)
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
-    extras["stagnation"] = events.stagnation(forest["trees"], days)
-    if extras["stagnation"] and not test and not _new_cards_left(cfg, changed):
+    extras["stagnation"] = events.stagnation(forest["trees"], reviewing)
+    if extras["stagnation"] and not test and not _new_cards_left(cfg, changed, dids):
         extras["stagnation"] = 0.0  # every card learned: reviewing alone is what is left to do
     if not test:
         extras["backlog"] = _backlog(cfg, changed)
-        forest = dict(forest, trees=_mark_cured(forest["trees"], cfg, changed))
+        forest = dict(forest, trees=_mark_cured(forest["trees"], cfg, changed, dids))
     return keep_calm(forest, extras, cfg)
 
 

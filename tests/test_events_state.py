@@ -121,11 +121,12 @@ class NatureTests(unittest.TestCase):
         self.assertEqual((p["fire"]["out"], p["fire"]["trees"]), (True, 0))
         self.assertEqual(p["journal"], "The last of the fire is out. Your forest is green again.")
 
-    def test_a_decks_own_forest_shows_the_trees_alone(self):
+    def test_a_decks_own_forest_takes_the_strike_too(self):
         studied_every_day_but_the_break(nature="merciless", deck_forest_mode="own")
-        p = payload.payload(10)
-        self.assertNotIn("craters", p)
-        self.assertEqual(p["stats"]["trees"], 23)
+        main, own = payload.payload(), payload.payload(10)  # deck 10 holds every card
+        self.assertEqual(len(own["craters"]), 1)
+        self.assertEqual((own["stats"]["trees"], [t["ago"] for t in own["trees"]]),
+                         (main["stats"]["trees"], [t["ago"] for t in main["trees"]]))
 
 
 class NoStrikeFromHalfTheStoryTests(unittest.TestCase):
@@ -301,12 +302,9 @@ class GrassTests(unittest.TestCase):
         a_new_card(20)
         self.assertEqual(payload.payload()["stagnation"], 0)
 
-    def test_not_while_you_are_away_nor_on_a_decks_own_forest(self):
+    def test_not_while_you_are_away(self):
         reset([(1, 10, 20)])  # nothing since, not even a review: a break, not coasting
         self.assertEqual(payload.payload()["stagnation"], 0)
-        reset([(1, 10, 20)], {"deck_forest_mode": "own"})
-        mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", (ms(0, 18),))
-        self.assertNotIn("stagnation", payload.payload(10))
 
 
 class FlowerTests(unittest.TestCase):
@@ -345,7 +343,7 @@ class PeacefulTests(unittest.TestCase):
         return payload.payload(did, highlight=mode == "highlight")
 
     def test_peaceful_keeps_the_bad_things_away(self):
-        for view in ("main", "highlight"):
+        for view in self.VIEWS:
             with self.subTest(view=view):
                 p = self.coasting_with_a_leech_and_a_backlog("peaceful", view)
                 self.assertFalse(any(t.get("leeches") for t in p["trees"]))
@@ -354,22 +352,13 @@ class PeacefulTests(unittest.TestCase):
 
     def test_wild_and_merciless_bring_them(self):
         for nature in ("wild", "merciless"):
-            for view in ("main", "highlight"):
+            for view in self.VIEWS:
                 with self.subTest(nature=nature, view=view):
                     p = self.coasting_with_a_leech_and_a_backlog(nature, view)
                     self.assertEqual(p["craters"], [])  # nothing struck: the crows are there to see
                     self.assertTrue(any(t.get("leeches") for t in p["trees"]))
                     self.assertGreater(p["stagnation"], 0)
                     self.assertGreater(p["backlog"]["hell"], 0)
-
-    def test_a_decks_own_forest_is_the_trees_alone(self):
-        # no grass, no backlog on any nature; the crows come with the trees, but not on Peaceful
-        for nature in ("peaceful", "wild", "merciless"):
-            with self.subTest(nature=nature):
-                p = self.coasting_with_a_leech_and_a_backlog(nature, "own")
-                self.assertNotIn("stagnation", p)
-                self.assertNotIn("backlog", p)
-                self.assertEqual(any(t.get("leeches") for t in p["trees"]), nature != "peaceful")
 
 
 class BacklogTests(unittest.TestCase):
@@ -406,6 +395,157 @@ class CuredTests(unittest.TestCase):
         mw.col.db.con.execute("insert into revlog values (?, 1, 3, 1, 25, 12)", (ms(2),))  # mature two days ago
         trees = {t["ago"]: t for t in payload.payload()["trees"]}
         self.assertEqual((trees[30].get("cured"), trees[30].get("leeches"), trees[20].get("cured")), (1, None, None))
+
+
+
+# PLANTED with every other card in deck 20: deck 10 holds half of each stretch of trees
+SPLIT = [(cid, 10 if cid % 2 == 0 else 20, ago) for cid, _did, ago in PLANTED]
+DECK_ONLY = {"deckId", "deckName", "highlight", "litCount"}
+
+
+class DeckForestTests(unittest.TestCase):
+    """A deck's screen shows the main forest with that deck's trees lit, or a forest of the
+    deck's own (the Deck screens setting) - and either one acts as the main forest does:
+    Nature, the bad habits and the good days all come to it."""
+
+    def compared(self, view: str, did: int = 10) -> tuple:
+        """(the main forest, the deck's), each read first in turn: what one leaves behind
+        (a strike shown, the animals) must not change the other."""
+        pages = []
+        for first_main in (True, False):
+            mw.addonManager.config["deck_forest_mode"] = view
+            calls = [payload.payload, lambda: payload.payload(did, highlight=view == "highlight")]
+            got = [c() for c in (calls if first_main else calls[::-1])]
+            pages.append(got if first_main else got[::-1])
+        return pages
+
+    def scenarios(self):
+        """Each Nature, and each event it brings, set up afresh."""
+        peaceful = PeacefulTests()
+        return {
+            "merciless strike": lambda: studied_every_day_but({3}, nature="merciless"),
+            "wild fire": lambda: studied_every_day_but({1, 2, 3}, nature="wild"),
+            "wild smoke": lambda: studied_every_day_but({0, 1, 2}, nature="wild"),  # and none yet today
+            "peaceful break": lambda: studied_every_day_but(set(range(1, 9)), nature="peaceful"),
+            "wild leech and backlog": lambda: peaceful.coasting_with_a_leech_and_a_backlog("wild"),
+            "peaceful leech and backlog": lambda: peaceful.coasting_with_a_leech_and_a_backlog("peaceful"),
+        }
+
+    def test_the_lit_up_forest_is_the_main_forest(self):
+        for name, setup in self.scenarios().items():
+            with self.subTest(name):
+                setup()
+                for main, deck in self.compared("highlight"):
+                    self.assertTrue(deck["highlight"])
+                    leave = lambda p: {k: v for k, v in p.items() if k not in DECK_ONLY | {"trees", "strike"}}  # noqa: E731
+                    self.assertEqual(leave(deck), leave(main))
+                    self.assertEqual([{k: v for k, v in t.items() if k != "dim"} for t in deck["trees"]], main["trees"])
+
+    def test_a_forest_of_the_decks_own_has_the_main_forests_events_when_it_holds_every_card(self):
+        # (the rest may differ: the reviews every day are on a card of no deck, so the deck's
+        # own streak, review count and ponds are its own)
+        def events_of(p):
+            marks = [{k: t[k] for k in ("leeches", "cured", "big", "burn") if k in t} for t in p["trees"]]
+            craters = [c["date"] for c in p["craters"]]
+            return (p["nature"], craters, bool(p["strike"]), p["doom"], p["fire"], p["stagnation"], p["backlog"],
+                    [t["ago"] for t in p["trees"]], marks)
+
+        for name, setup in self.scenarios().items():
+            with self.subTest(name):
+                setup()  # every card is deck 10's
+                for main, own in self.compared("own"):
+                    self.assertFalse(own["highlight"])
+                    self.assertEqual(events_of(own), events_of(main))
+
+    def test_the_lit_trees_are_counted_as_drawn(self):
+        for nature, missed in (("merciless", {10}), ("wild", {1, 2, 3}), ("peaceful", set())):
+            with self.subTest(nature):
+                reset(SPLIT, {"nature": nature})
+                mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                          [(ms(d, 18),) for d in range(41) if d not in missed])
+                p = payload.payload(10, highlight=True)
+                self.assertEqual(p["litCount"], sum(1 for t in p["trees"] if not t["dim"]))
+                self.assertGreater(p["litCount"], 0)
+
+    def own(self, missed, nature, cards=SPLIT):
+        reset(cards, {"nature": nature, "deck_forest_mode": "own"})
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                  [(ms(d, 18),) for d in range(41) if d not in missed])
+        return payload.payload(10)
+
+    def test_the_asteroid_takes_a_decks_own_forest_from_the_day_it_struck(self):
+        p = self.own({10}, "merciless")
+        self.assertEqual(len(p["craters"]), 1)
+        self.assertTrue(all(t["ago"] < 10 for t in p["trees"]))  # only what grew since
+
+    def test_the_fire_burns_a_decks_own_forest(self):
+        p = self.own({1, 2, 3}, "wild")
+        self.assertTrue(p["fire"] and p["fire"]["trees"])
+        self.assertTrue(any(t.get("burn") for t in p["trees"]))
+        self.assertTrue(self.own({0, 1, 2}, "wild")["fire"]["smoke"])
+
+    def test_a_day_studied_in_another_deck_is_no_day_missed(self):
+        # deck 10's cards were only studied the day each was planted; the reviews every day
+        # are elsewhere - Nature goes by every deck, as on the main forest
+        p = self.own(set(), "merciless")
+        self.assertEqual((p["craters"], p["doom"]), ([], None))
+
+    def test_flowers_on_a_decks_own_big_days(self):
+        reset([(i, 10, 20 - i // 2) for i in range(20)] + [(100 + i, 10, 3) for i in range(8)], {"deck_forest_mode": "own"})
+        trees = {t["ago"]: t for t in payload.payload(10)["trees"]}
+        self.assertEqual(trees[3].get("big"), 2)
+
+    def test_a_robin_for_a_leech_cured_in_the_deck_only(self):
+        for deck, robin in ((10, 1), (20, None)):
+            with self.subTest(deck=deck):
+                # card 1 (the leech) in `deck`, card 2 in deck 10: both on the tree of 30 days ago
+                reset([(1, deck, 30), (2, 10, 30)], {"nature": "wild", "deck_forest_mode": "own"})
+                mw.col.db.con.execute("update cards set ivl = 25 where id = 1")
+                mw.col.db.con.execute("update notes set tags = ' leech ' where id = 1")
+                mw.col.db.con.execute("insert into revlog values (?, 1, 3, 1, 25, 12)", (ms(2),))
+                trees = {t["ago"]: t for t in payload.payload(10)["trees"]}
+                self.assertEqual(trees[30].get("cured"), robin)
+
+    def test_the_grass_grows_on_a_deck_left_without_new_cards(self):
+        for new_in, grass in ((10, True), (20, False)):  # a new card left to learn in that deck
+            with self.subTest(new_in=new_in):
+                reset([(1, 10, 20), (2, 20, 1)], {"nature": "wild", "deck_forest_mode": "own"})
+                mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                          [(ms(d, 18),) for d in range(20)])
+                a_new_card(new_in)
+                self.assertEqual(payload.payload(10)["stagnation"] > 0, grass)
+
+    def test_tumbleweeds_on_a_decks_own_forest(self):
+        p = PeacefulTests().coasting_with_a_leech_and_a_backlog("wild", "own")
+        self.assertGreater(p["backlog"]["hell"], 0)
+
+    def test_no_pond_for_a_deck_left_alone_while_you_studied_others(self):
+        # deck 10 untouched for 35 days, but a review somewhere every day
+        p = self.own(set(), "peaceful", [(1, 10, 40), (2, 10, 5)])
+        self.assertEqual([t.get("gap") for t in p["trees"]], [None, None])
+
+    def test_a_break_from_every_deck_is_the_same_pond_on_a_decks_own_forest(self):
+        studied_every_day_but_the_break(deck_forest_mode="own")  # eight days of nothing at all
+        ponds = lambda p: [(t["ago"], t.get("gap"), t.get("gap_from"), t.get("gap_to")) for t in p["trees"] if t.get("gap")]  # noqa: E731
+        main, own = payload.payload(), payload.payload(10)
+        self.assertEqual(len(ponds(main)), 1)
+        self.assertEqual(ponds(own), ponds(main))
+
+    def test_a_decks_own_forest_earns_its_own_animals(self):
+        AnimalTests().studied_every_day()
+        AnimalTests().fox_reviews()  # the fox's reviews are on a card of no deck
+        mw.addonManager.config["deck_forest_mode"] = "own"
+        self.assertEqual([v["key"] for v in payload.payload()["visitors"]], ["fox"])
+        self.assertEqual(payload.payload(10)["visitors"], [])
+        p = payload.payload()
+        self.assertEqual([(v["key"], v["new"]) for v in p["visitors"]], [("fox", False)])  # not announced again
+
+    def test_the_strike_plays_once_whichever_forest_shows_it(self):
+        studied_every_day_but({3}, nature="merciless", deck_forest_mode="own")
+        main = payload.payload()
+        self.assertTrue(main["strike"]["fresh"])
+        addon.events_state.mark_seen(main["strike"]["seen"])
+        self.assertFalse(payload.payload(10)["strike"]["fresh"])
 
 
 if __name__ == "__main__":

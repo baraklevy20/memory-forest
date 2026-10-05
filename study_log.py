@@ -189,17 +189,20 @@ def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable 
     return overdue, counts
 
 
-def has_new_cards(db, excluded: Iterable | None = None, skip: Iterable | None = None) -> bool:
-    """Whether any new card is left to learn in the whole collection but the `excluded` decks
-    and the `skip` cards: suspended ones don't count, buried ones do (they come back)."""
-    in_decks, _only = _filters(None, excluded, skip)
+def has_new_cards(db, excluded: Iterable | None = None, skip: Iterable | None = None, dids: list | None = None) -> bool:
+    """Whether any new card is left to learn in the whole collection (or the `dids` decks) but
+    the `excluded` decks and the `skip` cards: suspended ones don't count, buried ones do
+    (they come back)."""
+    in_decks, _only = _filters(dids, excluded, skip)
     return bool(db.scalar(f"select exists (select 1 from cards c where c.type = 0 and c.queue != -1{in_decks})"))
 
 
-def load_cured(db, day_cutoff: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None) -> dict:
-    """The leeches cured (see CURED_IVL) within the last `days` days and still cured, counted
-    by the day of the tree each belongs to (its first review): {ago: how many}."""
-    in_decks, _only = _filters(None, excluded, skip)
+def load_cured(db, day_cutoff: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None,
+               dids: list | None = None) -> dict:
+    """The leeches cured (see CURED_IVL) within the last `days` days and still cured, in the
+    whole collection (or the `dids` decks), counted by the day of the tree each belongs to (its
+    first review): {ago: how many}."""
+    in_decks, _only = _filters(dids, excluded, skip)
     since_ms = (day_cutoff - days * DAY_SECS) * 1000
     out: dict = {}
     for _cid, first in db.all(

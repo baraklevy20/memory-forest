@@ -149,15 +149,10 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
               else _forest(None if highlight else did, cfg, changed))
     if highlight and did:
         forest = _lit_by_deck(forest, did, test, cfg, changed)
-    # Nature and the other study events; a deck's own forest shows the trees alone, but
-    # Peaceful keeps the bad things off it all the same (the crows come with the trees)
-    extras = {}
-    if not (did and not highlight):
-        forest, extras = events_state.apply(forest, cfg, test, changed)
-        if tools:
-            forest, extras = tools.debug_events.apply(forest, extras, cfg)
-    else:
-        forest, extras = events_state.keep_calm(forest, extras, cfg)
+    # Nature and the other study events, on every forest: a deck's screen acts as the main one
+    forest, extras = events_state.apply(forest, cfg, test, changed, did if did and not highlight else None)
+    if tools:
+        forest, extras = tools.debug_events.apply(forest, extras, cfg)
     now = _dt.datetime.now()
     today = now.date()
     all_trees = forest["trees"]

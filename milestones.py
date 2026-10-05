@@ -43,8 +43,8 @@ def visitors(stats: dict, arrived: dict | None = None, today: int | None = None)
     Only an asteroid sends them away (see events_state._animals), and then they have to be
     earned again.
 
-    Without `arrived` (the test forest, a deck's own forest) there is nothing remembered, so
-    the animals are those today's numbers bring, and new when _arrived_today can tell.
+    Without `arrived` (the test forest) there is nothing remembered, so the animals are
+    those today's numbers bring, and new when _arrived_today can tell.
     """
     out = []
     for key, label, why, test in VISITORS:

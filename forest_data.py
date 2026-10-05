@@ -168,6 +168,9 @@ def _breaks(review_days: set, oldest: int) -> list:
     return out
 
 
+POND_KEYS = ("gap", "gap_from", "gap_to")  # what _ponds marks a tree with
+
+
 def _ponds(trees: list, breaks: list, date_of) -> None:
     """Mark each break on the first tree planted after it: its `gap` (days away) and the
     dates it ran (`gap_from`, `gap_to`, from `date_of(days_ago)`).
@@ -186,6 +189,15 @@ def _ponds(trees: list, breaks: list, date_of) -> None:
     for i, days, began, ended in ponds:
         tree = trees[min(i, len(trees) - 1)]
         tree.update(gap=days, gap_from=date_of(began), gap_to=date_of(ended))
+
+
+def with_ponds(trees: list, review_days: set, date_of) -> list:
+    """Copies of `trees` with their ponds marked afresh from `review_days` (see _ponds): a
+    deck's own forest has the main forest's breaks, not the days away from that deck alone."""
+    out = [{k: v for k, v in t.items() if k not in POND_KEYS} for t in trees]
+    if out:
+        _ponds(out, _breaks(review_days, out[0]["ago"]), date_of)
+    return out
 
 
 def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None = None) -> dict:
