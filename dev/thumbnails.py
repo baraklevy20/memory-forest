@@ -30,6 +30,7 @@ sys.path.insert(0, HERE)
 
 import editions
 import render_check
+import stale_tiles
 from render_check import WORKERS, render
 
 import catalog
@@ -94,6 +95,7 @@ def main() -> None:
                 picture = thumbnail(base64.b64decode(r["png"].split(",", 1)[1]), key, width, height)
                 picture.save(os.path.join(out, f"{key}.png"), optimize=True)
                 print(f"  {key} {width}x{height}")
+    stale_tiles.note("png", {key for key, _cfg, _n in cases} - set(failed))
     if editions.available():
         with open(editions.PLUS_LIST, "w", encoding="utf-8") as f:
             f.write(editions.plus_list_text())

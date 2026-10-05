@@ -27,6 +27,7 @@ sys.path.insert(0, ADDON)
 sys.path.insert(0, HERE)
 
 import make_gif
+import stale_tiles
 import thumbnails
 from render_check import CHROME, WORKERS
 
@@ -38,7 +39,8 @@ WIDTH, HEIGHT, PANEL = 192, 108, 700
 SECONDS, FPS = 4, 15  # the engine draws ~15 frames a second (web/core.js FRAME_MS)
 
 
-def record(key: str) -> str:
+def record(key: str) -> tuple:
+    """(whether it was drawn, the line to print)."""
     cfg = dict(presets.by_key()[key].values())
     frames = SECONDS * FPS
     make_gif.PANEL_PX, make_gif.FPS = PANEL, FPS
@@ -51,10 +53,10 @@ def record(key: str) -> str:
                              capture_output=True, text=True, timeout=make_gif.CHROME_TIMEOUT_SECS).stdout
         m = re.search(r'<pre id="?o"?>(.*?)</pre>', dom, re.S)
         if not m:
-            return f"{key}: the page never reported back"
+            return False, f"{key}: the page never reported back"
         r = json.loads(html.unescape(m.group(1)))
         if r["errors"]:
-            return f"{key}: " + r["errors"][0]
+            return False, f"{key}: " + r["errors"][0]
         for i, shot in enumerate(r["shots"]):
             png = base64.b64decode(shot.split(",", 1)[1])
             thumbnails.thumbnail(png, key, WIDTH, HEIGHT).save(os.path.join(tmp, f"f{i:04d}.png"))
@@ -63,7 +65,7 @@ def record(key: str) -> str:
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", os.path.join(tmp, "f%04d.png"),
                         "-vf", "split[a][b];[a]palettegen=stats_mode=full[p];[b][p]paletteuse=dither=none",
                         "-loop", "0", out], check=True)
-        return f"  {key}: {len(r['shots'])} frames ({os.path.getsize(out) // 1024} KB)"
+        return True, f"  {key}: {len(r['shots'])} frames ({os.path.getsize(out) // 1024} KB)"
 
 
 def main() -> None:
@@ -73,9 +75,15 @@ def main() -> None:
     if unknown:
         raise SystemExit(f"no preset {', '.join(sorted(unknown))}")
     os.makedirs(OUT, exist_ok=True)
+    drawn = set()
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        for line in pool.map(record, chosen):
+        for key, (ok, line) in zip(chosen, pool.map(record, chosen)):
             print(line)
+            if ok:
+                drawn.add(key)
+    stale_tiles.note("gif", drawn)
+    if len(drawn) < len(chosen):
+        raise SystemExit(f"{len(chosen) - len(drawn)} failed")
 
 
 if __name__ == "__main__":

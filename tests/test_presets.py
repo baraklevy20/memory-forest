@@ -254,3 +254,15 @@ class PlusTileTests(unittest.TestCase):
             self.assertTrue(self.editions.keeps(f"settings/scenery/{key}.png", keep), key)
             self.assertTrue(self.editions.keeps(f"settings/scenery_anim/{key}.gif", keep), key)
             self.assertFalse(self.editions.keeps(f"web/envs/{key}.js", keep), key)
+
+
+class StaleTileTests(unittest.TestCase):
+    def test_every_tile_was_drawn_from_its_scenery_as_it_is(self):
+        # dev/thumbnails.py and dev/tile_gifs.py note what each tile was drawn from
+        # (dev/tile_sources.json): an edited environment, landscape or landmark asks for its tiles again
+        import sys
+        sys.path.insert(0, os.path.join(os.path.dirname(presets.__file__), "dev"))
+        import stale_tiles
+        found = stale_tiles.stale()
+        self.assertFalse(any(found.values()), "tiles older than their scenery; draw them again with:\n"
+                         + stale_tiles.advice(found))

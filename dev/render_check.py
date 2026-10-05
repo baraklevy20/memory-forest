@@ -252,6 +252,16 @@ def main() -> None:
         print("failed: " + ", ".join(sorted(bad)))
     if changed:
         print(f"{len(changed)} scenes drew differently than the baseline: " + ", ".join(sorted(changed)))
+        # the presets drawn in a changed environment may have picker tiles that no longer match
+        # (dev/stale_tiles.py only notices a preset's own files changing, not the engine's)
+        import stale_tiles
+        envs = {cfg.get("environment") for name, cfg, _n in cases if name in changed}
+        keep = stale_tiles.tracked()
+        keys = [p.key for p in presets.FOREST_PRESETS
+                if p.environment in envs and p.key != presets.DAILY and (keep is None or p.key in keep)]
+        if keys:
+            print("their presets' picker tiles may be out of date too; if they look different, draw them again with:\n"
+                  + stale_tiles.advice(dict.fromkeys(stale_tiles.KINDS, keys)))
     if bad or changed:
         sys.exit(1)
 
