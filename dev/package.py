@@ -2,6 +2,9 @@
 
     python anki_forest/dev/package.py [--edition NAME] [--version X.Y.Z] [out.ankiaddon]
 
+Without a path it goes to dist/<package>-<version>.ankiaddon (dist/ is gitignored), so
+every version built stays there.
+
 With editions.json present an edition must be named (see dev/editions.py); it ships only
 that edition's scenery, under its own name and package. The public repo has no
 editions.json and ships everything it has. --version sets the version Anki shows for it,
@@ -28,6 +31,7 @@ import editions
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
+DIST = os.path.join(ADDON, "dist")  # where builds go: gitignored
 sys.path.insert(0, ADDON)
 import catalog
 
@@ -47,6 +51,11 @@ DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py")
 # (phone_data.bundle). Each file is minified on its own: each is one self-contained function
 # that shares nothing but window.AnkiForest. This copy (and the public repo) keeps them readable.
 ESBUILD = os.path.join(ADDON, "node_modules", ".bin", "esbuild")
+# The oldest browser that draws the forest: the Qt5 builds of Anki 2.1.50 to 2.1.66 (for
+# older Macs) have Qt 5.14's web view, Chromium 77. esbuild rewrites newer syntax (`??`,
+# `?.`) into what it knows, and refuses what it cannot rewrite; newer built-in functions
+# it leaves alone, so dev/old_anki.py --check in that Anki is still what proves it runs.
+OLDEST_BROWSER = "chrome77"
 
 # The shipped defaults: the debug tools (the made-up test forest) stay on this machine.
 RELEASE_CONFIG = {"debug": False, "test_forest": False}
@@ -90,7 +99,7 @@ def minified(shipping: list) -> dict:
         sys.exit("esbuild is missing: run npm install in this folder")
     web = os.path.join(ADDON, "web")
     with tempfile.TemporaryDirectory() as out:
-        subprocess.run([ESBUILD, *(path for path, _name in scripts), "--minify", f"--outbase={web}",
+        subprocess.run([ESBUILD, *(path for path, _name in scripts), "--minify", f"--target={OLDEST_BROWSER}", f"--outbase={web}",
                         f"--outdir={out}", "--log-level=warning"], check=True)
         texts = {}
         for path, name in scripts:
@@ -181,7 +190,9 @@ def main() -> None:
         sys.exit("name an edition: --edition " + "|".join(editions.available()))
     keep = editions.scenery(edition) if edition else None
     package = editions.spec(edition)["package"] if edition else "memory_forest"
-    out = args[0] if args else os.path.join(HERE, package + ".ankiaddon")
+    shipped = json.loads(manifest(edition, version))["human_version"]
+    out = args[0] if args else os.path.join(DIST, f"{package}-{shipped}.ankiaddon")
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     shipping = files(keep)
     missing = [name for path, name in shipping if not os.path.exists(path)]
     if missing:

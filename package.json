@@ -10,6 +10,7 @@
     "lint:js": "eslint web",
     "lint:py": "python3 -m ruff check .",
     "check": "npm run lint && npm run test && npm run render",
+    "check:anki": "python3 dev/old_anki.py --check --all",
     "render": "python3 dev/render_check.py smoke",
     "render:quick": "python3 dev/render_check.py smoke --quick",
     "baseline": "python3 dev/render_check.py baseline",
