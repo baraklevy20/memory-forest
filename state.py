@@ -287,13 +287,20 @@ def remember_phone_cards(cids) -> None:
     _phone_cards = (None, None, frozenset())
 
 
+def day_cutoff(col) -> int:
+    """When the collection's day ends, as a timestamp: the scheduler's day_cutoff, which
+    Anki before 2.1.50 calls dayCutoff."""
+    sched = col.sched
+    return sched.day_cutoff if hasattr(sched, "day_cutoff") else sched.dayCutoff
+
+
 def since(cfg: dict) -> int | None:
     """When the forest begins (the Ignore before setting), as a timestamp, or None."""
     try:
         date = _dt.date.fromisoformat(str(cfg.get("ignore_before") or ""))
     except ValueError:
         return None
-    return study_log.day_start(date, mw.col.sched.day_cutoff)
+    return study_log.day_start(date, day_cutoff(mw.col))
 
 
 # "Animate the forest": the config holds true, false or "system" (still while the system asks

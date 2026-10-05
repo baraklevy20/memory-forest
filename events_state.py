@@ -9,7 +9,7 @@ from __future__ import annotations
 from aqt import mw
 
 from . import events, forest_data, milestones, study_log
-from .state import _profile, deck_ids, excluded_decks, load_state, phone_cards, phone_decks, remembered, save_state, since
+from .state import _profile, day_cutoff, deck_ids, excluded_decks, load_state, phone_cards, phone_decks, remembered, save_state, since
 
 # The profiles a sync has finished for this session, and whether one is under way. Until
 # a sync has brought in what you studied elsewhere (on your phone, say), a day you studied
@@ -62,8 +62,8 @@ def _nature_days(cfg: dict, forest: dict, changed=None, own: bool = False) -> se
     phone, cards = phone_decks(), phone_cards()
     if not own and excluded_decks(cfg) == phone and since(cfg) is None and forest.get("review_days") is not None:
         return forest["review_days"]
-    return remembered("nature_days", changed and (changed, col.sched.day_cutoff, frozenset(phone), frozenset(cards)),
-                      lambda: study_log.load_review_days(col.db, col.sched.day_cutoff, phone, cards))
+    return remembered("nature_days", changed and (changed, day_cutoff(col), frozenset(phone), frozenset(cards)),
+                      lambda: study_log.load_review_days(col.db, day_cutoff(col), phone, cards))
 
 
 # the latest strike the page was told of, (its key, the crater as events.merciless gave it),
@@ -103,7 +103,7 @@ def strike_before(seen_key: str) -> dict | None:
 
 
 def ago_date(ago: int) -> str:
-    return study_log.day_date(ago, mw.col.sched.day_cutoff).isoformat()
+    return study_log.day_date(ago, day_cutoff(mw.col)).isoformat()
 
 
 def _backlog(cfg: dict, changed=None) -> dict:
@@ -112,7 +112,7 @@ def _backlog(cfg: dict, changed=None) -> dict:
     day of review hell, how deep it was then, and the last backlog cleared."""
     col = mw.col
     today = col.sched.today
-    excluded, skip, cutoff = excluded_decks(cfg), phone_cards(), col.sched.day_cutoff
+    excluded, skip, cutoff = excluded_decks(cfg), phone_cards(), day_cutoff(col)
     overdue, counts = remembered("backlog", changed and (changed, today, cutoff, frozenset(excluded), frozenset(skip)),
                                  lambda: study_log.load_backlog(col.db, today, cutoff, events.REVIEW_HELL_USUAL_DAYS, excluded, skip))
     usual = events.usual_reviews(counts)
@@ -136,17 +136,17 @@ def _backlog(cfg: dict, changed=None) -> dict:
 def _pond_days(cfg: dict, changed=None) -> set:
     """The days the main forest's ponds go by: a review in any deck it grows from."""
     col, excluded, skip = mw.col, excluded_decks(cfg), phone_cards()
-    return remembered("pond_days", changed and (changed, col.sched.day_cutoff, frozenset(excluded), frozenset(skip)),
-                      lambda: study_log.load_review_days(col.db, col.sched.day_cutoff, excluded, skip))
+    return remembered("pond_days", changed and (changed, day_cutoff(col), frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.load_review_days(col.db, day_cutoff(col), excluded, skip))
 
 
 def _mark_cured(trees: list, cfg: dict, changed=None, dids: list | None = None) -> list:
     """The trees, each holding a leech cured lately copied with `cured` (how many): of the
     whole collection, or of the `dids` decks for a deck's own forest."""
     col, excluded, skip = mw.col, excluded_decks(cfg), phone_cards()
-    key = (changed, col.sched.day_cutoff, frozenset(excluded), frozenset(skip), dids and tuple(dids))
+    key = (changed, day_cutoff(col), frozenset(excluded), frozenset(skip), dids and tuple(dids))
     cured = remembered("cured", changed and key,
-                       lambda: study_log.load_cured(col.db, col.sched.day_cutoff, events.CURED_DAYS, excluded, skip, dids))
+                       lambda: study_log.load_cured(col.db, day_cutoff(col), events.CURED_DAYS, excluded, skip, dids))
     return [dict(t, cured=cured[t["ago"]]) if cured.get(t["ago"]) else t for t in trees] if cured else trees
 
 

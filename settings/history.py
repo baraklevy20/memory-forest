@@ -21,7 +21,7 @@ from aqt.qt import (
 )
 
 from .. import study_log
-from ..state import OFF_VALUES, log, phone_cards, phone_decks
+from ..state import OFF_VALUES, day_cutoff, log, phone_cards, phone_decks
 from .widgets import date_field, group, grow_window, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole
@@ -118,7 +118,7 @@ class HistoryTab(QWidget):
         """Read every deck's trees, once; each count after that is done here in Python. If
         the collection can't be read, the counts are simply left out."""
         try:
-            cutoff = mw.col.sched.day_cutoff
+            cutoff = day_cutoff(mw.col)
             days = study_log.load_tree_days(mw.col.db, cutoff, phone_cards())
             today = study_log.day_date(0, cutoff)
         except Exception as e:  # the counts are a nicety, never an error

@@ -51,8 +51,8 @@ DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py")
 # (phone_data.bundle). Each file is minified on its own: each is one self-contained function
 # that shares nothing but window.AnkiForest. This copy (and the public repo) keeps them readable.
 ESBUILD = os.path.join(ADDON, "node_modules", ".bin", "esbuild")
-# The oldest browser that draws the forest: the Qt5 builds of Anki 2.1.50 to 2.1.66 (for
-# older Macs) have Qt 5.14's web view, Chromium 77. esbuild rewrites newer syntax (`??`,
+# The oldest browser that draws the forest: the Mac builds of Anki before 2.1.50, and its
+# Qt5 builds for older Macs up to 2.1.66, have Qt 5.14's web view, Chromium 77. esbuild rewrites newer syntax (`??`,
 # `?.`) into what it knows, and refuses what it cannot rewrite; newer built-in functions
 # it leaves alone, so dev/old_anki.py --check in that Anki is still what proves it runs.
 OLDEST_BROWSER = "chrome77"

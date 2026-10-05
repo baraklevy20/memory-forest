@@ -1,6 +1,6 @@
 """Open an old Anki version on a throwaway profile, with this add-on in it, to check it still works there.
 
-    python3 dev/old_anki.py                                # Anki 2.1.50, to look around by hand
+    python3 dev/old_anki.py                                # Anki 2.1.45, to look around by hand
     python3 dev/old_anki.py 2.1.54-qt5                     # any Anki in ANKIS, or the path to an Anki.app
     python3 dev/old_anki.py --keep                         # reuse the last throwaway profile
     python3 dev/old_anki.py --check [ANKI ...]             # check it (built, as it ships) by itself, then quit
@@ -8,9 +8,9 @@
     python3 dev/old_anki.py --check --all --package x.ankiaddon   # the built add-on rather than this folder
 
 An Anki named by its key in ANKIS is downloaded from Anki's GitHub releases the first time
-and kept in CACHE. The Qt5 builds are Intel-only and run under Rosetta: they are the ones
-for older computers, and their web view is an old Chromium (Qt 5.14's), the oldest any
-supported Anki draws the forest with.
+and kept in CACHE. The Qt5 builds (every Anki before 2.1.50, and the builds for older
+computers after it) are Intel-only and run under Rosetta; their web view is an old
+Chromium (Qt 5.14's), the oldest any supported Anki draws the forest with.
 
 To look around it copies this folder (without your meta.json, user_files or caches); a
 check builds it first (dev/package.py, the base edition) or takes --package's .ankiaddon,
@@ -51,6 +51,8 @@ CACHE = os.path.expanduser("~/Library/Caches/memory-forest/anki")
 RELEASES = "https://github.com/ankitects/anki/releases/download"
 # key -> the macOS download on Anki's GitHub releases
 ANKIS = {
+    "2.1.45": "2.1.45/anki-2.1.45-mac.dmg",
+    "2.1.49": "2.1.49/anki-2.1.49-mac.dmg",
     "2.1.50": "2.1.50/anki-2.1.50-mac-apple-qt6.dmg",
     "2.1.50-qt5": "2.1.50/anki-2.1.50-mac-intel-qt5.dmg",
     "2.1.54": "2.1.54/anki-2.1.54-mac-apple-qt6.dmg",
@@ -59,9 +61,10 @@ ANKIS = {
     "26.09.3": "26.09.3/anki-26.09.3-mac-apple.dmg",
 }
 # what a release is checked in: the oldest Anki it claims (manifest.json's
-# min_point_version), the Qt5 build a report came from (the oldest web view), and the newest
-RELEASE_ANKIS = ("2.1.50", "2.1.54-qt5", "26.09.3")
-DEFAULT_ANKI = "2.1.50"
+# min_point_version), the oldest with Qt6 (PyQt6 and a new build), the Qt5 build a report
+# came from (the oldest web view since 2.1.50), and the newest
+RELEASE_ANKIS = ("2.1.45", "2.1.50", "2.1.54-qt5", "26.09.3")
+DEFAULT_ANKI = "2.1.45"
 SKIP = shutil.ignore_patterns("meta.json", "user_files", "__pycache__", "node_modules", "dist", "*.ankiaddon", ".*")
 CHECK_ADDON = "0_memory_forest_check"  # Anki loads add-ons in folder order: this one first
 CHECK_TIMEOUT_SECS = 180  # a first start under Rosetta translates the whole app

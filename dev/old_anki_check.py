@@ -6,6 +6,7 @@ and paints every tab of them and the scenery picker, picks another scenery and c
 forest was built again, writes what it found to check.json in the base folder and quits
 Anki. It runs inside that Anki, so it uses only what every Anki it is run in has."""
 
+import ast
 import json
 import os
 import random
@@ -122,14 +123,15 @@ def finish():
     mw.unloadProfileAndExit()
 
 
-def shot(name: str) -> None:
-    """The deck list as it looks now, beside check.json, for a person to look at."""
-    mw.deckBrowser.web.grab().save(os.path.join(BASE, name + ".png"))
+def shot(name: str, web=None) -> None:
+    """The deck list (or `web`) as it looks now, beside check.json, for a person to look at."""
+    (web or mw.deckBrowser.web).grab().save(os.path.join(BASE, name + ".png"))
 
 
-def measure(then, tries_left: int = WAIT_TRIES, old_ok: bool = True):
-    """The deck list measured once the forest has built (or WAIT_TRIES seconds have gone),
-    handed to `then`; with old_ok False it also waits for a forest other than the marked one."""
+def measure(then, tries_left: int = WAIT_TRIES, old_ok: bool = True, web=None):
+    """The deck list (or `web`) measured once the forest has built (or WAIT_TRIES seconds
+    have gone), handed to `then`; with old_ok False it also waits for a forest other than
+    the marked one."""
     def measured(raw):
         note(f"measured: {raw}")
         try:
@@ -138,10 +140,10 @@ def measure(then, tries_left: int = WAIT_TRIES, old_ok: bool = True):
             got = {}
         ready = got.get("built") and got.get("painted") and (old_ok or not got.get("old"))
         if not ready and tries_left > 1:
-            QTimer.singleShot(WAIT_MS, lambda: measure(then, tries_left - 1, old_ok))
+            QTimer.singleShot(WAIT_MS, lambda: measure(then, tries_left - 1, old_ok, web))
             return
         then(got, raw)
-    mw.deckBrowser.web.evalWithCallback(MEASURE, measured)
+    (web or mw.deckBrowser.web).evalWithCallback(MEASURE, measured)
 
 
 def first_look(got, raw):
@@ -225,7 +227,91 @@ def changed(scenery, got):
         result["problems"].append(f"the {scenery} forest built but its canvas is blank")
     else:
         result["steps"].append(f"rebuilt as {scenery}")
+    step("phone", phone)
+    step("deck screen", deck_screen)
+    if "deck screen" in result["steps"]:
+        measure(deck_looked, web=mw.overview.web)
+    else:
+        QTimer.singleShot(500, finish)
+
+
+def phone():
+    """The forest for the phone: turned on, written into its note, its card made new again
+    after the phone answered it, then turned off and taken away, as a sync would."""
+    forest = sys.modules[FOREST]
+    col = mw.col
+    col.set_config(forest.state.PHONE_SWITCH, True)
+    forest.phone.publish()
+    did = col.decks.id_for_name(forest.phone.DECK)
+    cids = col.db.list("select id from cards where did = ?", did) if did else []
+    if not cids:
+        result["problems"].append("the phone forest made no card")
+        return
+    nid = col.db.scalar("select nid from cards where id = ?", cids[0])
+    if not col.db.scalar("select flds from notes where id = ?", nid).split("\x1f")[1]:
+        result["problems"].append("the phone forest's note has no forest in it")
+    col.db.execute("update cards set type = 2, queue = 2, ivl = 3 where id = ?", cids[0])  # studied on the phone
+    forest.phone.publish()
+    if col.db.scalar("select type from cards where id = ?", cids[0]) != 0:
+        result["problems"].append("the phone forest's card was not made new again")
+    col.set_config(forest.state.PHONE_SWITCH, False)
+    forest.phone.publish()
+    if col.decks.id_for_name(forest.phone.DECK):
+        result["problems"].append("turning the phone forest off left its deck")
+
+
+def deck_screen():
+    """A deck's own screen, which draws a forest of its own."""
+    mw.col.decks.select(mw.col.decks.id("Default"))
+    mw.moveToState("overview")
+
+
+def deck_looked(got, raw):
+    shot("deck-screen", mw.overview.web)
+    if not got.get("built"):
+        result["problems"].append("the deck screen's forest never built")
+    elif not got.get("painted"):
+        result["problems"].append("the deck screen's forest built but its canvas is blank")
     QTimer.singleShot(500, finish)
+
+
+def catches_import_error(caught) -> bool:
+    """Whether an except clause's type (a name, or a tuple of them) takes an ImportError."""
+    names = caught.elts if isinstance(caught, ast.Tuple) else [caught]
+    return any(isinstance(n, ast.Name) and n.id in ("ImportError", "ModuleNotFoundError") for n in names)
+
+
+def imports():
+    """Every module the add-on imports, anywhere in it (inside a function too, where it
+    would fail only when that runs), imported here: the Anki builds before 2.1.50 carry
+    only the standard library Anki itself uses."""
+    import importlib
+    folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), FOREST)
+    names = set()
+    for root, _dirs, files in os.walk(folder):
+        for name in files:
+            if name.endswith(".py"):
+                with open(os.path.join(root, name), encoding="utf-8") as f:
+                    tree = ast.parse(f.read())
+                    # one tried with a fallback (except ImportError) may be missing
+                    guarded = {id(n) for t in ast.walk(tree) if isinstance(t, ast.Try)
+                               and any(catches_import_error(h.type) for h in t.handlers)
+                               for b in t.body for n in ast.walk(b)}
+                    for node in ast.walk(tree):
+                        if id(node) in guarded:
+                            continue
+                        if isinstance(node, ast.Import):
+                            names.update(a.name for a in node.names)
+                        elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
+                            names.add(node.module)
+    # its own modules, which it also names plainly for the unit tests (the fallback after
+    # its relative imports) and never imports that way inside Anki
+    own = {n[:-3] for _root, _dirs, files in os.walk(folder) for n in files if n.endswith(".py")}
+    for name in sorted(n for n in names if n.split(".")[0] not in own):
+        try:
+            importlib.import_module(name)
+        except ImportError as e:
+            result["problems"].append(f"this Anki cannot import {name}: {e}")
 
 
 def seed():
@@ -282,6 +368,7 @@ def opened():
         mw.activateWindow()
         mw.deckBrowser.refresh()
 
+    step("imports", imports)
     step("seed reviews", seed)
     step("deck list", show)
     QTimer.singleShot(WAIT_MS, lambda: measure(first_look))

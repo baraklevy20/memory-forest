@@ -270,7 +270,10 @@ def _keep_new(col, note) -> None:
     stale = [cid for cid in col.card_ids_of_note(note.id)
              if (card := col.get_card(cid)).type != 0 or card.queue < 0]
     if stale:
-        col.sched.schedule_cards_as_new(stale, restore_position=True, reset_counts=True)
+        try:
+            col.sched.schedule_cards_as_new(stale, restore_position=True, reset_counts=True)
+        except TypeError:  # before Anki 2.1.50: new again, at the end of the new cards
+            col.sched.schedule_cards_as_new(stale)
 
 
 def remove() -> None:
@@ -356,7 +359,10 @@ def publish() -> None:
         data = phone_data.phone_payload(page, cfg, now, script, real, place, scene_name, parts, days)
         if not phone_data.same_forest(note["Forest"], data):
             note["Forest"] = phone_data.encode(data)
-            col.update_note(note, skip_undo_entry=True)
+            try:
+                col.update_note(note, skip_undo_entry=True)
+            except TypeError:  # before Anki 2.1.50, which always leaves an undo entry
+                col.update_note(note)
         _keep_new(col, note)
     except Exception:
         log("could not update the forest for your phone:\n" + traceback.format_exc())

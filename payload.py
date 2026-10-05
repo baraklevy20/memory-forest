@@ -22,6 +22,7 @@ from .state import (
     changes,
     clamp_int,
     config,
+    day_cutoff,
     debug_available,
     deck_ids,
     excluded_decks,
@@ -72,7 +73,7 @@ def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> di
     dates it counts change."""
     col = mw.col
     cfg = config() if cfg is None else cfg
-    cutoff = col.sched.day_cutoff
+    cutoff = day_cutoff(col)
     excluded, start, suspended, skip = excluded_decks(cfg), since(cfg), keeps_suspended(cfg), phone_cards()
     changed = changes() if changed is None else changed
     key = (changed, cutoff, frozenset(excluded), start, suspended, frozenset(skip))
@@ -124,8 +125,8 @@ def _lit_by_deck(forest: dict, did: int, test: bool, cfg: dict, changed=None) ->
     else:
         col = mw.col
         dids, suspended, skip = deck_ids(did, excluded_decks(cfg)), keeps_suspended(cfg), phone_cards()
-        lit = remembered("deck_days", changed and (changed, col.sched.day_cutoff, tuple(dids), suspended, frozenset(skip)),
-                         lambda: study_log.load_deck_days(col.db, col.sched.day_cutoff, dids, suspended, skip))
+        lit = remembered("deck_days", changed and (changed, day_cutoff(col), tuple(dids), suspended, frozenset(skip)),
+                         lambda: study_log.load_deck_days(col.db, day_cutoff(col), dids, suspended, skip))
     trees = [dict(t, dim=t["ago"] not in lit) for t in forest["trees"]]
     return dict(forest, trees=trees, lit_count=sum(1 for t in trees if not t["dim"]))
 

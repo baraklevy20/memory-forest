@@ -186,7 +186,10 @@ AF.swap = function (id, data, srcs) {
   // only a new scene's parts: this copy's own scripts are already running (a changed one,
   // after an update, waits for the next full redraw rather than run beside the old)
   const part = /\/(envs|landscapes|landmarks)\//;
-  const missing = srcs.filter(s => part.test(s) && !have.has(new window.URL(s, window.location.href).href));
+  // each as the page resolves a script's src (a link does it the same way); not new URL()
+  // against location.href, which before Anki 2.1.50 is no URL at all
+  const absolute = s => { const a = document.createElement('a'); a.href = s; return a.href; };
+  const missing = srcs.filter(s => part.test(s) && !have.has(absolute(s)));
   const mine = root.afSwaps = (root.afSwaps || 0) + 1;
   // a part that won't load: the forest is drawn without it, as before
   AF.loadScripts(missing).catch(() => {}).then(() => { if (root.afSwaps === mine) AF.mount(root, data, { now: true }); });

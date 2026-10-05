@@ -1,5 +1,5 @@
 """The settings' colours, from Anki's theme: its design system's (2.1.55 and later), or the
-older palette's nearest (2.1.50 to 2.1.54), which has no aqt.props, no theme_manager.var
+older palette's nearest (2.1.45 to 2.1.54), which has no aqt.props, no theme_manager.var
 and no themed icons."""
 
 from __future__ import annotations
@@ -18,6 +18,8 @@ OLD = {
     "CANVAS_ELEVATED": "FRAME_BG",
     "BUTTON_BG": "FRAME_BG",
 }
+# a 2.1.50 palette colour the 2.1.45 to 2.1.49 palette lacks, and its nearest there
+OLDER = {"FOCUS_BORDER": "HIGHLIGHT_BG"}
 OLD_RADIUS = "5px"  # what 2.1.55's props.BORDER_RADIUS comes to
 
 
@@ -25,7 +27,10 @@ def color(name: str) -> str:
     """The theme's colour `name` (FG, BORDER_FOCUS, ...), as a CSS colour for a style sheet."""
     if hasattr(theme_manager, "var") and hasattr(colors, name):
         return theme_manager.var(getattr(colors, name))
-    return theme_manager.color(getattr(colors, OLD[name]))
+    old = OLD[name]
+    if not hasattr(colors, old):
+        old = OLDER[old]
+    return theme_manager.color(getattr(colors, old))
 
 
 def radius() -> str:

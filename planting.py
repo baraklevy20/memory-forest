@@ -8,7 +8,7 @@ from aqt import mw
 from aqt.utils import tooltip
 
 from . import study_log
-from .state import config, excluded_decks, load_state, log, phone_cards, save_state
+from .state import config, day_cutoff, excluded_decks, load_state, log, phone_cards, save_state
 
 PLANTING_TOOLTIP_MS = 3500
 
@@ -22,7 +22,7 @@ def on_answer(reviewer, card, ease) -> None:
         return
     global _planted_today
     # the Anki day, not the calendar day: studying at 00:30 still joins yesterday's tree
-    today = study_log.day_date(0, mw.col.sched.day_cutoff).isoformat()
+    today = study_log.day_date(0, day_cutoff(mw.col)).isoformat()
     if _planted_today == today:  # already shown this session, no need to touch the disk
         return
     try:

@@ -57,7 +57,7 @@ class RestoreDefaultsTests(unittest.TestCase):
 
 class PaletteTests(unittest.TestCase):
     """The settings' colours on Anki's design system (2.1.55 and later) and on the older
-    palette (2.1.50 to 2.1.54), which has no var(), no aqt.props and no themed icons."""
+    palette (2.1.45 to 2.1.54), which has no var(), no aqt.props and no themed icons."""
 
     def setUp(self):
         self.was = (palette.theme_manager, palette.colors, sys.modules.get("aqt.props"))

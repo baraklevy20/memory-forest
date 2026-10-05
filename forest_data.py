@@ -14,7 +14,6 @@ script against a plain sqlite3 connection.
 from __future__ import annotations
 
 import hashlib
-from statistics import median
 
 try:
     from .memory import retrievability, stability
@@ -24,6 +23,15 @@ except ImportError:  # tests and dev scripts import these files as top-level mod
     from memory import retrievability, stability
     from milestones import visitors
     from study_log import DAY_SECS, Rows, day_date, days_ago
+
+try:
+    from statistics import median
+except ImportError:  # the Anki builds before 2.1.50 do not bundle it
+    def median(values) -> float:
+        v = sorted(values)
+        mid = len(v) // 2
+        return v[mid] if len(v) % 2 else (v[mid - 1] + v[mid]) / 2
+
 
 MATURE_DAYS = 21
 OLD_DAYS = 180
