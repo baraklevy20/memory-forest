@@ -40,7 +40,7 @@ QPushButton {{ border: 1px solid {line}; border-radius: 7px; padding: 6px 10px; 
 QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
 QPushButton:checked {{ border: 2px solid {ring}; padding: 5px 9px; background: rgba(128, 128, 128, 0.16); font-weight: bold; }}
 """
-CITY_NOTE = "Live weather from Open-Meteo. Leave it empty to follow only your clock."
+CITY_NOTE = "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
 PHONE_NOTE = 'Adds a "Memory Forest" deck with one card that shows your forest. It updates when you sync. Untick to remove it.'
 ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
 CITY_MIN_W = 120  # points: the city field takes the rest of the real-sky row, but never less

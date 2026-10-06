@@ -33,20 +33,20 @@ AF.caption = function (root, data) {
   if (data.weatherError) {
     const lost = data.weatherError.startsWith('city not found');
     items.push([lost ? 'City not found' : 'Live weather unavailable', lost
-      ? "Open-Meteo does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+      ? "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
       : `The live weather could not be fetched (${data.weatherError}), so the scenery keeps its own weather for now.`]);
   }
   // the weather only when it is live; otherwise it is simply part of the preset
   if (m.source === 'real') {
     items.push([`Weather: ${WEATHER_NAMES[m.weather] || m.weather}${m.city ? ` in ${m.city}` : ''}${m.temp != null ? `, ${Math.round(m.temp)}°` : ''}`,
-      'Live weather from Open-Meteo.']);
+      'Live weather from MET Norway (CC BY 4.0).']);
   }
   // an item's click is a message for Anki, or something done right here on the page
   root.afCaptionActs = items.map(([, , cmd]) => typeof cmd === 'function' ? cmd : null);
   root.querySelector('.af-meta').innerHTML = items.map(([t, tip, cmd], i) => typeof cmd === 'function'
     ? `<span class="af-info af-click" data-tip="${esc(tip)}" data-act="${i}">${esc(t)}</span>`
     : `<span class="af-info${cmd && canBrowse() ? ' af-click' : ''}" data-tip="${esc(tip)}"${cmd ? ` data-cmd="${esc(cmd)}"` : ''}>${esc(t)}</span>`).join(' · ')
-    + (data.credit ? ' <span class="af-credit">· weather by Open-Meteo</span>' : '');
+    + (data.credit ? ' <span class="af-credit">· weather by MET Norway</span>' : '');
 };
 /* caption hints use the forest's own tooltip (Anki's webview doesn't show title tooltips) */
 AF.captionTips = function (root) {

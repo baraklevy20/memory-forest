@@ -101,6 +101,12 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(self.payload()["sun"]["rise"], "06:30")
         self.assertEqual(self.payload(real=REAL)["sun"], {"rise": "06:52", "set": "19:14", "twilight": 60})
 
+    def test_the_suns_hours_are_on_this_computers_clock(self):
+        # live weather keeps them in UTC; the phone compares them with its own clock
+        rise = dt.datetime(2026, 9, 19, 4, 46, tzinfo=dt.timezone.utc)
+        real = dict(REAL, sunrise=rise.isoformat(), sunset="2026-09-19T17:14+00:00")
+        self.assertEqual(self.payload(real=real)["sun"]["rise"], rise.astimezone().strftime("%H:%M"))
+
     def test_the_encoded_json_holds_nothing_html_could_take_for_markup(self):
         data = dict(self.payload(), journal="<b>Tom & Jerry</b> — ✓")
         text = phone_data.encode(data)

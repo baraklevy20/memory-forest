@@ -24,7 +24,7 @@ events.py        the events' rules: Nature's strikes and fire, big days, tall gr
 fake_forest.py   the made-up test forest, for debug (no aqt)
 scene.py         environment/weather/time selection, moon phase, night-sky events
 journal.py       the one line under the forest, on the days there is something to say
-weather.py       Open-Meteo geocoding + forecast, JSON cache in user_files/
+weather.py       Photon geocoding + MET Norway forecast, sun times, JSON cache in user_files/
 store.py         the small JSON files under user_files/, written atomically
 catalog.py       what this copy can draw, read from the files under web/, and the
                  scripts every forest loads, in order
@@ -74,7 +74,7 @@ Everything runs through npm from this folder, so there is one place to look:
 
 ```
 npm install
-npm run build          # the .ankiaddon to upload
+npm run build          # the .ankiaddon to upload, in dist/ (gitignored)
 npm test               # the unit tests, no Anki needed
 npm run lint           # eslint over the JavaScript, ruff over the Python
 npm run check          # lint, tests and the full render sweep: what to run before tagging

@@ -1,105 +1,239 @@
-"""Real-world weather from Open-Meteo (free, no API key, CC-BY 4.0).
+"""Real-world weather from MET Norway (free, no account, CC BY 4.0), for a city found with
+Photon (OpenStreetMap data, free, no account).
 
 Only used when the user types a city into the config. Network calls happen on a
-background thread (see __init__.py); everything here is plain Python so it can be
+background thread (see live_weather.py); everything here is plain Python so it can be
 unit-tested without Anki.
+
+MET's forecast has no time zone, sunrise or past rain, so the rest is worked out here:
+sunrise and sunset from the sun's position, and the rain of the last hours from the
+hourly forecasts already fetched. Everything time-related is kept in UTC.
 """
 
 from __future__ import annotations
 
+import datetime as _dt
+import email.utils
 import json
+import math
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
+from typing import NamedTuple
 
 try:
     from .store import load_json, save_json
 except ImportError:  # tests and dev scripts import this file as a top-level module
     from store import load_json, save_json
 
-GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name={name}"
-FORECAST_URL = (
-    "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-    "&current=weather_code,is_day,temperature_2m,precipitation,wind_speed_10m"
-    "&hourly=precipitation&daily=sunrise,sunset&past_days=1&forecast_days=1&timezone=auto"
-)
-USER_AGENT = "MemoryForest/1.0 (Anki add-on)"
-MAX_AGE_SECS = 45 * 60
-RETRY_AFTER_FAIL_SECS = 10 * 60
-# Past this, the cache is not weather any more: it also carries the sunrise, sunset and
-# local time of the moment it was fetched, which would freeze the forest at that hour.
+# Places only, a few of them: Photon files some big cities as districts, which its city
+# layer leaves out (Mexico City, Lima and Auckland came back as other places)
+GEOCODE_URL = "https://photon.komoot.io/api/?limit=6&lang=en&osm_tag=place&q={name}"
+TOWNS = ("city", "town", "village", "hamlet", "municipality")
+REGIONS = ("state", "province", "county", "region", "country")
+# MET asks for at most 4 decimals, so nearby users share its cache
+FORECAST_URL = "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat:.4f}&lon={lon:.4f}"
+# MET and Photon both ask to be told who is calling, and how to reach them
+USER_AGENT = "MemoryForest/1.0 (Anki add-on; https://github.com/baraklevy20/memory-forest)"
+CACHE_VERSION = 2  # caches from before it have none: they are refetched
+# How long a forecast is kept when MET's reply has no Expires we can read. MET's Expires
+# (about 20-30 minutes after each fetch) always rules when it has one.
+MAX_AGE_SECS = 15 * 60
+# After a failure: with no weather to show, try again soon, then less often; while the last
+# weather still shows, there is no hurry. MET's Expires still comes first.
+RETRY_STEPS_SECS = (60, 2 * 60, 5 * 60, 10 * 60)
+RETRY_WHILE_SHOWING_SECS = 10 * 60
+# A dropped connection or a slow server is often gone a moment later: one more try, then
+# the steps above
+RETRY_PAUSE_SECS = 2
+# Past this, the cache is not weather any more: offline for hours, the preset's own
+# weather is more honest than an old sky.
 STALE_SECS = 6 * 3600
-WINDY_KMH = 30
+# Beaufort 6, "strong breeze": large branches move. MET's 10 m wind reads high, so a
+# lower line would call too many ordinary days windy.
+WINDY_KMH = 39
 # Clear or cloudy counts as "after the rain" when more than this fell in the last hours.
 RECENT_RAIN_HOURS = 2
 RECENT_RAIN_MM = 0.1
-HTTP_TIMEOUT_SECS = 6
+# Hourly rain kept from the forecasts, either side of now: the past for "after the rain",
+# the future so a forecast fetched before going offline still covers the hours after.
+RAIN_KEEP_HOURS = 24
+HTTP_TIMEOUT_SECS = 15  # MET answers in under a second, but this runs in the background
+# Photon's public server can take 10 s and more; a city is looked up once, in the background
+GEOCODE_TIMEOUT_SECS = 30
 MAX_ERROR_CHARS = 200  # of an error message kept in the cache, for the settings dialog
+SUN_ALTITUDE = -0.833  # degrees: the sun's top edge on the horizon, through the air
+HOUR = _dt.timedelta(hours=1)
 
 
-def map_wmo(code: int) -> str:
-    """WMO weather interpretation code → forest weather."""
-    if code in (0, 1):
-        return "clear"
-    if code in (2, 3):
-        return "cloudy"
-    if code in (45, 48):
-        return "fog"
-    if 51 <= code <= 67 or 80 <= code <= 82:
-        return "rain"
-    if 71 <= code <= 77 or code in (85, 86):
-        return "snow"
-    if 95 <= code <= 99:
+class Reply(NamedTuple):
+    status: int  # 200, or 304 when nothing changed since If-Modified-Since
+    body: dict | None
+    headers: dict
+
+
+def map_symbol(symbol: str) -> str:
+    """MET symbol code (e.g. "lightrainshowers_day") → forest weather."""
+    s = symbol.split("_")[0]
+    if "thunder" in s:
         return "storm"
+    if "snow" in s:
+        return "snow"
+    if "rain" in s or "sleet" in s or "drizzle" in s:
+        return "rain"
+    if s == "fog":
+        return "fog"
+    if s in ("clearsky", "fair"):
+        return "clear"
     return "cloudy"
 
 
-def parse_forecast(js: dict) -> dict:
-    """Pick out what the forest uses from an Open-Meteo forecast response."""
-    cur = js["current"]
-    local_time = cur["time"]  # ISO in the location's timezone, e.g. "2026-09-19T18:45"
-    weather = map_wmo(int(cur.get("weather_code", 0)))
+def _utc(now: float) -> _dt.datetime:
+    return _dt.datetime.fromtimestamp(now, _dt.timezone.utc)
 
-    hourly = js.get("hourly") or {}
-    times, precip = hourly.get("time") or [], hourly.get("precipitation") or []
-    past = [p or 0 for t, p in zip(times, precip) if t <= local_time][-RECENT_RAIN_HOURS:]
-    rained_recently = sum(past) > RECENT_RAIN_MM
-    if weather in ("clear", "cloudy") and rained_recently and cur.get("is_day"):
-        weather = "after_rain"
 
-    today = local_time[:10]
-    daily = js.get("daily") or {}
-    sunrise = sunset = None
-    for d, rise, set_ in zip(daily.get("time") or [], daily.get("sunrise") or [], daily.get("sunset") or []):
-        if d == today:
-            sunrise, sunset = rise, set_
-    wind = float(cur.get("wind_speed_10m") or 0)
+def _hour_key(when: _dt.datetime) -> str:
+    return when.strftime("%Y-%m-%dT%H:00:00Z")
+
+
+def parse_forecast(js: dict, now: float | None = None) -> tuple:
+    """(the weather now, {UTC hour: mm of rain in it}) from a MET compact forecast."""
+    series = js["properties"]["timeseries"]
+    stamp = _hour_key(_utc(now or time.time()))
+    # the hour now, or the first one when the forecast starts later
+    cur = next((e for e in reversed(series) if e["time"] <= stamp), series[0])
+    data = cur["data"]
+    nxt = data.get("next_1_hours") or data.get("next_6_hours") or {}
+    symbol = (nxt.get("summary") or {}).get("symbol_code", "cloudy")
+    details = data["instant"]["details"]
+    wind = round(float(details.get("wind_speed") or 0) * 3.6, 1)  # m/s → km/h
+    weather = map_symbol(symbol)
+    rain = {}
+    for e in series:
+        one = e["data"].get("next_1_hours")
+        if one and "precipitation_amount" in (one.get("details") or {}):
+            rain[e["time"]] = one["details"]["precipitation_amount"]
     return {
-        "weather": weather,
-        "is_day": bool(cur.get("is_day")),
-        "temp": cur.get("temperature_2m"),
+        "sky": weather,  # before "after the rain", which depends on the hour it is read
+        "symbol": symbol,
+        "temp": details.get("air_temperature"),
         "wind": wind,
         "windy": wind >= WINDY_KMH and weather != "fog",
-        "local_time": local_time,
-        "utc_offset": js.get("utc_offset_seconds"),  # so the city's clock can be read later, not frozen at the fetch
-        "sunrise": sunrise,
-        "sunset": sunset,
-    }
+    }, rain
 
 
-def _get_json(url: str, timeout: float = HTTP_TIMEOUT_SECS) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+def sun_times(lat: float, lon: float, now: float) -> dict:
+    """Sunrise and sunset (UTC ISO) on the place's solar day around `now`, from the
+    sunrise equation (NOAA's, to about a minute). `polar` is "day" or "night" when the
+    sun does not cross the horizon that day, and the times are then None."""
+    # the place's own day, by the sun: it turns at solar midnight, not at UTC's
+    day = (_utc(now) + _dt.timedelta(hours=lon / 15)).date()
+    n = (day - _dt.date(2000, 1, 1)).days
+    j_star = n - lon / 360
+    m = (357.5291 + 0.98560028 * j_star) % 360
+    rm = math.radians(m)
+    c = 1.9148 * math.sin(rm) + 0.02 * math.sin(2 * rm) + 0.0003 * math.sin(3 * rm)
+    ecl = math.radians((m + c + 180 + 102.9372) % 360)
+    transit = 2451545.0 + j_star + 0.0053 * math.sin(rm) - 0.0069 * math.sin(2 * ecl)
+    sin_d = math.sin(ecl) * math.sin(math.radians(23.4397))
+    cos_d = math.cos(math.asin(sin_d))
+    phi = math.radians(lat)
+    cos_w = (math.sin(math.radians(SUN_ALTITUDE)) - math.sin(phi) * sin_d) / (math.cos(phi) * cos_d)
+    if cos_w < -1:
+        return {"sunrise": None, "sunset": None, "polar": "day"}
+    if cos_w > 1:
+        return {"sunrise": None, "sunset": None, "polar": "night"}
+    half = math.degrees(math.acos(cos_w)) / 360
+
+    def iso(jd: float) -> str:
+        return _utc((jd - 2440587.5) * 86400).isoformat(timespec="minutes")
+
+    return {"sunrise": iso(transit - half), "sunset": iso(transit + half), "polar": None}
 
 
-def geocode(city: str, get_json=_get_json) -> dict | None:
-    js = get_json(GEOCODE_URL.format(name=urllib.parse.quote(city.strip())))
-    results = js.get("results") or []
-    if not results:
+def is_day(sun: dict, now: float) -> bool:
+    if sun["polar"]:
+        return sun["polar"] == "day"
+    t = _utc(now)
+    return _dt.datetime.fromisoformat(sun["sunrise"]) <= t < _dt.datetime.fromisoformat(sun["sunset"])
+
+
+def rained_recently(rain: dict, now: float) -> bool:
+    """More than a trace fell in the last whole hours before this one."""
+    hour = _utc(now).replace(minute=0, second=0, microsecond=0)
+    return sum(rain.get(_hour_key(hour - k * HOUR)) or 0 for k in range(1, RECENT_RAIN_HOURS + 1)) > RECENT_RAIN_MM
+
+
+def resolve(sky: dict, rain: dict, place: dict, now: float) -> dict:
+    """The weather as the forest uses it at `now`: the fetched sky, the sun's times for the
+    place, and "after the rain" when it has just stopped in daylight."""
+    sun = sun_times(place["lat"], place["lon"], now)
+    day = is_day(sun, now)
+    weather = sky["sky"]
+    if weather in ("clear", "cloudy") and day and rained_recently(rain, now):
+        weather = "after_rain"
+    return {**sky, **sun, "weather": weather, "is_day": day}
+
+
+def _merge_rain(old: dict, new: dict, now: float) -> dict:
+    """New hours over old ones, kept within RAIN_KEEP_HOURS of now."""
+    t = _utc(now)
+    lo, hi = _hour_key(t - RAIN_KEEP_HOURS * HOUR), _hour_key(t + RAIN_KEEP_HOURS * HOUR)
+    return {h: mm for h, mm in sorted({**old, **new}.items()) if lo <= h <= hi}
+
+
+def _expiry(headers: dict) -> float:
+    try:
+        return email.utils.parsedate_to_datetime(headers.get("Expires", "")).timestamp()
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _get(url: str, headers: dict | None = None, timeout: float = HTTP_TIMEOUT_SECS) -> Reply:
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, **(headers or {})})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return Reply(resp.status, json.loads(resp.read().decode("utf-8")), dict(resp.headers))
+    except urllib.error.HTTPError as e:
+        if e.code == 304:
+            return Reply(304, None, dict(e.headers))
+        raise
+
+
+def _passing(e: Exception) -> bool:
+    """A failure worth one more try straight away: the network or the server, not the request."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code >= 500
+    return isinstance(e, OSError)  # timeouts and dropped connections
+
+
+def _twice(fetch, sleep=time.sleep):
+    try:
+        return fetch()
+    except Exception as e:
+        if not _passing(e):
+            raise
+        sleep(RETRY_PAUSE_SECS)
+        return fetch()
+
+
+def geocode(city: str, get=_get) -> dict | None:
+    js = get(GEOCODE_URL.format(name=urllib.parse.quote(city.strip())), timeout=GEOCODE_TIMEOUT_SECS).body or {}
+    # a neighbourhood, suburb or island of the same name is not where anyone means
+    feats = [f for f in js.get("features") or [] if (f.get("properties") or {}).get("osm_value") in TOWNS + REGIONS]
+    if not feats:
         return None
-    r = results[0]
-    return {"name": r.get("name") or city, "lat": r["latitude"], "lon": r["longitude"], "country": r.get("country_code")}
+    best = feats[0]
+    if best["properties"]["osm_value"] in REGIONS:
+        # a city named after its state ranks under it (São Paulo, Mexico City): the city
+        # is the one meant, and the state's middle can be hundreds of km from it
+        key = (best["properties"].get("name"), best["properties"].get("countrycode"))
+        best = next((f for f in feats[1:] if f["properties"]["osm_value"] in TOWNS
+                     and (f["properties"].get("name"), f["properties"].get("countrycode")) == key), best)
+    props = best["properties"]
+    lon, lat = best["geometry"]["coordinates"]
+    return {"name": props.get("name") or city, "lat": lat, "lon": lon, "country": props.get("countrycode")}
 
 
 class WeatherCache:
@@ -107,56 +241,76 @@ class WeatherCache:
 
     def __init__(self, path: str):
         self.path = path
+        self.sleep = time.sleep
         self._state = self._load()
 
     def _load(self) -> dict:
-        return load_json(self.path)
+        state = load_json(self.path)
+        return state if state.get("v") == CACHE_VERSION else {}
 
     def _save(self) -> None:
         save_json(self.path, self._state)
 
+    def _ours(self, city: str) -> bool:
+        return self._state.get("city") == city.strip().lower()
+
     def current(self, city: str, now: float | None = None) -> dict | None:
         """Last known weather for `city`, or None if there is none recent enough to use."""
-        if self._state.get("city") != city.strip().lower():
+        now = now or time.time()
+        if not self._ours(city) or not self._state.get("weather"):
             return None
-        if (now or time.time()) - self._state.get("fetched_at", 0) > STALE_SECS:
-            return None  # offline for hours: the preset's own weather and the real clock are more honest
-        return self._state.get("weather")
+        if now - self._state.get("fetched_at", 0) > STALE_SECS:
+            return None  # offline for hours: the preset's own weather is more honest
+        return resolve(self._state["weather"], self._state.get("rain") or {}, self._state["place"], now)
 
     def failing(self, city: str) -> str:
         """The last error for `city`, while it is the reason there is no weather."""
-        if self._state.get("city") != city.strip().lower() or not self._state.get("failed_at"):
+        if not self._ours(city) or not self._state.get("failed_at"):
             return ""
-        return str(self._state.get("error") or "could not reach Open-Meteo")
+        return str(self._state.get("error") or "could not reach MET Norway")
 
     def place(self, city: str) -> dict | None:
-        if self._state.get("city") != city.strip().lower():
-            return None
-        return self._state.get("place")
+        return self._state.get("place") if self._ours(city) else None
 
     def needs_refresh(self, city: str, now: float | None = None) -> bool:
         now = now or time.time()
-        if self._state.get("city") != city.strip().lower():
+        if not self._ours(city):
             return True
-        if self._state.get("failed_at") and now - self._state["failed_at"] < RETRY_AFTER_FAIL_SECS:
+        expires = self._state.get("expires") or 0
+        if now < expires:  # MET asks never to come back before its Expires, failure or not
             return False
-        return now - self._state.get("fetched_at", 0) > MAX_AGE_SECS
+        if self._state.get("failed_at"):
+            fails = self._state.get("fails") or 1
+            wait = RETRY_WHILE_SHOWING_SECS if self.current(city, now) else RETRY_STEPS_SECS[min(fails, len(RETRY_STEPS_SECS)) - 1]
+            return now - self._state["failed_at"] >= wait
+        return bool(expires) or now - self._state.get("fetched_at", 0) > MAX_AGE_SECS
 
-    def refresh(self, city: str, get_json=_get_json, now: float | None = None) -> dict | None:
+    def refresh(self, city: str, get=_get, now: float | None = None) -> dict | None:
         """Blocking network refresh; call from a background thread. Never raises."""
         key = city.strip().lower()
         now = now or time.time()
+        prev = self._state if self._ours(city) else {}
+        place = prev.get("place")
         try:
-            place = self._state.get("place") if self._state.get("city") == key else None
             if not place:
-                place = geocode(city, get_json)
+                place = _twice(lambda: geocode(city, get), self.sleep)
                 if not place:
                     raise ValueError(f"city not found: {city}")
-            weather = parse_forecast(get_json(FORECAST_URL.format(lat=place["lat"], lon=place["lon"])))
-            self._state = {"city": key, "place": place, "weather": weather, "fetched_at": now}
+            headers = {"If-Modified-Since": prev["modified"]} if prev.get("modified") and prev.get("weather") else {}
+            reply = _twice(lambda: get(FORECAST_URL.format(lat=place["lat"], lon=place["lon"]), headers), self.sleep)
+            state = {"v": CACHE_VERSION, "city": key, "place": place, "fetched_at": now,
+                     "expires": _expiry(reply.headers), "modified": reply.headers.get("Last-Modified") or prev.get("modified")}
+            if reply.status == 304:  # nothing new: the forecast we hold is still MET's latest
+                sky, rain = prev["weather"], prev.get("rain") or {}
+            else:
+                sky, rain = parse_forecast(reply.body, now)
+                rain = _merge_rain(prev.get("rain") or {}, rain, now)
+            self._state = {**state, "weather": sky, "rain": rain}
+            weather = resolve(sky, rain, place, now)
         except Exception as e:  # offline, bad city, API change: fall back quietly
-            prev = self._state if self._state.get("city") == key else {"city": key}
-            self._state = {**prev, "failed_at": now, "error": str(e)[:MAX_ERROR_CHARS]}
+            # the place is kept, though the forecast failed: Photon is the slow one to ask again
+            self._state = {**(prev or {"v": CACHE_VERSION, "city": key}), **({"place": place} if place else {}),
+                           "failed_at": now, "fails": (prev.get("fails") or 0) + 1, "error": str(e)[:MAX_ERROR_CHARS]}
             weather = None
         try:
             self._save()

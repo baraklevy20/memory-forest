@@ -83,10 +83,14 @@ def part_name(rel: str, text: bytes) -> str:
 
 
 def _hhmm(iso: str | None, fallback: _dt.time) -> str:
+    """The hour of a sunrise or sunset on this computer's clock, which the phone shares."""
     try:
-        return _dt.datetime.fromisoformat(iso).strftime("%H:%M") if iso else fallback.strftime("%H:%M")
+        when = _dt.datetime.fromisoformat(iso) if iso else None
     except ValueError:
+        when = None
+    if when is None:
         return fallback.strftime("%H:%M")
+    return (when.astimezone() if when.tzinfo else when).strftime("%H:%M")
 
 
 def schedule(cfg: dict, now: _dt.datetime, real: dict | None = None, place: dict | None = None,

@@ -31,17 +31,34 @@ class SceneTests(unittest.TestCase):
         self.assertEqual((m["special"], m["time"]), ("lanterns", "dusk"))
 
     def test_real_weather_used_when_auto(self):
-        real = {"weather": "fog", "local_time": "2026-09-19T06:40", "sunrise": "2026-09-19T06:58", "sunset": "2026-09-19T19:12", "windy": False, "temp": 9}
+        # the city's sunrise is 18 minutes from now (sun times are UTC instants)
+        utc = self.NOW.astimezone(dt.timezone.utc)
+        real = {"weather": "fog", "sunrise": (utc + dt.timedelta(minutes=18)).isoformat(),
+                "sunset": (utc + dt.timedelta(hours=12)).isoformat(), "polar": None, "windy": False, "temp": 9}
         m = scene.choose_mood({"weather": "auto", "time_of_day": "auto"}, self.NOW, real, {"name": "Berlin", "lat": 52.5})
         self.assertEqual((m["weather"], m["time"], m["source"], m["city"]), ("fog", "dawn", "real", "Berlin"))
 
     def test_the_real_sky_keeps_time_after_the_weather_was_fetched(self):
-        # fetched at 06:40 in a UTC+2 city; four hours later it must be day there, not dawn
-        real = {"weather": "clear", "local_time": "2026-09-19T06:40", "utc_offset": 7200, "sunrise": "2026-09-19T06:58",
-                "sunset": "2026-09-19T19:12", "windy": False}
+        # fetched at 06:40 in a UTC+2 city, sunrise 06:58 there; four hours later it must be day there, not dawn
+        real = {"weather": "clear", "sunrise": "2026-09-19T04:58+00:00", "sunset": "2026-09-19T17:12+00:00",
+                "polar": None, "windy": False}
         later = dt.datetime(2026, 9, 19, 8, 40, tzinfo=dt.timezone.utc)  # 10:40 in the city
         m = scene.choose_mood({"weather": "auto", "time_of_day": "auto"}, later, real)
         self.assertEqual(m["time"], "day")
+
+    def test_a_far_away_citys_day_is_its_own(self):
+        # 15:00 UTC is midnight in Tokyo, whatever this computer's time zone
+        real = {"weather": "clear", "sunrise": "2026-09-18T20:26+00:00", "sunset": "2026-09-19T08:44+00:00",
+                "polar": None, "windy": False}
+        now = dt.datetime(2026, 9, 19, 15, 0, tzinfo=dt.timezone.utc)
+        self.assertEqual(scene.choose_mood({"weather": "auto", "time_of_day": "auto"}, now, real)["time"], "night")
+        self.assertEqual(scene.choose_mood({"weather": "auto", "time_of_day": "auto"},
+                                           now - dt.timedelta(hours=12), real)["time"], "day")  # noon there
+
+    def test_midnight_sun_and_polar_night(self):
+        for polar, time in (("day", "day"), ("night", "night")):
+            real = {"weather": "clear", "sunrise": None, "sunset": None, "polar": polar, "windy": False}
+            self.assertEqual(scene.choose_mood({"weather": "auto", "time_of_day": "auto"}, self.NOW, real)["time"], time)
 
     def test_no_city_keeps_the_presets_own_weather(self):
         # the real sky without a city follows only the clock; nothing is made up for the date

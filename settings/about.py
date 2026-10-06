@@ -29,7 +29,8 @@ GOATS = os.path.join(ADDON_DIR, "goats.json")
 ANKIWEB_REVIEW = "https://ankiweb.net/shared/review/1255432496"
 ISSUES = "https://github.com/baraklevy20/memory-forest/issues"
 RELEASES = "https://github.com/baraklevy20/memory-forest/releases"
-OPEN_METEO = "https://open-meteo.com/"
+MET_NORWAY = "https://api.met.no/"
+OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
 
 HOW = ("One tree for every day you learn new cards. Today's seedling is at the front, the oldest "
        "tree at the back. Trees grow as those cards settle into memory and get a few yellow "
@@ -41,7 +42,7 @@ FREE_LINE = (f'New scenery arrives in Memory Forest Plus first, and comes to thi
              f'<a href="{PATREON}">Join on Patreon</a>')
 # the pixel heart follows this one, as in the General tab's thank-you
 PLUS_LINE = f'You\'re part of this: thank you for supporting it on <a href="{PATREON}">Patreon</a>'
-CREDITS = f'Made by Barak Levy · Weather from <a href="{OPEN_METEO}">Open-Meteo</a> · MIT licence'
+CREDITS = f'Made by Barak Levy · Weather from <a href="{MET_NORWAY}">MET Norway</a> (CC BY 4.0) · Places © <a href="{OSM_COPYRIGHT}">OpenStreetMap contributors</a> · MIT licence'
 
 TITLE_STYLE = "font-size: 16px; font-weight: bold;"
 SMALL_PX = 11

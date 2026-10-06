@@ -92,7 +92,8 @@ Your computer draws this copy, so it updates whenever Anki syncs there.
   of your forest that your computer sends it (see On your phone).
 - Everything is computed on your computer from your own review history. The only thing
   that leaves it is your city's name, and only if you turn on the real weather: it is sent
-  to [Open-Meteo](https://open-meteo.com) (free, no account) to look up the forecast. The
+  to [Photon](https://photon.komoot.io) (OpenStreetMap, free, no account) to find the place,
+  and its coordinates to [MET Norway](https://api.met.no) (free, no account) for the forecast. The
   copy of your forest for your phone goes through your own AnkiWeb sync, like any card.
 
 ## Support

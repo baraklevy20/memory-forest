@@ -78,7 +78,7 @@ def time_of_day(now: _dt.datetime, sunrise: _dt.datetime | None = None, sunset: 
     return "night"
 
 
-def _parse_local(iso: str | None) -> _dt.datetime | None:
+def _parse_iso(iso: str | None) -> _dt.datetime | None:
     try:
         return _dt.datetime.fromisoformat(iso) if iso else None
     except ValueError:
@@ -110,18 +110,17 @@ def choose_mood(cfg: dict, now: _dt.datetime, real: dict | None = None, place: d
     env_cfg, weather_cfg, time_cfg = setting("environment", "environment"), setting("weather", "weather"), setting("time_of_day", "time")
     landscape, landmark = setting("landscape", "landscape"), setting("landmark", "landmark")
 
-    local_now, sunrise, sunset = now, None, None
+    clock, sunrise, sunset, polar = now, None, None, None
     use_real = real is not None and weather_cfg == "auto"
     if use_real:
-        # the city's clock now: our own clock moved to its time zone. The time the
-        # weather was fetched is only a fallback, for a cache from before the offset.
-        offset = real.get("utc_offset")
-        if isinstance(offset, (int, float)):
-            aware = now if now.tzinfo else now.astimezone()
-            local_now = (aware.astimezone(_dt.timezone.utc) + _dt.timedelta(seconds=offset)).replace(tzinfo=None)
+        # the city's sunrise and sunset are instants (UTC), so the city's own clock is never
+        # needed: our clock, as an instant too, says where it is in the city's day
+        sunrise, sunset = _parse_iso(real.get("sunrise")), _parse_iso(real.get("sunset"))
+        polar = real.get("polar")
+        if sunrise and sunset and sunrise.tzinfo:
+            clock = (now if now.tzinfo else now.astimezone()).astimezone(_dt.timezone.utc)
         else:
-            local_now = _parse_local(real.get("local_time")) or now
-        sunrise, sunset = _parse_local(real.get("sunrise")), _parse_local(real.get("sunset"))
+            sunrise = sunset = None
 
     if weather_cfg in WEATHERS:
         weather, source = weather_cfg, "manual"
@@ -131,7 +130,12 @@ def choose_mood(cfg: dict, now: _dt.datetime, real: dict | None = None, place: d
         # no live weather (no city, or one that can't be found): the preset keeps its own
         weather, source = preset_weather(cfg, today, base), "preset"
 
-    time = time_cfg if time_cfg in TIMES else time_of_day(local_now, sunrise, sunset)
+    if time_cfg in TIMES:
+        time = time_cfg
+    elif polar:  # midnight sun, or polar night: the sun does not cross the horizon today
+        time = "day" if polar == "day" else "night"
+    else:
+        time = time_of_day(clock, sunrise, sunset)
 
     environment = env_cfg if env_cfg in ENVIRONMENTS else base.environment
 
