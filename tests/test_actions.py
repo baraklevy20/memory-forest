@@ -53,14 +53,21 @@ class ActionTests(unittest.TestCase):
     def test_the_deck_list_reloads_when_the_phone_s_deck_comes_or_goes(self):
         deck_list = mock.Mock()
         with mock.patch.object(mw, "deckBrowser", deck_list, create=True), mock.patch.object(actions, "refresh") as redraw:
-            with mock.patch.object(actions, "follow_setting", return_value=True):
-                actions.settings_changed()
+            with mock.patch.object(actions, "switch", return_value=True) as switch:
+                actions.phone_switched(False)
+            switch.assert_called_once_with(False)
             deck_list.refresh.assert_called_once()
             redraw.assert_not_called()
-            with mock.patch.object(actions, "follow_setting", return_value=False):
-                actions.settings_changed()  # any other change: only the forest is swapped
+            with mock.patch.object(actions, "switch", return_value=False):
+                actions.phone_switched(True)  # it was on already: only the forest is swapped
             redraw.assert_called_once()
             deck_list.refresh.assert_called_once()
+
+    def test_any_setting_brings_the_phone_s_forest_up_to_date(self):
+        with mock.patch.object(actions, "refresh") as redraw, mock.patch.object(actions, "publish_for_phone") as publish:
+            actions.settings_changed()
+        publish.assert_called_once()
+        redraw.assert_called_once()
 
     def test_the_gear_menu_leaves_a_deck_out_and_brings_it_back(self):
         menu = Menu()

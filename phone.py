@@ -8,10 +8,11 @@ collection's media (phone_data.bundle). The note's card sits new in a deck of it
 study that deck to look at the forest, and leave without answering. A card that was
 answered anyway is made new again, and the deck never counts towards the forest.
 
-Nothing is created until the setting is on, and turning it off takes the deck and note
-away again (remove); only the empty note type stays, since removing one forces a full sync.
-The setting lives in the collection (state.phone_on): one per profile, synced with it, so
-turned off on one computer, the next sync takes the deck away on the others too.
+The note is the setting (state.phone_on): ticking it makes the note and its deck (switch),
+unticking takes them away again (remove), and nothing else ever makes one, so a sync only
+ever writes into a note that is there. Being part of the collection, it is one per profile,
+and a sync carries it to the other computers, removal included. Only the empty note type
+stays, since removing one forces a full sync.
 """
 
 from __future__ import annotations
@@ -25,7 +26,18 @@ import traceback
 from aqt import mw
 
 from . import events_state, live_weather, payload, phone_data
-from .state import PHONE_DECK, PHONE_NOTETYPE, config, follow_season, log, phone_on, remember_phone_cards, today
+from .state import (
+    OLD_PHONE_SWITCH,
+    PHONE_DECK,
+    PHONE_NOTETYPE,
+    config,
+    follow_season,
+    log,
+    phone_note_ids,
+    phone_on,
+    remember_phone_cards,
+    today,
+)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Plus's package (editions.json) and name as Anki shows it, and this folder's package in development
@@ -100,9 +112,10 @@ def _is_plus(folder: str, meta=None) -> bool:
 def steps_aside() -> bool:
     """Whether this copy leaves the phone to Memory Forest Plus: both editions write the same
     note, and each would take away the other's files and write it again at every sync, so
-    with both installed only Plus does, whenever it is enabled: the setting is the
-    collection's, so both editions see the same. Only the base edition steps aside (Plus and a copy in development never do), and if the
-    other add-on can't be found out, this one writes as it always has."""
+    with both installed only Plus does, whenever it is enabled. Either can still tick or untick
+    the setting, the note being the same for both. Only the base edition steps aside (Plus and
+    a copy in development never do), and if the other add-on can't be found out, this one
+    writes as it always has."""
     if _manifest(HERE).get("package") in (PLUS_PACKAGE, DEV_PACKAGE):
         return False
     try:
@@ -181,34 +194,37 @@ def _options(col, did: int) -> None:
 
 
 def _note(col):
-    """The note that carries the forest, made (with its note type and deck) if it is missing.
-    Its card may have been moved to another deck since, or borrowed by a filtered one: the
-    options only ever go to the add-on's own deck, and that deck is not made again. Two
-    computers that each made a note before they synced leave two: the oldest stays, on every
-    computer alike, and the others go."""
+    """The note that carries the forest, or None when the setting is off. Its card may have
+    been moved to another deck since, or borrowed by a filtered one: the options only ever go
+    to the add-on's own deck, and that deck is not made again. Two computers that each made a
+    note before they synced leave two: the oldest stays, on every computer alike, and the
+    others go."""
+    nids = phone_note_ids(col)
+    if not nids:
+        return None
     types_ = _notetype(col)
-    mids = [m["id"] for m in types_]
-    nids = col.db.list(f"select id from notes where mid in ({','.join('?' * len(mids))}) order by id", *mids)
-    if nids:
-        if len(types_) > 1:  # (state.phone_cards finds the cards by the note type's name alone)
-            remember_phone_cards(col.card_ids_of_note(nids[0]))
-        if len(nids) > 1:
-            extra = nids[1:]
-            remember_phone_cards([cid for nid in extra for cid in col.card_ids_of_note(nid)])
-            col.remove_notes(extra)
-            log(f"took away {len(extra)} extra note{'s' if len(extra) != 1 else ''} for your phone, made on another computer")
-        note = col.get_note(nids[0])
-        mine = col.decks.id_for_name(DECK)
-        if mine:
-            _options(col, mine)
-        return note
+    if len(types_) > 1:  # (state.phone_cards finds the cards by the note type's name alone)
+        remember_phone_cards(col.card_ids_of_note(nids[0]))
+    if len(nids) > 1:
+        extra = nids[1:]
+        remember_phone_cards([cid for nid in extra for cid in col.card_ids_of_note(nid)])
+        col.remove_notes(extra)
+        log(f"took away {len(extra)} extra note{'s' if len(extra) != 1 else ''} for your phone, made on another computer")
+    mine = col.decks.id_for_name(DECK)
+    if mine:
+        _options(col, mine)
+    return col.get_note(nids[0])
+
+
+def _make(col) -> None:
+    """The note, with its note type, deck and options: what turning the setting on makes."""
+    types_ = _notetype(col)
     note = col.new_note(types_[0])
     note["About"], note["Forest"] = ABOUT, ""
     did = col.decks.id(DECK)
     _options(col, did)
     col.add_note(note, did)
     log("made the note that takes the forest to your phone")
-    return note
 
 
 # each file's name in media (made from what is in it), worked out once a session and again
@@ -283,10 +299,11 @@ def remove() -> None:
     empty and out of the way. Anki keeps the reviews of the cards removed, so they are
     remembered, and those reviews go on being left out of your study (state.phone_cards).
     With nothing left to take away, it does nothing: it runs at every sync while the setting
-    is off."""
+    is off. A base edition stepping aside for Plus takes the note and deck away, the switch
+    being the same for both, but leaves the script to Plus, whose next sync takes it."""
     global _written
     col = mw.col
-    if col is None or steps_aside():
+    if col is None:
         return
     try:
         mids = [m["id"] for m in _same_named(col)]
@@ -305,7 +322,8 @@ def remove() -> None:
             gone = True
         folder = col.media.dir()
         _written = (None, frozenset())  # written again when the setting comes back on
-        scripts = [f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js")]
+        scripts = [] if steps_aside() else [
+            f for f in os.listdir(folder) if f.startswith(phone_data.SCRIPT_PREFIX) and f.endswith(".js")]
         if scripts:
             col.media.trash_files(scripts)
         if gone or scripts:
@@ -314,27 +332,37 @@ def remove() -> None:
         log("could not take the forest off your phone:\n" + traceback.format_exc())
 
 
-def follow_setting() -> bool:
-    """After the settings change: turned on, the note is made (or brought up to date) now
-    rather than at the next sync; turned off, the deck goes. True when the deck has just
-    come or gone."""
+def switch(on: bool) -> bool:
+    """The setting ticked or unticked: the note (and its deck) made and written now, or taken
+    away. True when the deck has just come or gone."""
     col = mw.col
     if col is None:
         return False
+    if col.get_config(OLD_PHONE_SWITCH, None) is not None:  # where older versions kept it
+        try:
+            col.remove_config(OLD_PHONE_SWITCH)
+        except Exception:
+            log("could not take away the old phone setting:\n" + traceback.format_exc())
     had = bool(col.decks.id_for_name(DECK))
-    publish()
+    if on and not phone_on(col):
+        try:
+            _make(col)
+        except Exception:
+            log("could not make the note that takes the forest to your phone:\n" + traceback.format_exc())
+        publish()
+    elif not on:
+        remove()
     return had != bool(col.decks.id_for_name(DECK))
 
 
 def after_sync() -> None:
-    """Once a sync has brought in the setting as the other computers left it."""
+    """Once a sync has brought in the reviews (and the note, or its removal) from elsewhere."""
     publish()
 
 
 def publish() -> None:
-    """Write the forest as it is now into the note, if the setting is on and it changed;
-    with the setting off, take away whatever is left of it (turned off on another computer,
-    say)."""
+    """Write the forest as it is now into the note, if there is one and it changed; with
+    none, take away whatever is left of it (its deck, its script)."""
     col = mw.col
     cfg = follow_season(config())  # before the forest is drawn for it, as the desktop's is
     if col is None or steps_aside():

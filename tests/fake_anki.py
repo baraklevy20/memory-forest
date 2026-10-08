@@ -109,6 +109,9 @@ class Col:
     def set_config(self, key, value):
         self.conf[key] = value
 
+    def remove_config(self, key):
+        self.conf.pop(key, None)
+
     def build_search_string(self, node) -> str:
         if node.negated is not None:
             return "-" + self.build_search_string(node.negated)

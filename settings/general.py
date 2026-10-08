@@ -25,7 +25,7 @@ from aqt.qt import (
 from .. import presets
 from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
-from ..state import ANIMATION_VALUES, animation_mode, debug_edition, edition_presets, phone_on, set_phone_on, today
+from ..state import ANIMATION_VALUES, animation_mode, debug_edition, edition_presets, phone_on, today
 from .palette import color
 from .patreon import banner
 from .scenery_picker import SceneryPicker, crisp
@@ -112,8 +112,8 @@ class GeneralTab(QWidget):
         self.planting = QCheckBox("Show a message when today's tree is planted")
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
         self.phone = QCheckBox("Show my forest on my phone")
-        # the collection's setting, not the add-on config's: it is written as it is ticked
-        # (the dialog then makes or takes away the deck), and put back on Cancel
+        # not the add-on config's: whether the collection holds the note that takes the forest
+        # to your phone (phone.py), made or taken away as it is ticked, and put back on Cancel
         self.phone_was = phone_on()
         self.phone.setChecked(self.phone_was)
         self.phone.toggled.connect(self._phone_toggled)
@@ -160,7 +160,8 @@ class GeneralTab(QWidget):
         v.addStretch(1)
 
     def _phone_toggled(self, on: bool) -> None:
-        set_phone_on(on)
+        from ..actions import phone_switched
+        phone_switched(on)
         dialog = self.window()
         if not self._watching_cancel and dialog is not self:
             dialog.rejected.connect(self._phone_put_back)
@@ -171,9 +172,8 @@ class GeneralTab(QWidget):
         config - but not when Restore defaults closed the dialog: that keeps it as it is."""
         if not getattr(self.window(), "_reverting", True) or phone_on() == self.phone_was:
             return
-        set_phone_on(self.phone_was)
-        from ..actions import settings_changed
-        settings_changed()
+        from ..actions import phone_switched
+        phone_switched(self.phone_was)
 
     def offer(self, day, look: dict, edition: str = "") -> None:
         """The presets there are on `day` (a seasonal one comes out on its first day), in

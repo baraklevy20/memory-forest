@@ -13,7 +13,8 @@
       ],
       "fixed": [
         "A deck's own forest now reacts to how you study, just like your main forest, and on Peaceful it no longer shows the signs of bad habits.",
-        "The forest shows again in the versions of Anki made for older computers."
+        "The forest shows again in the versions of Anki made for older computers.",
+        "Unticking \"Show my forest on my phone\" now stays unticked: a sync from your phone no longer turns it back on and makes the deck again."
       ]
     },
     {

@@ -13,14 +13,23 @@ from aqt.utils import tooltip
 
 from . import events_state, news, study_log
 from .panel import refresh
-from .phone import follow_setting
+from .phone import publish as publish_for_phone
+from .phone import switch
 from .state import MODULE, PHONE_NOTETYPE, config, excluded_decks, keeps_suspended, log, phone_decks, save_config
 
 
 def settings_changed() -> None:
-    """After any change to the config: make or take away the phone's deck, and redraw - the
-    whole deck list when that deck has just come or gone, so it shows (or goes) at once."""
-    if follow_setting() and mw.col is not None and mw.state == "deckBrowser":
+    """After any change to the config: the forest on your phone brought up to date, and the
+    forest redrawn."""
+    publish_for_phone()
+    refresh()
+
+
+def phone_switched(on: bool) -> None:
+    """"Show my forest on my phone" ticked or unticked: its deck made or taken away now, and
+    redrawn - the whole deck list when that deck has just come or gone, so it shows (or goes)
+    at once."""
+    if switch(on) and mw.col is not None and mw.state == "deckBrowser":
         mw.deckBrowser.refresh()
     else:
         refresh()

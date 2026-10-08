@@ -26,25 +26,36 @@ TEST_TREES_DEFAULT, TEST_TREES_MAX = 150, 5000
 OFF_VALUES = (False, "false", "False", 0, "0")
 # the note type of the note that takes the forest to your phone (phone.py)
 PHONE_NOTETYPE = "Memory Forest"
-# the "Show my forest on my phone" switch, in the collection's own config: one per profile,
-# synced with it, so every computer (and both editions) sees the same
-PHONE_SWITCH = "memoryForestPhone"
+# where older versions kept the "Show my forest on my phone" switch, in the collection's
+# config: no longer read (see phone_on), only taken away when the switch is next used
+OLD_PHONE_SWITCH = "memoryForestPhone"
 
 
 def config() -> dict:
     return mw.addonManager.getConfig(MODULE) or {}
 
 
+def phone_note_ids(col) -> list:
+    """The notes that carry the forest to your phone (phone.py), oldest first: those of every
+    note type of ours (two computers that each made one before they synced leave two)."""
+    try:
+        mids = [e.id for e in col.models.all_names_and_ids() if e.name == PHONE_NOTETYPE]
+    except AttributeError:  # an Anki without it: the one its name finds
+        m = col.models.by_name(PHONE_NOTETYPE)
+        mids = [m["id"]] if m else []
+    if not mids:
+        return []
+    return col.db.list(f"select id from notes where mid in ({','.join('?' * len(mids))}) order by id", *mids)
+
+
 def phone_on(col=None) -> bool:
-    """Whether the forest goes to the phone in this collection."""
+    """Whether the forest goes to the phone in this collection: whether its note is there.
+    The note is the switch, so every computer sees the same once synced, and turning it off
+    can't be undone by a sync. A config entry could: Anki syncs the collection's config as
+    one piece, from whichever device changed anything last, so a phone that had only opened
+    a deck since put its old "on" back over the "off" a computer had just synced."""
     col = mw.col if col is None else col
-    return col is not None and col.get_config(PHONE_SWITCH, False) not in OFF_VALUES
-
-
-def set_phone_on(on: bool, col=None) -> None:
-    col = mw.col if col is None else col
-    if col is not None:
-        col.set_config(PHONE_SWITCH, bool(on))
+    return col is not None and bool(phone_note_ids(col))
 
 
 def save_config(cfg: dict) -> None:

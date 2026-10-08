@@ -237,11 +237,10 @@ def changed(scenery, got):
 
 def phone():
     """The forest for the phone: turned on, written into its note, its card made new again
-    after the phone answered it, then turned off and taken away, as a sync would."""
+    after the phone answered it, then turned off and taken away."""
     forest = sys.modules[FOREST]
     col = mw.col
-    col.set_config(forest.state.PHONE_SWITCH, True)
-    forest.phone.publish()
+    forest.phone.switch(True)
     did = col.decks.id_for_name(forest.phone.DECK)
     cids = col.db.list("select id from cards where did = ?", did) if did else []
     if not cids:
@@ -254,8 +253,7 @@ def phone():
     forest.phone.publish()
     if col.db.scalar("select type from cards where id = ?", cids[0]) != 0:
         result["problems"].append("the phone forest's card was not made new again")
-    col.set_config(forest.state.PHONE_SWITCH, False)
-    forest.phone.publish()
+    forest.phone.switch(False)
     if col.decks.id_for_name(forest.phone.DECK):
         result["problems"].append("turning the phone forest off left its deck")
 
