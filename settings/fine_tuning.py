@@ -183,6 +183,12 @@ class FineTuningTab(QWidget):
             if field in values:
                 set_quietly(box, values[field])
 
+    def news_targets(self) -> dict:
+        """The settings here a note can point at (news.py): key -> (widget, name)."""
+        look = {f: (box, FIELD_NAMES[f]) for box, f in self._look_boxes()}
+        return {**look, "main_forest": (self.main_forest, "Main screen"), "deck_forest_mode": (self.deck_mode, "Deck screens"),
+                "max_width": (self.max_width, "Forest width")}
+
     def connect(self, changed) -> None:
         self._changed = changed
         for box in (self.environment, self.landscape, self.landmark, self.weather, self.time, self.main_forest, self.deck_mode):

@@ -49,7 +49,8 @@ def group(title: str, layout) -> QWidget:
     v = QVBoxLayout(out)
     v.setContentsMargins(0, 0, 0, 0)
     v.setSpacing(GROUP_TITLE_GAP)
-    v.addWidget(QLabel(title))
+    out.title = QLabel(title)  # (a note can tag it NEW: settings/whats_new.py)
+    v.addWidget(out.title)
     v.addWidget(frame)
     return out
 

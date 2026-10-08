@@ -103,6 +103,40 @@ class DebugSampleTests(unittest.TestCase):
             self.assertEqual(news.note(DEBUG, DAY)["id"], "a_feature")
 
 
+class ShowItAsNewTests(unittest.TestCase):
+    """The Debug tab's Show it as new."""
+
+    def setUp(self):
+        reset()
+        updated()
+
+    def test_the_made_up_note_points_at_any_setting(self):
+        with notes(NOTE), debug_tools():
+            news.debug_show(opens="animations", name="Animate the forest")
+            shown = news.note(DEBUG, DAY)
+            self.assertEqual((shown["id"], shown["title"]), ("debug_note", "New: Animate the forest"))
+            self.assertEqual(news.opens("debug_note"), "animations")
+
+    def test_a_real_note_again_even_once_seen(self):
+        with notes(NOTE), debug_tools():
+            news.mark_seen(["a_feature"])
+            news.debug_show(show="a_feature")
+            self.assertEqual(news.note(DEBUG, DAY)["id"], "a_feature")
+            self.assertEqual(news.opens("a_feature"), "fine")
+
+    def test_answered_it_is_gone_again(self):
+        with notes(), debug_tools():
+            news.debug_show(opens="city", name="Your city")
+            news.mark_seen(["debug_note"])
+            self.assertIsNone(news.note(DEBUG, DAY))
+
+    def test_with_debug_off_it_changes_nothing(self):
+        with notes(NOTE):
+            news.mark_seen(["a_feature"])
+            news.debug_show(opens="city", name="Your city")
+            self.assertIsNone(news.note({}, DAY))
+
+
 class DotTests(unittest.TestCase):
     def setUp(self):
         reset()

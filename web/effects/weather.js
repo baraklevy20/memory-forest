@@ -77,6 +77,16 @@ part('clouds', {
   },
 });
 
+/* Where a raindrop is at time t: falling at d.v and drifting sideways at `drift` times that.
+ * In loop mode (AF.LOOP) its sideways place follows how far it has fallen, so it keeps its
+ * slant and starts again at the top of its own line; only the fall then needs rounding to the
+ * loop, where a drift rounded on its own would race across the scene. */
+function dropAt(d, t, drift, W, H) {
+  const fall = (d.y + t * AF.u.drift(d.v, H)) % H;
+  const x = AF.LOOP ? d.x - fall * drift : d.x - t * (d.v * drift);
+  return { x: Math.round((x % W + W) % W), y: Math.round(fall) };
+}
+
 /* the drops behind the land (drawn at the back) and in front of it */
 part('rain', {
   init(st, { th, A, W, H, u }) {
@@ -88,7 +98,7 @@ part('rain', {
     const { W, H } = env;
     if (st.far.length) {
       g.fillStyle = st.C.rainFar;
-      for (const d of st.far) { const y = Math.round((d.y + t * AF.u.drift(d.v, H)) % H), x = Math.round(((d.x - t * AF.u.drift(d.v * st.drift, W)) % W + W) % W); g.fillRect(x, y, 1, 2); }
+      for (const d of st.far) { const { x, y } = dropAt(d, t, st.drift, W, H); g.fillRect(x, y, 1, 2); }
     }
   },
   front(g, env, t, st) {
@@ -96,7 +106,7 @@ part('rain', {
     if (st.drops.length) {
       g.fillStyle = th.rainLight ? C.rainLight : C.rain;
       const dx = st.drift > 0.2 ? 2 : 1;
-      for (const d of st.drops) { const y = Math.round((d.y + t * AF.u.drift(d.v, H)) % H), x = Math.round(((d.x - t * AF.u.drift(d.v * st.drift, W)) % W + W) % W); g.fillRect(x, y, 1, 2); g.fillRect(x - dx, y + 2, 1, 2); }
+      for (const d of st.drops) { const { x, y } = dropAt(d, t, st.drift, W, H); g.fillRect(x, y, 1, 2); g.fillRect(x - dx, y + 2, 1, 2); }
     }
   },
 });

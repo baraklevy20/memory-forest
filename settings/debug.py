@@ -33,10 +33,12 @@ DATE_NOTE = ("The scenery is chosen for this date: the seasonal presets, Surpris
 EDITION_NOTE = ("Which edition this copy acts as: the sceneries offered, the Plus ones the picker shows "
                 "locked, and the Patreon banner and About tab (those two on reopening the settings). "
                 "The forest on screen keeps whatever scenery is chosen.")
-NEWS_NOTE = ("What an update announces: a note on the deck list's forest for a new feature, and a dot on "
-             "the cog (NEW on its tile) for a new scenery, each only where the edition above has it. "
-             "Answering one marks it seen. Replay as an update to see them again; a fresh install sees "
-             "none. A note also goes by itself after 3 days: move the date above to see that.")
+NEWS_NOTE = ("What an update announces (release_notes.json): a note on the deck list's forest for a new "
+             "feature, and a dot on the cog (NEW on its tile) for a new scenery, each only where the edition "
+             "above has it. Answering one marks it seen. Replay as an update to see them again; a fresh install "
+             "sees none. A note also goes by itself after 3 days: move the date above to see that. Show it as new "
+             "puts one note on the forest now: a real one, or a made-up one whose button opens any setting, "
+             "tagged NEW.")
 EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plus": "Memory Forest Plus"}
 # what the label calls each kind of day, and what happens (once, and more than once)
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
@@ -112,6 +114,10 @@ class DebugTab(QWidget):
         self.news_fresh = QPushButton("Replay as a fresh install")
         self.news_fresh.clicked.connect(lambda: self._replay_news(news.replay_fresh))
         self.news_label = hint("")
+        # one note shown as new now: a real announcement, or a made-up one at any setting
+        self.news_pick = QComboBox()
+        self.news_show = QPushButton("Show it as new")
+        self.news_show.clicked.connect(self._show_news)
         # the edition this copy pretends to be (state.debug_edition)
         self.edition = QComboBox()
         for key in ("",) + DEBUG_EDITIONS:
@@ -150,7 +156,8 @@ class DebugTab(QWidget):
         er = QHBoxLayout(); er.addWidget(self.edition); er.addStretch(1)
         etv = QVBoxLayout(); etv.addLayout(er); etv.addWidget(hint(EDITION_NOTE))
         nr = QHBoxLayout(); nr.addWidget(self.news_update); nr.addWidget(self.news_fresh); nr.addStretch(1)
-        ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
+        pr = QHBoxLayout(); pr.addWidget(self.news_pick, 1); pr.addWidget(self.news_show)
+        ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addLayout(pr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
         dv.addWidget(group("What's new", ntv))
@@ -178,6 +185,28 @@ class DebugTab(QWidget):
 
     def _replay_seasons(self) -> None:
         forget_seasons()
+        if self._changed:
+            self._changed()
+
+    def offer_news(self, targets: dict) -> None:
+        """What Show it as new can show: the real announcements in release_notes.json, then
+        every setting a note can point at (the dialog's news_targets)."""
+        self.news_pick.clear()
+        for e in news.offered(dict(config(), debug_edition=self.edition.currentData() or "")):
+            if e["id"] != news.DEBUG_NOTE and e["kind"] == news.NOTE:
+                self.news_pick.addItem(f"Note: {e.get('title') or e['id']}", ("show", e["id"], ""))
+        for key, (_tab, _widget, name) in targets.items():
+            self.news_pick.addItem(f"A made-up note at: {name}", ("opens", key, name))
+
+    def _show_news(self) -> None:
+        pick = self.news_pick.currentData()
+        if not pick:
+            return
+        how, key, name = pick
+        if how == "show":
+            news.debug_show(show=key)
+        else:
+            news.debug_show(opens=key, name=name)
         if self._changed:
             self._changed()
 

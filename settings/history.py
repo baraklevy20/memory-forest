@@ -256,6 +256,11 @@ class HistoryTab(QWidget):
         self.since_hint.setText(SINCE_NOTE if self.since_on.isChecked() else
                                 SINCE_OFF_NOTE.format(first=f"{first.day} {first:%B %Y}"))
 
+    def news_targets(self) -> dict:
+        """The settings here a note can point at (news.py): key -> (widget, name)."""
+        return {"excluded_decks": (self.decks, "Decks in the forest"), "ignore_before": (self.since_on, "Start the forest on a date"),
+                "keep_suspended": (self.keep_suspended, "Suspended cards")}
+
     def connect(self, changed) -> None:
         def deck_toggled(item, _column) -> None:
             did = item.data(0, DECK_ROLE)

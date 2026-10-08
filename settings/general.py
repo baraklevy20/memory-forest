@@ -154,7 +154,8 @@ class GeneralTab(QWidget):
         v = QVBoxLayout(self)
         v.addWidget(banner())
         v.addWidget(group("Scenery", sv))
-        v.addWidget(group("Nature", nv))
+        self.nature_group = group("Nature", nv)
+        v.addWidget(self.nature_group)
         v.addWidget(group("Extras", ev))
         v.addStretch(1)
 
@@ -189,6 +190,12 @@ class GeneralTab(QWidget):
     def scenery_choices(self) -> list:
         """The presets offered just now, for the picker (Custom isn't one)."""
         return [self.preset.itemData(i) for i in range(self.preset.count()) if self.preset.itemData(i) != presets.CUSTOM]
+
+    def news_targets(self) -> dict:
+        """The settings here a note can point at (news.py): key -> (widget, name)."""
+        return {"real_weather": (self.real_sky, "Follow the real weather"), "city": (self.city, "Your city"),
+                "nature": (self.nature_group.title, "Nature"), "animations": (self.animations, "Animate the forest"),
+                "planting_tooltip": (self.planting, "The planting message"), "phone": (self.phone, "Your forest on your phone")}
 
     def connect(self, changed) -> None:
         self.animations.currentIndexChanged.connect(lambda _i: changed())

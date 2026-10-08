@@ -10,6 +10,7 @@ from aqt.qt import QDialog, QDialogButtonBox, QEvent, QMessageBox, QTabWidget, Q
 from .. import news, presets
 from ..events import NATURE_LABELS, nature_level
 from ..state import debug_available, debug_edition, today
+from . import whats_new
 from .about import AboutTab
 from .fine_tuning import FineTuningTab
 from .general import GeneralTab
@@ -52,6 +53,9 @@ class NoDebugTab:
     def values(self) -> dict:
         return {}
 
+    def offer_news(self, _targets) -> None:
+        pass
+
 
 def debug_tab(cfg: dict):
     """The Debug tab while debug is on and this copy has it (state.debug_available); NoDebugTab otherwise."""
@@ -83,6 +87,7 @@ class SettingsDialog(QDialog):
         if not isinstance(self.debug, NoDebugTab):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))
+        self.debug.offer_news(self.news_targets())
         tabs = self.tabs = QTabWidget()
         self.about = AboutTab()
         for widget, name in shown + [(self.about, "About")]:
@@ -118,11 +123,25 @@ class SettingsDialog(QDialog):
         self.adjustSize()
         self.show_news(focus)
 
+    def news_targets(self) -> dict:
+        """Every setting a note can point at: key -> (its tab, the widget, its name)."""
+        return {key: (tab, widget, name) for tab in (self.general, self.fine, self.history)
+                for key, (widget, name) in tab.news_targets().items()}
+
     def show_news(self, focus: str) -> None:
-        """Go to the tab a note's button points at (news.opens)."""
+        """Go where a note's button points (news.opens): a tab ("general", "fine", "history",
+        "about"), or a setting (news_targets), shown tagged NEW."""
         tab = {"general": self.general, "fine": self.fine, "history": self.history, "about": self.about}.get(focus)
         if tab is not None:
             self.tabs.setCurrentWidget(tab)
+            return
+        target = self.news_targets().get(focus)
+        if target is None:
+            return
+        tab, widget, _name = target
+        self.tabs.setCurrentWidget(tab)
+        whats_new.tag(tab, widget)
+        widget.setFocus()
 
     def _preset_chosen(self, *_args) -> None:
         """Picking a preset fills the five settings it stands for, on the Fine-tuning tab."""
