@@ -145,7 +145,7 @@ AF.landscape('river', {
     const S = env.river; if (!S || !S.vis || env.theme.frozen || env.still) return;
     const { W, H, u } = env, hor = env.hor, fa = 1 - S.dim * 0.4, R = rng(71);
     for (let k = 0; k < FLECKS; k++) {
-      const q = (R() + t * AF.u.drift(0.03 * (0.8 + R() * 0.4), 1)) % 1, off = (R() - 0.5) * 1.3, p = Math.pow(q, 1.3), y = Math.round(hor + p * (H - hor));
+      const q = (R() + (AF.LOOP ? t * AF.u.drift(0.03 * (0.8 + R() * 0.4), 1) : t * 0.03 * (0.8 + R() * 0.4))) % 1, off = (R() - 0.5) * 1.3, p = Math.pow(q, 1.3), y = Math.round(hor + p * (H - hor));
       const x = Math.round(W * center(p) + off * W * halfWidth(p, W)), len = 1 + Math.round(p * 5 * u);
       if (y >= H) continue;
       // pixel by pixel: a fleck running under a tree's edge stops at it

@@ -34,7 +34,7 @@ def notes(*items, fixed=()):
 
 def editions_here(test):
     """Pretending to be base or Plus needs editions.json, which only the private copy has."""
-    if not os.path.exists(addon.state.EDITIONS_FILE):
+    if not os.path.exists(addon.edition.EDITIONS_FILE):
         test.skipTest("no editions.json: the public repo is one edition")
 
 

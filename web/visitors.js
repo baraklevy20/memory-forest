@@ -184,7 +184,7 @@ AF.drawVisitors = function (g, env, t) {
     const spr = VISITORS.cabin, frame = spr.frames[0], x0 = way.cabinX, y0 = baseY - frame.length, lit = env.mood.time === 'night' || env.mood.time === 'dusk';
     paintSprite(g, frame, x0, y0, spr.pal, (col, ch) => ch === 'n' && lit ? '#ffd27a' : color(col));
     if (lit) { g.fillStyle = 'rgba(255,210,122,.18)'; g.fillRect(x0 + 6, y0 + 6, 4, 4); }
-    else if (!env.theme.rain) for (let k = 0; k < CABIN_SMOKE_PUFFS; k++) { const q = (t * 0.25 + k / CABIN_SMOKE_PUFFS) % 1, sx = x0 + 6 + Math.round(Math.sin(q * 6 + k) * 1.5 + q * 4), sy = y0 - Math.round(q * 12); g.fillStyle = `rgba(220,220,225,${0.55 * (1 - q)})`; g.fillRect(sx, sy, q > 0.5 ? 2 : 1, 1); }
+    else if (!env.theme.rain) for (let k = 0; k < CABIN_SMOKE_PUFFS; k++) { const q = ((AF.LOOP ? t / AF.u.per(4) : t * 0.25) + k / CABIN_SMOKE_PUFFS) % 1, sx = x0 + 6 + Math.round(Math.sin(q * 6 + k) * 1.5 + q * 4), sy = y0 - Math.round(q * 12); g.fillStyle = `rgba(220,220,225,${0.55 * (1 - q)})`; g.fillRect(sx, sy, q > 0.5 ? 2 : 1, 1); }
     env.visitorBoxes.push({ v: cabin, x0, y0, x1: x0 + frame[0].length, y1: baseY });
   }
   // Each animal has its own stretch of the front, shuffled daily. Every few minutes it

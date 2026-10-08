@@ -15,9 +15,9 @@ from __future__ import annotations
 
 from aqt import gui_hooks, mw
 
-from . import events_state, payload
+from . import events_state, live_weather, payload
 from .actions import on_deck_options_menu, on_js_message, open_settings, settings_changed
-from .panel import on_deck_browser, on_overview
+from .panel import on_deck_browser, on_overview, refresh
 from .phone import after_sync as publish_after_sync
 from .phone import publish as publish_for_phone
 from .planting import on_answer
@@ -29,6 +29,7 @@ gui_hooks.overview_will_render_content.append(on_overview)
 gui_hooks.reviewer_did_answer_card.append(on_answer)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
 gui_hooks.deck_browser_will_show_options_menu.append(on_deck_options_menu)
+live_weather.redraw_with(refresh)  # new weather in: the forest redrawn with it
 # no asteroid strike you haven't seen until a sync has brought in the reviews from your other devices
 # (these come first, so the forest for your phone below goes by them too)
 gui_hooks.sync_will_start.append(events_state.sync_started)

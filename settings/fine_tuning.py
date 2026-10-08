@@ -21,7 +21,8 @@ from aqt.qt import (
 
 from .. import presets
 from ..scene import ENVIRONMENTS, LANDMARKS, LANDSCAPES, TIME_LABELS, WEATHER_LABELS
-from ..state import MAX_WIDTH_DEFAULT, MAX_WIDTH_MAX, MAX_WIDTH_MIN, shows_on_deck_list, today
+from ..seasons import today
+from ..state import MAX_WIDTH_DEFAULT, MAX_WIDTH_MAX, MAX_WIDTH_MIN, shows_on_deck_list
 from .scenery_picker import PICTURES, crisp, mosaic
 from .widgets import combo, group, hint, set_options, set_quietly
 

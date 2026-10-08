@@ -199,17 +199,17 @@ class PhoneTests(unittest.TestCase):
         return self.col.db.all("select did, type, queue from cards where nid in (select id from notes where mid is not null)")
 
     def test_turning_it_on_makes_the_note_its_deck_and_options(self):
-        self.assertFalse(addon.state.phone_on())
+        self.assertFalse(addon.phone_note.phone_on())
         phone.switch(True)
-        self.assertTrue(addon.state.phone_on())
+        self.assertTrue(addon.phone_note.phone_on())
         m = self.col.models.by_name(phone.PHONE_NOTETYPE)
         self.assertEqual([f["name"] for f in m["flds"]], list(phone.FIELDS))
         self.assertEqual((m["tmpls"][0]["qfmt"], m["css"]), (phone.FRONT, phone.CSS))
-        did = self.col.decks.id_for_name(phone.DECK)
+        did = self.col.decks.id_for_name(phone.PHONE_DECK)
         self.assertEqual(self.cards(), [(did, 0, 0)])
         conf = self.col.decks.config_dict_for_deck_id(did)
         self.assertEqual((conf["name"], conf["new"]["perDay"], conf["rev"]["perDay"]),
-                         (phone.DECK, phone.NEW_PER_DAY, phone.REVIEWS_PER_DAY))
+                         (phone.PHONE_DECK, phone.NEW_PER_DAY, phone.REVIEWS_PER_DAY))
         forest = next(iter(self.col.notes.values()))["Forest"]
         self.assertIn('"script":"_memory_forest-', forest)
         # in media: the script, and a file for every piece of scenery this copy ships; the note
@@ -230,7 +230,7 @@ class PhoneTests(unittest.TestCase):
         phone.publish()
         self.assertEqual(set(os.listdir(self.col.media.folder)), media)
         # its deck is never part of the forest, nor offered as a deck to leave out
-        self.assertIn(did, addon.state.excluded_decks({}))
+        self.assertIn(did, addon.scope.excluded_decks({}))
 
     def test_a_second_sync_makes_nothing_new_and_an_answered_card_is_new_again(self):
         phone.switch(True)
@@ -242,9 +242,9 @@ class PhoneTests(unittest.TestCase):
 
     def test_turning_it_off_takes_the_note_and_deck_away(self):
         phone.switch(True)
-        did = self.col.decks.id_for_name(phone.DECK)
+        did = self.col.decks.id_for_name(phone.PHONE_DECK)
         phone.switch(False)
-        self.assertFalse(addon.state.phone_on())
+        self.assertFalse(addon.phone_note.phone_on())
         self.assertEqual(self.col.notes, {})
         self.assertIsNone(self.col.decks.name_if_exists(did))
         self.assertEqual(os.listdir(self.col.media.folder), [])
@@ -264,7 +264,7 @@ class PhoneTests(unittest.TestCase):
         with mock.patch.object(phone, "log", messages.append):
             phone.after_sync()
             self.assertEqual(self.col.notes, {})
-            self.assertIsNone(self.col.decks.id_for_name(phone.DECK))
+            self.assertIsNone(self.col.decks.id_for_name(phone.PHONE_DECK))
             self.assertEqual(os.listdir(self.col.media.folder), [])
             self.assertEqual(messages, ["took the forest off your phone"])
             phone.publish()  # every sync after that: nothing left to do, and nothing said
@@ -276,11 +276,11 @@ class PhoneTests(unittest.TestCase):
 
     def test_removing_keeps_a_deck_that_holds_other_cards(self):
         phone.switch(True)
-        did = self.col.decks.id_for_name(phone.DECK)
+        did = self.col.decks.id_for_name(phone.PHONE_DECK)
         self.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) values (1, 1, ?, 0, 2, 2, 5, '{}', 1)", (did,))
         phone.remove()
         self.assertEqual(self.col.notes, {})
-        self.assertEqual(self.col.decks.name_if_exists(did), phone.DECK)
+        self.assertEqual(self.col.decks.name_if_exists(did), phone.PHONE_DECK)
 
     def test_reviews_of_the_phone_s_cards_never_count_even_once_they_are_gone(self):
         phone.switch(True)
@@ -289,13 +289,13 @@ class PhoneTests(unittest.TestCase):
         self.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, ?, 3, 0)",
                                     [(ms(d), cid) for d in range(7)])
         self.col.db.con.execute("update cards set type = 2, queue = 2 where id = ?", (cid,))
-        self.assertEqual(addon.state.phone_cards(), {cid})
+        self.assertEqual(addon.phone_note.phone_cards(), {cid})
         phone.switch(False)
         self.assertEqual(self.col.db.scalar("select count() from cards"), 0)
         # the card is gone, its reviews stay (as in Anki), and they are still not study
-        self.assertEqual(addon.state.phone_cards(), {cid})
+        self.assertEqual(addon.phone_note.phone_cards(), {cid})
         self.assertEqual(addon.state.load_state()["phone_cards"], [cid])
-        skip = addon.state.phone_cards()
+        skip = addon.phone_note.phone_cards()
         rows = study_log.load_rows(self.col.db, CUTOFF, skip=skip)
         self.assertEqual((rows.total_reviews, rows.review_days, rows.first_last), (0, set(), {}))
         self.assertEqual(study_log.load_review_days(self.col.db, CUTOFF, skip=skip), set())
@@ -309,40 +309,40 @@ class PhoneTests(unittest.TestCase):
         cid = self.col.db.scalar("select id from cards")
         self.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, ?, 3, 0)",
                                     [(ms(d), cid) for d in range(3)])
-        self.assertEqual(addon.state.phone_cards(), {cid})  # seen once: remembered
-        with mock.patch.object(addon.state, "save_state") as save:
+        self.assertEqual(addon.phone_note.phone_cards(), {cid})  # seen once: remembered
+        with mock.patch.object(addon.phone_note, "save_state") as save:
             self.col.mod += 1
-            addon.state.phone_cards()
+            addon.phone_note.phone_cards()
         save.assert_not_called()  # nothing new, nothing written
         # another computer turned the setting off, and the sync took the note away here
         self.col.remove_notes(list(self.col.notes))
-        self.assertEqual(addon.state.phone_cards(), {cid})
-        self.assertEqual(study_log.load_rows(self.col.db, CUTOFF, skip=addon.state.phone_cards()).total_reviews, 0)
+        self.assertEqual(addon.phone_note.phone_cards(), {cid})
+        self.assertEqual(study_log.load_rows(self.col.db, CUTOFF, skip=addon.phone_note.phone_cards()).total_reviews, 0)
 
     def test_a_card_in_a_filtered_deck_still_gets_the_forest(self):
         phone.switch(True)
-        mine = self.col.decks.id_for_name(phone.DECK)
+        mine = self.col.decks.id_for_name(phone.PHONE_DECK)
         self.col.db.con.execute("update cards set did = 30, odid = ?", (mine,))  # Custom Study borrowed it
         messages = []
         with mock.patch.object(phone, "log", messages.append):
-            addon.state._phone_cards = (None, None, frozenset())
+            addon.phone_note._phone_cards = (None, None, frozenset())
             self.col.mod += 1
             with mock.patch.object(phone.phone_data, "same_forest", return_value=False):
                 phone.publish()
         self.assertEqual(messages, [])
         self.assertNotIn(30, self.col.decks.deck_conf)
-        self.assertEqual(addon.state.phone_decks(), {mine})
+        self.assertEqual(addon.phone_note.phone_decks(), {mine})
 
     def test_a_card_moved_to_a_deck_of_yours_leaves_that_deck_as_it_was(self):
         phone.switch(True)
-        mine = self.col.decks.id_for_name(phone.DECK)
+        mine = self.col.decks.id_for_name(phone.PHONE_DECK)
         self.col.db.con.execute("update cards set did = 20")  # moved into German
         self.col.mod += 1
         phone.publish()
         self.assertEqual(self.col.decks.config_dict_for_deck_id(20)["name"], "Default")
         # German is still yours to count and to leave out; only the add-on's deck isn't
-        self.assertEqual(addon.state.phone_decks(), {mine})
-        self.assertNotIn(20, addon.state.excluded_decks({}))
+        self.assertEqual(addon.phone_note.phone_decks(), {mine})
+        self.assertNotIn(20, addon.scope.excluded_decks({}))
         # and turning it off takes the note, but never your deck, even left empty
         phone.remove()
         self.assertEqual(self.col.decks.name_if_exists(20), "German")
@@ -353,33 +353,33 @@ class PhoneTests(unittest.TestCase):
         # anything last: a phone that only opened a deck since sends back the old "on"
         phone.switch(True)
         phone.switch(False)
-        self.col.set_config(addon.state.OLD_PHONE_SWITCH, True)
+        self.col.set_config(addon.phone_note.OLD_PHONE_SWITCH, True)
         phone.after_sync()
-        self.assertFalse(addon.state.phone_on())
+        self.assertFalse(addon.phone_note.phone_on())
         self.assertEqual(self.col.notes, {})
-        self.assertIsNone(self.col.decks.id_for_name(phone.DECK))
+        self.assertIsNone(self.col.decks.id_for_name(phone.PHONE_DECK))
 
     def test_a_sync_never_makes_the_note(self):
         phone.after_sync()
         phone.publish()
         self.assertEqual(self.col.notes, {})
-        self.assertFalse(addon.state.phone_on())
+        self.assertFalse(addon.phone_note.phone_on())
 
     def test_the_switch_takes_the_old_setting_away(self):
-        self.col.set_config(addon.state.OLD_PHONE_SWITCH, False)
+        self.col.set_config(addon.phone_note.OLD_PHONE_SWITCH, False)
         phone.switch(True)
-        self.assertNotIn(addon.state.OLD_PHONE_SWITCH, self.col.conf)
+        self.assertNotIn(addon.phone_note.OLD_PHONE_SWITCH, self.col.conf)
 
     def test_two_notes_from_two_computers_become_one(self):
         phone.switch(True)
         # another computer turned it on before the two synced: its note came in with the sync
         m = self.col.models.by_name(phone.PHONE_NOTETYPE)
         other = self.col.new_note(m)
-        self.col.add_note(other, self.col.decks.id_for_name(phone.DECK))
+        self.col.add_note(other, self.col.decks.id_for_name(phone.PHONE_DECK))
         first = min(self.col.notes)
         phone.publish()
         self.assertEqual(list(self.col.notes), [first])  # the oldest stays, on every computer alike
-        self.assertIn(other.id, addon.state.phone_cards())  # its card's reviews stay left out
+        self.assertIn(other.id, addon.phone_note.phone_cards())  # its card's reviews stay left out
 
     def test_two_note_types_of_the_same_name_keep_one_note(self):
         phone.switch(True)
@@ -391,14 +391,14 @@ class PhoneTests(unittest.TestCase):
         mm.add_template(dup, mm.new_template("Forest"))
         mm.add(dup)
         other = self.col.new_note(dup)
-        self.col.add_note(other, self.col.decks.id_for_name(phone.DECK))
+        self.col.add_note(other, self.col.decks.id_for_name(phone.PHONE_DECK))
         first = min(self.col.notes)
         phone.publish()
         self.assertEqual(list(self.col.notes), [first])
         self.assertEqual(mm.get(dup["id"])["tmpls"][0]["qfmt"], phone.FRONT)  # both brought up to date
-        self.assertIn(other.id, addon.state.phone_cards())
+        self.assertIn(other.id, addon.phone_note.phone_cards())
         # turning it off takes the notes of both away
-        self.col.add_note(self.col.new_note(dup), self.col.decks.id_for_name(phone.DECK))
+        self.col.add_note(self.col.new_note(dup), self.col.decks.id_for_name(phone.PHONE_DECK))
         phone.remove()
         self.assertEqual(self.col.notes, {})
 
@@ -476,7 +476,7 @@ class EditionTests(unittest.TestCase):
         self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus")
         with mock.patch.object(phone.mw, "col", col), mock.patch.object(phone, "config", lambda: {}):
             phone.switch(True)  # the note is the switch, the same for both editions...
-            self.assertTrue(addon.state.phone_on(col))
+            self.assertTrue(addon.phone_note.phone_on(col))
             phone.publish()  # ... but only Plus writes the forest into it
             self.assertEqual(next(iter(col.notes.values()))["Forest"], "")
             self.assertEqual(os.listdir(col.media.folder), [])

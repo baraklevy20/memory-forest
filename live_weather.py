@@ -13,6 +13,14 @@ from .weather import WeatherCache
 
 _weather = WeatherCache(os.path.join(USER_FILES, "weather.json"))
 _refreshing = False
+# what redraws the forest once new weather is in: __init__ hands it panel.refresh, which this
+# module can't import, the panel drawing from the weather
+_redraw = None
+
+
+def redraw_with(redraw) -> None:
+    global _redraw
+    _redraw = redraw
 
 
 def _maybe_refresh(city: str) -> None:
@@ -28,9 +36,8 @@ def _maybe_refresh(city: str) -> None:
             result = future.result()
         except Exception:
             return
-        if result is not None and mw.state == "deckBrowser":
-            from .panel import refresh  # the panel draws from the weather, so it is imported late
-            refresh()
+        if result is not None and mw.state == "deckBrowser" and _redraw:
+            _redraw()
 
     # the weather needs no collection, so it need not wait for one - where this Anki can
     # be told so (older ones take no `uses_collection`)

@@ -8,7 +8,7 @@ collection's media (phone_data.bundle). The note's card sits new in a deck of it
 study that deck to look at the forest, and leave without answering. A card that was
 answered anyway is made new again, and the deck never counts towards the forest.
 
-The note is the setting (state.phone_on): ticking it makes the note and its deck (switch),
+The note is the setting (phone_note.phone_on): ticking it makes the note and its deck (switch),
 unticking takes them away again (remove), and nothing else ever makes one, so a sync only
 ever writes into a note that is there. Being part of the collection, it is one per profile,
 and a sync carries it to the other computers, removal included. Only the empty note type
@@ -19,31 +19,19 @@ from __future__ import annotations
 
 import datetime as _dt
 import hashlib
-import json
 import os
 import traceback
 
 from aqt import mw
 
 from . import events_state, live_weather, payload, phone_data
-from .state import (
-    OLD_PHONE_SWITCH,
-    PHONE_DECK,
-    PHONE_NOTETYPE,
-    config,
-    follow_season,
-    log,
-    phone_note_ids,
-    phone_on,
-    remember_phone_cards,
-    today,
-)
+from .edition import DEV_PACKAGE, PLUS_PACKAGE, is_plus_folder, manifest
+from .phone_note import OLD_PHONE_SWITCH, PHONE_DECK, PHONE_NOTETYPE, phone_note_ids, phone_on, remember_phone_cards
+from .seasons import follow_season, today
+from .state import config, log
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# Plus's package (editions.json) and name as Anki shows it, and this folder's package in development
-PLUS_PACKAGE, PLUS_NAME, DEV_PACKAGE = "memory_forest_plus", "Memory Forest Plus", "anki_forest"
 
-DECK = PHONE_DECK
 FIELDS = ("About", "Forest")  # never change these: a field added later forces a full sync
 ABOUT = ("Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, "
          "and go back without answering. The add-on rewrites this note at every sync.")
@@ -88,27 +76,6 @@ CSS = """.card { margin: 0; padding: 0; }
 .af-phone-shell:fullscreen .af-phone-stage:not(.af-sideways) { display: flex; flex-direction: column; justify-content: center; height: 100%; }"""
 
 
-def enabled(col=None) -> bool:
-    return phone_on(col)
-
-
-def _manifest(folder: str) -> dict:
-    """An add-on's manifest.json, or nothing if it can't be read."""
-    try:
-        with open(os.path.join(folder, "manifest.json"), encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
-def _is_plus(folder: str, meta=None) -> bool:
-    """Whether the add-on in `folder` is Memory Forest Plus: each edition's build writes its
-    own package into manifest.json, and installed from a file, its folder is named after it."""
-    names = (os.path.basename(folder.rstrip(os.sep)), _manifest(folder).get("package"), getattr(meta, "provided_name", None))
-    return PLUS_PACKAGE in names or PLUS_NAME in names
-
-
 def steps_aside() -> bool:
     """Whether this copy leaves the phone to Memory Forest Plus: both editions write the same
     note, and each would take away the other's files and write it again at every sync, so
@@ -116,13 +83,13 @@ def steps_aside() -> bool:
     the setting, the note being the same for both. Only the base edition steps aside (Plus and
     a copy in development never do), and if the other add-on can't be found out, this one
     writes as it always has."""
-    if _manifest(HERE).get("package") in (PLUS_PACKAGE, DEV_PACKAGE):
+    if manifest(HERE).get("package") in (PLUS_PACKAGE, DEV_PACKAGE):
         return False
     try:
         am = mw.addonManager
         for meta in am.all_addon_meta():
             folder = am.addonsFolder(meta.dir_name)
-            if not meta.enabled or os.path.abspath(folder) == HERE or not _is_plus(folder, meta):
+            if not meta.enabled or os.path.abspath(folder) == HERE or not is_plus_folder(folder, meta):
                 continue
             return True
     except Exception:
@@ -180,11 +147,11 @@ def _options(col, did: int) -> None:
         return
     if deck.get("conf", 1) == 1:  # still on the default options, which may hold no new cards
         # the preset outlives the deck (removing one forces a full sync), so reuse it
-        conf = next((c for c in col.decks.all_config() if c["name"] == DECK), None) or col.decks.add_config(DECK)
+        conf = next((c for c in col.decks.all_config() if c["name"] == PHONE_DECK), None) or col.decks.add_config(PHONE_DECK)
         deck["conf"] = conf["id"]
         col.decks.save(deck)
     conf = col.decks.config_dict_for_deck_id(did)
-    if not conf or conf.get("name") != DECK:
+    if not conf or conf.get("name") != PHONE_DECK:
         return
     steps = conf["new"]["delays"]
     same_steps = len(steps) == len(STEPS) and all(abs(a - b) < 1e-4 for a, b in zip(steps, STEPS))  # kept as float32
@@ -203,14 +170,14 @@ def _note(col):
     if not nids:
         return None
     types_ = _notetype(col)
-    if len(types_) > 1:  # (state.phone_cards finds the cards by the note type's name alone)
+    if len(types_) > 1:  # (phone_note.phone_cards finds the cards by the note type's name alone)
         remember_phone_cards(col.card_ids_of_note(nids[0]))
     if len(nids) > 1:
         extra = nids[1:]
         remember_phone_cards([cid for nid in extra for cid in col.card_ids_of_note(nid)])
         col.remove_notes(extra)
         log(f"took away {len(extra)} extra note{'s' if len(extra) != 1 else ''} for your phone, made on another computer")
-    mine = col.decks.id_for_name(DECK)
+    mine = col.decks.id_for_name(PHONE_DECK)
     if mine:
         _options(col, mine)
     return col.get_note(nids[0])
@@ -221,7 +188,7 @@ def _make(col) -> None:
     types_ = _notetype(col)
     note = col.new_note(types_[0])
     note["About"], note["Forest"] = ABOUT, ""
-    did = col.decks.id(DECK)
+    did = col.decks.id(PHONE_DECK)
     _options(col, did)
     col.add_note(note, did)
     log("made the note that takes the forest to your phone")
@@ -297,7 +264,7 @@ def remove() -> None:
     only goes if nothing else was put in it, and a deck the card was moved to stays. The note
     type and the deck's options preset stay: removing either forces a full sync, and they are
     empty and out of the way. Anki keeps the reviews of the cards removed, so they are
-    remembered, and those reviews go on being left out of your study (state.phone_cards).
+    remembered, and those reviews go on being left out of your study (phone_note.phone_cards).
     With nothing left to take away, it does nothing: it runs at every sync while the setting
     is off. A base edition stepping aside for Plus takes the note and deck away, the switch
     being the same for both, but leaves the script to Plus, whose next sync takes it."""
@@ -314,7 +281,7 @@ def remove() -> None:
         if nids:
             remember_phone_cards(col.db.list(f"select id from cards where nid in ({ours})", *mids))
             col.remove_notes(nids)
-        mine = col.decks.id_for_name(DECK)
+        mine = col.decks.id_for_name(PHONE_DECK)
         gone = bool(nids)
         if mine and len(col.decks.deck_and_child_ids(mine)) == 1 and not col.db.scalar(
                 "select count() from cards where did = ? or odid = ?", mine, mine):  # nothing else lives here now
@@ -343,7 +310,7 @@ def switch(on: bool) -> bool:
             col.remove_config(OLD_PHONE_SWITCH)
         except Exception:
             log("could not take away the old phone setting:\n" + traceback.format_exc())
-    had = bool(col.decks.id_for_name(DECK))
+    had = bool(col.decks.id_for_name(PHONE_DECK))
     if on and not phone_on(col):
         try:
             _make(col)
@@ -352,7 +319,7 @@ def switch(on: bool) -> bool:
         publish()
     elif not on:
         remove()
-    return had != bool(col.decks.id_for_name(DECK))
+    return had != bool(col.decks.id_for_name(PHONE_DECK))
 
 
 def after_sync() -> None:
@@ -367,7 +334,7 @@ def publish() -> None:
     cfg = follow_season(config())  # before the forest is drawn for it, as the desktop's is
     if col is None or steps_aside():
         return
-    if not enabled(col):
+    if not phone_on(col):
         remove()
         return
     try:

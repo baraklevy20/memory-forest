@@ -10,6 +10,11 @@ from types import SimpleNamespace
 from aqt import mw
 
 from . import events_state, forest_data, journal, live_weather, milestones, news, presets, scene, study_log
+from .edition import debug_available
+from .phone_note import phone_cards
+from .scope import changes, day_cutoff, deck_ids, excluded_decks, since
+from .seasons import follow_season, season_returns
+from .seasons import today as scenery_day
 from .state import (
     ANIMATION_VALUES,
     MAX_WIDTH_DEFAULT,
@@ -19,25 +24,15 @@ from .state import (
     TEST_TREES_DEFAULT,
     TEST_TREES_MAX,
     animation_mode,
-    changes,
     clamp_int,
     config,
-    day_cutoff,
-    debug_available,
-    deck_ids,
-    excluded_decks,
-    follow_season,
     forget_remembered,
     keeps_suspended,
     load_state,
     log,
-    phone_cards,
     remembered,
     save_state,
-    season_returns,
-    since,
 )
-from .state import today as scenery_day
 
 # what each tree holds that the page never reads (it goes to the phone as well, at every sync)
 PAGE_LEAVES_OUT = ("mature", "day")
@@ -51,7 +46,7 @@ _logs: dict = {}
 
 def after_sync() -> None:
     """After a sync, read everything afresh next time: it may have brought in old reviews,
-    moved cards between decks or taken reviews away, none of which state.changes sees (as a
+    moved cards between decks or taken reviews away, none of which scope.changes sees (as a
     review deleted by hand, or by Check Database, isn't seen before the next sync, restart or
     new day)."""
     _logs.clear()
@@ -69,7 +64,7 @@ def collection_loaded(_col=None) -> None:
 
 def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> dict:
     """Forest data for the whole collection, or one deck and its subdecks. Recomputed only
-    when the study data (state.changes, `changed` if already read), the day or the decks and
+    when the study data (scope.changes, `changed` if already read), the day or the decks and
     dates it counts change."""
     col = mw.col
     cfg = config() if cfg is None else cfg
@@ -133,7 +128,7 @@ def _lit_by_deck(forest: dict, did: int, test: bool, cfg: dict, changed=None) ->
 
 def debug_tools(cfg: dict):
     """The debug tools (the made-up test forest, the timeline of events) while debug is on;
-    None otherwise - and in a release, which ships without them (state.debug_available)."""
+    None otherwise - and in a release, which ships without them (edition.debug_available)."""
     if not debug_available(cfg):
         return None
     from . import debug_events, fake_forest

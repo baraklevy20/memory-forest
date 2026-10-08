@@ -15,7 +15,8 @@ import datetime as _dt
 import os
 
 from . import presets, release_notes, state
-from .state import USER_FILES, debug_available, debug_edition, edition_presets, log
+from .edition import debug_available, debug_edition, edition_presets
+from .state import USER_FILES, log
 from .store import load_json, save_json
 
 NEWS_PATH = os.path.join(USER_FILES, "news.json")

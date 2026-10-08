@@ -8,7 +8,9 @@ from aqt import mw
 from aqt.utils import tooltip
 
 from . import study_log
-from .state import config, day_cutoff, excluded_decks, load_state, log, phone_cards, save_state
+from .phone_note import phone_cards
+from .scope import day_cutoff, excluded_decks
+from .state import config, load_state, log, save_state
 
 PLANTING_TOOLTIP_MS = 3500
 

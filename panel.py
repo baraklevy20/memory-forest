@@ -11,7 +11,8 @@ from aqt import mw
 
 from .catalog import core_scripts, draft_scripts, scenery_files
 from .payload import payload
-from .state import MODULE, config, excluded_decks, log, shows_on_deck_list
+from .scope import excluded_decks
+from .state import MODULE, config, log, shows_on_deck_list
 
 WEB = f"/_addons/{MODULE}/web"
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")

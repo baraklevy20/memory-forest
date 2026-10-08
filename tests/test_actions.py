@@ -9,7 +9,7 @@ from fake_anki import addon, browser, mw, reset, tooltips
 
 actions = addon.actions
 # the phone's note plants no tree, so the browser leaves it out like the tooltip does
-NOT_PHONE = f'-"note:{addon.state.PHONE_NOTETYPE}"'
+NOT_PHONE = f'-"note:{addon.phone_note.PHONE_NOTETYPE}"'
 
 
 class Menu:

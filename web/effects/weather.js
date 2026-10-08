@@ -73,7 +73,7 @@ part('clouds', {
   },
   back(g, env, t, st) {
     const { W } = env;
-    for (const c of st.clouds) { const x = ((c.x + t * AF.u.drift(c.v * 0.9, W + c.img.width)) % (W + c.img.width)) - c.img.width; g.drawImage(c.img, Math.round(x), c.y); }
+    for (const c of st.clouds) { const x = ((c.x + (AF.LOOP ? t * AF.u.drift(c.v * 0.9, W + c.img.width) : t * c.v * 0.9)) % (W + c.img.width)) - c.img.width; g.drawImage(c.img, Math.round(x), c.y); }
   },
 });
 
@@ -83,7 +83,7 @@ part('clouds', {
  * loop, where a drift rounded on its own would race across the scene. */
 function dropAt(d, t, drift, W, H) {
   const fall = (d.y + t * AF.u.drift(d.v, H)) % H;
-  const x = AF.LOOP ? d.x - fall * drift : d.x - t * (d.v * drift);
+  const x = AF.LOOP ? d.x - fall * drift : d.x - t * d.v * drift;
   return { x: Math.round((x % W + W) % W), y: Math.round(fall) };
 }
 

@@ -97,12 +97,12 @@ function range(env, g) {
 function column(a, x, ts, u) {
   const xs = x / u;
   // the hem folds back on itself: two waves at different speeds
-  const y0 = Math.round(a.yb + Math.sin(xs * 0.018 + ts * AF.u.cyc(0.2 * a.sp * 3) / 0.2 + a.ph) * a.amp * u + Math.sin(xs * 0.047 - ts * AF.u.cyc(0.2 * a.sp * 5) / 0.2) * 3 * u);
+  const y0 = Math.round(a.yb + Math.sin(xs * 0.018 + (AF.LOOP ? ts * AF.u.cyc(0.2 * a.sp * 3) / 0.2 : ts * a.sp * 3) + a.ph) * a.amp * u + Math.sin(xs * 0.047 - (AF.LOOP ? ts * AF.u.cyc(0.2 * a.sp * 5) / 0.2 : ts * a.sp * 5)) * 3 * u);
   // thin rays, drifting sideways along the curtain, over brighter and dimmer stretches
-  const ray = 0.45 + 0.3 * Math.sin(xs * 0.7 + ts * AF.u.cyc(0.18) / 0.2 + Math.sin(xs * 0.05 + ts * AF.u.cyc(0.06) / 0.2) * 3) + 0.25 * Math.sin(xs * 1.9 - ts * AF.u.cyc(0.12) / 0.2);
-  const fade = 0.5 + 0.5 * Math.sin(xs * 0.011 + a.ph + ts * AF.u.cyc(0.03) / 0.2);
+  const ray = 0.45 + 0.3 * Math.sin(xs * 0.7 + (AF.LOOP ? ts * AF.u.cyc(0.18) / 0.2 : ts * 0.9) + Math.sin(xs * 0.05 + (AF.LOOP ? ts * AF.u.cyc(0.06) / 0.2 : ts * 0.3)) * 3) + 0.25 * Math.sin(xs * 1.9 - (AF.LOOP ? ts * AF.u.cyc(0.12) / 0.2 : ts * 0.6));
+  const fade = 0.5 + 0.5 * Math.sin(xs * 0.011 + a.ph + (AF.LOOP ? ts * AF.u.cyc(0.03) / 0.2 : ts * 0.15));
   const b = Math.max(0, Math.min(3, Math.round(ray * (0.65 + fade * 0.6) * 3)));
-  const hh = Math.round(a.hpx * (0.6 + 0.4 * Math.sin(xs * 0.021 + ts * AF.u.cyc(0.08) / 0.2 + a.ph)));
+  const hh = Math.round(a.hpx * (0.6 + 0.4 * Math.sin(xs * 0.021 + (AF.LOOP ? ts * AF.u.cyc(0.08) / 0.2 : ts * 0.4) + a.ph)));
   return { y0, hh, col: a.cols[b] };
 }
 

@@ -98,7 +98,7 @@ class NatureTests(unittest.TestCase):
 
     def test_the_settings_preview_shows_the_crater_without_playing_it(self):
         studied_every_day_but({3}, nature="merciless")
-        with mock.patch.object(addon.settings, "is_open", return_value=True):
+        with mock.patch.object(addon.state, "_settings_open", True):
             p = payload.payload()
         self.assertEqual((len(p["craters"]), p["strike"]["fresh"]), (1, False))
         self.assertTrue(payload.payload()["strike"]["fresh"])  # it plays once the dialog is closed

@@ -3,7 +3,6 @@ thank-you in Memory Forest Plus, the edition patrons get."""
 
 from __future__ import annotations
 
-import json
 import os
 
 from aqt.qt import (
@@ -21,10 +20,10 @@ from aqt.qt import (
     QWidget,
 )
 
+from ..edition import is_plus
+
 PATREON = "https://www.patreon.com/BarakLevy"
-PLUS_PACKAGE = "memory_forest_plus"
 HERE = os.path.dirname(os.path.abspath(__file__))
-ADDON_DIR = os.path.dirname(HERE)
 # pixel art: a full-grown tree from the forest's own engine (15x16) at the left of the button
 # or the thank-you, and a coral heart (7x7) in the heading or the thank-you; each pixel is drawn as a square this many points wide
 TREE = os.path.join(HERE, "patreon_tree.png")
@@ -44,26 +43,6 @@ QPushButton { font-size: 15px; text-align: left; padding: 8px 14px;
               background: rgba(128, 128, 128, 0.12); }
 QPushButton:hover { background: rgba(128, 128, 128, 0.25); }
 """
-
-
-def manifest() -> dict:
-    """The add-on's manifest.json, or nothing if it can't be read."""
-    try:
-        with open(os.path.join(ADDON_DIR, "manifest.json"), encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
-def is_plus() -> bool:
-    """Whether this copy is Memory Forest Plus: each edition's build writes its own package into
-    manifest.json (or, while debug is on, the edition the Debug tab pretends it is)."""
-    from ..state import debug_edition
-    pretend = debug_edition()
-    if pretend:
-        return pretend == "plus"
-    return manifest().get("package") == PLUS_PACKAGE
 
 
 def pixel_art(path: str) -> tuple:

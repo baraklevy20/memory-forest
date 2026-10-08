@@ -10,8 +10,10 @@ from aqt.qt import QCheckBox, QComboBox, QDate, QFormLayout, QHBoxLayout, QPushB
 
 from .. import news
 from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
+from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
-from ..state import DEBUG_EDITIONS, TEST_TREES_DEFAULT, TEST_TREES_MAX, config, forget_seasons
+from ..seasons import forget_seasons
+from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
 from .history import DATE_FORMAT
 from .widgets import date_field, group, hint
 
@@ -118,7 +120,7 @@ class DebugTab(QWidget):
         self.news_pick = QComboBox()
         self.news_show = QPushButton("Show it as new")
         self.news_show.clicked.connect(self._show_news)
-        # the edition this copy pretends to be (state.debug_edition)
+        # the edition this copy pretends to be (edition.debug_edition)
         self.edition = QComboBox()
         for key in ("",) + DEBUG_EDITIONS:
             self.edition.addItem(EDITION_LABELS[key], key)

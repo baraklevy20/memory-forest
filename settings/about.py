@@ -21,8 +21,9 @@ from aqt.qt import (
 )
 
 from .. import news
-from ..state import config
-from .patreon import ADDON_DIR, HEART, PATREON, TREE, is_plus, manifest, pixel_label
+from ..edition import is_plus, manifest
+from ..state import ADDON_DIR, config
+from .patreon import HEART, PATREON, TREE, pixel_label
 from .widgets import group
 
 # the newest versions the What's new group lists (the release notes link has the rest)

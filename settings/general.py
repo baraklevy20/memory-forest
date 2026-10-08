@@ -23,9 +23,12 @@ from aqt.qt import (
 )
 
 from .. import presets
+from ..edition import debug_edition, edition_presets
 from ..events import NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
 from ..live_weather import city_problem
-from ..state import ANIMATION_VALUES, animation_mode, debug_edition, edition_presets, phone_on, today
+from ..phone_note import phone_on
+from ..seasons import today
+from ..state import ANIMATION_VALUES, animation_mode
 from .palette import color
 from .patreon import banner
 from .scenery_picker import SceneryPicker, crisp
@@ -88,8 +91,9 @@ class NatureChoice(QWidget):
 
 
 class GeneralTab(QWidget):
-    def __init__(self, cfg: dict, new_keys=()):
+    def __init__(self, cfg: dict, on_phone, new_keys=()):
         super().__init__()
+        self.on_phone = on_phone  # makes or takes away the phone's deck (actions.phone_switched)
         # the choices and the chosen one, in a dropdown that is never shown: the picker's tiles
         # stand for it (a seasonal preset is only offered in its week)
         self.preset = QComboBox(self)
@@ -160,8 +164,7 @@ class GeneralTab(QWidget):
         v.addStretch(1)
 
     def _phone_toggled(self, on: bool) -> None:
-        from ..actions import phone_switched
-        phone_switched(on)
+        self.on_phone(on)
         dialog = self.window()
         if not self._watching_cancel and dialog is not self:
             dialog.rejected.connect(self._phone_put_back)
@@ -172,8 +175,7 @@ class GeneralTab(QWidget):
         config - but not when Restore defaults closed the dialog: that keeps it as it is."""
         if not getattr(self.window(), "_reverting", True) or phone_on() == self.phone_was:
             return
-        from ..actions import phone_switched
-        phone_switched(self.phone_was)
+        self.on_phone(self.phone_was)
 
     def offer(self, day, look: dict, edition: str = "") -> None:
         """The presets there are on `day` (a seasonal one comes out on its first day), in

@@ -8,8 +8,9 @@ from aqt import mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
 from .. import news, presets
+from ..edition import debug_available, debug_edition
 from ..events import NATURE_LABELS, nature_level
-from ..state import debug_available, debug_edition, today
+from ..seasons import today
 from . import whats_new
 from .about import AboutTab
 from .fine_tuning import FineTuningTab
@@ -58,7 +59,7 @@ class NoDebugTab:
 
 
 def debug_tab(cfg: dict):
-    """The Debug tab while debug is on and this copy has it (state.debug_available); NoDebugTab otherwise."""
+    """The Debug tab while debug is on and this copy has it (edition.debug_available); NoDebugTab otherwise."""
     if not debug_available(cfg):
         return NoDebugTab()
     from .debug import DebugTab
@@ -66,10 +67,10 @@ def debug_tab(cfg: dict):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, module: str, on_change, reopen, parent=None, focus: str = ""):
+    def __init__(self, module: str, on_change, on_phone, reopen, parent=None, focus: str = ""):
         super().__init__(parent or mw)
         self.module = module
-        self.on_change = on_change
+        self.on_change, self.on_phone = on_change, on_phone
         self.reopen = reopen
         self.original = dict(mw.addonManager.getConfig(module) or {})
         cfg = self.original
@@ -77,7 +78,7 @@ class SettingsDialog(QDialog):
         self.setMinimumWidth(DIALOG_MIN_WIDTH)
 
         # opening the settings answers the cog's dot: the new sceneries wear NEW for this visit
-        self.general = GeneralTab(cfg, news.settings_opened(cfg))
+        self.general = GeneralTab(cfg, on_phone, news.settings_opened(cfg))
         self.fine = FineTuningTab(cfg)
         self.history = HistoryTab(cfg)
         # the made-up test forest and the event switches are a developer's tool: their tab is
@@ -244,7 +245,7 @@ class SettingsDialog(QDialog):
         mw.addonManager.writeConfig(self.module, {k: v for k, v in self.values().items() if k in DATA_KEYS})
         self.on_change()
         self.close()
-        self.reopen(self.module, self.on_change)
+        self.reopen(self.module, self.on_change, self.on_phone)
 
     def _release(self, *_args) -> None:
         """Let go of the History tab's tree days as the dialog closes: the dialog's objects

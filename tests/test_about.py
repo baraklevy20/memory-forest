@@ -44,16 +44,5 @@ class GoatsFileTests(unittest.TestCase):
             self.assertEqual(about.goats(), [])
 
 
-class ManifestTests(unittest.TestCase):
-    def test_the_shipped_manifest_has_a_version(self):
-        self.assertTrue(patreon.manifest().get("human_version"))
-
-    def test_plus_is_told_by_the_package(self):
-        with mock.patch.object(patreon, "manifest", return_value={"package": patreon.PLUS_PACKAGE}):
-            self.assertTrue(patreon.is_plus())
-        with mock.patch.object(patreon, "manifest", return_value={}):
-            self.assertFalse(patreon.is_plus())
-
-
 if __name__ == "__main__":
     unittest.main()

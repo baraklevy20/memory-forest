@@ -10,10 +10,14 @@ live_weather.py  the live weather for your city: its cache, and refreshing it in
 actions.py       clicks (settings, browse a tree's cards) and the deck gear menu
 planting.py      the "a new tree was planted" message
 phone.py         the forest on your phone: the note, deck and script it syncs in, written at each sync
+phone_note.py    telling that note, its deck and its cards apart from your own study
 phone_data.py    what that note holds: the page's data and the next days' scenes, and the one-file script (no aqt)
 events_state.py  the events on Anki's side: Nature read from the days you studied, and what the page is sent
 debug_events.py  the Debug tab's study events and timeline (debug only)
 state.py         the config, and what is remembered per profile in user_files/
+seasons.py       the day the forest is drawn for, and the seasonal scenery's week
+edition.py       which edition this copy is (Memory Forest or Plus), and whether it has the debug tools
+scope.py         what the forest counts: the decks left out, its days, and whether the study data changed
 settings/        the settings dialog: dialog.py, and one file per tab (changes apply immediately)
 presets.py       the ready-made scenes the dialog offers
 study_log.py     what is read from the collection: cards, review log, Anki days (no aqt)

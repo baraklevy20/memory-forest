@@ -9,7 +9,9 @@ from __future__ import annotations
 from aqt import mw
 
 from . import events, forest_data, milestones, study_log
-from .state import _profile, day_cutoff, deck_ids, excluded_decks, load_state, phone_cards, phone_decks, remembered, save_state, since
+from .phone_note import phone_cards, phone_decks
+from .scope import day_cutoff, deck_ids, excluded_decks, since
+from .state import _profile, load_state, remembered, save_state, settings_open
 
 # The profiles a sync has finished for this session, and whether one is under way. Until
 # a sync has brought in what you studied elsewhere (on your phone, say), a day you studied
@@ -158,8 +160,6 @@ def _animals(forest: dict, struck: int | None, did: int | None = None) -> dict:
     remembers the animals it already has without announcing them all at once - so changing
     the Nature setting back and forth announces nothing - and nothing the settings dialog
     previews is remembered."""
-    from .settings import is_open
-
     today = mw.col.sched.today
     key = "all" if struck is None else str(struck)
     if did is not None:  # a deck's own forest earns its own
@@ -170,8 +170,8 @@ def _animals(forest: dict, struck: int | None, did: int | None = None) -> dict:
     known = every.get(key)
     first = known is None
     known = {k: v for k, v in (known or {}).items() if v is None or type(v) is int}
-    arrived = milestones.arrivals(forest["stats"], known, None if first or is_open() else today)
-    if not is_open() and arrived != every.get(key):
+    arrived = milestones.arrivals(forest["stats"], known, None if first or settings_open() else today)
+    if not settings_open() and arrived != every.get(key):
         state["animals"] = dict(every, **{key: arrived})
         save_state(state)
     return dict(forest, visitors=milestones.visitors(forest["stats"], arrived, today))
@@ -233,9 +233,7 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
     goes through all the same, the trees' own events (crows, robins, flowers, grass) from
     that deck's cards, and the rest (Nature, the ponds, the backlog) from every deck you
     study, as on the main forest. What is read from the collection is kept until `changed`
-    (state.changes) is different."""
-    from .settings import is_open
-
+    (scope.changes) is different."""
     level = nature_level(cfg)
     days = forest.get("review_days") or set()
     dids = deck_ids(did, excluded_decks(cfg)) if did is not None and not test else None
@@ -248,7 +246,7 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
             reviewing = nature_days
             forest = dict(forest, trees=forest_data.with_ponds(forest["trees"], _pond_days(cfg, changed), ago_date))
         struck = None
-        live = not is_open()  # (what the settings dialog previews is not remembered as shown)
+        live = not settings_open()  # (what the settings dialog previews is not remembered as shown)
         if level == "merciless":
             out = events.merciless(forest["trees"], nature_days, _held(nature_days))
             if out["hits"] and settled() and live:

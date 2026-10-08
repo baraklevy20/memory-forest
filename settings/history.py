@@ -21,7 +21,9 @@ from aqt.qt import (
 )
 
 from .. import study_log
-from ..state import OFF_VALUES, day_cutoff, log, phone_cards, phone_decks
+from ..phone_note import phone_cards, phone_decks
+from ..scope import day_cutoff
+from ..state import OFF_VALUES, log
 from .widgets import date_field, group, grow_window, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole

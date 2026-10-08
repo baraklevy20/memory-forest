@@ -241,7 +241,7 @@ def phone():
     forest = sys.modules[FOREST]
     col = mw.col
     forest.phone.switch(True)
-    did = col.decks.id_for_name(forest.phone.DECK)
+    did = col.decks.id_for_name(forest.phone.PHONE_DECK)
     cids = col.db.list("select id from cards where did = ?", did) if did else []
     if not cids:
         result["problems"].append("the phone forest made no card")
@@ -254,7 +254,7 @@ def phone():
     if col.db.scalar("select type from cards where id = ?", cids[0]) != 0:
         result["problems"].append("the phone forest's card was not made new again")
     forest.phone.switch(False)
-    if col.decks.id_for_name(forest.phone.DECK):
+    if col.decks.id_for_name(forest.phone.PHONE_DECK):
         result["problems"].append("turning the phone forest off left its deck")
 
 

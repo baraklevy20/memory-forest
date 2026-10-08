@@ -116,10 +116,13 @@ function riverLanterns(g, env, t) {
   }
   boats.sort((a, b) => a.p - b.p);
   for (const { p, lane, at } of boats) {
-    const y = Math.round(hor + p * (H - hor) + Math.sin(tt * AF.u.cyc(0.8) + at) * 0.5), lw = Math.max(1, Math.round((0.8 + p * 3) * u));
+    // (in loop mode the ninth lantern's place wraps back to the first, so its bob and
+    // flicker carry on across the seam; the reflection's broken rows don't move along)
+    const ph = AF.LOOP ? at % 9 : at;
+    const y = Math.round(hor + p * (H - hor) + Math.sin(tt * AF.u.cyc(0.8) + ph) * 0.5), lw = Math.max(1, Math.round((0.8 + p * 3) * u));
     const x = Math.round(W * land.center(p) + lane * W * land.halfWidth(p, W) - lw / 2);
     if (!seen(x + (lw >> 1), y + 1)) continue;  // behind a tree, or off the water
-    floatingLantern(g, x, y, lw, 0.8 + 0.2 * Math.sin(tt * AF.u.cyc(2.3) + at * 1.7), Math.round((2 + p * 8) * u), Math.floor(at), seen);
+    floatingLantern(g, x, y, lw, 0.8 + 0.2 * Math.sin(tt * AF.u.cyc(2.3) + ph * 1.7), Math.round((2 + p * 8) * u), AF.LOOP ? 0 : at, seen);
   }
 }
 
@@ -199,7 +202,7 @@ AF.env('bamboo', {
       // two lanes: small lanterns far out, bigger ones close to this bank
       const near = k % 2 === 0, lw = near ? Math.max(4, Math.round(3.6 * u)) : 3;
       const lane = near ? 0.55 + R() * 0.3 : 0.05 + R() * 0.25, y = Math.round(L.y0 + 2 + lane * Math.max(1, L.lh - 4));
-      const x = Math.round(((k / n) * (W + 12) + R() * 10 + t * AF.u.drift(v * (near ? 1 : 0.7), W + 12)) % (W + 12)) - 6;
+      const x = Math.round(((k / n) * (W + 12) + R() * 10 + (AF.LOOP ? t * AF.u.drift(v * (near ? 1 : 0.7), W + 12) : t * v * (near ? 1 : 0.7))) % (W + 12)) - 6;
       const flick = 0.8 + 0.2 * Math.sin(t * AF.u.cyc(2.3) + k * 1.7), yb = y + Math.round(Math.sin(t * AF.u.cyc(0.8) + k) * 0.5);
       floatingLantern(g, x, yb, lw, flick, Math.min((near ? 10 : 5) * u, L.y0 + L.lh - yb - 2), k, () => true);
     }

@@ -1,22 +1,17 @@
 """The add-on's config, and what it remembers between sessions: the settings as the user
-set them, the per-profile state file, and which decks and days the forest counts."""
+set them, and the per-profile state file."""
 
 from __future__ import annotations
 
-import datetime as _dt
-import json
 import os
 
 from aqt import mw
 
-from . import events, presets, study_log
 from .store import load_json, save_json
 
 ADDON_DIR = os.path.dirname(__file__)
 USER_FILES = os.path.join(ADDON_DIR, "user_files")
 STATE_PATH = os.path.join(USER_FILES, "state.json")
-# the seasonal scenery's record: shared by every profile, as the look settings are
-SEASON_PATH = os.path.join(USER_FILES, "season.json")
 MODULE = mw.addonManager.addonFromModule(__name__)
 
 # The numbers a config can hold, however it was edited; the settings dialog offers the same ranges.
@@ -24,38 +19,10 @@ MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX = 800, 400, 2000
 TEST_TREES_DEFAULT, TEST_TREES_MAX = 150, 5000
 # a hand-edited "false" (or 0) turns a switch off too
 OFF_VALUES = (False, "false", "False", 0, "0")
-# the note type of the note that takes the forest to your phone (phone.py)
-PHONE_NOTETYPE = "Memory Forest"
-# where older versions kept the "Show my forest on my phone" switch, in the collection's
-# config: no longer read (see phone_on), only taken away when the switch is next used
-OLD_PHONE_SWITCH = "memoryForestPhone"
 
 
 def config() -> dict:
     return mw.addonManager.getConfig(MODULE) or {}
-
-
-def phone_note_ids(col) -> list:
-    """The notes that carry the forest to your phone (phone.py), oldest first: those of every
-    note type of ours (two computers that each made one before they synced leave two)."""
-    try:
-        mids = [e.id for e in col.models.all_names_and_ids() if e.name == PHONE_NOTETYPE]
-    except AttributeError:  # an Anki without it: the one its name finds
-        m = col.models.by_name(PHONE_NOTETYPE)
-        mids = [m["id"]] if m else []
-    if not mids:
-        return []
-    return col.db.list(f"select id from notes where mid in ({','.join('?' * len(mids))}) order by id", *mids)
-
-
-def phone_on(col=None) -> bool:
-    """Whether the forest goes to the phone in this collection: whether its note is there.
-    The note is the switch, so every computer sees the same once synced, and turning it off
-    can't be undone by a sync. A config entry could: Anki syncs the collection's config as
-    one piece, from whichever device changed anything last, so a phone that had only opened
-    a deck since put its old "on" back over the "off" a computer had just synced."""
-    col = mw.col if col is None else col
-    return col is not None and bool(phone_note_ids(col))
 
 
 def save_config(cfg: dict) -> None:
@@ -65,91 +32,18 @@ def save_config(cfg: dict) -> None:
     mw.addonManager.writeConfig(MODULE, {k: v for k, v in cfg.items() if k in known and known[k] != v})
 
 
-def debug_available(cfg: dict | None = None) -> bool:
-    """Whether debug is on and this copy has the debug tools to go with it: a release ships
-    without them (dev/package.py), and debug turned on by hand there changes nothing."""
-    cfg = config() if cfg is None else cfg
-    return bool(cfg.get("debug", False)) and os.path.exists(os.path.join(ADDON_DIR, "debug_events.py"))
+# whether the settings dialog is up (settings sets it): what it previews is not a real change,
+# so nothing in it is remembered as shown
+_settings_open = False
 
 
-# the editions the Debug tab can pretend this copy is (editions.json, which only this copy has)
-EDITIONS_FILE = os.path.join(ADDON_DIR, "editions.json")
-DEBUG_EDITIONS = ("base", "plus")
+def settings_open() -> bool:
+    return _settings_open
 
 
-def debug_edition(cfg: dict | None = None) -> str:
-    """While debug is on, the edition this copy pretends to be ("base" or "plus"), or "" for
-    itself: every scenery here, and its own manifest's say on whether it is Plus."""
-    cfg = config() if cfg is None else cfg
-    edition = cfg.get("debug_edition") or ""
-    return edition if edition in DEBUG_EDITIONS and debug_available(cfg) else ""
-
-
-def edition_presets(edition: str) -> set | None:
-    """The preset keys `edition` ships, from editions.json, or None for every one here (no
-    edition, or no editions.json to read it from)."""
-    if not edition:
-        return None
-    try:
-        with open(EDITIONS_FILE, encoding="utf-8") as f:
-            envs = json.load(f)[edition]["envs"]
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
-    return {p.key for p in presets.FOREST_PRESETS
-            if envs == "*" or p.environment in envs or p.key == presets.DAILY}
-
-
-def today(cfg: dict | None = None) -> _dt.date:
-    """The date the scenery is chosen for: today, or while debug is on, the debug date
-    (if one is set) moved on by the days passed on the test forest's timeline - so passing
-    a week there also carries a holiday's week over, as it would in real days."""
-    cfg = config() if cfg is None else cfg
-    day = _dt.date.today()
-    if not debug_available(cfg):
-        return day
-    try:
-        day = _dt.date.fromisoformat(cfg.get("debug_date") or "") or day
-    except (TypeError, ValueError):
-        pass
-    if cfg.get("test_forest"):  # the timeline passes days only on the test forest
-        day += _dt.timedelta(days=events.timeline_days(events.timeline_steps(cfg.get("debug_timeline")))[0])
-    return day
-
-
-def follow_season(cfg: dict, day: _dt.date | None = None) -> dict:
-    """The config, changed to a seasonal preset in its week and back after it (see
-    presets.follow_season), and saved if it changed."""
-    day = day or today(cfg)
-    record = load_json(SEASON_PATH)
-    change, kept = presets.follow_season(cfg, record, day)
-    if kept != record:
-        try:
-            save_json(SEASON_PATH, kept)
-        except OSError:
-            log(f"could not save {SEASON_PATH}")
-    if change and any(cfg.get(k) != v for k, v in change.items()):
-        cfg = dict(cfg, **change)
-        save_config(cfg)
-    return cfg
-
-
-def forget_seasons() -> None:
-    """Let every holiday's week change the scenery again (the Debug tab's replay)."""
-    try:
-        save_json(SEASON_PATH, {})
-    except OSError:
-        log(f"could not save {SEASON_PATH}")
-
-
-def season_returns(cfg: dict, today: _dt.date) -> _dt.date | None:
-    """The day the scenery from before comes back, while a seasonal preset stands in for it."""
-    active = load_json(SEASON_PATH).get("active")
-    now = presets.in_season(today)
-    if not (now and isinstance(active, dict) and active.get("tag") == f"{now.key}:{today.year}"):
-        return None
-    if {k: cfg.get(k) for k in presets.LOOK} != active.get("applied") or active.get("before") == active.get("applied"):
-        return None
-    return presets.season_ends(now, today)
+def set_settings_open(is_open: bool) -> None:
+    global _settings_open
+    _settings_open = is_open
 
 
 def log(msg: str) -> None:
@@ -185,89 +79,6 @@ def save_state(state: dict) -> None:
         pass
 
 
-def excluded_decks(cfg: dict | None = None) -> set:
-    """Every deck left out of the forest: the ones unticked in the settings and all their
-    subdecks, found afresh each time, so a deck made or moved under one later is out too.
-    The deck the add-on keeps for the note that takes the forest to your phone is always out
-    (the note's cards themselves are left out wherever they are: see phone_cards)."""
-    out = phone_decks()
-    for did in (cfg if cfg is not None else config()).get("excluded_decks") or []:
-        try:
-            out.update(mw.col.decks.deck_and_child_ids(int(did)))
-        except Exception:  # a hand edit, or a deck deleted since
-            continue
-    return out
-
-
-# the deck phone.py makes for the note that takes the forest to your phone
-PHONE_DECK = "Memory Forest"
-# phone_decks' and phone_cards' last answers, and the collection and modification time they were for
-_phone_decks: tuple = (None, None, frozenset())
-_phone_cards: tuple = (None, None, frozenset())
-
-
-def phone_decks() -> set:
-    """The add-on's own deck for the note that carries the forest to your phone (phone.py),
-    found by its name: the settings and the gear menu don't offer it, and it grows no forest.
-    Never the deck its card happens to be in, which may be one of yours."""
-    global _phone_decks
-    try:
-        col = mw.col
-        mod = col.mod
-        if _phone_decks[0] is col and _phone_decks[1] == mod:
-            return set(_phone_decks[2])
-        did = col.decks.id_for_name(PHONE_DECK)
-        found = {did} if did else set()
-    except Exception:  # no collection yet
-        return set()
-    _phone_decks = (col, mod, frozenset(found))
-    return found
-
-
-def phone_cards() -> set:
-    """The cards of the note that carries the forest to your phone, wherever they are now,
-    and every one it ever had here (remembered per profile once seen, since Anki keeps the
-    reviews of a deleted card, and another computer's sync may be what deletes it): answering one is looking at the forest,
-    not studying, so no review of theirs ever counts. Asked several times a redraw, so the
-    answer is kept until the collection next changes."""
-    global _phone_cards
-    try:
-        col = mw.col
-        mod = col.mod
-        if _phone_cards[0] is col and _phone_cards[1] == mod:
-            return set(_phone_cards[2])
-        m = col.models.by_name(PHONE_NOTETYPE)
-        found = set(col.db.list("select id from cards where nid in (select id from notes where mid = ?)", m["id"])) if m else set()
-    except Exception:  # no collection yet
-        return set()
-    if found:  # remembered as soon as seen, so a note deleted by a sync from elsewhere is too
-        remember_phone_cards(found)
-    found |= {c for c in load_state().get("phone_cards") or [] if isinstance(c, int)}
-    _phone_cards = (col, mod, frozenset(found))
-    return found
-
-
-def changes():
-    """Where the study data stands, read cheaply (a few ms on a big collection): the newest
-    review, and the latest change to any card or note - but the note that carries the forest
-    to your phone and its cards, which the add-on rewrites itself at every sync. What the
-    forest is built from can only have changed if this has. (The collection's own modified
-    time changes far more often - picking a deck, the phone's note - and each change used to
-    cost a whole rebuild.) None when the collection can't say."""
-    col = mw.col
-    if col is None:
-        return None
-    cids = ",".join(str(int(c)) for c in phone_cards())
-    not_phone = f" where id not in ({cids})" if cids else ""
-    not_phone_note = f" where id not in (select nid from cards where id in ({cids}))" if cids else ""
-    try:
-        return (getattr(col, "path", None) or id(col), col.db.scalar("select max(id) from revlog"),
-                *col.db.all(f"select max(mod), count() from cards{not_phone}")[0],
-                col.db.scalar(f"select max(mod) from notes{not_phone_note}"))
-    except Exception:  # an older or unusual collection: rebuild every time, as before
-        return None
-
-
 # answers kept until what they were worked out from changes: {name: (key, answer)}
 _remembered: dict = {}
 
@@ -285,33 +96,6 @@ def remembered(name: str, key, work):
 
 def forget_remembered() -> None:
     _remembered.clear()
-
-
-def remember_phone_cards(cids) -> None:
-    """Keep leaving out the reviews of these cards once they are gone (see phone_cards)."""
-    global _phone_cards
-    state = load_state()
-    known = {c for c in state.get("phone_cards") or [] if isinstance(c, int)}
-    if set(cids) - known:
-        state["phone_cards"] = sorted(known | set(cids))
-        save_state(state)
-    _phone_cards = (None, None, frozenset())
-
-
-def day_cutoff(col) -> int:
-    """When the collection's day ends, as a timestamp: the scheduler's day_cutoff, which
-    Anki before 2.1.50 calls dayCutoff."""
-    sched = col.sched
-    return sched.day_cutoff if hasattr(sched, "day_cutoff") else sched.dayCutoff
-
-
-def since(cfg: dict) -> int | None:
-    """When the forest begins (the Ignore before setting), as a timestamp, or None."""
-    try:
-        date = _dt.date.fromisoformat(str(cfg.get("ignore_before") or ""))
-    except ValueError:
-        return None
-    return study_log.day_start(date, day_cutoff(mw.col))
 
 
 # "Animate the forest": the config holds true, false or "system" (still while the system asks
@@ -336,6 +120,3 @@ def shows_on_deck_list(cfg: dict | None = None) -> bool:
     return (cfg if cfg is not None else config()).get("main_forest", True) not in OFF_VALUES
 
 
-def deck_ids(did: int, excluded: set) -> list:
-    """A deck and its subdecks, less those left out of the forest."""
-    return [d for d in mw.col.decks.deck_and_child_ids(did) if d not in excluded]
