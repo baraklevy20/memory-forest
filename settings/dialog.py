@@ -7,7 +7,7 @@ from __future__ import annotations
 from aqt import mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
-from .. import presets
+from .. import news, presets
 from ..events import NATURE_LABELS, nature_level
 from ..state import debug_available, debug_edition, today
 from .about import AboutTab
@@ -62,7 +62,7 @@ def debug_tab(cfg: dict):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, module: str, on_change, reopen, parent=None):
+    def __init__(self, module: str, on_change, reopen, parent=None, focus: str = ""):
         super().__init__(parent or mw)
         self.module = module
         self.on_change = on_change
@@ -72,7 +72,8 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Memory Forest settings")
         self.setMinimumWidth(DIALOG_MIN_WIDTH)
 
-        self.general = GeneralTab(cfg)
+        # opening the settings answers the cog's dot: the new sceneries wear NEW for this visit
+        self.general = GeneralTab(cfg, news.settings_opened(cfg))
         self.fine = FineTuningTab(cfg)
         self.history = HistoryTab(cfg)
         # the made-up test forest and the event switches are a developer's tool: their tab is
@@ -82,8 +83,9 @@ class SettingsDialog(QDialog):
         if not isinstance(self.debug, NoDebugTab):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))
-        tabs = QTabWidget()
-        for widget, name in shown + [(AboutTab(), "About")]:
+        tabs = self.tabs = QTabWidget()
+        self.about = AboutTab()
+        for widget, name in shown + [(self.about, "About")]:
             tabs.addTab(widget, name)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -114,6 +116,13 @@ class SettingsDialog(QDialog):
         # the room its longest help needs, and the dialog opens that big
         self.layout().activate()
         self.adjustSize()
+        self.show_news(focus)
+
+    def show_news(self, focus: str) -> None:
+        """Go to the tab a note's button points at (news.opens)."""
+        tab = {"general": self.general, "fine": self.fine, "history": self.history, "about": self.about}.get(focus)
+        if tab is not None:
+            self.tabs.setCurrentWidget(tab)
 
     def _preset_chosen(self, *_args) -> None:
         """Picking a preset fills the five settings it stands for, on the Fine-tuning tab."""

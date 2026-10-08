@@ -400,7 +400,8 @@ class CuredTests(unittest.TestCase):
 
 # PLANTED with every other card in deck 20: deck 10 holds half of each stretch of trees
 SPLIT = [(cid, 10 if cid % 2 == 0 else 20, ago) for cid, _did, ago in PLANTED]
-DECK_ONLY = {"deckId", "deckName", "highlight", "litCount"}
+# (and the what's new note, which only the deck list's forest shows)
+DECK_ONLY = {"deckId", "deckName", "highlight", "litCount", "news"}
 
 
 class DeckForestTests(unittest.TestCase):

@@ -88,7 +88,7 @@ class NatureChoice(QWidget):
 
 
 class GeneralTab(QWidget):
-    def __init__(self, cfg: dict):
+    def __init__(self, cfg: dict, new_keys=()):
         super().__init__()
         # the choices and the chosen one, in a dropdown that is never shown: the picker's tiles
         # stand for it (a seasonal preset is only offered in its week)
@@ -98,6 +98,7 @@ class GeneralTab(QWidget):
         set_options(self.preset, preset_options(day, presets.match(cfg), debug_edition(cfg)))
         set_quietly(self.preset, presets.match(cfg))
         self.picker = SceneryPicker(self._picked, animation_mode(cfg) != "off")
+        self.picker.new_keys = set(new_keys)  # the sceneries new since the settings were last opened
         self.picker.set_choices(self.scenery_choices(), presets.match(cfg), day)
         self.real_sky = QCheckBox("Follow the real weather and time of day")
         self.real_sky.setChecked(presets.follows_real_sky(cfg))

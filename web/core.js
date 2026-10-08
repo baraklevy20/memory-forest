@@ -30,6 +30,7 @@ AF.mount = function (root, data, opts) {
   root.style.maxWidth = data.maxWidth + 'px';
   AF.caption(root, data);
   AF.captionTips(root);
+  AF.news(root, data);  // what's new: the cog's dot, and a note on the forest
 
   const layout = AF.layout(data.trees);
   // with animations off the forest is one still moment: every redraw uses this time

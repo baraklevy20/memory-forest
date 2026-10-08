@@ -36,7 +36,7 @@ LIVE_WEATHER_HOURS = 6
 PHONE_MAX_WIDTH = 1200
 # What only makes sense on the desktop's deck list: which add-on answers clicks, and the
 # deck screens.
-DESKTOP_ONLY = ("channel", "deckId", "deckName", "highlight", "litCount", "weatherError")
+DESKTOP_ONLY = ("channel", "deckId", "deckName", "highlight", "litCount", "weatherError", "news", "newDot")
 # The script the card loads, named after what is in it: an update gets a new name, so no
 # phone keeps drawing with yesterday's copy from its cache.
 SCRIPT_PREFIX = "_memory_forest-"

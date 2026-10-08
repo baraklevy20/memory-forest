@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, journal, live_weather, milestones, presets, scene, study_log
+from . import events_state, forest_data, journal, live_weather, milestones, news, presets, scene, study_log
 from .state import (
     ANIMATION_VALUES,
     MAX_WIDTH_DEFAULT,
@@ -200,6 +200,9 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "deckName": mw.col.decks.name_if_exists(did) if did else None,
         "highlight": bool(highlight and did),
         "litCount": forest.get("lit_count"),
+        # what's new: a note on the deck list's forest only, and the cog's dot on every one
+        "news": None if did else news.note(cfg, day),
+        "newDot": bool(news.dots(cfg)),
         **extras,
     }
 

@@ -1,0 +1,54 @@
+{
+  "_comment": "Every version's release notes, newest first: the one place they are written. dev/notes.py makes the AnkiWeb page's What's new from them (npm run notes), dev/release.py the GitHub release's, and the add-on reads them for the About tab and for what an update announces. See release_notes.py for what an item can hold. One short sentence each.",
+  "versions": [
+    {
+      "version": "1.2.0",
+      "new": [
+        "\"Animate the forest\" is now On, Off, or Follow system, which keeps the forest still when your system is set to reduce motion.",
+        "The add-on now works in Anki 2.1.45 and later."
+      ],
+      "improved": [
+        "Choose your scenery right on the General tab, from moving previews of each one.",
+        "Live weather now comes from MET Norway and follows the real sky more closely, and your city can be typed in its own language, like 東京 or القاهرة."
+      ],
+      "fixed": [
+        "A deck's own forest now reacts to how you study, just like your main forest, and on Peaceful it no longer shows the signs of bad habits.",
+        "The forest shows again in the versions of Anki made for older computers."
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "new": [
+        "Your forest on your phone, in AnkiDroid (turn it on in the General tab).",
+        "The forest notices how you study: good days and bad habits leave their marks.",
+        "Nature, a new setting on the General tab: choose how much the forest holds you to account for days away, from Peaceful to Wild to Merciless.",
+        "New animals to look forward to, years into your forest.",
+        "A new History tab: see how many trees each deck grows, leave decks out of the forest, or start it from a date.",
+        "A new scenery every month, and Memory Forest Plus on Patreon, where it arrives first.",
+        "Choose where the forest shows: on the main screen, on deck screens, or both (Fine-tuning tab)."
+      ],
+      "improved": [
+        "A tidier General tab, and a new scenery picker that shows each scenery as a picture.",
+        "Trees now stand on their own for up to two years before joining the deep forest at the back.",
+        "Rivers now wind through the middle of the forest.",
+        "Suspended cards keep their trees.",
+        "The forest uses about 25% less memory, and opening the settings no longer leaks memory.",
+        "The forest uses less CPU.",
+        "The add-on is packed about 27% smaller."
+      ],
+      "fixed": [
+        "A pond now appears after one week away instead of two.",
+        "The forest no longer looks wrong after an update.",
+        "Aurora night's mountains no longer vanish behind a very big forest.",
+        "Ponds stay on the ground and no longer overlap.",
+        "The settings cog no longer grows a border on hover."
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "notes": [
+        "First release."
+      ]
+    }
+  ]
+}

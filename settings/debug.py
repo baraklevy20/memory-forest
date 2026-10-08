@@ -8,9 +8,10 @@ import datetime as _dt
 
 from aqt.qt import QCheckBox, QComboBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
 
+from .. import news
 from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
-from ..state import DEBUG_EDITIONS, TEST_TREES_DEFAULT, TEST_TREES_MAX, forget_seasons
+from ..state import DEBUG_EDITIONS, TEST_TREES_DEFAULT, TEST_TREES_MAX, config, forget_seasons
 from .history import DATE_FORMAT
 from .widgets import date_field, group, hint
 
@@ -32,6 +33,10 @@ DATE_NOTE = ("The scenery is chosen for this date: the seasonal presets, Surpris
 EDITION_NOTE = ("Which edition this copy acts as: the sceneries offered, the Plus ones the picker shows "
                 "locked, and the Patreon banner and About tab (those two on reopening the settings). "
                 "The forest on screen keeps whatever scenery is chosen.")
+NEWS_NOTE = ("What an update announces: a note on the deck list's forest for a new feature, and a dot on "
+             "the cog (NEW on its tile) for a new scenery, each only where the edition above has it. "
+             "Answering one marks it seen. Replay as an update to see them again; a fresh install sees "
+             "none. A note also goes by itself after 3 days: move the date above to see that.")
 EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plus": "Memory Forest Plus"}
 # what the label calls each kind of day, and what happens (once, and more than once)
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
@@ -101,6 +106,12 @@ class DebugTab(QWidget):
         # a holiday's week changes the scenery once a year: forget that, to see it again
         self.replay = QPushButton("Replay the seasons")
         self.replay.clicked.connect(self._replay_seasons)
+        # what's new (news.py): replayed as someone who just updated, or as a fresh install
+        self.news_update = QPushButton("Replay as an update")
+        self.news_update.clicked.connect(lambda: self._replay_news(news.replay_update))
+        self.news_fresh = QPushButton("Replay as a fresh install")
+        self.news_fresh.clicked.connect(lambda: self._replay_news(news.replay_fresh))
+        self.news_label = hint("")
         # the edition this copy pretends to be (state.debug_edition)
         self.edition = QComboBox()
         for key in ("",) + DEBUG_EDITIONS:
@@ -138,8 +149,11 @@ class DebugTab(QWidget):
         dtv = QVBoxLayout(); dtv.addLayout(dr); dtv.addWidget(self.date_label); dtv.addWidget(hint(DATE_NOTE))
         er = QHBoxLayout(); er.addWidget(self.edition); er.addStretch(1)
         etv = QVBoxLayout(); etv.addLayout(er); etv.addWidget(hint(EDITION_NOTE))
+        nr = QHBoxLayout(); nr.addWidget(self.news_update); nr.addWidget(self.news_fresh); nr.addStretch(1)
+        ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
+        dv.addWidget(group("What's new", ntv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
         dv.addWidget(group("Study events", ev))
@@ -164,6 +178,11 @@ class DebugTab(QWidget):
 
     def _replay_seasons(self) -> None:
         forget_seasons()
+        if self._changed:
+            self._changed()
+
+    def _replay_news(self, replay) -> None:
+        replay()
         if self._changed:
             self._changed()
 
@@ -200,6 +219,9 @@ class DebugTab(QWidget):
                                     or "No days passed yet (needs the test forest)")
         for w in self.timeline_steps + self.happen:
             w.setEnabled(on)
+        waiting = news.unseen(dict(config(), debug_edition=self.edition.currentData() or ""))
+        self.news_label.setText("Still to show: " + ", ".join(f"{e['id']} ({e['kind']})" for e in waiting) if waiting
+                                else "Nothing left to show.")
         self.date.setEnabled(self.pretend.isChecked())
         day = self._date() or _dt.date.today()
         passed = timeline_days(self.timeline)[0] if on else 0

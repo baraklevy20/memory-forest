@@ -55,6 +55,8 @@ PICTURE_W, PICTURE_H = 192, 108
 PLUS_LIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plus.json")
 PLUS_TAG = "PLUS"
 PLUS_INK = (240, 200, 110, 255)  # RGBA
+NEW_TAG = "NEW"  # a scenery new since the settings were last opened (news.py), for this visit
+NEW_INK = (159, 227, 180, 255)  # RGBA
 # a Plus scenery's line under the tiles, the same under the pointer and once clicked (when it
 # stays, so the link can be reached): the way to it, opened only if they follow the link.
 # (The sceneries' own descriptions stay in their JSON: nobody read them under the tiles.)
@@ -163,7 +165,7 @@ def pill(p: QPainter, text: str, ink: QColor, x: float, top: float, right_aligne
     font = QFont()
     font.setPixelSize(PILL_FONT)
     font.setBold(True)
-    font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, PILL_SPACING if text == PLUS_TAG else 0)
+    font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, PILL_SPACING if text in (PLUS_TAG, NEW_TAG) else 0)
     fm = QFontMetrics(font)
     w = fm.horizontalAdvance(text) + 2 * PILL_PAD_X
     h = fm.height() + 2 * PILL_PAD_Y
@@ -191,6 +193,7 @@ class _Tile(QAbstractButton):
         self.locked = isinstance(preset, PlusScenery)  # shown, never picked: no lift, no focus
         self.pix = pix
         self.tag = tag  # a holiday's "Until ..." label, in the top left corner
+        self.new = False  # NEW in that corner instead (a holiday's scenery is never announced)
         self.movie = None
         if gif:
             self.movie = QMovie(gif, parent=self)
@@ -278,6 +281,8 @@ class _Tile(QAbstractButton):
         p.restore()
         if self.tag:
             pill(p, self.tag, QColor("white"), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
+        elif self.new:
+            pill(p, NEW_TAG, QColor(*NEW_INK), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
         if self.locked:
             pill(p, PLUS_TAG, QColor(*PLUS_INK), frame.right() - PILL_INSET, frame.top() + PILL_INSET, True)
         ring = QColor(color("BORDER_FOCUS"))
@@ -316,6 +321,7 @@ class SceneryPicker(QWidget):
         self.on_pick = on_pick
         self.animated = animate
         self.current = None
+        self.new_keys = set()  # sceneries that wear NEW (see _Tile.new)
         self.invite = None  # the Plus scenery last clicked: its line stays under the tiles
         self.shown_for = None  # (keys, day) the tiles were made for
         self.tiles = []
@@ -393,6 +399,7 @@ class SceneryPicker(QWidget):
                 daily = p.key == presets.DAILY
                 tile = _Tile(p, mosaic() if daily else picture(p.key), None if daily else moving(p.key),
                              f"Until {last_day(p, day)}" if p.season else "")
+                tile.new = not tile.locked and p.key in self.new_keys
                 if tile.locked:
                     tile.clicked.connect(lambda _checked=False, t=tile: self._invite(t.preset))
                 else:

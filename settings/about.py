@@ -20,9 +20,13 @@ from aqt.qt import (
     QWidget,
 )
 
+from .. import news
+from ..state import config
 from .patreon import ADDON_DIR, HEART, PATREON, TREE, is_plus, manifest, pixel_label
 from .widgets import group
 
+# the newest versions the What's new group lists (the release notes link has the rest)
+NEWS_VERSIONS = 1
 # the goats to thank (Patreon sponsors), written by dev/goats.py from Patreon before each release
 GOATS = os.path.join(ADDON_DIR, "goats.json")
 
@@ -101,8 +105,8 @@ def header(plus: bool) -> QWidget:
     version = manifest().get("human_version", "")
     title = QLabel("Memory Forest Plus" if plus else "Memory Forest")
     title.setStyleSheet(TITLE_STYLE)
-    news = link(RELEASES, "What's new")
-    ver = text(f"Version {version} · {news}" if version else news, small_style())
+    notes = link(RELEASES, "All release notes")
+    ver = text(f"Version {version} · {notes}" if version else notes, small_style())
     # the version can be copied, for a bug report
     ver.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
     links = [link(ISSUES, "Report a bug or share an idea"), link(PATREON, "Patreon")]
@@ -184,6 +188,17 @@ def thanks(names: list, plus: bool) -> QWidget:
     return group("Thank you", lay)
 
 
+def whats_new() -> QWidget:
+    """What's new, for the few who read: the features this edition has, newest first (news.py),
+    in plain words and without the fixes."""
+    parts = []
+    for version, lines in news.about(config())[:NEWS_VERSIONS]:
+        parts.append(f"<b>{version}</b>" + "".join(f"<br>• {line}" for line in lines))
+    lay = QVBoxLayout()
+    lay.addWidget(text("<br><br>".join(parts)))
+    return group("What's new", lay)
+
+
 class AboutTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -193,6 +208,7 @@ class AboutTab(QWidget):
         av = QVBoxLayout(self)
         av.setSpacing(12)
         av.addWidget(header(plus))
+        av.addWidget(whats_new())
         av.addWidget(group("How it works", how))
         av.addWidget(thanks(goats(), plus))
         av.addStretch(1)

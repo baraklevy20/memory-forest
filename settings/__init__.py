@@ -23,12 +23,15 @@ def _closed(dialog: SettingsDialog) -> None:
         _open = None
 
 
-def open_settings(module: str, on_change) -> None:
+def open_settings(module: str, on_change, focus: str = "") -> None:
+    """Open the dialog (or bring it up), at the tab a note's button asked for, `focus`
+    (news.opens)."""
     global _open
     if _open is not None and _open.isVisible():
+        _open.show_news(focus)
         _open.raise_(); _open.activateWindow()
         return
-    dialog = SettingsDialog(module, on_change, open_settings)
+    dialog = SettingsDialog(module, on_change, open_settings, focus=focus)
     # a closed dialog goes, picker and all: kept, each one opened stayed in memory for good
     dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
     dialog.finished.connect(lambda _result: _closed(dialog))

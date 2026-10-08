@@ -210,7 +210,7 @@ def _load():
     pkg = importlib.util.module_from_spec(spec)
     sys.modules[PACKAGE] = pkg
     spec.loader.exec_module(pkg)
-    for name in ("state", "payload", "panel", "actions", "planting", "live_weather", "events_state", "settings"):
+    for name in ("state", "payload", "panel", "actions", "planting", "live_weather", "events_state", "news", "settings"):
         setattr(pkg, name, importlib.import_module(f"{PACKAGE}.{name}"))
     return pkg
 
@@ -221,6 +221,7 @@ _tmp = tempfile.mkdtemp(prefix="memory-forest-test-")
 addon.state.STATE_PATH = os.path.join(_tmp, "state.json")
 # the seasonal record too: never the real user_files, and fresh for every test
 addon.state.SEASON_PATH = os.path.join(_tmp, "season.json")
+addon.news.NEWS_PATH = os.path.join(_tmp, "news.json")  # what's new, seen or not
 addon.payload.log = lambda _msg: None  # "built N trees in M ms", on every build
 
 
@@ -243,6 +244,6 @@ def reset(cards=(), config=None, current_deck: int = 10, leeches=()):
     addon.planting._planted_today = None
     browser.searches.clear()
     tooltips.clear()
-    for path in (addon.state.STATE_PATH, addon.state.SEASON_PATH):
+    for path in (addon.state.STATE_PATH, addon.state.SEASON_PATH, addon.news.NEWS_PATH):
         if os.path.exists(path):
             os.remove(path)

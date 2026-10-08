@@ -11,7 +11,7 @@ from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 from aqt.utils import tooltip
 
-from . import events_state, study_log
+from . import events_state, news, study_log
 from .panel import refresh
 from .phone import follow_setting
 from .state import MODULE, PHONE_NOTETYPE, config, excluded_decks, keeps_suspended, log, phone_decks, save_config
@@ -26,10 +26,10 @@ def settings_changed() -> None:
         refresh()
 
 
-def open_settings() -> None:
+def open_settings(focus: str = "") -> None:
     from .settings import open_settings as _open
 
-    _open(MODULE, settings_changed)
+    _open(MODULE, settings_changed, focus)
 
 
 def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None = None) -> None:
@@ -63,6 +63,10 @@ def on_js_message(handled, message, context):
     try:
         if cmd[0] == "settings":
             open_settings()
+        elif cmd[0] == "news" and len(cmd) > 2:  # a note answered: hidden for good, or followed
+            news.mark_seen([cmd[2]])
+            if cmd[1] == "open":
+                open_settings(news.opens(cmd[2]))
         elif cmd[0] == "struck" and len(cmd) > 1:
             events_state.mark_seen(":".join(cmd[1:]))
         elif cmd[0] == "strike" and len(cmd) > 1:  # a replay asks for the forest it took

@@ -28,6 +28,7 @@ import tokenize
 import zipfile
 
 import editions
+import notes
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
@@ -40,7 +41,7 @@ import catalog
 # add-on imports but the list forgot would only show up as a crash on someone else's
 # machine, after upload.
 INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py"))) + (
-    "config.json", "manifest.json", "goats.json")
+    "config.json", "manifest.json", "goats.json", "release_notes.json")
 INCLUDE_DIRS = ("settings", "web")  # walked, so web/envs, web/landscapes and web/landmarks come too
 # The developer's debug tools: the add-on runs without them (payload.debug_tools and the
 # settings' debug_tab stand in), and a release ships with debug off.
@@ -210,6 +211,9 @@ def main() -> None:
                 z.writestr(name, release_config())
             elif name == "manifest.json" and (edition or version):
                 z.writestr(name, manifest(edition, version))
+            elif name == "release_notes.json" and edition:  # without what the edition lacks
+                with open(path, encoding="utf-8") as f:
+                    z.writestr(name, notes.edition_json(edition, f.read()))
             elif name in small:
                 z.writestr(name, small[name])
             elif name.endswith(".py"):

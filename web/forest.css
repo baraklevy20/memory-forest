@@ -61,3 +61,27 @@
 .af-cap-tip { max-width: 300px; }
 .af-meta { font-variant-numeric: tabular-nums; }
 .af-credit { opacity: 0.75; }
+
+/* what's new (web/news.js): the cog's dot, and a note on the forest's top-left corner, in
+   the tooltips' dark */
+.af-cog.af-cog-new { position: relative; }
+.af-cog.af-cog-new::after {
+  content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
+  border-radius: 50%; background: #3fbf6a; box-shadow: 0 0 0 2px var(--canvas, #f5f5f5);
+}
+.af-news {
+  position: absolute; z-index: 2; left: 10px; top: 10px; max-width: min(290px, calc(100% - 20px));
+  padding: 10px 12px; border-radius: 8px; background: rgba(18, 22, 20, 0.86); color: #eef2ec;
+  font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; text-align: left;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.af-news b { display: block; font-size: 13px; margin-bottom: 3px; }
+.af-news-acts { display: flex; gap: 14px; margin-top: 8px; }
+/* Anki's own button styles are more specific: these are plain links, as in the caption */
+.af-news-acts button {
+  font: inherit !important; background: none !important; border: 0 !important; padding: 0 !important;
+  box-shadow: none !important; cursor: pointer; color: #b8c2bb !important;
+}
+.af-news-acts button:first-child:not(:only-child) { color: #9fe3b4 !important; text-decoration: underline; text-underline-offset: 2px; }
+.af-news-acts button:hover { color: #fff !important; }
+.af-news-acts button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
