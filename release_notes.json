@@ -10,7 +10,8 @@
       ],
       "improved": [
         "Choose your scenery right on the General tab, from moving previews of each one.",
-        "Live weather now comes from MET Norway, and your city can be typed in its own language, like 東京."
+        "Live weather now comes from MET Norway, and your city can be typed in its own language, like 東京.",
+        "A tree's tooltip now says when a leech's crow leaves: once the card is mature again."
       ],
       "fixed": [
         "A deck's own forest now reacts to how you study, just like your main forest, and on Peaceful it no longer shows the signs of bad habits.",

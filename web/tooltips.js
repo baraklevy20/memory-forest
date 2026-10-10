@@ -25,8 +25,10 @@ function tipHtml(t, words) {
     if (t.struggling && t.stage >= MATURE) lines.push(`${t.struggling} of ${t.n} relearning or lapsed this week`);
     if (t.suspended) lines.push(`${t.suspended} of ${t.n} suspended`);
   }
-  if (t.leeches && t.stage >= YOUNG) lines.push(`${t.leeches} leech${t.leeches === 1 ? '' : 'es'} here: the crows stay until ${t.leeches === 1 ? 'it is' : 'they are'} fixed`);
-  if (t.cured) lines.push(`${t.cured === 1 ? 'A leech' : `${t.cured} leeches`} here cured: the robin stays a week`);
+  if (t.leeches && t.stage >= YOUNG) lines.push(t.leeches === 1
+    ? '1 leech here: its crow stays until the card is mature again (21-day interval)'
+    : `${t.leeches} leeches here: the crows stay until the cards are mature again (21-day interval)`);
+  if (t.cured) lines.push(`${t.cured === 1 ? 'A leech' : `${t.cured} leeches`} here mature again: the robin stays a week`);
   if (t.big) lines.push(`<b>A big learning day</b>: ${t.n} new cards, up from ${t.big}`);
   if ((t.burn || t.smoke) && AF.fireLine) lines.push(AF.fireLine(t));  // Wild's fire (web/events/fire.js)
   if (canBrowse()) lines.push(CLICK_HINT);
