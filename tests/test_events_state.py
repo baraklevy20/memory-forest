@@ -593,9 +593,11 @@ class DeckForestTests(unittest.TestCase):
         self.assertLess(deck["strike"]["seen"], main["strike"]["seen"])
         self.assertFalse(deck["strike"]["fresh"])  # older than the one played: no replay
         self.assertFalse(payload.payload()["strike"]["fresh"])
-        # each forest's strike can still be asked for, to play it again by a click
-        self.assertIsNotNone(addon.events_state.strike_before(deck["strike"]["seen"]))
-        self.assertIsNotNone(addon.events_state.strike_before(main["strike"]["seen"]))
+        # each forest's strike can still be asked for, to play it again by a click, and
+        # plays the trees that forest lost: deck 20's two, the main forest's two grown since
+        days = lambda key: sorted(t["ago"] for t in addon.events_state.strike_before(key)["before"])  # noqa: E731
+        self.assertEqual(days(deck["strike"]["seen"]), [8, 9])
+        self.assertEqual(days(main["strike"]["seen"]), [4, 5])
 
     def test_the_strike_plays_once_whichever_forest_shows_it(self):
         studied_every_day_but({3}, nature="merciless", deck_forest_mode="own")
