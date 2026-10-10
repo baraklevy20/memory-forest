@@ -115,6 +115,17 @@ class NatureTests(unittest.TestCase):
         p = payload.payload()
         self.assertEqual((p["fire"], [t for t in p["trees"] if t.get("burn")]), (None, []))
 
+    def test_a_break_before_the_start_date_brings_no_fire_or_asteroid(self):
+        for nature in ("wild", "merciless"):
+            with self.subTest(nature=nature):
+                studied_every_day_but({1, 2, 3}, nature=nature, ignore_before="2026-09-19")  # the forest starts today
+                mw.col.db.con.execute("insert into cards (id, nid, did, odid, type, queue, ivl, data, due) "
+                                      "values (102, 102, 10, 0, 2, 2, 1, '{}', 2001)")
+                mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 102, 3, 0)", (ms(0),))
+                p = payload.payload()
+                self.assertEqual((p["stats"]["trees"], p["fire"], p["craters"], p["strike"]), (1, None, [], None))
+                self.assertEqual(p["journal"], "Your first tree. It holds 1 card.")
+
     def test_the_day_the_fire_goes_out(self):
         studied_every_day_but({7, 8, 9}, nature="wild")  # back for seven days, today the seventh
         p = payload.payload()
@@ -284,6 +295,17 @@ class AnimalTests(unittest.TestCase):
         self.assertFalse(any(v["new"] for v in p["visitors"]))
         self.assertNotIn("wandered", p["journal"])
 
+    def test_a_start_date_earns_them_again(self):
+        self.studied_every_day()
+        self.fox_reviews()
+        self.assertEqual([v["key"] for v in payload.payload()["visitors"]], ["fox"])
+        mw.addonManager.config["ignore_before"] = "2026-09-19"  # today: the reviews before it are left out
+        p = payload.payload()
+        self.assertEqual(p["visitors"], [])
+        self.assertNotIn("wandered", p["journal"])
+        mw.addonManager.config.pop("ignore_before")  # and unticked again: back as they were, quietly
+        self.assertEqual([(v["key"], v["new"]) for v in payload.payload()["visitors"]], [("fox", False)])
+
 
 class GrassTests(unittest.TestCase):
     def test_the_grass_grows_tall_while_you_review_without_new_cards(self):
@@ -373,6 +395,23 @@ class BacklogTests(unittest.TestCase):
         self.assertEqual((p["backlog"]["cleared"], p["backlog"]["was"]), (True, 1.0))  # as deep as it was
         self.assertEqual(p["journal"], "You cleared your overdue reviews. The tumbleweeds blew away.")
         self.assertTrue(payload.payload()["backlog"]["cleared"])  # all day long
+
+    def test_a_start_date_keeps_the_backlog_of_older_cards(self):
+        # reviewing old cards still counts after a start date: their backlog is as before,
+        # measured against the usual day before it too, and clearing it blows them away
+        for start in (None, "2026-09-19"):
+            with self.subTest(start=start):
+                reset([(1, 10, 5)], {"nature": "wild", **({"ignore_before": start} if start else {})})
+                mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                          [(ms(d, 18),) for d in range(5)])
+                overdue(60)
+                p = payload.payload()
+                self.assertEqual(p["stats"]["trees"] == 0, bool(start))  # the old cards are no tree after it
+                self.assertEqual(p["backlog"], {"overdue": 60, "usual": 1, "hell": 1.0, "cleared": False})
+                mw.col.db.con.execute("delete from cards where id >= 5000")
+                p = payload.payload()
+                self.assertTrue(p["backlog"]["cleared"])
+                self.assertEqual(p["journal"], "You cleared your overdue reviews. The tumbleweeds blew away.")
 
     def test_a_small_backlog_is_no_hell(self):
         reset([(1, 10, 5)], {"nature": "wild"})

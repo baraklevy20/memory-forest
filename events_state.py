@@ -56,16 +56,23 @@ def settled() -> bool:
 
 
 def _nature_days(cfg: dict, forest: dict, changed=None, own: bool = False) -> set:
-    """The days you studied anything at all (see study_log.load_review_days), but the note
-    that carries the forest to your phone: looking at it there is not studying. With no deck
+    """The days you studied anything at all (see study_log.load_review_days) since the start
+    date, but the note that carries the forest to your phone: looking at it there is not
+    studying. With no deck
     left out and no start date, those are the main forest's own days, already read (a deck's
     `own` forest has only that deck's)."""
     col = mw.col
     phone, cards = phone_decks(), phone_cards()
-    if not own and excluded_decks(cfg) == phone and since(cfg) is None and forest.get("review_days") is not None:
+    start = since(cfg)
+    if not own and excluded_decks(cfg) == phone and start is None and forest.get("review_days") is not None:
         return forest["review_days"]
-    return remembered("nature_days", changed and (changed, day_cutoff(col), frozenset(phone), frozenset(cards)),
+    days = remembered("nature_days", changed and (changed, day_cutoff(col), frozenset(phone), frozenset(cards)),
                       lambda: study_log.load_review_days(col.db, day_cutoff(col), phone, cards))
+    if start is None:
+        return days
+    # nothing before the start date: a break just before it is no break of this forest's
+    first = study_log.days_ago(start, day_cutoff(col))
+    return {d for d in days if d <= first}
 
 
 # the latest strike the page was told of, (its key, the crater as events.merciless gave it),
@@ -152,10 +159,11 @@ def _mark_cured(trees: list, cfg: dict, changed=None, dids: list | None = None) 
     return [dict(t, cured=cured[t["ago"]]) if cured.get(t["ago"]) else t for t in trees] if cured else trees
 
 
-def _animals(forest: dict, struck: int | None, did: int | None = None) -> dict:
+def _animals(forest: dict, struck: int | None, did: int | None = None, start: str | None = None) -> dict:
     """The forest with every animal that has come to it, remembered per profile for each
     forest there has been (the whole of it, and the one that grew since each asteroid -
-    `struck`, the day it began again - and the same for each deck's own forest, `did`): once
+    `struck`, the day it began again - the same for each deck's own forest, `did`, and all of
+    them again for each start date, `start`: a forest begun later earns its own): once
     come, an animal stays, and is new on the day it came. The first look at a forest
     remembers the animals it already has without announcing them all at once - so changing
     the Nature setting back and forth announces nothing - and nothing the settings dialog
@@ -164,6 +172,8 @@ def _animals(forest: dict, struck: int | None, did: int | None = None) -> dict:
     key = "all" if struck is None else str(struck)
     if did is not None:  # a deck's own forest earns its own
         key = f"deck {did} {key}"
+    if start is not None:
+        key = f"from {start} {key}"
     state = load_state()
     every = state.get("animals")
     every = every if isinstance(every, dict) and all(isinstance(v, dict) for v in every.values()) else {}
@@ -270,7 +280,8 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
             kind = "smoke" if fire and fire["smoke"] else "fire" if fire and fire["trees"] else None
             if kind is None or _shows(kind, ago_date(fire["began"]), live):
                 forest, extras["fire"] = dict(forest, trees=trees), fire
-        forest = _animals(forest, struck, did)
+        start = str(cfg.get("ignore_before")) if since(cfg) is not None else None
+        forest = _animals(forest, struck, did, start)
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
     extras["stagnation"] = events.stagnation(forest["trees"], reviewing)
     if extras["stagnation"] and not test and not _new_cards_left(cfg, changed, dids):

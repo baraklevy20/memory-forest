@@ -88,6 +88,17 @@ class PayloadTests(unittest.TestCase):
             hook(mw.col)
         self.assertEqual([t["ago"] for t in payload._forest()["trees"]], [7, 5, 3])
 
+    def test_a_tree_turned_ancient_is_no_news_once_a_start_date_leaves_it_out(self):
+        reset([(1, 10, 500), (2, 10, 0)])
+        payload.payload()  # the first look: nothing ancient yet
+        mw.col.db.con.execute("update cards set ivl = 400, mod = 5 where id = 1")  # the old tree turns ancient today
+        self.assertIn("ancient", payload.payload()["journal"])
+        mw.addonManager.config["ignore_before"] = "2026-09-19"  # the forest starts today
+        p = payload.payload()
+        self.assertEqual(p["stats"]["trees"], 1)
+        self.assertNotIn("ancient", p["journal"])
+        self.assertNotIn("new_ancient", p["events"])
+
     def test_a_hand_edited_width_stays_in_range(self):
         reset(CARDS, {"max_width": "wide"})
         self.assertEqual(payload.payload()["maxWidth"], addon.state.MAX_WIDTH_DEFAULT)

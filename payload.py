@@ -97,7 +97,9 @@ def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> di
 
 
 def _new_ancient_today(forest: dict, today: _dt.date) -> bool:
-    """True on the day a tree first turns ancient (remembered across restarts in user_files)."""
+    """True on the day a tree of this forest first turns ancient (remembered across restarts
+    in user_files). Which trees turned that day is remembered too: a start date set later the
+    same day, or a deck left out, takes the news away with the tree."""
     state = load_state()
     days = sorted(t["day"] for t in forest["trees"] if t["stage"] == forest_data.ANCIENT)
     known = state.get("ancient_days")
@@ -105,12 +107,16 @@ def _new_ancient_today(forest: dict, today: _dt.date) -> bool:
         state["ancient_days"] = days
         save_state(state)
         return False
-    if set(days) - set(known):
+    turned = set(days) - set(known)
+    if turned:
         # the ones known before stay known: a deck left out and brought back again, or an
         # earlier start date, must not celebrate its old ancient trees a second time
-        state.update(ancient_days=sorted(set(days) | set(known)), ancient_event=today.isoformat())
+        if state.get("ancient_event") == today.isoformat():
+            turned |= set(state.get("ancient_event_days") or [])
+        state.update(ancient_days=sorted(set(days) | set(known)), ancient_event=today.isoformat(),
+                     ancient_event_days=sorted(turned))
         save_state(state)
-    return state.get("ancient_event") == today.isoformat()
+    return state.get("ancient_event") == today.isoformat() and bool(set(state.get("ancient_event_days") or []) & set(days))
 
 
 def _lit_by_deck(forest: dict, did: int, test: bool, cfg: dict, changed=None) -> dict:
