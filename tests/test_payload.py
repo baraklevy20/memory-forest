@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from fake_anki import Col, addon, hooks, mw, reset
 from helpers import ms
@@ -96,6 +97,17 @@ class PayloadTests(unittest.TestCase):
         mw.addonManager.config["ignore_before"] = "2026-09-19"  # the forest starts today
         p = payload.payload()
         self.assertEqual(p["stats"]["trees"], 1)
+        self.assertNotIn("ancient", p["journal"])
+        self.assertNotIn("new_ancient", p["events"])
+
+    def test_unticking_a_start_date_announces_no_long_ancient_tree(self):
+        reset([(1, 10, 500), (2, 10, 0)], {"ignore_before": "2026-09-01"})
+        mw.col.db.con.execute("update cards set ivl = 400 where id = 1")  # ancient for months
+        payload.payload()  # the first look, at the forest begun on 1 Sep: the old tree isn't in it
+        with mock.patch.object(addon.state, "_settings_open", True):  # unticked in the dialog's preview
+            mw.addonManager.config.pop("ignore_before")
+            self.assertNotIn("ancient", payload.payload()["journal"])
+        p = payload.payload()  # and saved
         self.assertNotIn("ancient", p["journal"])
         self.assertNotIn("new_ancient", p["events"])
 

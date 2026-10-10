@@ -52,6 +52,15 @@ class FreshOrUpdatedTests(unittest.TestCase):
             self.assertIsNone(news.note({}, DAY))
         self.assertTrue(os.path.exists(news.NEWS_PATH))
 
+    def test_a_fresh_install_hears_of_nothing_after_its_first_forest_too(self):
+        news.started()  # nothing kept yet, as the add-on loads
+        try:
+            with notes(NOTE):
+                addon.state.save_state({"animals": {"all": {}}})  # the first forest's, saved before it asks
+                self.assertIsNone(news.note({}, DAY))
+        finally:
+            news._fresh_at_start = None
+
     def test_someone_who_updated_gets_the_note(self):
         updated()
         with notes(NOTE):

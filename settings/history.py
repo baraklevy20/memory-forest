@@ -22,7 +22,7 @@ from aqt.qt import (
 
 from .. import study_log
 from ..phone_note import phone_cards, phone_decks
-from ..scope import day_cutoff
+from ..scope import anki_today, day_cutoff
 from ..state import OFF_VALUES, log
 from .widgets import date_field, group, grow_window, hint
 
@@ -77,7 +77,7 @@ class HistoryTab(QWidget):
         self.changed_outside = False
         # {home deck: {ago: has a card not suspended}}, once the collection has been read
         self.days: dict | None = None
-        self.today = _dt.date.today()
+        self.today = anki_today()
         self.decks = QTreeWidget()
         self.decks.setHeaderHidden(True)
         # each deck's tree count sits on the right, in the second column
@@ -95,10 +95,12 @@ class HistoryTab(QWidget):
         self.since_on = QCheckBox("Start the forest on")
         self.since_on.setChecked(since is not None)
         self.since = date_field(DATE_FORMAT)
-        self.since.setMaximumDate(QDate.currentDate())
+        # Anki's today, not the calendar's: after midnight, until the rollover hour, the
+        # calendar's is Anki's tomorrow, and a forest started then would be empty
+        today = QDate(self.today.year, self.today.month, self.today.day)
+        self.since.setMaximumDate(today)
         # ticked for the first time, it starts at the beginning of this month, not today,
         # which would leave only a seedling
-        today = QDate.currentDate()
         self.since.setDate(QDate(since.year, since.month, since.day) if since else QDate(today.year(), today.month(), 1))
         self.summary = QLabel(COUNTING)
         deck_box = QVBoxLayout(); deck_box.addWidget(self.decks); deck_box.addWidget(self.summary); deck_box.addWidget(hint(DECKS_NOTE))
@@ -122,7 +124,7 @@ class HistoryTab(QWidget):
         try:
             cutoff = day_cutoff(mw.col)
             days = study_log.load_tree_days(mw.col.db, cutoff, phone_cards())
-            today = study_log.day_date(0, cutoff)
+            today = anki_today(cutoff)
         except Exception as e:  # the counts are a nicety, never an error
             log(f"history: tree counts unavailable ({e!r})")
             self.summary.hide()

@@ -28,6 +28,11 @@ class ScopeTests(unittest.TestCase):
         self.assertIsNone(scope.since({"ignore_before": ""}))
         self.assertIsNone(scope.since({"ignore_before": "not a date"}))
 
+    def test_a_start_date_past_ankis_today_is_today(self):
+        # Anki's today is 19 Sep (until the rollover): 20 Sep, picked after midnight, starts today
+        self.assertEqual(scope.anki_today(), dt.date(2026, 9, 19))
+        self.assertEqual(scope.since({"ignore_before": "2026-09-20"}), scope.since({"ignore_before": "2026-09-19"}))
+
 
 if __name__ == "__main__":
     unittest.main()

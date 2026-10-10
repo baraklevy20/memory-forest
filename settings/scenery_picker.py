@@ -66,7 +66,7 @@ SEARCH_FROM = 12  # tiles before the picker offers a search
 COLUMN_GAP, ROW_GAP = 10, 10
 SECTION_GAP = 10  # points above a section's title, after the first
 ROWS_SHOWN = 2.5  # rows the panel shows before it scrolls: half a row peeks out, so it looks scrollable
-MIN_COLUMNS = 2  # the panel is never narrower than this many tiles (the dialog grows to hold them)
+MIN_COLUMNS = 3  # the panel is never narrower than this many tiles (the dialog grows to hold them)
 # Surprise me daily's tile: these four, in quarters
 DAILY_MOSAIC = ("aurora", "synthwave", "lanterns", "bamboo")
 
@@ -186,6 +186,15 @@ def last_day(preset, day) -> str:
     return f"{last.day} {last.strftime('%b')}"
 
 
+class _Search(QLineEdit):
+    def keyPressEvent(self, event) -> None:
+        """Enter picks the first scenery found (returnPressed) and goes no further: let through,
+        it would press the dialog's Done as well."""
+        super().keyPressEvent(event)
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            event.accept()
+
+
 class _Tile(QAbstractButton):
     def __init__(self, preset, pix: QPixmap, gif: str | None, tag: str):
         super().__init__()
@@ -195,9 +204,11 @@ class _Tile(QAbstractButton):
         self.tag = tag  # a holiday's "Until ..." label, in the top left corner
         self.new = False  # NEW in that corner instead (a holiday's scenery is never announced)
         self.movie = None
+        self.playing = False  # whether it moves while it can be seen
         if gif:
+            # only the frame on show is kept: a dozen tiles' every frame came to about 50 MB
             self.movie = QMovie(gif, parent=self)
-            self.movie.setCacheMode(QMovie.CacheMode.CacheAll)
+            self.movie.setCacheMode(QMovie.CacheMode.CacheNone)
             self.movie.frameChanged.connect(lambda _n: self.update())
         self._lift = 0.0
         self._rise = QVariantAnimation(self)
@@ -214,13 +225,26 @@ class _Tile(QAbstractButton):
         self.setFont(font)
 
     def animate(self, on: bool) -> None:
-        """Play the moving picture, or show the still one."""
+        """Play the moving picture, or show the still one. It only plays while the tile can be
+        seen: hidden by the search, on another tab or with the dialog closed, it stops."""
+        self.playing = on
+        self._play(on and self.isVisible())
+
+    def _play(self, on: bool) -> None:
         if self.movie:
-            if on:
+            if on and self.movie.state() != QMovie.MovieState.Running:
                 self.movie.start()
-            else:
+            elif not on:
                 self.movie.stop()
             self.update()
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        self._play(self.playing)
+
+    def hideEvent(self, event) -> None:
+        super().hideEvent(event)
+        self._play(False)
 
     def sizeHint(self) -> QSize:
         return QSize(PICTURE_W + 2 * RING, LIFT + PICTURE_H + 2 * RING)  # (room to rise, ring and all)
@@ -328,7 +352,7 @@ class SceneryPicker(QWidget):
         self.sections = []
         self.columns = 0
 
-        self.search = QLineEdit()
+        self.search = _Search()
         self.search.setClearButtonEnabled(True)
         self.search.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
         self.search.setStyleSheet(SEARCH_STYLE.format(line=color("BORDER_SUBTLE"), focus=color("BORDER_FOCUS"),

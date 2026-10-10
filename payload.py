@@ -32,6 +32,7 @@ from .state import (
     log,
     remembered,
     save_state,
+    settings_open,
 )
 
 # what each tree holds that the page never reads (it goes to the phone as well, at every sync)
@@ -96,27 +97,35 @@ def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> di
     return value
 
 
-def _new_ancient_today(forest: dict, today: _dt.date) -> bool:
+def _new_ancient_today(forest: dict, today: _dt.date, start: str | None = None) -> bool:
     """True on the day a tree of this forest first turns ancient (remembered across restarts
     in user_files). Which trees turned that day is remembered too: a start date set later the
-    same day, or a deck left out, takes the news away with the tree."""
+    same day, or a deck left out, takes the news away with the tree.
+
+    The ancient trees are remembered for each start date (`start`, None for none) as for the
+    animals: the first look at a forest begun on another day takes in the ones it has without
+    a word, so unticking a start date announces none of the old forest's long-ancient trees.
+    Nothing the settings dialog previews is remembered."""
     state = load_state()
     days = sorted(t["day"] for t in forest["trees"] if t["stage"] == forest_data.ANCIENT)
-    known = state.get("ancient_days")
-    if known is None:  # first run: remember what exists, don't celebrate all of it at once
-        state["ancient_days"] = days
+    every = state.get("ancient") if isinstance(state.get("ancient"), dict) else {}
+    key = "all" if start is None else f"from {start}"
+    known = every.get(key, state.get("ancient_days") if key == "all" else None)  # (where 1.1 kept them)
+    event = state.get("ancient_event") == today.isoformat()
+    turned = set() if known is None else set(days) - set(known)
+    if not settings_open() and (known is None or turned):
+        if turned:
+            # the ones known before stay known: a deck left out and brought back again, or an
+            # earlier start date, must not celebrate its old ancient trees a second time
+            turned |= set(state.get("ancient_event_days") or []) if event else set()
+            state.update(ancient_event=today.isoformat(), ancient_event_days=sorted(turned))
+            event = True
+        # (a tree that turned today is news once, whichever start date shows it later)
+        every = {k: sorted(set(v) | turned) for k, v in every.items() if isinstance(v, list)}
+        state["ancient"] = dict(every, **{key: sorted(set(days) | set(known or []))})
+        state.pop("ancient_days", None)
         save_state(state)
-        return False
-    turned = set(days) - set(known)
-    if turned:
-        # the ones known before stay known: a deck left out and brought back again, or an
-        # earlier start date, must not celebrate its old ancient trees a second time
-        if state.get("ancient_event") == today.isoformat():
-            turned |= set(state.get("ancient_event_days") or [])
-        state.update(ancient_days=sorted(set(days) | set(known)), ancient_event=today.isoformat(),
-                     ancient_event_days=sorted(turned))
-        save_state(state)
-    return state.get("ancient_event") == today.isoformat() and bool(set(state.get("ancient_event_days") or []) & set(days))
+    return event and bool(set(state.get("ancient_event_days") or []) & set(days))
 
 
 def _lit_by_deck(forest: dict, did: int, test: bool, cfg: dict, changed=None) -> dict:
@@ -159,7 +168,8 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     today = now.date()
     all_trees = forest["trees"]
     ann_all = milestones.anniversaries(all_trees, today)
-    new_ancient = False if test or (did and not highlight) else _new_ancient_today(forest, today)
+    start = str(cfg.get("ignore_before")) if since(cfg) is not None else None
+    new_ancient = False if test or (did and not highlight) else _new_ancient_today(forest, today, start)
 
     forest = forest_data.merge_old(forest)  # the oldest trees become one deep-forest band
     drawn = len(forest["trees"])

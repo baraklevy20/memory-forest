@@ -201,6 +201,7 @@ class SettingsDialog(QDialog):
         super().changeEvent(event)
 
     def apply(self) -> None:
+        was_active = self.isActiveWindow()  # (before the redraw: it may take the focus)
         mw.addonManager.writeConfig(self.module, self.values())
         self.on_change()
         # redrawing may have brought or ended a holiday's week (the debug date moved), which
@@ -211,11 +212,13 @@ class SettingsDialog(QDialog):
             self.fine.set_look(look)
             self._sync()
         # refreshing a deck screen hands focus back to the webview, which would pull it
-        # out of this dialog mid-edit
-        QTimer.singleShot(0, self._keep_focus)
+        # out of this dialog mid-edit. Only then: a change saved as you click elsewhere (a
+        # city typed, then Anki's window clicked) leaves the focus where you put it
+        if was_active:
+            QTimer.singleShot(0, self._keep_focus)
 
     def _keep_focus(self) -> None:
-        if self.isVisible() and not self.isActiveWindow():
+        if self.isVisible() and not self.isActiveWindow() and mw.isActiveWindow():
             focused = self.focusWidget()
             self.raise_(); self.activateWindow()
             if focused:

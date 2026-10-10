@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from aqt import gui_hooks, mw
 
-from . import events_state, live_weather, payload
+from . import events_state, live_weather, news, payload
 from .actions import on_deck_options_menu, on_js_message, open_settings, settings_changed
 from .panel import on_deck_browser, on_overview, refresh
 from .phone import after_sync as publish_after_sync
@@ -24,6 +24,7 @@ from .planting import on_answer
 
 mw.addonManager.setWebExports(__name__, r"web/.*\.(js|css)")
 
+news.started()  # (before the first forest saves anything)
 gui_hooks.deck_browser_will_render_content.append(on_deck_browser)
 gui_hooks.overview_will_render_content.append(on_overview)
 gui_hooks.reviewer_did_answer_card.append(on_answer)

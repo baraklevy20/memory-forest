@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import os
 import tempfile
 import unittest
@@ -40,12 +41,12 @@ class WeatherTests(unittest.TestCase):
             for h, mm in zip(hours, rain)]}}
 
     def test_parse_forecast(self):
-        sky, rain = weather.parse_forecast(self.forecast(wind=12), NOW)  # 12 m/s = 43 km/h
+        sky, rain, _ = weather.parse_forecast(self.forecast(wind=12), NOW)  # 12 m/s = 43 km/h
         w = weather.resolve(sky, rain, BERLIN, NOW)
         self.assertEqual((w["weather"], w["sunrise"], w["windy"]), ("clear", "2026-09-19T04:46+00:00", True))
 
     def test_recent_rain_then_sun_is_after_rain(self):
-        sky, rain = weather.parse_forecast(self.forecast(precip=(0, 1.2, 0)), NOW)
+        sky, rain, _ = weather.parse_forecast(self.forecast(precip=(0, 1.2, 0)), NOW)
         self.assertEqual(weather.resolve(sky, rain, BERLIN, NOW)["weather"], "after_rain")
         night = at("2026-09-19T21:20")
         self.assertEqual(weather.resolve(sky, {"2026-09-19T20:00:00Z": 1.2}, BERLIN, night)["weather"], "clear")
@@ -55,7 +56,7 @@ class WeatherTests(unittest.TestCase):
         # the 14:00 rain came from an earlier forecast; a later one starts at 15:00 and must not drop it
         later = {"properties": {"timeseries": self.forecast()["properties"]["timeseries"][2:]}}
         old = {"2026-09-18T10:00:00Z": 3.0, "2026-09-19T14:00:00Z": 1.2, "2026-09-19T15:00:00Z": 9.0}
-        merged = weather._merge_rain(old, weather.parse_forecast(later, NOW)[1], NOW)
+        merged = weather._merge_hours(old, weather.parse_forecast(later, NOW)[1], NOW)
         self.assertEqual(merged, {"2026-09-19T14:00:00Z": 1.2, "2026-09-19T15:00:00Z": 0, "2026-09-19T16:00:00Z": 5})
 
     def test_sun_times(self):
@@ -214,6 +215,64 @@ class WeatherTests(unittest.TestCase):
         self.assertTrue(cache.needs_refresh("Berlin", now=t + weather.MAX_AGE_SECS + 1 + weather.RETRY_WHILE_SHOWING_SECS))
 
     def test_unknown_city(self):
+        cache, calls = self.cache(), []
+
+        def nowhere(url, headers=None, timeout=None):
+            calls.append(url)
+            return weather.Reply(200, {"features": []}, {})
+
+        self.assertIsNone(cache.refresh("Xyzzy", nowhere, now=NOW))
+        self.assertIn("city not found", cache.failing("Xyzzy"))  # for the settings and the forest's tooltip
+        self.assertEqual(cache.slept, [])  # nothing found is not a blip
+        # not asked again while the city text stays the same, however long Anki runs
+        self.assertFalse(cache.needs_refresh(" Xyzzy", now=NOW + 24 * 3600))
+        # a restart asks once more, and still shows why meanwhile
+        restarted = weather.WeatherCache(cache.path)
+        self.assertIn("city not found", restarted.failing("Xyzzy"))
+        self.assertTrue(restarted.needs_refresh("Xyzzy", now=NOW + weather.RETRY_STEPS_SECS[0]))
+        restarted.refresh("Xyzzy", nowhere, now=NOW + weather.RETRY_STEPS_SECS[0])
+        self.assertFalse(restarted.needs_refresh("Xyzzy", now=NOW + 24 * 3600))
+        self.assertEqual(len(calls), 2)
+        # a new city text is looked up straight away
+        self.assertTrue(restarted.needs_refresh("Xyzzyx", now=NOW + 60))
+
+    def test_the_sky_follows_the_forecast_hour_without_a_new_forecast(self):
+        def entry(hour, symbol):
+            return {"time": f"2026-09-19T{hour}:00:00Z",
+                    "data": {"instant": {"details": {"air_temperature": 14.2, "wind_speed": 1.5}},
+                             "next_1_hours": {"summary": {"symbol_code": symbol}, "details": {"precipitation_amount": 0}}}}
+
+        storm = {"properties": {"timeseries": [entry("15", "clearsky_day"), entry("16", "heavyrainandthunder"),
+                                               entry("17", "heavyrainandthunder")]}}
+
+        def met(status):
+            def get(url, headers=None, timeout=None):
+                if status == 304:
+                    return weather.Reply(304, None, {"Expires": "Sat, 19 Sep 2026 17:20:00 GMT"})
+                return weather.Reply(200, storm, {"Expires": EXPIRES, "Last-Modified": "Sat, 19 Sep 2026 15:10:00 GMT"})
+            return get
+
         cache = self.cache()
-        self.assertIsNone(cache.refresh("Xyzzy", lambda url, headers=None, timeout=None: weather.Reply(200, {"features": []}, {}), now=NOW))
-        self.assertIn("city not found", cache.failing("Xyzzy"))
+        cache._state = {"v": weather.CACHE_VERSION, "city": "berlin", "place": BERLIN}
+        self.assertEqual(cache.refresh("Berlin", met(200), now=NOW)["weather"], "clear")  # 15:20
+        # offline: the forecast held still says what each hour brings
+        self.assertEqual(weather.WeatherCache(cache.path).current("Berlin", now=at("2026-09-19T16:30"))["weather"], "storm")
+        # MET's "nothing changed" at 16:51
+        self.assertEqual(cache.refresh("Berlin", met(304), now=at("2026-09-19T16:51"))["weather"], "storm")
+        self.assertEqual(cache.current("Berlin", now=at("2026-09-19T16:52"))["weather"], "storm")
+
+    def test_a_cache_without_hours_still_shows_and_is_fetched_afresh(self):
+        path = os.path.join(tempfile.mkdtemp(), "w.json")
+        weather.save_json(path, {"v": weather.CACHE_VERSION, "city": "berlin", "place": BERLIN, "fetched_at": NOW,
+                                 "modified": "Sat, 19 Sep 2026 15:10:00 GMT",
+                                 "weather": {"sky": "rain", "symbol": "rain", "temp": 14.2, "wind": 5.4, "windy": False}})
+        cache, calls = weather.WeatherCache(path), []
+        self.assertEqual(cache.current("Berlin", now=NOW + 60)["weather"], "rain")
+        self.assertEqual(cache.refresh("Berlin", self.network(calls, symbol="snow"), now=NOW + 3600)["weather"], "snow")
+        self.assertEqual(calls[-1][1], {})  # no If-Modified-Since: a 304 would leave it with no hours
+
+    def test_user_agent_names_the_version(self):
+        with open(os.path.join(os.path.dirname(os.path.abspath(weather.__file__)), "manifest.json"), encoding="utf-8") as f:
+            version = json.load(f)["human_version"]
+        self.assertTrue(weather.USER_AGENT.startswith(f"MemoryForest/{version} "))
+        self.assertIn("https://github.com/baraklevy20/memory-forest", weather.USER_AGENT)  # MET asks for a contact

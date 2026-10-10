@@ -245,6 +245,7 @@ def reset(cards=(), config=None, current_deck: int = 10, leeches=()):
     mw.addonManager.config = dict(config or {})
     addon.payload._forest_cache.clear()
     addon.planting._planted_today = None
+    addon.news._fresh_at_start = None  # (as the add-on loaded: asked of state.json instead)
     browser.searches.clear()
     tooltips.clear()
     for path in (addon.state.STATE_PATH, addon.seasons.SEASON_PATH, addon.news.NEWS_PATH):

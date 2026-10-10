@@ -54,13 +54,20 @@ def day_cutoff(col) -> int:
     return sched.day_cutoff if hasattr(sched, "day_cutoff") else sched.dayCutoff
 
 
+def anki_today(cutoff: int | None = None) -> _dt.date:
+    """Today as Anki counts it, by its rollover hour: until then, still yesterday's date."""
+    return study_log.day_date(0, day_cutoff(mw.col) if cutoff is None else cutoff)
+
+
 def since(cfg: dict) -> int | None:
-    """When the forest begins (the Ignore before setting), as a timestamp, or None."""
+    """When the forest begins (the Ignore before setting), as a timestamp, or None. Never
+    later than Anki's today: a date picked after midnight, before the rollover, is today."""
     try:
         date = _dt.date.fromisoformat(str(cfg.get("ignore_before") or ""))
     except ValueError:
         return None
-    return study_log.day_start(date, day_cutoff(mw.col))
+    cutoff = day_cutoff(mw.col)
+    return study_log.day_start(min(date, anki_today(cutoff)), cutoff)
 
 
 def deck_ids(did: int, excluded: set) -> list:

@@ -68,11 +68,22 @@ def _all_ids() -> list:
     return [e["announce"]["id"] for e in _items()]
 
 
+# whether the add-on started with nothing kept of its own (see started): None until it has
+_fresh_at_start: bool | None = None
+
+
+def started() -> None:
+    """As the add-on loads, before its first forest: that forest saves state.json (the
+    animals, the ancient trees it found), so asked later a fresh install looks like an update."""
+    global _fresh_at_start
+    _fresh_at_start = not os.path.exists(NEWS_PATH) and not load_json(state.STATE_PATH)
+
+
 def _load() -> dict:
     """{"seen": [ids], "shown": {id: the day its note first showed}}. With no file yet, a copy
-    that has kept nothing of its own (no state.json) is a fresh install: it has seen it all."""
+    that started with nothing of its own (no state.json) is a fresh install: it has seen it all."""
     if not os.path.exists(NEWS_PATH):
-        fresh = not load_json(state.STATE_PATH)
+        fresh = _fresh_at_start if _fresh_at_start is not None else not load_json(state.STATE_PATH)
         record = {"seen": _all_ids() if fresh else [], "shown": {}}
         _save(record)
         return record

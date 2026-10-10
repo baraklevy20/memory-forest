@@ -37,12 +37,12 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 2px 16px;
   margin-top: 8px;
   font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif;
   color: var(--fg-subtle, #8a8f8c);
 }
-.af-journal { font-style: italic; }
+/* the room between them as margins, not gap: Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
+.af-journal { font-style: italic; margin-right: 16px; }
 .af-top { display: flex; justify-content: flex-end; margin-bottom: 6px; }
 /* Anki's own button styles are more specific than these, and older ones (2.1.50's on a dark
    Mac: padding 2px 15px) leave the icon no room in 28px, so the box itself is !important */
@@ -67,16 +67,18 @@
 .af-cog.af-cog-new { position: relative; }
 .af-cog.af-cog-new::after {
   content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
-  border-radius: 50%; background: #3fbf6a; box-shadow: 0 0 0 2px var(--canvas, #f5f5f5);
+  border-radius: 50%; background: #3fbf6a; box-shadow: 0 0 0 2px var(--canvas, var(--window-bg, #f5f5f5));
 }
 .af-news {
-  position: absolute; z-index: 2; left: 10px; top: 10px; max-width: min(290px, calc(100% - 20px));
+  position: absolute; z-index: 2; left: 10px; top: 10px;
+  max-width: calc(100% - 20px); max-width: min(290px, calc(100% - 20px));  /* (min() needs Chromium 79) */
   padding: 10px 12px; border-radius: 8px; background: rgba(18, 22, 20, 0.86); color: #eef2ec;
   font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; text-align: left;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 .af-news b { display: block; font-size: 13px; margin-bottom: 3px; }
-.af-news-acts { display: flex; gap: 14px; margin-top: 8px; }
+.af-news-acts { display: flex; margin-top: 8px; }
+.af-news-acts button + button { margin-left: 14px; }  /* (not gap: Chromium 77 has no flex gap) */
 /* Anki's own button styles are more specific: these are plain links, as in the caption */
 .af-news-acts button {
   font: inherit !important; background: none !important; border: 0 !important; padding: 0 !important;

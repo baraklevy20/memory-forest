@@ -255,7 +255,9 @@ AF.events.add('asteroid', {
     if (s && s.news) {
       const again = animate && replayable(s);
       items.push([`Asteroid struck ${fmtShort(s.date)}`, `${s.lost} ${s.lost === 1 ? words.one : words.many} lost.`
-        + (again ? ' Its crater can play it again too.' : animate ? '' : ' Turn on animations in the forest settings to watch it.'),
+        + (again ? ' Its crater can play it again too.' : animate ? '' : data.animations === 'system'
+          ? ' Your system asks for less motion: set Animate the forest to On to watch it.'
+          : ' Turn on animations in the forest settings to watch it.'),
       again ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;

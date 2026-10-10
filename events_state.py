@@ -75,9 +75,23 @@ def _nature_days(cfg: dict, forest: dict, changed=None, own: bool = False) -> se
     return {d for d in days if d <= first}
 
 
-# the latest strike the page was told of, (its key, the crater as events.merciless gave it),
-# for the forest it took when a click asks to play it again
-_strike: tuple = (None, None)
+# the latest strikes the pages were told of, {key: the crater as events.merciless gave it},
+# for the forest it took when a click asks to play one again: the main forest's and a deck's
+# own may each have a latest of their own
+_strikes: dict = {}
+STRIKES_KEPT = 4
+
+
+def _seen(state: dict, key: str) -> bool:
+    """Whether the strike `key` has played: it, or a later one, on whichever forest showed it.
+    (A deck's own forest may have a strike the main one doesn't, and the other way round:
+    remembering only the last one played, each would play the other's again and again.)"""
+    seen = state.get("strike_seen")
+    if not isinstance(seen, str):
+        return False
+    if seen[:1].isdigit() and key[:1].isdigit():  # ISO dates (the debug timeline's keys are not)
+        return key <= seen
+    return key == seen
 
 
 def strike_payload(out: dict, seen_key: str, date, playable: bool = True) -> dict:
@@ -87,12 +101,14 @@ def strike_payload(out: dict, seen_key: str, date, playable: bool = True) -> dic
     (`told`) until it has played, and for the rest of that day. The forest it took comes
     along only to play by itself: a replay asks for it (strike_before), as it is a second
     forest's worth of trees."""
-    global _strike
     latest = out["latest"]
-    _strike = (seen_key, latest)
+    _strikes.pop(seen_key, None)
+    _strikes[seen_key] = latest
+    while len(_strikes) > STRIKES_KEPT:
+        del _strikes[next(iter(_strikes))]
     state = load_state()
     news = latest["ago"] <= events.STRIKE_NEWS_DAYS
-    fresh = news and playable and state.get("strike_seen") != seen_key
+    fresh = news and playable and not _seen(state, seen_key)
     return {
         "craters": [dict(c, date=date(c["ago"])) for c in out["craters"]],
         "strike": {"date": date(latest["ago"]), "lost": latest["lost"], **(strike_before(seen_key) if fresh else {}),
@@ -104,8 +120,8 @@ def strike_payload(out: dict, seen_key: str, date, playable: bool = True) -> dic
 def strike_before(seen_key: str) -> dict | None:
     """The forest the strike `seen_key` took, to play it: None if the page asks for one it
     is no longer the latest of."""
-    key, latest = _strike
-    if key != seen_key or latest is None:
+    latest = _strikes.get(seen_key)
+    if latest is None:
         return None
     before = forest_data.merge_old({"trees": latest["before"]})
     return {"before": before["trees"], "merged": before.get("merged")}
@@ -346,7 +362,10 @@ def news_line(extras: dict) -> str:
 
 
 def mark_seen(key: str) -> None:
-    """The page has played the strike `key`: it plays once."""
+    """The page has played the strike `key`: it plays once (and so does every strike before
+    it: an older one played again leaves the newest seen as it was)."""
     state = load_state()
-    state.update(strike_seen=key, strike_seen_day=mw.col.sched.today)
+    if not _seen(state, key):
+        state["strike_seen"] = key
+    state["strike_seen_day"] = mw.col.sched.today
     save_state(state)

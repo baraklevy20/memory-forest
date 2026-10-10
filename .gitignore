@@ -5,6 +5,8 @@ dev/payload.js
 dev/gallery.html
 dev/render_baseline.json
 *.ankiaddon
+# built add-ons (npm run build:base, build:plus)
+dist/
 __pycache__/
 node_modules/
 package-lock.json

@@ -580,6 +580,23 @@ class DeckForestTests(unittest.TestCase):
         p = payload.payload()
         self.assertEqual([(v["key"], v["new"]) for v in p["visitors"]], [("fox", False)])  # not announced again
 
+    def test_a_decks_own_strike_and_the_main_forests_each_play_once(self):
+        # deck 20's trees end on day 7, deck 10's grow on: deck 20's latest strike is day 6's,
+        # the main forest's day 3's
+        reset([(1, 20, 9), (2, 20, 8), (3, 10, 5), (4, 10, 4)], {"nature": "merciless", "deck_forest_mode": "own"})
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                  [(ms(d, 18),) for d in range(12) if d not in (6, 3)])
+        main = payload.payload()
+        self.assertTrue(main["strike"]["fresh"])
+        addon.events_state.mark_seen(main["strike"]["seen"])
+        deck = payload.payload(20)
+        self.assertLess(deck["strike"]["seen"], main["strike"]["seen"])
+        self.assertFalse(deck["strike"]["fresh"])  # older than the one played: no replay
+        self.assertFalse(payload.payload()["strike"]["fresh"])
+        # each forest's strike can still be asked for, to play it again by a click
+        self.assertIsNotNone(addon.events_state.strike_before(deck["strike"]["seen"]))
+        self.assertIsNotNone(addon.events_state.strike_before(main["strike"]["seen"]))
+
     def test_the_strike_plays_once_whichever_forest_shows_it(self):
         studied_every_day_but({3}, nature="merciless", deck_forest_mode="own")
         main = payload.payload()
