@@ -11,7 +11,7 @@ import unittest
 from fake_anki import PACKAGE, mw
 
 dialog = importlib.import_module(f"{PACKAGE}.settings.dialog")
-history = importlib.import_module(f"{PACKAGE}.settings.history")
+decks = importlib.import_module(f"{PACKAGE}.settings.decks")
 palette = importlib.import_module(f"{PACKAGE}.settings.palette")
 
 
@@ -20,8 +20,8 @@ def cancel(original: set, *outside: set) -> set:
     dialog's back (each step from the one before, or from what the dialog last wrote)."""
     left_out, brought_back = set(), set()
     for before, after in outside:
-        left_out, brought_back = history.outside_moves(before, after, left_out, brought_back)
-    return history.undo_here(original, left_out, brought_back)
+        left_out, brought_back = decks.outside_moves(before, after, left_out, brought_back)
+    return decks.undo_here(original, left_out, brought_back)
 
 
 class CancelDecksTests(unittest.TestCase):

@@ -61,7 +61,7 @@ These arrive in Memory Forest Plus first, and come to this version later on.
 
 The forest notices how you study, not just what you learn. Good days leave something
 behind for you to find. Whether bad habits leave a mark too is up to you: pick a
-**Nature** on the General tab of the settings.
+**Nature** on the Forest tab of the settings.
 
 <p align="center"><img src="docs/nature/peaceful.gif" alt="A calm forest by the lake, with a pond where days were missed"><br>
 <b>Peaceful</b> (the default): only the good things. Days away cost you nothing.</p>
@@ -81,7 +81,7 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 <p align="center"><img src="docs/phone.gif" alt="The forest filling a phone screen, turned sideways, animated"></p>
 
-Turn on "Show my forest on my phone" on the General tab. After your next sync, a
+Turn on "Show my forest on my phone" on the Forest tab. After your next sync, a
 Memory Forest deck appears in AnkiDroid: open it to see your forest.
 
 Your computer draws this copy, so it updates whenever Anki syncs there.

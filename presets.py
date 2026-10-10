@@ -2,8 +2,8 @@
 
 A preset is not a setting of its own - it is a shortcut that fills the five that matter
 (environment, landscape, landmark, weather, time of day) in one go. Everything downstream
-still reads those five, so nothing else in the add-on has to know presets exist, and the
-Fine-tuning tab always shows exactly what is being drawn.
+still reads those five, so nothing else in the add-on has to know presets exist, and
+Customize always shows exactly what is being drawn.
 
 A preset pins its own weather and hour. "Follow the real weather and time" sets those two
 to Automatic instead, and the preset still counts as chosen. Surprise me daily sets all
@@ -220,9 +220,9 @@ def options(presets=FOREST_PRESETS) -> list:
 def apply(key: str, current: dict, presets=FOREST_PRESETS) -> dict:
     """The five settings after picking `key` from the dropdown.
 
-    This is what makes the Fine-tuning tab show the preset's own choices rather than
+    This is what makes Customize show the preset's own choices rather than
     whatever was there before it: picking Synthwave really does set environment,
-    landscape, landmark, weather and time of day, and the tab is only displaying them.
+    landscape, landmark, weather and time of day, and Customize is only displaying them.
     Picking Custom changes nothing - it is the name for settings that match no preset,
     not a setting of its own.
     """

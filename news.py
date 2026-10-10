@@ -166,7 +166,7 @@ def settings_opened(cfg: dict) -> list:
 
 
 def opens(news_id: str) -> str:
-    """Where a note's button opens the settings: a tab ("general", "fine", "history",
+    """Where a note's button opens the settings: a tab ("scenery", "forest", "decks",
     "about"), a setting one of them names (their news_targets, e.g. "animations"), or ""."""
     pick = _load().get("debug")
     if news_id == DEBUG_NOTE and isinstance(pick, dict) and pick.get("opens"):

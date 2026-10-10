@@ -229,7 +229,7 @@ def _scene_name(cfg: dict, today: _dt.date) -> dict:
         return {"sceneName": pick.label, "sceneTip": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."}
     if key == presets.CUSTOM:
         name = scene.ENVIRONMENTS.get(cfg.get("environment"), "")
-        return {"sceneName": name, "sceneTip": "Your own mix, from Fine-tuning in the forest settings."} if name else {}
+        return {"sceneName": name, "sceneTip": "Your own mix, from Customize in the forest settings."} if name else {}
     spec = presets.by_key()[key]
     back = season_returns(cfg, today)
     if back:

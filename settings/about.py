@@ -45,7 +45,7 @@ THANKS_ALL = ("Memory Forest grows thanks to everyone who rates it, shares it, s
 THANKS_SPONSORS = "And a special thank-you to my Sponsors on Patreon:"
 FREE_LINE = (f'New scenery arrives in Memory Forest Plus first, and comes to this version too. '
              f'<a href="{PATREON}">Join on Patreon</a>')
-# the pixel heart follows this one, as in the General tab's thank-you
+# the pixel heart follows this one, as in the Scenery tab's thank-you
 PLUS_LINE = f'You\'re part of this: thank you for supporting it on <a href="{PATREON}">Patreon</a>'
 CREDITS = f'Made by Barak Levy · Weather from <a href="{MET_NORWAY}">MET Norway</a> (CC BY 4.0) · Places © <a href="{OSM_COPYRIGHT}">OpenStreetMap contributors</a> · MIT licence'
 

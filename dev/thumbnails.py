@@ -1,8 +1,8 @@
 """Draw each preset's still picture for the settings: the real scene, rendered in headless
 Chrome on a young test forest, a piece of it (sky, horizon and the first trees) in the
 scene's own pixels, settings/scenery/<preset>.png. The picker's tile shows it while the
-forest is still (dev/tile_gifs.py draws the moving one), and Fine-tuning and Surprise me
-daily's mosaic use it too.
+forest is still (dev/tile_gifs.py draws the moving one), and Surprise me daily's mosaic
+uses it too.
 
     python3 dev/thumbnails.py              # every preset
     python3 dev/thumbnails.py aurora bamboo  # just these presets, by key

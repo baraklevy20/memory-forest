@@ -21,6 +21,11 @@ OLD = {
 # a 2.1.50 palette colour the 2.1.45 to 2.1.49 palette lacks, and its nearest there
 OLDER = {"FOCUS_BORDER": "HIGHLIGHT_BG"}
 OLD_RADIUS = "5px"  # what 2.1.55's props.BORDER_RADIUS comes to
+# help lines and the city's problem, (light, dark): Anki's FG_SUBTLE is under 4.5:1 on its own
+# window (4.4:1 light, 3.8:1 dark), and a fixed red reads at 2.6:1 on the dark one
+HINT = ("#5c5c5c", "#a3a3a3")
+ERROR = ("#b42318", "#f87171")
+LINK = ("#1d5fd1", "#8ab4ff")  # (5.4:1 and 6.7:1; Anki's focus blue is 3.6:1 on its dark window)
 
 
 def color(name: str) -> str:
@@ -31,6 +36,11 @@ def color(name: str) -> str:
     if not hasattr(colors, old):
         old = OLDER[old]
     return theme_manager.color(getattr(colors, old))
+
+
+def readable(pair: tuple) -> str:
+    """The light or dark one of a (light, dark) pair, for Anki's theme as it is now."""
+    return pair[1] if getattr(theme_manager, "night_mode", False) else pair[0]
 
 
 def radius() -> str:

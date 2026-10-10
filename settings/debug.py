@@ -14,7 +14,7 @@ from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
 from ..seasons import forget_seasons
 from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
-from .history import DATE_FORMAT
+from .decks import DATE_FORMAT
 from .widgets import date_field, group, hint
 
 TREES_STEP, TREES_PAGE = 10, 250

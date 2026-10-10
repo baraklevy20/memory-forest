@@ -195,8 +195,8 @@ def settings():
         tabs.setCurrentIndex(0)
 
     def picker():
-        # the General tab's picker, its tiles painted (the moving ones at their first frame)
-        picker = state["dialog"].general.picker
+        # the Scenery tab's picker, its tiles painted (the moving ones at their first frame)
+        picker = state["dialog"].scenery.picker
         QApplication.processEvents()
         picker.grab()
         result["steps"].append(f"picker: {len(picker.tiles)} tiles")
@@ -205,7 +205,7 @@ def settings():
         # another scenery, chosen the way a click on its tile chooses it, then Done: the
         # config must take it and the forest be built again with it
         dialog = state["dialog"]
-        box = dialog.general.preset
+        box = dialog.scenery.preset
         before = dict(mw.addonManager.getConfig(FOREST) or {})
         box.setCurrentIndex((box.currentIndex() + 1) % box.count())
         state["scenery"] = box.currentData()

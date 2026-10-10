@@ -1,4 +1,4 @@
-"""Draw the small icon beside each Nature level on the General tab, with the forest's own
+"""Draw the small icon beside each Nature level on the Forest tab, with the forest's own
 engine in headless Chrome: Peaceful, a full-grown tree by a pond (the pond a missed day
 leaves there); Wild, the same tree burning, charred by the engine and in its flames; and
 Merciless, the asteroid. Each is saved as settings/nature/<level>.png, ICON pixels square.

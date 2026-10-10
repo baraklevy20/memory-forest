@@ -18,7 +18,8 @@ state.py         the config, and what is remembered per profile in user_files/
 seasons.py       the day the forest is drawn for, and the seasonal scenery's week
 edition.py       which edition this copy is (Memory Forest or Plus), and whether it has the debug tools
 scope.py         what the forest counts: the decks left out, its days, and whether the study data changed
-settings/        the settings dialog: dialog.py, and one file per tab (changes apply immediately)
+settings/        the settings dialog: dialog.py, and one file per tab (changes apply immediately);
+                 read SETTINGS_GUIDELINES.md before changing it
 presets.py       the ready-made scenes the dialog offers
 study_log.py     what is read from the collection: cards, review log, Anki days (no aqt)
 forest_data.py   rows → trees, stages, health, ponds and stats (no aqt; unit-tested)

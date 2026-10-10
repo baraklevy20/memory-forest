@@ -1,4 +1,4 @@
-"""The Patreon banner at the top of the General tab: an invitation in Memory Forest, a
+"""The Patreon banner at the top of the Scenery tab: an invitation in Memory Forest, a
 thank-you in Memory Forest Plus, the edition patrons get."""
 
 from __future__ import annotations

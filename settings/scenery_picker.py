@@ -1,4 +1,4 @@
-"""The scenery picker, right on the General tab: every scenery as a moving picture with its
+"""The scenery picker, right on the Scenery tab: every scenery as a moving picture with its
 name on it, in a scrolling panel of tiles, as many to a row as fit, in sections, with a
 search once there are many. Clicking a tile picks it; clicking a Plus one, which this copy
 lacks, shows the way to it under the panel."""
@@ -42,7 +42,7 @@ from aqt.qt import (
 from .. import presets
 from .palette import color
 from .patreon import PATREON
-from .widgets import hint
+from .widgets import hint, hint_style
 
 # each preset's picture, drawn by dev/thumbnails.py: a piece of its scene in the scene's own
 # pixels, shown a pixel a point; and the same piece moving (dev/tile_gifs.py), shown instead
@@ -61,11 +61,14 @@ NEW_INK = (159, 227, 180, 255)  # RGBA
 # stays, so the link can be reached): the way to it, opened only if they follow the link.
 # (The sceneries' own descriptions stay in their JSON: nobody read them under the tiles.)
 PLUS_LINE = '{label} is in Memory Forest Plus. <a href="{url}">Get it on Patreon</a>'
-CUSTOM_NOTE = "Your own mix from Fine-tuning. Pick a scenery to start again from it."
+CUSTOM_NOTE = "Your own mix, made in Customize. Pick a scenery to start again from it."
 SEARCH_FROM = 12  # tiles before the picker offers a search
 COLUMN_GAP, ROW_GAP = 10, 10
 SECTION_GAP = 10  # points above a section's title, after the first
-ROWS_SHOWN = 2.5  # rows the panel shows before it scrolls: half a row peeks out, so it looks scrollable
+# rows the panel shows before it scrolls, at most and at least: half a row peeks out, so it
+# looks scrollable. The dialog gives up rows, half a row at a time, on a screen too short for it
+ROWS_SHOWN, ROWS_FEWEST = 2.5, 1.5
+ROW_H = PICTURE_H + ROW_GAP
 MIN_COLUMNS = 3  # the panel is never narrower than this many tiles (the dialog grows to hold them)
 # Surprise me daily's tile: these four, in quarters
 DAILY_MOSAIC = ("aurora", "synthwave", "lanterns", "bamboo")
@@ -224,6 +227,11 @@ class _Tile(QAbstractButton):
         font.setWeight(QFont.Weight.DemiBold)
         self.setFont(font)
 
+    def nextCheckState(self) -> None:
+        """A click (or Space or Enter) chooses a tile, and never unchooses one: clicking the chosen
+        tile again leaves it chosen, as there is always a scenery."""
+        self.setChecked(True)
+
     def animate(self, on: bool) -> None:
         """Play the moving picture, or show the still one. It only plays while the tile can be
         seen: hidden by the search, on another tab or with the dialog closed, it stops."""
@@ -335,7 +343,7 @@ class _Tile(QAbstractButton):
 
 
 class SceneryPicker(QWidget):
-    """The panel of tiles on the General tab: every scenery to choose from on the day, in
+    """The panel of tiles on the Scenery tab: every scenery to choose from on the day, in
     sections - one in its holiday week first, then the rest in the catalogue's order, Surprise
     me daily leading them, the Plus ones this copy lacks last. `on_pick(key)` is called with
     the scenery clicked."""
@@ -352,7 +360,11 @@ class SceneryPicker(QWidget):
         self.sections = []
         self.columns = 0
 
-        self.search = _Search()
+        # the search goes on the group title's row (the Scenery tab puts it there), so it is the
+        # picker's only until then: never without a parent, which would make it a window
+        self.search = _Search(self)
+        self.search_wanted = False  # enough sceneries to need it (SEARCH_FROM)
+        self.search_allowed = True  # the tiles are in view (not Customize, in their place)
         self.search.setClearButtonEnabled(True)
         self.search.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
         self.search.setStyleSheet(SEARCH_STYLE.format(line=color("BORDER_SUBTLE"), focus=color("BORDER_FOCUS"),
@@ -367,22 +379,33 @@ class SceneryPicker(QWidget):
         # (the viewport's, not the scroll area's: that would reach the scroll bar too, and swap the
         # system's for Qt's own)
         self.scroll.viewport().setStyleSheet("background: transparent;")
-        self.max_h = round(ROWS_SHOWN * (PICTURE_H + ROW_GAP))  # (no taller than its tiles, when fewer)
+        self.rows = ROWS_SHOWN
+        self.max_h = round(self.rows * ROW_H)  # (no taller than its tiles, when fewer)
         self.scroll.setFixedHeight(self.max_h)
         self.setMinimumWidth(MIN_COLUMNS * (PICTURE_W + COLUMN_GAP) - COLUMN_GAP + 2 * RING
                              + self.scroll.verticalScrollBar().sizeHint().width())
         self.note = hint("")
-        self.note.setStyleSheet(f"color: {color('FG_SUBTLE')}; font-size: 12px;")
+        self.note.setStyleSheet(hint_style())
         self.note.setTextFormat(Qt.TextFormat.RichText)
         self.note.setOpenExternalLinks(True)
         v = QVBoxLayout(self)
         v.setContentsMargins(0, 0, 0, 0)
-        v.addWidget(self.search)
         v.addWidget(self.scroll)
         v.addWidget(self.note)
-        # (only once it is in the panel: a widget shown with no parent is a window of its own)
         self.search.setVisible(False)
         self.note.setVisible(False)
+
+    def allow_search(self, on: bool) -> None:
+        """Show the search while the tiles are in view, if there are enough of them to need it."""
+        self.search_allowed = on
+        self.search.setVisible(on and self.search_wanted)
+
+    def set_rows(self, rows: float) -> None:
+        """Show this many rows before scrolling (the dialog's choice, for the screen)."""
+        self.rows = rows
+        self.max_h = round(rows * ROW_H)
+        self.scroll.setFixedHeight(self.max_h)
+        self._layout()
 
     def set_choices(self, keys: list, current: str, day) -> None:
         """Offer these sceneries on `day` (tiles made again only when they change), `current` the chosen one."""
@@ -449,7 +472,8 @@ class SceneryPicker(QWidget):
         bv.addStretch(1)
         self.scroll.setWidget(body)  # (the old tiles go with the old body)
         self.search.setPlaceholderText(f"Search {len(self.tiles)} sceneries")
-        self.search.setVisible(len(self.tiles) > SEARCH_FROM)
+        self.search_wanted = len(self.tiles) > SEARCH_FROM
+        self.allow_search(self.search_allowed)
         self.columns = 0
         self._layout()
         for t in self.tiles:

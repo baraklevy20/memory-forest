@@ -1,4 +1,4 @@
-"""The History tab: which decks and days the forest grows from."""
+"""The Decks tab: which decks and days the forest grows from."""
 
 from __future__ import annotations
 
@@ -17,14 +17,13 @@ from aqt.qt import (
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
-    QWidget,
 )
 
 from .. import study_log
 from ..phone_note import phone_cards, phone_decks
 from ..scope import anki_today, day_cutoff
 from ..state import OFF_VALUES, log
-from .widgets import date_field, group, grow_window, hint
+from .widgets import Tab, date_field, group, grow_window, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole
 DATE_FORMAT = "d MMMM yyyy"
@@ -62,16 +61,16 @@ def undo_here(original: set, left_out: set, brought_back: set) -> set:
     return (original - brought_back) | left_out
 
 
-class HistoryTab(QWidget):
-    def __init__(self, cfg: dict):
+class DecksTab(Tab):
+    def __init__(self, cfg: dict, original: dict | None = None):
         super().__init__()
         self.excluded = _ids(cfg)
         # what the config held when last read or written here: a deck left out from its gear
         # menu while the dialog is open changes it behind the dialog's back
         self.known = set(self.excluded)
-        # as the dialog opened, and what was changed behind its back since: Cancel undoes only
-        # what was changed here
-        self.original = set(self.excluded)
+        # as the dialog opened (the first one, when Restore defaults reopened it), and what was
+        # changed behind its back since: Cancel undoes only what was changed here
+        self.original = _ids(original) if original is not None else set(self.excluded)
         self.left_out_outside: set = set()
         self.brought_back_outside: set = set()
         self.changed_outside = False
@@ -126,7 +125,7 @@ class HistoryTab(QWidget):
             days = study_log.load_tree_days(mw.col.db, cutoff, phone_cards())
             today = anki_today(cutoff)
         except Exception as e:  # the counts are a nicety, never an error
-            log(f"history: tree counts unavailable ({e!r})")
+            log(f"decks: tree counts unavailable ({e!r})")
             self.summary.hide()
             return
         self.days, self.today = days, today
