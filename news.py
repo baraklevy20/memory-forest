@@ -175,13 +175,15 @@ def opens(news_id: str) -> str:
 
 
 def about(cfg: dict) -> list:
-    """(version, [lines]) for the About tab, newest first: each version's new and improved
-    lines this edition has (its fixes stay in the release notes)."""
+    """(version, [(heading, [lines])]) for the About tab, newest first: each version's New,
+    Improved and Fixed lines this edition has, under their headings."""
     out = []
     for v in release_notes.for_edition(_versions(), view(cfg)):
-        lines = [e["text"] for e in release_notes.items(v, ("new", "improved"))]
-        if lines:
-            out.append((v["version"], lines))
+        sections = [(head, [e["text"] for e in release_notes.items(v, (key,))])
+                    for key, head in release_notes.SECTIONS if head]
+        sections = [(head, lines) for head, lines in sections if lines]
+        if sections:
+            out.append((v["version"], sections))
     return out
 
 

@@ -169,18 +169,18 @@ class AboutTests(unittest.TestCase):
     def setUp(self):
         reset()
 
-    def test_new_and_improved_lines_but_not_the_fixes(self):
+    def test_new_improved_and_fixed_under_their_headings(self):
         with notes("Something new.", fixed=["A fix."]):
-            self.assertEqual(news.about({}), [("9.0.0", ["Something new."])])
+            self.assertEqual(news.about({}), [("9.0.0", [("New", ["Something new."]), ("Fixed", ["A fix."])])])
 
     def test_only_what_the_edition_has(self):
         editions_here(self)
         with notes("Something new.", PLUS_SCENERY), debug_tools():
-            self.assertEqual(news.about(DEBUG_BASE), [("9.0.0", ["Something new."])])
-            self.assertEqual(news.about(DEBUG_PLUS), [("9.0.0", ["Something new.", "Cherry blossom."])])
+            self.assertEqual(news.about(DEBUG_BASE), [("9.0.0", [("New", ["Something new."])])])
+            self.assertEqual(news.about(DEBUG_PLUS), [("9.0.0", [("New", ["Something new.", "Cherry blossom."])])])
 
     def test_the_real_notes_read(self):
-        versions = [v for v, _lines in news.about({})]
+        versions = [v for v, _sections in news.about({})]
         self.assertTrue(versions)
         self.assertEqual(len(versions), len(set(versions)))
 

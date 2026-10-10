@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 import os
 
@@ -15,6 +16,7 @@ from aqt.qt import (
     QLabel,
     QPalette,
     QScrollArea,
+    QSize,
     Qt,
     QVBoxLayout,
     QWidget,
@@ -28,6 +30,7 @@ from .widgets import group
 
 # the newest versions the What's new group lists (the release notes link has the rest)
 NEWS_VERSIONS = 1
+NEWS_MIN_H = 120  # points: What's new asks for no more than this, and fills what the tab has spare
 # the goats to thank (Patreon sponsors), written by dev/goats.py from Patreon before each release
 GOATS = os.path.join(ADDON_DIR, "goats.json")
 
@@ -189,14 +192,36 @@ def thanks(names: list, plus: bool) -> QWidget:
     return group("Thank you", lay)
 
 
+class _Filler(QScrollArea):
+    """A scroll area that asks for only NEWS_MIN_H and takes whatever room the tab has spare:
+    asking for its whole contents would make the dialog as tall as a long release."""
+
+    def sizeHint(self) -> QSize:
+        return QSize(super().sizeHint().width(), NEWS_MIN_H)
+
+    def minimumSizeHint(self) -> QSize:
+        return QSize(super().minimumSizeHint().width(), NEWS_MIN_H)
+
+
 def whats_new() -> QWidget:
-    """What's new, for the few who read: the features this edition has, newest first (news.py),
-    in plain words and without the fixes."""
+    """What's new, for the few who read: what this edition has, newest first (news.py), under
+    New, Improved and Fixed. It fills the room the other tabs leave this one and scrolls past
+    it, so a long release never makes the dialog taller."""
     parts = []
-    for version, lines in news.about(config())[:NEWS_VERSIONS]:
-        parts.append(f"<b>{version}</b>" + "".join(f"<br>• {line}" for line in lines))
+    for version, sections in news.about(config())[:NEWS_VERSIONS]:
+        lines = [f"<b>{version}</b>"]
+        for head, items in sections:
+            lines.append(f"<br><br><b>{head}</b>" + "".join(f"<br>• {html.escape(line)}" for line in items))
+        parts.append("".join(lines))
+    body = text("<br><br>".join(parts))
+    scroll = _Filler()
+    scroll.setWidget(body)
+    scroll.setWidgetResizable(True)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    scroll.setStyleSheet(GOAT_SCROLL_STYLE)
     lay = QVBoxLayout()
-    lay.addWidget(text("<br><br>".join(parts)))
+    lay.addWidget(scroll)
     return group("What's new", lay)
 
 
@@ -209,8 +234,7 @@ class AboutTab(QWidget):
         av = QVBoxLayout(self)
         av.setSpacing(12)
         av.addWidget(header(plus))
-        av.addWidget(whats_new())
+        av.addWidget(whats_new(), 1)  # (it takes the room to spare)
         av.addWidget(group("How it works", how))
         av.addWidget(thanks(goats(), plus))
-        av.addStretch(1)
         av.addWidget(text(CREDITS, small_style()))

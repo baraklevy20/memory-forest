@@ -38,6 +38,9 @@ guidelines, GNOME and KDE HIGs, Nielsen Norman Group) against this dialog, in Oc
 - The scenery picker gives back rows first: `fit_screen` drops it from 2½ rows to as few as
   1½, half a row at a time, on a short screen. Nothing else shrinks to fit, so a new setting
   on a tall tab needs room found elsewhere.
+- Text that grows with each release (the About tab's What's new) asks for a small height
+  and fills the room its tab has spare, scrolling for the rest (`about._Filler`), so it
+  never makes the dialog taller.
 - The picker's search sits on the Scenery group's title row, and shows only when there are
   more than `SEARCH_FROM` (12) sceneries.
 
