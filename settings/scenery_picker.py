@@ -64,6 +64,7 @@ PLUS_LINE = '{label} is in Memory Forest Plus. <a href="{url}">Get it on Patreon
 CUSTOM_NOTE = "Your own mix, made in Customize. Pick a scenery to start again from it."
 SEARCH_FROM = 12  # tiles before the picker offers a search
 COLUMN_GAP, ROW_GAP = 10, 10
+PLUS_SECTION = "Memory Forest Plus"
 SECTION_GAP = 10  # points above a section's title, after the first
 # rows the panel shows before it scrolls, at most and at least: half a row peeks out, so it
 # looks scrollable. The dialog gives up rows, half a row at a time, on a screen too short for it
@@ -151,15 +152,25 @@ class PlusScenery:
     season: object = None
 
 
-def plus_only(offered) -> list:
-    """The Plus sceneries not `offered` here (this copy lacks them, or the Debug tab pretends it
-    is the base edition) that it has the picture of, in the catalogue's order."""
+def _plus_listed() -> list:
+    """What plus.json lists: each scenery Plus has and the base does not yet."""
     try:
         with open(PLUS_LIST, encoding="utf-8") as f:
             listed = json.load(f)
     except (OSError, ValueError):
         return []
-    return [PlusScenery(e["key"], e["label"], e.get("note", "")) for e in listed
+    return [e for e in listed if isinstance(e, dict) and e.get("key")] if isinstance(listed, list) else []
+
+
+def plus_keys() -> set:
+    """The sceneries only Plus has, whether this copy has them or not."""
+    return {e["key"] for e in _plus_listed()}
+
+
+def plus_only(offered) -> list:
+    """The Plus sceneries not `offered` here (this copy lacks them, or the Debug tab pretends it
+    is the base edition) that it has the picture of, in the catalogue's order."""
+    return [PlusScenery(e["key"], e.get("label", e["key"]), e.get("note", "")) for e in _plus_listed()
             if e["key"] not in offered and os.path.exists(os.path.join(PICTURES, f"{e['key']}.png"))]
 
 
@@ -344,9 +355,9 @@ class _Tile(QAbstractButton):
 
 class SceneryPicker(QWidget):
     """The panel of tiles on the Scenery tab: every scenery to choose from on the day, in
-    sections - one in its holiday week first, then the rest in the catalogue's order, Surprise
-    me daily leading them, the Plus ones this copy lacks last. `on_pick(key)` is called with
-    the scenery clicked."""
+    sections - one in its holiday week first, then Plus's own (in Plus), then the rest in the
+    catalogue's order, Surprise me daily leading them, and the Plus ones this copy lacks last.
+    `on_pick(key)` is called with the scenery clicked."""
 
     def __init__(self, on_pick, animate: bool):
         super().__init__()
@@ -430,16 +441,20 @@ class SceneryPicker(QWidget):
         specs = presets.by_key()
         chosen = [specs[k] for k in keys if k in specs]
         limited = [p for p in chosen if p.season]
-        rest = [p for p in chosen if not p.season]
+        plus = plus_keys()
+        own_plus = [p for p in chosen if not p.season and p.key in plus]
+        rest = [p for p in chosen if not p.season and p.key not in plus]
         rest.sort(key=lambda p: p.key != presets.DAILY)  # (a stable sort: the catalogue's order stays)
-        rest += plus_only(set(keys))
+        locked = plus_only(set(keys))
         self.tiles = []
         self.sections = []
         body = QWidget()
         body.setAutoFillBackground(False)
         bv = self.body_layout = QVBoxLayout(body)
         bv.setContentsMargins(0, 0, 0, 0)
-        groups = [(title, members) for title, members in (("This week only", limited), ("Sceneries", rest)) if members]
+        # Plus's own sceneries come before the rest, the ones this copy lacks after them
+        groups = [(title, members) for title, members in (("This week only", limited), (PLUS_SECTION, own_plus),
+                                                          ("Sceneries", rest), (PLUS_SECTION, locked)) if members]
         for i, (title, members) in enumerate(groups):
             tiles = []
             for p in members:
@@ -517,6 +532,11 @@ class SceneryPicker(QWidget):
             for i, t in enumerate(shown):
                 grid.addWidget(t, i // self.columns, i % self.columns, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
                 t.show()
+            # a section with fewer tiles than a row holds keeps them in the columns of a full
+            # one: the room left goes past its last column, not between its tiles
+            for c in range(grid.columnCount()):
+                grid.setColumnStretch(c, 0)
+            grid.setColumnStretch(self.columns, 1)
             label.setVisible(bool(shown) and len(self.sections) > 1)
             found += len(shown)
         self.none_found.setVisible(not found)

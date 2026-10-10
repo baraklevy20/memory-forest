@@ -199,6 +199,8 @@ def settings():
         picker = state["dialog"].scenery.picker
         QApplication.processEvents()
         picker.grab()
+        # every tile, scrolled out of view or not, for a person to look at
+        picker.scroll.widget().grab().save(os.path.join(BASE, "picker.png"))
         result["steps"].append(f"picker: {len(picker.tiles)} tiles")
 
     def change():
