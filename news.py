@@ -1,7 +1,8 @@
 """What's new: how an update tells people about itself, without a patch-notes dialog.
 
 Most changes say nothing (fixes, speed, where the weather comes from). A new scenery puts a
-dot on the forest's cog, and a NEW tag on its tile for the visit that clears it. A real
+dot on the forest's cog, and a NEW tag on its tile for the visit that clears it; a change to
+the settings themselves can put the dot there too, with no tile to tag. A real
 feature gets a note: one card on the forest, shown once. The About tab lists the newest
 version's new and improved lines. All of it comes from release_notes.json (an item's
 "announce"), and each person only hears about what their edition has; a fresh install
@@ -150,19 +151,31 @@ def _debug_pick(notes: list, record: dict) -> dict | None:
     return None
 
 
-def dots(cfg: dict) -> list:
-    """The preset keys of the new sceneries this edition has, not yet seen: the cog's dot."""
+def _dots(cfg: dict) -> list:
+    """The dots this edition has, not yet seen."""
     seen = set(_load()["seen"])
-    return [e["scenery"] for e in offered(cfg) if e["kind"] == DOT and e["scenery"] and e["id"] not in seen]
+    return [e for e in offered(cfg) if e["kind"] == DOT and e["id"] not in seen]
+
+
+def dots(cfg: dict) -> list:
+    """The preset keys of the new sceneries this edition has, not yet seen."""
+    return [e["scenery"] for e in _dots(cfg) if e["scenery"]]
+
+
+def cog_dot(cfg: dict) -> str:
+    """What the cog's dot is for: "scenery" (a new one), "settings" (something new in them,
+    a dot no scenery needs), or "" (no dot)."""
+    found = _dots(cfg)
+    return "scenery" if any(e["scenery"] for e in found) else "settings" if found else ""
 
 
 def settings_opened(cfg: dict) -> list:
     """The settings are open: the cog's dot is answered. The sceneries it was for wear their
     NEW tag for this visit only (returned)."""
-    keys = dots(cfg)
-    if keys:
-        mark_seen([e["id"] for e in offered(cfg) if e["kind"] == DOT and e["scenery"] in keys])
-    return keys
+    found = _dots(cfg)
+    if found:
+        mark_seen([e["id"] for e in found])
+    return [e["scenery"] for e in found if e["scenery"]]
 
 
 def opens(news_id: str) -> str:

@@ -213,7 +213,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "litCount": forest.get("lit_count"),
         # what's new: a note on the deck list's forest only, and the cog's dot on every one
         "news": None if did else news.note(cfg, day),
-        "newDot": bool(news.dots(cfg)),
+        "newDot": news.cog_dot(cfg),
         **extras,
     }
 

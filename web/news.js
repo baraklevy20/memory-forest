@@ -1,6 +1,6 @@
-/* Memory Forest — what's new (news.py): a dot on the cog for a new scenery, and a note on
- * the forest for a new feature, shown until it is answered. Only in Anki: the phone has no
- * cog, and nowhere to follow a note to. */
+/* Memory Forest — what's new (news.py): a dot on the cog for a new scenery or new settings,
+ * and a note on the forest for a new feature, shown until it is answered. Only in Anki: the
+ * phone has no cog, and nowhere to follow a note to. */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
@@ -11,7 +11,7 @@ AF.news = function (root, data) {
   const cog = root.querySelector('.af-cog');
   if (cog && data.newDot) {
     cog.classList.add('af-cog-new');
-    cog.title = 'Change scenery and settings (new scenery)';
+    cog.title = `Change scenery and settings (${data.newDot === 'scenery' ? 'new scenery' : 'something new'})`;
     cog.setAttribute('aria-label', cog.title);
     // opening the settings answers it (news.settings_opened); the forest redraws later
     cog.addEventListener('click', () => cog.classList.remove('af-cog-new'));

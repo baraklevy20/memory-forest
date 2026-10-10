@@ -10,7 +10,7 @@ or "notes" (no heading)}. An item is its line, or {"text": its line, and maybe:
            never lists it (the public page is the base edition's);
   "announce": {"id", "kind": "note" (a card on the forest, once: "title", "text", and maybe a
               button, "action", that opens the settings where "opens" says) or "dot" (the
-              cog's dot, and NEW on the tile of the scenery it `needs`)}}."""
+              cog's dot, and NEW on the tile of the scenery it `needs`, if it needs one)}}."""
 
 from __future__ import annotations
 

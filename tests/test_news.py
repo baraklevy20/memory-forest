@@ -18,6 +18,7 @@ DEBUG_PLUS = {"debug": True, "debug_edition": "plus"}
 NOTE = {"text": "A feature.", "announce": {"id": "a_feature", "kind": "note", "title": "New: a feature",
                                           "text": "It does things.", "action": "See it", "opens": "fine"}}
 SCENERY = {"text": "Bamboo comes to every edition.", "needs": "scenery:bamboo", "announce": {"id": "new_bamboo", "kind": "dot"}}
+SETTINGS = {"text": "Clearer settings.", "announce": {"id": "new_settings", "kind": "dot"}}
 PLUS_SCENERY = {"text": "Cherry blossom.", "needs": "scenery:cherry_blossom", "announce": {"id": "new_cherry", "kind": "dot"}}
 
 
@@ -157,6 +158,19 @@ class DotTests(unittest.TestCase):
             self.assertEqual(news.settings_opened({}), ["bamboo"])  # NEW on its tile, this visit
             self.assertEqual(news.dots({}), [])
             self.assertEqual(news.settings_opened({}), [])
+
+    def test_new_settings_dot_the_cog_with_no_tile_to_tag(self):
+        with notes(SETTINGS):
+            self.assertEqual(news.cog_dot({}), "settings")
+            self.assertEqual(news.dots({}), [])
+            self.assertEqual(news.settings_opened({}), [])
+            self.assertEqual(news.cog_dot({}), "")
+
+    def test_a_new_scenery_names_the_dot_even_beside_new_settings(self):
+        with notes(SETTINGS, SCENERY):
+            self.assertEqual(news.cog_dot({}), "scenery")
+            self.assertEqual(news.settings_opened({}), ["bamboo"])
+            self.assertEqual(news.cog_dot({}), "")
 
     def test_a_scenery_the_edition_lacks_is_never_announced(self):
         editions_here(self)

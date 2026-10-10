@@ -10,7 +10,13 @@
       ],
       "improved": [
         "Choose your scenery right on the Scenery tab, from moving previews of each one.",
-        "Clearer settings: Scenery, Forest and Decks tabs, and they now fit smaller laptop screens.",
+        {
+          "text": "Clearer settings: Scenery, Forest and Decks tabs, and they now fit smaller laptop screens.",
+          "announce": {
+            "id": "settings-1.2",
+            "kind": "dot"
+          }
+        },
         "The settings reopen on the tab you last used until you quit Anki, and Cancel now also undoes Restore defaults.",
         "Live weather now comes from MET Norway, and your city can be typed in its own language, like 東京.",
         "A tree's tooltip now says when a leech's crow leaves: once the card is mature again."
