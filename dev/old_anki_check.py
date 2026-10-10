@@ -22,12 +22,14 @@ OUT, LOG = os.path.join(BASE, "check.json"), os.path.join(BASE, "check.log")
 COG_PX, COG_ICON_PX = 28, 15  # forest.css's .af-cog box, and core.js's COG icon
 WAIT_MS, WAIT_TRIES = 1000, 20  # for the deck list (and the forest's idle-time build) to draw
 SEED_CARDS, SEED_DAYS, SEED_REVIEWS = 60, 150, 5  # cards, how far back they start, reviews each
+SEED_BIG_CARDS, SEED_BIG_AGO = 12, 20  # of those, first studied together: a big learning day, with flowers
 CONSOLE_ERROR = 2  # QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel
 # measured in the deck list's page: the cog and its icon, as the page is and again under
 # 2.1.50's dark-Mac button styles (Anki's own CSS, keyed on a class Anki only sets when
 # macOS itself is dark), whether the forest built (core.js leaves its scene on the panel's
 # root as afEnv), how many trees it has, whether it is the one built before the scenery
-# changed (marked below), and how much of its canvas is painted
+# changed (marked below), how much of its canvas is painted, and its big days' trees and how
+# many columns their flowers drew in (flowers.js notes each, for the grass to leave clear)
 MEASURE = """(() => {
   const box = el => el ? (r => [Math.round(r.width), Math.round(r.height)])(el.getBoundingClientRect()) : null;
   const cog = document.querySelector('.af-cog'), icon = cog && cog.querySelector('svg');
@@ -42,7 +44,8 @@ MEASURE = """(() => {
     painted = Math.round(100 * painted / (c.width * c.height)); }
   const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root && root.afEnv;
   const trees = env ? env.placed.filter(q => !q.it.pond).length : 0;
-  return JSON.stringify({ plain, darkMac, built: !!env, trees, old: !!(env && env.checkMark), painted,
+  const big = env ? env.placed.filter(q => q.it.big).length : 0, flowers = env && env.flowerCols ? env.flowerCols.size : 0;
+  return JSON.stringify({ plain, darkMac, built: !!env, trees, big, flowers, old: !!(env && env.checkMark), painted,
                           canvas: c ? [c.width, c.height] : null, classes, agent: navigator.userAgent });
 })()"""
 MARK = "(() => { const e = [...document.querySelectorAll('*')].find(e => e.afEnv); if (e) e.afEnv.checkMark = 1; })()"
@@ -163,6 +166,12 @@ def first_look(got, raw):
         result["problems"].append("the forest built but its canvas is blank")
     elif not got.get("trees"):
         result["problems"].append("the forest built with no trees, from a collection with reviews")
+    elif not got.get("big"):
+        result["problems"].append(f"no big learning day, though {SEED_BIG_CARDS} cards were first studied {SEED_BIG_AGO} days ago")
+    elif not got.get("flowers"):
+        result["problems"].append("the big learning day's tree drew no flowers")
+    else:
+        result["steps"].append(f"flowers on {got['big']} big day(s)")
     QTimer.singleShot(0, settings)
 
 
@@ -314,7 +323,8 @@ def imports():
 
 def seed():
     """SEED_CARDS cards in Default, each first studied up to SEED_DAYS days ago and reviewed
-    SEED_REVIEWS times since, written straight into the review log: a history to grow from."""
+    SEED_REVIEWS times since, written straight into the review log: a history to grow from,
+    with the first SEED_BIG_CARDS all first studied SEED_BIG_AGO days ago, a big learning day."""
     col = mw.col
     models = col.models
     model = (models.by_name if hasattr(models, "by_name") else models.byName)("Basic")
@@ -330,7 +340,7 @@ def seed():
     cutoff = getattr(sched, "day_cutoff", None) or sched.dayCutoff
     rng = random.Random(1)
     for k, cid in enumerate(col.db.list("select id from cards")):
-        first = rng.randint(SEED_REVIEWS + 1, SEED_DAYS)
+        first = SEED_BIG_AGO if k < SEED_BIG_CARDS else rng.randint(SEED_REVIEWS + 1, SEED_DAYS)
         days = [first] + sorted(rng.sample(range(1, first), SEED_REVIEWS), reverse=True)
         ivl = 1
         for j, ago in enumerate(days):

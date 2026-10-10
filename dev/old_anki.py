@@ -19,12 +19,13 @@ with -b, so your own collection and your dev config are never touched.
 
 --check needs no hands: the profile starts in English and the dark theme, with no update
 check, and dev/old_anki_check.py goes in beside the add-on. Once the profile is open it
-fills the collection with made-up reviews, checks the forest built from them, measures the
-cog in the deck list, opens the settings, each of their tabs and the scenery picker, picks
-another scenery and checks the forest was built again, and quits; this prints what went
-wrong, if anything (a console error in the page counts), and exits 1 then. Screenshots of
-the deck list are kept in RESULTS. Anki runs one copy per user, so the check runs under a
-user name of its own and leaves an Anki you have open alone.
+fills the collection with made-up reviews, checks the forest built from them (a big
+learning day's flowers too), measures the cog in the deck list, opens the settings, each of
+their tabs and the scenery picker, picks another scenery and checks the forest was built
+again, and quits; this prints what went wrong, if anything (a console error in the page
+counts), and exits 1 then. Screenshots of the deck list are kept in RESULTS. Anki runs one
+copy per user, so the check runs under a user name of its own and leaves an Anki you have
+open alone.
 """
 
 from __future__ import annotations
