@@ -4,9 +4,10 @@
     "label": "Rainy bamboo grove",
     "order": 190,
     "landscape": "river",
-    "landmark": "none",
+    "landmark": "pagoda",
+    "picture": [0.4, 0.35],
     "weather": "rain",
     "time": "day",
-    "note": "Tall canes in soft green rain, lanterns floating down the river."
+    "note": "Tall canes in soft green rain, a temple in the mist, lanterns floating down the river."
   }
 }

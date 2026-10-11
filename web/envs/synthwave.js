@@ -3,7 +3,8 @@
  * it, and nothing in the add-on mentions it any more.
  *
  * Unlike the others this one repaints the trees themselves (`pals.base`) and puts a neon
- * grid where the water would be, so it also uses the prepare and frame hooks. */
+ * grid where the water would be, so it also uses the prepare and frame hooks. Two palm
+ * silhouettes frame the edges, a neon edge on their trunks only. */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
@@ -43,7 +44,56 @@ const SYNTH = {
   bark: { l: hex('#3a1a5a'), m: hex('#26103e'), d: hex('#170828') }
 };
 
-AF.env('synthwave', {
+const OPT = {palms: [{ x: 0.025, tx: 0.13, ty: 0.12, trunk: 5, len: 26, droop: 16, leaf: 5, fronds: [-178, -152, -125, -98, -70, -42, -15, 12] },
+          { x: 0.99, tx: 0.93, ty: 0.34, trunk: 3.5, len: 17, droop: 10, leaf: 4.5, fronds: [-185, -155, -125, -95, -62, -30, 0] }] };
+
+function palmLayer(env) {
+  const { W, H, u } = env, th = env.theme, [cv, pg] = AF.u.layer(W, H);
+  const dark = th.g1 || '#0a0118', rim = env.theme.grid.near;
+  pg.fillStyle = dark;
+  for (const p of OPT.palms) {
+    const bx = p.x * W, by = H + 2, tx = p.tx * W, ty = p.ty * H, cx = bx + (tx - bx) * 0.15, cy = (by + ty) / 2;
+    const n = Math.ceil(by - ty) * 2;
+    for (let i = 0; i <= n; i++) {  // the trunk, a quadratic curve that thins as it climbs
+      const s = i / n, x = (1 - s) * (1 - s) * bx + 2 * (1 - s) * s * cx + s * s * tx, y = (1 - s) * (1 - s) * by + 2 * (1 - s) * s * cy + s * s * ty;
+      const w = Math.max(1.6, (p.trunk * (1 - s) + 1.6 * s) * u), ring = Math.floor(y) % 4 === 0;
+      pg.fillRect(Math.round(x - w / 2) - (ring ? 1 : 0), Math.round(y), Math.round(w) + (ring ? 1 : 0), 1);
+    }
+    for (const a of p.fronds) {  // fronds: an arching rib, leaflets hanging from both sides of it
+      const ang = a * Math.PI / 180, L = p.len * u, dx = Math.cos(ang), dy = Math.sin(ang);
+      const steps = Math.ceil(L * 1.5), at = s => [tx + dx * L * s, ty + dy * L * s + p.droop * u * s * s];
+      for (let i = 0; i <= steps; i++) {
+        const s = i / steps, [x, y] = at(s), [x2, y2] = at(Math.min(1, s + 0.02));
+        let ex = x2 - x, ey = y2 - y; const el = Math.hypot(ex, ey) || 1; ex /= el; ey /= el;
+        pg.fillRect(Math.round(x), Math.round(y), 1, s < 0.35 ? 2 : 1);
+        if (s < 0.08 || i % 2) continue;
+        const ll = (Math.sin(Math.PI * Math.min(1, s * 1.15)) * 0.75 + 0.25) * p.leaf * u;
+        for (const side of [1, -1]) {
+          let lx = -ey * side, ly = ex * side; lx += ex * 0.6; ly += ey * 0.6 + 1.1;  // swept back and drooping
+          const ln = Math.hypot(lx, ly); lx /= ln; ly /= ln;
+          const len = side * Math.sign(dx || 1) > 0 ? ll : ll * 0.8;
+          for (let k = 1; k <= len; k += 0.7) pg.fillRect(Math.round(x + lx * k), Math.round(y + ly * k), 1, 1);
+        }
+      }
+    }
+    for (let k = -2; k <= 2; k++) for (let j = -1; j <= 2; j++) if (Math.abs(k) + Math.abs(j) < 3) pg.fillRect(Math.round(tx + k), Math.round(ty + j), 1, 1);
+  }
+  // the neon edge: a filled pixel whose neighbour towards the sun (and above) is open
+  const img = pg.getImageData(0, 0, W, H), d = img.data, solid = (x, y) => x >= 0 && x < W && y >= 0 && y < H && d[(y * W + x) * 4 + 3] > 0;
+  // only the trunks are edged: the crowns stay plain black cut-outs against the sky
+  const lit = [], mid = W / 2;
+  for (const p of OPT.palms) {
+    const from = Math.round(p.ty * H + 3 * u), x0 = Math.round(Math.min(p.x, p.tx) * W) - 6, x1 = Math.round(Math.max(p.x, p.tx) * W) + 6;
+    for (let y = from; y < H; y++) for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) {
+      const dir = x < mid ? 1 : -1;
+      if (solid(x, y) && !solid(x + dir, y) && solid(x, y - 1)) lit.push([x, y]);
+    }
+  }
+  pg.fillStyle = rim; for (const [x, y] of lit) pg.fillRect(x, y, 1, 1);
+  return cv;
+}
+
+const DEF = {
   // `base` replaces the forest's own palette wholesale: trees, sick leaves and bark
   pals: Object.assign({ base: SYNTH, round: SYNTH.round, pine: SYNTH.pine, bark: SYNTH.bark },
     { leaf: hex('#ff4fa3'), leafL: hex('#ff9fd0'), stem: hex('#c0307a') }),
@@ -160,5 +210,12 @@ AF.env('synthwave', {
     g.fillStyle = grid.near;
     for (let k = -10; k <= 10; k++) pxLine(g, W / 2 + k * W / 40, top, W / 2 + k * W / 9, H);
   },
-});
+};
+DEF.frame0 = DEF.frame;
+DEF.frame = function (g, env, t) {
+  DEF.frame0(g, env, t);
+  if (!env._palms) env._palms = palmLayer(env);
+  g.drawImage(env._palms, 0, 0);
+};
+AF.env('synthwave', DEF);
 })();
