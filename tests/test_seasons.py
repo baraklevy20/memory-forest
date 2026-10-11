@@ -30,5 +30,33 @@ class TodayTests(unittest.TestCase):
         self.assertEqual(seasons.today(dict(on, test_forest=True)), dt.date(2026, 11, 1))
 
 
+class OfferDayTests(unittest.TestCase):
+    """While debugging with no date set, the settings offer every seasonal preset; a debug
+    date offers only what that day would."""
+
+    def keys(self, day):
+        return {p.key for p in addon.presets.available(day)}
+
+    def test_debug_with_no_date_offers_every_season(self):
+        self.assertEqual(seasons.offer_day({}), dt.date.today())  # debug off: today, as ever
+        self.assertIsNone(seasons.offer_day({"debug": True}))
+        self.assertTrue({"pumpkin_patch", "frozen_market"} <= self.keys(None))
+
+    def test_a_debug_date_offers_only_what_that_day_would(self):
+        june = {"debug": True, "debug_date": "2026-06-01"}
+        self.assertEqual(seasons.offer_day(june), dt.date(2026, 6, 1))
+        self.assertFalse({"pumpkin_patch", "frozen_market"} & self.keys(seasons.offer_day(june)))
+        halloween = self.keys(seasons.offer_day(dict(june, debug_date="2026-10-25")))
+        self.assertIn("pumpkin_patch", halloween)
+        self.assertNotIn("frozen_market", halloween)
+
+    def test_a_seasonal_scenery_picked_in_debug_stays_out_of_its_week(self):
+        P = addon.presets
+        look = P.apply("pumpkin_patch", {})
+        june = dt.date(2026, 6, 1)
+        self.assertEqual(P.follow_season(look, {}, june)[0]["environment"], P.FOREST_PRESETS[0].environment)
+        self.assertEqual(P.follow_season(look, {}, june, every_season=True)[0], {})
+
+
 if __name__ == "__main__":
     unittest.main()

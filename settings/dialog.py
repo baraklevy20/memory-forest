@@ -12,7 +12,7 @@ from aqt.qt import QDialog, QDialogButtonBox, QEvent, QGuiApplication, QMessageB
 from .. import news, presets
 from ..edition import debug_available, debug_edition
 from ..events import NATURE_LABELS, nature_level
-from ..seasons import today
+from ..seasons import offer_day, today
 from . import whats_new
 from .about import AboutTab
 from .decks import DecksTab
@@ -220,8 +220,9 @@ class SettingsDialog(QDialog):
         self._changed()
 
     def _day(self):
-        """The day the scenery is chosen for (the debug date may have moved it)."""
-        return today(dict(self._current(), **self.debug.values()))
+        """The day presets are offered for (the debug date may have moved it; None while
+        debugging with no date: every seasonal preset, see seasons.offer_day)."""
+        return offer_day(dict(self._current(), **self.debug.values()))
 
     def _real_sky_toggled(self, on: bool) -> None:
         """The real sky sets weather and time to Automatic; turning it off gives the
@@ -275,7 +276,7 @@ class SettingsDialog(QDialog):
         # changes the look: show it, so the next change here doesn't write the old one back
         look = {k: self._current().get(k) for k in presets.LOOK}
         if look != self.custom.look():
-            self.custom.offer(today(self._current()))
+            self.custom.offer(offer_day(self._current()))
             self.custom.set_look(look)
             self._sync()
         # refreshing a deck screen hands focus back to the webview, which would pull it

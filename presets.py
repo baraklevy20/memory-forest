@@ -95,8 +95,8 @@ def by_key(presets=FOREST_PRESETS) -> dict:
 
 def unlocked(preset: Preset, date) -> bool:
     """Whether a preset can be had on `date`: a seasonal one only in its week, from the year
-    it arrives."""
-    if not preset.season:
+    it arrives. With no date (None: while debugging, seasons.offer_day) every one can."""
+    if not preset.season or date is None:
         return True
     first, starts, ends = preset.season
     return date >= first and starts <= (date.month, date.day) <= ends
@@ -145,7 +145,7 @@ def _before_its_week(tag: str | None, date, presets) -> bool:
 SEASONS_REMEMBERED = 10
 
 
-def follow_season(cfg: dict, record: dict | None, date, presets=FOREST_PRESETS) -> tuple:
+def follow_season(cfg: dict, record: dict | None, date, presets=FOREST_PRESETS, every_season: bool = False) -> tuple:
     """(the look settings to change, or {}; the record to keep) for `date`.
 
     On the first day of a seasonal preset's week (or the first day the forest is drawn in
@@ -153,14 +153,16 @@ def follow_season(cfg: dict, record: dict | None, date, presets=FOREST_PRESETS) 
     respected. Once the week is over, the settings from before come back - unless they were
     changed in the meantime, when whatever was chosen stays, as long as it is not the
     seasonal scenery itself, which is gone with its week. The record holds the week in
-    progress (`active`: its tag, the settings before and after) and the weeks already had."""
+    progress (`active`: its tag, the settings before and after) and the weeks already had.
+    With `every_season` (debugging with no date set) no seasonal scenery counts as gone: one
+    picked by hand out of its week stays."""
     record = record if isinstance(record, dict) else {}
     done, active = list(record.get("done") or []), record.get("active")
     look = {k: cfg.get(k) for k in LOOK}
     now = in_season(date, presets)
     tag = f"{now.key}:{date.year}" if now else None
     change = {}
-    gone = hidden_environments(date, presets)
+    gone = set() if every_season else hidden_environments(date, presets)
     if isinstance(active, dict) and active.get("tag") != tag:
         # untouched since, or still in the scenery that has gone: put back what was there
         if look == active.get("applied") or look.get("environment") in gone:

@@ -9,7 +9,7 @@ from aqt.qt import QCheckBox, QComboBox, QHBoxLayout, QLineEdit, QSizePolicy, QS
 from .. import news, presets
 from ..edition import debug_edition, edition_presets
 from ..live_weather import city_problem
-from ..seasons import today
+from ..seasons import offer_day
 from ..state import animation_mode
 from .customize import Customize
 from .patreon import banner
@@ -37,7 +37,7 @@ class SceneryTab(Tab):
         # stand for it (a seasonal preset is only offered in its week)
         self.preset = QComboBox(self)
         self.preset.setVisible(False)
-        day = today(cfg)
+        day = offer_day(cfg)
         set_options(self.preset, preset_options(day, presets.match(cfg), debug_edition(cfg)))
         set_quietly(self.preset, presets.match(cfg))
         self.picker = SceneryPicker(self._picked, animation_mode(cfg) != "off")

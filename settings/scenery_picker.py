@@ -5,6 +5,7 @@ lacks, shows the way to it under the panel."""
 
 from __future__ import annotations
 
+import datetime as _dt
 import html
 import json
 import os
@@ -197,7 +198,9 @@ def pill(p: QPainter, text: str, ink: QColor, x: float, top: float, right_aligne
 
 
 def last_day(preset, day) -> str:
-    end = presets.season_ends(preset, day)
+    # no day: every season is on offer while debugging with no date (seasons.offer_day), so
+    # the label counts from today
+    end = presets.season_ends(preset, day or _dt.date.today())
     last = end.fromordinal(end.toordinal() - 1)
     return f"{last.day} {last.strftime('%b')}"
 

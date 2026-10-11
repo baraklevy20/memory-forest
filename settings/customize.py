@@ -17,7 +17,7 @@ from aqt.qt import (
 
 from .. import presets
 from ..scene import ENVIRONMENTS, LANDMARKS, LANDSCAPES, TIME_LABELS, WEATHER_LABELS
-from ..seasons import today
+from ..seasons import offer_day
 from .scenery_picker import mosaic, picture
 from .widgets import Link, combo, hint, set_options, set_quietly
 
@@ -57,7 +57,7 @@ class Customize(QWidget):
     def __init__(self, cfg: dict, on_back):
         super().__init__()
         base = presets.FOREST_PRESETS[0]
-        self._day = today(cfg)
+        self._day = offer_day(cfg)
         self._changed = None  # the dialog's, once connected
         self.environment = combo(env_options(self._day, cfg.get("environment")), cfg.get("environment", base.environment), base.environment)
         self.landscape = combo(LANDSCAPE_OPTIONS, cfg.get("landscape", base.landscape), base.landscape)

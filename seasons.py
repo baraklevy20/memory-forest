@@ -32,12 +32,22 @@ def today(cfg: dict | None = None) -> _dt.date:
     return day
 
 
+def offer_day(cfg: dict | None = None) -> _dt.date | None:
+    """The day the settings offer presets for: today (or the debug date). While debug is on
+    with no debug date set, None: every seasonal preset is offered whatever the day, so they
+    can be tried without moving the date; set a date to see only what that day would offer."""
+    cfg = config() if cfg is None else cfg
+    if debug_available(cfg) and not (cfg.get("debug_date") or ""):
+        return None
+    return today(cfg)
+
+
 def follow_season(cfg: dict, day: _dt.date | None = None) -> dict:
     """The config, changed to a seasonal preset in its week and back after it (see
     presets.follow_season), and saved if it changed."""
     day = day or today(cfg)
     record = load_json(SEASON_PATH)
-    change, kept = presets.follow_season(cfg, record, day)
+    change, kept = presets.follow_season(cfg, record, day, every_season=offer_day(cfg) is None)
     if kept != record:
         try:
             save_json(SEASON_PATH, kept)
