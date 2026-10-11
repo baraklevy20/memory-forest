@@ -10,12 +10,24 @@
             "id": "zoom-1.3",
             "kind": "note",
             "title": "New: zoom into your forest",
-            "text": "Press the zoom button on the forest's corner, then scroll to walk in among the trees, even to the old ones at the back. Click a tree to step through the days before and after it, and click it again to see its cards."
+            "text": "Press the button on the forest's corner, then scroll to walk among your trees."
           }
-        }
+        },
+        "A new landmark: the Pagoda, a temple in the mist."
       ],
       "improved": [
-        "Synthwave, Lanterns at night and the Rainy bamboo grove have been repainted, and the pagoda is now a temple in the mist."
+        {
+          "text": "Synthwave, Lanterns at night and the Rainy bamboo grove have been repainted.",
+          "announce": {
+            "id": "repainted-1.3",
+            "kind": "improved",
+            "sceneries": [
+              "synthwave",
+              "lanterns",
+              "bamboo"
+            ]
+          }
+        }
       ]
     },
     {

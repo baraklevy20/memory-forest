@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from aqt.qt import QCheckBox, QComboBox, QHBoxLayout, QLineEdit, QSizePolicy, QStackedWidget, QVBoxLayout, QWidget
 
-from .. import presets
+from .. import news, presets
 from ..edition import debug_edition, edition_presets
 from ..live_weather import city_problem
 from ..seasons import today
@@ -31,7 +31,7 @@ def preset_options(day, chosen: str | None, edition: str = "") -> list:
 
 
 class SceneryTab(Tab):
-    def __init__(self, cfg: dict, new_keys=()):
+    def __init__(self, cfg: dict, new_keys=(), improved_keys=()):
         super().__init__()
         # the choices and the chosen one, in a dropdown that is never shown: the picker's tiles
         # stand for it (a seasonal preset is only offered in its week)
@@ -41,7 +41,8 @@ class SceneryTab(Tab):
         set_options(self.preset, preset_options(day, presets.match(cfg), debug_edition(cfg)))
         set_quietly(self.preset, presets.match(cfg))
         self.picker = SceneryPicker(self._picked, animation_mode(cfg) != "off")
-        self.picker.new_keys = set(new_keys)  # the sceneries new since the settings were last opened
+        self.picker.new_keys = set(new_keys)  # the sceneries announced as new, not yet tried
+        self.picker.improved_keys = set(improved_keys)  # and those announced as improved
         self.picker.set_choices(self.scenery_choices(), presets.match(cfg), day)
         self.real_sky = QCheckBox("Follow the real weather and time of day")
         self.real_sky.setChecked(presets.follows_real_sky(cfg))
@@ -114,7 +115,10 @@ class SceneryTab(Tab):
         self.custom.offer(day)
 
     def _picked(self, key: str) -> None:
-        """A tile clicked: chosen as choosing it from a list would (the dialog fills in the rest)."""
+        """A tile clicked: chosen as choosing it from a list would (the dialog fills in the rest).
+        A NEW or IMPROVED tag on it has done its job: it stays for this visit, not the next."""
+        if key in self.picker.new_keys or key in self.picker.improved_keys:
+            news.tried(key)
         i = self.preset.findData(key)
         if i >= 0:
             self.preset.setCurrentIndex(i)

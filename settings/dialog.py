@@ -97,8 +97,10 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Memory Forest settings")
         self.setMinimumWidth(DIALOG_MIN_WIDTH)
 
-        # opening the settings answers the cog's dot: the new sceneries wear NEW for this visit
-        self.scenery = SceneryTab(cfg, news.settings_opened(cfg))
+        # opening the settings answers the cog's dot: the new sceneries wear NEW, and the
+        # improved ones IMPROVED, until each is picked or two weeks go by (news.tile_tags)
+        tags = news.tile_tags(cfg, today(cfg))
+        self.scenery = SceneryTab(cfg, [k for k, t in tags.items() if t == "new"], [k for k, t in tags.items() if t == "improved"])
         self.custom = self.scenery.custom
         self.forest = ForestTab(cfg, on_phone, carry.get("phone_was"))
         self.decks = DecksTab(cfg, self.original)

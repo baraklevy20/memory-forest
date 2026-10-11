@@ -55,8 +55,10 @@ PICTURE_W, PICTURE_H = 192, 108
 PLUS_LIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plus.json")
 PLUS_TAG = "PLUS"
 PLUS_INK = (240, 200, 110, 255)  # RGBA
-NEW_TAG = "NEW"  # a scenery new since the settings were last opened (news.py), for this visit
+NEW_TAG = "NEW"  # a scenery announced as new (news.py), until it is picked or two weeks pass
 NEW_INK = (159, 227, 180, 255)  # RGBA
+IMPROVED_TAG = "IMPROVED"  # likewise, a scenery announced as improved
+IMPROVED_INK = (160, 200, 255, 255)  # RGBA
 # a Plus scenery's line under the tiles, the same under the pointer and once clicked (when it
 # stays, so the link can be reached): the way to it, opened only if they follow the link.
 # (The sceneries' own descriptions stay in their JSON: nobody read them under the tiles.)
@@ -217,6 +219,7 @@ class _Tile(QAbstractButton):
         self.pix = pix
         self.tag = tag  # a holiday's "Until ..." label, in the top left corner
         self.new = False  # NEW in that corner instead (a holiday's scenery is never announced)
+        self.improved = False  # IMPROVED there, if not new
         self.movie = None
         self.playing = False  # whether it moves while it can be seen
         if gif:
@@ -326,6 +329,8 @@ class _Tile(QAbstractButton):
             pill(p, self.tag, QColor("white"), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
         elif self.new:
             pill(p, NEW_TAG, QColor(*NEW_INK), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
+        elif self.improved:
+            pill(p, IMPROVED_TAG, QColor(*IMPROVED_INK), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
         if self.locked:
             pill(p, PLUS_TAG, QColor(*PLUS_INK), frame.right() - PILL_INSET, frame.top() + PILL_INSET, True)
         ring = QColor(color("BORDER_FOCUS"))
@@ -365,6 +370,7 @@ class SceneryPicker(QWidget):
         self.animated = animate
         self.current = None
         self.new_keys = set()  # sceneries that wear NEW (see _Tile.new)
+        self.improved_keys = set()  # and those that wear IMPROVED
         self.invite = None  # the Plus scenery last clicked: its line stays under the tiles
         self.shown_for = None  # (keys, day) the tiles were made for
         self.tiles = []
@@ -462,6 +468,7 @@ class SceneryPicker(QWidget):
                 tile = _Tile(p, mosaic() if daily else picture(p.key), None if daily else moving(p.key),
                              f"Until {last_day(p, day)}" if p.season else "")
                 tile.new = not tile.locked and p.key in self.new_keys
+                tile.improved = not tile.locked and p.key in self.improved_keys
                 if tile.locked:
                     tile.clicked.connect(lambda _checked=False, t=tile: self._invite(t.preset))
                 else:

@@ -19,6 +19,7 @@ NOTE = {"text": "A feature.", "announce": {"id": "a_feature", "kind": "note", "t
                                           "text": "It does things.", "action": "See it", "opens": "fine"}}
 SCENERY = {"text": "Bamboo comes to every edition.", "needs": "scenery:bamboo", "announce": {"id": "new_bamboo", "kind": "dot"}}
 SETTINGS = {"text": "Clearer settings.", "announce": {"id": "new_settings", "kind": "dot"}}
+IMPROVED_SCENERIES = {"text": "Bamboo and Cherry blossom are repainted.", "announce": {"id": "repainted", "kind": "improved", "sceneries": ["bamboo", "cherry_blossom"]}}
 PLUS_SCENERY = {"text": "Cherry blossom.", "needs": "scenery:cherry_blossom", "announce": {"id": "new_cherry", "kind": "dot"}}
 
 
@@ -177,6 +178,68 @@ class DotTests(unittest.TestCase):
         with notes(PLUS_SCENERY), debug_tools():
             self.assertNotIn("cherry_blossom", news.dots(DEBUG_BASE))  # (debug's made-up one is there)
             self.assertIn("cherry_blossom", news.dots(DEBUG_PLUS))
+
+
+class ImprovedTests(unittest.TestCase):
+    def setUp(self):
+        reset()
+        updated()
+
+    def test_improved_sceneries_light_the_dot_and_are_tagged_on_the_first_visit(self):
+        with notes(IMPROVED_SCENERIES):
+            self.assertEqual(news.cog_dot({}), "scenery")
+            self.assertIn("bamboo", news.improved_opened({}))
+            self.assertEqual(news.cog_dot({}), "")  # seeing them answers the dot
+            self.assertEqual(news.improved_opened({}), [])
+
+    def test_a_fresh_install_sees_nothing_as_improved(self):
+        reset()
+        with notes(IMPROVED_SCENERIES):
+            self.assertEqual(news.improved_opened({}), [])
+
+    def test_only_the_sceneries_the_edition_has_are_tagged(self):
+        editions_here(self)
+        with notes(IMPROVED_SCENERIES), debug_tools():
+            self.assertEqual(news.improved_opened(DEBUG_BASE), ["bamboo"])
+
+
+class TileTagTests(unittest.TestCase):
+    def setUp(self):
+        reset()
+        updated()
+
+    def test_a_tag_stays_on_later_visits_until_the_scenery_is_picked(self):
+        with notes(SCENERY, IMPROVED_SCENERIES):
+            self.assertEqual(news.tile_tags({}, DAY)["bamboo"], "new")  # new wins over improved
+            self.assertEqual(news.tile_tags({}, DAY + dt.timedelta(days=1))["bamboo"], "new")
+            news.tried("bamboo")
+            self.assertNotIn("bamboo", news.tile_tags({}, DAY + dt.timedelta(days=2)))
+
+    def test_debugs_made_up_new_scenery_never_hides_a_real_improved_tag(self):
+        with notes(IMPROVED_SCENERIES), debug_tools():
+            self.assertEqual(news.tile_tags(DEBUG, DAY).get("bamboo"), "improved")
+
+    def test_a_tag_goes_after_two_weeks_unpicked(self):
+        with notes(IMPROVED_SCENERIES):
+            self.assertEqual(news.tile_tags({}, DAY).get("bamboo"), "improved")
+            self.assertIn("bamboo", news.tile_tags({}, DAY + dt.timedelta(days=news.TAG_DAYS - 1)))
+            self.assertNotIn("bamboo", news.tile_tags({}, DAY + dt.timedelta(days=news.TAG_DAYS)))
+
+
+class ReplayTests(unittest.TestCase):
+    def setUp(self):
+        reset()
+        updated()
+
+    def test_replaying_the_update_shows_only_the_newest_versions_news(self):
+        versions = [{"version": "9.1.0", "improved": [IMPROVED_SCENERIES]}, {"version": "9.0.0", "new": [NOTE, SCENERY]}]
+        with mock.patch.object(news, "_versions", return_value=versions), debug_tools():
+            news.replay_update()
+            self.assertEqual(news.update_label(), "9.0.0 to 9.1.0")
+            # 9.1.0's improved bamboo lights it; 9.0.0's new bamboo and debug's sample are old news
+            self.assertEqual(news.cog_dot(DEBUG), "scenery")
+            self.assertIsNone(news.note(DEBUG, DAY))
+            self.assertEqual(news.tile_tags(DEBUG, DAY).get("bamboo"), "improved")
 
 
 class AboutTests(unittest.TestCase):

@@ -37,8 +37,8 @@ EDITION_NOTE = ("Which edition this copy acts as: the sceneries offered, the Plu
                 "The forest on screen keeps whatever scenery is chosen.")
 NEWS_NOTE = ("What an update announces (release_notes.json): a note on the deck list's forest for a new "
              "feature, and a dot on the cog (NEW on its tile) for a new scenery, each only where the edition "
-             "above has it. Answering one marks it seen. Replay as an update to see them again; a fresh install "
-             "sees none. A note also goes by itself after 3 days: move the date above to see that. Show it as new "
+             "above has it. Answering one marks it seen. Replay the update to see the newest version's again, "
+             "exactly as someone updating from the version before sees it; a fresh install sees none. A note also goes by itself after 3 days: move the date above to see that. Show it as new "
              "puts one note on the forest now: a real one, or a made-up one whose button opens any setting, "
              "tagged NEW.")
 EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plus": "Memory Forest Plus"}
@@ -111,7 +111,7 @@ class DebugTab(QWidget):
         self.replay = QPushButton("Replay the seasons")
         self.replay.clicked.connect(self._replay_seasons)
         # what's new (news.py): replayed as someone who just updated, or as a fresh install
-        self.news_update = QPushButton("Replay as an update")
+        self.news_update = QPushButton(f"Replay the update from {news.update_label()}")
         self.news_update.clicked.connect(lambda: self._replay_news(news.replay_update))
         self.news_fresh = QPushButton("Replay as a fresh install")
         self.news_fresh.clicked.connect(lambda: self._replay_news(news.replay_fresh))

@@ -1,7 +1,8 @@
 """What's new: how an update tells people about itself, without a patch-notes dialog.
 
 Most changes say nothing (fixes, speed, where the weather comes from). A new scenery puts a
-dot on the forest's cog, and a NEW tag on its tile for the visit that clears it; a change to
+dot on the forest's cog, and a NEW tag on its tile (an improved one an IMPROVED tag, with
+the same dot) until it is picked or two weeks pass; a change to
 the settings themselves can put the dot there too, with no tile to tag. A real
 feature gets a note: one card on the forest, shown once. The About tab lists the newest
 version's new and improved lines. All of it comes from release_notes.json (an item's
@@ -22,16 +23,18 @@ from .store import load_json, save_json
 
 NEWS_PATH = os.path.join(USER_FILES, "news.json")
 NOTE_DAYS = 3  # a note nobody answers goes by itself after this many days
+TAG_DAYS = 14  # a NEW or IMPROVED tile tag stays until that scenery is picked, or this many days
 
-NOTE, DOT = "note", "dot"
+NOTE, DOT, IMPROVED = "note", "dot", "improved"
 # made up, to try the note and the dot with the Debug tab's replays (only while debug is on).
 # The Debug tab's "Show it as new" points the note at any setting (debug_show).
 DEBUG_NOTE = "debug_note"
+DEBUG_SCENERY = "debug_scenery"
 DEBUG_NEWS = (
     {"needs": "", "announce": {"id": DEBUG_NOTE, "kind": NOTE, "title": "New: a test note",
                                "text": "Made up, and only here while debug is on. The button opens the About tab.",
                                "action": "Open the About tab", "opens": "about"}},
-    {"needs": "scenery:bamboo", "announce": {"id": "debug_scenery", "kind": DOT}},
+    {"needs": "scenery:bamboo", "announce": {"id": DEBUG_SCENERY, "kind": DOT}},
 )
 
 def _versions() -> list:
@@ -81,7 +84,8 @@ def started() -> None:
 
 
 def _load() -> dict:
-    """{"seen": [ids], "shown": {id: the day its note first showed}}. With no file yet, a copy
+    """{"seen": [ids], "shown": {id: the day its note first showed}, "tags": {preset key:
+    {"kind": "new" or "improved", "since": the day it was first tagged}}}. With no file yet, a copy
     that started with nothing of its own (no state.json) is a fresh install: it has seen it all."""
     if not os.path.exists(NEWS_PATH):
         fresh = _fresh_at_start if _fresh_at_start is not None else not load_json(state.STATE_PATH)
@@ -91,8 +95,10 @@ def _load() -> dict:
     record = load_json(NEWS_PATH)
     seen = record.get("seen")
     shown = record.get("shown")
+    tags = record.get("tags")
     return {"seen": [s for s in seen if isinstance(s, str)] if isinstance(seen, list) else [],
             "shown": shown if isinstance(shown, dict) else {},
+            "tags": {k: t for k, t in tags.items() if isinstance(t, dict)} if isinstance(tags, dict) else {},
             "debug": record.get("debug") if isinstance(record.get("debug"), dict) else None}
 
 
@@ -162,20 +168,77 @@ def dots(cfg: dict) -> list:
     return [e["scenery"] for e in _dots(cfg) if e["scenery"]]
 
 
+def _improved(cfg: dict) -> list:
+    """The improved sceneries' announcements this edition has (one of their sceneries, at
+    least), not yet seen."""
+    have = set(view(cfg)["scenery"])
+    seen = set(_load()["seen"])
+    return [e for e in offered(cfg) if e["kind"] == IMPROVED and e["id"] not in seen
+            and have.intersection(e.get("sceneries") or [])]
+
+
 def cog_dot(cfg: dict) -> str:
-    """What the cog's dot is for: "scenery" (a new one), "settings" (something new in them,
-    a dot no scenery needs), or "" (no dot)."""
+    """What the cog's dot is for: "scenery" (a new or an improved one), "settings" (something
+    new in them, a dot no scenery needs), or "" (no dot)."""
     found = _dots(cfg)
-    return "scenery" if any(e["scenery"] for e in found) else "settings" if found else ""
+    if any(e["scenery"] for e in found) or _improved(cfg):
+        return "scenery"
+    return "settings" if found else ""
 
 
 def settings_opened(cfg: dict) -> list:
     """The settings are open: the cog's dot is answered. The sceneries it was for wear their
-    NEW tag for this visit only (returned)."""
+    NEW tag (returned; tile_tags keeps it on later visits)."""
     found = _dots(cfg)
     if found:
         mark_seen([e["id"] for e in found])
     return [e["scenery"] for e in found if e["scenery"]]
+
+
+def improved_opened(cfg: dict) -> list:
+    """The settings are open: the sceneries improved since they were last opened, those this
+    edition has, are to wear IMPROVED (returned; tile_tags keeps it). They lit the cog's dot too
+    (cog_dot), and seeing them here answers it."""
+    have = view(cfg)["scenery"]
+    seen = set(_load()["seen"])
+    found = [e for e in offered(cfg) if e["kind"] == IMPROVED and e["id"] not in seen]
+    if found:
+        mark_seen([e["id"] for e in found])
+    return [k for e in found for k in e.get("sceneries") or [] if k in have]
+
+
+def tile_tags(cfg: dict, day: _dt.date) -> dict:
+    """The settings are open: preset key -> "new" or "improved" for the tiles to wear. A
+    scenery announced since the last visit is tagged from today, and keeps its tag on later
+    visits until it is picked (tried) or TAG_DAYS have gone by."""
+    # a real NEW beats IMPROVED; debug's made-up NEW doesn't (its scenery may have a real tag)
+    real_new = {e["scenery"] for e in _dots(cfg) if e["id"] != DEBUG_SCENERY}
+    found = dict.fromkeys(settings_opened(cfg), "new")
+    for k in improved_opened(cfg):
+        if k not in real_new:
+            found[k] = "improved"
+    record = _load()
+    tags = dict(record["tags"], **{k: {"kind": kind, "since": day.isoformat()} for k, kind in found.items()})
+    keep = {}
+    for k, t in tags.items():
+        try:
+            since = _dt.date.fromisoformat(t.get("since") or "")
+        except (TypeError, ValueError):
+            continue
+        if (day - since).days < TAG_DAYS:
+            keep[k] = t
+    if keep != record["tags"]:
+        record["tags"] = keep
+        _save(record)
+    return {k: t.get("kind", "new") for k, t in keep.items()}
+
+
+def tried(key: str) -> None:
+    """A tagged scenery was picked: its tag has done its job."""
+    record = _load()
+    if key in record["tags"]:
+        del record["tags"][key]
+        _save(record)
 
 
 def opens(news_id: str) -> str:
@@ -208,8 +271,20 @@ def unseen(cfg: dict) -> list:
 
 # the Debug tab's replays
 def replay_update() -> None:
-    """As someone who just updated: nothing seen yet."""
-    _save({"seen": [], "shown": {}})
+    """As someone who just updated from the version before the newest: everything older seen
+    (and debug's made-up samples, so they don't join in), the newest version's not yet, and
+    no tile tags left from earlier tries."""
+    versions = _versions()
+    newest = {e["announce"]["id"] for e in (release_notes.items(versions[0]) if versions else [])
+              if isinstance(e.get("announce"), dict) and e["announce"].get("id")}
+    older = [i for i in _all_ids() if i not in newest] + [e["announce"]["id"] for e in DEBUG_NEWS]
+    _save({"seen": older, "shown": {}})
+
+
+def update_label() -> str:
+    """What the Debug tab's replay button calls the update it plays: "1.2.0 to 1.3.0"."""
+    versions = [v.get("version", "") for v in _versions()[:2]]
+    return f"{versions[1]} to {versions[0]}" if len(versions) == 2 else versions[0] if versions else "the newest version"
 
 
 def replay_fresh() -> None:
