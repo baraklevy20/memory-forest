@@ -11,7 +11,7 @@ from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 from aqt.utils import tooltip
 
-from . import events_state, news, study_log
+from . import events_state, news, payload, study_log
 from .panel import refresh
 from .phone import publish as publish_for_phone
 from .phone import switch
@@ -81,6 +81,8 @@ def on_js_message(handled, message, context):
             events_state.mark_seen(":".join(cmd[1:]))
         elif cmd[0] == "strike" and len(cmd) > 1:  # a replay asks for the forest it took
             return (True, events_state.strike_before(":".join(cmd[1:])))
+        elif cmd[0] == "deep":  # zoomed in among the trees: the deep forest's, one by one
+            return (True, payload.deep_trees(cmd[1] if len(cmd) > 1 else ""))
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

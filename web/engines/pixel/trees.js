@@ -111,7 +111,9 @@ function sprite(t, h, hzq, env) {
   const EP = spec.pals || {}, P = EP.base || PXT;
   const bark = EP.bark || P.bark;
   const burn = AF.burnStep(t.burn) / 7;
-  const R = rng(hashStr([t.stage, t.kind, t.size, t.health, t.variant, h].join('|')));
+  // a visit draws its trees at every size as you walk (web/visit.js): there each keeps one shape
+  // as it grows, rather than a new one at every pixel of height
+  const R = rng(hashStr([t.stage, t.kind, t.size, t.health, t.variant, env.layout && env.layout.visiting ? 'visit' : h].join('|')));
   const hz = hzq * th.hzStep, pine = t.kind === 1 && t.stage >= YOUNG, ancient = t.stage === ANCIENT;
   const tint = th.tint ? hex(th.tint) : null, haze = hex(th.haze), rim = th.rim ? hex(th.rim) : null;
   let w = 0;
@@ -202,5 +204,53 @@ function sprite(t, h, hzq, env) {
   g.putImageData(img, 0, 0); return cv;
 }
 
-AF.pixel = { PXT, SNOW_L, H6, sprite, HAZE_STEPS };
+/* a placed tree's sprite height, and its haze in the quarter steps sprites are cached by */
+const sizeOf = (p, env) => ({ h: Math.max(3, Math.round(AF.STAGE_H[p.it.stage] * env.u * p.s)), hzq: Math.round(p.hz * HAZE_STEPS) });
+
+/* Zoomed in (web/visit.js), every move draws the scene again, and drawing each tree afresh was
+ * most of that: these keep copies of the sprites between those redraws, by tree, height and haze
+ * (and whether it is a visit's shape, see sprite()), CACHE_PX pixels of them at most, the least
+ * lately used going first. Each is { cv, h }: the canvas, and the height it was drawn for. */
+const CACHE_PX = 3e6;
+AF.spriteCache = function () {
+  const kept = new Map(), byTree = new Map();  // key -> { cv, h, tree, key }, the least lately used first; tree -> its keys
+  let px = 0;
+  // a seedling is the same sprite at any height
+  const height = (t, h) => t.stage === SEEDLING ? 0 : h, shape = env => env.layout && env.layout.visiting ? 'v' : 'f';
+  const keyOf = (t, h, hzq, env) => `${t.index}|${height(t, h)}|${hzq}|${shape(env)}`;
+  function find(t, h, hzq, env) {
+    const k = keyOf(t, h, hzq, env), s = kept.get(k);
+    if (s) { kept.delete(k); kept.set(k, s); }
+    return s || null;
+  }
+  /* the one drawn at the nearest height, of the same shape, if any */
+  function near(t, h, env) {
+    let best = null;
+    const f = shape(env);
+    for (const k of byTree.get(t.index) || []) {
+      const s = kept.get(k);
+      if (k.endsWith(f) && (!best || Math.abs(s.h - h) < Math.abs(best.h - h))) best = s;
+    }
+    return best;
+  }
+  function make(t, h, hzq, env) {
+    const k = keyOf(t, h, hzq, env), old = kept.get(k);
+    if (old) return old;
+    const spr = sprite(t, h, hzq, env), [cv, g] = layer(spr.width, spr.height);
+    g.drawImage(spr, 0, 0);
+    const s = { cv, h: height(t, h), tree: t.index, key: k };
+    kept.set(k, s); px += cv.width * cv.height;
+    if (!byTree.has(t.index)) byTree.set(t.index, new Set());
+    byTree.get(t.index).add(k);
+    for (const [ok, o] of kept) {
+      if (px <= CACHE_PX) break;
+      kept.delete(ok); byTree.get(o.tree).delete(ok); px -= o.cv.width * o.cv.height;
+    }
+    return s;
+  }
+  function clear() { kept.clear(); byTree.clear(); px = 0; }
+  return { find, near, make, clear, get size() { return kept.size; } };
+};
+
+AF.pixel = { PXT, SNOW_L, H6, sprite, sizeOf, HAZE_STEPS };
 })();

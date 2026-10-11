@@ -77,7 +77,17 @@ if (!note || !Array.isArray(note.days) || !note.days.length) {
 const SCENE_ASPECT = 2, CAPTION_ROOM = 120, SIDE_MARGIN = 24, RELAYOUT_MS = 200;
 // a forest sent this long ago asks for a sync on the computer
 const STALE_MS = 2 * 24 * 60 * MINUTE;
-const portrait = () => window.innerHeight > window.innerWidth;
+// the screen's room, in the page's own pixels: a card zoomed (AnkiDroid's card zoom) draws each
+// of them bigger than the screen's, and a forest sized in the screen's would run off its edge
+const probe = document.createElement('div');
+probe.style.cssText = 'position:absolute;visibility:hidden;width:100px;height:0';
+function screenRoom() {
+  shell.append(probe);
+  const k = probe.getBoundingClientRect().width / 100 || 1;
+  probe.remove();
+  return [window.innerWidth / k, window.innerHeight / k].map(Math.floor);
+}
+const portrait = () => { const [w, h] = screenRoom(); return h > w; };
 // going full screen: the forest is turned first, so it fills the screen as it opens
 let entering = false;
 
@@ -98,7 +108,7 @@ stage.append(root, stamp, noAnswer);
 function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = 'Memory Forest could not draw your forest here.'; }
 
 function layout() {
-  const side = portrait() && (entering || !!document.fullscreenElement), vw = window.innerWidth, vh = window.innerHeight;
+  const side = portrait() && (entering || !!document.fullscreenElement), [vw, vh] = screenRoom();
   stage.classList.toggle('af-sideways', side);
   // turned a quarter clockwise about its top left corner, then moved back onto the screen
   Object.assign(stage.style, side
@@ -121,12 +131,18 @@ function layout() {
   // the same forest at the same size as already drawn (going full screen and turning both
   // ask more than once): nothing to build again. Of layouts that overlap (a tap while the
   // first is still loading its scenery), the latest is the one drawn
-  const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal]), mine = ++layouts;
+  // zooming in among the trees is the full screen's alone, and simply on there (web/visit.js):
+  // outside it the forest is too small to walk into, and a finger scrolls the card
+  const zoom = document.fullscreenElement || entering ? 'always' : false;
+  const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal, zoom]), mine = ++layouts;
   if (key === drawn && root.afEnv) return Promise.resolve();
   return AF.loadScripts(scenery(data.mood)).then(() => {
     if (mine !== layouts) return;
     drawn = key;
-    AF.mount(root, data, { now: true });
+    // a zoomed-in view stays as it is through the new drawing (full screen, a turn)
+    const zoomed = root.afVisits ? root.afVisits.state : null;
+    AF.mount(root, data, { now: true, zoom });
+    if (zoomed && root.afVisits) root.afVisits.resume(zoomed);
   }, () => {
     if (mine === layouts) root.textContent = 'Your forest is on its way: sync once more to fetch its drawing.';
   }).catch(drawFailed);

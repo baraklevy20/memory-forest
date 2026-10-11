@@ -39,6 +39,19 @@ from .state import (
 PAGE_LEAVES_OUT = ("mature", "day")
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
+# the trees of each forest's deep forest, as last sent (by deck id, "" for the deck list's):
+# the page asks for them when zoomed in among the trees (web/visit.js), to draw them one by one
+_deep: dict[str, list] = {}
+
+
+def _for_page(tree: dict) -> dict:
+    return {k: v for k, v in tree.items() if k not in PAGE_LEAVES_OUT}
+
+
+def deep_trees(key: str) -> list:
+    """The trees the deep forest of the forest last sent for deck `key` holds, oldest first."""
+    return [_for_page(t) for t in _deep.get(key, [])]
+
 
 _forest_cache: dict = {}
 # each forest's review log, read whole once and then only what was added (study_log.ReviewLog)
@@ -174,6 +187,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     forest = forest_data.merge_old(forest)  # the oldest trees become one deep-forest band
     drawn = len(forest["trees"])
     merged_count = len(all_trees) - drawn
+    _deep[str(did or "")] = all_trees[:merged_count]
     # the page can only glow trees it draws; the journal still names any of them
     ann = [i - merged_count for i in ann_all if i >= merged_count]
 
@@ -186,7 +200,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
     return {
         # each tree's count of cards known well only adds up to the animals' milestones, and
         # its day number is only for remembering ancient trees: the page needs neither
-        "trees": [{k: v for k, v in t.items() if k not in PAGE_LEAVES_OUT} for t in forest["trees"]],
+        "trees": [_for_page(t) for t in forest["trees"]],
         "stats": forest["stats"],
         "visitors": forest["visitors"],
         "anniversaries": ann,

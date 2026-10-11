@@ -16,13 +16,14 @@ AF.events.add('crows', {
     for (const p of trees) {
       if (!p.it.leeches) continue;
       const h = AF.STAGE_H[p.it.stage] * env.u * p.s, n = Math.min(3, p.it.leeches);
-      for (let i = 0; i < n; i++) {
+      // up close (a visit) they are as much bigger as their tree, perched where they were
+      AF.scaledAt(g, AF.visitK(p), p.x, p.y - h, () => { for (let i = 0; i < n; i++) {
         // standing on the crown: its feet (the sprite's bottom row, third column) on the top there
         const at = perch(env, p, Math.round(p.x - 6 + i * 5 + (i % 2)) + 3, Math.round(p.y - h + 1 + (i % 2)));
         const x = at.x - 3, y = at.y - 4, flap = !env.still && noise(p.it.seed + i, Math.floor(t / 2)) < 0.08;
         const flip = (p.it.seed >> i) & 1;  // some look left, some right
         (flap ? CROW_UP : CROW).forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy - (flap ? 1 : 0), CROW_PAL[ch]); } });
-      }
+      } });
     }
   },
 });

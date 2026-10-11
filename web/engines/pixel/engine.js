@@ -5,7 +5,7 @@
 'use strict';
 const AF = window.AnkiForest;
 const { layer } = AF.u;
-const { fogVeil, ridges, drawSky, drawGround, groundDetails, deepForest, sprite, HAZE_STEPS } = AF.pixel;
+const { fogVeil, ridges, drawSky, drawGround, groundDetails, deepForest, sprite, sizeOf } = AF.pixel;
 
 // the light comes from the other side once the sun or moon is past this far across
 const FLIP_LIGHT_X = 0.55;
@@ -14,6 +14,29 @@ const FLIP_LIGHT_X = 0.55;
 const FOG_VEIL_FROM = 0.08, FOG_VEIL_STEP = 0.12, FOG_VEIL_TO = 0.85, FOG_VEIL_AMT = 0.2;
 // a lightning flash lifts the land this far towards white
 const FLASH_LIFT = 0.35;
+// zoomed in, a redraw draws trees at sizes not yet kept (env.sprites) for this long at most,
+// the biggest first; the rest stand in at the size nearest theirs, scaled, until the next
+const SPRITE_MS = 12;
+
+/* Zoomed in, each tree's sprite from those kept between redraws (env.sprites, see
+ * AF.spriteCache): drawn now if it has none yet, or while there is time; otherwise the one kept
+ * at the nearest height, and env.spritesPending asks for another redraw. Null outside a zoom. */
+function keptSprites(env) {
+  const cache = env.sprites;
+  if (!cache) return null;
+  const out = new Map(), t0 = performance.now();
+  const trees = env.placed.filter(p => !p.it.pond).map(p => Object.assign({ p }, sizeOf(p, env))).sort((a, b) => b.h - a.h);
+  for (const { p, h, hzq } of trees) {
+    let s = cache.find(p.it, h, hzq, env);
+    if (!s) {
+      const near = performance.now() - t0 > SPRITE_MS && cache.near(p.it, h, env);
+      if (near) env.spritesPending = true;
+      s = near || cache.make(p.it, h, hzq, env);
+    }
+    out.set(p, s);
+  }
+  return out;
+}
 
 AF.engines.pixel = {
   prepare(env) {
@@ -30,20 +53,31 @@ AF.engines.pixel = {
   },
   sky: drawSky,
   steps(env) {
-    const th = env.theme, { W, H, u } = env, steps = [lg => drawGround(env, lg)], land = AF.landOf(env);
+    const th = env.theme, { W, H } = env, steps = [lg => drawGround(env, lg)], land = AF.landOf(env);
     // what the landscape lays on the ground before anything stands on it, e.g. a river's bed
     if (land.bed) steps.push(lg => land.bed(env, lg));
     // a landscape with an open horizon (`noDeep`) has nowhere for a distant treeline
-    if (env.deep && !land.noDeep) steps.push(lg => deepForest(env, lg));
+    if (env.deep && !land.noDeep) {
+      // (fading as the camera walks in among its trees: web/visit.js)
+      steps.push(lg => { lg.save(); lg.globalAlpha = env.deepAlpha; deepForest(env, lg); lg.restore(); });
+    }
+    const kept = keptSprites(env);
     let nextFog = th.fog ? FOG_VEIL_FROM : Infinity;
     for (const p of env.placed) {
       if (th.fog && p.it.depth >= nextFog && nextFog < FOG_VEIL_TO) { steps.push(lg => fogVeil(lg, W, H, p.y, th.fog, th.fogAmt || FOG_VEIL_AMT)); nextFog += FOG_VEIL_STEP; }
       if (p.it.pond) { steps.push(lg => AF.drawPond(lg, env, p)); continue; }
       steps.push(lg => {
-        const h = Math.max(3, Math.round(AF.STAGE_H[p.it.stage] * u * p.s)), spr = sprite(p.it, h, Math.round(p.hz * HAZE_STEPS), env);
-        groundDetails(env, lg, p, spr.width - 4);
-        const x0 = Math.round(p.x - spr.width / 2), y0 = Math.round(p.y - spr.height + 1);
-        if (env.flipLight) { lg.save(); lg.translate(x0 + spr.width, y0); lg.scale(-1, 1); lg.drawImage(spr, 0, 0); lg.restore(); } else lg.drawImage(spr, x0, y0);
+        const { h, hzq } = sizeOf(p, env), got = kept && kept.get(p);
+        // a kept sprite, drawn for another height, is scaled to this one
+        const spr = got ? got.cv : sprite(p.it, h, hzq, env), k = got && got.h && got.h !== h ? h / got.h : 1;
+        const sw = Math.round(spr.width * k), sh = Math.round(spr.height * k);
+        groundDetails(env, lg, p, sw - 4);
+        const x0 = Math.round(p.x - sw / 2), y0 = Math.round(p.y - sh + 1);
+        const fade = p.it.view && p.it.view.alpha < 1;  // a visit's tree being walked past (web/visit.js)
+        if (fade) lg.globalAlpha = p.it.view.alpha;
+        if (k !== 1) lg.imageSmoothingEnabled = false;
+        if (env.flipLight) { lg.save(); lg.translate(x0 + sw, y0); lg.scale(-1, 1); lg.drawImage(spr, 0, 0, sw, sh); lg.restore(); } else lg.drawImage(spr, x0, y0, sw, sh);
+        if (fade) lg.globalAlpha = 1;
         if (env.afterItem) env.afterItem(lg, p);
       });
     }

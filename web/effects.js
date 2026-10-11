@@ -34,9 +34,10 @@ AF.fx = {
     const th = env.theme, { W, H, u, hor } = env, A = rng(11);
     const C = Object.assign({}, DEFAULT_COLORS, th.warmFlies ? { flyCore: '255,214,150', flyGlow: '255,170,90' } : {},
       th.flyCore ? { flyCore: th.flyCore, flyGlow: th.flyGlow } : {}, env.fxColors || {});
-    const trees = env.placed.filter(p => !p.it.pond);
+    // (zoomed in, web/visit.js, not the trees fading as the camera walks past them)
+    const trees = env.placed.filter(p => !p.it.pond && !(p.it.view && p.it.view.alpha < 1));
     const elders = trees.filter(p => p.it.stage >= OLD);
-    const hosts = elders.length ? elders : (trees.length ? trees : [{ x: W / 2, y: H * 0.8, s: 1, it: { stage: MATURE } }]);
+    const hosts = elders.length ? elders : (trees.length || env.layout.cam ? trees : [{ x: W / 2, y: H * 0.8, s: 1, it: { stage: MATURE } }]);
     const hOf = p => AF.STAGE_H[p.it.stage] * u * p.s;
     const st = { C, clouds: [], deck: [], stars: [], flies: [], birds: [], drops: [], far: [], splashes: [], flakes: [], petals: [], lanterns: [], glints: [], leaves: [], falling: [], banks: [], spores: [], lights: [], rings: [] };
     const moon = th.orb && th.orb.kind === 'moon' ? { x: W * th.orb.x, y: H * th.orb.y, r: th.orb.r * u + 3 } : null;

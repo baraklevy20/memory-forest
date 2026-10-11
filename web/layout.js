@@ -13,7 +13,7 @@ const ROWS_TOP = 0.045;
 const SLOT_MARGIN = 0.02, SLOT_SPAN = 0.96;
 /* the width of one planting slot, as AF.place spreads them */
 const colWidth = env => SLOT_SPAN * env.W / (env.layout.perRow + 0.5);
-AF.GEOM = { HORIZON, GROUND_BOTTOM, ROWS_TOP };
+AF.GEOM = { HORIZON, GROUND_BOTTOM, ROWS_TOP, SLOT_MARGIN, SLOT_SPAN, FAR_SCALE: 0.82, NEAR_GAIN: 0.18, DIM_HAZE: 1.5 };
 AF.colWidth = colWidth;
 
 /* ---------- layout constants ---------- */
@@ -32,9 +32,8 @@ const SINGLE_ROW_NEAREST = 0.3;
 // a young forest is drawn larger: zoomed in until it has about 2^ZOOM_FULL_LOG trees
 const ZOOM_FULL_LOG = 7, ZOOM_PER_LOG = 0.15, ZOOM_MAX = 1.8;
 // the back row is drawn at FAR_SCALE of the front row's size, growing by NEAR_GAIN to the front
-const FAR_SCALE = 0.82, NEAR_GAIN = 0.18;
-// a faded tree on a deck screen sits this deep in the haze
-const DIM_HAZE = 1.5;
+// (and a faded tree on a deck screen sits DIM_HAZE deep in the haze)
+const { FAR_SCALE, NEAR_GAIN, DIM_HAZE } = AF.GEOM;
 
 /* the deep forest: one band per doubling beyond DEEP_TREES_PER_BAND trees, up to
  * DEEP_MAX_BANDS, rising from DEEP_BASE below the horizon; band k's crowns stand
@@ -125,6 +124,21 @@ AF.layout = function (trees) {
   const zoom = clamp(1 + (ZOOM_FULL_LOG - Math.log2(Math.max(2, trees.length))) * ZOOM_PER_LOG, 1, ZOOM_MAX);
   return { items, perRow, rows, zoom };
 };
+/* The deep forest's trees (`trees`, oldest first), laid out one by one in the rows behind
+ * `base`'s back row, as the rows before carry on: the newest of them just behind it. Only a
+ * zoomed-in view draws them (web/visit.js), so they keep no place in the whole forest's
+ * view; their `index` counts back from -1, the newest. */
+AF.layoutBehind = function (trees, base) {
+  const per = base.perRow, n = trees.length;
+  return trees.map((t, i) => {
+    const cell = i - n, row = Math.floor(cell / per), col = cell - row * per, r = rng(t.seed || i + 1);
+    const it = Object.assign({}, t, { index: i - n, variant: t.seed % TREE_VARIANTS, cell, row, fromFront: base.rows - 1 - row, depth: 0, behind: true });
+    it.x = (col + 0.5 + (r() - 0.5) * X_JITTER + (row % 2 ? 0.5 : 0)) / (per + 0.5);
+    it.jy = (r() - 0.5) * Y_JITTER;
+    it.rowGap = base.rows > 1 ? 1 / (base.rows - 1) : 0;
+    return it;
+  });
+};
 /* The oldest trees, drawn as a few bands of canopy receding into the haze instead of
  * one sprite each: more bands the further back your forest goes. */
 AF.deepForest = function (merged, env) {
@@ -139,8 +153,11 @@ AF.deepForest = function (merged, env) {
   return { merged, bands, base, h, u, boxes: [] };
 };
 
-AF.place = function (it, W, H, env) {
-  const hor = H * HORIZON, top = hor + H * ROWS_TOP, bot = H * (env.bot || GROUND_BOTTOM), z = env.layout.zoom;
+AF.place = (it, W, H, env) => it.view ? AF.visitPlace(it, W, H, env) : AF.placeFlat(it, W, H, env);  // a visit's close-up: web/visit.js
+/* where a tree stands in the whole forest's view (a visit eases from it: its layout keeps the
+ * whole forest's zoom in flatZoom) */
+AF.placeFlat = function (it, W, H, env) {
+  const hor = H * HORIZON, top = hor + H * ROWS_TOP, bot = H * (env.bot || GROUND_BOTTOM), z = env.layout.flatZoom || env.layout.zoom;
   const land = AF.landOf(env);
   const x = land.placeX ? land.placeX(it, env) : it.x;  // a landscape may squeeze the rows onto its own ground
   // on a deck screen in "lit" mode, trees without that deck's cards recede into the haze

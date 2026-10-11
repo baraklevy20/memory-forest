@@ -22,7 +22,8 @@ AF.events.add('robins', {
       // crows still there for other leeches (crows.js puts them from the middle rightwards)
       const at = perch(env, p, Math.round(p.x) - (crows ? 10 : 0), Math.round(p.y - h + 1));
       const x = at.x - (flip ? 3 : 5), y = at.y - ROBIN.length + 1 - hop;  // its leg stays put when it turns
-      ROBIN.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy, ROBIN_PAL[ch]); } });
+      // up close (a visit) it is as much bigger as its tree, perched where it was
+      AF.scaledAt(g, AF.visitK(p), at.x, at.y, () => ROBIN.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy, ROBIN_PAL[ch]); } }));
     }
   },
 });

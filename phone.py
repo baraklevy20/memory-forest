@@ -73,7 +73,15 @@ CSS = """.card { margin: 0; padding: 0; }
 .af-phone-note + .af-phone-note { margin-top: -6px; }
 .af-phone-shell:fullscreen { overflow: hidden; }
 .af-phone-shell:fullscreen .af-caption, .af-phone-shell:fullscreen .af-phone-note { display: none; }
-.af-phone-shell:fullscreen .af-phone-stage:not(.af-sideways) { display: flex; flex-direction: column; justify-content: center; height: 100%; }"""
+.af-phone-shell:fullscreen .af-phone-stage:not(.af-sideways) { display: flex; flex-direction: column; justify-content: center; height: 100%; }
+.af-phone-shell .af-visit-btn { height: 36px; min-width: 42px; }
+.af-phone-shell:fullscreen .af-visit { position: absolute; left: 8px; right: 8px; bottom: 8px; margin: 0; padding: 2px 10px;
+                                       border-radius: 10px; background: rgba(18, 22, 20, 0.8); color: #eef2ec; }
+.af-phone-shell:fullscreen .af-visit-about b { color: #fff; }
+.af-phone-shell:fullscreen .af-visit-btn { height: 32px; min-width: 44px; font-size: 20px; line-height: 1; }
+.af-phone-shell:fullscreen .af-visit { flex-wrap: nowrap; }
+.af-phone-shell:fullscreen .af-visit-about { flex: 1 1 auto; min-width: 0; }
+.af-phone-shell:fullscreen .af-visit-acts { flex: none; flex-wrap: nowrap; }"""
 
 
 def steps_aside() -> bool:

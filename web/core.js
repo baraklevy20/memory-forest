@@ -23,7 +23,7 @@ AF.mount = function (root, data, opts) {
   const current = () => root.afToken === token;
   root.innerHTML = (data.inAnki ? '<div class="af-top"><button type="button" class="af-cog" title="Change scenery and settings" aria-label="Change scenery and settings">' + COG + '</button></div>' : '')
     + '<div class="af-scene"><canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
-    + '<div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
+    + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
   const cog = root.querySelector('.af-cog');
   if (cog) cog.addEventListener('click', () => send(`${data.channel}:settings`));
   const sceneEl = root.querySelector('.af-scene'), canvas = root.querySelector('canvas'), tip = root.querySelector('.af-tip');
@@ -32,21 +32,30 @@ AF.mount = function (root, data, opts) {
   AF.captionTips(root);
   AF.news(root, data);  // what's new: the cog's dot, and a note on the forest
 
-  const layout = AF.layout(data.trees);
+  // the whole forest's layout, and the one being drawn: it, or a visit's close-up (web/visit.js)
+  const base = AF.layout(data.trees);
+  let layout = base;
   // with animations off the forest is one still moment: every redraw uses this time
   const stillAt = performance.now();
-  let env = null, visible = true, running = false, asleep = true;
+  const idle = window.requestIdleCallback || (cb => setTimeout(cb, IDLE_FALLBACK_MS));
+  let env = null, visible = true, running = false, asleep = true, refining = 0;
+  // zoomed in, the trees' sprites are kept between redraws (AF.spriteCache)
+  const sprites = AF.spriteCache(), zoomOn = () => !!(root.afVisits && root.afVisits.on);
 
   function build() {
+    clearTimeout(refining);
     const cssW = Math.max(MIN_CSS_W, Math.min(sceneEl.clientWidth || data.maxWidth, data.maxWidth));
     const k = Math.max(MIN_PIXEL_SCALE, Math.floor(cssW / CSS_W_PER_SCALE)), W = Math.floor(cssW / k), H = Math.floor(W / ASPECT);
     canvas.style.width = W * k + 'px'; canvas.style.height = H * k + 'px';
-    canvas.width = W; canvas.height = H;
+    if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }  // (each frame clears it anyway)
     env = { W, H, u: W / BASE_W, hor: Math.round(H * HORIZON), mood: data.mood, data, layout, engine, bot: GROUND_BOTTOM };
     env.theme = AF.theme(data.mood, data.stats, data.events);
     env.still = !animate;  // one calm moment: nothing brief (a flash, a hop, a blink) is caught in it
+    if (zoomOn()) env.sprites = sprites; else sprites.clear();
     engine.prepare(env);
-    env.deep = data.merged ? AF.deepForest(data.merged, env) : null;
+    // (zoomed in among its trees, which stand one by one, its bands fade: web/visit.js)
+    env.deepAlpha = layout.deepAlpha == null ? 1 : layout.deepAlpha;
+    env.deep = data.merged && env.deepAlpha > 0 ? AF.deepForest(data.merged, env) : null;
     env.placed = layout.items.map(it => Object.assign({ it }, AF.place(it, W, H, env))).sort((a, b) => a.y - b.y);
     env.puddles = AF.findPuddles(env);
     AF.placeVisitors(env);
@@ -59,10 +68,29 @@ AF.mount = function (root, data, opts) {
     // anniversary trees, resolved once instead of scanned for on every frame
     env.glowing = (data.anniversaries || []).map(idx => env.placed.find(q => !q.it.pond && q.it.index === idx)).filter(Boolean);
     root.afEnv = env;  // for an animation laid over the forest (the asteroid's strike, web/events/asteroid.js)
+    // some trees stood in at another size (no time to draw them all): drawn again shortly
+    if (env.spritesPending) refining = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, REFINE_MS);
+  }
+  /* zooming turned on: each tree's sprites drawn ahead, in idle moments, for the first moves to
+   * start from (up close, in a visit's shape, then as it stands now, for easing in) */
+  function warm() {
+    const at = env, list = at ? at.placed.filter(p => !p.it.pond) : [];
+    const shapes = [Object.assign({}, at, { layout: Object.assign({}, layout, { visiting: true }) }), at];
+    let i = 0;
+    const run = () => {
+      if (!current() || !zoomOn()) return;
+      const t0 = performance.now();
+      for (; i < list.length * 2 && performance.now() - t0 < WARM_MS; i++) {
+        const p = list[i % list.length], e = shapes[i < list.length ? 0 : 1], { h, hzq } = AF.pixel.sizeOf(p, e);
+        sprites.make(p.it, h, hzq, e);
+      }
+      if (i < list.length * 2) idle(run, { timeout: IDLE_TIMEOUT_MS });
+    };
+    idle(run, { timeout: IDLE_TIMEOUT_MS });
   }
 
   function frame(ts) {
-    if (!env) return;
+    if (!env || !env.g) return;  // (a build that failed part way)
     // in loop mode (AF.LOOP, see util.js) the clock wraps, so the recording repeats exactly
     const g = env.g, t = AF.LOOP ? (ts / 1000) % AF.LOOP : ts / 1000;
     env.t = t;  // the moment being drawn, for an engine that hit-tests moving things
@@ -77,6 +105,7 @@ AF.mount = function (root, data, opts) {
     AF.events.run('grass', g, env, t);  // tall grass, which the animals stand in
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
+    if (root.afVisits && root.afVisits.picked != null) AF.drawVisitMarker(g, env, root.afVisits.picked);
     AF.events.run('front', g, env, t);  // crows, a fresh crater's smoke, the fire
     if (env.fx) AF.fx.front(g, env, t);
     if (env.quantize) env.quantize(g, env.W, env.H);
@@ -106,6 +135,26 @@ AF.mount = function (root, data, opts) {
   }
   // pointing at the forest: tooltips, the marker over a tree, a click to see its cards
   const pointer = AF.hover({ root, canvas, tip, sceneEl, data, animate, env: () => env, redraw: () => { if (!animate) frame(stillAt); } });
+  // zooming in among the trees (web/visit.js), once its button turns it on. Where a tree stands
+  // across the whole forest, after the landscape's squeeze (a river's banks, say),
+  // worked out against the whole forest's layout: the camera walks that ground
+  // (each tree's, kept for the scene's width: every move asks again)
+  const land = AF.landOf({ mood: data.mood }), xs = new Map();
+  let xsAt = null;
+  const xOf = it => {
+    if (!land.placeX || !env) return it.x;
+    if (!xsAt || xsAt.W !== env.W) { xs.clear(); xsAt = Object.assign({}, env, { layout: base }); }
+    if (!xs.has(it)) xs.set(it, land.placeX(it, xsAt));
+    return xs.get(it);
+  };
+  // (`opts.zoom`: false, none here; 'always', simply on, as in the phone's full screen)
+  const zoom = opts && opts.zoom;
+  root.afVisits = zoom !== false && AF.canVisit({ mood: data.mood }) && base.items.some(it => !it.pond) ? AF.visits({ root, data, base, animate, current, xOf, warm, always: zoom === 'always', go: (cam, behind) => {
+    layout = cam ? AF.visitLayout(base, cam, xOf, behind) : base;
+    pointer.clear();
+    build();
+    frame(animate ? performance.now() : stillAt);
+  } }) : null;
 
   // ~15 frames a second is plenty for drifting clouds and fireflies. Between frames it sleeps,
   // rather than waking at every refresh of the screen to check the time; off screen, or on a
@@ -118,8 +167,8 @@ AF.mount = function (root, data, opts) {
       if (!current() || !visible || document.hidden) { asleep = true; return; }  // swapped out, or unseen
       if (ts - last <= FRAME_MS) { requestAnimationFrame(tick); return; }  // woke a refresh early: no faster than ~15 a second
       last = ts;
-      frame(ts);
-      setTimeout(() => requestAnimationFrame(tick), Math.max(0, FRAME_MS - FRAME_WAKE_MS - (performance.now() - ts)));
+      // (one frame that throws must not stop the forest for good)
+      try { frame(ts); } finally { setTimeout(() => requestAnimationFrame(tick), Math.max(0, FRAME_MS - FRAME_WAKE_MS - (performance.now() - ts))); }
     };
     requestAnimationFrame(tick);
   }
@@ -149,7 +198,6 @@ AF.mount = function (root, data, opts) {
   // build after the deck list has painted, so the forest never delays it - unless this is a
   // swap, where the old forest was just cleared and waiting would show an empty panel
   if (opts && opts.now) { lastW = sceneEl.clientWidth; start(); return; }
-  const idle = window.requestIdleCallback || (cb => setTimeout(cb, IDLE_FALLBACK_MS));
   requestAnimationFrame(() => idle(() => { lastW = sceneEl.clientWidth; start(); }, { timeout: IDLE_TIMEOUT_MS }));
 };
 
@@ -209,5 +257,8 @@ const MIN_CSS_W = 240, CSS_W_PER_SCALE = 300, MIN_PIXEL_SCALE = 2, BASE_W = 320,
 const RESIZE_MIN_PX = 8, RESIZE_DEBOUNCE_MS = 200;
 // the first build waits for an idle moment, however busy, no longer than IDLE_TIMEOUT_MS
 const IDLE_FALLBACK_MS = 30, IDLE_TIMEOUT_MS = 300;
+// zoomed in: trees that stood in at another size are drawn again REFINE_MS after; sprites are
+// drawn ahead WARM_MS at a time
+const REFINE_MS = 40, WARM_MS = 8;
 const COG = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6c-.6.3-1.2.6-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.3.4.5.4h4c.2 0 .5-.2.5-.4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>';
 })();

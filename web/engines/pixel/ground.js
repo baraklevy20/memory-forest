@@ -114,13 +114,18 @@ function groundDetails(env, lg, p, sw) {
   }
   if (th.snow && t.stage > SAPLING) { lg.fillStyle = 'rgba(160,178,205,.55)'; const hw = Math.round(sw * SNOW_SHADE); lg.fillRect(x - hw, y + 1, hw * 2 + 1, 1); }
   const spec = AF.envOf(env);
-  if (t.health >= 2 && !th.snow) {
-    const cols = spec.leafColors || ['#d8924a', '#b3ad4c'];
-    for (let k = 0; k < FALLEN_LEAVES[t.health]; k++) { lg.fillStyle = cols[k & 1]; lg.fillRect(x + Math.round((R() - 0.5) * sw), y + (R() < 0.5 ? 0 : 1), 1, 1); }
-  }
-  if (spec.groundDetail) spec.groundDetail(env, lg, p, sw, R, x, y);
-  if (spec.treeBase && !AF.landOf(env).skipGround) spec.treeBase(env, lg, p, sw);  // no ground, nothing to stand on
-  AF.events.run('treeBase', env, lg, p, sw, x, y);  // a big day's wildflowers
+  // what lies at its foot is drawn up close (a visit) as much bigger as the tree, about its foot
+  const k = AF.visitK(p);
+  AF.scaledAt(lg, k, x, y, () => {
+    const w = Math.round(sw / k);
+    if (t.health >= 2 && !th.snow) {
+      const cols = spec.leafColors || ['#d8924a', '#b3ad4c'];
+      for (let n = 0; n < FALLEN_LEAVES[t.health]; n++) { lg.fillStyle = cols[n & 1]; lg.fillRect(x + Math.round((R() - 0.5) * w), y + (R() < 0.5 ? 0 : 1), 1, 1); }
+    }
+    if (spec.groundDetail) spec.groundDetail(env, lg, p, w, R, x, y);
+    if (spec.treeBase && !AF.landOf(env).skipGround) spec.treeBase(env, lg, p, w);  // no ground, nothing to stand on
+    AF.events.run('treeBase', env, lg, p, w, x, y);  // a big day's wildflowers
+  });
 }
 
 /* The colours the forest's broadleaf crowns are drawn in (dark to light, as [r, g, b]), tinted

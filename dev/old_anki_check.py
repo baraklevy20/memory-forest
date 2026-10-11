@@ -1,7 +1,8 @@
 """The add-on that `old_anki.py --check` installs beside Memory Forest: once the profile is
 open it fills the collection with a few months of made-up reviews, so the forest is built
 the way it is for everyone (from the study history, not the debug test forest, which a
-built add-on does not ship), measures the cog in the real deck list, opens the settings
+built add-on does not ship), measures the cog in the real deck list, turns zooming on with
+real mouse clicks, picks a tree, steps a day, walks about and back out, opens the settings
 and paints every tab of them and the scenery picker, picks another scenery and checks the
 forest was built again, writes what it found to check.json in the base folder and quits
 Anki. It runs inside that Anki, so it uses only what every Anki it is run in has."""
@@ -14,7 +15,7 @@ import sys
 import traceback
 
 from aqt import gui_hooks, mw
-from aqt.qt import QApplication, QTabWidget, QTimer
+from aqt.qt import QApplication, QEvent, QMouseEvent, QPointF, Qt, QTabWidget, QTimer
 
 FOREST = os.environ.get("MEMORY_FOREST_FOLDER", "anki_forest")
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -48,6 +49,32 @@ MEASURE = """(() => {
   return JSON.stringify({ plain, darkMac, built: !!env, trees, big, flowers, old: !!(env && env.checkMark), painted,
                           canvas: c ? [c.width, c.height] : null, classes, agent: navigator.userAgent });
 })()"""
+# Where the forest's zoom button or a button of its bar is, or a tree to pick (the front-most
+# one nearest the middle, which nothing stands in front of), in the page's own pixels; and how
+# the zoomed view stands (web/visit.js)
+ZOOM_AT = """(sel => {
+  const b = document.querySelector(sel);
+  if (!b) return JSON.stringify({});
+  b.scrollIntoView(false);  // the forest may run past the window's foot: scrolled to, as you would
+  const r = b.getBoundingClientRect();
+  return JSON.stringify({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+})"""
+ZOOM_TREE = """(() => {
+  const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root.afEnv;
+  const trees = env.placed.filter(q => !q.it.pond), near = Math.max(...trees.map(q => q.y));
+  const p = trees.filter(q => q.y > near - 3 * env.u).sort((a, b) => Math.abs(a.x - env.W / 2) - Math.abs(b.x - env.W / 2))[0];
+  const c = root.querySelector('canvas'), r = c.getBoundingClientRect(), k = r.width / env.W;
+  // just above its foot (the page keeps no AnkiForest to measure its height by)
+  return JSON.stringify({ x: r.left + p.x * k, y: r.top + (p.y - 3 * env.u * p.s) * k });
+})()"""
+ZOOM_STATE = """(() => {
+  const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root.afEnv;
+  const st = root.afVisits.state;
+  return JSON.stringify({ on: root.afVisits.on, picked: root.afVisits.picked, zoomed: !!(st && st.cam), bar: !root.querySelector('.af-visit').hidden,
+    caption: !root.querySelector('.af-caption').hidden, trees: env.placed.filter(q => !q.it.pond).length,
+    xs: env.placed.map(q => Math.round(q.x)).join(), mid: (r => [r.left + r.width / 2, r.top + r.height * 0.6])(root.querySelector('canvas').getBoundingClientRect()) });
+})()"""
+VISIT_MS = 800  # past the zoom's fade (web/visit.js FADE_MS) and the rebuild
 MARK = "(() => { const e = [...document.querySelectorAll('*')].find(e => e.afEnv); if (e) e.afEnv.checkMark = 1; })()"
 
 result = {"anki": None, "qt": None, "errors": [], "problems": [], "steps": []}
@@ -172,7 +199,104 @@ def first_look(got, raw):
         result["problems"].append("the big learning day's tree drew no flowers")
     else:
         result["steps"].append(f"flowers on {got['big']} big day(s)")
-    QTimer.singleShot(0, settings)
+    QTimer.singleShot(0, visit)
+
+
+def mouse(web, kind, x: float, y: float, button, held) -> None:
+    """One real mouse event at (x, y) of the page, as Qt hands it to the web view (to the widget
+    that takes its input), the page zoomed as Anki zooms it."""
+    at = QPointF(x * web.zoomFactor(), y * web.zoomFactor())
+    QApplication.sendEvent(web.focusProxy() or web, QMouseEvent(kind, at, button, held, Qt.KeyboardModifier.NoModifier))
+
+
+def click(web, x: float, y: float) -> None:
+    """The mouse moved onto (x, y) and clicked there."""
+    left, none = Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton
+    mouse(web, QEvent.Type.MouseMove, x, y, none, none)
+    mouse(web, QEvent.Type.MouseButtonPress, x, y, left, left)
+    mouse(web, QEvent.Type.MouseButtonRelease, x, y, left, none)
+
+
+DRAG_STEPS, DRAG_PX = 10, 20  # a drag to the left, this many moves this far apart
+
+
+def drag(web, x: float, y: float) -> None:
+    """The mouse pressed at (x, y), dragged to the left and let go, a move at a time."""
+    left, none = Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton
+    mouse(web, QEvent.Type.MouseMove, x, y, none, none)
+    mouse(web, QEvent.Type.MouseButtonPress, x, y, left, left)
+    for i in range(1, DRAG_STEPS + 1):
+        mouse(web, QEvent.Type.MouseMove, x - i * DRAG_PX, y, none, left)
+        QApplication.processEvents()
+    mouse(web, QEvent.Type.MouseButtonRelease, x - DRAG_STEPS * DRAG_PX, y, left, none)
+
+
+def visit():
+    """Zooming in the deck list turned on from the forest's zoom button (its bar in the
+    caption's place), a tree picked by clicking it, a day on from the bar (which zooms in to
+    that day's tree), walked about by dragging, then the whole forest again from Back."""
+    web, state = mw.deckBrowser.web, {}
+
+    def press(selector, then):
+        def at(raw):
+            got = json.loads(raw or "{}")
+            if "x" not in got:
+                result["problems"].append(f"nothing to click at {selector}")
+                QTimer.singleShot(0, settings)
+                return
+            click(web, got["x"], got["y"])
+            QTimer.singleShot(VISIT_MS, lambda: web.evalWithCallback(ZOOM_STATE, then))
+        web.evalWithCallback(ZOOM_TREE if selector == "tree" else ZOOM_AT + f"('{selector}')", at)
+
+    def turned_on(raw):
+        got = json.loads(raw or "{}")
+        if not got.get("on") or not got.get("bar") or got.get("caption") or got.get("zoomed"):
+            result["problems"].append(f"the zoom button did not turn zooming on (and only that): {raw[:200] if raw else raw}")
+            QTimer.singleShot(0, settings)
+            return
+        result["steps"].append("zoom on")
+        press("tree", picked)
+
+    def picked(raw):
+        got = json.loads(raw or "{}")
+        if got.get("picked") is None:
+            result["problems"].append(f"a click on a tree did not pick it: {raw[:200] if raw else raw}")
+            QTimer.singleShot(0, settings)
+            return
+        result["steps"].append(f"picked tree {got['picked']}")
+        state["picked"] = got["picked"]
+        press('.af-visit-btn[data-day]:not([disabled])', stepped)
+
+    def stepped(raw):
+        got = json.loads(raw or "{}")
+        shot("visit")
+        if got.get("picked") == state["picked"] or not got.get("zoomed"):
+            result["problems"].append(f"a day step did not go to another tree: {raw[:200] if raw else raw}")
+            QTimer.singleShot(0, settings)
+            return
+        result["steps"].append(f"stepped to tree {got['picked']} ({got['trees']} trees in view)")
+        state["before"] = got
+        drag(web, *got["mid"])
+        QTimer.singleShot(VISIT_MS, lambda: web.evalWithCallback(ZOOM_STATE, dragged))
+
+    def dragged(raw):
+        got = json.loads(raw or "{}")
+        if not got.get("zoomed") or got.get("xs") == state["before"].get("xs"):
+            result["problems"].append(f"a drag did not walk about: {raw[:200] if raw else raw}")
+        else:
+            result["steps"].append("dragged along the rows")
+        press('.af-visit-btn[data-act="back"]', left)
+
+    def left(raw):
+        got = json.loads(raw or "{}")
+        if got.get("on") or got.get("bar") or not got.get("caption"):
+            result["problems"].append(f"Back did not leave the zoomed view: {raw[:200] if raw else raw}")
+        else:
+            result["steps"].append("back to the whole forest")
+        QTimer.singleShot(0, settings)
+
+    note("step: zoom")
+    press(".af-zoom", turned_on)
 
 
 def settings():

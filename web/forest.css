@@ -43,6 +43,46 @@
 }
 /* the room between them as margins, not gap: Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
 .af-journal { font-style: italic; margin-right: 16px; }
+.af-caption[hidden] { display: none; }
+
+/* zooming in among the trees (web/visit.js): its button on the forest's corner, and while it is
+   on, the bar of how and the steps, in the caption's place */
+.af-canvas { transition: opacity 0.18s ease; }
+.af-visit {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  margin-top: 8px; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif;
+  color: var(--fg-subtle, #8a8f8c);
+}
+.af-visit[hidden] { display: none; }
+.af-visit-about { margin: 3px 16px 3px 0; }
+.af-visit-about b { color: var(--fg, inherit); font-weight: 600; }
+.af-visit-acts { display: flex; flex-wrap: wrap; }
+/* Anki's own button styles are more specific than these (see .af-cog) */
+.af-visit-btn {
+  box-sizing: border-box; height: 26px; min-width: 30px; margin: 3px 0 3px 6px !important; padding: 0 9px !important;
+  border: 1px solid rgba(128, 128, 128, 0.45) !important; border-radius: 6px !important;
+  background: transparent !important; color: inherit !important; box-shadow: none !important;
+  font: inherit; cursor: pointer;
+}
+.af-visit-btn:hover:not([disabled]) { background: rgba(128, 128, 128, 0.18) !important; color: var(--fg, inherit) !important; }
+.af-visit-btn[disabled] { opacity: 0.35; cursor: default; }
+.af-visit-btn:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+/* (Anki's own button styles are more specific: see .af-cog) */
+.af-zoom {
+  position: absolute; z-index: 2; top: 8px; right: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box; width: 28px; height: 28px; padding: 0 !important; border: 0 !important; border-radius: 50% !important;
+  background: rgba(18, 20, 19, 0.72) !important; color: #fff !important; cursor: pointer; box-shadow: none !important;
+}
+.af-zoom svg { flex: none; }
+.af-zoom:hover, .af-zoom:active { background: rgba(18, 20, 19, 0.9) !important; color: #fff !important; border: 0 !important; box-shadow: none !important; }
+/* on: the same, the other way round (a light ring with dark corners) */
+.af-zoom.af-zoom-on, .af-zoom.af-zoom-on:hover { background: rgba(255, 255, 255, 0.92) !important; color: #141615 !important; box-shadow: inset 0 0 0 2px #141615 !important; }
+.af-zoom:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+/* zoomed in: a drag walks about (a phone's finger too, rather than scrolling the page) */
+.af-visiting .af-canvas { cursor: grab; touch-action: none; }
+.af-dragging .af-canvas { cursor: grabbing !important; }
+.af-dragging .af-tip { display: none !important; }
 .af-top { display: flex; justify-content: flex-end; margin-bottom: 6px; }
 /* Anki's own button styles are more specific than these, and older ones (2.1.50's on a dark
    Mac: padding 2px 15px) leave the icon no room in 28px, so the box itself is !important */

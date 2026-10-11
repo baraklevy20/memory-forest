@@ -8,7 +8,8 @@ const { YOUNG, MATURE } = AF.STAGE;
 // memory strength reads in days, then in months from MONTHS_FROM days, then in years
 const DAYS_PER_YEAR = 365, DAYS_PER_MONTH = 30, MONTHS_FROM = 60;
 AF.fmtStrength = d => d >= DAYS_PER_YEAR ? `${(d / DAYS_PER_YEAR).toFixed(1)} years` : d >= MONTHS_FROM ? `${Math.round(d / DAYS_PER_MONTH)} months` : `${Math.round(d)} days`;
-function tipHtml(t, words) {
+/* `click`: what a click on it does, when that is not opening its cards (zooming in: picking it) */
+function tipHtml(t, words, click) {
   const when = t.ago === 0 ? 'today' : t.ago === 1 ? 'yesterday' : `${t.ago} days ago`;
   const lines = [`<b>${esc(fmtDate(t.date))}</b> · ${esc(words.planted)} ${when}`, `${t.n} card${t.n === 1 ? '' : 's'} · ${esc(words.stages[t.stage])}`];
   if (t.suspended && t.suspended >= t.n) {
@@ -31,7 +32,8 @@ function tipHtml(t, words) {
   if (t.cured) lines.push(`${t.cured === 1 ? 'A leech' : `${t.cured} leeches`} here mature again: the robin stays a week`);
   if (t.big) lines.push(`<b>A big learning day</b>: ${t.n} new cards, up from ${t.big}`);
   if ((t.burn || t.smoke) && AF.fireLine) lines.push(AF.fireLine(t));  // Wild's fire (web/events/fire.js)
-  if (canBrowse()) lines.push(CLICK_HINT);
+  if (click) lines.push(`<span class="af-hint">${esc(click)}</span>`);
+  else if (canBrowse()) lines.push(CLICK_HINT);
   return lines.join('<br>');
 }
 const CLICK_HINT = '<span class="af-hint">Click to see these cards</span>';

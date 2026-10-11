@@ -49,6 +49,17 @@ class PayloadTests(unittest.TestCase):
         self.assertTrue(p["testForest"])
         self.assertEqual(p["stats"]["trees"], 30)
 
+    def test_the_deep_forest_s_trees_are_kept_for_a_zoom_to_ask_for(self):
+        reset(CARDS, {"test_forest": True, "test_trees": 1000, "debug": True})
+        p = payload.payload()
+        deep = payload.deep_trees("")
+        self.assertEqual(len(p["trees"]) + len(deep), 1000)
+        self.assertEqual(p["merged"]["count"], len(deep))
+        self.assertGreater(deep[0]["ago"], deep[-1]["ago"])  # oldest first
+        self.assertGreater(deep[-1]["ago"], p["trees"][0]["ago"])  # all older than the trees drawn
+        self.assertFalse(set(payload.PAGE_LEAVES_OUT) & set(deep[0]))
+        self.assertEqual(payload.deep_trees("12345"), [])  # a forest never sent: nothing
+
     def test_the_forest_is_built_once_until_the_study_data_changes(self):
         reset(CARDS)
         first = payload._forest()

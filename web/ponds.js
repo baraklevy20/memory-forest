@@ -27,14 +27,25 @@ const POND_FLAT_H = 3;
  * water, or the ponds at the back swell up over the horizon. It never crosses the horizon
  * nor runs off the bottom of the ground. */
 AF.pondBox = function (env, p) {
-  const { u, H } = env, it = p.it, persp = p.s / env.layout.zoom;
+  if (!p.it.view) return flatBox(env, p, env.placed.filter(q => q.it.pond && q.it.group === p.it.group).map(q => q.x));
+  // a visit's close-up (web/visit.js), eased into from the whole forest's view
+  const near = AF.visitPondBox(env, p), b = p.it.view.b;
+  if (b >= 1) return near;
+  const flat = q => Object.assign({}, q, AF.placeFlat(q.it, env.W, env.H, env));
+  const group = env.placed.filter(q => q.it.pond && q.it.group === p.it.group);
+  const far = flatBox(env, flat(p), group.map(q => flat(q).x)), mix1 = (a, c) => a + (c - a) * b;
+  const cx = mix1(far.cx, near.cx), cy = mix1(far.cy, near.cy), w = mix1(far.w, near.w), h = mix1(far.h, near.h);
+  return { cx, cy, w, h, x0: cx - w / 2, x1: cx + w / 2, y0: cy - h / 2, y1: cy + h / 2 };
+};
+/* where a pond's water lies in the whole forest's view: `xs` are where its slots stand */
+function flatBox(env, p, xs) {
+  const { u, H } = env, it = p.it, persp = p.s / (env.layout.flatZoom || env.layout.zoom);
   // a landscape that squeezes the rows onto its own ground narrows the slots too:
   // measure one slot where this pond stands, on the nearer side of any gap it squeezes out
   const land = AF.landOf(env), step = 1 / (env.layout.perRow + 0.5);
   const at_x = x => land.placeX ? land.placeX(Object.assign({}, it, { x }), env) : x;
   const squeeze = land.placeX ? Math.min(Math.abs(at_x(it.x + step) - at_x(it.x)), Math.abs(at_x(it.x) - at_x(it.x - step))) / step : 1;
   const colW = colWidth(env) * squeeze;
-  const xs = env.placed.filter(q => q.it.pond && q.it.group === it.group).map(q => q.x);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
   const top = env.hor + H * ROWS_TOP, bot = H * (env.bot || GROUND_BOTTOM);
   // the gap to the row in front, or for the front row the one behind it
@@ -52,7 +63,8 @@ AF.pondBox = function (env, p) {
   h = Math.max(POND_FLAT_H, Math.min(h, floor - y0));
   y0 = Math.min(y0, floor - h);
   return { cx, cy: y0 + h / 2, w, h, x0: cx - w / 2, x1: cx + w / 2, y0, y1: y0 + h };
-};
+}
+AF.POND = { OVERHANG: POND_OVERHANG, BACK: POND_BACK, ROWS: POND_ROWS };  // for a visit's ponds (web/visit.js)
 AF.drawPond = function (g, env, p) {
   if (!p.it.first) return;
   const th = env.theme, { cx, cy, w, h } = AF.pondBox(env, p);

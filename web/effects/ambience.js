@@ -45,7 +45,7 @@ part('shooting', {
  * warm dot would read as a yellowing leaf */
 part('flies', {
   init(st, { th, A, u, hosts, hOf }) {
-    for (let i = 0; i < (th.flies || 0); i++) {
+    for (let i = 0; i < (hosts.length ? th.flies || 0 : 0); i++) {  // (zoomed in, there may be no tree in sight)
       const e = hosts[(A() * hosts.length) | 0], h = hOf(e);
       st.flies.push({ x: e.x + (A() - 0.5) * h * 1.6, y: e.y - A() * Math.min(4 * u, h * 0.2), ph: A() * 10, sp: 0.6 + A() * 0.8 });
     }
@@ -100,7 +100,7 @@ part('petals', {
 part('lanterns', {
   init(st, { th, A, H, u, trees, hosts, hOf, moon }) {
     const anc = trees.filter(p => p.it.stage === ANCIENT), lh = anc.length ? anc : hosts;
-    for (let i = 0; i < (th.lanterns || 0); i++) {
+    for (let i = 0; i < (lh.length ? th.lanterns || 0 : 0); i++) {
       const e = lh[(A() * lh.length) | 0]; let x = e.x + (A() - 0.5) * 6 * u;
       if (moon && Math.abs(x - moon.x) < 10) x += x < moon.x ? -12 : 12;
       st.lanterns.push({ x, y0: e.y - hOf(e) - 2, v: (3 + A() * 3) * u, off: A() * H * 1.2, ph: A() * 10 });
@@ -141,7 +141,7 @@ part('falling', {
 /* glowing spores rising slowly from the forest floor */
 part('spores', {
   init(st, { th, A, H, u, hosts }) {
-    for (let i = 0; i < (th.spores || 0); i++) { const e = hosts[(A() * hosts.length) | 0]; st.spores.push({ x: e.x + (A() - 0.5) * 30 * u, y0: e.y, v: (1.5 + A() * 2) * u, off: A() * H, ph: A() * 10 }); }
+    for (let i = 0; i < (hosts.length ? th.spores || 0 : 0); i++) { const e = hosts[(A() * hosts.length) | 0]; st.spores.push({ x: e.x + (A() - 0.5) * 30 * u, y0: e.y, v: (1.5 + A() * 2) * u, off: A() * H, ph: A() * 10 }); }
   },
   front(g, env, t, st) {
     const th = env.theme, { H, u } = env;

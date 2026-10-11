@@ -2,6 +2,20 @@
   "_comment": "Every version's release notes, newest first: the one place they are written. dev/notes.py makes the AnkiWeb page's What's new from them (npm run notes), dev/release.py the GitHub release's, and the add-on reads them for the About tab and for what an update announces. See release_notes.py for what an item can hold. One short sentence each.",
   "versions": [
     {
+      "version": "1.3.0",
+      "new": [
+        {
+          "text": "Turn on zoom with the new button on the forest's corner (on the phone, go full screen), then scroll or pinch to walk in among the trees, even the oldest ones.",
+          "announce": {
+            "id": "zoom-1.3",
+            "kind": "note",
+            "title": "New: zoom into your forest",
+            "text": "Press the zoom button on the forest's corner, then scroll to walk in among the trees, even to the old ones at the back. Click a tree to step through the days before and after it, and click it again to see its cards."
+          }
+        }
+      ]
+    },
+    {
       "version": "1.2.0",
       "improved": [
         {

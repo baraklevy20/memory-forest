@@ -20,7 +20,13 @@ const craterR = lost => Math.round(6 + 5 * Math.log2(1 + lost / 10));
 // A landscape with water on the ground slides it, and the earth it throws out (CRATER_SPRAY
 // of its radius), onto the nearer bank (its dryX).
 const CRATER_ACROSS = [0.14, 0.86], CRATER_DOWN = [0.5, 0.8], CRATER_SPRAY = 1.5;
+/* where crater c is, and up close (a visit) where the camera sees that, with `k` how much
+ * bigger it is drawn there (null: nowhere to be seen) */
 function spot(c, env) {
+  const at = flatSpot(c, env), seen = at && AF.visitProject(env, at.x, at.y);
+  return seen && { x: Math.round(seen.x), y: Math.round(seen.y), k: AF.visitK(null, seen.k) };
+}
+function flatSpot(c, env) {
   const h = hashStr('crater|' + (c.spot || c.date)), land = AF.landOf(env);
   // (null when that landscape has no ground to hold one just now)
   if (land.craterGround && !land.craterGround(env)) return null;
@@ -207,9 +213,10 @@ AF.events.add('asteroid', {
   ground(env, lg) {
     env.craterBoxes = [];
     for (const c of env.data.craters || []) {
-      const s = spot(c, env), rx = craterR(c.lost);
+      const s = spot(c, env);
       if (!s) continue;
-      crater(lg, s.x, s.y, c.lost, c.ago, env);
+      const rx = craterR(c.lost) * s.k;
+      AF.scaledAt(lg, s.k, s.x, s.y, () => crater(lg, s.x, s.y, c.lost, c.ago, env));
       if (c.ago <= CRATER_GONE) env.craterBoxes.push({ c, x0: s.x - rx, x1: s.x + rx, y0: s.y - rx * 0.4, y1: s.y + rx * 0.4 });
     }
   },
@@ -233,7 +240,7 @@ AF.events.add('asteroid', {
     if (!env.still) for (const c of env.data.craters || []) {
       if (c.ago >= CRATER_FRESH) continue;
       const s = spot(c, env), f = Math.floor(t * 12);
-      if (s) for (let i = 0; i < 9; i++) if (noise(i, f) < 0.75) px(g, s.x - 2 + Math.round(Math.sin(f * 0.25 + i) * 2 + i * 0.4), s.y - 3 - i * 2, `rgba(90,80,74,${(0.6 - i * 0.06).toFixed(2)})`);
+      if (s) AF.scaledAt(g, s.k, s.x, s.y, () => { for (let i = 0; i < 9; i++) if (noise(i, f) < 0.75) px(g, s.x - 2 + Math.round(Math.sin(f * 0.25 + i) * 2 + i * 0.4), s.y - 3 - i * 2, `rgba(90,80,74,${(0.6 - i * 0.06).toFixed(2)})`); });
     }
   },
   // what the pointer is over, if it is the asteroid or a crater: its tooltip, and whether a

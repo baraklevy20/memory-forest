@@ -18,9 +18,29 @@ const { HORIZON, ROWS_TOP, GROUND_BOTTOM } = AF.GEOM;
 
 // how the channel winds (an S-curve drifting left as it comes) and how fast it widens:
 // about a pixel at the horizon, about a quarter of the width at the front
-const center = p => 0.6 + 0.24 * Math.sin(p * 3.5 + 0.25) * (0.35 + 0.65 * p) - 0.1 * p;
-const halfWidth = (p, W) => (1.2 / W + Math.pow(p, 1.55) * 0.27) / 2;
+const flatCenter = p => 0.6 + 0.24 * Math.sin(p * 3.5 + 0.25) * (0.35 + 0.65 * p) - 0.1 * p;
+const flatHalf = (p, W) => (1.2 / W + Math.pow(p, 1.55) * 0.27) / 2;
 const depth = (y, H) => (y / H - HORIZON) / (1 - HORIZON);
+const lerp = (a, b, k) => a + (b - a) * k;
+/* The channel on row y of the scene: its middle `cx` and half its width `hw` (in pixels), and
+ * the depth `p` it runs at there (in the whole forest's view; given, it is used as it is). Up
+ * close (a visit, web/visit.js) the camera sees the same water: the whole forest's channel at
+ * the row of it on this one, where the camera puts it. */
+function chan(env, y, p) {
+  const { W, H } = env, g = AF.visitGroundAt && AF.visitGroundAt(env, y);
+  if (p == null) p = depth(y, H);
+  const flat = { cx: W * flatCenter(p), hw: W * flatHalf(p, W), p };
+  if (!g) return flat;
+  const q = clamp(depth(g.yFlat, H), 0, 1.2), near = { cx: g.toX(flatCenter(q)), hw: flatHalf(q, W) * g.perW, p: q };
+  return g.b >= 1 ? near : { cx: lerp(flat.cx, near.cx, g.b), hw: lerp(flat.hw, near.hw, g.b), p: lerp(flat.p, near.p, g.b) };
+}
+// the scene being drawn, for the environments that ask where the water is by depth alone
+// (`center`, `halfWidth`): up close they are answered as the camera sees it
+let drawing = null;
+const visiting = () => drawing && drawing.layout && drawing.layout.cam;
+const rowOf = p => drawing.H * (HORIZON + p * (1 - HORIZON));
+const center = p => visiting() ? chan(drawing, rowOf(p)).cx / drawing.W : flatCenter(p);
+const halfWidth = (p, W) => visiting() ? chan(drawing, rowOf(p)).hw / drawing.W : flatHalf(p, W);
 // room kept either side of the channel for a tree, and on the left bank for the deer or
 // stag that grazes just to the right of its tree. They only graze in the front rows (at
 // most GRAZER_ROWS from the front, see visitors.js), so further back the bank is planted
@@ -53,6 +73,7 @@ AF.landscape('river', {
   // is narrower, and never below the ground an environment keeps (synthwave's grid is not ground);
   // the forest ends above them, so none of its trees should be in front of them
   prepare(env) {
+    drawing = env;
     env.bot = Math.min(env.bot || GROUND_BOTTOM, RIVER_BOTTOM);
     env.visitorY = env.H * Math.min(ANIMALS_Y, env.bot + ANIMALS_DROP);
   },
@@ -63,8 +84,8 @@ AF.landscape('river', {
     const bot = env.bot || GROUND_BOTTOM, top = HORIZON + ROWS_TOP;
     const p = depth(top + (bot - top) * clamp(Math.pow(it.depth, 1.1) + (it.jy || 0) * (it.rowGap || 0), 0, 1), 1);
     const size = it.pond ? POND_SIZE : AF.STAGE_H[it.stage] * (0.82 + 0.18 * it.depth) * env.layout.zoom * 0.45 / 320;
-    const a = clamp(center(p) - halfWidth(p, env.W) - size - TREE_GAP - (it.pond || it.fromFront > GRAZER_ROWS ? 0 : GRAZER_GAP), 0, 1);
-    const b = clamp(center(p) + halfWidth(p, env.W) + size + TREE_GAP, 0, 1), gap = b - a;
+    const a = clamp(flatCenter(p) - flatHalf(p, env.W) - size - TREE_GAP - (it.pond || it.fromFront > GRAZER_ROWS ? 0 : GRAZER_GAP), 0, 1);
+    const b = clamp(flatCenter(p) + flatHalf(p, env.W) + size + TREE_GAP, 0, 1), gap = b - a;
     let sx = (0.02 + 0.96 * it.x) * (1 - gap);
     if (sx >= a) sx += gap;
     return (sx - 0.02) / 0.96;
@@ -74,7 +95,7 @@ AF.landscape('river', {
   // whole stretch it wanders (home, `reach` either way) slides onto the dry ground on home's
   // side, or shrinks to fit it, so its spots stay apart. A crater keeps off the water the same way.
   dryX(env, x, y, home, reach = 0) {
-    const { W, H, u } = env, p = depth(y, H), cx = W * center(p), hw = W * halfWidth(p, W) + DRY_MARGIN;
+    const { W, u } = env, c = chan(env, y), cx = c.cx, hw = c.hw + DRY_MARGIN;
     const [lo, hi] = home < cx ? [4 * u, cx - hw] : [cx + hw, W - 4 * u], a = home - reach, b = home + reach;
     if (hi - lo <= b - a) return hi > lo ? lo + (x - a) / Math.max(1, b - a) * (hi - lo) : (lo + hi) / 2;
     return x + (a < lo ? lo - a : b > hi ? hi - b : 0);
@@ -82,14 +103,14 @@ AF.landscape('river', {
 
   // whether the water reaches anywhere between x0 and x1 on row y (a puddle is no use there)
   wet(env, x0, x1, y) {
-    const { W, H } = env, p = depth(y, H), cx = W * center(p), hw = W * halfWidth(p, W) + 2;
+    const c = chan(env, y), cx = c.cx, hw = c.hw + 2;
     return x1 > cx - hw && x0 < cx + hw;
   },
 
   // tall grass grows along the front on both banks, never on the water: the left stretch
   // stops short by as far as a blade can lean over to the right
   grassRows(env) {
-    const { W, H } = env, y = Math.round(H * env.bot), p = depth(y, H), cx = W * center(p), hw = W * halfWidth(p, W) + 2;
+    const { W, H } = env, y = Math.round(H * env.bot), c = chan(env, y), cx = c.cx, hw = c.hw + 2;
     return [[0, Math.floor(cx - hw - GRASS_LEAN), y, y + 1], [Math.ceil(cx + hw), W - 1, y, y + 1]];
   },
 
@@ -100,7 +121,8 @@ AF.landscape('river', {
     const edge = mix(hex(th.g1), BLACK, 0.2), sand = shade(mix([226, 196, 140], hex(th.haze), 0.2)), earth = shade(mix(hex(th.g1), [70, 52, 30], 0.5));
     const img = lg.getImageData(0, 0, W, H), d = img.data, mask = new Uint8Array(W * H), bed = new Uint32Array(W * H);
     for (let y = env.hor; y < H; y++) {
-      const p = depth(y, H), cx = W * center(p), hw = W * halfWidth(p, W);
+      const { p, cx, hw } = chan(env, y);
+      if (hw < 0.3) continue;  // (up close, beyond the horizon's last row of it)
       // far water takes the sky near the horizon, near water the sky higher up
       const f = (n - 1) - p * (n - 1) * 0.85, i = clamp(Math.floor(f) - 1, 0, n - 2), fr = f - Math.floor(f);
       for (let x = Math.floor(cx - hw - 2); x <= cx + hw + 2; x++) {
@@ -128,10 +150,11 @@ AF.landscape('river', {
     const { W, H } = env, th = env.theme, water = hex(th.water);
     const mid = mix(hex(th.sky[Math.floor(th.sky.length / 2)]), water, WATER_MIX), bank = mix(hex(th.g0), hex(th.g1), 0.5);
     const img = env.lg.getImageData(0, 0, W, H), d = img.data, vis = new Uint8Array(W * H);
+    const rowP = []; for (let y = 0; y < H; y++) rowP.push(chan(env, y).p);
     for (let i = 0; i < W * H; i++) {
       if (!S.mask[i] || ((d[i * 4] << 16) | (d[i * 4 + 1] << 8) | d[i * 4 + 2]) !== S.bed[i]) continue;
       vis[i] = 1;
-      const b = S.bed[i], p = depth(Math.floor(i / W), H);
+      const b = S.bed[i], p = rowP[Math.floor(i / W)];
       const col = mix(mix([b >> 16 & 255, b >> 8 & 255, b & 255], mid, FLATTEN), bank, BANK_NEAR + BANK_FAR * p);
       d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2];
     }
@@ -142,11 +165,12 @@ AF.landscape('river', {
 
   // flecks carried down toward you, and the sun or moon glinting where it stands over the water
   frame(g, env, t) {
+    drawing = env;  // (for the environment's frame after this one)
     const S = env.river; if (!S || !S.vis || env.theme.frozen || env.still) return;
     const { W, H, u } = env, hor = env.hor, fa = 1 - S.dim * 0.4, R = rng(71);
     for (let k = 0; k < FLECKS; k++) {
       const q = (R() + (AF.LOOP ? t * AF.u.drift(0.03 * (0.8 + R() * 0.4), 1) : t * 0.03 * (0.8 + R() * 0.4))) % 1, off = (R() - 0.5) * 1.3, p = Math.pow(q, 1.3), y = Math.round(hor + p * (H - hor));
-      const x = Math.round(W * center(p) + off * W * halfWidth(p, W)), len = 1 + Math.round(p * 5 * u);
+      const c = chan(env, y, p), x = Math.round(c.cx + off * c.hw), len = 1 + Math.round(c.p * 5 * u);
       if (y >= H) continue;
       // pixel by pixel: a fleck running under a tree's edge stops at it
       g.fillStyle = css(S.glint, (0.25 + p * 0.35) * fa * 0.6);
@@ -156,7 +180,7 @@ AF.landscape('river', {
     const ox = W * o.x, G = rng(Math.floor(t * 3));
     g.fillStyle = css(S.glint, 0.55);
     for (let y = hor + 4; y < H; y++) {
-      const spread = (3 + depth(y, H) * 14) * u;
+      const spread = (3 + chan(env, y).p * 14) * u;
       if (G() < 0.55) {
         const x = Math.round(ox - spread + G() * spread * 2), len = G() < 0.3 ? 2 : 1;
         for (let i = x; i < x + len; i++) if (i >= 0 && i < W && S.vis[y * W + i]) g.fillRect(i, y, 1, 1);

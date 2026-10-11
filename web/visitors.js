@@ -101,13 +101,16 @@ function visitorColor(env, hz) {
 const clearSpans = env => (AF.envOf(env).keepClear || []).map(([a, b]) => [a * env.W, b * env.W]);
 const inClear = (env, x0, x1) => clearSpans(env).some(([a, b]) => x1 > a && x0 < b);
 
-/* animals that live inside the forest are drawn into the land at the right depth */
-AF.placeVisitors = function (env) {
-  const list = env.data.visitors || [], keys = list.map(v => v.key);
-  // no animal's tree (nor pond) stands in a stretch the environment keeps clear
-  const open = p => !inClear(env, p.x - 6, p.x + 10);
-  const trees = env.placed.filter(p => !p.it.pond && open(p));
-  const inForest = {}, front = [];
+// which tree (or pond) each animal living in the forest took in the whole forest's view, by
+// forest: zoomed in (web/visit.js) it stays there, rather than choosing again among the trees
+// in sight
+const hostsOf = new WeakMap();
+const hostId = it => it.pond ? 'pond' + it.group : 'tree' + it.index;
+
+/* Which tree (or pond) each animal living in the forest takes, of `trees` in sight: the
+ * same all day. */
+function chooseHosts(env, keys, trees, open) {
+  const inForest = {};
   const R = rng(daySeed(env)), any = pool => pool[Math.floor(R() * pool.length)];
   // the owl perches on one of the oldest trees, the heron wades at one of the ponds
   const old = trees.filter(p => p.it.stage === ANCIENT), older = old.length ? old : trees.filter(p => p.it.stage === OLD);
@@ -126,8 +129,29 @@ AF.placeVisitors = function (env) {
     const pool = free(band(lo, hi)).length ? free(band(lo, hi)) : free(band(0, 2));
     if (pool.length) inForest[key] = { host: any(pool), graze: true };
   }
+  return inForest;
+}
+
+/* animals that live inside the forest are drawn into the land at the right depth */
+AF.placeVisitors = function (env) {
+  const list = env.data.visitors || [], keys = list.map(v => v.key);
+  // no animal's tree (nor pond) stands in a stretch the environment keeps clear
+  const open = p => !inClear(env, p.x - 6, p.x + 10);
+  const trees = env.placed.filter(p => !p.it.pond && open(p));
+  let inForest = {};
+  const front = [], chosen = hostsOf.get(env.data);
+  if (env.layout.cam && chosen) {
+    // zoomed in: each on the tree it took, if that is in sight (and gone with it otherwise)
+    for (const [key, spot] of Object.entries(chosen)) {
+      const host = env.placed.find(p => (p.it.pond ? p.it.first : true) && hostId(p.it) === spot.id);
+      inForest[key] = host ? { host, graze: spot.graze } : null;
+    }
+  }
+  else inForest = chooseHosts(env, keys, trees, open);
+  if (!env.layout.cam) hostsOf.set(env.data, Object.fromEntries(Object.entries(inForest).map(([k, s]) => [k, { id: hostId(s.host.it), graze: s.graze }])));
   // the rest stand at the front, but the cabin (which has its own corner) and those that fly
-  for (const v of list) if (!inForest[v.key] && v.key !== 'cabin' && !(VISITORS[v.key] || {}).flies) front.push(v);
+  for (const v of list) if (!(v.key in inForest) && v.key !== 'cabin' && !(VISITORS[v.key] || {}).flies) front.push(v);
+  for (const k of Object.keys(inForest)) if (!inForest[k]) delete inForest[k];
   env.inForest = inForest; env.frontVisitors = front; env.flyers = list.filter(v => (VISITORS[v.key] || {}).flies); env.staticBoxes = [];
   const byHost = new Map();
   for (const [key, spot] of Object.entries(inForest)) byHost.set(spot.host, (byHost.get(spot.host) || []).concat([key]));
@@ -140,9 +164,13 @@ AF.placeVisitors = function (env) {
       else if (key === 'squirrel') { x0 = Math.round(p.x) + (AF.trunkRight ? AF.trunkRight(p, env) : 1); y0 = Math.round(p.y - frame.length + 1); }  // on the roots, just right of the trunk
       else if (key === 'heron') { const b = AF.pondBox(env, p); x0 = Math.round(b.cx + b.w * 0.2); y0 = Math.round(b.cy - frame.length + 1); }
       else { x0 = Math.round(p.x + 4); y0 = Math.round(p.y - frame.length + 1); }
-      paintSprite(lg, frame, x0, y0, spr.pal, visitorColor(env, p.hz));
-      if (key === 'owl' && env.mood.time === 'night') { lg.fillStyle = OWL_NIGHT_EYES; lg.fillRect(x0 + 1, y0 + 2, 1, 1); lg.fillRect(x0 + 3, y0 + 2, 1, 1); }
-      env.staticBoxes.push({ v, x0, y0, x1: x0 + frame[0].length, y1: y0 + frame.length });
+      // up close (a visit) it is as much bigger as its tree, standing where its feet are
+      const k = AF.visitK(p), fy = y0 + frame.length;
+      AF.scaledAt(lg, k, x0, fy, () => {
+        paintSprite(lg, frame, x0, y0, spr.pal, visitorColor(env, p.hz));
+        if (key === 'owl' && env.mood.time === 'night') { lg.fillStyle = OWL_NIGHT_EYES; lg.fillRect(x0 + 1, y0 + 2, 1, 1); lg.fillRect(x0 + 3, y0 + 2, 1, 1); }
+      });
+      env.staticBoxes.push({ v, x0, y0: fy - frame.length * k, x1: x0 + frame[0].length * k, y1: fy });
     }
   };
 };
@@ -181,11 +209,18 @@ AF.drawVisitors = function (g, env, t) {
   const baseY = frontY(env), way = frontWay(env, baseY);
   const cabin = (env.data.visitors || []).find(v => v.key === 'cabin');
   if (cabin) {
-    const spr = VISITORS.cabin, frame = spr.frames[0], x0 = way.cabinX, y0 = baseY - frame.length, lit = env.mood.time === 'night' || env.mood.time === 'dusk';
-    paintSprite(g, frame, x0, y0, spr.pal, (col, ch) => ch === 'n' && lit ? '#ffd27a' : color(col));
-    if (lit) { g.fillStyle = 'rgba(255,210,122,.18)'; g.fillRect(x0 + 6, y0 + 6, 4, 4); }
-    else if (!env.theme.rain) for (let k = 0; k < CABIN_SMOKE_PUFFS; k++) { const q = ((AF.LOOP ? t / AF.u.per(4) : t * 0.25) + k / CABIN_SMOKE_PUFFS) % 1, sx = x0 + 6 + Math.round(Math.sin(q * 6 + k) * 1.5 + q * 4), sy = y0 - Math.round(q * 12); g.fillStyle = `rgba(220,220,225,${0.55 * (1 - q)})`; g.fillRect(sx, sy, q > 0.5 ? 2 : 1, 1); }
-    env.visitorBoxes.push({ v: cabin, x0, y0, x1: x0 + frame[0].length, y1: baseY });
+    const spr = VISITORS.cabin, frame = spr.frames[0], fw = frame[0].length, lit = env.mood.time === 'night' || env.mood.time === 'dusk';
+    // up close (a visit) it stands where the camera sees its spot, as much bigger as things there
+    const at = AF.visitProject(env, way.cabinX + fw / 2, baseY);
+    if (at) {
+      const k = AF.visitK(null, at.k), x0 = Math.round(at.x - fw / 2), fy = Math.round(at.y), y0 = fy - frame.length;
+      AF.scaledAt(g, k, at.x, fy, () => {
+        paintSprite(g, frame, x0, y0, spr.pal, (col, ch) => ch === 'n' && lit ? '#ffd27a' : color(col));
+        if (lit) { g.fillStyle = 'rgba(255,210,122,.18)'; g.fillRect(x0 + 6, y0 + 6, 4, 4); }
+        else if (!env.theme.rain) for (let s = 0; s < CABIN_SMOKE_PUFFS; s++) { const q = ((AF.LOOP ? t / AF.u.per(4) : t * 0.25) + s / CABIN_SMOKE_PUFFS) % 1, sx = x0 + 6 + Math.round(Math.sin(q * 6 + s) * 1.5 + q * 4), sy = y0 - Math.round(q * 12); g.fillStyle = `rgba(220,220,225,${0.55 * (1 - q)})`; g.fillRect(sx, sy, q > 0.5 ? 2 : 1, 1); }
+      });
+      env.visitorBoxes.push({ v: cabin, x0: Math.round(at.x - fw * k / 2), y0: fy - frame.length * k, x1: Math.round(at.x + fw * k / 2), y1: fy });
+    }
   }
   // Each animal has its own stretch of the front, shuffled daily. Every few minutes it
   // wanders to a new spot in that stretch, then stays there a while.
@@ -215,12 +250,18 @@ AF.drawVisitors = function (g, env, t) {
     // a rabbit hops rather than walks
     if (v.key === 'rabbit') { frame = spr.frames[0]; if (moving) dy = -Math.round(Math.abs(Math.sin(q * Math.PI * RABBIT_HOPS)) * RABBIT_HOP_PX); }
     const flip = FACES_LEFT[v.key] ? dir > 0 : dir < 0;  // face the way it last went
-    const x0 = Math.round(x - frame[0].length / 2), y0 = baseY - frame.length + dy;
-    paintSprite(g, frame, x0, y0, spr.pal, color, flip);
-    // an environment may dress the animal up (it gets the frame as drawn, and which way it faces)
-    const dress = AF.envOf(env).dressVisitor;
-    if (dress) dress(g, env, { key: v.key, rows: frame, x0, y0, flip, facesLeft: !!FACES_LEFT[v.key] !== flip, color });
-    env.visitorBoxes.push({ v, x0, y0, x1: x0 + frame[0].length, y1: baseY });
+    // up close (a visit) it stands where the camera sees its spot, as much bigger as things there
+    const at = AF.visitProject(env, x, baseY);
+    if (!at) return;  // walked past
+    const big = AF.visitK(null, at.k), fy = Math.round(at.y), x0 = Math.round(at.x - frame[0].length / 2), y0 = fy - frame.length + dy;
+    AF.scaledAt(g, big, at.x, fy, () => {
+      paintSprite(g, frame, x0, y0, spr.pal, color, flip);
+      // an environment may dress the animal up (it gets the frame as drawn, and which way it faces)
+      const dress = AF.envOf(env).dressVisitor;
+      if (dress) dress(g, env, { key: v.key, rows: frame, x0, y0, flip, facesLeft: !!FACES_LEFT[v.key] !== flip, color });
+    });
+    const drawnHalf = Math.round(frame[0].length * big / 2);
+    env.visitorBoxes.push({ v, x0: Math.round(at.x) - drawnHalf, y0: fy - frame.length * big, x1: Math.round(at.x) + drawnHalf, y1: fy });
   });
 };
 })();

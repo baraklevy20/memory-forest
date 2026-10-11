@@ -54,15 +54,18 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     }
     return null;
   }
+  // what is at the pointer, on the canvas in its own layout: a forest turned on the page (the
+  // phone card's sideways view) is pointed at the same as an upright one
+  function hitAt(env, e) {
+    const scale = env.W / (canvas.clientWidth || env.W);
+    return pick(env, e.offsetX * scale, e.offsetY * scale);
+  }
   if (data.tooltips) {
     canvas.addEventListener('pointerdown', e => { touched = e.pointerType !== 'mouse'; });
     canvas.addEventListener('mousemove', e => {
       const env = current();
       if (!env) return;
-      // where on the canvas, in its own layout: a forest turned on the page (the phone
-      // card's sideways view) is pointed at the same as an upright one
-      const scale = env.W / (canvas.clientWidth || env.W), mx = e.offsetX * scale, my = e.offsetY * scale;
-      const hit = pick(env, mx, my);
+      const hit = hitAt(env, e);
       deepHover = null; eventHover = null;
       if (!hit || !hit.event || hit.event.html !== armed) armed = null;  // a tap on something else starts over
       if (!hit) { hover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; return; }
@@ -81,8 +84,10 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       }
       else {
         hover = { x: hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it };
-        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, words);
-        canvas.style.cursor = !hit.pond && data.inAnki && !data.testForest ? 'pointer' : '';
+        // zoomed in, a click picks a tree first (web/visit.js)
+        const zoom = root.afVisits, picks = !hit.pond && zoom && zoom.on && zoom.picked !== hit.p.it.index;
+        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, words, picks ? `${touched ? 'Tap' : 'Click'} to select it` : '');
+        canvas.style.cursor = !hit.pond && (picks || (data.inAnki && !data.testForest)) ? 'pointer' : '';
       }
       // the same thing pointed at as before: the tip only follows the pointer (rewriting it, and
       // redrawing a still forest, on every move of the mouse was most of the cost of pointing)
@@ -98,17 +103,25 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       if (changed) redraw();  // a still forest redraws the same moment, only the marker moves
     });
     canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
-    canvas.addEventListener('click', () => {
+    canvas.addEventListener('click', e => {
       if (eventHover && eventHover.replay) {
         if (touched && armed !== eventHover.html) { armed = eventHover.html; return; }  // the first tap: its tooltip
         armed = null; tip.hidden = true; root.afReplay();
         return;
       }
+      // what the click is on: zoomed in, the scene may have been drawn afresh since the pointer
+      // last moved, and what it pointed at then is gone
+      const zoom = root.afVisits, env = current();
+      let tree = hover && hover.tree, deep = deepHover;
+      if (zoom && zoom.on && env) { const hit = hitAt(env, e); tree = hit && hit.p && !hit.pond ? hit.p.it : null; deep = hit && hit.deep; }
+      if (zoom && zoom.on && tree && zoom.picked !== tree.index) { tip.hidden = true; zoom.pick(tree.index); return; }
       if (data.testForest) return;
-      if (deepHover) send(`${data.channel}:browse:${deepHover.from_ago}:${AF.deckFor(data)}:${deepHover.to_ago}`);
-      else if (hover && hover.tree) send(`${data.channel}:browse:` + hover.tree.ago + ':' + (data.deckId && !hover.tree.dim ? data.deckId : ''));
+      if (deep) send(`${data.channel}:browse:${deep.from_ago}:${AF.deckFor(data)}:${deep.to_ago}`);
+      else if (tree) send(`${data.channel}:browse:` + tree.ago + ':' + (data.deckId && !tree.dim ? data.deckId : ''));
     });
   }
-  return { drawMarker };
+  /* the scene was rebuilt under the pointer (zooming in): what it pointed at is gone */
+  function clear() { hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
+  return { drawMarker, clear };
 };
 })();
