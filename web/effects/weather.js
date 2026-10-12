@@ -23,6 +23,22 @@ const CLOUD_TOP = 0.04, CLOUD_DEPTH = 0.22;
 const WIND_LEAVES = 26, FOG_BANKS = 5, RINGS = 24;
 const FOG_BANK_STRENGTH = 0.24, FOG_BANK_ALPHA = 110;
 
+/* An environment drawn as a picture (env.stillWeather) holds its weather still:
+ * rain is laid on as streaks once, splashes and rings are caught mid-splash, snow, glints and fog
+ * stay where they are, no gust blows, and a storm draws its own bolt (env.stillBolt) instead of
+ * flashing. Every other environment moves as ever. */
+const clock = (env, t) => env.stillWeather ? 0 : t;
+function streaks(env, drops, far, drift, col) {
+  const { W, H, u } = env, [cv, g] = layer(W, H);
+  g.fillStyle = col;
+  for (const d of drops) {
+    // each drop a streak along its slant, from up and to the right of it down to the drop
+    const x0 = Math.round(d.x), y0 = Math.round(d.y), len = Math.round((far ? 3 : 5 + (d.v % 3)) * u);
+    for (let k = 0; k < len; k++) { const x = Math.round(x0 + (len - k) * drift), y = y0 - len + k; if (y >= 0 && y < H) g.fillRect(((x % W) + W) % W, y, 1, 1); }
+  }
+  return cv;
+}
+
 function pxCloud(R, w, h, topC, botC, alpha, sparkle) {
   const [cv, g] = layer(w, h), img = g.createImageData(w, h), d = img.data;
   const blobs = []; for (let k = 0; k < 4; k++) blobs.push({ x: w * (0.2 + 0.6 * R()), y: h * (0.45 + 0.25 * R()), rx: w * (0.18 + 0.16 * R()), ry: h * (0.3 + 0.2 * R()) });
@@ -96,14 +112,16 @@ part('rain', {
   },
   back(g, env, t, st) {
     const { W, H } = env;
-    if (st.far.length) {
+    if (st.far.length && env.stillWeather) g.drawImage(st.farStill || (st.farStill = streaks(env, st.far, true, st.drift, st.C.rainFar)), 0, 0);
+    else if (st.far.length) {
       g.fillStyle = st.C.rainFar;
       for (const d of st.far) { const { x, y } = dropAt(d, t, st.drift, W, H); g.fillRect(x, y, 1, 2); }
     }
   },
   front(g, env, t, st) {
     const th = env.theme, { W, H } = env, C = st.C;
-    if (st.drops.length) {
+    if (st.drops.length && env.stillWeather) g.drawImage(st.nearStill || (st.nearStill = streaks(env, st.drops, false, st.drift, th.rainLight ? C.rainLight : C.rain)), 0, 0);
+    else if (st.drops.length) {
       g.fillStyle = th.rainLight ? C.rainLight : C.rain;
       const dx = st.drift > 0.2 ? 2 : 1;
       for (const d of st.drops) { const { x, y } = dropAt(d, t, st.drift, W, H); g.fillRect(x, y, 1, 2); g.fillRect(x - dx, y + 2, 1, 2); }
@@ -116,6 +134,11 @@ part('splashes', {
     for (let i = 0; i < (th.splashes || 0); i++) st.splashes.push({ x: (A() * W) | 0, y: Math.min(floor, Math.round(H * (0.86 + A() * 0.13))), per: 0.6 + A() * 1.2, ph: A() * 3 });
   },
   front(g, env, t, st) {
+    if (env.stillWeather) {  // every third, caught mid-splash
+      g.fillStyle = st.C.splash;
+      st.splashes.forEach((s, i) => { if (i % 3 === 0) { g.fillRect(s.x - 1, s.y - 1, 1, 1); g.fillRect(s.x + 1, s.y - 1, 1, 1); g.fillRect(s.x, s.y - 2, 1, 1); } });
+      return;
+    }
     for (const s of st.splashes) {
       const ph = ((t + s.ph) % AF.u.per(s.per)) / AF.u.per(s.per); if (ph > 0.14) continue;
       g.fillStyle = st.C.splash;
@@ -131,6 +154,7 @@ part('snow', {
   },
   front(g, env, t, st) {
     const { W, H, u } = env;
+    t = clock(env, t);
     if (st.flakes.length) {
       g.fillStyle = st.C.snow;
       for (const f of st.flakes) {
@@ -151,6 +175,7 @@ part('glints', {
   },
   front(g, env, t, st) {
     const C = st.C;
+    t = clock(env, t);
     for (const gl of st.glints) {
       const a = Math.max(0, Math.sin(t * AF.u.cyc(gl.sp) + gl.ph)); if (a < 0.6) continue;
       g.fillStyle = `rgba(${C.glint},${a})`; g.fillRect(gl.x, gl.y, 1, 1);
@@ -166,7 +191,7 @@ part('wind', {
   },
   front(g, env, t, st) {
     const { W, u } = env;
-    if (st.leaves.length && !env.still && !AF.LOOP) {  // (a gust would come round every loop)
+    if (st.leaves.length && !env.still && !env.stillWeather && !AF.LOOP) {  // (a gust would come round every loop)
       const per = GUST_WINDOW, gi = Math.floor(t / per), ph = (t - gi * per) / GUST_SECS;
       if (rng(gi * 11 + 1)() < GUST_CHANCE && ph < 1) for (const l of st.leaves) {
         const q = ph * 1.3 - l.off * 0.3; if (q < 0 || q > 1) continue;
@@ -188,8 +213,9 @@ part('rings', {
     }
   },
   front(g, env, t, st) {
-    for (const r of st.rings) {
-      const q = ((t + r.ph) % AF.u.per(r.per)) / AF.u.per(r.per); if (q > 0.5) continue;
+    for (const [i, r] of st.rings.entries()) {
+      // (held still: each caught at a ring of its own size)
+      const q = env.stillWeather ? (1 + i % 3) / 7 : ((t + r.ph) % AF.u.per(r.per)) / AF.u.per(r.per); if (q > 0.5) continue;
       const rad = 1 + Math.round(q * 6); g.fillStyle = `rgba(230,240,250,${0.7 * (1 - q * 2)})`;
       g.fillRect(r.x - rad, r.y, 1, 1); g.fillRect(r.x + rad, r.y, 1, 1); g.fillRect(r.x - (rad >> 1), r.y - 1, rad, 1); g.fillRect(r.x - (rad >> 1), r.y + 1, rad, 1);
     }
@@ -205,6 +231,7 @@ part('fogBanks', {
   },
   front(g, env, t, st) {
     const { W } = env;
+    t = clock(env, t);
     for (const b of st.banks) { const x = ((b.x + t * AF.u.drift(b.v, W + b.cv.width)) % (W + b.cv.width)) - b.cv.width; g.drawImage(b.cv, Math.round(x), b.y); }
   },
 });
@@ -215,6 +242,7 @@ part('lightning', {
   back(g, env, t, st) {
     const th = env.theme, { W, H, u, hor } = env;
     st.flash = 0;
+    if (th.lightning && env.stillWeather) { if (env.stillBolt) env.stillBolt(g, env, st); return; }
     if (th.lightning && !env.still && !AF.LOOP) {
       const per = LIGHTNING_WINDOW, i = Math.floor(t / per), ph = t - i * per - rng(i * 7 + 3)() * 12;
       if (rng(i * 13 + 5)() < LIGHTNING_CHANCE && (ph >= 0 && ph < 0.07 || (ph > 0.16 && ph < 0.22))) {

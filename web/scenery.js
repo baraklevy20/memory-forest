@@ -20,7 +20,22 @@ AF.envOf = env => AF.ENVS[env.mood.special] || {};
  * either file removes it from the add-on. A scene has one landscape and one landmark. */
 AF.LANDSCAPES = AF.LANDSCAPES || {};
 AF.landscape = function (key, spec) { AF.LANDSCAPES[key] = spec; };
-AF.landOf = env => AF.LANDSCAPES[env.mood.landscape] || {};
+/* A scenery that frames the forest in a window (the rooms) sets env.fitX(x, env) in its
+ * prepare: every landscape then plants its rows through it, the landscape's own squeeze
+ * still applied first, so each tree stands where it can be seen and hovered. */
+const fitted = new WeakMap();
+AF.landOf = env => {
+  const land = AF.LANDSCAPES[env.mood.landscape] || {}, fit = env.fitX;
+  if (!fit) return land;
+  let byFit = fitted.get(land);
+  if (!byFit) fitted.set(land, byFit = new Map());
+  if (!byFit.has(fit)) {
+    byFit.set(fit, Object.assign(Object.create(land), {
+      placeX(it, e) { return fit(land.placeX ? land.placeX(it, e) : it.x, e); },
+    }));
+  }
+  return byFit.get(fit);
+};
 
 AF.LANDMARKS = AF.LANDMARKS || {};
 AF.landmark = function (key, spec) { AF.LANDMARKS[key] = spec; };

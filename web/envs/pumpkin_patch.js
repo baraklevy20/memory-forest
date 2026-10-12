@@ -554,8 +554,10 @@ function patch(env) {
     const x = Math.round(W * (i + 0.2 + R() * 0.6) / n), qq = 0.35 + R() * 0.62, y = Math.round(hor + (H - hor) * (0.06 + 0.9 * qq));
     loose.push({ x, y, ky: y, size: qq > 0.8 ? (R() < 0.5 ? 3 : 2) : qq > 0.55 ? 2 : 1, lit: th.pkLit && R() < 0.8, key: 'L' + i });
   }
+  const land = AF.landOf(env), dry = q => !(land.wet && land.wet(env, q.x - (q.w >> 1) - 1, q.x + (q.w >> 1) + 1, q.y));
   loose.sort((a, b) => b.y - a.y);
   for (const q of loose.slice()) { dress(q, q.key, env); friends(q, q.key, env, loose); }
+  for (let i = loose.length; i--;) if (!dry(loose[i])) loose.splice(i, 1);  // none in the water
   for (const p of (env.placed || []).slice().reverse()) {
     const t = p.it;
     if (t.pond || t.fromFront > 7 || t.stage < 1 || hashN('pk', t.seed) > 0.3) continue;
@@ -570,6 +572,7 @@ function patch(env) {
       const b = dress({ y: y + 2, size: size - 1, lit: th.pkLit && t.seed % 8 !== 1, ky: 1 }, 'T2' + t.seed, env);
       b.x = x - side * Math.round(sw / 2 + b.w / 2 + 1); list.push(b);
     } else friends(a, 'T' + t.seed, env, list, side);
+    if (!list.every(dry)) continue;
     list.sort((m, k) => m.ky - k.ky);
     byTree.set(p, list);
   }
