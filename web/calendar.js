@@ -55,11 +55,14 @@ const METALS_ON_LIGHT = { '#e3b04b': { G: '#b07d1e', L: '#e3b04b', D: '#8f6a1c' 
   '#c4834a': { G: '#a8692f', L: '#c4834a', D: '#7a4a22' } };
 const PINE_PERCENT = 28;
 // the four shades split your days studied in the last year at these shares (fewest to most):
-// a quarter of them each
-const SHADE_SPLITS = [0.25, 0.5, 0.75], SHADE_SPAN = 365;
+// the most only your top tenth, so it marks your exceptional days rather than a whole busy season
+const SHADE_SPLITS = [0.4, 0.7, 0.9], SHADE_SPAN = 365;
 // the days ahead by their cards due, on a log scale up to the busiest day in the next year (due
-// counts fall away steadily, so a quarter of the days each would light only the next weeks)
-const BEFORE_FOREST = 0.5;  // a day before the forest's start date: its tile this strong (your record, not the forest's time)
+// counts fall away steadily, so a quarter of the days each would light only the next weeks).
+// The days that sit back, faded this far into the page's colour, the same for both: the days
+// ahead (their soil) and the days before the forest's start date (your record, not the
+// forest's time); less on a light page, where brown faded further goes grey
+const FADE = 0.5, FADE_LIGHT = 0.3;
 const TILE_VARIANTS = 4;  // each shade's tile comes in this many textures, drawn once
 const DAY_MS = 86400000;
 const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (more when wide, fewer when narrow), this month this far along
@@ -67,14 +70,18 @@ const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (m
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
 const LABEL_GAP = 6, TIP_GAP = 8;  // css px between two month labels, and between a day and its tooltip
-const THEME_SETTLE_MS = 400;
-const TOUCH_PAD = 6, TAP_SLOP = 10;  // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move  // a page whose colour eases to the new theme has got there by then
+const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
+// low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
+const TOUCH_PAD = 6, TAP_SLOP = 10;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const deep = v => Array.isArray(v) ? v.map(deep) : hex(v);
 const P = {};
 Object.entries({
-  // a day ahead's tilled soil, warm browns from light tan to dark loam, the same on any page
-  // (never faded into it), the busiest days the lightest
+  // a day ahead's tilled soil, from a light day to a heavy one: on a dark page, earthy browns
+  // (faded into it, they stay soil)
+  tillDark: [['#a48d6e', '#9a8465'], ['#836f56', '#7a674f'], ['#63523f', '#5b4b39'], ['#45372a', '#3e3125']],
+  tillDarkEdge: ['#8a7559', '#6c5b45', '#4f4132', '#33281e'],
+  // and on a light page warmer ones, from tan to loam (the earthy ones faded towards white go grey)
   till: [['#d2a86e', '#c99e64'], ['#b07a42', '#a6713a'], ['#87552a', '#7d4d25'], ['#5c3517', '#532f13']],
   tillEdge: ['#b8905a', '#925f30', '#6b411d', '#44260f'],
   gold: '#e3b04b', goldOnLight: '#a8782a', past: '#9a8a74',
@@ -217,8 +224,9 @@ function shades(env, dark) {
   // a scenery whose trees are not its colour names its own (`calendar`: Frozen market's ice blue)
   const chroma = c => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]), own = AF.envOf(env).calendar;
   const key = readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a));
-  // (about evenly far apart, the top two as easy to tell apart as the rest)
-  const steps = dark ? [mix(key, DARK, 0.58), mix(key, DARK, 0.36), mix(key, DARK, 0.1), mix(key, PALE, 0.5)]
+  // (about evenly far apart; on a dark page the top one only a little towards white, so a busy
+  // day never outshines the forest)
+  const steps = dark ? [mix(key, DARK, 0.6), mix(key, DARK, 0.42), mix(key, DARK, 0.2), mix(key, PALE, 0.2)]
     : [mix(key, PALE, 0.45), mix(key, PALE, 0.1), mix(key, DARK, 0.22), mix(key, DARK, 0.48)];
   return { grass: steps.map(c => [c, mix(c, DARK, 0.07)]), edge: steps.map(c => mix(c, DARK, 0.22)) };
 }
@@ -284,8 +292,11 @@ function drawAnimal(g, spr, x0, y0, tint, outline) {
  * tile among them (or null for an empty one), the key's, and the hover's */
 function paletteOf(H, sp, paper) {
   const dark = paper.dark, S = shades(sp, dark);
-  const soil = lv => P.till[lv], soilEdge = lv => P.tillEdge[lv];
-  const dueLv = n => 3 - H.dueShade(n);  // (the busiest day the lightest tan, on any page)
+  // the soil faded into the page, so the days ahead sit behind the days you studied
+  const fade = dark ? FADE : FADE_LIGHT, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
+  const soil = lv => till[lv].map(c => mix(c, paper.bg, fade)), soilEdge = lv => mix(edges[lv], paper.bg, fade);
+  // (more due stands out more, as more studied does: lighter on a dark page, darker on a light one)
+  const dueLv = n => dark ? 3 - H.dueShade(n) : H.dueShade(n);
   const tile = c => {
     const v = hashStr(iso(c.ms)) % TILE_VARIANTS, soilTile = lv => tilesOf(soil(lv), soilEdge(lv))[v];
     // today before you study: soil, by the cards it has due, until your first review
@@ -336,7 +347,7 @@ function paint(H, win, sp, paper) {
   for (const c of cells) {
     const t = pal.tile(c);
     // (a day before the forest's start date, studied or not, dimmed)
-    g.globalAlpha = H.fs !== null && c.o < H.fs ? BEFORE_FOREST : 1;
+    g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - (dark ? FADE : FADE_LIGHT) : 1;
     if (t) g.drawImage(t, c.x, c.y);
     else empty(g, c.x, c.y);
     g.globalAlpha = 1;
