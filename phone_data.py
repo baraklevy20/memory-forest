@@ -119,6 +119,10 @@ def phone_payload(page: dict, cfg: dict, now: _dt.datetime, script: str, real: d
     """What the note holds: the desktop page's data (`page`, from payload.payload()), less
     what only the deck list can use, with the days' scenes and the script to draw it with."""
     data = {k: v for k, v in page.items() if k not in DESKTOP_ONLY}
+    # the study calendar under the forest (while it shows on the main screen), with nothing to
+    # click through to on the phone
+    if data.get("calendar"):
+        data["calendar"] = dict(data["calendar"], browse=False)
     data.update(
         v=VERSION,
         script=script,

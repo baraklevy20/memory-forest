@@ -12,7 +12,7 @@ from aqt import mw
 from .catalog import core_scripts, draft_scripts, scenery_files
 from .payload import payload
 from .scope import excluded_decks
-from .state import MODULE, config, log, shows_on_deck_list
+from .state import MODULE, calendar_on, config, log, shows_on_deck_list, shows_on_finished
 
 WEB = f"/_addons/{MODULE}/web"
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
@@ -33,9 +33,35 @@ def _url(rel: str) -> str:
     return f"{WEB}/{rel}?v={stamp}"
 
 
-def _panel_parts(did: int | None = None, highlight: bool = False) -> tuple:
+def _main_panel() -> tuple | None:
+    """What the deck list shows: (show the forest, show the study calendar), or None for no
+    panel at all. Each is a setting of its own, so either may show without the other."""
+    cfg = config()
+    forest, calendar = shows_on_deck_list(cfg), calendar_on("main", cfg)
+    return (forest, calendar) if forest or calendar else None
+
+
+def _deck_panel(deck: dict) -> tuple | None:
+    """What a deck's screen shows: (its deck id, the main forest with that deck lit rather than
+    a forest of its own, show the forest), or None for no panel. A filtered deck has none, nor
+    does one left out of the forest. With only the calendar showing, the panel is built as the
+    lit-up kind: the main forest is kept built, so that costs nothing."""
+    cfg = config()
+    if deck.get("dyn") or deck["id"] in excluded_decks(cfg):
+        return None
+    mode = cfg.get("deck_forest_mode", "highlight")
+    if mode not in ("highlight", "own", "off"):
+        log(f"unknown deck_forest_mode {mode!r}; showing no deck forest")
+        mode = "off"
+    forest = mode != "off"
+    if not forest and not calendar_on("decks", cfg):
+        return None
+    return deck["id"], mode != "own", forest
+
+
+def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> tuple:
     """(element id, data as JSON, scripts before the boot script) for one forest panel."""
-    info = payload(did, highlight)
+    info = payload(did, highlight, show_forest)
     mood = info["mood"]
     data = json.dumps(info, ensure_ascii=False).replace("</", "<\\/")
     # only the pieces this scene actually needs are loaded, and each lives in one file of its own
@@ -44,8 +70,8 @@ def _panel_parts(did: int | None = None, highlight: bool = False) -> tuple:
     return ROOT, data, srcs
 
 
-def _panel_html(did: int | None = None, highlight: bool = False) -> str:
-    root, data, srcs = _panel_parts(did, highlight)
+def _panel_html(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> str:
+    root, data, srcs = _panel_parts(did, highlight, show_forest)
     boot = _url(BOOT)
     return (
         f'<link rel="stylesheet" href="{_url("forest.css")}">'
@@ -57,34 +83,69 @@ def _panel_html(did: int | None = None, highlight: bool = False) -> str:
 
 
 def on_deck_browser(deck_browser, content) -> None:
-    if not shows_on_deck_list():  # switched off: only the deck screens have one
+    shows = _main_panel()
+    if shows is None:  # both switched off: only the deck screens have one
         return
     try:
         # content.tree renders inside a <table>, so a block there would be hoisted above
         # the decks; the start of the stats section sits directly below the deck list.
-        content.stats = _panel_html() + content.stats
+        content.stats = _panel_html(show_forest=shows[0]) + content.stats
     except Exception:
         log("could not render the forest:\n" + traceback.format_exc())
 
 
 def on_overview(overview, content) -> None:
     """A forest on a deck's own screen: grown from that deck and its subdecks, or the main
-    forest with that deck's trees lit (the Deck screens setting)."""
-    cfg = config()
-    mode = cfg.get("deck_forest_mode", "highlight")
-    if mode not in ("highlight", "own"):
-        if mode != "off":
-            log(f"unknown deck_forest_mode {mode!r}; showing no deck forest")
-        return
+    forest with that deck's trees lit (the Deck screens setting), and the deck's own study
+    calendar under it (or on its own)."""
     try:
-        deck = mw.col.decks.current()
-        if deck.get("dyn"):  # filtered decks borrow cards from elsewhere; skip them
+        shows = _deck_panel(mw.col.decks.current())
+        if shows is None:
             return
-        if deck["id"] in excluded_decks(cfg):  # left out of the forest: it has none
-            return
-        content.table += _panel_html(deck["id"], highlight=mode == "highlight")
+        content.table += _panel_html(*shows)
     except Exception:
         log("could not render the deck forest:\n" + traceback.format_exc())
+
+
+def on_page_loaded(web) -> None:
+    """A deck's screen once you have finished it: Anki shows its congratulations page in the
+    overview's place, a page of its own that never asks overview_will_render_content, so the
+    panel is added to it once it has loaded, as on_overview adds it to the usual screen (and
+    is only added where there is none: the usual screen has one already)."""
+    if web is not getattr(mw.overview, "web", None) or mw.state != "overview" or mw.col is None or not shows_on_finished():
+        return
+    if not _on_congrats(web):  # (the usual screen, with its panel already: nothing to build)
+        return
+    try:
+        shows = _deck_panel(mw.col.decks.current())
+        if shows is None:
+            return
+        root, data, srcs = _panel_parts(*shows)
+    except Exception:
+        log("could not render the finished deck's forest:\n" + traceback.format_exc())
+        return
+    # the panel's pieces put in by hand, in order (scripts added this way run in the order
+    # they were added only when not async), the boot script last, as _panel_html has them
+    js = (f"(function () {{ if (document.getElementById({json.dumps(root)})) return;"
+          f" const box = document.createElement('div'); box.className = 'af-finished';"
+          f" const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = {json.dumps(_url('forest.css'))};"
+          f" const el = document.createElement('div'); el.id = {json.dumps(root)}; el.className = 'af-panel';"
+          f" const d = document.createElement('script'); d.type = 'application/json'; d.id = {json.dumps(root + '-data')};"
+          f" d.textContent = JSON.stringify({data});"
+          f" box.append(css, el, d); document.body.append(box);"
+          f" for (const src of {json.dumps(srcs + [_url(BOOT)])}) {{ const s = document.createElement('script');"
+          f" s.src = src; s.async = false; if (src.indexOf({json.dumps(BOOT)}) >= 0) s.dataset.root = {json.dumps(root)};"
+          f" box.append(s); }} }})()")
+    web.eval(js)
+
+
+def _on_congrats(web) -> bool:
+    """Whether the overview shows Anki's congratulations page (a finished deck) rather than
+    its own screen."""
+    try:
+        return "congrats" in web.url().toString()
+    except Exception:
+        return False
 
 
 def refresh() -> None:
@@ -97,23 +158,31 @@ def refresh() -> None:
     if mw.col is None:  # still starting up, or between profiles
         return
     if mw.state == "deckBrowser":
-        if shows_on_deck_list():
-            _swap_or_reload(mw.deckBrowser.web, mw.deckBrowser.refresh)
+        shows = _main_panel()
+        if shows is not None:
+            _swap_or_reload(mw.deckBrowser.web, mw.deckBrowser.refresh, show_forest=shows[0])
         else:  # a forest just switched off is still on the page: draw the list again without it
             js = f"!!document.getElementById({json.dumps(ROOT)})"
             mw.deckBrowser.web.evalWithCallback(js, lambda there: mw.deckBrowser.refresh() if there else None)
     elif mw.state == "overview":
-        mode = config().get("deck_forest_mode", "highlight")
-        deck = mw.col.decks.current()
-        if mode in ("highlight", "own") and not deck.get("dyn") and deck["id"] not in excluded_decks():
-            _swap_or_reload(mw.overview.web, mw.overview.refresh, deck["id"], mode == "highlight")
+        shows = _deck_panel(mw.col.decks.current())
+        web = mw.overview.web
+        if shows is not None and _on_congrats(web):
+            # a finished deck's page (on_page_loaded): the panel taken off it as it is, or swapped,
+            # or put on it again, with no reload of Anki's own page
+            if shows_on_finished():
+                _swap_or_reload(web, lambda: on_page_loaded(web), *shows)
+            else:
+                web.eval("document.querySelectorAll('.af-finished').forEach(e => e.remove())")
+        elif shows is not None:
+            _swap_or_reload(web, mw.overview.refresh, *shows)
         else:
             mw.overview.refresh()
 
 
-def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False) -> None:
+def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False, show_forest: bool = True) -> None:
     try:
-        root, data, srcs = _panel_parts(did, highlight)
+        root, data, srcs = _panel_parts(did, highlight, show_forest)
     except Exception:
         log("could not rebuild the forest:\n" + traceback.format_exc())
         return

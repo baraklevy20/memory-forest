@@ -9,8 +9,8 @@ from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, journal, live_weather, milestones, news, presets, scene, study_log
-from .edition import debug_available
+from . import events_state, forest_data, journal, live_weather, marks, milestones, news, presets, scene, study_log
+from .edition import debug_available, debug_edition
 from .phone_note import phone_cards
 from .scope import changes, day_cutoff, deck_ids, excluded_decks, since
 from .seasons import follow_season, season_returns
@@ -24,19 +24,33 @@ from .state import (
     TEST_TREES_DEFAULT,
     TEST_TREES_MAX,
     animation_mode,
+    calendar_on,
+    calendar_view,
     clamp_int,
     config,
     forget_remembered,
     keeps_suspended,
     load_state,
     log,
+    WEEK_START_DAYS,
     remembered,
     save_state,
     settings_open,
+    shows_record,
+    streak_from_start,
+    week_start,
 )
 
 # what each tree holds that the page never reads (it goes to the phone as well, at every sync)
 PAGE_LEAVES_OUT = ("mature", "day")
+# zooming in among the trees (web/visit.js): held back from release for now, so on only while
+# debugging as this copy itself (not while the Debug tab pretends to be the base or Plus
+# edition, which show it as a release does); True lets everyone have it
+ZOOM_RELEASED = False
+# the study calendar shows the cards due this many days ahead (today first)
+CALENDAR_DUE_DAYS = 800  # (time enough for the next whole year)
+# the test forest's reviews in the calendar: a few for each card a day learned, or a day's worth
+TEST_REVIEWS_PER_CARD, TEST_DAY_REVIEWS = 4, 40
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
 # the trees of each forest's deep forest, as last sent (by deck id, "" for the deck list's):
@@ -163,7 +177,7 @@ def debug_tools(cfg: dict):
     return SimpleNamespace(debug_events=debug_events, fake_forest=fake_forest)
 
 
-def payload(did: int | None = None, highlight: bool = False) -> dict:
+def payload(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> dict:
     cfg = follow_season(config())
     # the test forest is a developer's tool, so it only exists while debug is on
     tools = debug_tools(cfg)
@@ -201,7 +215,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         # each tree's count of cards known well only adds up to the animals' milestones, and
         # its day number is only for remembering ancient trees: the page needs neither
         "trees": [_for_page(t) for t in forest["trees"]],
-        "stats": forest["stats"],
+        "stats": _page_stats(forest["stats"], cfg, test, did, highlight, changed),
         "visitors": forest["visitors"],
         "anniversaries": ann,
         "mood": mood,
@@ -214,6 +228,7 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         "testForest": test,
         "animations": ANIMATION_VALUES[animation_mode(cfg)],
         "tooltips": True,
+        "zoom": ZOOM_RELEASED or (debug_available(cfg) and not debug_edition(cfg)),
         "maxWidth": clamp_int(cfg.get("max_width"), MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX),
         "credit": mood.get("source") == "real",
         "weatherError": weather_error,
@@ -228,8 +243,111 @@ def payload(did: int | None = None, highlight: bool = False) -> dict:
         # what's new: a note on the deck list's forest only, and the cog's dot on every one
         "news": None if did else news.note(cfg, day),
         "newDot": news.cog_dot(cfg),
+        # the forest itself may be switched off on this screen while the study calendar is on
+        "showForest": show_forest,
+        # the study calendar (web/calendar.js): the whole collection's on the main screen, the
+        # deck's own on a deck's screen
+        "calendar": _calendar(forest, all_trees, cfg, test, changed, did, highlight),
         **extras,
     }
+
+
+# a week start as the page counts days (Date.getUTCDay: Sunday 0, Monday 1 .. Saturday 6)
+
+
+def _week_start_day(cfg: dict) -> int:
+    """The day the study calendar's weeks start on, as the page counts days: the chosen one, or
+    the system's (Qt's locale: a Mac's Language & Region setting, say), Monday if it can't say."""
+    chosen = week_start(cfg)
+    if chosen != "system":
+        return WEEK_START_DAYS[chosen]
+    try:
+        from aqt.qt import QLocale
+        day = QLocale.system().firstDayOfWeek()  # Qt counts Monday 1 .. Sunday 7
+        return int(getattr(day, "value", day)) % 7
+    except Exception:
+        return WEEK_START_DAYS["monday"]
+
+
+def _day_reviews(cutoff: int, dids: list | None, excluded, begin: int | None, skip, changed) -> dict:
+    """{days ago: reviews} in the `dids` decks (the whole collection for None) but the `excluded`
+    ones and the `skip` cards, from `begin` (None: all of them), remembered until the study data
+    changes: the days the caption's streak and the study calendar go by when they are not the
+    forest's own."""
+    name = "day_reviews" if begin is None else "day_reviews_since"  # (one answer is kept per name)
+    return remembered(name, changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), begin, frozenset(skip)),
+                      lambda: study_log.load_day_reviews(mw.col.db, cutoff, dids, excluded, begin, skip))
+
+
+def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed) -> dict:
+    """The numbers the page shows, their streak the study calendar's. With a start date, the
+    streak is still your real one, unbroken by it (a young forest is a choice of look, not a
+    lapse): only the forest's own milestones (its animals, the journal's) go by the days since it
+    began, from `stats` as the forest has them. Unless the Decks tab says to count the streak
+    from the start date too, or the calendar on this screen shows nothing before it. Under the
+    whole forest on a deck's screen the calendar is the deck's own, and so is the streak."""
+    if test:
+        return stats
+    begin = since(cfg)
+    calendar_here = calendar_on("decks" if did else "main", cfg)
+    from_start = begin is not None and (streak_from_start(cfg) or (calendar_here and not shows_record(cfg)))
+    own = bool(did and highlight and calendar_here)
+    if not own and (begin is None or from_start):  # the forest's own streak is the one
+        return stats
+    cutoff, excluded = day_cutoff(mw.col), excluded_decks(cfg)
+    dids = deck_ids(did, excluded) if did and (own or not highlight) else None
+    streak, longest = forest_data._streaks(set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, phone_cards(), changed)))
+    return dict(stats, streak=streak, longest_streak=longest)
+
+
+def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, did: int | None = None,
+              highlight: bool = False) -> dict | None:
+    """What the study calendar is drawn from: its view, the date of the first day counted, each
+    day's reviews from then to today, the cards due on each day from today on, the day each of
+    the forest's animals came (milestones.animal_days), and the rule for ponds it shares with the forest;
+    None while it is off on this screen. On the main screen the days are the forest's own (its
+    decks and start date), so its streak is the caption's; on a deck's screen they are that
+    deck's and its subdecks', with the animals of its own forest if it shows one. `trees` are
+    all of the forest's, the deep forest's too."""
+    if not calendar_on("decks" if did else "main", cfg):
+        return None
+    col = mw.col
+    cutoff = day_cutoff(col)
+    excluded, skip = excluded_decks(cfg), phone_cards()
+    dids = deck_ids(did, excluded) if did and not test else None
+    animals = not did or not highlight  # a lit-up deck screen shows the main forest's animals, not the deck's
+    if test:
+        # the test forest's days studied: the debug timeline's, or its trees' days and as many
+        # days back from today as its streak claims (the day before it missed, so it is no
+        # longer); each with a few reviews for each card learned
+        studied = forest.get("review_days")
+        if studied is None:
+            streak = forest["stats"]["streak"]
+            studied = ({t["ago"] for t in trees} - {streak}) | set(range(streak))
+        learned = {t["ago"]: t["n"] for t in trees}
+        day_reviews = {ago: learned.get(ago, 0) * TEST_REVIEWS_PER_CARD or TEST_DAY_REVIEWS for ago in studied}
+    elif dids and highlight:  # the main forest above it: the deck's own days, read on their own
+        day_reviews = _day_reviews(cutoff, dids, excluded, since(cfg), skip, changed)
+    else:
+        day_reviews = forest.get("day_reviews") or {}
+    # with a start date (Ignore before), the reviews from before it too: the calendar shows your
+    # whole record as if there were none, but for the animals, the forest's own (web/calendar.js)
+    begin, forest_start, own = since(cfg), None, day_reviews  # (the animals' days stay the forest's own)
+    if begin and not test and shows_record(cfg):
+        forest_start = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
+        day_reviews = _day_reviews(cutoff, dids, excluded, None, skip, changed)
+    oldest = max(day_reviews, default=0)
+    days = [day_reviews.get(ago, 0) for ago in range(oldest, -1, -1)]
+    due = remembered("calendar_due", changed and (changed, cutoff, frozenset(excluded), frozenset(skip), tuple(dids or ())),
+                     lambda: study_log.load_due(col.db, col.sched.today, CALENDAR_DUE_DAYS, excluded, skip, dids))
+    return {"view": calendar_view(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
+            "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
+                       if animals else [],
+            "breakDays": forest_data.BREAK_DAYS,
+            "forestStart": forest_start,
+            "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
+            "marks": marks.important_days(col),
+            "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
 
 
 def _scene_name(cfg: dict, today: _dt.date) -> dict:

@@ -40,6 +40,30 @@ function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const canBrowse = () => typeof pycmd === 'function';  // Anki's bridge may not be a window property
 const send = msg => { if (canBrowse()) pycmd(msg); };
+// the colour behind a page: the first of `els` with a background you can see, as [r, g, b], or
+// null (read as it is drawn, so any theme and any Anki version answers alike)
+function pageBg(els) {
+  for (const el of els) {
+    const m = el && el.nodeType === 1 && window.getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
+    if (m && (m.length < 4 || +m[3] > 0.5)) return [+m[0], +m[1], +m[2]];
+  }
+  return null;
+}
+/* Where a pointer event on `el` is, in its own css pixels as the layout has them, [x, y]: from
+ * the event's offset, which a turned element (the phone's sideways view) keeps in the element's
+ * own frame, taken back out of any zoom an app puts on the page (AnkiDroid's card zoom), which
+ * the offset and the screen show but the layout's sizes don't (a 90-degree turn swaps the box's
+ * sides, which leaves its area alone) */
+function pointIn(e, el) {
+  const r = el.getBoundingClientRect(), w = el.clientWidth, h = el.clientHeight;
+  const zoom = w && h ? Math.sqrt(r.width * r.height / (w * h)) || 1 : 1;
+  return [e.offsetX / zoom, e.offsetY / zoom];
+}
+// the colour behind a transparent page, which AnkiDroid and AnkiMobile paint themselves: their
+// night grey in night mode (the card's class: the app's theme, which the system's need not be),
+// else white
+const NIGHT_PAGE = [47, 47, 49], DAY_PAGE = [255, 255, 255];
+const appBg = () => document.querySelector('.nightMode, .night_mode, .night-mode') ? NIGHT_PAGE : DAY_PAGE;
 // "Animate the forest": on, off, or 'system' (still while the system asks for less motion)
 const animates = data => data.animations === 'system'
   ? !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -66,7 +90,7 @@ function along(values, at) {
   const n = values.length, i = Math.floor(at), f = at - i, a = values[((i % n) + n) % n], b = values[(((i + 1) % n) + n) % n];
   return a + (b - a) * f;
 }
-AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates };
+AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates, pageBg, appBg, pointIn };
 AF.STAGE_H = [4, 8, 13, 19, 27, 38];
 AF.STAGE_NAMES = ['seedling', 'sapling', 'young', 'mature', 'old', 'ancient'];
 AF.STAGE = { SEEDLING: 0, SAPLING: 1, YOUNG: 2, MATURE: 3, OLD: 4, ANCIENT: 5 };

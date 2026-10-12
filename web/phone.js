@@ -56,9 +56,15 @@ function forNow(note, now) {
   return data;
 }
 
-function when(iso) {
-  const d = new Date(iso);
-  return isNaN(d) ? '' : d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+/* how long ago the computer sent it: "just now", "3 hours ago", "yesterday", "4 days ago" */
+function ago(iso) {
+  const m = Math.round((Date.now() - new Date(iso)) / MINUTE);
+  if (!(m >= 1)) return 'just now';  // (or a computer whose clock runs ahead of the phone's)
+  if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
+  const h = Math.round(m / 60);
+  if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  const d = Math.round(h / 24);
+  return d === 1 ? 'yesterday' : d + ' days ago';
 }
 
 let note;
@@ -75,6 +81,7 @@ if (!note || !Array.isArray(note.days) || !note.days.length) {
 // under it need this much of the screen's width beside it, and the forest keeps this
 // margin from the screen's ends
 const SCENE_ASPECT = 2, CAPTION_ROOM = 120, SIDE_MARGIN = 24, RELAYOUT_MS = 200;
+const CALENDAR_SHARE = 0.62;  // the calendar's full screen: its weeks this much of the screen across (in whole pixels, kept crisp turned or not)
 // a forest sent this long ago asks for a sync on the computer
 const STALE_MS = 2 * 24 * 60 * MINUTE;
 // the screen's room, in the page's own pixels: a card zoomed (AnkiDroid's card zoom) draws each
@@ -88,22 +95,23 @@ function screenRoom() {
   return [window.innerWidth / k, window.innerHeight / k].map(Math.floor);
 }
 const portrait = () => { const [w, h] = screenRoom(); return h > w; };
-// going full screen: the forest is turned first, so it fills the screen as it opens
-let entering = false;
+// going full screen: the forest is turned first, so it fills the screen as it opens; and which
+// fills it, the forest or the study calendar under it (each has its button)
+let entering = false, mode = 'forest';
 
+// one quiet line under it all: when it was synced, and what to do only once that is long ago
+// (answering the card does no harm: the next sync makes it new again, phone.py _keep_new)
 const shell = document.createElement('div'), stage = document.createElement('div'), stamp = document.createElement('div');
-const noAnswer = document.createElement('div');
 shell.className = 'af-phone-shell';
 stage.className = 'af-phone-stage';
-stamp.className = noAnswer.className = 'af-phone-note';
+stamp.className = 'af-phone-note';
 const sentAt = new Date(note.updated || '');
 const stale = Date.now() - sentAt.getTime() > STALE_MS;
-stamp.textContent = `Sent from Anki on your computer${note.updated ? ', ' + when(note.updated) : ''}. `
-  + (stale ? 'Open Anki on your computer and sync to bring it up to date. ' : '');
-noAnswer.textContent = 'No need to answer this card: just go back.';
+stamp.textContent = (note.updated ? 'Synced ' + ago(note.updated) + '. ' : '')
+  + (stale ? 'Sync Anki on your computer to bring it up to date. ' : '');
 root.before(shell);
 shell.append(stage);
-stage.append(root, stamp, noAnswer);
+stage.append(root, stamp);
 
 function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = 'Memory Forest could not draw your forest here.'; }
 
@@ -121,20 +129,23 @@ function layout() {
     const below = parseFloat(body.marginBottom) + parseFloat(body.paddingBottom) || 0;
     stage.style.minHeight = Math.max(0, vh - above - below) + 'px';
   }
-  const data = forNow(note, new Date());
+  const data = forNow(note, new Date()), isFull = !!document.fullscreenElement || entering;
   // as wide as the screen along the forest, but never taller than the screen across it
   // leaves room for beside the caption (a phone held sideways is only so tall)
   const along = side ? vh - SIDE_MARGIN : vw, across = side ? vw : vh;
-  // in full screen the forest is shown alone, with no caption to leave room for
-  const room = document.fullscreenElement ? 0 : CAPTION_ROOM;
+  // in full screen the forest is shown alone, with no caption to leave room for; or the
+  // calendar alone, as wide as the screen is long
+  const room = isFull ? 0 : CAPTION_ROOM;
   data.maxWidth = Math.floor(Math.min(data.maxWidth, along, (across - room) * SCENE_ASPECT));
+  if (isFull && mode === 'calendar') Object.assign(data, { showForest: false, maxWidth: Math.floor(along), swipedK: AF.calendarScaleFor(across * CALENDAR_SHARE) });
+  else if (isFull) data.calendar = null;
   // the same forest at the same size as already drawn (going full screen and turning both
   // ask more than once): nothing to build again. Of layouts that overlap (a tap while the
   // first is still loading its scenery), the latest is the one drawn
   // zooming in among the trees is the full screen's alone, and simply on there (web/visit.js):
   // outside it the forest is too small to walk into, and a finger scrolls the card
-  const zoom = document.fullscreenElement || entering ? 'always' : false;
-  const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal, zoom]), mine = ++layouts;
+  const zoom = isFull && mode === 'forest' ? 'always' : false;
+  const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal, zoom, data.showForest, !!data.calendar, data.swipedK]), mine = ++layouts;
   if (key === drawn && root.afEnv) return Promise.resolve();
   return AF.loadScripts(scenery(data.mood)).then(() => {
     if (mine !== layouts) return;
@@ -142,6 +153,7 @@ function layout() {
     // a zoomed-in view stays as it is through the new drawing (full screen, a turn)
     const zoomed = root.afVisits ? root.afVisits.state : null;
     AF.mount(root, data, { now: true, zoom });
+    placeTurns();
     if (zoomed && root.afVisits) root.afVisits.resume(zoomed);
   }, () => {
     if (mine === layouts) root.textContent = 'Your forest is on its way: sync once more to fetch its drawing.';
@@ -158,34 +170,61 @@ function scenery(mood) {
 }
 
 /* Full screen: the forest alone, without the app's bars and buttons, held in landscape where
- * the phone lets a page do that (sideways otherwise). A page may only go full screen
- * straight after a tap, so on a touch screen the first tap on the forest does it; the
- * button goes in and out after that. Whether the app's web view allows it at all is up to
- * the app: the button only shows where the page says it might, and says when it did not. */
+ * the phone lets a page do that (sideways otherwise); or the calendar alone. Each has an icon on
+ * itself - the forest's corner, the end of the calendar's footer - that becomes a close icon in
+ * full screen. Whether the app's web view allows it at all is up to the app: the icons only show
+ * where the page says it might, and the line under it says when it did not. */
 const FULLSCREEN_CHECK_MS = 600;
-const full = document.createElement('button'), hint = document.createElement('span');
-full.type = 'button';
-full.className = 'af-turn';
+const full = document.createElement('button'), fullCal = document.createElement('button');
+full.type = fullCal.type = 'button';
+full.className = 'af-turn af-expand';
+fullCal.className = 'af-turn af-expand af-expand-cal';
 full.hidden = !document.fullscreenEnabled;
-hint.textContent = 'Tap the forest to fill the screen. ';
-hint.hidden = true;
-stamp.prepend(hint);
-stamp.append(full);
-const label = () => { full.textContent = document.fullscreenElement ? 'Leave full screen' : 'Full screen'; };
+fullCal.hidden = !document.fullscreenEnabled || !note.calendar;
+// (each mount draws the forest and the calendar afresh, the calendar a moment after: the icons
+// are put back on them whenever they are missing)
+function placeTurns() {
+  const sc = root.querySelector('.af-scene'), foot = root.querySelector('.af-cal-foot');
+  if (sc && full.parentNode !== sc) sc.appendChild(full);
+  if (foot && fullCal.parentNode !== foot) foot.insertBefore(fullCal, foot.firstChild);
+}
+if (window.MutationObserver) new window.MutationObserver(placeTurns).observe(root, { childList: true, subtree: true });
+
+const EXPAND = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3h4v4M7 15H3v-4M15 3l-5 5M3 15l5-5"/></svg>';
+const CLOSE = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.5 4.5l9 9M13.5 4.5l-9 9"/></svg>';
+const label = () => {
+  const on = !!document.fullscreenElement;
+  full.innerHTML = fullCal.innerHTML = on ? CLOSE : EXPAND;
+  full.setAttribute('aria-label', on ? 'Leave full screen' : 'Forest full screen');
+  fullCal.setAttribute('aria-label', on ? 'Leave full screen' : 'Calendar full screen');
+};
 label();
 document.addEventListener('fullscreenchange', label);
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) entering = false; });
+// (out of full screen, the shell goes back to the card's own background)
+const backFromFull = () => { entering = false; shell.style.background = ''; shell.classList.remove('af-full-cal'); };
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) backFromFull(); });
 
-function enter() {
+/* the card's own colour: the first background the page has (the card, the body, the page), else
+ * the app's - AnkiDroid and AnkiMobile paint it behind a transparent page, which a full screen
+ * would show as black */
+const FOREST_BG = '#000000';
+function cardColor() {
+  const bg = AF.u.pageBg([document.querySelector('.card'), document.body, document.documentElement]) || AF.u.appBg();
+  return `rgb(${bg.join(',')})`;
+}
+function enter(what) {
+  mode = what;
   entering = true;
   layout();
-  // the full screen is the card's own colour, not the black a page gets by default
-  shell.style.background = window.getComputedStyle(document.body).backgroundColor;
+  // the forest on black, as a picture is shown; the calendar on the card's own colour, on a
+  // sheet of its own (phone.py's CSS)
+  shell.style.background = what === 'forest' ? FOREST_BG : cardColor();
+  shell.classList.toggle('af-full-cal', what === 'calendar');
   return shell.requestFullscreen().then(() => {
     const o = window.screen.orientation;
     if (o && o.lock) o.lock('landscape').catch(() => {});  // no landscape lock: the page turns the forest itself
   }, e => {  // not allowed: back upright
-    entering = false;
+    backFromFull();
     layout();
     throw e;
   });
@@ -194,22 +233,14 @@ function leave() {
   try { window.screen.orientation.unlock(); } catch { /* never locked */ }
   document.exitFullscreen().catch(() => {});
 }
-full.addEventListener('click', () => {
+const NOT_ALLOWED = "Full screen isn't allowed here. ";
+const notAllowed = () => { if (!stamp.textContent.includes(NOT_ALLOWED)) stamp.textContent = NOT_ALLOWED + stamp.textContent; };
+[[full, 'forest'], [fullCal, 'calendar']].forEach(([button, what]) => button.addEventListener('click', e => {
+  e.stopPropagation();  // (not a tap on the forest or a day under it)
   if (document.fullscreenElement) { leave(); return; }
-  enter().catch(() => { full.textContent = "Full screen isn't allowed here"; });
-  setTimeout(() => { if (!document.fullscreenElement) full.textContent = "Full screen isn't allowed here"; }, FULLSCREEN_CHECK_MS);
-});
-
-const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-if (touch && document.fullscreenEnabled) {
-  hint.hidden = false;
-  const once = e => {
-    shell.removeEventListener('click', once, true);
-    hint.hidden = true;
-    if (!e.target.closest('button') && !document.fullscreenElement) enter().catch(() => {});  // a button does its own thing
-  };
-  shell.addEventListener('click', once, true);
-}
+  enter(what).catch(notAllowed);
+  setTimeout(() => { if (!document.fullscreenElement) notAllowed(); }, FULLSCREEN_CHECK_MS);
+}));
 let pending;
 const relayout = () => { clearTimeout(pending); pending = setTimeout(layout, RELAYOUT_MS); };
 window.addEventListener('resize', relayout);

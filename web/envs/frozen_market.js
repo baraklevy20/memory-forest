@@ -21,7 +21,7 @@
 const AF = window.AnkiForest;
 const { hex, mix, rgb, rng, hashStr, layer, B4 } = AF.u;
 const H6 = a => a.map(hex);
-const bay = (x, y) => B4[(y & 3) * 4 + (x & 3)];
+const dither = (x, y) => B4[(y & 3) * 4 + (x & 3)];
 const hourOf = t => t === 'night' ? 'night' : (t === 'dusk' || t === 'golden_hour') ? 'dusk' : t === 'dawn' ? 'dawn' : 'day';
 // how far each hour is from the night's colours toward the day's
 const DAYNESS = { night: 0, dusk: 0.3, dawn: 0.58, day: 1 };
@@ -94,9 +94,9 @@ function ball(c, px, py, rx, ry) {
     if (hole && R() < hole) continue;
     const l = -(nx * 0.55 + ny * 0.8) + Math.sqrt(1 - q) * 0.35;
     let tn = l > 0.62 ? 4 : l > 0.2 ? 3 : l > -0.3 ? 2 : 1;
-    if (tn === 3 && l > 0.5 && bay(x, y) < 6) tn = 4;
-    if (tn === 2 && l > 0.13 && bay(x, y) < 5) tn = 3;
-    if (tn === 1 && l > -0.4 && bay(x, y) < 5) tn = 2;
+    if (tn === 3 && l > 0.5 && dither(x, y) < 6) tn = 4;
+    if (tn === 2 && l > 0.13 && dither(x, y) < 5) tn = 3;
+    if (tn === 1 && l > -0.4 && dither(x, y) < 5) tn = 2;
     tone[y * W + x] = tn;
     top = Math.min(top, y);
   }
@@ -533,7 +533,7 @@ function townPlan(T, th) {
       let tn = l > 0.55 ? 4 : l > 0.15 ? 3 : l > -0.3 ? 2 : 1;
       if (under) tn = Math.max(1, tn - 1);
       tone(x, y, tn);
-      if (tp < 0.12 && ti > 0 && Math.abs(dx) < hw - 1.5 && bay(x, y) < 4 && dx < hw * 0.3) set(x, y, M.SNOW);
+      if (tp < 0.12 && ti > 0 && Math.abs(dx) < hw - 1.5 && dither(x, y) < 4 && dx < hw * 0.3) set(x, y, M.SNOW);
     }
     for (const [at, reach, dip] of [[0.3, 0.72, 1.2], [0.72, 0.95, 1.8]]) {
       const ty = gTop + 3 + (ti + at) / tiers * (B - 6 - gTop);
@@ -747,7 +747,7 @@ function paintTown(env, T) {
       case M.BRICK: c = (y % 2 === 0) || ((x + (y >> 1) * 2) % 4 === 0) ? mix(C.brick, C.timber, 0.35) : C.brick; if (L) c = C.brickL; break;
       case M.TIM: c = C.timber; break;
       case M.ROOF: { const r = C.roof[p]; c = (y & 1) || ((x + (y >> 1) * 3) % 4 === 0) ? mix(r, C.timber, 0.3) : r; if (Tp) c = C.snow; else if (empty(x, y - 2) && (x + y) & 1) c = C.snowS; break; }
-      case M.SNOW: c = p === 1 ? (Tp && (x & 1) ? C.snow : mix(C.snow, C.snowS, 0.6)) : p === 2 ? (bay(x, y) < 3 ? mix(C.snow, C.snowS, 0.4) : C.snow) : L || Tp ? C.snow : C.snowS; if (th.xh === 'dusk' && L) c = mix(C.snow, rim, 0.3); break;
+      case M.SNOW: c = p === 1 ? (Tp && (x & 1) ? C.snow : mix(C.snow, C.snowS, 0.6)) : p === 2 ? (dither(x, y) < 3 ? mix(C.snow, C.snowS, 0.4) : C.snow) : L || Tp ? C.snow : C.snowS; if (th.xh === 'dusk' && L) c = mix(C.snow, rim, 0.3); break;
       case M.SNOWS: c = (x + y) & 1 ? C.snow : C.snowS; break;
       case M.WL: {
         if (!on) { c = C.winD; break; }
@@ -780,12 +780,12 @@ function paintTown(env, T) {
       case M.STAR: c = p ? hex('#ffffff') : hex(on ? '#dce8ff' : '#c8d0dc'); break;
       case M.WOOD: c = p === 2 ? C.woodL : p === 1 ? ((x + (y >> 1)) % 3 === 0 ? C.woodS : C.wood) : ((x & 1) ? C.wood : C.woodS); break;
       case M.AWN: c = p === 2 ? C.awnG : p === 1 ? C.awnR : C.awnW; if (on && get(x, y + 1) !== M.AWN) c = mix(c, LIT.core, 0.25); break;
-      case M.SLIT: { const deep = y > 0 && get(x, y - 1) !== M.SLIT; c = on ? (deep ? LIT.deep : bay(x, y) < 8 ? LIT.core : LIT.edge) : C.slitOff; break; }
+      case M.SLIT: { const deep = y > 0 && get(x, y - 1) !== M.SLIT; c = on ? (deep ? LIT.deep : dither(x, y) < 8 ? LIT.core : LIT.edge) : C.slitOff; break; }
       case M.GOODS: c = p === 3 ? hex(on ? '#4a8a5a' : '#2a4a34') : p === 2 ? hex(on ? '#a8502c' : '#6a3a28') : p === 1 ? (on ? hex('#c83040') : C.goods) : (on ? hex('#6a3424') : C.goods); break;
       case M.BULB: c = on ? (p === 1 ? hex('#fff0b8') : ((x >> 1) & 1 ? hex('#ffe08a') : hex('#ffb870'))) : mix(C.iron, C.snow, 0.3); break;
       case M.SIGN: c = [hex('#c02838'), hex('#1e5a3a'), hex('#2a3e7a'), hex('#6a2a4a')][p]; if (!on) c = mix(c, C.timber, 0.3); break;
       case M.QUAY: {
-        if (p === 2) { c = bay(x, y) < 11 ? C.snow : C.snowS; break; }
+        if (p === 2) { c = dither(x, y) < 11 ? C.snow : C.snowS; break; }
         if (p === 3) { c = C.stoneS; break; }
         const joint = (x + (y & 1) * 3) % 6 === 0;
         c = p === 0 ? (joint ? C.stoneJ : C.stone) : (joint ? C.stoneS : mix(C.stoneS, C.stoneJ, 0.5));
@@ -822,7 +822,7 @@ function paintTown(env, T) {
     if (m !== M.PL && m !== M.BRICK && m !== M.TIM && m !== M.SNOWS && m !== M.WOOD && m !== M.ST && m !== M.BST && m !== M.QUAY && m !== M.SNOW) continue;
     let near = 9;
     for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const q = G[(y + dy) * VW + x + dx]; if (q === M.WL || q === M.SLIT || q === M.LAMP) near = Math.min(near, Math.max(Math.abs(dx), Math.abs(dy))); }
-    if (near > 2 || bay(x, y) >= (near === 1 ? 9 : 4)) continue;
+    if (near > 2 || dither(x, y) >= (near === 1 ? 9 : 4)) continue;
     const j = i * 4, c = mix([d[j], d[j + 1], d[j + 2]], LIT.spill, D[i] ? 0.35 : 0.55);
     d[j] = c[0]; d[j + 1] = c[1]; d[j + 2] = c[2];
   }
@@ -858,10 +858,10 @@ function paintIce(env, T, plan, d, car) {
     const i = y * VW + x; if (G[i]) continue;
     const j = i * 4, yb = lip(x);
     let c;
-    if (y > yb) c = bay(x, y) < 5 ? snowB : snowA;
+    if (y > yb) c = dither(x, y) < 5 ? snowB : snowA;
     else {
       // three flat bands: the shadow under the quay, the ice, the paler ice toward the near bank
-      c = y < I0 + 2 || (y === I0 + 2 && bay(x, y) < 8) ? IP.far : y < midR || (y === midR && bay(x, y) < 8) ? L1 : IP.near;
+      c = y < I0 + 2 || (y === I0 + 2 && dither(x, y) < 8) ? IP.far : y < midR || (y === midR && dither(x, y) < 8) ? L1 : IP.near;
       const fb = foot[x] && foot[x] < y ? foot[x] : 0, ml = fb || I0 - 1, dist = y - ml;
       const [sc, shine] = src(x, 2 * ml + 1 - y);
       if (shine) { if (dist <= 3 || ((x + (hashStr('st' + x) & 1)) & 1) === 0 && (y + x * 3) % (9 - Math.min(5, dist >> 1)) !== 0) c = mix(c, sc, dist <= 3 ? 0.78 : dist <= 6 ? 0.6 : 0.45); }
@@ -872,7 +872,7 @@ function paintIce(env, T, plan, d, car) {
         if (sh2 && hashStr('ls' + x) % 3 === 0 && (y + x) % 5 !== 0 && dist < 12) c = mix(c, s2, 0.5 - dist * 0.025);
       }
       if (y === I0 && hashStr('qd' + x) % 3 === 0) c = mix(snowA, IP.far, 0.3);  // snow blown against the quay
-      else if (fb && y === fb + 1 && bay(x, y) < 9) c = snowB;                  // and round the feet of what stands on the ice
+      else if (fb && y === fb + 1 && dither(x, y) < 9) c = snowB;                  // and round the feet of what stands on the ice
       if (y === yb) c = mix(c, IP.crackD, 0.3);
     }
     d[j] = c[0]; d[j + 1] = c[1]; d[j + 2] = c[2]; d[j + 3] = 255;
@@ -895,7 +895,7 @@ function paintIce(env, T, plan, d, car) {
     const [cx, cy] = spot(), rx = 2 + R() * 4;
     for (let y = cy - 1; y <= cy + 1; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) {
       const q = ((x - cx) / rx) ** 2 + (y - cy) ** 2 * 0.8;
-      if (q < 1 && (q < 0.45 || bay(x, y) < 8)) tint(x, y, y > cy || q > 0.45 ? snowB : snowA, 1);
+      if (q < 1 && (q < 0.45 || dither(x, y) < 8)) tint(x, y, y > cy || q > 0.45 ? snowB : snowA, 1);
     }
   }
   // the gloss: little pairs of slanting highlights
@@ -1008,7 +1008,7 @@ function paintSky(env, g) {
     for (let y = Math.max(0, Math.round(T.base - reach - 30 * u)); y < Math.min(H, T.base + 2); y++) for (let x = 0; x < W; x++) {
       const up = (T.base - y) / reach, over = Math.exp(-(((x - sq) / (W * 0.45)) ** 2)) * 0.6 + 0.4;
       const kk = Math.max(0, 1 - up) * over;
-      if (kk * 16 > bay(x, y) + 0.5) set(x, y, mix(get(x, y), gc, hr === 'night' ? 0.45 : 0.32));
+      if (kk * 16 > dither(x, y) + 0.5) set(x, y, mix(get(x, y), gc, hr === 'night' ? 0.45 : 0.32));
     }
   }
   const MN = MOONS[hr] && !th.rain && !th.snow && !th.fog && !th.deck ? MOONS[hr] : null;
@@ -1042,7 +1042,7 @@ function paintSky(env, g) {
       let c = face;
       const maria = [[-0.3, -0.2, 0.3], [0.2, 0.25, 0.26], [0.3, -0.35, 0.16]];
       for (const [ax, ay, ar] of maria) if (((nx - ax) ** 2 + (ny - ay) ** 2) < ar * ar) c = mix(face, lo, 0.6);
-      if (nx + ny > 0.8 && bay(x, y) < (nx + ny - 0.8) * 16) c = mix(c, lo, 0.7);
+      if (nx + ny > 0.8 && dither(x, y) < (nx + ny - 0.8) * 16) c = mix(c, lo, 0.7);
       if (q > 0.8 && hr === 'dusk' && ny > 0) c = mix(c, hex('#e8a098'), 0.4);
       set(x, y, c);
     }
@@ -1062,10 +1062,10 @@ function paintSky(env, g) {
           const y = yb - r;
           if (MN && env.marketMoon && Math.hypot(x - env.marketMoon.x, y - env.marketMoon.y) < env.marketMoon.r + 2) continue;
           let c = r === 0 ? lit : r === 1 && n > 2 ? mix(body, lit, 0.4) : r === n - 1 ? top : body;
-          if (r >= 2 && r < n - 1 && bay(x, y) < 3) c = mix(body, lit, 0.3);
-          if (r === 0 && f > 0.3 && f < 0.75 && bay(x, y) < 6) c = lit2;
+          if (r >= 2 && r < n - 1 && dither(x, y) < 3) c = mix(body, lit, 0.3);
+          if (r === 0 && f > 0.3 && f < 0.75 && dither(x, y) < 6) c = lit2;
           const edge = Math.min(f, 1 - f);
-          if (edge < 0.12 && bay(x, y) > edge / 0.12 * 16) continue;  // frayed ends
+          if (edge < 0.12 && dither(x, y) > edge / 0.12 * 16) continue;  // frayed ends
           set(x, y, c);
         }
       }
@@ -1145,9 +1145,9 @@ function freezeRiver(env) {
       }
       continue;
     }
-    const [p, a, hw] = across(x, y), q = Math.min(1, p * 1.15), lv = Math.min(4, Math.floor(q * 4 + bay(x, y) / 16));
+    const [p, a, hw] = across(x, y), q = Math.min(1, p * 1.15), lv = Math.min(4, Math.floor(q * 4 + dither(x, y) / 16));
     let c = mix(IP.far, IP.near, lv / 4);
-    if (Math.abs(a) > 0.72 && bay(x, y) < 10) c = mix(c, IP.far, 0.4);
+    if (Math.abs(a) > 0.72 && dither(x, y) < 10) c = mix(c, IP.far, 0.4);
     const gq = x + y * 2;
     if (gq % 23 === 0 && hashStr('rg' + Math.floor(gq / 23) + ',' + (y >> 2)) % 3 === 0) c = mix(c, IP.gloss, 0.6);
     for (let k = 0; k < 3; k++) {
@@ -1156,8 +1156,8 @@ function freezeRiver(env) {
     }
     const nz = Math.sin(x * 0.13 + y * 0.8) + Math.sin(x * 0.041 - y * 0.37 + 0.7) + 0.5 * Math.sin(x * 0.31 + y * 1.3);
     const edge = Math.abs(a) - 0.84 - nz * 0.06;
-    if (edge > 0) c = edge > 0.06 || bay(x, y) < 9 ? snowA : snowB;
-    else if (nz > 1.8) c = bay(x, y) < 8 ? snowA : mix(snowA, c, 0.5);
+    if (edge > 0) c = edge > 0.06 || dither(x, y) < 9 ? snowA : snowB;
+    else if (nz > 1.8) c = dither(x, y) < 8 ? snowA : mix(snowA, c, 0.5);
     const j = i * 4; d[j] = c[0]; d[j + 1] = c[1]; d[j + 2] = c[2];
   }
   const CR = rng(313), tint = (x, y, c, k) => { if (x < 0 || x >= W || y < hor || y >= H || !S.vis[y * W + x]) return; const j = (y * W + x) * 4, o = mix([d[j], d[j + 1], d[j + 2]], c, k); d[j] = o[0]; d[j + 1] = o[1]; d[j + 2] = o[2]; };
@@ -1343,6 +1343,7 @@ function santaHat(g, env, { key, rows, x0, y0, flip, facesLeft, color }) {
 }
 
 AF.env('frozen_market', {
+  calendar: '#6e92c8',  // the study calendar in the river's ice blue: its trees' green says nothing of the frozen scene
   look: mood => clone(LOOKS[hourOf(mood.time)]),
   theme(th, mood) { th.xh = hourOf(mood.time); },
   after(th) {
@@ -1372,8 +1373,8 @@ AF.env('frozen_market', {
   groundPixel(c, x, y, env) {
     // drifts: soft blue hollows in the snow, dithered
     const n = Math.sin(x * 0.07 + y * 0.29) + Math.sin(x * 0.023 - y * 0.17 + 1.3) + 0.6 * Math.sin((x + y * 2) * 0.05);
-    if (n > 1.4 && bay(x, y) < 7) return mix(c, hex(env.theme.g1), 0.4);
-    if (n < -1.6 && bay(x, y) < 5) return mix(c, hex(env.theme.grass), 0.5);
+    if (n > 1.4 && dither(x, y) < 7) return mix(c, hex(env.theme.g1), 0.4);
+    if (n < -1.6 && dither(x, y) < 5) return mix(c, hex(env.theme.grass), 0.5);
     return c;
   },
   /* park lamps and benches among the front rows */
@@ -1385,7 +1386,7 @@ AF.env('frozen_market', {
     if (kind === 2) {  // a lamp post, its light pooled on the snow
       if (on) for (let dy = -2; dy <= 2; dy++) for (let dx = -7; dx <= 7; dx++) {
         const q = (dx / 7) ** 2 + (dy / 2.2) ** 2; if (q > 1) continue;
-        if ((1 - q) * 14 > bay(gx + dx, y + dy)) P(q < 0.35 ? 'rgba(255,214,150,.55)' : 'rgba(255,190,130,.35)', dx, dy);
+        if ((1 - q) * 14 > dither(gx + dx, y + dy)) P(q < 0.35 ? 'rgba(255,214,150,.55)' : 'rgba(255,190,130,.35)', dx, dy);
       }
       P(C.iron, 0, -11, 1, 12); P(C.iron, -1, 0, 3, 1); P(C.ironL, 0, -9, 1, 1);
       P(C.iron, -1, -13, 3, 1); P(C.iron, 0, -14, 1, 1);
@@ -1565,7 +1566,7 @@ AF.env('frozen_market', {
         for (let Y = Math.floor(y - r); Y <= y + r; Y++) for (let X = Math.floor(x - r); X <= x + r; X++) {
           if (X < 0 || X >= W || Y < 0 || Y >= M2.h || !M2.a[Y * W + X]) continue;
           const q = ((X + 0.5 - x) ** 2 + (Y + 0.5 - y) ** 2) / (r * r);
-          if (q > 1 || bay(X, Y) >= dens * (1 - q * 0.5)) continue;
+          if (q > 1 || dither(X, Y) >= dens * (1 - q * 0.5)) continue;
           puff.rect(X, Y, 1, 1);
         }
         g.fillStyle = s.steam ? SM[1] : SM[0];

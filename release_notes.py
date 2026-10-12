@@ -3,8 +3,9 @@ the AnkiWeb page's "What's new" (docs/ankiweb.html, by dev/notes.py), the GitHub
 notes (dev/release.py), the About tab's What's new, and what an update announces in the
 forest (news.py). Nothing here touches Anki, so the dev scripts and the tests use it too.
 
-A version is {"version", and its lists: "new", "improved", "fixed" (each under its heading),
-or "notes" (no heading)}. An item is its line, or {"text": its line, and maybe:
+A version is {"version", maybe "summary" (one line on what the update is about, before its
+lists, from 1.3.0 on), and its lists: "new", "improved", "fixed" (each under its heading), or
+"notes" (no heading)}. An item is its line, or {"text": its line, and maybe:
   "needs": what an edition must have to hear of it, each word "<kind>:<key>" (one of the
            kind, e.g. "scenery:aurora") or "<kind>" (any of it) - an edition without it
            never lists it (the public page is the base edition's);
@@ -60,6 +61,8 @@ def for_edition(versions: list, have: dict) -> list:
     out = []
     for v in versions:
         kept = {"version": v["version"]}
+        if v.get("summary"):
+            kept["summary"] = v["summary"]
         for key, _head in SECTIONS:
             items = [e for e in v.get(key, []) if has(e, have)]
             if items:
@@ -78,6 +81,8 @@ def to_html(versions: list) -> str:
     out = []
     for v in versions:
         out.append(f"<i>{v['version']}</i>")
+        if v.get("summary"):
+            out.append(f"<div>{v['summary']}</div>")
         for key, head in SECTIONS:
             if v.get(key):
                 if head:
@@ -107,7 +112,7 @@ def to_markdown(versions: list, version: str) -> str | None:
     v = next((v for v in versions if v.get("version") == version), None)
     if v is None:
         return None
-    lines = []
+    lines = [_markdown(v["summary"])] if v.get("summary") else []
     for key, head in SECTIONS:
         if v.get(key):
             if head:

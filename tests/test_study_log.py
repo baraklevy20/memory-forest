@@ -269,6 +269,37 @@ class EventQueryTests(unittest.TestCase):
         self.assertEqual((overdue, sorted(counts)), (3, [4, 6]))
         self.assertEqual(study_log.load_backlog(db, TODAY, CUTOFF, 30, excluded=[20])[0], 2)
 
+    def test_the_calendar_counts_the_cards_due_each_day_ahead(self):
+        con, db = self.db()
+        # cid, deck, home deck, queue, due, home deck's due
+        for row in ((1, 10, 0, 2, TODAY - 3, 0), (2, 10, 0, 2, TODAY, 0), (3, 10, 0, 1, 1790000000, 0),
+                    (4, 30, 10, 2, 9, TODAY + 2), (5, 20, 0, 3, TODAY + 1, 0), (6, 20, 0, -1, TODAY + 1, 0),
+                    (7, 10, 0, -2, TODAY + 1, 0), (8, 10, 0, 2, TODAY + 9, 0)):
+            con.execute("insert into cards values (?, ?, ?, ?, 2, ?, 30, '{}', ?, ?)", (row[0], row[0], *row[1:]))
+        # today: the overdue 1, 2 and the learning 3; then 5 (day learning) and 4 (by its home deck's
+        # due); suspended 6 and buried 7 nowhere, and 8 past the days asked for
+        self.assertEqual(study_log.load_due(db, TODAY, 5), [3, 1, 1, 0, 0])
+        self.assertEqual(study_log.load_due(db, TODAY, 5, excluded=[20]), [3, 0, 1, 0, 0])
+
+    def test_a_decks_calendar_counts_its_own_reviews(self):
+        con, db = self.db()
+        for cid, deck in ((1, 10), (2, 20), (3, 30)):  # 3 is in a filtered deck, borrowed from 10
+            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}', ?, 0)", (cid, cid, deck, 10 if deck == 30 else 0, TODAY + 1))
+        for cid, days in ((1, 2), (1, 0), (2, 2), (3, 2)):
+            con.execute("insert into revlog values (?, ?, 3, 1, 30, 30)", (ms(days) + cid, cid))
+        self.assertEqual(study_log.load_day_reviews(db, CUTOFF, [10]), {2: 2, 0: 1})
+        self.assertEqual(study_log.load_due(db, TODAY, 3, dids=[10]), [0, 2, 0])  # 1, and 3 by its home deck
+
+    def test_a_calendar_day_searches_its_reviews_or_what_falls_due(self):
+        con, db = self.db()
+        for row in ((1, 10, 0, TODAY + 5, 0), (2, 30, 10, 9, TODAY + 5), (3, 30, 10, 9, TODAY + 6)):  # 2 and 3 borrowed
+            con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}', ?, ?)", (row[0], row[0], *row[1:]))
+        search = lambda offset: study_log.calendar_search(db, offset, TODAY)  # noqa: E731
+        self.assertEqual(search(0), ["rated:1"])
+        self.assertEqual(search(-3), ["prop:rated=-3"])  # (not rated:4 -rated:3, which leaves out a card studied since)
+        self.assertEqual(search(5), ["(prop:due=5 OR cid:2)"])  # and the card borrowed, by its home deck's due
+        self.assertEqual(search(7), ["prop:due=7"])
+
     def test_a_leech_is_cured_once_it_grows_mature_and_stays_so(self):
         con, db = self.db()
         # cid, interval now, tagged, when it grew mature (days ago)

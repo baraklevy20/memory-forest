@@ -114,9 +114,57 @@ def keeps_suspended(cfg: dict | None = None) -> bool:
     return (cfg if cfg is not None else config()).get("keep_suspended", True) not in OFF_VALUES
 
 
+# the study calendar (web/calendar.js): its view, and the screens it shows on, each its own setting
+# (with or without the forest above it)
+CALENDAR_VIEWS = ("timeline", "by_year")
+CALENDAR_SCREENS = {"main": "calendar_main", "decks": "calendar_decks"}
+
+
+def calendar_view(cfg: dict | None = None) -> str:
+    """The study calendar's view: Timeline ("timeline": a year with this month most of the way
+    along) or By year ("by_year": January to December)."""
+    value = (cfg if cfg is not None else config()).get("calendar", "timeline")
+    return value if value in CALENDAR_VIEWS else "timeline"
+
+
+def shows_on_finished(cfg: dict | None = None) -> bool:
+    """Whether a deck you have finished (Anki's congratulations page) shows what the deck
+    screens do (panel.on_page_loaded). It does unless switched off."""
+    return (cfg if cfg is not None else config()).get("finished_decks", True) not in OFF_VALUES
+
+
+def shows_record(cfg: dict | None = None) -> bool:
+    """Whether the study calendar shows your reviews from before the start date too (Decks:
+    "Show earlier reviews in the calendar"). It does unless switched off."""
+    return (cfg if cfg is not None else config()).get("calendar_record", True) not in OFF_VALUES
+
+
+def streak_from_start(cfg: dict | None = None) -> bool:
+    """Whether the streak starts again at the start date (Decks: "Count my streak from the start
+    date too"); off unless switched on, so a start date leaves your streak whole."""
+    value = (cfg if cfg is not None else config()).get("streak_from_start", False)
+    return bool(value) and value not in OFF_VALUES
+
+
+# the day the study calendar's weeks start on: the system's own (its region's), or one chosen,
+# by the day as the page counts them (Sunday 0)
+WEEK_START_DAYS = {"monday": 1, "sunday": 0, "saturday": 6}
+WEEK_STARTS = ("system", *WEEK_START_DAYS)
+
+
+def week_start(cfg: dict | None = None) -> str:
+    """The study calendar's week start setting: "system" unless one of WEEK_STARTS is chosen."""
+    value = (cfg if cfg is not None else config()).get("calendar_week_start", "system")
+    return value if value in WEEK_STARTS else "system"
+
+
+def calendar_on(screen: str, cfg: dict | None = None) -> bool:
+    """Whether the study calendar shows on the main screen (`screen` "main") or the deck
+    screens ("decks"). It does unless switched off."""
+    return (cfg if cfg is not None else config()).get(CALENDAR_SCREENS[screen], True) not in OFF_VALUES
+
+
 def shows_on_deck_list(cfg: dict | None = None) -> bool:
     """Whether the forest is drawn on the deck list (it is unless switched off); a deck's
     own screen goes by the Deck screens setting instead."""
     return (cfg if cfg is not None else config()).get("main_forest", True) not in OFF_VALUES
-
-

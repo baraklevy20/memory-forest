@@ -57,8 +57,8 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
   // what is at the pointer, on the canvas in its own layout: a forest turned on the page (the
   // phone card's sideways view) is pointed at the same as an upright one
   function hitAt(env, e) {
-    const scale = env.W / (canvas.clientWidth || env.W);
-    return pick(env, e.offsetX * scale, e.offsetY * scale);
+    const scale = env.W / (canvas.clientWidth || env.W), [x, y] = AF.u.pointIn(e, canvas);
+    return pick(env, x * scale, y * scale);
   }
   if (data.tooltips) {
     canvas.addEventListener('pointerdown', e => { touched = e.pointerType !== 'mouse'; });
@@ -95,7 +95,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       if (changed) { tip.innerHTML = shown = html; }
       tip.hidden = false;
       // the pointer within the scene, which holds the canvas and the tip
-      const x = canvas.offsetLeft + e.offsetX, y = canvas.offsetTop + e.offsetY;
+      const at = AF.u.pointIn(e, canvas), x = canvas.offsetLeft + at[0], y = canvas.offsetTop + at[1];
       let left = x + TIP_OFFSET, top = y + TIP_OFFSET;
       if (left + tip.offsetWidth > sceneEl.clientWidth - TIP_MARGIN) left = x - tip.offsetWidth - TIP_OFFSET;
       if (top + tip.offsetHeight > sceneEl.clientHeight - TIP_MARGIN) top = y - tip.offsetHeight - TIP_OFFSET;

@@ -219,6 +219,7 @@ class PhoneTests(unittest.TestCase):
         self.assertEqual(len(media), 1 + len(addon.phone_data.all_scenery()))
         self.assertLessEqual({sent["script"], *sent["parts"].values()}, media)
         self.assertTrue(sent["parts"])
+        self.assertFalse(sent["calendar"]["browse"])  # the study calendar under it, with nothing to click through to
         # another scenery: the note changes, the media doesn't (it changes once an update)
         mw.addonManager.config.update(environment="aurora", landscape="lake")
         phone.publish()

@@ -208,12 +208,13 @@ def whats_new() -> QWidget:
     New, Improved and Fixed. It fills the room the other tabs leave this one and scrolls past
     it, so a long release never makes the dialog taller."""
     parts = []
-    for version, sections in news.about(config())[:NEWS_VERSIONS]:
-        lines = [f"<b>{version}</b>"]
+    for version, summary, sections in news.about(config())[:NEWS_VERSIONS]:
+        lines = [f"<b>{version}</b>"] + ([f"<br>{html.escape(summary)}"] if summary else [])
         for head, items in sections:
             lines.append(f"<br><br><b>{head}</b>" + "".join(f"<br>• {html.escape(line)}" for line in items))
         parts.append("".join(lines))
     body = text("<br><br>".join(parts))
+    body.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (a short release sits at the top, not mid-box)
     scroll = _Filler()
     scroll.setWidget(body)
     scroll.setWidgetResizable(True)

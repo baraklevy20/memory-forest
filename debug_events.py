@@ -69,7 +69,8 @@ def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
     elif level == "wild":
         trees, extras["fire"] = events.set_fire(trees, days, forest_data.MAX_INDIVIDUAL_TREES)
     extras["stagnation"] = events.stagnation(trees, days)
-    return forest_data.rebuild(dict(base, test=True), events.mark_big_days(trees), days, reviews)
+    # (its days studied go with it, for the study calendar to show the timeline's streak)
+    return forest_data.rebuild(dict(base, test=True, review_days=days), events.mark_big_days(trees), days, reviews)
 
 
 def _leeches(trees: list, happened: list) -> None:

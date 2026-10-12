@@ -1,5 +1,6 @@
 """The forest on your phone: a note of its own that AnkiWeb carries to AnkiDroid and
-AnkiMobile, whose card draws the forest (the "Show my forest on my phone" setting).
+AnkiMobile, whose card draws the forest and the study calendar under it (the "Show my forest
+on my phone" setting).
 
 Each sync writes the forest into the note first, so the phone gets it as it is now, and
 again once the sync is done, since the reviews it brought in from the phone may have
@@ -60,9 +61,27 @@ FRONT = """<div id="memory-forest-phone" class="af-panel"></div>
 BACK = "{{FrontSide}}"
 CSS = """.card { margin: 0; padding: 0; }
 .af-panel { margin-top: 12px; }
-.af-phone-note { margin: 6px 12px 12px; font: 11.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #8a8f8c; text-align: center; }
-.af-turn { display: block; margin: 8px auto 0; min-height: 40px; padding: 8px 22px; border: 1px solid currentColor; border-radius: 20px;
-           background: none; color: inherit; font: inherit; font-size: 15px; font-weight: 600; }
+/* the full-screen icons: on the forest's corner, and at the end of the calendar's footer (web/phone.js) */
+.af-turn.af-expand { position: absolute; z-index: 3; top: 8px; right: 8px; box-sizing: border-box; width: 36px; height: 36px; min-height: 0; margin: 0; padding: 0;
+  display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(40, 42, 41, 0.5); color: rgba(255, 255, 255, 0.92);
+  line-height: 0; -webkit-tap-highlight-color: transparent; }
+.af-turn.af-expand::after { content: ''; position: absolute; left: -4px; top: -4px; right: -4px; bottom: -4px; }
+.af-turn.af-expand-cal { position: relative; top: auto; right: auto; flex: none; order: 5; width: 30px; height: 30px; margin: 0 0 0 12px; background: rgba(128, 128, 128, 0.16); color: inherit; }
+.af-turn.af-expand-cal::after { left: -7px; top: -7px; right: -7px; bottom: -7px; }
+.af-phone-shell:fullscreen .af-panel, .af-phone-shell:fullscreen .af-cal { position: static; }
+.af-phone-shell:fullscreen .af-turn.af-expand-cal { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; margin: 0; }
+/* the calendar's footer: Today (only while today is off screen) and the key on one row, the journal its own last line */
+.af-cal-swiped .af-cal-foot { flex-wrap: wrap; align-items: center; min-height: 30px; margin-top: 4px; }
+.af-cal-swiped .af-cal-foot .af-cal-key { order: 2; flex-wrap: nowrap; white-space: nowrap; margin-left: auto; }
+.af-cal-swiped .af-cal-acts { order: 1; margin: 0; }
+.af-cal-swiped .af-cal-journal { order: 9; flex: 1 0 100%; margin: 8px 0 0; }
+.af-cal-swiped .af-cal-today { position: relative; height: 28px; line-height: 26px; padding: 0 12px !important; font-size: 12.5px; border-radius: 14px !important; }
+.af-cal-swiped .af-cal-today::after { content: ''; position: absolute; left: -4px; right: -4px; top: -8px; bottom: -8px; }
+/* the one line under it all, and the greys, readable on AnkiDroid's day and night cards */
+.af-phone-shell { --fg-subtle: #676c69; }
+.night_mode .af-phone-shell, .nightMode .af-phone-shell { --fg-subtle: #a3a8a5; }
+.af-phone-note { font: 11px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); text-align: left; margin: 16px 12px 12px; }
+.af-phone-shell .af-info { border-bottom-color: rgba(128, 128, 128, 0.45); }
 .af-turn[hidden] { display: none; }
 .af-sideways { position: fixed; top: 0; left: 0; transform-origin: top left; box-sizing: border-box;
                display: flex; flex-direction: column; justify-content: center; }
@@ -70,8 +89,8 @@ CSS = """.card { margin: 0; padding: 0; }
 .af-sideways .af-phone-note { margin-bottom: 0; }
 .af-sideways .af-cap-tip { display: none !important; }
 .af-phone-stage { display: flex; flex-direction: column; justify-content: center; }
-.af-phone-note + .af-phone-note { margin-top: -6px; }
 .af-phone-shell:fullscreen { overflow: hidden; }
+.af-phone-shell.af-full-cal:fullscreen .af-cal { box-sizing: border-box; padding: 14px 18px 10px; border-radius: 14px; background: rgba(128, 128, 128, 0.12); }
 .af-phone-shell:fullscreen .af-caption, .af-phone-shell:fullscreen .af-phone-note { display: none; }
 .af-phone-shell:fullscreen .af-phone-stage:not(.af-sideways) { display: flex; flex-direction: column; justify-content: center; height: 100%; }
 .af-phone-shell .af-visit-btn { height: 36px; min-width: 42px; }

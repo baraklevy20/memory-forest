@@ -40,6 +40,7 @@ const VISITORS = {
   cabin: { pal: { c: '#6e6a70', r: '#7a3a2e', R: '#5a2a22', w: '#9a7250', W: '#7a5a3e', o: '#3e2a1c', n: '#2e3a4a' }, frames: [
     ['......cc....', '......cc....', '...rrrrrrr..', '..rrrrrrrrR.', '.rrrrrrrrrRR', 'RRRRRRRRRRRR', '.wWwWwWwWwW.', '.woowWwnnwW.', '.woowWwnnwW.', '.woowWwWwWw.']] }
 };
+AF.VISITOR_SPRITES = VISITORS;  // (the study calendar draws each on the day it came: web/calendar.js)
 const FRONT_SLOTS = [0.9, 0.22, 0.75, 0.38, 0.6];
 // seconds: each animal at the front moves on every ROAM_EVERY (plus a little more per
 // animal, and offset by ROAM_OFFSET each, so they never set off together) and takes

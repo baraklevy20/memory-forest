@@ -77,12 +77,24 @@ and a new one grows from there. Bad habits leave their marks too.</p>
 
 Change your mind at any time: switch back and your forest is just as it was.
 
+## Your study calendar
+
+Under the forest, a calendar shows every day you studied, in your scenery's colours: the
+more you reviewed, the stronger the colour. The days ahead show the cards coming due. Your
+streak runs along the bottom, with trophies for your three longest and a pennant on the day
+you would beat your record. Animals stand above the day they joined your forest.
+
+Hover a day to see its numbers, click it to open its cards in the browser, and right-click it
+to mark it as important, like an exam. Choose Timeline (the months around today) or By year
+(January to December), and the day your week starts on, on the Forest tab.
+
 ## On your phone
 
 <p align="center"><img src="docs/phone.gif" alt="The forest filling a phone screen, turned sideways, animated"></p>
 
 Turn on "Show my forest on my phone" on the Forest tab. After your next sync, a
-Memory Forest deck appears in AnkiDroid: open it to see your forest.
+Memory Forest deck appears in AnkiDroid: open it to see your forest, with your study calendar
+under it.
 
 Your computer draws this copy, so it updates whenever Anki syncs there.
 

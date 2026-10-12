@@ -55,6 +55,17 @@ def day_cutoff(rollover: int) -> int:
     return int(cut.timestamp())
 
 
+def sched_today(crt: int, cutoff: int, rollover: int) -> int:
+    """Anki's day number for the day ending at `cutoff`: whole days from the end of the day the
+    collection was made in (`crt`, at any hour) to `cutoff`. Counting from `crt` itself was a day
+    short whenever it was made after the rollover hour (10:00, say, with the day ending at 4)."""
+    made = dt.datetime.fromtimestamp(crt)
+    first_end = made.replace(hour=rollover, minute=0, second=0, microsecond=0)
+    if first_end <= made:
+        first_end += dt.timedelta(days=1)
+    return round((cutoff - first_end.timestamp()) / study_log.DAY_SECS)
+
+
 def main() -> None:
     src = os.path.expanduser(sys.argv[1])
     tmp = tempfile.mkdtemp(prefix="anki-forest-")
@@ -65,7 +76,7 @@ def main() -> None:
     rollover = int(db.scalar("select val from config where key = 'rollover'") or DEFAULT_ROLLOVER_HOUR)
     crt = int(db.scalar("select crt from col"))
     cutoff = day_cutoff(rollover)
-    today = (cutoff - crt) // study_log.DAY_SECS - 1
+    today = sched_today(crt, cutoff, rollover)
 
     started = time.perf_counter()
     rows = study_log.load_rows(db, cutoff)

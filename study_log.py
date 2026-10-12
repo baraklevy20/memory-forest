@@ -189,6 +189,38 @@ def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable 
     return overdue, counts
 
 
+def load_day_reviews(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None, since: int | None = None,
+                     skip: Iterable | None = None) -> dict:
+    """{days ago: reviews} for the cards of the `dids` decks (a deck and its subdecks; None for the
+    whole collection) but the `excluded` decks and the `skip` cards, from `since` (epoch seconds;
+    None for all of them), counted as load_rows counts them, without the rest of a forest: the
+    study calendar's days when they are not the forest's own, and the caption's real streak."""
+    _in_decks, only = _filters(dids, excluded, skip)
+    since_part = f" and id >= {int(since) * 1000}" if since else ""
+    return dict(db.all(
+        f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
+        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}{since_part} group by 1",
+        day_cutoff, day_cutoff * 1000))
+
+
+def load_due(db, today: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None,
+             dids: list | None = None) -> list:
+    """How many cards fall due on each of the `days` days from today (today first), for the
+    whole collection (or the `dids` decks) but the `excluded` decks and the `skip` cards: what
+    the study calendar shows ahead. `today` is the scheduler's day number. Overdue cards and cards in learning
+    count as today's; suspended and buried ones count nowhere. A card borrowed by a filtered
+    deck is due when its home deck has it due (odue)."""
+    in_decks, _only = _filters(dids, excluded, skip)
+    out = [0] * days
+    for queue, due, n in db.all(
+            "select c.queue, case when c.odid != 0 and c.odue != 0 then c.odue else c.due end, count() "
+            f"from cards c where c.queue in (1, 2, 3){in_decks} group by 1, 2"):
+        ahead = 0 if queue == 1 else max(0, due - today)  # learning is due by the clock: today
+        if ahead < days:
+            out[ahead] += n
+    return out
+
+
 def has_new_cards(db, excluded: Iterable | None = None, skip: Iterable | None = None, dids: list | None = None) -> bool:
     """Whether any new card is left to learn in the whole collection (or the `dids` decks) but
     the `excluded` decks and the `skip` cards: suspended ones don't count, buried ones do
@@ -281,6 +313,20 @@ def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended:
     if newest > 0:
         terms.append(f"-introduced:{newest}")
     return terms
+
+
+def calendar_search(db, offset: int, today: int) -> list:
+    """Anki search terms for a study calendar day, `offset` days from today (`today` the
+    scheduler's day number): the cards reviewed that day, studied again since or not
+    (`prop:rated=-N`, "answered N days ago", in every Anki from 2.1.45: `rated:N` is "answered
+    within the last N days", and the difference of two leaves out a card answered again since),
+    or for a day ahead, the cards due that day, as load_due counts them: a card a filtered deck
+    has borrowed by its home deck's due, which an older Anki's `prop:due` doesn't read."""
+    if offset > 0:
+        borrowed = [cid for (cid,) in db.all(
+            "select id from cards where queue in (2, 3) and odid != 0 and odue = ? order by id", today + offset)]
+        return [f"(prop:due={offset} OR cid:{','.join(map(str, borrowed))})" if borrowed else f"prop:due={offset}"]
+    return [f"prop:rated={offset}" if offset else "rated:1"]
 
 
 def days_ago(ts_seconds: float, day_cutoff: int) -> int:

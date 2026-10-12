@@ -9,12 +9,14 @@ from aqt.qt import (
     QComboBox,
     QDateEdit,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QIcon,
     QLabel,
     QPixmap,
     QRadioButton,
+    QScrollArea,
     QSize,
     Qt,
     QTextCharFormat,
@@ -317,3 +319,33 @@ def set_quietly(box: QComboBox, value) -> None:
     if i >= 0:
         box.setCurrentIndex(i)
     box.blockSignals(False)
+
+
+SCROLL_MIN_H = 320  # points: the least a scrolling tab asks for (a short screen scrolls the rest)
+
+
+class Scrolled(QScrollArea):
+    """A tab that scrolls on a screen too short for it (the Forest tab): as big as its contents
+    where there is room, so it opens like any other tab, and only as small as SCROLL_MIN_H asks
+    where there isn't, the rest a scroll away."""
+
+    def __init__(self, tab: QWidget):
+        super().__init__()
+        self.setWidget(tab)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.viewport().setAutoFillBackground(False)
+        tab.setAutoFillBackground(False)
+
+    def bar(self) -> int:
+        """The room the vertical scroll bar takes when it shows, kept beside the tab so it never
+        covers or squeezes it."""
+        return self.verticalScrollBar().sizeHint().width()
+
+    def sizeHint(self) -> QSize:
+        inner = self.widget().minimumSizeHint().expandedTo(self.widget().sizeHint())
+        return QSize(inner.width() + self.bar(), inner.height() + 2 * self.frameWidth())
+
+    def minimumSizeHint(self) -> QSize:
+        return QSize(self.widget().minimumSizeHint().width() + self.bar(), SCROLL_MIN_H)

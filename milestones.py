@@ -50,7 +50,9 @@ def visitors(stats: dict, arrived: dict | None = None, today: int | None = None)
     for key, label, why, test in VISITORS:
         if arrived is not None:
             if key in arrived:
-                out.append({"key": key, "label": label, "why": why, "new": today is not None and arrived[key] == today})
+                # the day it came (the scheduler's day number), if it came while the forest watched
+                out.append({"key": key, "label": label, "why": why, "new": today is not None and arrived[key] == today,
+                            "day": arrived[key]})
         elif test(stats):
             out.append({"key": key, "label": label, "why": why, "new": _arrived_today(key, stats)})
     return out
@@ -90,4 +92,46 @@ def anniversaries(trees: Iterable[dict], on: _dt.date) -> list:
         d = _dt.date.fromisoformat(t["date"])
         if d.year < on.year and (d.month, d.day) == (on.month, on.day):
             out.append(i)
+    return out
+
+
+# the test forest's made-up day for an animal its history cannot date (the owl, the squirrels,
+# the eagle): this many days ago, and this many more for each animal before it in VISITORS
+MADE_UP_AGO, MADE_UP_APART = 9, 13
+
+
+def animal_days(visitors: list, trees: list, day_reviews: dict, today: int, made_up: bool = False) -> list:
+    """When each animal in the forest came, as days ago: worked out from the history where its
+    milestone can be (the day a streak reached its length, the 50th tree, the 10,000th review,
+    the first pond, the forest's first birthday), so the animals a forest had before the add-on
+    came still have their day; otherwise the day the forest saw it come, if it did. The test
+    forest (`made_up`) saw none come, so it gives those a made-up day, to see them all."""
+    studied = sorted((ago for ago, n in day_reviews.items() if n), reverse=True)  # oldest first
+    streak_at, run, last = {}, 0, None
+    for ago in studied:
+        run = run + 1 if last is not None and last - ago == 1 else 1
+        last = ago
+        streak_at.setdefault(run, ago)
+    total, passed = 0, None
+    for ago in sorted(day_reviews, reverse=True):
+        total += day_reviews[ago]
+        if passed is None and total >= FOX_REVIEWS:
+            passed = ago
+    first_pond = next((t["ago"] for t in trees if t.get("gap")), None)
+    birthday = trees[0]["ago"] - CABIN_AGE_DAYS if trees else -1
+    found = {
+        "deer": streak_at.get(DEER_STREAK), "stag": streak_at.get(STAG_STREAK),
+        "bear": streak_at.get(BEAR_STREAK),
+        "rabbit": trees[RABBIT_TREES - 1]["ago"] if len(trees) >= RABBIT_TREES else None,
+        "fox": passed, "heron": first_pond, "cabin": birthday if birthday >= 0 else None,
+    }
+    out = []
+    for v in visitors:
+        ago = found.get(v["key"])
+        if ago is None and isinstance(v.get("day"), int):
+            ago = today - v["day"]
+        if ago is None and made_up:
+            ago = MADE_UP_AGO + MADE_UP_APART * [k for k, *_rest in VISITORS].index(v["key"])
+        if ago is not None and ago >= 0:
+            out.append({"key": v["key"], "ago": ago, "label": v["label"], "why": v["why"]})
     return out

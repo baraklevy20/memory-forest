@@ -15,7 +15,7 @@ import sys
 import traceback
 
 from aqt import gui_hooks, mw
-from aqt.qt import QApplication, QEvent, QMouseEvent, QPointF, Qt, QTabWidget, QTimer
+from aqt.qt import QApplication, QEvent, QMouseEvent, QPointF, QScrollArea, Qt, QTabWidget, QTimer
 
 FOREST = os.environ.get("MEMORY_FOREST_FOLDER", "anki_forest")
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,6 +24,8 @@ COG_PX, COG_ICON_PX = 28, 15  # forest.css's .af-cog box, and core.js's COG icon
 WAIT_MS, WAIT_TRIES = 1000, 20  # for the deck list (and the forest's idle-time build) to draw
 SEED_CARDS, SEED_DAYS, SEED_REVIEWS = 60, 150, 5  # cards, how far back they start, reviews each
 SEED_BIG_CARDS, SEED_BIG_AGO = 12, 20  # of those, first studied together: a big learning day, with flowers
+OLD_DAY_AGO = 400  # a study calendar day this far back, past the year rated: may stop at
+DIALOG_MAX_H = 672  # pt: the room a 1280 x 720 screen leaves the settings dialog, title bar included
 CONSOLE_ERROR = 2  # QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel
 # measured in the deck list's page: the cog and its icon, as the page is and again under
 # 2.1.50's dark-Mac button styles (Anki's own CSS, keyed on a class Anki only sets when
@@ -46,7 +48,10 @@ MEASURE = """(() => {
   const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root && root.afEnv;
   const trees = env ? env.placed.filter(q => !q.it.pond).length : 0;
   const big = env ? env.placed.filter(q => q.it.big).length : 0, flowers = env && env.flowerCols ? env.flowerCols.size : 0;
-  return JSON.stringify({ plain, darkMac, built: !!env, trees, big, flowers, old: !!(env && env.checkMark), painted,
+  // the study calendar under it (web/calendar.js): its box, and how many days its canvas holds
+  const cal = document.querySelector('.af-cal'), calCanvas = cal && cal.querySelector('canvas');
+  const calendar = cal ? { box: box(cal), canvas: calCanvas ? [calCanvas.width, calCanvas.height] : null } : null;
+  return JSON.stringify({ plain, darkMac, built: !!env, trees, big, flowers, old: !!(env && env.checkMark), painted, calendar,
                           canvas: c ? [c.width, c.height] : null, classes, agent: navigator.userAgent });
 })()"""
 # Where the forest's zoom button or a button of its bar is, or a tree to pick (the front-most
@@ -187,6 +192,9 @@ def first_look(got, raw):
             result["problems"].append(f"{case}: the cog is {seen.get('cog')}, not {COG_PX}x{COG_PX}")
         if seen.get("icon") != [COG_ICON_PX, COG_ICON_PX]:
             result["problems"].append(f"{case}: the cog's icon is {seen.get('icon')}, not {COG_ICON_PX}x{COG_ICON_PX}")
+    cal = got.get("calendar") or {}
+    if got.get("built") and not (cal.get("canvas") and (cal.get("box") or [0, 0])[1]):
+        result["problems"].append(f"the study calendar did not draw under the forest: {cal or 'none'}")
     if not got.get("built"):
         result["problems"].append("the forest never built")
     elif not got.get("painted"):
@@ -296,6 +304,11 @@ def visit():
         QTimer.singleShot(0, settings)
 
     note("step: zoom")
+    forest = sys.modules.get(FOREST)
+    if not getattr(getattr(forest, "payload", None), "ZOOM_RELEASED", True):
+        result["steps"].append("zoom held back (payload.ZOOM_RELEASED): not checked")
+        QTimer.singleShot(0, settings)
+        return
     press(".af-zoom", turned_on)
 
 
@@ -316,7 +329,28 @@ def settings():
             QApplication.processEvents()
             tabs.widget(i).grab()  # paints it, and everything in it, now
             result["steps"].append(f"tab {tabs.tabText(i)}")
+            # the dialog and this tab's own height (pt), whether it scrolls (widgets.Scrolled: its
+            # contents' full height then), and a picture of it
+            page = tabs.widget(i)
+            scrolls = isinstance(page, QScrollArea)
+            own = (page.widget() if scrolls else page).minimumSizeHint().height()
+            result.setdefault("dialog_heights", {})[tabs.tabText(i)] = [dialog.minimumSizeHint().height(), own, scrolls]
+            if scrolls:  # (on this screen, with room to spare, it should show whole)
+                for _ in range(5):
+                    QApplication.processEvents()
+                result["steps"].append(f"{tabs.tabText(i)} scrolls {page.verticalScrollBar().maximum()} pt"
+                                       f" (dialog {dialog.height()} pt)")
+            dialog.grab().save(os.path.join(BASE, f"settings-{tabs.tabText(i).lower()}.png"))
         tabs.setCurrentIndex(0)
+        # every tab must fit a 1280 x 720 screen (SETTINGS_GUIDELINES.md): the dialog around a tab
+        # adds the same to each, Scenery's picker gives back rows on a short screen, and a tab
+        # that scrolls fits any
+        heights = result["dialog_heights"]
+        fixed = [(d, t) for d, t, scrolls in heights.values() if not scrolls]
+        around = max(d for d, _t in fixed) - max(t for _d, t in fixed)
+        for name, (_d, own, scrolls) in heights.items():
+            if name != "Scenery" and not scrolls and own + around > DIALOG_MAX_H:
+                result["problems"].append(f"the {name} tab needs {own + around} pt, more than {DIALOG_MAX_H}")
 
     def picker():
         # the Scenery tab's picker, its tiles painted (the moving ones at their first frame)
@@ -480,6 +514,52 @@ def seed():
         col.save()
 
 
+def old_day():
+    """A click on a study calendar day (study_log.calendar_search, as actions.browse_calendar_day
+    sends it) finds that day's cards, though studied again since: the seeded card 1 given a
+    review OLD_DAY_AGO days back, and a new card with only that review; the searches Anki
+    might offer for it tried too, and the reviews and the card taken away again."""
+    col = mw.col
+    sched = col.sched
+    cutoff = getattr(sched, "day_cutoff", None) or sched.dayCutoff
+    old = col.db.list("select id from cards order by id limit 1")[0]
+    model = (col.models.by_name if hasattr(col.models, "by_name") else col.models.byName)("Basic")
+    n = col.new_note(model) if hasattr(col, "new_note") else col.newNote()
+    n["Front"] = n["Back"] = "an old day's card"
+    if hasattr(col, "add_note"):
+        col.add_note(n, col.decks.id("Default"))
+    else:
+        col.addNote(n)
+    alone = n.cards()[0].id
+    stamp = (cutoff - (OLD_DAY_AGO + 1) * 86400 + 12 * 3600) * 1000  # (halfway through that Anki day)
+    for k, cid in enumerate((old, alone)):
+        col.db.execute("insert into revlog values (?,?,?,?,?,?,?,?,?)", stamp + k, cid, -1, 3, 1, 0, 2500, 5000, 1)
+    want = sorted([old, alone])
+
+    def tried(search):
+        try:
+            return sorted(col.find_cards(search))
+        except Exception as e:
+            return f"error {str(e).splitlines()[0][:60]}"
+    try:
+        terms = sys.modules[FOREST].study_log.calendar_search(col.db, -OLD_DAY_AGO, sched.today)
+        found = tried(" ".join(terms))
+        alts = {f"prop:rated=-{OLD_DAY_AGO}": None, f"rated:{OLD_DAY_AGO + 1}": None, f"cid:{old},{alone}": None}
+        for search in alts:
+            got = tried(search)
+            alts[search] = "the day's cards" if got == want else ("both, and more" if isinstance(got, list) and set(want) <= set(got)
+                                                                else ("only the recent one" if isinstance(got, list) and old in got
+                                                                      else got if isinstance(got, str) else f"{len(got)} cards"))
+    finally:
+        col.db.execute("delete from revlog where id in (?, ?)", stamp, stamp + 1)
+        col.remove_notes([n.id]) if hasattr(col, "remove_notes") else col.remNotes([n.id])
+    result["steps"].append(f"day {OLD_DAY_AGO} ago: {' '.join(terms)} found {len(found) if isinstance(found, list) else found}"
+                           f" of 2; " + "; ".join(f"{k} -> {v}" for k, v in alts.items()))
+    if found != want:
+        result["problems"].append(f"a click on a day {OLD_DAY_AGO} days back finds {found}, not its cards {want}:"
+                                  f" {' '.join(terms)}")
+
+
 def opened():
     note("profile open")
     try:
@@ -504,6 +584,7 @@ def opened():
 
     step("imports", imports)
     step("seed reviews", seed)
+    step("old calendar day", old_day)
     step("deck list", show)
     QTimer.singleShot(WAIT_MS, lambda: measure(first_look))
 

@@ -19,6 +19,7 @@ from .decks import DecksTab
 from .forest_tab import ForestTab
 from .scenery_picker import ROW_H, ROWS_FEWEST, ROWS_SHOWN
 from .scenery_tab import SceneryTab
+from .widgets import Scrolled
 
 DIALOG_MIN_WIDTH = 460
 # the Debug tab's timeline buttons need more room than the dialog's usual width
@@ -30,16 +31,17 @@ CITY_RECHECK_MS = 4000
 # room for the window's title bar, which the dialog's own size leaves out (Windows' is the taller)
 TITLE_BAR = 32
 SHRINK_TRIES = 5
+SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to measure its help
 # choices about your study data rather than the forest's look: Restore defaults keeps them (and the
 # phone switch, which lives in the collection, it never touches)
-DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended")
+DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start")
 RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("This resets the scenery and Customize, Nature (to {nature}), your city, where the forest "
-                "shows, animation and the planting message. It keeps the decks you left out, the start "
-                "date, suspended cards and the forest on your phone.\n\nCancel still puts back the "
-                "settings you had before.")
+                "and the study calendar show (finished decks too), the calendar's view and week start, animation and the "
+                "planting message. It keeps the decks you left out, the start date (and how the calendar and your streak go "
+                "by it), suspended cards and the forest on your phone.\n\nCancel still puts back the settings you had before.")
 # the tab the dialog was left on, for the next time it opens while Anki is: kept in memory
 # only, so Anki starts again on the Scenery tab (not the config either: it is no setting)
 _last_tab = ""
@@ -112,10 +114,20 @@ class SettingsDialog(QDialog):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))
         self.debug.offer_news(self.news_targets())
+        # (the dialog's own timer, as below: a closed dialog is never called back)
+        self._whole = QTimer(self); self._whole.setSingleShot(True); self._whole.setInterval(0)
+        self._whole.timeout.connect(self._show_whole_step)
+        self._whole_tries = 0
         tabs = self.tabs = QTabWidget()
+        tabs.currentChanged.connect(self._show_whole)
         self.about = AboutTab()
+        # the Forest and Debug tabs scroll on a screen too short for them (widgets.Scrolled); the
+        # others fit (Scenery by showing fewer rows of tiles: fit_screen)
+        self.pages = {self.forest: Scrolled(self.forest)}
+        if not isinstance(self.debug, NoDebugTab):
+            self.pages[self.debug] = Scrolled(self.debug)
         for widget, name in shown + [(self.about, "About")]:
-            tabs.addTab(widget, name)
+            tabs.addTab(self._page(widget), name)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
                                    | QDialogButtonBox.StandardButton.RestoreDefaults)
@@ -157,11 +169,13 @@ class SettingsDialog(QDialog):
     def fit_screen(self) -> None:
         """On a screen too short for the dialog, the scenery picker shows fewer rows of tiles
         (half a row at a time, down to ROWS_FEWEST), so Done and Cancel stay on it."""
-        holder = self.parent()
-        screen = holder.screen() if holder is not None and hasattr(holder, "screen") else QGuiApplication.primaryScreen()
-        if screen is None:
+        room = self._room()
+        if room is None:
             return
-        over = self.minimumSizeHint().height() + TITLE_BAR - screen.availableGeometry().height()
+        # the dialog as tall as its tallest tab asks (a scrolling one, widgets.Scrolled, at its full
+        # height: Qt's own sizing stops at two thirds of the screen), up to the screen's height
+        QTimer.singleShot(0, lambda: self.resize(self.width(), max(self.minimumHeight(), min(room, self.sizeHint().height()))))
+        over = self.minimumSizeHint().height() - room
         if over <= 0:
             return
         halves = math.ceil(over / (ROW_H / 2))
@@ -172,25 +186,59 @@ class SettingsDialog(QDialog):
         # won't get shorter
         self._shrink_to(need, SHRINK_TRIES)
 
+    def _room(self) -> int | None:
+        """The dialog's height on this screen at most (its title bar left out), or None if Qt
+        can't say which screen."""
+        holder = self.parent()
+        screen = holder.screen() if holder is not None and hasattr(holder, "screen") else QGuiApplication.primaryScreen()
+        return None if screen is None else screen.availableGeometry().height() - TITLE_BAR
+
+    def _show_whole(self, *_args) -> None:
+        """A scrolling tab in view (widgets.Scrolled) scrolls only on a screen too short for it:
+        the dialog grows by what it would scroll, up to the screen's height. Its wrapped help
+        measures itself only once the tab has its width, so this looks again after a turn or
+        two of the event loop."""
+        self._whole_tries = SHOW_WHOLE_TRIES
+        self._whole.start()
+
+    def _show_whole_step(self) -> None:
+        page = self.tabs.currentWidget()
+        if not isinstance(page, Scrolled):
+            return
+        over, room = page.verticalScrollBar().maximum(), self._room()
+        if over > 0 and room is not None and self.height() < room:
+            self.resize(self.width(), min(room, self.height() + over))
+        if self._whole_tries > 0:
+            self._whole_tries -= 1
+            self._whole.start()
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        self._show_whole()
+
     def _shrink_to(self, height: int, tries: int) -> None:
         if self.minimumHeight() > height and tries > 0:
             QTimer.singleShot(0, lambda: self._shrink_to(height, tries - 1))
             return
         self.resize(self.width(), max(height, self.minimumHeight()))
 
+    def _page(self, tab):
+        """What the tab widget holds for `tab`: its scrolling page (widgets.Scrolled), or the tab."""
+        return self.pages.get(tab, tab)
+
     def tab_widgets(self) -> dict:
         return {"scenery": self.scenery, "forest": self.forest, "decks": self.decks, "debug": self.debug, "about": self.about}
 
     def show_tab(self, key: str) -> bool:
         tab = self.tab_widgets().get(OLD_TAB_KEYS.get(key, key))
-        if tab is None or isinstance(tab, NoDebugTab) or self.tabs.indexOf(tab) < 0:
+        if tab is None or isinstance(tab, NoDebugTab) or self.tabs.indexOf(self._page(tab)) < 0:
             return False
-        self.tabs.setCurrentWidget(tab)
+        self.tabs.setCurrentWidget(self._page(tab))
         return True
 
     def tab_key(self) -> str:
         current = self.tabs.currentWidget()
-        return next((k for k, tab in self.tab_widgets().items() if tab is current), "")
+        return next((k for k, tab in self.tab_widgets().items() if self._page(tab) is current), "")
 
     def news_targets(self) -> dict:
         """Every setting a note can point at: key -> (its tab, the widget, its name)."""
@@ -206,10 +254,12 @@ class SettingsDialog(QDialog):
         if target is None:
             return
         tab, widget, _name = target
-        self.tabs.setCurrentWidget(tab)
+        self.tabs.setCurrentWidget(self._page(tab))
         if hasattr(tab, "reveal"):
             tab.reveal(widget)
         whats_new.tag(tab, widget)
+        if tab in self.pages:
+            self.pages[tab].ensureWidgetVisible(widget)
         widget.setFocus()
 
     def _preset_chosen(self, *_args) -> None:

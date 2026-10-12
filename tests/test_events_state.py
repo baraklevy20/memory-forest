@@ -440,7 +440,8 @@ class CuredTests(unittest.TestCase):
 # PLANTED with every other card in deck 20: deck 10 holds half of each stretch of trees
 SPLIT = [(cid, 10 if cid % 2 == 0 else 20, ago) for cid, _did, ago in PLANTED]
 # (and the what's new note, which only the deck list's forest shows)
-DECK_ONLY = {"deckId", "deckName", "highlight", "litCount", "news"}
+DECK_ONLY = {"deckId", "deckName", "highlight", "litCount", "news", "calendar"}  # (a deck screen's calendar is the deck's own)
+DECK_STREAK = {"streak", "longest_streak"}  # (and so is the streak over it)
 
 
 class DeckForestTests(unittest.TestCase):
@@ -477,7 +478,9 @@ class DeckForestTests(unittest.TestCase):
                 setup()
                 for main, deck in self.compared("highlight"):
                     self.assertTrue(deck["highlight"])
-                    leave = lambda p: {k: v for k, v in p.items() if k not in DECK_ONLY | {"trees", "strike"}}  # noqa: E731
+                    # (the caption's streak is the deck's own, as the calendar under it is)
+                    leave = lambda p: dict({k: v for k, v in p.items() if k not in DECK_ONLY | {"trees", "strike"}},  # noqa: E731
+                                           stats={k: v for k, v in p["stats"].items() if k not in DECK_STREAK})
                     self.assertEqual(leave(deck), leave(main))
                     self.assertEqual([{k: v for k, v in t.items() if k != "dim"} for t in deck["trees"]], main["trees"])
 

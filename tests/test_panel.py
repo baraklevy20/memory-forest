@@ -13,6 +13,14 @@ import catalog
 
 panel = addon.panel
 CARDS = [(1, 10, 5), (2, 20, 3)]
+# neither the forest nor the study calendar on the deck list, or on the deck screens
+NO_MAIN = {"main_forest": False, "calendar_main": False}
+NO_DECKS = {"deck_forest_mode": "off", "calendar_decks": False}
+
+
+def shown(html: str) -> dict:
+    """The data a panel's HTML carries."""
+    return json.loads(re.search(r'-data">(.*?)</script>', html, re.S).group(1))
 
 
 class PanelTests(unittest.TestCase):
@@ -47,18 +55,33 @@ class PanelTests(unittest.TestCase):
         self.assertTrue(content.stats.endswith("<p>stats</p>"))
 
     def test_the_deck_list_can_go_without_a_forest(self):
-        reset(CARDS, {"main_forest": False})
+        reset(CARDS, NO_MAIN)
         content = types.SimpleNamespace(stats="<p>stats</p>")
         panel.on_deck_browser(None, content)
         self.assertEqual(content.stats, "<p>stats</p>")
         # a deck's own screen still has one
-        reset(CARDS, {"main_forest": False}, current_deck=10)
+        reset(CARDS, NO_MAIN, current_deck=10)
         content = types.SimpleNamespace(table="")
         panel.on_overview(None, content)
         self.assertTrue(content.table)
 
-    def test_switching_the_deck_list_forest_off_takes_it_away_at_once(self):
+    def test_the_study_calendar_can_show_without_the_forest(self):
         reset(CARDS, {"main_forest": False})
+        content = types.SimpleNamespace(stats="")
+        panel.on_deck_browser(None, content)
+        data = shown(content.stats)
+        self.assertFalse(data["showForest"])
+        self.assertIsNotNone(data["calendar"])
+        # and the forest without it
+        reset(CARDS, {"calendar_main": False})
+        content = types.SimpleNamespace(stats="")
+        panel.on_deck_browser(None, content)
+        data = shown(content.stats)
+        self.assertTrue(data["showForest"])
+        self.assertIsNone(data["calendar"])
+
+    def test_switching_the_deck_list_forest_off_takes_it_away_at_once(self):
+        reset(CARDS, NO_MAIN)
         web = Web()
         mw.deckBrowser = types.SimpleNamespace(web=web, refresh=lambda: setattr(web, "reloads", web.reloads + 1))
         panel.refresh()
@@ -67,12 +90,13 @@ class PanelTests(unittest.TestCase):
         self.assertEqual(web.reloads, 1)
 
     def test_a_deck_screen_follows_the_deck_screens_setting(self):
-        for mode, deck, shown in (("highlight", 10, True), ("own", 10, True), ("off", 10, False),
-                                  ("highlight", 30, False)):  # 30 is filtered: it borrows cards, so no forest
-            reset(CARDS, {"deck_forest_mode": mode}, current_deck=deck)
+        for mode, calendar, deck, forest in (("highlight", True, 10, True), ("own", True, 10, True), ("off", False, 10, None),
+                                             ("off", True, 10, False),  # the deck's study calendar on its own
+                                             ("highlight", True, 30, None)):  # 30 is filtered: it borrows cards, so no forest
+            reset(CARDS, {"deck_forest_mode": mode, "calendar_decks": calendar}, current_deck=deck)
             content = types.SimpleNamespace(table="")
             panel.on_overview(None, content)
-            self.assertEqual(bool(content.table), shown, (mode, deck))
+            self.assertEqual(shown(content.table)["showForest"] if content.table else None, forest, (mode, calendar, deck))
         reset(CARDS, {"excluded_decks": [10]}, current_deck=11)  # left out with its parent
         content = types.SimpleNamespace(table="")
         panel.on_overview(None, content)

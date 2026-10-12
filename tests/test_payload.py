@@ -37,6 +37,109 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual([(t["ago"], t["dim"]) for t in p["trees"]], [(5, True), (3, False)])
         self.assertEqual(p["litCount"], 1)
 
+    def test_the_calendar_holds_each_day_s_reviews_from_the_first_to_today(self):
+        reset(CARDS)
+        cal = payload.payload()["calendar"]
+        self.assertEqual(cal["view"], "timeline")
+        self.assertEqual(len(cal["days"]), 6)  # days 5 to 0 ago
+        self.assertEqual([i for i, n in enumerate(cal["days"]) if n], [0, 2])  # 5 and 3 days ago
+        self.assertEqual(cal["start"], addon.study_log.day_date(5, mw.col.sched.day_cutoff).isoformat())
+        self.assertEqual(len(cal["due"]), payload.CALENDAR_DUE_DAYS)
+
+    def test_with_a_start_date_the_calendar_still_has_the_record_before_it(self):
+        reset(CARDS, {"ignore_before": "2026-09-16"})  # the forest from 3 days ago: the day 5 days ago is before it
+        cal = payload.payload()["calendar"]
+        self.assertEqual(cal["forestStart"], "2026-09-16")
+        self.assertEqual(len(cal["days"]), 6)  # from day 5 ago, as without a start date
+        self.assertEqual([i for i, n in enumerate(cal["days"]) if n], [0, 2])
+        reset(CARDS, {"ignore_before": "2026-09-16", "calendar_record": False})  # a clean slate: from the start date only
+        self.assertIsNone(payload.payload()["calendar"]["forestStart"])
+        self.assertEqual(len(payload.payload()["calendar"]["days"]), 4)
+        reset(CARDS)
+        self.assertIsNone(payload.payload()["calendar"]["forestStart"])
+
+    def test_with_a_start_date_the_streak_is_still_your_real_one(self):
+        days = [(1, 10, 2), (2, 10, 1), (3, 10, 0)]  # studied three days running, up to today
+        reset(days, {"ignore_before": "2026-09-18"})  # the forest from yesterday
+        p = payload.payload()
+        self.assertEqual(p["stats"]["streak"], 3)  # the caption: the streak isn't broken by it
+        self.assertEqual(payload._forest()["stats"]["streak"], 2)  # the forest's own, for its animals
+        self.assertFalse(p["calendar"]["streakFromStart"])
+        reset(days, {"ignore_before": "2026-09-18", "streak_from_start": True})  # counted from the start date too
+        p = payload.payload()
+        self.assertEqual(p["stats"]["streak"], 2)
+        self.assertTrue(p["calendar"]["streakFromStart"])
+
+    def test_the_streak_is_the_calendar_s_own(self):
+        days = [(1, 10, 2), (2, 20, 1), (3, 10, 1), (4, 10, 0)]  # French three days running, German only yesterday
+        reset(days)
+        self.assertEqual(payload.payload(20, highlight=True)["stats"]["streak"], 1)  # under the main forest: German's calendar
+        self.assertEqual(payload.payload(10, highlight=True)["stats"]["streak"], 3)
+        reset(days, {"calendar_decks": False})  # no calendar: the main forest's own streak
+        self.assertEqual(payload.payload(20, highlight=True)["stats"]["streak"], 3)
+        reset(days, {"ignore_before": "2026-09-18", "calendar_record": False})  # the calendar from the start date only
+        self.assertEqual(payload.payload()["stats"]["streak"], 2)
+        reset(days, {"ignore_before": "2026-09-18", "calendar_record": False, "calendar_main": False})  # no calendar there
+        self.assertEqual(payload.payload()["stats"]["streak"], 3)
+
+    def test_a_deck_screens_calendar_is_that_decks_own(self):
+        reset(CARDS)
+        cal = payload.payload(20, highlight=True)["calendar"]  # German: card 3, first studied 3 days ago
+        self.assertEqual([i for i, n in enumerate(cal["days"]) if n], [0])
+        self.assertEqual(cal["start"], addon.study_log.day_date(3, mw.col.sched.day_cutoff).isoformat())
+        self.assertEqual(cal["animals"], [])  # the lit-up main forest's animals are not the deck's
+        self.assertIsNotNone(payload.payload(10)["calendar"])  # beside a deck's own forest too
+
+    def test_the_calendar_follows_its_settings(self):
+        reset(CARDS, {"calendar": "by_year"})
+        self.assertEqual(payload.payload()["calendar"]["view"], "by_year")
+        reset(CARDS, {"calendar": "nonsense"})
+        self.assertEqual(payload.payload()["calendar"]["view"], "timeline")
+        reset(CARDS, {"calendar_main": False})
+        self.assertIsNone(payload.payload()["calendar"])
+        self.assertIsNotNone(payload.payload(20, highlight=True)["calendar"])
+        reset(CARDS, {"calendar_decks": False})
+        self.assertIsNone(payload.payload(20, highlight=True)["calendar"])
+        self.assertIsNotNone(payload.payload()["calendar"])
+
+    def test_a_day_marked_important_is_on_the_calendar_until_unmarked(self):
+        reset(CARDS)
+        self.assertEqual(payload.payload()["calendar"]["marks"], [])
+        self.assertTrue(addon.marks.toggle(mw.col, "2026-11-02"))
+        self.assertEqual(payload.payload()["calendar"]["marks"], ["2026-11-02"])
+        self.assertFalse(addon.marks.toggle(mw.col, "2026-11-02"))
+        self.assertEqual(payload.payload()["calendar"]["marks"], [])
+        with self.assertRaises(ValueError):
+            addon.marks.toggle(mw.col, "not a day")
+        mw.col.set_config(addon.marks.KEY, ["2026-11-03", 7, "nonsense"])  # a hand edit, or a newer version's
+        self.assertEqual(addon.marks.important_days(mw.col), ["2026-11-03"])
+
+    def test_the_calendar_s_weeks_start_on_the_chosen_day_or_the_system_s(self):
+        reset(CARDS, {"calendar_week_start": "sunday"})
+        self.assertEqual(payload.payload()["calendar"]["weekStart"], 0)
+        reset(CARDS, {"calendar_week_start": "saturday"})
+        self.assertEqual(payload.payload()["calendar"]["weekStart"], 6)
+        reset(CARDS, {"calendar_week_start": "nonsense"})  # the system's: here, with no Qt, Monday
+        self.assertIn(payload.payload()["calendar"]["weekStart"], range(7))
+
+    def test_the_test_forests_calendar_counts_as_many_days_as_its_streak(self):
+        reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True})
+        p = payload.payload()
+        days = p["calendar"]["days"]
+        streak = 0
+        while streak < len(days) and days[-1 - streak]:
+            streak += 1
+        self.assertEqual(streak, p["stats"]["streak"])
+        self.assertFalse(p["calendar"]["browse"])  # a made-up day has no cards to open
+
+    def test_zooming_is_held_back_but_while_debugging(self):
+        reset(CARDS, {"debug": False})
+        self.assertEqual(payload.payload()["zoom"], payload.ZOOM_RELEASED)
+        reset(CARDS, {"debug": True})
+        self.assertTrue(payload.payload()["zoom"])
+        reset(CARDS, {"debug": True, "debug_edition": "base"})  # the Debug tab pretending to be a release
+        self.assertEqual(payload.payload()["zoom"], payload.ZOOM_RELEASED)
+
     def test_a_left_out_deck_plants_nothing(self):
         reset(CARDS, {"excluded_decks": [10]})
         self.assertEqual([(t["ago"], t["n"]) for t in payload.payload()["trees"]], [(3, 1)])

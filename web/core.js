@@ -13,6 +13,18 @@ AF.mount = function (root, data, opts) {
   const engine = AF.engines.pixel;
   // the add-on redraws this forest through the panel itself, never through the shared name
   root.afSwap = (d, srcs) => AF.swap(root.id, d, srcs);
+  // the forest switched off on this screen, the study calendar on: only the calendar, drawn
+  // straight away in the scenery's colours (web/calendar.js)
+  if (data.showForest === false) {
+    root.afToken = {};  // (a forest mounted here before stops drawing, and leaves nothing behind)
+    root.afEnv = root.afVisits = null;
+    // its settings cog stays, so the settings are still a click away
+    root.innerHTML = cogHtml(data);
+    hookCog(root, data);
+    root.style.maxWidth = data.maxWidth + 'px';
+    AF.calendar(root, data, null);
+    return;
+  }
   const animate = animates(data);
   AF.LOOP = data.loop || null;  // seconds, for a recording that loops (util.js); never set by the add-on
   // an asteroid's strike plays first, if it hasn't been seen (and the page says when it has)
@@ -21,16 +33,21 @@ AF.mount = function (root, data, opts) {
   const token = {};
   root.afToken = token;
   const current = () => root.afToken === token;
-  root.innerHTML = (data.inAnki ? '<div class="af-top"><button type="button" class="af-cog" title="Change scenery and settings" aria-label="Change scenery and settings">' + COG + '</button></div>' : '')
-    + '<div class="af-scene"><canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
+  // (the settings cog on the forest's top right corner, the zoom button beside it: no row of its own)
+  root.innerHTML = '<div class="af-scene' + (data.inAnki ? ' af-has-cog' : '') + '">' + cogHtml(data)
+    + '<canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
     + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
-  const cog = root.querySelector('.af-cog');
-  if (cog) cog.addEventListener('click', () => send(`${data.channel}:settings`));
   const sceneEl = root.querySelector('.af-scene'), canvas = root.querySelector('canvas'), tip = root.querySelector('.af-tip');
   root.style.maxWidth = data.maxWidth + 'px';
+  // the study calendar's room, kept from the start: drawn once the forest is, it would
+  // otherwise push the page down a moment after it appears
+  if (data.calendar) {
+    const cal = document.createElement('div'); cal.className = 'af-cal'; root.append(cal);
+    cal.style.minHeight = AF.calendarHeight(data.calendar, cal.clientWidth) + 'px';
+  }
   AF.caption(root, data);
   AF.captionTips(root);
-  AF.news(root, data);  // what's new: the cog's dot, and a note on the forest
+  hookCog(root, data);
 
   // the whole forest's layout, and the one being drawn: it, or a visit's close-up (web/visit.js)
   const base = AF.layout(data.trees);
@@ -38,7 +55,7 @@ AF.mount = function (root, data, opts) {
   // with animations off the forest is one still moment: every redraw uses this time
   const stillAt = performance.now();
   const idle = window.requestIdleCallback || (cb => setTimeout(cb, IDLE_FALLBACK_MS));
-  let env = null, visible = true, running = false, asleep = true, refining = 0;
+  let env = null, visible = true, running = false, asleep = true, refining = 0, calendarDrawn = false;
   // zoomed in, the trees' sprites are kept between redraws (AF.spriteCache)
   const sprites = AF.spriteCache(), zoomOn = () => !!(root.afVisits && root.afVisits.on);
 
@@ -68,6 +85,11 @@ AF.mount = function (root, data, opts) {
     // anniversary trees, resolved once instead of scanned for on every frame
     env.glowing = (data.anniversaries || []).map(idx => env.placed.find(q => !q.it.pond && q.it.index === idx)).filter(Boolean);
     root.afEnv = env;  // for an animation laid over the forest (the asteroid's strike, web/events/asteroid.js)
+    // the study calendar under it (web/calendar.js), once a mount: it draws with this scene's trees
+    if (data.calendar && !calendarDrawn) {
+      calendarDrawn = true;
+      try { AF.calendar(root, data, env); } catch (e) { console.error('Memory Forest calendar', e); }
+    }
     // some trees stood in at another size (no time to draw them all): drawn again shortly
     if (env.spritesPending) refining = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, REFINE_MS);
   }
@@ -147,8 +169,9 @@ AF.mount = function (root, data, opts) {
     if (!xs.has(it)) xs.set(it, land.placeX(it, xsAt));
     return xs.get(it);
   };
-  // (`opts.zoom`: false, none here; 'always', simply on, as in the phone's full screen)
-  const zoom = opts && opts.zoom;
+  // (`opts.zoom`: false, none here; 'always', simply on, as in the phone's full screen; none
+  // at all while the add-on holds zooming back, data.zoom false: payload.ZOOM_RELEASED)
+  const zoom = data.zoom ? opts && opts.zoom : false;
   root.afVisits = zoom !== false && AF.canVisit({ mood: data.mood }) && base.items.some(it => !it.pond) ? AF.visits({ root, data, base, animate, current, xOf, warm, always: zoom === 'always', go: (cam, behind) => {
     layout = cam ? AF.visitLayout(base, cam, xOf, behind) : base;
     pointer.clear();
@@ -260,5 +283,14 @@ const IDLE_FALLBACK_MS = 30, IDLE_TIMEOUT_MS = 300;
 // zoomed in: trees that stood in at another size are drawn again REFINE_MS after; sprites are
 // drawn ahead WARM_MS at a time
 const REFINE_MS = 40, WARM_MS = 8;
+// the settings cog (in Anki only), and what clicking it does; with what's new: its dot, and a
+// note on the forest (web/news.js)
+const cogHtml = data => data.inAnki
+  ? '<div class="af-top"><button type="button" class="af-cog" title="Change scenery and settings" aria-label="Change scenery and settings">' + COG + '</button></div>' : '';
+function hookCog(root, data) {
+  const cog = root.querySelector('.af-cog');
+  if (cog) cog.addEventListener('click', () => send(`${data.channel}:settings`));
+  AF.news(root, data);
+}
 const COG = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6c-.6.3-1.2.6-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.3.4.5.4h4c.2 0 .5-.2.5-.4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>';
 })();

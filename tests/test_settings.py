@@ -52,7 +52,7 @@ class RestoreDefaultsTests(unittest.TestCase):
             self.assertIn(kept, note)
 
     def test_what_it_says_it_keeps_is_what_it_keeps(self):
-        self.assertEqual(set(dialog.DATA_KEYS), {"excluded_decks", "ignore_before", "keep_suspended"})
+        self.assertEqual(set(dialog.DATA_KEYS), {"excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start"})
 
 
 class PaletteTests(unittest.TestCase):

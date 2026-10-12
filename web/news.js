@@ -16,8 +16,8 @@ AF.news = function (root, data) {
     // opening the settings answers it (news.settings_opened); the forest redraws later
     cog.addEventListener('click', () => cog.classList.remove('af-cog-new'));
   }
-  const n = data.news;
-  if (!n) return;
+  const n = data.news, scene = root.querySelector('.af-scene');
+  if (!n || !scene) return;  // (the calendar alone: no forest to put a note on)
   const card = document.createElement('div');
   card.className = 'af-news';
   card.innerHTML = `<b>${esc(n.title)}</b>${esc(n.text)}<div class="af-news-acts">`
@@ -29,6 +29,6 @@ AF.news = function (root, data) {
     card.remove();
     send(`${data.channel}:news:${b.dataset.news}:${n.id}`);
   });
-  root.querySelector('.af-scene').append(card);
+  scene.append(card);
 };
 })();

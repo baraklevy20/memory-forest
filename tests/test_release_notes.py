@@ -28,7 +28,7 @@ class FileTests(unittest.TestCase):
         versions = release_notes.load()
         self.assertTrue(versions)
         for v in versions:
-            self.assertTrue(set(v) <= {"version"} | {k for k, _h in release_notes.SECTIONS}, v["version"])
+            self.assertTrue(set(v) <= {"version", "summary"} | {k for k, _h in release_notes.SECTIONS}, v["version"])
             for e in release_notes.items(v):
                 self.assertTrue(e["text"].strip())
 
@@ -51,6 +51,12 @@ class MadeFromItTests(unittest.TestCase):
                          "### New\n\n- A new thing.\n- Plus only.\n\n### Improved\n\n- Better **now**.\n\n"
                          "### Fixed\n\n- A [link](https://x.y) fixed.\n")
         self.assertIsNone(release_notes.to_markdown(VERSIONS, "3.0.0"))
+
+    def test_a_summary_comes_before_the_lists_everywhere(self):
+        versions = [{"version": "4.0.0", "summary": "All about <b>trees</b>.", "new": ["A tree."]}]
+        self.assertTrue(release_notes.to_html(versions).startswith("<i>4.0.0</i>\n<div>All about <b>trees</b>.</div>\n"))
+        self.assertTrue(release_notes.to_markdown(versions, "4.0.0").startswith("All about **trees**.\n"))
+        self.assertEqual(release_notes.for_edition(versions, {})[0]["summary"], "All about <b>trees</b>.")
 
     def test_an_edition_without_the_scenery_never_lists_it(self):
         base = release_notes.for_edition(VERSIONS, {"scenery": {"other"}})

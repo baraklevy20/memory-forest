@@ -22,7 +22,7 @@ SCRIPTS = (
     "util.js", "layout.js", "scenery.js", "theme.js", "visitors.js", "ponds.js", "tooltips.js",
     "caption.js", "news.js", "hover.js", "visit.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
-    "engines/pixel/water.js", "engines/pixel/engine.js",
+    "engines/pixel/water.js", "engines/pixel/engine.js", "calendar.js",
     # the events, each drawing in the order it loads (see web/events.js)
     "events.js", "events/crows.js", "events/robins.js", "events/grass.js", "events/tumbleweeds.js",
     "events/flowers.js", "events/asteroid.js", "events/fire.js",

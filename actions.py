@@ -11,7 +11,7 @@ from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 from aqt.utils import tooltip
 
-from . import events_state, news, payload, study_log
+from . import events_state, marks, news, payload, study_log
 from .panel import refresh
 from .phone import publish as publish_for_phone
 from .phone import switch
@@ -45,7 +45,19 @@ def open_settings(focus: str = "") -> None:
 def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None = None) -> None:
     """Open the browser on the cards first studied on that day (same rule as the trees), or
     on everything from that day up to `until_days_ago` when the deep forest is clicked."""
-    terms = study_log.day_search(days_ago, until_days_ago, keeps_suspended())
+    _open_browser(study_log.day_search(days_ago, until_days_ago, keeps_suspended()), did)
+
+
+def browse_calendar_day(offset: int, did: int | None = None) -> None:
+    """Open the browser on a study calendar day's cards (web/calendar.js): those reviewed that
+    day, `offset` days before today (0: today), or those due that day, `offset` days ahead."""
+    _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today), did)
+
+
+def _open_browser(terms: list, did: int | None = None) -> None:
+    """The browser on `terms`, kept to the cards the forest counts: the deck `did` if given, and
+    never a deck left out of the forest or the note that carries it to your phone."""
+    terms = list(terms)
     name = mw.col.decks.name_if_exists(did) if did else None
     if name:  # deck names can hold quotes and colons, so let Anki quote it
         terms.insert(0, mw.col.build_search_string(SearchNode(deck=name)))
@@ -83,6 +95,10 @@ def on_js_message(handled, message, context):
             return (True, events_state.strike_before(":".join(cmd[1:])))
         elif cmd[0] == "deep":  # zoomed in among the trees: the deep forest's, one by one
             return (True, payload.deep_trees(cmd[1] if len(cmd) > 1 else ""))
+        elif cmd[0] == "mark" and len(cmd) > 1:  # a study calendar day marked as important, or no longer
+            marks.toggle(mw.col, cmd[1])  # (the calendar has drawn it already: no redraw)
+        elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked
+            browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None)
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

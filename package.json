@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "python3 dev/package.py",
-    "test": "python3 -m unittest discover -s tests",
+    "test": "python3 -m unittest discover -s tests && python3 dev/phone_check.py --if-changed",
+    "test:phone": "python3 dev/phone_check.py",
     "lint": "npm run lint:js && npm run lint:py",
     "lint:js": "eslint web",
     "lint:py": "python3 -m ruff check .",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "eslint": "^9.13.0"
+    "eslint": "^9.13.0",
+    "puppeteer-core": "^24.43.1"
   }
 }

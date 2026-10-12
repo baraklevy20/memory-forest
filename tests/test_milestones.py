@@ -49,5 +49,34 @@ class MilestoneTests(unittest.TestCase):
         self.assertEqual(sum(t["mature"] for t in forest["trees"]), 2)
 
 
+class AnimalDayTests(unittest.TestCase):
+    """The day each animal came, for the study calendar (milestones.animal_days)."""
+
+    @staticmethod
+    def visitor(key, day=None):
+        return {"key": key, "label": key, "why": "", "new": False, "day": day}
+
+    def test_a_streak_animal_came_the_day_the_streak_reached_its_length(self):
+        # studied 40 days ago, then every day from 35 days ago: the 30th day in a row is 6 days ago
+        reviews = {40: 5, **dict.fromkeys(range(36), 5)}
+        got = milestones.animal_days([self.visitor("deer")], [], reviews, TODAY)
+        self.assertEqual(got, [{"key": "deer", "ago": 6, "label": "deer", "why": ""}])
+
+    def test_the_fox_came_with_the_10000th_review_and_the_heron_with_the_first_pond(self):
+        reviews = {9: 6000, 5: 3000, 2: 2000, 0: 10}
+        trees = [{"ago": 9}, {"ago": 2, "gap": 6}, {"ago": 0}]
+        got = milestones.animal_days([self.visitor("fox"), self.visitor("heron")], trees, reviews, TODAY)
+        self.assertEqual([(a["key"], a["ago"]) for a in got], [("fox", 2), ("heron", 2)])
+
+    def test_one_the_history_cannot_date_goes_by_the_day_the_forest_saw_it_come(self):
+        got = milestones.animal_days([self.visitor("owl", TODAY - 12), self.visitor("eagle")], [], {}, TODAY)
+        self.assertEqual([(a["key"], a["ago"]) for a in got], [("owl", 12)])  # the eagle came unseen
+
+    def test_the_test_forest_makes_up_a_day_for_each_animal_it_cannot_date(self):
+        got = milestones.animal_days([self.visitor("owl"), self.visitor("eagle")], [], {}, TODAY, made_up=True)
+        self.assertEqual([a["key"] for a in got], ["owl", "eagle"])
+        self.assertNotEqual(got[0]["ago"], got[1]["ago"])
+
+
 if __name__ == "__main__":
     unittest.main()
