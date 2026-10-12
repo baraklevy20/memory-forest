@@ -62,12 +62,13 @@ const FLECKS = 34;
 const GRASS_LEAN = 10;
 
 const lum = c => c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
-const bay = (x, y) => (B4[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+const bayer = (x, y) => (B4[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
 const css = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a.toFixed(3)})`;
 // how dark the hour is, from the sky at the horizon: 0 by day, up to 0.8 at night
 const dimOf = th => { const s = th.sky; return clamp(1.05 - lum(hex(s[s.length - 1])) / 255 * 1.25, 0, 0.8); };
 
 AF.landscape('river', {
+  busy: true,  // the flecks on the water pass the near bank at up to ~17 px a second
   center, halfWidth,
   // the animals along the front stand a little higher than on open ground, where the channel
   // is narrower, and never below the ground an environment keeps (synthwave's grid is not ground);
@@ -130,7 +131,7 @@ AF.landscape('river', {
         const dx = x + 0.5 - cx, a = Math.abs(dx) / hw, k = (y * W + x) * 4;
         let col;
         if (a <= 1) {
-          col = mix(fr > bay(x, y) ? s[i + 1] : s[i], water, WATER_MIX);
+          col = mix(fr > bayer(x, y) ? s[i + 1] : s[i], water, WATER_MIX);
           if (a > 0.72) col = mix(col, edge, 0.28 * (a - 0.72) / 0.28 + 0.1);  // darker toward the banks
           if (y % 3 === 1 && (x * 7 + y * 5) % 10 < 2) col = mix(col, WHITE, 0.14 * (1 - dim));
           mask[y * W + x] = 1;

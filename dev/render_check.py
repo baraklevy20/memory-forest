@@ -63,13 +63,18 @@ VIRTUAL_TIME_MS = 60000
 SETTLE_MS, SETTLE_TRIES = 300, 60
 
 
-def scripts() -> str:
+def script_files() -> list:
+    """Every script a scene can need, core first (as "envs/aurora.js")."""
     files = list(catalog.SCRIPTS)
     for kind in ("envs", "landscapes", "landmarks"):
         d = os.path.join(WEB, kind)
         if os.path.isdir(d):  # a kind can be removed wholesale by deleting its folder
             files += [f"{kind}/{n}" for n in sorted(os.listdir(d)) if n.endswith(".js")]
-    return "\n".join(open(os.path.join(WEB, f), encoding="utf-8").read() for f in files)
+    return files
+
+
+def scripts() -> str:
+    return "\n".join(open(os.path.join(WEB, f), encoding="utf-8").read() for f in script_files())
 
 
 def scenes(quick: bool) -> list:

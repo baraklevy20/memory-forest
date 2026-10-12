@@ -80,6 +80,7 @@ function blowing(env, t) {
   return gone;
 }
 AF.events.add('tumbleweeds', {
+  busy: env => Boolean(env.data.backlog && env.data.backlog.hell) || typeof env.blowFrom === 'number',
   // on Merciless they come to rest against the trees, the deeper the hell the more of them
   treeBase(env, lg, p, sw, x, y) {
     const b = env.data.backlog;

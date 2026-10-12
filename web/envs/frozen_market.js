@@ -1344,6 +1344,7 @@ function santaHat(g, env, { key, rows, x0, y0, flip, facesLeft, color }) {
 
 AF.env('frozen_market', {
   calendar: '#6e92c8',  // the study calendar in the river's ice blue: its trees' green says nothing of the frozen scene
+  busy: true,  // the skaters, twirling, and the sleigh
   look: mood => clone(LOOKS[hourOf(mood.time)]),
   theme(th, mood) { th.xh = hourOf(mood.time); },
   after(th) {

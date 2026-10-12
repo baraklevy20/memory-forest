@@ -29,6 +29,7 @@ part('stars', {
 });
 
 part('shooting', {
+  busy: (st, env) => Boolean(env.theme.meteors),  // a lone shooting star is brief enough at 10 a second
   back(g, env, t) {
     const th = env.theme, { W, H, u } = env;
     if (th.shooting || th.meteors) {
@@ -83,6 +84,7 @@ part('birds', {
 });
 
 part('petals', {
+  busy: st => st.petals.length > 0,
   init(st, { th, A, W, H, u, C }) {
     for (let i = 0; i < (th.petals || 0); i++) st.petals.push({ x: A() * W, y: A() * H, v: (5 + A() * 6) * u, wind: (8 + A() * 8) * u, ph: A() * 10, c: C.petals[i % C.petals.length] });
   },

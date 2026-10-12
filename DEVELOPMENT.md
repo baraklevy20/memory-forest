@@ -89,11 +89,19 @@ npm run render         # every preset, and every environment against every
 npm run render:quick   # a representative subset, for a fast loop
 npm run baseline       # record what every scene looks like (kept locally, not committed)
 npm run compare        # ... and check after a refactor that nothing moved (add :quick for a subset)
+npm run perf:baseline  # record what each scene costs in CPU and memory (kept locally, not committed)
+npm run perf           # ... and check a change made none of them cost much more (dev/perf_check.mjs)
 npm run audit          # what each setting actually changes; fails on one that does nothing
 
 npm run payload -- "~/Library/Application Support/Anki2/User 1/collection.anki2"
 npm run gallery        # writes dev/gallery.html
 ```
+
+The perf check measures CPU in instructions a second, from macOS's hardware counters: unlike
+CPU %, they hardly move with whatever else the machine is doing. It needs macOS, and a baseline
+is only good for the machine and Chrome it was made on. To look into a cost, `node dev/profile.mjs
+<preset>` breaks it down (`--calls` for who draws what, `--changes` for what moves) and `node
+dev/memory.mjs <preset>` does the same for memory.
 
 The render checks need Chrome. The export copies the collection (and its `-wal`) before
 reading, so it is safe while Anki is open. `dev/payload.js` holds your study history and is

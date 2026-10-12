@@ -65,16 +65,33 @@ const FRONT_TALLEST = 11, FRONT_CLEAR = 1;
 const SKY_X = 0.66, SKY_Y = 0.16, SKY_RX = 0.09, SKY_RY = 0.04, SKY_TURN = 0.35, SKY_FLAP_FPS = 2.5, SKY_FLAP_EVERY = 5;
 const FACES_LEFT = { rabbit: true };  // which way each sprite is drawn looking
 
+/* A sprite is painted pixel by pixel once, onto a canvas of its own, and copied from there:
+ * painted straight onto the forest every frame, the animals were most of a frame's canvas
+ * calls. Kept for each frame of a sprite (its rows), by which way it faces and the colours
+ * its letters came out in (a tint, the haze, a lit window). */
+const SPRITES = new WeakMap();  // rows -> { chars, w, made: Map(key -> canvas) }
+const SPRITE_KEEP = 32;  // ways one frame is kept painted at once; more (a scene swapped many times) starts over
 function paintSprite(g, rows, x0, y0, pal, colorOf, flip = false) {
-  let style = null;
-  rows.forEach((row, yy) => {
-    for (let xx = 0; xx < row.length; xx++) {
-      const ch = row[xx]; if (ch === '.') continue;
-      const c = colorOf(pal[ch] || '#000000', ch);
-      if (c !== style) g.fillStyle = style = c;
-      g.fillRect(x0 + (flip ? row.length - 1 - xx : xx), y0 + yy, 1, 1);
-    }
-  });
+  let s = SPRITES.get(rows);
+  if (!s) SPRITES.set(rows, s = { chars: [...new Set(rows.join('').replace(/\./g, ''))], w: Math.max(...rows.map(r => r.length)), made: new Map() });
+  const cols = s.chars.map(ch => colorOf(pal[ch] || '#000000', ch)), key = (flip ? 'f' : '') + cols.join('|');
+  let c = s.made.get(key);
+  if (!c) {
+    if (s.made.size >= SPRITE_KEEP) s.made.clear();
+    c = document.createElement('canvas'); c.width = s.w; c.height = rows.length;
+    const sg = c.getContext('2d'), colOf = new Map(s.chars.map((ch, i) => [ch, cols[i]]));
+    let style = null;
+    rows.forEach((row, yy) => {
+      for (let xx = 0; xx < row.length; xx++) {
+        const ch = row[xx]; if (ch === '.') continue;
+        const col = colOf.get(ch);
+        if (col !== style) sg.fillStyle = style = col;
+        sg.fillRect(flip ? row.length - 1 - xx : xx, yy, 1, 1);
+      }
+    });
+    s.made.set(key, c);
+  }
+  g.drawImage(c, x0, y0);
 }
 /* the line the animals at the front and the cabin stand on */
 const frontY = env => Math.round(env.visitorY || env.H * Math.min(VISITOR_LOWEST, (env.bot || GROUND_BOTTOM) + VISITOR_DROP));

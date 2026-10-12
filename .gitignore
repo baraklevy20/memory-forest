@@ -4,6 +4,7 @@ user_files/
 dev/payload.js
 dev/gallery.html
 dev/render_baseline.json
+dev/perf_baseline.json
 *.ankiaddon
 # built add-ons (npm run build:base, build:plus)
 dist/

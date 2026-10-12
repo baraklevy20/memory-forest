@@ -93,6 +93,7 @@ function plume(g, p, c, burn, t) {
 }
 
 AF.events.add('fire', {
+  busy: env => env.placed.some(p => !p.it.pond && p.it.burn),
   /* in front of it all: the glow and the flames, then the plumes over every tree's flames */
   front(g, env, t) {
     const f = Math.floor(t * 12), burning = env.placed.filter(p => !p.it.pond && p.it.burn);

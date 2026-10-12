@@ -887,6 +887,7 @@ function witchHat(g, env, { key, rows, x0, y0, flip, facesLeft, color }) {
 
 AF.env('pumpkin_patch', {
   dressVisitor: witchHat,
+  busy: true,  // the bats, the witch crossing the moon, the laughing pumpkins
   /* an orange dusk; the other hours keep the same scene in their own light */
   look(mood) {
     const k = mood.time === 'night' ? 'night' : mood.time === 'dawn' ? 'dawn' : mood.time === 'day' || mood.time === 'golden_hour' ? 'day' : 'dusk';

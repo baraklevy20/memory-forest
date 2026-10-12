@@ -142,9 +142,11 @@ AF.mount = function (root, data, opts) {
       const h = AF.STAGE_H[p.it.stage] * env.u * p.s, cx = Math.round(p.x), cy = Math.round(p.y - h * 0.55);
       g.save(); g.globalCompositeOperation = 'lighter';
       g.fillStyle = `rgba(255,226,150,${0.06 + 0.03 * Math.sin(t * AF.u.cyc(1.4))})`;
+      // each disc one fill of its rows, which never overlap: a call a row was a hundred a frame
       for (const k of GLOW_DISCS) {
-        const r = Math.max(2, Math.round(h * k));
-        for (let dy = -r; dy <= r; dy++) { const w = Math.round(Math.sqrt(r * r - dy * dy)); g.fillRect(cx - w, cy + dy, w * 2, 1); }
+        const r = Math.max(2, Math.round(h * k)), disc = new Path2D();
+        for (let dy = -r; dy <= r; dy++) { const w = Math.round(Math.sqrt(r * r - dy * dy)); if (w) disc.rect(cx - w, cy + dy, w * 2, 1); }
+        g.fill(disc);
       }
       g.restore();
       for (let i = 0; i < GLOW_SPARKLES; i++) {
@@ -179,21 +181,22 @@ AF.mount = function (root, data, opts) {
     frame(animate ? performance.now() : stillAt);
   } }) : null;
 
-  // ~15 frames a second is plenty for drifting clouds and fireflies. Between frames it sleeps,
-  // rather than waking at every refresh of the screen to check the time; off screen, or on a
-  // hidden page, it stops altogether until the forest is seen again (wake)
+  // ~15 frames a second is plenty for falling rain and a strike, and a calm scene, where
+  // nothing moves more than a pixel in a tenth of a second, takes 10 (AF.busy): every frame
+  // costs Chrome the same, however little changed in it. Each is drawn straight from a timer:
+  // waiting on a refresh of the screen as well cost Chrome a second, empty frame of its own
+  // for every one drawn. Off screen, or on a hidden page, it stops altogether until the
+  // forest is seen again (wake)
   function loop() {
     if (!asleep) return;
     asleep = false;
-    let last = 0;
-    const tick = ts => {
+    const tick = () => {
       if (!current() || !visible || document.hidden) { asleep = true; return; }  // swapped out, or unseen
-      if (ts - last <= FRAME_MS) { requestAnimationFrame(tick); return; }  // woke a refresh early: no faster than ~15 a second
-      last = ts;
+      const ts = performance.now();
       // (one frame that throws must not stop the forest for good)
-      try { frame(ts); } finally { setTimeout(() => requestAnimationFrame(tick), Math.max(0, FRAME_MS - FRAME_WAKE_MS - (performance.now() - ts))); }
+      try { frame(ts); } finally { setTimeout(tick, Math.max(0, (AF.LOOP || AF.busy(env) ? FRAME_MS : CALM_FRAME_MS) - (performance.now() - ts))); }
     };
-    requestAnimationFrame(tick);
+    tick();
   }
   const wake = () => { if (running && current()) loop(); };
   function start() {
@@ -222,6 +225,16 @@ AF.mount = function (root, data, opts) {
   // swap, where the old forest was just cleared and waiting would show an empty panel
   if (opts && opts.now) { lastW = sceneEl.clientWidth; start(); return; }
   requestAnimationFrame(() => idle(() => { lastW = sceneEl.clientWidth; start(); }, { timeout: IDLE_TIMEOUT_MS }));
+};
+
+/* Whether a scene has anything fast in it - rain, falling petals, a strike - that wants the
+ * full ~15 frames a second; a calm one is drawn at 10. Each part says so for itself with a
+ * `busy`: an effect (a function of its state), an environment, landscape or landmark (true,
+ * or a function of the scene), an event (a hook). Asked before every frame: some are only
+ * fast for a while (a tumbleweed blowing away). */
+AF.busy = env => {
+  const says = spec => typeof spec.busy === 'function' ? spec.busy(env) : spec.busy;
+  return Boolean(AF.fx.busy(env) || says(AF.envOf(env)) || says(AF.landOf(env)) || says(AF.markOf(env)) || AF.events.first('busy', env));
 };
 
 /* Load scripts onto this copy of the add-on - a scene's environment, landscape and landmark -
@@ -271,7 +284,7 @@ AF.swap = function (id, data, srcs) {
 };
 
 const FRAME_MS = 66;  // ~15 frames a second
-const FRAME_WAKE_MS = 8;  // the sleep between frames ends this early, as the next one waits for the screen's refresh
+const CALM_FRAME_MS = 100;  // 10 a second, in a scene with nothing fast in it
 // the canvas is drawn at a few hundred pixels across and scaled up by a whole number:
 // one step per CSS_W_PER_SCALE CSS pixels, at least MIN_PIXEL_SCALE; env.u is one
 // BASE_W-th of its width, so everything is sized the same at any scale

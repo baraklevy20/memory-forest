@@ -105,6 +105,7 @@ function dropAt(d, t, drift, W, H) {
 
 /* the drops behind the land (drawn at the back) and in front of it */
 part('rain', {
+  busy: st => st.drops.length + st.far.length > 0,
   init(st, { th, A, W, H, u }) {
     st.drift = th.lightning ? STORM_DRIFT : RAIN_DRIFT;
     const nRain = th.rain || 0;
@@ -149,6 +150,7 @@ part('splashes', {
 });
 
 part('snow', {
+  busy: st => st.flakes.length > 0,
   init(st, { th, A, W, H, u }) {
     for (let i = 0; i < (th.snowfall || 0); i++) st.flakes.push({ x: A() * W, y: A() * H, v: (6 + A() * 9) * u, ph: A() * 10, big: A() < (th.deepSnow ? DEEP_BIG_FLAKE_CHANCE : BIG_FLAKE_CHANCE) });
   },
@@ -186,6 +188,7 @@ part('glints', {
 
 /* leaves blown across on a gust, now and then, never on a rhythm */
 part('wind', {
+  busy: (st, env) => Boolean(env.theme.wind),  // its gusts sweep the leaves across in two seconds
   init(st, { th, A, H, C }) {
     if (th.wind) for (let i = 0; i < WIND_LEAVES; i++) st.leaves.push({ y: H * (0.3 + A() * 0.6), off: A(), ph: A() * 10, c: C.leaf || (A() < 0.5 ? th.grass : th.g0) });
   },
@@ -239,6 +242,7 @@ part('fogBanks', {
 /* lightning strikes at no fixed rhythm, a couple of times a minute at most and usually much
  * less; a still forest never freezes a flash */
 part('lightning', {
+  busy: (st, env) => Boolean(env.theme.lightning),  // a flash lasts a few hundredths of a second
   back(g, env, t, st) {
     const th = env.theme, { W, H, u, hor } = env;
     st.flash = 0;

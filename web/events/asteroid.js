@@ -209,6 +209,7 @@ function playStrike (root, data, done) {
 };
 
 AF.events.add('asteroid', {
+  busy: env => !env.still && (Boolean(env.data.doom) || (env.data.craters || []).some(c => c.ago < CRATER_FRESH)),
   /* the ground: the craters */
   ground(env, lg) {
     env.craterBoxes = [];

@@ -60,6 +60,11 @@ AF.fx = {
     }
   },
 
+  /* an effect fast enough to want every frame there is (see AF.busy) */
+  busy(env) {
+    return Boolean(env.fx) && Object.values(PARTS).some(p => p.busy && p.busy(env.fx, env));
+  },
+
   front(g, env, t) {
     const st = env.fx, spec = AF.envOf(env);
     for (const key of FRONT) {

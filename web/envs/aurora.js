@@ -103,9 +103,38 @@ function column(a, x, ts, u) {
   const fade = 0.5 + 0.5 * Math.sin(xs * 0.011 + a.ph + (AF.LOOP ? ts * AF.u.cyc(0.03) / 0.2 : ts * 0.15));
   const b = Math.max(0, Math.min(3, Math.round(ray * (0.65 + fade * 0.6) * 3)));
   const hh = Math.round(a.hpx * (0.6 + 0.4 * Math.sin(xs * 0.021 + (AF.LOOP ? ts * AF.u.cyc(0.08) / 0.2 : ts * 0.4) + a.ph)));
-  return { y0, hh, col: a.cols[b] };
+  return { y0, hh, b, col: a.cols[b] };
 }
 
+
+/* The curtains and their reflection are painted into a pixel buffer of their own, laid over
+ * the scene in one drawImage: as canvas shapes, thousands of thin bands a frame, they were
+ * most of what the scene cost Chrome to send to the GPU and draw. The bands blend in the
+ * order the canvas painted them (source over), so the look is the same to a level or two. */
+function buffer(env, key, w, h) {
+  let b = env[key];
+  if (!b || b.w !== w || b.h !== h) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'), img = g.createImageData(w, h);
+    b = env[key] = { w, h, c, g, img, d: img.data };
+  }
+  b.d.fill(0);
+  return b;
+}
+/* a column of rows [y0, y1) of the buffer, in [r, g, b, a] (a from 0 to 1), over what is there */
+function span(b, x, y0, y1, c) {
+  if (x < 0 || x >= b.w) return;
+  const a = c[3], d = b.d;
+  for (let y = Math.max(0, y0), end = Math.min(b.h, y1); y < end; y++) {
+    const i = (y * b.w + x) * 4, da = d[i + 3] / 255, oa = a + da * (1 - a);
+    if (!oa) continue;
+    const k = da * (1 - a);
+    d[i] = (c[0] * a + d[i] * k) / oa; d[i + 1] = (c[1] * a + d[i + 1] * k) / oa; d[i + 2] = (c[2] * a + d[i + 2] * k) / oa;
+    d[i + 3] = oa * 255;
+  }
+}
+/* 'r,g,b' and an alpha, as [r, g, b, a] */
+const rgba = (rgb, a) => rgb.split(',').map(Number).concat(a);
 
 AF.env('aurora', {
 
@@ -167,8 +196,8 @@ AF.env('aurora', {
       ];
       for (const a of st.aur) {
         // four brightness steps, each a fixed set of colours: hem, lower, middle and top of the curtain
-        a.cols = [0, 1, 2, 3].map(s => [`rgba(${a.hem},${a.a * (0.4 + s * 0.18)})`, `rgba(${a.body},${a.a * (0.14 + s * 0.12)})`,
-          `rgba(${a.body},${a.a * (0.07 + s * 0.07)})`, `rgba(${a.top},${a.a * (0.05 + s * 0.05)})`]);
+        a.cols = [0, 1, 2, 3].map(s => [rgba(a.hem, a.a * (0.4 + s * 0.18)), rgba(a.body, a.a * (0.14 + s * 0.12)),
+          rgba(a.body, a.a * (0.07 + s * 0.07)), rgba(a.top, a.a * (0.05 + s * 0.05))]);
         a.yb = Math.round(H * a.y); a.hpx = a.hh * u;
       }
       env.curtains = st.aur;  // the water's reflection draws them too
@@ -179,13 +208,24 @@ AF.env('aurora', {
       // each curtain's columns, kept for the frame: the water's reflection draws the same ones
       const cols = st.aur.map(a => { const out = []; for (let x = 0; x < W; x++) out.push(column(a, x, ts, u)); return out; });
       env.curtainCols = { t, cols };
+      // the rows the curtains reach this frame, top to bottom: the buffer covers only those
+      let top = Infinity, bottom = -Infinity;
+      cols.forEach(cs => cs.forEach(({ y0, hh }) => { top = Math.min(top, y0 - Math.max(hh, hem)); bottom = Math.max(bottom, y0); }));
+      top = Math.max(0, top); bottom = Math.min(env.H, bottom);
+      if (bottom <= top) return;
+      const B = buffer(env, 'auroraSky', W, bottom - top);
+      // each column hem first, as the canvas drew it; a band of negative height covers the
+      // rows above it, as fillRect drew it
+      const band = (x, y, h, c) => { if (h < 0) { y += h; h = -h; } if (h) span(B, x, y - top, y - top + h, c); };
       st.aur.forEach((a, i) => { for (let x = 0; x < W; x++) {
         const { y0, hh, col } = cols[i][x], s1 = Math.round(hh * 0.3), s2 = Math.round(hh * 0.62);
-        g.fillStyle = col[0]; g.fillRect(x, y0 - hem, 1, hem);
-        g.fillStyle = col[1]; g.fillRect(x, y0 - s1, 1, s1 - hem);
-        g.fillStyle = col[2]; g.fillRect(x, y0 - s2, 1, s2 - s1);
-        g.fillStyle = col[3]; g.fillRect(x, y0 - hh, 1, hh - s2);
+        band(x, y0 - hem, hem, col[0]);
+        band(x, y0 - s1, s1 - hem, col[1]);
+        band(x, y0 - s2, s2 - s1, col[2]);
+        band(x, y0 - hh, hh - s2, col[3]);
       } });
+      B.g.putImageData(B.img, 0, 0);
+      g.drawImage(B.c, 0, top);
     },
   },
 
@@ -199,17 +239,19 @@ AF.env('aurora', {
     const { W, u, hor } = env, ts = t * 0.2, end = L.y0 + L.lh;
     const row = y => L.y0 + Math.round((hor - y) * (L.lh - 2) / hor);
     const kept = env.curtainCols && env.curtainCols.t === t ? env.curtainCols.cols : null;
-    g.save(); g.globalAlpha = 0.55;
+    // into the water's own buffer, a little dimmer, column by column as the canvas drew them
+    // (where the ripple shifts two columns onto one pixel, both paint it)
+    const B = buffer(env, 'auroraLake', W, end - L.y0), dim = c => c.dim || (c.dim = [c[0], c[1], c[2], c[3] * 0.55]);
     env.curtains.forEach((a, i) => { for (let x = 0; x < W; x++) {
       const { y0, hh, col } = kept ? kept[i][x] : column(a, x, ts, u), wob = Math.round(Math.sin(t * AF.u.cyc(0.9) + x * 0.3));
       const spans = [[y0 - 1, y0, col[0]], [y0 - Math.round(hh * 0.3), y0 - 1, col[1]], [y0 - Math.round(hh * 0.62), y0 - Math.round(hh * 0.3), col[2]]];
       for (const [ya, yb, c] of spans) {
         const r0 = Math.max(L.y0, row(yb)), r1 = Math.min(end, row(ya) + 1);
-        if (r1 <= r0) continue;
-        g.fillStyle = c; g.fillRect(x + wob, r0, 1, r1 - r0);
+        if (r1 > r0) span(B, x + wob, r0 - L.y0, r1 - L.y0, dim(c));
       }
     } });
-    g.restore();
+    B.g.putImageData(B.img, 0, 0);
+    g.drawImage(B.c, 0, L.y0);
   },
 });
 })();

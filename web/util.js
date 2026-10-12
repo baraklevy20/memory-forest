@@ -30,10 +30,23 @@ function layer(W, H) { const c = document.createElement('canvas'); c.width = Mat
 const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MAX_LINE_PX = 4000;  // a runaway line gives up rather than hang the panel
+/* A pixel line, filled once, its pixels gathered into runs: a row of them for a flat line, a
+ * column for a steep one. Its pixels never repeat, so one shape draws exactly what a call a
+ * pixel did (a grid of these was thousands of calls a frame) */
 function pxLine(g, x0, y0, x1, y1) {
   x0 |= 0; y0 |= 0; x1 |= 0; y1 |= 0;
   const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx + dy;
-  for (let i = 0; i < MAX_LINE_PX; i++) { g.fillRect(x0, y0, 1, 1); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } }
+  const line = new Path2D(), flat = dx >= -dy;
+  let rx = x0, ry = y0, n = 0;  // the run so far: n pixels from (rx, ry), along the line's long way
+  const run = () => { if (flat) line.rect(sx > 0 ? rx : rx - n + 1, ry, n, 1); else line.rect(rx, sy > 0 ? ry : ry - n + 1, 1, n); };
+  for (let i = 0; i < MAX_LINE_PX; i++) {
+    if (flat ? y0 !== ry : x0 !== rx) { run(); rx = x0; ry = y0; n = 0; }
+    n++;
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; }
+  }
+  run();
+  g.fill(line);
 }
 function fmtDate(iso) { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }

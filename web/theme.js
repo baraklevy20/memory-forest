@@ -62,7 +62,9 @@ AF.theme = function (mood, stats, events) {
   if (w === 'cloudy') {
     mixSky(night ? '#1a2030' : '#9aa3ad', 0.6);
     if (th.orb) { th.orb.halo = 0; th.orb.c = mixHex(th.orb.c, skyMid(), 0.6); }
-    th.clouds = { n: 7, top: mixHex(th.clouds.top, '#c9ced4', 0.4), bot: mixHex(th.clouds.bot, '#8e98a2', 0.4), a: 245 };
+    // a look with no clouds of its own (the Christmas market's evenings) is overcast in plain grey
+    const own = th.clouds || { top: night ? '#2a3040' : '#c9ced4', bot: night ? '#1c2230' : '#8e98a2' };
+    th.clouds = { n: 7, top: mixHex(own.top, '#c9ced4', 0.4), bot: mixHex(own.bot, '#8e98a2', 0.4), a: 245 };
     th.deck = { n: 3, top: night ? '#2a3040' : '#c3c9cf', bot: night ? '#1c2230' : '#9aa3ad', a: 250 };
     addTint('#8e9aa4', 0.12); th.flat = true; th.rim = null; th.shadow = 0;
   } else if (w === 'rain' || w === 'storm') {

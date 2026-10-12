@@ -220,6 +220,20 @@ function garland(env) {
   return (env.lnGarland = out);
 }
 
+/* nothing on the garland moves: it is painted once, cord and lamps, and laid over each frame
+ * in one go (drawn straight onto the forest, its dotted glows took ~700 calls a frame) */
+function garlandImg(env, lit) {
+  const c = env.lnGarlandImg;
+  if (c && c.lit === lit) return c.cv;
+  const G = garland(env), h = Math.max(0, ...G.cord.map(p => p[1]), ...G.lamps.map(l => l.y)) + 16;
+  const [cv, g] = layer(env.W, h);
+  g.fillStyle = lit ? '#1a0c14' : '#3a2428';
+  for (const [x, y] of G.cord) g.fillRect(x, y, 1, 1);
+  for (const l of G.lamps) chochin(g, l.x, l.y, lit, l.big);
+  env.lnGarlandImg = { lit, cv };
+  return cv;
+}
+
 /* ---------- the eave (CFG.eave): the edge of a tea house roof over the top-left ----------
  * You are sitting under it: a dark curved eave with its rafter ends, and red chochin hung
  * along it on cords of different lengths. */
@@ -351,12 +365,7 @@ AF.env('lanterns', {
     front(g, env, t, st, where) {
       if (where !== 'sky') return;
       const lit = env.theme.lanternNight;
-      if (CFG.garland) {
-        const G = garland(env);
-        g.fillStyle = lit ? '#1a0c14' : '#3a2428';
-        for (const [x, y] of G.cord) g.fillRect(x, y, 1, 1);
-        for (const l of G.lamps) chochin(g, l.x, l.y, lit, l.big);
-      }
+      if (CFG.garland) g.drawImage(garlandImg(env, lit), 0, 0);
       if (CFG.eave) {
         const E = eave(env);
         g.drawImage(E.img, 0, 0);

@@ -17,6 +17,8 @@
     "baseline": "python3 dev/render_check.py baseline",
     "compare": "python3 dev/render_check.py compare",
     "compare:quick": "python3 dev/render_check.py compare --quick",
+    "perf": "node dev/perf_check.mjs compare",
+    "perf:baseline": "node dev/perf_check.mjs baseline",
     "audit": "python3 dev/combo_audit.py",
     "gallery": "python3 dev/build_gallery.py",
     "gif": "python3 dev/make_gif.py",
