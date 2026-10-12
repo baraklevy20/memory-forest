@@ -11,7 +11,10 @@
             "id": "calendar-1.3",
             "kind": "note",
             "title": "New: a study calendar",
-            "text": "Under your forest, a calendar of your study days, your streak and the cards due ahead."
+            "text": "Under your forest, a calendar of your study days, your streak and the cards due ahead.",
+            "settings": [
+              "calendar"
+            ]
           }
         },
         "A new landmark: the Pagoda, a temple in the mist.",

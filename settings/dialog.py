@@ -161,6 +161,11 @@ class SettingsDialog(QDialog):
         # the tab it was left on last time, unless a note's button points somewhere (first, so
         # the dialog is sized for the page it opens on: Customize is shorter than the tiles)
         self.show_tab(_last_tab)
+        # a new feature's settings wear NEW for a while after the update (news.setting_tags)
+        targets = self.news_targets()
+        for key in news.setting_tags(cfg, today(cfg)):
+            if key in targets:
+                whats_new.tag(targets[key][0], targets[key][1])
         self.show_news(focus)
         self.layout().activate()
         self.fit_screen()

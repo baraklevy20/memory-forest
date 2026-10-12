@@ -10,7 +10,8 @@ lists, from 1.3.0 on), and its lists: "new", "improved", "fixed" (each under its
            kind, e.g. "scenery:aurora") or "<kind>" (any of it) - an edition without it
            never lists it (the public page is the base edition's);
   "announce": {"id", "kind": "note" (a card on the forest, once: "title", "text", and maybe a
-              button, "action", that opens the settings where "opens" says) or "dot" (the
+              button, "action", that opens the settings where "opens" says, and "settings":
+              the settings that wear NEW for two weeks, by the tabs' news_targets keys) or "dot" (the
               cog's dot, and NEW on the tile of the scenery it `needs`, if it needs one) or
               "improved" (IMPROVED on the tiles of its "sceneries", with no dot). A tile's NEW or
               IMPROVED stays until that scenery is picked or two weeks pass}}."""

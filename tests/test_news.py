@@ -226,6 +226,41 @@ class TileTagTests(unittest.TestCase):
             self.assertNotIn("bamboo", news.tile_tags({}, DAY + dt.timedelta(days=news.TAG_DAYS)))
 
 
+FEATURE = {"text": "A calendar.", "announce": {"id": "a_calendar", "kind": "note", "title": "New: a calendar",
+                                             "text": "Days.", "settings": ["calendar"]}}
+
+
+class SettingTagTests(unittest.TestCase):
+    def setUp(self):
+        reset()
+        updated()
+
+    def test_a_features_settings_wear_new_for_two_weeks_from_the_first_visit(self):
+        with notes(FEATURE):
+            self.assertEqual(news.setting_tags({}, DAY), ["calendar"])
+            self.assertEqual(news.setting_tags({}, DAY + dt.timedelta(days=news.TAG_DAYS - 1)), ["calendar"])
+            self.assertEqual(news.setting_tags({}, DAY + dt.timedelta(days=news.TAG_DAYS)), [])
+            self.assertEqual(news.setting_tags({}, DAY + dt.timedelta(days=news.TAG_DAYS + 1)), [])  # and never again
+
+    def test_its_note_and_its_settings_are_heard_of_apart(self):
+        with notes(FEATURE):
+            news.mark_seen(["a_calendar"])  # the note answered on the forest
+            self.assertEqual(news.setting_tags({}, DAY), ["calendar"])
+            self.assertEqual(news.tile_tags({}, DAY), {})  # (a setting's tag is no tile's)
+            self.assertEqual(news.note({}, DAY), None)
+
+    def test_a_fresh_install_sees_no_setting_as_new(self):
+        reset()
+        with notes(FEATURE):
+            self.assertEqual(news.setting_tags({}, DAY), [])
+
+    def test_replaying_the_update_tags_them_again(self):
+        with notes(FEATURE), debug_tools():
+            news.setting_tags(DEBUG, DAY)
+            news.replay_update()
+            self.assertEqual(news.setting_tags(DEBUG, DAY), ["calendar"])
+
+
 class ReplayTests(unittest.TestCase):
     def setUp(self):
         reset()

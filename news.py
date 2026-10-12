@@ -4,7 +4,8 @@ Most changes say nothing (fixes, speed, where the weather comes from). A new sce
 dot on the forest's cog, and a NEW tag on its tile (an improved one an IMPROVED tag, with
 the same dot) until it is picked or two weeks pass; a change to
 the settings themselves can put the dot there too, with no tile to tag. A real
-feature gets a note: one card on the forest, shown once. The About tab lists the newest
+feature gets a note: one card on the forest, shown once, and NEW on its settings (its
+"settings") for two weeks from the first time the settings open after the update. The About tab lists the newest
 version's new and improved lines. All of it comes from release_notes.json (an item's
 "announce"), and each person only hears about what their edition has; a fresh install
 hears about nothing: it is all new to them.
@@ -68,8 +69,18 @@ def offered(cfg: dict) -> list:
     return [dict(e["announce"], scenery=_scenery(e)) for e in _items(cfg)]
 
 
+# a note's settings wear NEW as an announcement of their own: seen once the settings open
+SETTINGS_SUFFIX = ":settings"
+SETTING_TAG = "setting:"  # (their tags, among the tiles', by setting key)
+
+
+def _ids(announce: dict) -> list:
+    """An announcement's ids: its own, and its settings' NEW if it names any."""
+    return [announce["id"]] + ([announce["id"] + SETTINGS_SUFFIX] if announce.get("settings") else [])
+
+
 def _all_ids() -> list:
-    return [e["announce"]["id"] for e in _items()]
+    return [i for e in _items() for i in _ids(e["announce"])]
 
 
 # whether the add-on started with nothing kept of its own (see started): None until it has
@@ -217,8 +228,15 @@ def tile_tags(cfg: dict, day: _dt.date) -> dict:
     for k in improved_opened(cfg):
         if k not in real_new:
             found[k] = "improved"
+    keep = _keep_tags({k: {"kind": kind, "since": day.isoformat()} for k, kind in found.items()}, day)
+    return {k: t.get("kind", "new") for k, t in keep.items() if not k.startswith(SETTING_TAG)}
+
+
+def _keep_tags(new: dict, day: _dt.date) -> dict:
+    """The tags kept (tiles' and settings'), `new` ones added from `day`: each until TAG_DAYS
+    have gone by since it was first given."""
     record = _load()
-    tags = dict(record["tags"], **{k: {"kind": kind, "since": day.isoformat()} for k, kind in found.items()})
+    tags = dict(record["tags"], **new)
     keep = {}
     for k, t in tags.items():
         try:
@@ -230,7 +248,19 @@ def tile_tags(cfg: dict, day: _dt.date) -> dict:
     if keep != record["tags"]:
         record["tags"] = keep
         _save(record)
-    return {k: t.get("kind", "new") for k, t in keep.items()}
+    return keep
+
+
+def setting_tags(cfg: dict, day: _dt.date) -> list:
+    """The settings are open: the setting keys (the tabs' news_targets) to wear NEW. A note's
+    settings are tagged the first time the settings open after the update, and keep the tag on
+    later visits until TAG_DAYS have gone by."""
+    seen = set(_load()["seen"])
+    fresh = [e for e in offered(cfg) if e.get("settings") and e["id"] + SETTINGS_SUFFIX not in seen]
+    if fresh:
+        mark_seen([e["id"] + SETTINGS_SUFFIX for e in fresh])
+    new = {SETTING_TAG + k: {"kind": "new", "since": day.isoformat()} for e in fresh for k in e["settings"]}
+    return [k[len(SETTING_TAG):] for k in _keep_tags(new, day) if k.startswith(SETTING_TAG)]
 
 
 def tried(key: str) -> None:
@@ -276,8 +306,8 @@ def replay_update() -> None:
     (and debug's made-up samples, so they don't join in), the newest version's not yet, and
     no tile tags left from earlier tries."""
     versions = _versions()
-    newest = {e["announce"]["id"] for e in (release_notes.items(versions[0]) if versions else [])
-              if isinstance(e.get("announce"), dict) and e["announce"].get("id")}
+    newest = {i for e in (release_notes.items(versions[0]) if versions else [])
+              if isinstance(e.get("announce"), dict) and e["announce"].get("id") for i in _ids(e["announce"])}
     older = [i for i in _all_ids() if i not in newest] + [e["announce"]["id"] for e in DEBUG_NEWS]
     _save({"seen": older, "shown": {}})
 
