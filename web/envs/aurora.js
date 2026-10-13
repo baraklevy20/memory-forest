@@ -137,7 +137,6 @@ function span(b, x, y0, y1, c) {
 const rgba = (rgb, a) => rgb.split(',').map(Number).concat(a);
 
 AF.env('aurora', {
-  calendar: ['#2e4a8c', '#4fd0a0'],  // the study calendar from the night's blue to the aurora's green
 
   /* a cold, dark night over snow */
   theme(th, mood, night) {

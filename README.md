@@ -97,7 +97,7 @@ Hover a day for its numbers, and click it to open its cards.
 
 Each scenery gives the calendar its own colours.
 
-<p align="center"><img src="docs/calendar_sceneries.png" alt="The same calendar in five sceneries: green by the lake, teal in the misty valley, blue under the aurora, crimson by lantern light, pink among the cherry blossoms"></p>
+<p align="center"><img src="docs/calendar_sceneries.png" alt="The same calendar in four sceneries: green by the lake, blue under the aurora, crimson by lantern light, indigo to hot pink in Synthwave"></p>
 
 ## On your phone
 

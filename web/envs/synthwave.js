@@ -94,6 +94,7 @@ function palmLayer(env) {
 }
 
 const DEF = {
+  calendar: ['#2e2a7a', '#ff4fa3'],  // the study calendar from the night's indigo to the neon's hot pink
   // `base` replaces the forest's own palette wholesale: trees, sick leaves and bark
   pals: Object.assign({ base: SYNTH, round: SYNTH.round, pine: SYNTH.pine, bark: SYNTH.bark },
     { leaf: hex('#ff4fa3'), leafL: hex('#ff9fd0'), stem: hex('#c0307a') }),

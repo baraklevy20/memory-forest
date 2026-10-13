@@ -213,7 +213,10 @@ function oklab(c) {
     0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
 }
 function blend(a, b, t) {
-  const p = oklab(a), q = oklab(b), [L, A, B] = p.map((v, i) => v + (q[i] - v) * t);
+  const p = oklab(a), q = oklab(b);
+  return fromOklab(...p.map((v, i) => v + (q[i] - v) * t));
+}
+function fromOklab(L, A, B) {
   const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
   return [unlin(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), unlin(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
     unlin(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
@@ -255,9 +258,12 @@ function shades(env, dark) {
     : Array(4).fill(readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a)));
   // (about evenly far apart; on a dark page the top one only a little towards white, so a busy
   // day never outshines the forest)
+  // (on a light page none near white, which the page would swallow, and the texture stronger: the
+  // white between the tiles otherwise outshines them, and a faint texture is lost on it)
   const steps = dark ? [mix(keys[0], DARK, 0.6), mix(keys[1], DARK, 0.42), mix(keys[2], DARK, 0.2), mix(keys[3], PALE, 0.2)]
-    : [mix(keys[0], PALE, 0.45), mix(keys[1], PALE, 0.1), mix(keys[2], DARK, 0.22), mix(keys[3], DARK, 0.48)];
-  return { grass: steps.map(c => [c, mix(c, DARK, 0.07)]), edge: steps.map(c => mix(c, DARK, 0.22)) };
+    : [mix(keys[0], PALE, 0.15), keys[1], mix(keys[2], DARK, 0.25), mix(keys[3], DARK, 0.5)];
+  const tone = dark ? 0.07 : 0.16, rim = dark ? 0.22 : 0.3;
+  return { grass: steps.map(c => [c, mix(c, DARK, tone)]), edge: steps.map(c => mix(c, DARK, rim)) };
 }
 
 /* the scene the calendar is drawn for: the forest's own (`env`, its theme and the look its
@@ -278,9 +284,9 @@ function spriteOf(t, h, env) {
 }
 /* a missed day, a day ahead with nothing due, or one before your history, drawn empty: a faint
  * grey square (no edge of its own) that sits back on Anki's light and dark pages alike */
-const EMPTY = 'rgba(128, 128, 128, 0.11)';
+const EMPTY = 'rgba(128, 128, 128, 0.11)', EMPTY_LIGHT = 'rgba(128, 128, 128, 0.2)';  // (clearer on a light page, so the weeks hold together)
 const FREE_MARK = 'rgba(128, 128, 128, 0.5)';  // a day with nothing due: a single pixel, darker grey
-function empty(g, x, y) { g.fillStyle = EMPTY; g.fillRect(x, y, TILE, TILE); }
+function empty(g, x, y, fill = EMPTY) { g.fillStyle = fill; g.fillRect(x, y, TILE, TILE); }
 /* a shade's tiles, each of its TILE_VARIANTS textures drawn once (two tones in 2x2 clusters and
  * an edge), kept for every calendar after */
 const tiles = new Map();
@@ -379,7 +385,7 @@ function paint(H, win, sp, paper) {
     // (a day before the forest's start date, studied or not, dimmed)
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - (dark ? FADE : FADE_LIGHT) : 1;
     if (t) g.drawImage(t, c.x, c.y);
-    else empty(g, c.x, c.y);
+    else empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT);
     // (a day with nothing due: one pixel in its middle, the streak's day off)
     if (H.free.has(c.o) && !c.n) { g.fillStyle = FREE_MARK; g.fillRect(c.x + (TILE >> 1), c.y + (TILE >> 1), 1, 1); }
     g.globalAlpha = 1;
