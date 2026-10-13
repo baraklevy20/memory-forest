@@ -722,22 +722,21 @@ AF.calendar = function (root, data, env) {
     if (!c) { tip.hidden = true; return; }
     const off = c.o <= 0 && !c.n && H.free.has(c.o);  // (a day with nothing due)
     const run = c.o <= 0 && (c.n || off) ? H.runOf(c.o) : null;
-    const what = c.o < H.first ? 'Before the first day your forest counts'
-      : c.o > H.ahead ? 'Too far ahead to count'
+    const what = c.o < H.first ? 'No reviews yet'
+      : c.o > H.ahead ? 'Too far ahead to show'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
       : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far, ${num(H.dueToday)} still due`
-      : c.n ? cards(c.n, 'review') : off ? 'Nothing was due' : H.pond.has(c.o) ? 'Not studied (a pond in the forest)' : 'Not studied';
+      : c.n ? cards(c.n, 'review') : off ? 'Nothing was due' : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;
     for (let o = run ? run.from : 1; o <= c.o; o++) if (H.n(o)) day++;
     const total = run ? run.days : 0;
-    const where = run && off ? `Your ${num(total)}-day streak carries on: a day off with nothing to miss` : !run ? ''
+    const where = run && off ? `Doesn't break your ${num(total)}-day streak` : !run ? ''
       : (run === H.current ? `Day ${num(day)} of your ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
-        + (day === 1 ? ': where it began' : '')
         + (H.podium.has(run) ? `<br>Your ${TROPHIES[H.podium.get(run)].place} streak` : '');
     const goal = H.goal && H.goal.o === c.o
-      ? `<br>Keep your streak to here and it becomes your ${GOALS[H.goal.rank].place}` + (H.goal.beats ? `, past ${num(H.goal.beats)} days` : '') : '';
+      ? `<br>Reach this day to ${H.goal.rank ? 'pass' : 'beat'} your ${GOALS[H.goal.rank].place} streak` + (H.goal.beats ? `, ${num(H.goal.beats)} days` : '') : '';
     const began = H.fs === c.o ? '<br>Your forest began' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
     const marked = H.marked.has(c.o) ? '<br>Marked as important' : '';
