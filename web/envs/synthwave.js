@@ -218,5 +218,12 @@ DEF.frame = function (g, env, t) {
   if (!env._palms) env._palms = palmLayer(env);
   g.drawImage(env._palms, 0, 0);
 };
+/* the study calendar's tiles in scanlines, every other row darker as on an old monitor */
+const SCANLINE = [18, 10, 40];
+DEF.calendarTile = (g, pal, edge, v, T) => {
+  const n = T - 1;  // (the last row and column: the gap between tiles)
+  for (let y = 0; y < n; y++) { g.fillStyle = rgb(y % 2 ? mix(pal[0], SCANLINE, 0.28) : pal[0]); g.fillRect(0, y, n, 1); }
+};
+
 AF.env('synthwave', DEF);
 })();

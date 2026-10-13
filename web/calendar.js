@@ -296,20 +296,25 @@ function spriteOf(t, h, env) {
 const EMPTY = 'rgba(128, 128, 128, 0.11)', EMPTY_LIGHT = 'rgba(128, 128, 128, 0.2)';  // (clearer on a light page, so the weeks hold together)
 const FREE_MARK = 'rgba(128, 128, 128, 0.5)';  // a day with nothing due: a single pixel, darker grey
 function empty(g, x, y, fill = EMPTY) { g.fillStyle = fill; g.fillRect(x, y, TILE, TILE); }
-/* a shade's tiles, each of its TILE_VARIANTS textures drawn once (two tones in 2x2 clusters and
- * an edge), kept for every calendar after */
+/* a tile's texture: two tones in 2x2 clusters and an edge. A scenery with a look of its own
+ * (Starry night's brushstrokes) draws its tiles in it instead (`calendarTile(g, pal, edge, v, size)`:
+ * `pal` the shade and its darker tone, `v` which of the TILE_VARIANTS) */
+function plainTile(g, pal, edge, v, T) {
+  for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+    const e = y === T - 1 || x === T - 1;
+    g.fillStyle = rgb(e ? edge : pal[(hashStr(v + ',' + (x >> 1) + ',' + (y >> 1)) & 3) === 0 ? 1 : 0]);
+    g.fillRect(x, y, 1, 1);
+  }
+}
+/* a shade's tiles, each of its TILE_VARIANTS textures drawn once, kept for every calendar after */
 const tiles = new Map();
-function tilesOf(pal, edge) {
-  const key = pal.concat([edge]).map(c => c.join(',')).join('|');
+function tilesOf(pal, edge, look) {
+  const key = (look ? look.name : '') + '|' + pal.concat([edge]).map(c => c.join(',')).join('|');
   if (!tiles.has(key)) {
     const out = [];
     for (let v = 0; v < TILE_VARIANTS; v++) {
       const [cv, g] = layer(TILE, TILE);
-      for (let y = 0; y < TILE; y++) for (let x = 0; x < TILE; x++) {
-        const e = y === TILE - 1 || x === TILE - 1;
-        g.fillStyle = rgb(e ? edge : pal[(hashStr(v + ',' + (x >> 1) + ',' + (y >> 1)) & 3) === 0 ? 1 : 0]);
-        g.fillRect(x, y, 1, 1);
-      }
+      (look ? look.draw : plainTile)(g, pal, edge, v, TILE);
       out.push(cv);
     }
     tiles.set(key, out);
@@ -336,24 +341,25 @@ function drawAnimal(g, spr, x0, y0, tint, outline) {
 /* the shades a view draws with: the scenery's for days studied, soil for days ahead: a day's
  * tile among them (or null for an empty one), the key's, and the hover's */
 function paletteOf(H, sp, paper) {
-  const dark = paper.dark, S = shades(sp, dark);
+  const dark = paper.dark, S = shades(sp, dark), draw = AF.envOf(sp).calendarTile;
+  const look = draw && { name: sp.mood.special, draw };  // (a scenery's own tiles, when it draws them)
   // the soil faded into the page, so the days ahead sit behind the days you studied
   const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
   const soil = lv => till[lv].map(c => mix(c, paper.bg, fade)), soilEdge = lv => mix(edges[lv], paper.bg, fade);
   // (more due stands out more, as more studied does: lighter on a dark page, darker on a light one)
   const dueLv = n => dark ? 3 - H.dueShade(n) : H.dueShade(n);
   const tile = c => {
-    const v = hashStr(iso(c.ms)) % TILE_VARIANTS, soilTile = lv => tilesOf(soil(lv), soilEdge(lv))[v];
+    const v = hashStr(iso(c.ms)) % TILE_VARIANTS, soilTile = lv => tilesOf(soil(lv), soilEdge(lv), look)[v];
     // today before you study: soil, by the cards it has due, until your first review
     if (c.o === 0 && !c.n && H.dueToday) return soilTile(dueLv(H.dueToday));
     if (!c.n || c.o > H.ahead) return null;
     if (c.o > 0) return soilTile(dueLv(c.n));
     const lv = H.shade(c.n);
-    return tilesOf(S.grass[lv], S.edge[lv])[v];
+    return tilesOf(S.grass[lv], S.edge[lv], look)[v];
   };
   const lit = S.grass[dark ? 3 : 0][0];  // the hover's colour: the shade that stands out most from the page
   // (the key: the four shades of a day studied; the soil and the empty days say what they are)
-  return { tile, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv])[0]), ring: rgb(lit), glow: rgb(lit, 0.45) };
+  return { tile, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(lit), glow: rgb(lit, 0.45) };
 }
 // a seedling of its own day's kind (pine or broadleaf, and its look)
 function seedlingOf(sp, ms) {
