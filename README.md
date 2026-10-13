@@ -115,6 +115,8 @@ Your computer draws this copy, so it updates whenever Anki syncs there.
 
 - Anki 2.1.45 or later, on a computer (Windows, macOS, Linux). AnkiDroid can show a copy
   of your forest that your computer sends it (see On your phone).
+- Using [Onigiri](https://ankiweb.net/shared/info/1011095603)? It hides the forest until you add
+  it to its grid: [here's how](docs/onigiri/README.md).
 - Everything is computed on your computer from your own review history. The only thing
   that leaves it is your city's name, and only if you turn on the real weather: it is sent
   to [Photon](https://photon.komoot.io) (OpenStreetMap, free, no account) to find the place,
