@@ -97,7 +97,7 @@ Hover a day for its numbers, and click it to open its cards.
 
 Each scenery gives the heatmap its own colours.
 
-<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue under the aurora, crimson by lantern light, indigo to hot pink in Synthwave"></p>
+<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue under the aurora, crimson by lantern light, night blue in brushstrokes under the starry night"></p>
 
 ## On your phone
 
