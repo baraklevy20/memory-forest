@@ -10,7 +10,7 @@ from aqt import mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QGuiApplication, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
 from .. import news, presets
-from ..edition import debug_available, debug_edition
+from ..edition import debug_available, debug_edition, is_plus
 from ..events import NATURE_LABELS, nature_level
 from ..seasons import offer_day, today
 from . import whats_new
@@ -96,7 +96,7 @@ class SettingsDialog(QDialog):
         # reopened it, when Cancel goes back to before Restore
         self.opened = cfg
         self.original = dict(carry.get("original", cfg))
-        self.setWindowTitle("Memory Forest settings")
+        self.setWindowTitle("Memory Forest Plus" if is_plus() else "Memory Forest")  # (the add-on's name)
         self.setMinimumWidth(DIALOG_MIN_WIDTH)
 
         # opening the settings answers the cog's dot: the new sceneries wear NEW, and the
