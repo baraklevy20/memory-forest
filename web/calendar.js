@@ -29,7 +29,7 @@ const { SEEDLING } = AF.STAGE;
 const CELL = 11, TILE = 9, TOP = 3, ROWS = 7, BRACKET = 15;  // (TOP: room between the months' labels and the weeks)
 // css pixels: the footer's row (the journal and the key), the month labels' band and the streaks'
 // notes (forest.css), for the room kept for the calendar before it is drawn
-const FOOT_H = 18, FOOT_GAP = 7, MONTHS_H = 16, ROW_UNDER = 20;  // (ROW_UNDER: the first row's top under the months' row, its baseline 8px above it)
+const FOOT_H = 18, FOOT_GAP = 7, ROW_UNDER = 20;  // (ROW_UNDER: the first row's top under the months' row, its baseline 8px above it)
 const LABEL_END = 30;  // css px: a month's label starting this close to the row's end is left out
 // the smallest scale the pixels stay crisp at, in device pixels; below it they are smoothed, and
 // Timeline shows fewer months

@@ -12,7 +12,7 @@ export default [
         requestIdleCallback: 'readonly', setTimeout: 'readonly', clearTimeout: 'readonly',
         matchMedia: 'readonly', IntersectionObserver: 'readonly', ResizeObserver: 'readonly',
         MouseEvent: 'readonly', Image: 'readonly', Path2D: 'readonly', Float32Array: 'readonly',
-        Uint8Array: 'readonly', Int8Array: 'readonly', Uint8ClampedArray: 'readonly',
+        Uint8Array: 'readonly', Int8Array: 'readonly', Uint8ClampedArray: 'readonly', ImageData: 'readonly',
         pycmd: 'readonly',  // Anki's bridge: a bare global, not a window property
       },
     },
