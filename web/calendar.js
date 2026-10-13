@@ -59,10 +59,9 @@ const PINE_PERCENT = 28;
 const SHADE_SPLITS = [0.4, 0.7, 0.9], SHADE_SPAN = 365;
 // the days ahead by their cards due, on a log scale up to the busiest day in the next year (due
 // counts fall away steadily, so a quarter of the days each would light only the next weeks).
-// The days that sit back, faded this far into the page's colour, the same for both: the days
-// ahead (their soil) and the days before the forest's start date (your record, not the
-// forest's time); less on a light page, where brown faded further goes grey
-const FADE = 0.5, FADE_LIGHT = 0.3;
+// The days that sit back, faded this far into the page's colour, light or dark: the days ahead
+// (their soil) and the days before the forest's start date (your record, not the forest's time)
+const FADE = 0.5;
 const TILE_VARIANTS = 4;  // each shade's tile comes in this many textures, drawn once
 const DAY_MS = 86400000;
 const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (more when wide, fewer when narrow), this month this far along
@@ -201,6 +200,9 @@ function windowOf(H, view, page, year, count) {
  * round the scenery's colour (its own `calendar` colour, or its most colourful crown colour,
  * AF.foliage), from pale to deep, so the calendar belongs to the scene */
 const PALE = [232, 228, 216], DARK = [16, 16, 16];
+// a light page's four shades: their lightness (OKLab L), fewest reviews to most, and the least
+// colourfulness they keep (a near-grey key would otherwise give grey tiles)
+const LIGHT_STEPS = [0.86, 0.72, 0.58, 0.44], LIGHT_CHROMA = 0.08;
 /* `t` of the way from colour `a` to `b`, through OKLab, where equal steps look equal (a plain mix
  * of a blue and a green dips muddy in the middle) */
 const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -258,10 +260,15 @@ function shades(env, dark) {
     : Array(4).fill(readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a)));
   // (about evenly far apart; on a dark page the top one only a little towards white, so a busy
   // day never outshines the forest)
-  // (on a light page none near white, which the page would swallow, and the texture stronger: the
-  // white between the tiles otherwise outshines them, and a faint texture is lost on it)
+  // (on a light page each shade at its own lightness, in even steps from a clear light colour to a
+  // deep one, keeping only the key's hue and colourfulness: mixed towards white and black they
+  // went grey, and a ramp's dark start and bright end met in the same muddy middle; and the
+  // texture stronger: the white between the tiles otherwise outshines them)
   const steps = dark ? [mix(keys[0], DARK, 0.6), mix(keys[1], DARK, 0.42), mix(keys[2], DARK, 0.2), mix(keys[3], PALE, 0.2)]
-    : [mix(keys[0], PALE, 0.15), keys[1], mix(keys[2], DARK, 0.25), mix(keys[3], DARK, 0.5)];
+    : LIGHT_STEPS.map((L, i) => {
+      const k = oklab(keys[i]), C = Math.max(LIGHT_CHROMA, Math.hypot(k[1], k[2])), h = Math.atan2(k[2], k[1]);
+      return fromOklab(L, C * Math.cos(h), C * Math.sin(h));
+    });
   const tone = dark ? 0.07 : 0.16, rim = dark ? 0.22 : 0.3;
   return { grass: steps.map(c => [c, mix(c, DARK, tone)]), edge: steps.map(c => mix(c, DARK, rim)) };
 }
@@ -329,7 +336,7 @@ function drawAnimal(g, spr, x0, y0, tint, outline) {
 function paletteOf(H, sp, paper) {
   const dark = paper.dark, S = shades(sp, dark);
   // the soil faded into the page, so the days ahead sit behind the days you studied
-  const fade = dark ? FADE : FADE_LIGHT, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
+  const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
   const soil = lv => till[lv].map(c => mix(c, paper.bg, fade)), soilEdge = lv => mix(edges[lv], paper.bg, fade);
   // (more due stands out more, as more studied does: lighter on a dark page, darker on a light one)
   const dueLv = n => dark ? 3 - H.dueShade(n) : H.dueShade(n);
@@ -383,7 +390,7 @@ function paint(H, win, sp, paper) {
   for (const c of cells) {
     const t = pal.tile(c);
     // (a day before the forest's start date, studied or not, dimmed)
-    g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - (dark ? FADE : FADE_LIGHT) : 1;
+    g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
     if (t) g.drawImage(t, c.x, c.y);
     else empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT);
     // (a day with nothing due: one pixel in its middle, the streak's day off)
