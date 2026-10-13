@@ -15,7 +15,7 @@ import sys
 import traceback
 
 from aqt import gui_hooks, mw
-from aqt.qt import QApplication, QEvent, QMouseEvent, QPointF, QScrollArea, Qt, QTabWidget, QTimer
+from aqt.qt import QApplication, QEvent, QMouseEvent, QObject, QPointF, QScrollArea, Qt, QTabWidget, QTimer, QWidget
 
 FOREST = os.environ.get("MEMORY_FOREST_FOLDER", "anki_forest")
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,6 +24,7 @@ COG_PX, COG_ICON_PX = 28, 15  # forest.css's .af-cog box, and core.js's COG icon
 WAIT_MS, WAIT_TRIES = 1000, 20  # for the deck list (and the forest's idle-time build) to draw
 SEED_CARDS, SEED_DAYS, SEED_REVIEWS = 60, 150, 5  # cards, how far back they start, reviews each
 SEED_BIG_CARDS, SEED_BIG_AGO = 12, 20  # of those, first studied together: a big learning day, with flowers
+GHOST_OPACITY = 0.01  # the check's windows: this see-through (Ghost)
 OLD_DAY_AGO = 400  # a study calendar day this far back, past the year rated: may stop at
 DIALOG_MAX_H = 672  # pt: the room a 1280 x 720 screen leaves the settings dialog, title bar included
 CONSOLE_ERROR = 2  # QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel
@@ -576,10 +577,10 @@ def opened():
     def show():
         mw.moveToState("deckBrowser")
         # in front: the forest builds on the next animation frame, which the web view only
-        # has while its window can be seen (a window behind the Anki you have open gets none)
+        # has while its window can be seen (a window behind the Anki you have open gets none);
+        # all but invisible though, and taking no clicks or keys (Ghost), so it is not in the way
         mw.showNormal()
         mw.raise_()
-        mw.activateWindow()
         mw.deckBrowser.refresh()
 
     step("imports", imports)
@@ -589,4 +590,23 @@ def opened():
     QTimer.singleShot(WAIT_MS, lambda: measure(first_look))
 
 
+class Ghost(QObject):
+    """Every window the check opens, all but see-through and passing clicks and keys on to what
+    is under it: the check runs in the background while you work. Still a window on screen, so
+    its web views go on drawing (the offscreen platform leaves their canvases blank)."""
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Show and isinstance(obj, QWidget) and obj.isWindow() and not obj.property("af_ghost"):
+            obj.setProperty("af_ghost", True)
+            obj.setWindowOpacity(GHOST_OPACITY)
+            obj.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+            obj.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
+            obj.setWindowFlag(Qt.WindowType.WindowDoesNotAcceptFocus, True)
+            obj.show()  # (new flags hide a window until it is shown again)
+        return False
+
+
+_ghost = Ghost()
+if os.environ.get("MEMORY_FOREST_SHOW") != "1":  # (dev/old_anki.py --show: watch it instead)
+    QApplication.instance().installEventFilter(_ghost)
 gui_hooks.profile_did_open.append(lambda: QTimer.singleShot(500, opened))

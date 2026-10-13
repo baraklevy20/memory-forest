@@ -94,6 +94,15 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(p["stats"]["streak"], 1)
         self.assertEqual(p["calendar"]["free"], [])
 
+    def test_a_days_cards_since_deleted_are_counted_for_its_tooltip(self):
+        reset([(1, 10, 5), (2, 10, 5), (3, 10, 3)])
+        mw.col.db.con.execute("delete from cards where id = 2")  # its review stays in the log, as Anki keeps it
+        addon.payload.forget_remembered()
+        cal = payload.payload()["calendar"]
+        self.assertEqual(cal["gone"], [[5, 1, 2]])  # 5 days ago: one of its two cards is gone
+        self.assertEqual(cal["days"][0], 2)  # and still counted in that day's reviews
+        self.assertEqual(payload.payload(10, highlight=True)["calendar"]["gone"], [])  # a deck holds no deleted cards
+
     def test_a_deck_screens_calendar_is_that_decks_own(self):
         reset(CARDS)
         cal = payload.payload(20, highlight=True)["calendar"]  # German: card 3, first studied 3 days ago

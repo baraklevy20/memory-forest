@@ -172,6 +172,8 @@ function history(cal) {
   return {
     today, first, n, fs, free, runs, pond, current, runOf, podium, goal, animals,
     marked: new Set((cal.marks || []).map(d => (utc(d) - today) / DAY_MS)),
+    // each day's cards since deleted: still counted in its reviews, but its click can't list them
+    gone: new Map((cal.gone || []).map(([ago, count, of]) => [-ago, [count, of || count]])),
     shade, dueShade, dueToday: cal.due[0] || 0,
     ahead: cal.due.length - 1  // the last day ahead counted
   };
@@ -739,7 +741,11 @@ AF.calendar = function (root, data, env) {
     const began = H.fs === c.o ? '<br>Your forest began' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
     const marked = H.marked.has(c.o) ? '<br>Marked as important' : '';
-    tip.innerHTML = `<b>${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}</b><br>${what}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
+    // (in cards, not reviews: a card reviewed twice that day counts once)
+    const [lost, of] = c.o <= 0 && c.n ? H.gone.get(c.o) || [0, 0] : [0, 0];
+    const gone = !lost ? '' : lost >= of ? `<br>${of === 1 ? 'Its card has' : `All ${num(of)} of its cards have`} since been deleted`
+      : `<br>${num(lost)} of its ${num(of)} cards ${lost === 1 ? 'has' : 'have'} since been deleted`;
+    tip.innerHTML = `<b>${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}</b><br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
     tip.hidden = false;
     // above the day, centred on it, so it never covers the days you read next (below it when
     // there is no room above), kept inside the calendar's sides; placed by the page's own

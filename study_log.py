@@ -228,6 +228,19 @@ def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | 
     return runs[::-1]
 
 
+def load_deleted_cards(db, day_cutoff: int, excluded: Iterable | None = None, skip: Iterable | None = None) -> dict:
+    """{days ago: (how many cards reviewed that day have since been deleted, how many cards it
+    reviewed)}, for the days with any deleted, for the whole
+    collection but the `excluded` decks and the `skip` cards: Anki keeps a deleted card's reviews,
+    which the study calendar counts, but the browser a day's click opens can only list cards that
+    still exist. (A deck's own count reads only the cards it holds now: no deleted ones.)"""
+    _in_decks, only = _filters(None, excluded, skip)
+    return {day: (gone, cards) for day, gone, cards in db.all(
+        f"select (? - 1 - id / 1000) / {DAY_SECS}, count(distinct case when cid not in (select id from cards) then cid end) as gone, "
+        f"count(distinct cid) from revlog where ease > 0 and type in {STUDY_TYPES} and id < ?{only} group by 1 having gone > 0",
+        day_cutoff, day_cutoff * 1000)}
+
+
 def load_day_reviews(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None, since: int | None = None,
                      skip: Iterable | None = None) -> dict:
     """{days ago: reviews} for the cards of the `dids` decks (a deck and its subdecks; None for the

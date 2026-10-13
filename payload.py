@@ -359,6 +359,11 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "forestStart": forest_start,
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
             "marks": marks.important_days(col),
+            # the days' cards since deleted, [days ago, how many, of how many], where a day has any (the whole
+            # collection's calendar only: a deck's counts hold none)
+            "gone": [] if test or dids else sorted([ago, n, of] for ago, (n, of) in remembered(
+                "deleted_cards", changed and (changed, cutoff, frozenset(excluded), frozenset(skip)),
+                lambda: study_log.load_deleted_cards(col.db, cutoff, excluded, skip)).items() if ago <= oldest),
             # the days with nothing due, as [oldest, newest] runs of days ago: a streak passes over them
             "free": [] if test else [r for r in _free_runs(cutoff, dids, excluded, skip, changed) if r[1] <= oldest],
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day

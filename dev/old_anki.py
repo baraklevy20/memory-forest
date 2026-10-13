@@ -6,6 +6,8 @@
     python3 dev/old_anki.py --check [ANKI ...]             # check it (built, as it ships) by itself, then quit
     python3 dev/old_anki.py --check --all                  # in every Anki in RELEASE_ANKIS (what a release runs)
     python3 dev/old_anki.py --check --all --package x.ankiaddon   # the built add-on rather than this folder
+    python3 dev/old_anki.py --check --show                 # with its windows in view (by default a check's
+                                                           # windows are all but see-through and take no clicks)
 
 An Anki named by its key in ANKIS is downloaded from Anki's GitHub releases the first time
 and kept in CACHE. The Qt5 builds (every Anki before 2.1.50, and the builds for older
@@ -150,6 +152,40 @@ def progress() -> str:
     return ("check.log:\n" + open(path, encoding="utf-8").read()) if os.path.exists(path) else "(no check.log: the check add-on never loaded)\n"
 
 
+def front_pid() -> int | None:
+    """The process id of the app in front (macOS lsappinfo, which needs no permissions), or None."""
+    try:
+        asn = subprocess.run(["lsappinfo", "front"], capture_output=True, text=True, timeout=5).stdout.strip()
+        out = subprocess.run(["lsappinfo", "info", "-only", "pid", asn], capture_output=True, text=True, timeout=5).stdout
+        return int(out.split("=")[-1].strip().strip('"'))
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+def front_bundle() -> str | None:
+    """The bundle id of the app in front, to give the focus back to."""
+    try:
+        asn = subprocess.run(["lsappinfo", "front"], capture_output=True, text=True, timeout=5).stdout.strip()
+        out = subprocess.run(["lsappinfo", "info", "-only", "bundleid", asn], capture_output=True, text=True, timeout=5).stdout
+        return out.split("=")[-1].strip().strip('"') or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def started_by(pid: int, root: int) -> bool:
+    """Whether process `pid` is `root` or one it started (Anki's launcher may start another)."""
+    for _ in range(4):
+        if pid == root:
+            return True
+        try:
+            pid = int(subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)], capture_output=True, text=True, timeout=5).stdout.strip())
+        except (OSError, ValueError, subprocess.SubprocessError):
+            return False
+        if pid <= 1:
+            return False
+    return False
+
+
 def run_check(binary: str, folder: str) -> tuple:
     """Run Anki with the check add-on until it reports, or CHECK_TIMEOUT_SECS go by:
     (what it reported or None, Anki's own output, whether Anki quit by itself)."""
@@ -159,15 +195,22 @@ def run_check(binary: str, folder: str) -> tuple:
     shutil.copy(os.path.join(HERE, "old_anki_check.py"), os.path.join(dest, "__init__.py"))
     out, log = os.path.join(BASE, "check.json"), os.path.join(BASE, "anki.log")
     env = dict(os.environ, MEMORY_FOREST_FOLDER=folder, USER=CHECK_USER, LOGNAME=CHECK_USER)
+    # the app you were in keeps the focus: whenever the Anki started here takes it (a launched
+    # app comes to the front), it is handed straight back (not with --show)
+    keep = None if os.environ.get("MEMORY_FOREST_SHOW") == "1" else front_bundle()
     with open(log, "w") as f:
         anki = subprocess.Popen([binary, "-b", BASE, "-l", "en"], env=env, stdout=f, stderr=subprocess.STDOUT)
     deadline, reported = time.time() + CHECK_TIMEOUT_SECS, None
     while anki.poll() is None and time.time() < deadline:
+        if keep:
+            front = front_pid()
+            if front and started_by(front, anki.pid):
+                subprocess.run(["open", "-b", keep], check=False)
         if reported is None and os.path.exists(out):
             reported = time.time()
         if reported and time.time() > reported + QUIT_GRACE_SECS:
             break
-        time.sleep(0.5)
+        time.sleep(0.12 if keep else 0.5)  # (looking more often while the focus is being kept)
     quit_by_itself = anki.poll() is not None
     if not quit_by_itself:
         anki.kill()
@@ -233,12 +276,14 @@ def built() -> str:
 def main() -> None:
     args = sys.argv[1:]
     keep, checking, every = "--keep" in args, "--check" in args, "--all" in args
+    if "--show" in args:  # (old_anki_check.py's Ghost leaves the windows as they are)
+        os.environ["MEMORY_FOREST_SHOW"] = "1"
     package = None
     if "--package" in args:
         i = args.index("--package")
         package = os.path.abspath(args[i + 1]) if i + 1 < len(args) else sys.exit("--package needs a .ankiaddon")
         del args[i:i + 2]
-    names = [a for a in args if a not in ("--keep", "--check", "--all")]
+    names = [a for a in args if a not in ("--keep", "--check", "--all", "--show")]
     if every:
         names = list(RELEASE_ANKIS)
     names = names or [DEFAULT_ANKI]
