@@ -196,7 +196,7 @@ const label = () => {
   const on = !!document.fullscreenElement;
   full.innerHTML = fullCal.innerHTML = on ? CLOSE : EXPAND;
   full.setAttribute('aria-label', on ? 'Leave full screen' : 'Forest full screen');
-  fullCal.setAttribute('aria-label', on ? 'Leave full screen' : 'Calendar full screen');
+  fullCal.setAttribute('aria-label', on ? 'Leave full screen' : 'Heatmap full screen');
 };
 label();
 document.addEventListener('fullscreenchange', label);

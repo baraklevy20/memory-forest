@@ -77,9 +77,9 @@ and a new one grows from there. Bad habits leave their marks too.</p>
 
 Change your mind at any time: switch back and your forest is just as it was.
 
-## Your study calendar
+## Your study heatmap
 
-<p align="center"><img src="docs/calendar.png" alt="The forest with its study calendar under it: the days studied in green, the streak along the bottom, the cards coming due in brown"></p>
+<p align="center"><img src="docs/calendar.png" alt="The forest with its study heatmap under it: the days studied in green, the streak along the bottom, the cards coming due in brown"></p>
 
 Every day you studied, in your scenery's colours, with your streak and the cards coming due.
 Hover a day for its numbers, and click it to open its cards.
@@ -91,20 +91,20 @@ Hover a day for its numbers, and click it to open its cards.
 - **Milestones**: each animal that joined your forest stands above the day it came.
 - **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
   system's.
-- **Every deck**: each deck's screen shows that deck's own calendar and streak.
+- **Every deck**: each deck's screen shows that deck's own heatmap and streak.
 - **Important days**: right-click a day to mark it, like an exam or a trip.
-- **On your phone**: the same calendar, under your forest on the phone card.
+- **On your phone**: the same heatmap, under your forest on the phone card.
 
-Each scenery gives the calendar its own colours.
+Each scenery gives the heatmap its own colours.
 
-<p align="center"><img src="docs/calendar_sceneries.png" alt="The same calendar in four sceneries: green by the lake, blue under the aurora, crimson by lantern light, indigo to hot pink in Synthwave"></p>
+<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue under the aurora, crimson by lantern light, indigo to hot pink in Synthwave"></p>
 
 ## On your phone
 
 <p align="center"><img src="docs/phone.gif" alt="The forest filling a phone screen, turned sideways, animated"></p>
 
 Turn on "Show my forest on my phone" on the Forest tab. After your next sync, a
-Memory Forest deck appears in AnkiDroid: open it to see your forest, with your study calendar
+Memory Forest deck appears in AnkiDroid: open it to see your forest, with your study heatmap
 under it.
 
 Your computer draws this copy, so it updates whenever Anki syncs there.

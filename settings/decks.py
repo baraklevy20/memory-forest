@@ -107,7 +107,7 @@ class DecksTab(Tab):
         since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
         self.since_hint = hint(SINCE_NOTE)
         # and the reviews from before it, in the study calendar all the same
-        self.record = QCheckBox("Show earlier reviews in the calendar")
+        self.record = QCheckBox("Show earlier reviews in the heatmap")
         self.record.setChecked(shows_record(cfg))
         # and your streak: your real one unless you'd rather it start again on that day too
         self.streak_from_start = QCheckBox("Count my streak from the start date too")

@@ -135,7 +135,7 @@ def shows_on_finished(cfg: dict | None = None) -> bool:
 
 def shows_record(cfg: dict | None = None) -> bool:
     """Whether the study calendar shows your reviews from before the start date too (Decks:
-    "Show earlier reviews in the calendar"). It does unless switched off."""
+    "Show earlier reviews in the heatmap"). It does unless switched off."""
     return (cfg if cfg is not None else config()).get("calendar_record", True) not in OFF_VALUES
 
 

@@ -46,7 +46,7 @@ QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
 QPushButton:checked {{ border: 2px solid {ring}; padding: 5px 9px; background: rgba(128, 128, 128, 0.16); font-weight: bold; }}
 """
 # (one line: SETTINGS_GUIDELINES.md)
-PHONE_NOTE = 'Adds a "Memory Forest" deck with a card showing your forest and calendar as you sync.'
+PHONE_NOTE = 'Adds a "Memory Forest" deck with a card showing your forest and heatmap as you sync.'
 ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
 # where the forest shows: the same "No forest" in both, so the two rows read alike
 MAIN_OPTIONS = [(True, "Your forest"), (False, "No forest")]
@@ -185,7 +185,7 @@ class ForestTab(Tab):
         self.nature_group = group("Nature", nv)
         v.addWidget(self.nature_group)
         v.addWidget(group("Where it shows", where))
-        self.calendar_group = group("Study calendar", cal)
+        self.calendar_group = group("Study heatmap", cal)
         v.addWidget(self.calendar_group)
         v.addWidget(group("Motion and messages", motion))
         v.addWidget(group("On your phone", pv))
@@ -201,7 +201,7 @@ class ForestTab(Tab):
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"nature": (self.nature_group.title, "Nature"), "main_forest": (self.main_forest, "Main screen"),
                 "deck_forest_mode": (self.deck_mode, "Deck screens"),
-                "calendar": (self.calendar_group.title, "Study calendar"), "max_width": (self.max_width, "Forest width"),
+                "calendar": (self.calendar_group.title, "Study heatmap"), "max_width": (self.max_width, "Forest width"),
                 "animations": (self.animations, "Animate the forest"), "planting_tooltip": (self.planting, "The planting message"),
                 "phone": (self.phone, "Your forest on your phone")}
 
