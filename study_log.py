@@ -189,6 +189,45 @@ def load_backlog(db, today: int, day_cutoff: int, days: int, excluded: Iterable 
     return overdue, counts
 
 
+def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
+                   skip: Iterable | None = None) -> list:
+    """The days with no review and nothing due in the `dids` decks (the whole collection for
+    None) but the `excluded` ones and the `skip` cards, as [oldest, newest] runs of `ago`,
+    oldest first: days a streak passes over (forest_data._streaks), from the review log alone,
+    as Anki keeps no record of what was due. Each answer or manual reschedule sets when its card
+    falls due (its day plus the interval; a reset to new, none), and the card is due from then
+    until its next one, or after its last one on to today while it is still in learning or review
+    (a card deleted, suspended or reset since stops there)."""
+    _in_decks, only = _filters(dids, excluded, skip)
+    # each answer's day, the day it set the card due on, and the card's next answer's day (all as
+    # days ago), worked out by the database: a big collection has hundreds of thousands
+    day = f"(({int(day_cutoff)} - 1 - id / 1000) / {DAY_SECS})"
+    spans = (f"select cid, {day} as d, case when ivl > 0 then {day} - ivl when ivl < 0 then {day} + ivl / {DAY_SECS} end as due_on, "
+             f"lead({day}) over (partition by cid order by id) as next from revlog where id < {int(day_cutoff) * 1000}{only}")
+    oldest = db.all(f"select max({day}) from revlog where id < ?{only}", day_cutoff * 1000)[0][0]
+    if oldest is None:
+        return []
+    studied = {d for (d,) in db.all(f"select distinct {day} from revlog where ease > 0 and type in {STUDY_TYPES} and id < ?{only}",
+                                    day_cutoff * 1000)}
+    # due from due_on back to the day after the next answer, or (its last answer) to today while
+    # the card is in learning or review: each span's ends, summed into each day's count
+    ranges = (f"select min(due_on, {oldest}) as older, case when next is null then 0 else next + 1 end as newer from ({spans}) "
+              "where due_on is not null and (next is not null or cid in (select id from cards where queue in (1, 2, 3)))")
+    due = [0] * (oldest + 2)
+    for older, newer, n in db.all(f"select older, max(newer, 0), count() from ({ranges}) where older >= max(newer, 0) group by 1, 2"):
+        due[newer] += n
+        due[older + 1] -= n
+    runs, level = [], 0
+    for d in range(0, oldest + 1):
+        level += due[d]
+        if d not in studied and level <= 0:
+            if runs and runs[-1][0] == d - 1:
+                runs[-1][0] = d
+            else:
+                runs.append([d, d])
+    return runs[::-1]
+
+
 def load_day_reviews(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None, since: int | None = None,
                      skip: Iterable | None = None) -> dict:
     """{days ago: reviews} for the cards of the `dids` decks (a deck and its subdecks; None for the

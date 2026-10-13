@@ -26,7 +26,7 @@ AF.caption = function (root, data) {
     + (canBrowse() && !data.testForest ? ' Click to see their cards.' : ''),
     data.testForest ? '' : `${data.channel}:browse:${data.merged.from_ago}:${deckFor(data)}:${data.merged.to_ago}`]);
   if (s.ancient) items.push([`${s.ancient} ancient`, `${cap(words.many)} whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not.`]);
-  if (s.streak) items.push([`${s.streak}-day streak`, 'Days in a row with at least one review.']);
+  if (s.streak) items.push([`${s.streak}-day streak`, "Days you studied, in a row. A day with nothing due doesn't break it."]);
   items.push(...AF.events.collect('caption', data, words, animates(data)));  // the asteroid, on its way or struck
   // the scene's name, unless it is the plain default
   if (data.sceneName) items.push([data.sceneName, data.sceneTip || 'The scenery, chosen in the forest settings.']);

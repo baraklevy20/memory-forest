@@ -23,6 +23,7 @@ from .state import (
     MODULE,
     TEST_TREES_DEFAULT,
     TEST_TREES_MAX,
+    WEEK_START_DAYS,
     animation_mode,
     calendar_on,
     calendar_view,
@@ -32,7 +33,6 @@ from .state import (
     keeps_suspended,
     load_state,
     log,
-    WEEK_START_DAYS,
     remembered,
     save_state,
     settings_open,
@@ -285,19 +285,31 @@ def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: 
     lapse): only the forest's own milestones (its animals, the journal's) go by the days since it
     began, from `stats` as the forest has them. Unless the Decks tab says to count the streak
     from the start date too, or the calendar on this screen shows nothing before it. Under the
-    whole forest on a deck's screen the calendar is the deck's own, and so is the streak."""
+    whole forest on a deck's screen the calendar is the deck's own, and so is the streak. A day
+    with nothing due never breaks it (_free_days), as on the calendar."""
     if test:
         return stats
     begin = since(cfg)
     calendar_here = calendar_on("decks" if did else "main", cfg)
     from_start = begin is not None and (streak_from_start(cfg) or (calendar_here and not shows_record(cfg)))
     own = bool(did and highlight and calendar_here)
-    if not own and (begin is None or from_start):  # the forest's own streak is the one
-        return stats
-    cutoff, excluded = day_cutoff(mw.col), excluded_decks(cfg)
+    cutoff, excluded, skip = day_cutoff(mw.col), excluded_decks(cfg), phone_cards()
     dids = deck_ids(did, excluded) if did and (own or not highlight) else None
-    streak, longest = forest_data._streaks(set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, phone_cards(), changed)))
+    days = set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, skip, changed))
+    streak, longest = forest_data._streaks(days, _free_days(cutoff, dids, excluded, skip, changed))
     return dict(stats, streak=streak, longest_streak=longest)
+
+
+def _free_days(cutoff: int, dids: list | None, excluded, skip, changed) -> frozenset:
+    """The days (as `ago`) with no review and nothing due in these decks (study_log.load_free_days),
+    remembered until the study data changes: days a streak passes over."""
+    runs = _free_runs(cutoff, dids, excluded, skip, changed)
+    return frozenset(d for older, newer in runs for d in range(newer, older + 1))
+
+
+def _free_runs(cutoff: int, dids: list | None, excluded, skip, changed) -> list:
+    return remembered("free_days", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.load_free_days(mw.col.db, cutoff, dids, excluded, skip))
 
 
 def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, did: int | None = None,
@@ -347,6 +359,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "forestStart": forest_start,
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
             "marks": marks.important_days(col),
+            # the days with nothing due, as [oldest, newest] runs of days ago: a streak passes over them
+            "free": [] if test else [r for r in _free_runs(cutoff, dids, excluded, skip, changed) if r[1] <= oldest],
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
 
 

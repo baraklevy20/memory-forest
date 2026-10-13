@@ -82,6 +82,18 @@ class PayloadTests(unittest.TestCase):
         reset(days, {"ignore_before": "2026-09-18", "calendar_record": False, "calendar_main": False})  # no calendar there
         self.assertEqual(payload.payload()["stats"]["streak"], 3)
 
+    def test_a_day_with_nothing_due_never_breaks_the_streak(self):
+        reset([(1, 10, 5), (2, 10, 4), (3, 10, 1)])  # each answered once, and due nowhere since (ivl 0)
+        p = payload.payload()
+        self.assertEqual(p["stats"]["streak"], 3)  # 2 and 3 days ago had nothing due: passed over
+        self.assertEqual(p["calendar"]["free"], [[3, 2], [0, 0]])
+        # card 2 due again the day after it was answered, and never since: those days were missed
+        mw.col.db.con.execute("update revlog set ivl = 1 where cid = 2")
+        addon.payload.forget_remembered()
+        p = payload.payload()
+        self.assertEqual(p["stats"]["streak"], 1)
+        self.assertEqual(p["calendar"]["free"], [])
+
     def test_a_deck_screens_calendar_is_that_decks_own(self):
         reset(CARDS)
         cal = payload.payload(20, highlight=True)["calendar"]  # German: card 3, first studied 3 days ago

@@ -112,6 +112,10 @@ function history(cal) {
   const n = o => o > 0 ? cal.due[o] || 0 : o >= first ? cal.days[o - first] || 0 : 0;
   const fs = cal.forestStart ? (utc(cal.forestStart) - today) / DAY_MS : null;
   const breakDays = cal.breakDays || 7;
+  // the days with no review and nothing due (study_log.load_free_days): a streak passes over
+  // them, neither broken nor growing
+  const free = new Set();
+  for (const [older, newer] of cal.free || []) for (let a = newer; a <= older; a++) free.add(-a);
   const runs = [], pond = new Set();
   let run = null, gap = null;
   for (let o = first; o <= 0; o++) {
@@ -123,28 +127,33 @@ function history(cal) {
       gap = null;
       // (a streak runs on over the forest's start date, your real one, as the caption counts it;
       // unless the Decks tab says to count it from the start date too)
-      if (run && !(cal.streakFromStart && o === fs)) run.to = o; else runs.push(run = { from: o, to: o });
+      // (its length is in days studied: `days`)
+      if (run && !(cal.streakFromStart && o === fs)) { run.to = o; run.days++; } else runs.push(run = { from: o, to: o, days: 1 });
     } else {
-      run = null;
+      if (!free.has(o)) run = null;
       if (gap === null && o > first) gap = o;
     }
   }
-  // a streak lives on through today until today ends (forest_data._streaks)
+  // a streak lives on through today until today ends, and over the days with nothing due since
+  // its last day studied (forest_data._streaks)
   const end = runs[runs.length - 1];
-  const current = end && end.to >= -1 ? end : null;
-  const runOf = o => runs.find(r => o >= r.from && o <= r.to) || null;
+  let current = end || null;
+  for (let o = end ? end.to + 1 : 0; current && o < 0; o++) if (!free.has(o)) current = null;
+  // the streak a day belongs to (a day with nothing due since the current one's last day, its)
+  const runOf = o => runs.find(r => o >= r.from && o <= r.to) || (current && o > current.to && o <= 0 ? current : null);
   // your three longest streaks (of SHOWN_STREAK days or more; the first to reach a length ranks
   // above a later one as long), each with a trophy at its last day: gold, silver, bronze
-  const podium = new Map(runs.filter(r => r.to - r.from + 1 >= SHOWN_STREAK)
-    .sort((a, b) => (b.to - b.from) - (a.to - a.from) || a.from - b.from).slice(0, TROPHIES.length).map((r, i) => [r, i]));
+  const podium = new Map(runs.filter(r => r.days >= SHOWN_STREAK)
+    .sort((a, b) => b.days - a.days || a.from - b.from).slice(0, TROPHIES.length).map((r, i) => [r, i]));
   // the goal: the day the current streak, kept up, passes the second-longest of the others (to be
   // second) or, once it has, the longest (to be first); none once it is the longest already
   let goal = null;
   if (current) {
-    const others = runs.filter(r => r !== current && r.to - r.from + 1 >= SHOWN_STREAK).map(r => r.to - r.from + 1).sort((a, b) => b - a);
-    const len = current.to - current.from + 1, need = i => Math.max(SHOWN_STREAK, (others[i] || 0) + 1);
+    const others = runs.filter(r => r !== current && r.days >= SHOWN_STREAK).map(r => r.days).sort((a, b) => b - a);
+    const len = current.days, need = i => Math.max(SHOWN_STREAK, (others[i] || 0) + 1);
     const rank = others.length && len < need(1) ? 1 : len < need(0) ? 0 : -1;
-    if (rank >= 0) goal = { o: current.from + need(rank) - 1, rank, beats: others[rank] || 0 };
+    // (the days still to study, from today, or from tomorrow once today is studied)
+    if (rank >= 0) goal = { o: (current.to === 0 ? 1 : 0) + need(rank) - len - 1, rank, beats: others[rank] || 0 };
   }
   // the shades: where your days studied in the last year split into four (at least 1 apart)
   const splitsOf = vals => {
@@ -162,7 +171,7 @@ function history(cal) {
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
   return {
-    today, first, n, fs, runs, pond, current, runOf, podium, goal, animals,
+    today, first, n, fs, free, runs, pond, current, runOf, podium, goal, animals,
     marked: new Set((cal.marks || []).map(d => (utc(d) - today) / DAY_MS)),
     shade, dueShade, dueToday: cal.due[0] || 0,
     ahead: cal.due.length - 1  // the last day ahead counted
@@ -250,6 +259,7 @@ function spriteOf(t, h, env) {
 /* a missed day, a day ahead with nothing due, or one before your history, drawn empty: a faint
  * grey square (no edge of its own) that sits back on Anki's light and dark pages alike */
 const EMPTY = 'rgba(128, 128, 128, 0.11)';
+const FREE_MARK = 'rgba(128, 128, 128, 0.5)';  // a day with nothing due: a single pixel, darker grey
 function empty(g, x, y) { g.fillStyle = EMPTY; g.fillRect(x, y, TILE, TILE); }
 /* a shade's tiles, each of its TILE_VARIANTS textures drawn once (two tones in 2x2 clusters and
  * an edge), kept for every calendar after */
@@ -350,6 +360,8 @@ function paint(H, win, sp, paper) {
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - (dark ? FADE : FADE_LIGHT) : 1;
     if (t) g.drawImage(t, c.x, c.y);
     else empty(g, c.x, c.y);
+    // (a day with nothing due: one pixel in its middle, the streak's day off)
+    if (H.free.has(c.o) && !c.n) { g.fillStyle = FREE_MARK; g.fillRect(c.x + (TILE >> 1), c.y + (TILE >> 1), 1, 1); }
     g.globalAlpha = 1;
   }
   const animals = H.animals;
@@ -373,7 +385,7 @@ function paint(H, win, sp, paper) {
   // the view's edges (with no end mark there)
   const by = band + ROWS * CELL + 3, brackets = [];
   for (const r of H.runs) {
-    const len = r.to - r.from + 1, live = r === H.current;
+    const len = r.days, live = r === H.current;
     if (len < SHOWN_STREAK && !live) continue;
     const fo = Math.max(r.from, win.from), to = Math.min(r.to, win.to);
     if (fo > to) continue;
@@ -383,6 +395,15 @@ function paint(H, win, sp, paper) {
     g.fillRect(x0, by, x1 - x0 + 1, 1);
     if (fo === r.from) g.fillRect(x0, by - 2, 1, 2);
     if (to === r.to) g.fillRect(x1, by - 2, 1, 2);
+    // dotted under a week the streak passed over with nothing due (an old deck's quiet weeks)
+    const weeks = new Map();
+    for (let o = fo; o <= to; o++) { const c = cells[o - win.from]; weeks.set(c.col, (weeks.get(c.col) !== false) && !c.n); }
+    for (const [col, off] of weeks) {
+      if (!off) continue;
+      const wx0 = Math.max(x0, col * CELL), wx1 = Math.min(x1, col * CELL + CELL - 1);
+      g.clearRect(wx0, by, wx1 - wx0 + 1, 1);
+      for (let x = wx0; x <= wx1; x += 2) g.fillRect(x, by, 1, 1);
+    }
     brackets.push({ x0, x1, len, live });
   }
   // the streak lane: a trophy under the last day of each of your longest streaks and the goal
@@ -664,15 +685,19 @@ AF.calendar = function (root, data, env) {
     ring(c);
     grid.classList.toggle('af-click', !!c && opens(c));
     if (!c) { tip.hidden = true; return; }
-    const run = c.o <= 0 && c.n ? H.runOf(c.o) : null;
+    const off = c.o <= 0 && !c.n && H.free.has(c.o);  // (a day with nothing due)
+    const run = c.o <= 0 && (c.n || off) ? H.runOf(c.o) : null;
     const what = c.o < H.first ? 'Before the first day your forest counts'
       : c.o > H.ahead ? 'Too far ahead to count'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
       : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far, ${num(H.dueToday)} still due`
-      : c.n ? cards(c.n, 'review') : H.pond.has(c.o) ? 'Not studied (a pond in the forest)' : 'Not studied';
-    const day = run ? c.o - run.from + 1 : 0, total = run ? run.to - run.from + 1 : 0;
-    const where = !run ? ''
+      : c.n ? cards(c.n, 'review') : off ? 'Nothing was due' : H.pond.has(c.o) ? 'Not studied (a pond in the forest)' : 'Not studied';
+    // (where in its streak, in days studied)
+    let day = 0;
+    for (let o = run ? run.from : 1; o <= c.o; o++) if (H.n(o)) day++;
+    const total = run ? run.days : 0;
+    const where = run && off ? `Your ${num(total)}-day streak carries on: a day off with nothing to miss` : !run ? ''
       : (run === H.current ? `Day ${num(day)} of your ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
         + (day === 1 ? ': where it began' : '')
         + (H.podium.has(run) ? `<br>Your ${TROPHIES[H.podium.get(run)].place} streak` : '');

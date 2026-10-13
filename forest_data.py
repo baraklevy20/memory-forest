@@ -144,20 +144,20 @@ def rebuild(forest: dict, trees: list, review_days: set | None = None, reviews: 
     return out
 
 
-def _streaks(review_days: set) -> tuple:
-    """(current streak, longest streak). A streak survives until today ends."""
+def _streaks(review_days: set, free: frozenset = frozenset()) -> tuple:
+    """(current streak, longest streak), in days studied. A streak survives until today ends,
+    and over `free` days (no review, nothing due: study_log.load_free_days), which it passes
+    without growing."""
     if not review_days:
         return 0, 0
-    current = 0
-    start = 0 if 0 in review_days else 1
-    while start + current in review_days:
-        current += 1
+    current, d = 0, 0
+    while d in review_days or d in free or d == 0:  # (today may not be studied yet)
+        current += d in review_days
+        d += 1
     longest = run = 0
-    prev = None
-    for d in sorted(review_days):
-        run = run + 1 if prev is not None and d == prev + 1 else 1
+    for d in range(max(review_days), -1, -1):
+        run = run + 1 if d in review_days else run if d in free else 0
         longest = max(longest, run)
-        prev = d
     return current, longest
 
 

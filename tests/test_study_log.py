@@ -236,6 +236,45 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(study_log.day_search(5, suspended=True), ["introduced:6", "-introduced:5"])
 
 
+class FreeDayTests(unittest.TestCase):
+    """The days with nothing due, rebuilt from the review log (study_log.load_free_days)."""
+
+    def free(self, reviews, queue=2, card=True):
+        """One card's `reviews` - (days ago, ivl) - and the free days that leaves."""
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        con.executescript("""
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
+                                due integer, odue integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer);
+        """)
+        if card:
+            con.execute("insert into cards values (1, 1, 10, 0, 2, ?, 30, '{}', 0, 0)", (queue,))
+        for days, ivl in reviews:
+            con.execute("insert into revlog values (?, 1, 3, 1, ?, 0)", (ms(days), ivl))
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+        return study_log.load_free_days(DB(), CUTOFF, None)
+
+    def test_a_card_is_due_from_its_interval_s_end_to_its_next_review(self):
+        # answered 10 days ago (due again 8 days ago, answered late 6 days ago), then due in a month
+        self.assertEqual(self.free([(10, 2), (6, 30)]), [[9, 9], [5, 0]])
+
+    def test_answered_on_time_nothing_was_due_between(self):
+        # due again 6 days ago, the day it was answered; then due today
+        self.assertEqual(self.free([(10, 4), (6, 6)]), [[9, 7], [5, 1]])  # (today it is due)
+
+    def test_a_card_deleted_suspended_or_reset_since_is_due_nowhere_after(self):
+        overdue = [(10, 2)]  # due 8 days ago, never answered again
+        self.assertEqual(self.free(overdue), [[9, 9]])
+        for gone in (self.free(overdue, card=False), self.free(overdue, queue=-1), self.free(overdue, queue=0)):
+            self.assertEqual(gone, [[9, 0]])
+
+    def test_a_reset_to_new_is_due_nowhere(self):
+        self.assertEqual(self.free([(10, 0)]), [[9, 0]])
+
+
 class EventQueryTests(unittest.TestCase):
     """What the events read on their own: the backlog, and the leeches cured."""
 

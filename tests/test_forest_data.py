@@ -93,6 +93,12 @@ class StatsTests(unittest.TestCase):
         self.assertEqual(fd._streaks({0, 1, 2}), (3, 3))
         self.assertEqual(fd._streaks({2, 3}), (0, 2))
 
+    def test_a_day_with_nothing_due_bridges_a_streak_without_growing_it(self):
+        self.assertEqual(fd._streaks({1, 4, 5}), (1, 2))
+        self.assertEqual(fd._streaks({1, 4, 5}, frozenset({2, 3})), (3, 3))  # 14 days, a week off, 1 day: 15
+        self.assertEqual(fd._streaks({4, 5}, frozenset({1, 2, 3})), (2, 2))  # nothing due since: still current
+        self.assertEqual(fd._streaks({4, 5}, frozenset({2, 3})), (0, 2))  # yesterday was due and missed
+
     def test_long_break_becomes_a_pond_before_the_next_tree(self):
         cards = [card(1, s=30), card(2, s=30)]
         fl = {1: (ms(30), ms(1)), 2: (ms(15), ms(1))}

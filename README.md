@@ -82,7 +82,8 @@ Change your mind at any time: switch back and your forest is just as it was.
 Under the forest, a calendar shows every day you studied, in your scenery's colours: the
 more you reviewed, the stronger the colour. The days ahead show the cards coming due. Your
 streak runs along the bottom, with trophies for your three longest and a pennant on the day
-you would beat your record. Animals stand above the day they joined your forest.
+you would beat your record. A day with nothing due never breaks your streak: it carries on
+over it, marked with a small dot. Animals stand above the day they joined your forest.
 
 Hover a day to see its numbers, click it to open its cards in the browser, and right-click it
 to mark it as important, like an exam. Choose Timeline (the months around today) or By year
