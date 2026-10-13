@@ -20,9 +20,9 @@ AF.caption = function (root, data) {
   const items = [];
   if (data.testForest) items.push(['Test forest', `Made-up ${words.many} from the Test forest setting. Turn it off in the forest settings to see your real one.`]);
   if (data.highlight) items.push([`${(data.deckName || '').split('::').pop()}: ${data.litCount} of ${s.trees} ${words.many}`, `${cap(words.many)} holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings.`]);
-  if (s.trees) items.push([`${s.trees.toLocaleString()} ${s.trees === 1 ? words.one : words.many}`, `One ${words.one} for each day you learned new cards. Hover over one to see its day, click it to see its cards.`]);
-  if (data.merged) items.push([`${data.merged.count.toLocaleString()} in ${words.deep}`,
-    `Your ${words.many} from ${fmtDate(data.merged.from_date)} to ${fmtDate(data.merged.to_date)} stand together in the distance, holding ${data.merged.cards.toLocaleString()} cards. Drawing every one of them individually would slow the deck list down.`
+  if (s.trees) items.push([`${s.trees.toLocaleString('en')} ${s.trees === 1 ? words.one : words.many}`, `One ${words.one} for each day you learned new cards. Hover over one to see its day, click it to see its cards.`]);
+  if (data.merged) items.push([`${data.merged.count.toLocaleString('en')} in ${words.deep}`,
+    `Your ${words.many} from ${fmtDate(data.merged.from_date)} to ${fmtDate(data.merged.to_date)} stand together in the distance, holding ${data.merged.cards.toLocaleString('en')} cards. Drawing every one of them individually would slow the deck list down.`
     + (canBrowse() && !data.testForest ? ' Click to see their cards.' : ''),
     data.testForest ? '' : `${data.channel}:browse:${data.merged.from_ago}:${deckFor(data)}:${data.merged.to_ago}`]);
   if (s.ancient) items.push([`${s.ancient} ancient`, `${cap(words.many)} whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not.`]);

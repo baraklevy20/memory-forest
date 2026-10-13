@@ -367,13 +367,16 @@ def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended:
     return terms
 
 
-def calendar_search(db, offset: int, today: int) -> list:
+def calendar_search(db, offset: int, today: int, due: bool = False) -> list:
     """Anki search terms for a study calendar day, `offset` days from today (`today` the
     scheduler's day number): the cards reviewed that day, studied again since or not
     (`prop:rated=-N`, "answered N days ago", in every Anki from 2.1.45: `rated:N` is "answered
     within the last N days", and the difference of two leaves out a card answered again since),
     or for a day ahead, the cards due that day, as load_due counts them: a card a filtered deck
-    has borrowed by its home deck's due, which an older Anki's `prop:due` doesn't read."""
+    has borrowed by its home deck's due, which an older Anki's `prop:due` doesn't read. Today
+    with `due`: the cards due today, as load_due counts them (overdue, and learning by the clock)."""
+    if due and offset == 0:
+        return ["(is:due OR is:learn)", "-is:suspended", "-is:buried"]
     if offset > 0:
         borrowed = [cid for (cid,) in db.all(
             "select id from cards where queue in (2, 3) and odid != 0 and odue = ? order by id", today + offset)]

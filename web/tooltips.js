@@ -41,16 +41,16 @@ const CLICK_HINT = '<span class="af-hint">Click to see these cards</span>';
 function pondWhen(p) {
   if (!p.to) return '';
   const a = new Date((p.from || p.to) + 'T12:00:00'), b = new Date(p.to + 'T12:00:00');
-  const month = (d, year) => d.toLocaleDateString(undefined, year ? { month: 'long', year: 'numeric' } : { month: 'long' });
+  const month = (d, year) => d.toLocaleDateString('en-US', year ? { month: 'long', year: 'numeric' } : { month: 'long' });
   if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) return `, in ${month(b, true)}`;
   return `, from ${month(a, a.getFullYear() !== b.getFullYear())} to ${month(b, true)}`;
 }
 function pondHtml(p) { return `<b>A quiet pond</b><br>${p.days} days without reviews${esc(pondWhen(p))}`; }
 function deepHtml(m, words) {
   const lines = [`<b>${esc(cap(words.deep))}</b>`,
-    `${m.count.toLocaleString()} older ${esc(words.many)} · ${m.cards.toLocaleString()} cards`,
+    `${m.count.toLocaleString('en')} older ${esc(words.many)} · ${m.cards.toLocaleString('en')} cards`,
     `${esc(fmtDate(m.from_date))} – ${esc(fmtDate(m.to_date))}`];
-  if (m.ancient) lines.push(`${m.ancient.toLocaleString()} of them ancient`);
+  if (m.ancient) lines.push(`${m.ancient.toLocaleString('en')} of them ancient`);
   if (canBrowse()) lines.push(CLICK_HINT);
   return lines.join('<br>');
 }

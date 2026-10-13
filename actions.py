@@ -48,10 +48,11 @@ def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None
     _open_browser(study_log.day_search(days_ago, until_days_ago, keeps_suspended()), did)
 
 
-def browse_calendar_day(offset: int, did: int | None = None) -> None:
+def browse_calendar_day(offset: int, did: int | None = None, due: bool = False) -> None:
     """Open the browser on a study calendar day's cards (web/calendar.js): those reviewed that
-    day, `offset` days before today (0: today), or those due that day, `offset` days ahead."""
-    _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today), did)
+    day, `offset` days before today (0: today), or those due that day, `offset` days ahead (or
+    today, `due`, before you have studied: the cards its tile counts)."""
+    _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did)
 
 
 def _open_browser(terms: list, did: int | None = None) -> None:
@@ -98,7 +99,7 @@ def on_js_message(handled, message, context):
         elif cmd[0] == "mark" and len(cmd) > 1:  # a study calendar day marked as important, or no longer
             marks.toggle(mw.col, cmd[1])  # (the calendar has drawn it already: no redraw)
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked
-            browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None)
+            browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None, len(cmd) > 3 and cmd[3] == "due")
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

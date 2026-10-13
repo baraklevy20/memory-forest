@@ -173,6 +173,7 @@
 }
 .af-cal-today[disabled] { display: none; }  /* (on today's page already: nothing to go back to) */
 .af-cal-grid { position: relative; padding-top: 14px; padding-bottom: 16px; }
+.af-cal-no-notes .af-cal-grid { padding-bottom: 0; }  /* no earlier long streak, no lengths under the brackets (calendar.js hasNotes) */
 /* on the phone: one long timeline, swiped along (calendar.js SWIPED_K) */
 .af-cal-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .af-cal-scroll::-webkit-scrollbar { display: none; }  /* (swiped, never dragged by a bar) */

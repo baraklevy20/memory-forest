@@ -277,7 +277,7 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
       return;
     }
     // as its tooltip says it (web/tooltips.js)
-    const t = every.find(it => it.index === picked), about = [cap(words.stages[t.stage]), `${t.n.toLocaleString()} card${t.n === 1 ? '' : 's'}`];
+    const t = every.find(it => it.index === picked), about = [cap(words.stages[t.stage]), `${t.n.toLocaleString('en')} card${t.n === 1 ? '' : 's'}`];
     if (t.stage >= AF.STAGE.YOUNG && t.remembered != null && !(t.suspended && t.suspended >= t.n)) {
       about.push(t.measured === false ? `${Math.round(t.remembered * 100)}% still going well` : `~${Math.round(t.remembered * 100)}% remembered`);
     }

@@ -90,9 +90,9 @@ Object.entries({
 
 const utc = iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
 const iso = ms => new Date(ms).toISOString().slice(0, 10);
-// a day as the forest's tooltips write it (AF.u.fmtDate: your system's own way), with its weekday
+// a day as the forest's tooltips write it (AF.u.fmtDate), with its weekday, in English as the rest
 const fmt = ms => AF.u.fmtDate(iso(ms));
-const weekday = ms => new Date(iso(ms) + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long' });
+const weekday = ms => new Date(iso(ms) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' });
 // a day's row: 0 on the day the weeks start (payload.WEEK_START_DAYS: Monday unless the system
 // or the setting says otherwise), as the page counts days (Sunday 0)
 let weekStart = 1;
@@ -407,12 +407,14 @@ function paint(H, win, sp, paper) {
   }
   const animals = H.animals;
   const marks = [];  // (where the marks over the weeks stand, for the pointer)
+  const placed = [];  // (the spans of the band over the weeks already taken, so nothing there overlaps)
   // the forest's first day, with a start date: its seedling over the day it began (the one mark
   // the start date leaves here, besides the animals coming only after it)
   if (H.fs !== null && H.fs >= win.from && H.fs <= win.to) {
     const c = cells[H.fs - win.from], s = seedlingOf(sp, c.ms), x0 = c.x + Math.floor((TILE - s.width) / 2), y0 = band - 2 - s.height;
     g.drawImage(s, x0, y0);
     marks.push({ x0, x1: x0 + s.width, y0, y1: band - 1, c });
+    placed.push([x0, x0 + s.width - 1]);
   }
   // today's seedling, once today is studied (an animal that came today stands there instead)
   const sown = cells.find(c => c.o === 0 && c.n && !animals.has(0));
@@ -469,22 +471,30 @@ function paint(H, win, sp, paper) {
   }
   // the animals and the pins of the days you marked in the band over the weeks, at their day's
   // column, feet just above the first row, each moved right of the one before where they would touch
+  // (and the last ones moved back left, as far as needed, where that would take them off the end)
   {
-    const placed = [], above = new Map(animals);
+    const above = new Map(animals), here = [];
     for (const o of H.marked) above.set(o, [{ spr: PIN }].concat(above.get(o) || []));
     cells.filter(c => above.has(c.o)).sort((a, b) => a.col - b.col || a.row - b.row).forEach(c => {
       above.get(c.o).forEach(a => {
         const spr = a.spr || (AF.VISITOR_SPRITES && AF.VISITOR_SPRITES[a.key]);
         if (!spr) return;
-        const rows = spr.frames[0], w = rows[0].length;
+        const w = spr.frames[0][0].length;
         let x0 = c.x + Math.floor((TILE - w) / 2);
         for (const [l, r] of placed) if (x0 <= r + 1 && x0 + w >= l - 1) x0 = r + 2;
-        const y0 = band - 2 - rows.length;
         placed.push([x0, x0 + w - 1]);
-        drawAnimal(g, spr, x0, y0, sp.visitorTint, paper.bg);
-        marks.push({ x0, x1: x0 + w, y0, y1: band - 1, c });
+        here.push({ spr, x0, w, c });
       });
     });
+    for (let i = here.length - 1, end = W - 1; i >= 0 && here[i].x0 + here[i].w - 1 > end; i--) {
+      here[i].x0 = end - here[i].w + 1; end = here[i].x0 - 2;
+    }
+    for (const { spr, x0, w, c } of here) {
+      const y0 = band - 2 - spr.frames[0].length;
+      // (a pin keeps its own red in every scenery: the one mark that is yours, not the forest's)
+      drawAnimal(g, spr, x0, y0, spr === PIN ? null : sp.visitorTint, paper.bg);
+      marks.push({ x0, x1: x0 + w, y0, y1: band - 1, c });
+    }
   }
   return { cv, W, Hh, cells, at, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key };
 }
@@ -495,8 +505,10 @@ const widthOf = view => (view === 'by_year' ? 53 : 65) * CELL + 1;
 const dpr = () => window.devicePixelRatio || 1;
 const sharpK = () => Math.min(1, SHARP / dpr());
 /* the scale `W` low-res pixels fill `width` css pixels at: whole device pixels, every tile and gap
- * the same; or, too narrow to stay crisp that way, all the width, smoothed (lay) */
-const scaleFor = (width, W) => { const k = Math.floor(width / W * dpr()) / dpr(); return k >= sharpK() ? k : width / W; };
+ * the same; or, too narrow to stay crisp that way, all the width, smoothed (lay). By year (`fill`)
+ * always takes all the width, its year being no wider or narrower than it is: whole pixels left a
+ * gap between December and the key */
+const scaleFor = (width, W, fill) => { const k = Math.floor(width / W * dpr()) / dpr(); return k >= sharpK() && !fill ? k : width / W; };
 /* the months Timeline shows in a grid this wide: a year at least, filling the width at whole
  * device pixels; fewer, down to MONTHS_MIN, where a year would be too small to stay crisp */
 function countFor(view, width) {
@@ -507,11 +519,14 @@ function countFor(view, width) {
 }
 // the phone's timeline scale for weeks this tall (css px): whole pixels, from SWIPED_K up
 AF.calendarScaleFor = height => Math.max(SWIPED_K, Math.floor(height * dpr() / (TOP + ROWS * CELL + BRACKET)) / dpr());
+/* whether an earlier streak, ended, is long enough for its length under its bracket: with none in
+ * your whole history, the row kept for those lengths is left out (and never comes and goes as you page) */
+const hasNotes = H => H.runs.some(r => r !== H.current && r.days >= SHOWN_STREAK);
 /* how tall the calendar will be at this width, for the room kept for it until it is drawn */
 AF.calendarHeight = function (cal, width) {
   const view = cal.view === 'by_year' ? 'by_year' : 'timeline', W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN;
-  const k = width > 0 ? scaleFor(width, W) : 1;
-  return Math.ceil(MONTHS_H + (TOP + ROWS * CELL + BRACKET) * k + NOTES_H + FOOT_H);
+  const k = width > 0 ? scaleFor(width, W, view === 'by_year') : 1;
+  return Math.ceil(MONTHS_H + (TOP + ROWS * CELL + BRACKET) * k + (hasNotes(history(cal)) ? NOTES_H : 0) + FOOT_H);
 };
 
 AF.calendar = function (root, data, env) {
@@ -525,6 +540,7 @@ AF.calendar = function (root, data, env) {
   const H = history(cal), view = cal.view === 'by_year' ? 'by_year' : 'timeline', sp = sceneOf(data, env);
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
+  box.classList.toggle('af-cal-no-notes', !hasNotes(H));
   let page = 0, year = null;  // Timeline's stretch (0: today's), By year's year
 
   // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ ›,
@@ -604,7 +620,7 @@ AF.calendar = function (root, data, env) {
   // fitted to the room there is (scaleFor), smaller than its pixels if need be: no scrolling
   function lay() {
     const d = drawn;
-    k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : scaleFor(grid.clientWidth || d.W * 2, d.W);
+    k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : scaleFor(grid.clientWidth || d.W * 2, d.W, view === 'by_year');
     d.cv.style.width = d.W * k + 'px'; d.cv.style.height = d.Hh * k + 'px';
     box.querySelectorAll('.af-cal-swatch').forEach(sw => { sw.style.width = sw.style.height = TILE * k + 'px'; });  // (the key's tiles as big as the calendar's)
     d.cv.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
@@ -715,8 +731,10 @@ AF.calendar = function (root, data, env) {
     const col = Math.floor(px / CELL), row = Math.floor((py - drawn.band) / CELL);
     return px >= 0 && row >= 0 && row < ROWS ? drawn.at.get(col * ROWS + row) || null : null;
   };
-  // which days a click opens: a day with reviews (today too, once studied), a day ahead with cards due
-  const opens = c => cal.browse && c.n > 0 && c.o <= H.ahead && c.o >= H.first;
+  // which days a click opens: a day with reviews (today too, once studied), a day ahead with cards
+  // due, and today before you study, its cards due
+  const dueNow = c => c.o === 0 && !c.n && H.dueToday > 0;
+  const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first;
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // its date, its reviews or cards due, and where it sits in its streak
   const point = e => {
@@ -733,7 +751,8 @@ AF.calendar = function (root, data, env) {
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
       : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far, ${num(H.dueToday)} still due`
-      : c.n ? cards(c.n, 'review') : off ? 'Nothing was due' : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : 'Not studied';
+      : c.n ? cards(c.n, 'review') : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
+      : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;
     for (let o = run ? run.from : 1; o <= c.o; o++) if (H.n(o)) day++;
@@ -742,7 +761,9 @@ AF.calendar = function (root, data, env) {
       : (run === H.current ? `Day ${num(day)} of your ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
         + (H.podium.has(run) ? `<br>Your ${TROPHIES[H.podium.get(run)].place} streak` : '');
     const goal = H.goal && H.goal.o === c.o
-      ? `<br>Reach this day to ${H.goal.rank ? 'pass' : 'beat'} your ${GOALS[H.goal.rank].place} streak` + (H.goal.beats ? `, ${num(H.goal.beats)} days` : '') : '';
+      // (with no earlier streak of that rank to pass, the goal is a trophy's first length)
+      ? (H.goal.beats ? `<br>Reach this day to ${H.goal.rank ? 'pass' : 'beat'} your ${GOALS[H.goal.rank].place} streak, ${num(H.goal.beats)} days`
+        : `<br>Reach this day for a ${num(SHOWN_STREAK)}-day streak`) : '';
     const began = H.fs === c.o ? '<br>Your forest began' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
     const marked = H.marked.has(c.o) ? '<br>Marked as important' : '';
@@ -777,7 +798,7 @@ AF.calendar = function (root, data, env) {
   grid.addEventListener('mouseleave', () => { unpoint(); grid.classList.remove('af-click'); });
   grid.addEventListener('click', e => {
     const c = cellAt(e);
-    if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}`);
+    if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`);
   });
   // a right-click on a day marks it as important (an exam, say: marks.py), or takes its mark
   // away: kept by the add-on, and drawn here at once (the forest itself is not drawn again)

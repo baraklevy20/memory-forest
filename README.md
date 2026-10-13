@@ -87,7 +87,7 @@ Hover a day for its numbers, and click it to open its cards.
 - **A fair streak**: a day with no cards due, as a small deck often has, keeps your streak
   going. It only grows on the days you study.
 - **Trophies and a goal**: gold, silver and bronze for your three longest streaks, and a flag
-  on the day you would beat your record.
+  on the day your streak would earn its next one.
 - **Milestones**: each animal that joined your forest stands above the day it came.
 - **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
   system's.

@@ -48,7 +48,7 @@ function pxLine(g, x0, y0, x1, y1) {
   run();
   g.fill(line);
 }
-function fmtDate(iso) { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
+function fmtDate(iso) { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }); }  // (English, as all the words around it)
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const canBrowse = () => typeof pycmd === 'function';  // Anki's bridge may not be a window property
