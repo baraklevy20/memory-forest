@@ -1342,8 +1342,21 @@ function santaHat(g, env, { key, rows, x0, y0, flip, facesLeft, color }) {
   });
 }
 
+/* the study calendar's tiles as clear ice: a bright shine across one corner, frosted corners, and
+ * deeper towards the far corner */
+const ICE_SHINE = [255, 250, 235];
+function calendarTile(g, pal, edge, v, T) {
+  const n = T - 1;  // (the last row and column: the gap between tiles)
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const d = x + y, corner = (x === 0 || x === n - 1) && (y === 0 || y === n - 1);
+    g.fillStyle = rgb(corner ? mix(pal[0], ICE_SHINE, 0.22) : d === 3 || d === 5 && v % 2 ? mix(pal[0], ICE_SHINE, 0.2) : d > 9 ? pal[1] : pal[0]);
+    g.fillRect(x, y, 1, 1);
+  }
+}
+
 AF.env('frozen_market', {
   calendar: '#6e92c8',  // the study calendar in the river's ice blue: its trees' green says nothing of the frozen scene
+  calendarTile,
   busy: true,  // the skaters, twirling, and the sleigh
   look: mood => clone(LOOKS[hourOf(mood.time)]),
   theme(th, mood) { th.xh = hourOf(mood.time); },

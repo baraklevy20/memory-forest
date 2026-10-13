@@ -885,8 +885,21 @@ function witchHat(g, env, { key, rows, x0, y0, flip, facesLeft, color }) {
   });
 }
 
+/* the study calendar's tiles as pumpkins: round at the corners, ribbed down, with a dip at the top
+ * where the stem sits */
+const RIB_LIGHT = [255, 250, 235];
+function calendarTile(g, pal, edge, v, T) {
+  const n = T - 1;  // (the last row and column: the gap between tiles)
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    if ((x === 0 || x === n - 1) && (y === 0 || y === n - 1) || y === 0 && (x === 3 || x === 4)) continue;
+    g.fillStyle = rgb(x === 2 || x === 5 ? pal[1] : x === 1 || x === 4 ? mix(pal[0], RIB_LIGHT, 0.1) : pal[0]);
+    g.fillRect(x, y, 1, 1);
+  }
+}
+
 AF.env('pumpkin_patch', {
   calendar: ['#5e4a8e', '#ef8a2a'],  // the study calendar from the dusk's purple to pumpkin orange
+  calendarTile,
   dressVisitor: witchHat,
   busy: true,  // the bats, the witch crossing the moon, the laughing pumpkins
   /* an orange dusk; the other hours keep the same scene in their own light */
