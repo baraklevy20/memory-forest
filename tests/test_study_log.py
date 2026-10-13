@@ -239,8 +239,9 @@ class SearchTests(unittest.TestCase):
 class FreeDayTests(unittest.TestCase):
     """The days with nothing due, rebuilt from the review log (study_log.load_free_days)."""
 
-    def free(self, reviews, queue=2, card=True):
-        """One card's `reviews` - (days ago, ivl) - and the free days that leaves."""
+    def free(self, reviews, queue=2, card=True, others=()):
+        """One card's `reviews` - (days ago, ivl) - and the free days that leaves (with a second
+        card, new and suspended, answered on the `others` days)."""
         import sqlite3
         con = sqlite3.connect(":memory:")
         con.executescript("""
@@ -252,6 +253,10 @@ class FreeDayTests(unittest.TestCase):
             con.execute("insert into cards values (1, 1, 10, 0, 2, ?, 30, '{}', 0, 0)", (queue,))
         for days, ivl in reviews:
             con.execute("insert into revlog values (?, 1, 3, 1, ?, 0)", (ms(days), ivl))
+        if others:
+            con.execute("insert into cards values (2, 2, 10, 0, 0, -1, 0, '{}', 0, 0)")
+        for days in others:
+            con.execute("insert into revlog values (?, 2, 3, 1, 0, 0)", (ms(days),))
 
         class DB:
             def all(self, q, *a): return con.execute(q, a).fetchall()
@@ -265,11 +270,19 @@ class FreeDayTests(unittest.TestCase):
         # due again 6 days ago, the day it was answered; then due today
         self.assertEqual(self.free([(10, 4), (6, 6)]), [[9, 7], [5, 1]])  # (today it is due)
 
-    def test_a_card_deleted_suspended_or_reset_since_is_due_nowhere_after(self):
+    def test_a_card_suspended_or_reset_since_is_due_nowhere_after(self):
         overdue = [(10, 2)]  # due 8 days ago, never answered again
         self.assertEqual(self.free(overdue), [[9, 9]])
-        for gone in (self.free(overdue, card=False), self.free(overdue, queue=-1), self.free(overdue, queue=0)):
+        for gone in (self.free(overdue, queue=-1), self.free(overdue, queue=0)):
             self.assertEqual(gone, [[9, 0]])
+
+    def test_a_deleted_card_is_due_until_the_next_day_studied(self):
+        # due 8 days ago, deleted some day after: due on to today with nothing studied since
+        self.assertEqual(self.free([(10, 2)], card=False), [[9, 9]])
+        # another card studied 3 days ago: the deleted one is due until then, free after
+        self.assertEqual(self.free([(10, 2)], card=False, others=[3]), [[9, 9], [2, 0]])
+        # studied on its due day: nothing more of it
+        self.assertEqual(self.free([(10, 2)], card=False, others=[8]), [[9, 9], [7, 0]])
 
     def test_a_reset_to_new_is_due_nowhere(self):
         self.assertEqual(self.free([(10, 0)]), [[9, 0]])

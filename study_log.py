@@ -197,7 +197,9 @@ def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | 
     as Anki keeps no record of what was due. Each answer or manual reschedule sets when its card
     falls due (its day plus the interval; a reset to new, none), and the card is due from then
     until its next one, or after its last one on to today while it is still in learning or review
-    (a card deleted, suspended or reset since stops there)."""
+    (a card suspended or reset since stops there). A card deleted since, whose deletion Anki keeps
+    no date of, is due from then until the next day you studied anything: a deck deleted and
+    left behind never makes a year away look like days with nothing due."""
     _in_decks, only = _filters(dids, excluded, skip)
     # each answer's day, the day it set the card due on, and the card's next answer's day (all as
     # days ago), worked out by the database: a big collection has hundreds of thousands
@@ -211,10 +213,19 @@ def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | 
                                     day_cutoff * 1000)}
     # due from due_on back to the day after the next answer, or (its last answer) to today while
     # the card is in learning or review: each span's ends, summed into each day's count
-    ranges = (f"select min(due_on, {oldest}) as older, case when next is null then 0 else next + 1 end as newer from ({spans}) "
-              "where due_on is not null and (next is not null or cid in (select id from cards where queue in (1, 2, 3)))")
+    # (a deleted card's last answer: -1 here, its end worked out below from the days studied)
+    ranges = (f"select min(due_on, {oldest}) as older, case when next is not null then next + 1 "
+              f"when cid in (select id from cards) then 0 else -1 end as newer from ({spans}) "
+              "where due_on is not null and (next is not null or cid in (select id from cards where queue in (1, 2, 3)) "
+              "or cid not in (select id from cards))")
     due = [0] * (oldest + 2)
-    for older, newer, n in db.all(f"select older, max(newer, 0), count() from ({ranges}) where older >= max(newer, 0) group by 1, 2"):
+    after = sorted(studied)  # (days ago, the most recent first)
+    for older, newer, n in db.all(f"select older, newer, count() from ({ranges}) where older >= max(newer, 0) group by 1, 2"):
+        if newer < 0:  # due until the first day studied on or after its due day
+            back = [d for d in after if d <= older]
+            newer = back[-1] + 1 if back else 0
+            if newer > older:
+                continue
         due[newer] += n
         due[older + 1] -= n
     runs, level = [], 0
