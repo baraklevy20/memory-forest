@@ -201,6 +201,23 @@ function windowOf(H, view, page, year, count) {
  * round the scenery's colour (its own `calendar` colour, or its most colourful crown colour,
  * AF.foliage), from pale to deep, so the calendar belongs to the scene */
 const PALE = [232, 228, 216], DARK = [16, 16, 16];
+/* `t` of the way from colour `a` to `b`, through OKLab, where equal steps look equal (a plain mix
+ * of a blue and a green dips muddy in the middle) */
+const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+const unlin = v => 255 * Math.min(1, Math.max(0, v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055));
+function oklab(c) {
+  const [r, g, b] = c.map(lin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b),
+    s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
+}
+function blend(a, b, t) {
+  const p = oklab(a), q = oklab(b), [L, A, B] = p.map((v, i) => v + (q[i] - v) * t);
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
+  return [unlin(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), unlin(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    unlin(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
+}
 // a scenery's colour kept within a lightness and saturation a tile can show: a silhouette
 // scenery's near-black trees (Witch across the moon) would make every tile black
 const KEY_L = [0.36, 0.56], KEY_S = 0.28;
@@ -230,13 +247,16 @@ function pageOf(el) {
  * for more on a light page, brighter for more on a dark one (a dark page's pale tiles would
  * otherwise draw the eye to your quietest days) */
 function shades(env, dark) {
-  // a scenery whose trees are not its colour names its own (`calendar`: Frozen market's ice blue)
+  // a scenery whose trees are not its colour names its own (`calendar`: Frozen market's ice blue),
+  // or two, the fewest reviews' and the most's, for a ramp between them (Aurora's night blue to
+  // its green): each shade then takes its own colour along it
   const chroma = c => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]), own = AF.envOf(env).calendar;
-  const key = readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a));
+  const keys = Array.isArray(own) ? [0, 1, 2, 3].map(i => readable(blend(hex(own[0]), hex(own[1]), i / 3)))
+    : Array(4).fill(readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a)));
   // (about evenly far apart; on a dark page the top one only a little towards white, so a busy
   // day never outshines the forest)
-  const steps = dark ? [mix(key, DARK, 0.6), mix(key, DARK, 0.42), mix(key, DARK, 0.2), mix(key, PALE, 0.2)]
-    : [mix(key, PALE, 0.45), mix(key, PALE, 0.1), mix(key, DARK, 0.22), mix(key, DARK, 0.48)];
+  const steps = dark ? [mix(keys[0], DARK, 0.6), mix(keys[1], DARK, 0.42), mix(keys[2], DARK, 0.2), mix(keys[3], PALE, 0.2)]
+    : [mix(keys[0], PALE, 0.45), mix(keys[1], PALE, 0.1), mix(keys[2], DARK, 0.22), mix(keys[3], DARK, 0.48)];
   return { grass: steps.map(c => [c, mix(c, DARK, 0.07)]), edge: steps.map(c => mix(c, DARK, 0.22)) };
 }
 

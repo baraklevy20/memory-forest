@@ -79,15 +79,25 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 ## Your study calendar
 
-Under the forest, a calendar shows every day you studied, in your scenery's colours: the
-more you reviewed, the stronger the colour. The days ahead show the cards coming due. Your
-streak runs along the bottom, with trophies for your three longest and a pennant on the day
-you would beat your record. A day with nothing due never breaks your streak: it carries on
-over it, marked with a small dot. Animals stand above the day they joined your forest.
+<p align="center"><img src="docs/calendar.png" alt="The forest with its study calendar under it: the days studied in green, the streak along the bottom, the cards coming due in brown"></p>
 
-Hover a day to see its numbers, click it to open its cards in the browser, and right-click it
-to mark it as important, like an exam. Choose Timeline (the months around today) or By year
-(January to December), and the day your week starts on, on the Forest tab.
+Every day you studied, in your scenery's colours, with your streak and the cards coming due.
+Hover a day for its numbers, and click it to open its cards.
+
+- **A fair streak**: a day with no cards due, as a small deck often has, keeps your streak
+  going. It only grows on the days you study.
+- **Trophies and a goal**: gold, silver and bronze for your three longest streaks, and a flag
+  on the day you would beat your record.
+- **Milestones**: each animal that joined your forest stands above the day it came.
+- **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
+  system's.
+- **Every deck**: each deck's screen shows that deck's own calendar and streak.
+- **Important days**: right-click a day to mark it, like an exam or a trip.
+- **On your phone**: the same calendar, under your forest on the phone card.
+
+Each scenery gives the calendar its own colours.
+
+<p align="center"><img src="docs/calendar_sceneries.png" alt="The same calendar in five sceneries: green by the lake, teal in the misty valley, blue under the aurora, crimson by lantern light, pink among the cherry blossoms"></p>
 
 ## On your phone
 

@@ -886,6 +886,7 @@ function witchHat(g, env, { key, rows, x0, y0, flip, facesLeft, color }) {
 }
 
 AF.env('pumpkin_patch', {
+  calendar: ['#5e4a8e', '#ef8a2a'],  // the study calendar from the dusk's purple to pumpkin orange
   dressVisitor: witchHat,
   busy: true,  // the bats, the witch crossing the moon, the laughing pumpkins
   /* an orange dusk; the other hours keep the same scene in their own light */
