@@ -37,14 +37,17 @@ const MAX_INSTR_UP = 0.15, MIN_INSTR_UP = 8e6, MAX_RENDERER_MB_UP = 8, MAX_HEAP_
 // built, then settled (a resize rebuild, the first frames), then measured for
 const SETTLE_MS = 4000, MEASURE_MS = 8000;
 
-// the shipped presets as they come, then the conditions that cost the most: rain and snow
-// (15 frames a second and hundreds of drops), night, and the biggest forest
+// every preset some edition ships, as it comes (a new one joins by itself, measured from its
+// first run: record it with perf:baseline -- --only <it>), then the conditions that cost the
+// most: rain and snow (15 frames a second and hundreds of drops), night, the biggest forest, and
+// the forest without the study calendar under it (every other scene has one, as it is in Anki)
+const shipped = JSON.parse(execFileSync(PYTHON, [path.join(HERE, 'profile_page.py'), '--shipped']).toString());
 const SCENES = [
-  ...['golden_lake', 'misty_valley', 'cherry_blossom', 'starry_night', 'aurora', 'lanterns', 'frozen_market',
-    'pumpkin_patch', 'bamboo', 'synthwave'].map(p => ({ name: p, preset: p })),
+  ...shipped.map(p => ({ name: p, preset: p })),
   { name: 'golden_lake-rain', preset: 'golden_lake', settings: ['weather=rain'] },
   { name: 'golden_lake-snow', preset: 'golden_lake', settings: ['weather=snow'] },
   { name: 'golden_lake-night', preset: 'golden_lake', settings: ['time_of_day=night'] },
+  { name: 'golden_lake-no-calendar', preset: 'golden_lake', settings: ['calendar=off'] },
   { name: 'aurora-5000-trees', preset: 'aurora', trees: 5000 },
 ];
 
@@ -129,7 +132,9 @@ const row = (name, m, note = '') => `${name.padEnd(20)} ${(m.instr / 1e6).toFixe
 async function main() {
   const args = process.argv.slice(2), what = args[0] || 'compare';
   const only = args.includes('--only') ? new Set(args[args.indexOf('--only') + 1].split(',')) : null;
-  const scenes = SCENES.filter(s => !only || only.has(s.name));
+  // (--only may also name a preset no edition ships yet, a draft, to measure it before it does)
+  const scenes = SCENES.filter(s => !only || only.has(s.name))
+    .concat([...only || []].filter(n => !SCENES.some(s => s.name === n)).map(n => ({ name: n, preset: n })));
   if (!scenes.length) { console.error(`no such scene: one of ${SCENES.map(s => s.name).join(', ')}`); process.exit(2); }
   const chrome = execFileSync(CHROME, ['--version']).toString().trim();
 
@@ -153,7 +158,7 @@ async function main() {
   for (const s of scenes) {
     const was = base.scenes[s.name];
     let m = await measure(s);
-    if (!was) { console.log(row(s.name, m, '(not in the baseline)')); continue; }
+    if (!was) { console.log(row(s.name, m, `(not in the baseline: record it with npm run perf:baseline -- --only ${s.name})`)); continue; }
     if (worse(m, was).length) m = better(m, await measure(s));  // one unlucky run is not a regression
     const bad = worse(m, was);
     const change = `${m.instr >= was.instr ? '+' : ''}${Math.round(100 * (m.instr - was.instr) / was.instr)}% instr`;
