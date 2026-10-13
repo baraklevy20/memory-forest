@@ -126,14 +126,22 @@ class PayloadTests(unittest.TestCase):
     def test_a_day_marked_important_is_on_the_calendar_until_unmarked(self):
         reset(CARDS)
         self.assertEqual(payload.payload()["calendar"]["marks"], [])
-        self.assertTrue(addon.marks.toggle(mw.col, "2026-11-02"))
-        self.assertEqual(payload.payload()["calendar"]["marks"], ["2026-11-02"])
-        self.assertFalse(addon.marks.toggle(mw.col, "2026-11-02"))
+        addon.marks.set_mark(mw.col, "2026-11-02")
+        self.assertEqual(payload.payload()["calendar"]["marks"], [{"day": "2026-11-02", "icon": "pin", "name": ""}])
+        addon.marks.set_mark(mw.col, "2026-11-02", "exam", "  Final\nexam  ")  # renamed, one line
+        addon.marks.set_mark(mw.col, "2026-10-30", "rocket", "x" * 99)  # an icon it doesn't know: a pin
+        self.assertEqual(payload.payload()["calendar"]["marks"], [
+            {"day": "2026-10-30", "icon": "pin", "name": "x" * addon.marks.NAME_MAX},
+            {"day": "2026-11-02", "icon": "exam", "name": "Final exam"}])
+        addon.marks.unmark(mw.col, "2026-11-02")
+        addon.marks.unmark(mw.col, "2026-10-30")
         self.assertEqual(payload.payload()["calendar"]["marks"], [])
         with self.assertRaises(ValueError):
-            addon.marks.toggle(mw.col, "not a day")
-        mw.col.set_config(addon.marks.KEY, ["2026-11-03", 7, "nonsense"])  # a hand edit, or a newer version's
-        self.assertEqual(addon.marks.important_days(mw.col), ["2026-11-03"])
+            addon.marks.set_mark(mw.col, "not a day")
+        # a hand edit, or an older version's bare dates
+        mw.col.set_config(addon.marks.KEY, ["2026-11-03", 7, "nonsense", {"day": "2026-11-04", "icon": "trip", "name": "Rome"}])
+        self.assertEqual(addon.marks.important_days(mw.col), [{"day": "2026-11-03", "icon": "pin", "name": ""},
+                                                              {"day": "2026-11-04", "icon": "trip", "name": "Rome"}])
 
     def test_the_calendar_s_weeks_start_on_the_chosen_day_or_the_system_s(self):
         reset(CARDS, {"calendar_week_start": "sunday"})

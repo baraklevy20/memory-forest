@@ -21,19 +21,38 @@
  * never passing it on, to see if it is one): the forest, its caption and the calendar answer
  * taps themselves (a second tap on a strike replays it) */
 .af-canvas, .af-info, .af-cal-grid { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+/* the tooltips' look, shared by everything dressed as one (a tooltip, a marked day's editor, the
+   what's-new note): dark on Anki's light page, and on its dark page the other way round, a warm
+   beige, as tooltips are best (light on dark, dark on light, so one always stands off what it
+   covers); either way a little see-through, alike, the forest showing through it softened
+   (blurred, so its words stay easy to read), the beige with a faint edge the shadow can't give on
+   a dark page */
+:root {
+  --af-tip-bg: rgba(18, 22, 20, 0.72); --af-tip-panel: rgb(18, 22, 20); --af-tip-fg: #eef2ec; --af-tip-soft: #c9d8c4; --af-tip-accent: #9fe3b4;
+  --af-tip-line: rgba(238, 242, 236, 0.3); --af-tip-faint: rgba(238, 242, 236, 0.45);
+  --af-tip-hover: rgba(238, 242, 236, 0.08); --af-tip-chosen: rgba(238, 242, 236, 0.18);
+  --af-tip-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.nightMode, .night_mode, .night-mode {
+  --af-tip-bg: rgba(239, 228, 207, 0.86); --af-tip-panel: rgb(239, 228, 207); --af-tip-fg: #3b3226; --af-tip-soft: #5c4f3e; --af-tip-accent: #2f7a45;
+  --af-tip-line: rgba(59, 50, 38, 0.35); --af-tip-faint: rgba(59, 50, 38, 0.5);
+  --af-tip-hover: rgba(59, 50, 38, 0.1); --af-tip-chosen: rgba(59, 50, 38, 0.18);
+  --af-tip-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 14px rgba(0, 0, 0, 0.35);
+}
 .af-tip {
   position: absolute;
   z-index: 2;
   max-width: 280px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: rgba(18, 22, 20, 0.92);
-  color: #eef2ec;
+  background: var(--af-tip-bg);
+  color: var(--af-tip-fg);
   font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif;
   pointer-events: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--af-tip-shadow);
+  -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
 }
-.af-tip i { color: #c9d8c4; font-style: normal; }
+.af-tip i { color: var(--af-tip-soft); font-style: normal; }
 .af-tip[hidden] { display: none; }
 
 .af-caption {
@@ -112,8 +131,8 @@
 .af-meta { font-variant-numeric: tabular-nums; }
 .af-credit { opacity: 0.75; }
 
-/* what's new (web/news.js): the cog's dot, and a note on the forest's top-left corner, in
-   the tooltips' dark */
+/* what's new (web/news.js): the cog's dot, and a note on the forest's top-left corner, dressed
+   as the tooltips are */
 .af-cog.af-cog-new { position: relative; }
 .af-cog.af-cog-new::after {
   content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
@@ -122,9 +141,9 @@
 .af-news {
   position: absolute; z-index: 2; left: 10px; top: 10px;
   max-width: calc(100% - 20px); max-width: min(290px, calc(100% - 20px));  /* (min() needs Chromium 79) */
-  padding: 10px 12px; border-radius: 8px; background: rgba(18, 22, 20, 0.86); color: #eef2ec;
+  padding: 10px 12px; border-radius: 8px; background: var(--af-tip-bg); color: var(--af-tip-fg);
   font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; text-align: left;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--af-tip-shadow);
 }
 .af-news b { display: block; font-size: 13px; margin-bottom: 3px; }
 .af-news-acts { display: flex; margin-top: 8px; }
@@ -132,10 +151,10 @@
 /* Anki's own button styles are more specific: these are plain links, as in the caption */
 .af-news-acts button {
   font: inherit !important; background: none !important; border: 0 !important; padding: 0 !important;
-  box-shadow: none !important; cursor: pointer; color: #b8c2bb !important;
+  box-shadow: none !important; cursor: pointer; color: var(--af-tip-soft) !important;
 }
-.af-news-acts button:first-child:not(:only-child) { color: #9fe3b4 !important; text-decoration: underline; text-underline-offset: 2px; }
-.af-news-acts button:hover { color: #fff !important; }
+.af-news-acts button:first-child:not(:only-child) { color: var(--af-tip-accent) !important; text-decoration: underline; text-underline-offset: 2px; }
+.af-news-acts button:hover { color: var(--af-tip-fg) !important; }
 .af-news-acts button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
 /* the study calendar under the forest (web/calendar.js). Margins rather than gap throughout:
@@ -201,3 +220,39 @@
 @media (prefers-reduced-motion: reduce) { .af-cal-hover { transition: none; } }
 .af-cal-notes { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; }
 .af-cal-note { position: absolute; transform: translateX(-50%); font-size: 11px; white-space: nowrap; }
+/* a marked day's editor (calendar.js, on a right-click): the icons side by side, all in full colour,
+ * the chosen one in a soft square (dimmed would read as disabled: UI_GUIDELINES.md), its name and ×, dressed as the tooltip is; margins rather than gap (Chromium 77) */
+.af-cal-pin { position: absolute; z-index: 3; display: flex; align-items: center; padding: 5px 6px; border-radius: 8px;
+  background: var(--af-tip-panel); box-shadow: var(--af-tip-shadow); }  /* (solid: what you type must not sit on the month names) */
+.af-cal-pin[hidden] { display: none; }
+.af-cal-pin-icons { display: inline-flex; margin-right: 6px; }
+/* (Anki's own button styles are more specific, and add a border, padding and a shadow on hover and
+   press, which would change the editor's size under the pointer: so the box itself is !important,
+   as the cog's is) */
+.af-cal-pin-icon { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 24px !important; height: 24px !important;
+  min-width: 0 !important; min-height: 0 !important; margin: 0 2px 0 0 !important; padding: 0 !important; border: 0 !important;
+  border-radius: 6px !important; background: transparent !important; box-shadow: none !important; cursor: pointer; }
+.af-cal-pin-icon:hover, .af-cal-pin-icon:active, .af-cal-pin-icon:focus { background: var(--af-tip-hover) !important; border: 0 !important; box-shadow: none !important; }
+.af-cal-pin-icon.af-on, .af-cal-pin-icon.af-on:hover, .af-cal-pin-icon.af-on:active, .af-cal-pin-icon.af-on:focus { background: var(--af-tip-chosen) !important; }
+.af-cal-pin-icon canvas { display: block; image-rendering: pixelated; }
+.af-cal-pin-name { width: 150px; padding: 3px 2px; border: none; border-bottom: 1px solid var(--af-tip-line); outline: none;
+  background: transparent; color: var(--af-tip-fg); font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.af-cal-pin-name::placeholder { color: var(--af-tip-faint); }
+.af-cal-pin-del { box-sizing: border-box; height: 24px !important; min-width: 0 !important; min-height: 0 !important; margin: 0 0 0 4px !important;
+  padding: 0 4px !important; border: 0 !important; border-radius: 6px !important; background: transparent !important; box-shadow: none !important;
+  color: var(--af-tip-soft) !important; font-size: 16px; line-height: 1; cursor: pointer; }
+.af-cal-pin-del:hover, .af-cal-pin-del:active, .af-cal-pin-del:focus { color: var(--af-tip-fg) !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+/* a month's label tells its month on hover (calendar.js monthSummary) */
+.af-cal-months span { cursor: default; }
+/* the weekdays beside the weeks, just outside the forest's edge, shown with the key on hover */
+.af-cal-days { position: absolute; top: 0; left: 0; width: 0; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.af-cal-days span { position: absolute; right: 6px; transform: translateY(-50%); font-size: 10px; line-height: 1; white-space: nowrap; color: var(--fg-subtle, #888); }
+.af-cal:hover .af-cal-days { opacity: 1; }
+.af-cal-swiped .af-cal-days { display: none; }
+@media (prefers-reduced-motion: reduce) { .af-cal-days { transition: none; } }
+/* the animals over the weeks (and the forest's first seedling), on a layer of their own: shown
+ * while the pointer is on the heatmap, as the key is, and always on the phone (calendar.js paint) */
+.af-cal-above { position: absolute; display: block; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges;
+  opacity: 0; transition: opacity 0.2s; }
+.af-cal:hover .af-cal-above, .af-cal-swiped .af-cal-above { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .af-cal-above { transition: none; } }

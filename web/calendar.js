@@ -12,7 +12,7 @@
  * Two views, each fitted to the room there is: Timeline (`timeline`: a year or more with this
  * month most of the way along, paged back and on with ‹ ›; on the phone, the whole history swiped
  * along) and By year (`by_year`: January to December). payload.py sends data.calendar = { view,
- * start, days, due, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
+ * start, days, due, time, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
  * the date of the first day counted, the reviews of each day from it to today, the cards due on
  * each day from today on, the day each animal came, the forest's own rule for ponds, whether a
  * click opens a day, the days you pinned, the forest's start date (if any), whether the streak
@@ -23,10 +23,10 @@ const AF = window.AnkiForest;
 const { hashStr, hex, rgb, layer, esc, mix, cap, send, animates } = AF.u;
 const { SEEDLING } = AF.STAGE;
 
-// low-res pixels: a day's square, the tile drawn in it, the band above the weeks for the
-// animals and the pins (at their day's column), and the streak lane below the weeks: the
+// low-res pixels: a day's square, the tile drawn in it, a little room above the weeks under the
+// months' labels (every mark sits on its own day's tile), and the streak lane below the weeks: the
 // brackets, with the trophies and the goal pennant under them
-const CELL = 11, TILE = 9, TOP = 14, ROWS = 7, BRACKET = 15;  // (TOP: the tallest icon's height, and room under it)
+const CELL = 11, TILE = 9, TOP = 3, ROWS = 7, BRACKET = 15;  // (TOP: room between the months' labels and the weeks)
 // css pixels: the footer's row (the journal and the key), the month labels' band and the streaks'
 // notes (forest.css), for the room kept for the calendar before it is drawn
 const FOOT_H = 18, MONTHS_H = 14, NOTES_H = 16;
@@ -43,8 +43,28 @@ const TROPHIES = [
   { G: '#c9ccd1', L: '#f6f7f9', D: '#8b9098', place: 'second-longest' },
   { G: '#c4834a', L: '#ecc196', D: '#8a5528', place: 'third-longest' }
 ].map(t => ({ frames: [TROPHY], pal: { G: t.G, L: t.L, D: t.D }, place: t.place }));
-// a day you marked as important (an exam, say: marks.py), its pin: R the head, L its shine, D the needle
-const PIN = { frames: [['.RRR.', 'RLRRR', 'RRRRR', '.RRR.', '..D..', '..D..', '..D..']], pal: { R: '#e0524a', L: '#ffb3a8', D: '#8a7a6a' } };
+// a day you marked as important (marks.py), with the icon you picked for it, all in the pin's red
+// (red is the mark that is yours): R red, L its shine, D a dark detail; `label` names a mark you
+// didn't name. Their order is marks.ICONS', the order a click on the icon steps through them.
+const MARK_PAL = { R: '#e0524a', L: '#ffb3a8', W: '#fff1ec', D: '#8a7a6a', K: '#1c1a1a' };
+const MARK_ICONS = {
+  // (six by six each, so one sits centred, a pixel clear all round, on the eight a tile shows before
+  // its edge or gap: TILE_FACE)
+  pin: { label: 'Pin', rows: ['.RRRR.', 'RRWWRR', 'RRWWRR', 'RRRRRR', '.RRRR.', '..RR..'] },
+  exam: { label: 'Exam', rows: ['RRRRRR', 'KRWWWR', 'RRRRRR', 'KRWWWR', 'RRRRRR', 'KRRRRR'] },
+  trip: { label: 'Trip', rows: ['..R...', '..RR..', 'RRRRRR', 'RRRRRR', '..RR..', '..R...'] },
+  birthday: { label: 'Birthday', rows: ['..LL..', '..DD..', '.RRRR.', '.WRWW.', 'RRRRRR', 'RRRRRR'] },
+  star: { label: 'Star', rows: ['..RR..', '..RR..', 'RRWRRR', '.RRRR.', '.RRRR.', 'RR..RR'] },
+  heart: { label: 'Heart', rows: ['RR..RR', 'RRRRRR', 'RWRRRR', 'RRRRRR', '.RRRR.', '..RR..'] },
+};
+const MARK_ORDER = Object.keys(MARK_ICONS);
+for (const m of Object.values(MARK_ICONS)) m.spr = { frames: [m.rows], pal: MARK_PAL };
+const markOf = m => MARK_ICONS[m && m.icon] || MARK_ICONS.pin;
+// a mark's line in its day's tooltip: its name (or its icon's), and how far off it is
+const markLine = (m, o) => {
+  const name = m.name || markOf(m).label;
+  return o > 1 ? `${name} in ${o} days` : o === 1 ? `${name} tomorrow` : o === 0 ? `${name} today` : name;
+};
 // the goal ahead: a pennant on the day the current streak would pass the next record, gold when
 // it would be your longest, silver your second-longest (P its pole, G the metal, L its shine)
 const GOAL = ['PGGGG', 'PGGLG', 'PGGG.', 'PG...', 'P....', 'P....', 'P....', 'P....'];
@@ -63,6 +83,7 @@ const SHADE_SPLITS = [0.4, 0.7, 0.9], SHADE_SPAN = 365;
 // (their soil) and the days before the forest's start date (your record, not the forest's time)
 const FADE = 0.5;
 const TILE_VARIANTS = 4;  // each shade's tile comes in this many textures, drawn once
+const TILE_FACE = TILE - 1;  // a tile's face: all but its last row and column (a plain tile's edge, a scenery's own tile's gap)
 const DAY_MS = 86400000;
 const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (more when wide, fewer when narrow), this month this far along
 // the phone: the calendar is one long timeline swiped along (no buttons to page with), its pixels
@@ -73,6 +94,8 @@ const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has 
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
 const TOUCH_PAD = 6, TAP_SLOP = 10;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const deep = v => Array.isArray(v) ? v.map(deep) : hex(v);
 const P = {};
 Object.entries({
@@ -171,11 +194,14 @@ function history(cal) {
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
   return {
     today, first, n, fs, free, runs, pond, current, runOf, podium, goal, animals,
-    marked: new Set((cal.marks || []).map(d => (utc(d) - today) / DAY_MS)),
+    // the days you marked, each with its icon and name (an older version's: a bare date)
+    marked: new Map((cal.marks || []).map(m => typeof m === 'string' ? { day: m } : m).filter(m => m && m.day)
+      .map(m => [(utc(m.day) - today) / DAY_MS, { icon: m.icon || 'pin', name: m.name || '' }])),
     // each day's cards since deleted: still counted in its reviews, but its click can't list them
     gone: new Map((cal.gone || []).map(([ago, count, of]) => [-ago, [count, of || count]])),
     shade, dueShade, dueToday: cal.due[0] || 0,
-    ahead: cal.due.length - 1  // the last day ahead counted
+    ahead: cal.due.length - 1,  // the last day ahead counted
+    time: o => (cal.time || [])[o - first] || 0  // (seconds a day's reviews took, as the days are kept)
   };
 }
 
@@ -392,6 +418,9 @@ function paint(H, win, sp, paper) {
   for (const c of cells) { c.x = xOf(c); c.y = yOf(c); at.set(c.col * ROWS + c.row, c); }
   const W = xOf(cells[cells.length - 1]) + CELL, Hh = band + ROWS * CELL + BRACKET;
   const [cv, g] = layer(W, Hh);
+  // the animals (and the forest's first seedling) on a layer of their own over it, shown while the
+  // pointer is on the heatmap (forest.css): the forest's milestones, which the forest shows already
+  const [above, ag] = layer(W, Hh);
   const pal = paletteOf(H, sp, paper);
   // the tiles first, each with a texture of its own day's (the same whichever page it is on); a
   // missed day, or one before your history, faint, so the view is never half bare
@@ -407,20 +436,19 @@ function paint(H, win, sp, paper) {
   }
   const animals = H.animals;
   const marks = [];  // (where the marks over the weeks stand, for the pointer)
-  const placed = [];  // (the spans of the band over the weeks already taken, so nothing there overlaps)
-  // the forest's first day, with a start date: its seedling over the day it began (the one mark
-  // the start date leaves here, besides the animals coming only after it)
-  if (H.fs !== null && H.fs >= win.from && H.fs <= win.to) {
-    const c = cells[H.fs - win.from], s = seedlingOf(sp, c.ms), x0 = c.x + Math.floor((TILE - s.width) / 2), y0 = band - 2 - s.height;
-    g.drawImage(s, x0, y0);
-    marks.push({ x0, x1: x0 + s.width, y0, y1: band - 1, c });
-    placed.push([x0, x0 + s.width - 1]);
-  }
   // today's seedling, once today is studied (an animal that came today stands there instead)
   const sown = cells.find(c => c.o === 0 && c.n && !animals.has(0));
   if (sown) {
     const s = seedlingOf(sp, sown.ms);
     g.drawImage(s, sown.x + Math.floor((TILE - 1 - s.width) / 2) + 1, sown.y + TILE - s.height);
+  }
+  // the days you marked: each its icon, painted on its tile, centred on what shows of it, the day's shade round it
+  // (important enough to sit on the data; its tooltip gives the day's count)
+  for (const c of cells) {
+    if (!H.marked.has(c.o)) continue;
+    const spr = markOf(H.marked.get(c.o)).spr, rows = spr.frames[0];
+    const x0 = c.x + Math.floor((TILE_FACE - rows[0].length) / 2), y0 = c.y + Math.floor((TILE_FACE - rows.length) / 2);
+    rows.forEach((line, y) => { for (let x = 0; x < line.length; x++) if (spr.pal[line[x]]) { g.fillStyle = spr.pal[line[x]]; g.fillRect(x0 + x, y0 + y, 1, 1); } });
   }
   const today = cells.find(c => c.o === 0);
   if (today) frame(g, today.x, today.y, TILE, dark);
@@ -467,36 +495,24 @@ function paint(H, win, sp, paper) {
     // (on a light page in their deeper shades: pale gold and silver would fade into it)
     const metal = !dark && METALS_ON_LIGHT[spr.pal.G];
     drawAnimal(g, metal ? Object.assign({}, spr, { pal: Object.assign({}, spr.pal, metal) }) : spr, x0, y0, null, paper.bg);
-    marks.push({ x0, x1: x0 + w, y0, y1: y0 + spr.frames[0].length, c });
+    marks.push({ x0, x1: x0 + w, y0, y1: y0 + spr.frames[0].length, c, trophy: TROPHIES.indexOf(spr) });
   }
-  // the animals and the pins of the days you marked in the band over the weeks, at their day's
-  // column, feet just above the first row, each moved right of the one before where they would touch
-  // (and the last ones moved back left, as far as needed, where that would take them off the end)
-  {
-    const above = new Map(animals), here = [];
-    for (const o of H.marked) above.set(o, [{ spr: PIN }].concat(above.get(o) || []));
-    cells.filter(c => above.has(c.o)).sort((a, b) => a.col - b.col || a.row - b.row).forEach(c => {
-      above.get(c.o).forEach(a => {
-        const spr = a.spr || (AF.VISITOR_SPRITES && AF.VISITOR_SPRITES[a.key]);
-        if (!spr) return;
-        const w = spr.frames[0][0].length;
-        let x0 = c.x + Math.floor((TILE - w) / 2);
-        for (const [l, r] of placed) if (x0 <= r + 1 && x0 + w >= l - 1) x0 = r + 2;
-        placed.push([x0, x0 + w - 1]);
-        here.push({ spr, x0, w, c });
-      });
-    });
-    for (let i = here.length - 1, end = W - 1; i >= 0 && here[i].x0 + here[i].w - 1 > end; i--) {
-      here[i].x0 = end - here[i].w + 1; end = here[i].x0 - 2;
-    }
-    for (const { spr, x0, w, c } of here) {
-      const y0 = band - 2 - spr.frames[0].length;
-      // (a pin keeps its own red in every scenery: the one mark that is yours, not the forest's)
-      drawAnimal(g, spr, x0, y0, spr === PIN ? null : sp.visitorTint, paper.bg);
-      marks.push({ x0, x1: x0 + w, y0, y1: band - 1, c });
+  // on the layer shown while you hover the heatmap, each on its own day's tile: the animals, each
+  // where it came (the first, where two came on one day; the tooltip names them all), and the
+  // seedling of the day the forest began with a start date (the one mark the start date leaves
+  // here, besides the animals coming only after it). A day you marked keeps its mark in view.
+  for (const c of cells) {
+    if (H.marked.has(c.o)) continue;
+    const a = (animals.get(c.o) || [])[0], spr = a && (a.spr || (AF.VISITOR_SPRITES && AF.VISITOR_SPRITES[a.key]));
+    if (spr) {
+      const rows = spr.frames[0];
+      drawAnimal(ag, spr, c.x + Math.floor((TILE - rows[0].length) / 2), c.y + Math.floor((TILE - rows.length) / 2), sp.visitorTint, paper.bg);
+    } else if (c.o === H.fs) {
+      const s = seedlingOf(sp, c.ms);
+      ag.drawImage(s, c.x + Math.floor((TILE - s.width) / 2), c.y + Math.floor((TILE - s.height) / 2));
     }
   }
-  return { cv, W, Hh, cells, at, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key };
+  return { cv, above, W, Hh, cells, at, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key };
 }
 
 // a year's weeks, about as wide as they come: By year's, or Timeline's months apart (its
@@ -542,17 +558,25 @@ AF.calendar = function (root, data, env) {
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
   box.classList.toggle('af-cal-no-notes', !hasNotes(H));
   let page = 0, year = null;  // Timeline's stretch (0: today's), By year's year
+  // what a screen reader says for the picture: the year in a sentence, its streak
+  let studiedYear = 0;
+  for (let o = Math.max(H.first, -364); o <= 0; o++) if (H.n(o)) studiedYear++;
+  const described = `Study heatmap: ${num(studiedYear)} day${studiedYear === 1 ? '' : 's'} studied in the last year`
+    + (H.current ? `, current streak ${num(H.current.days)} day${H.current.days === 1 ? '' : 's'}` : '');
 
   // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ ›,
   // with Today before them only once paged away, so they stay where they are as it comes and
   // goes) and the key, the last two shown on hover (forest.css)
-  box.innerHTML = '<div class="af-cal-grid"><div class="af-cal-months"></div><div class="af-cal-hover" hidden></div><div class="af-cal-notes"></div></div>'
+  box.innerHTML = '<div class="af-cal-grid"><div class="af-cal-months"></div><div class="af-cal-days"></div><div class="af-cal-hover" hidden></div><div class="af-cal-notes"></div></div>'
     + '<div class="af-cal-foot"><span class="af-cal-journal"></span><span class="af-cal-acts">'
     + '<button type="button" class="af-cal-chev af-cal-today" data-go="0">Today</button>'
     + '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
     + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
     + '</span><span class="af-cal-key"></span></div>'
-    + '<div class="af-tip af-cal-tip" hidden></div>';
+    + '<div class="af-tip af-cal-tip" hidden></div>'
+    + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
+    + '<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="Its name">'
+    + '<button type="button" class="af-cal-pin-del" aria-label="Remove the mark" title="Remove the mark">\u00d7</button></div>';
   if (swiped) box.classList.add('af-cal-swiped');
   // the forest's journal comes down to the foot of the panel: a forest's caption with the
   // calendar under it would read as the calendar's
@@ -563,7 +587,7 @@ AF.calendar = function (root, data, env) {
   // (on the phone only Today, which brings today back into view)
   if (swiped) { btn(-1).hidden = btn(1).hidden = true; grid.classList.add('af-cal-scroll'); }
   box.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => (swiped ? toToday(true) : go(b.dataset.go))));
-  const months = box.querySelector('.af-cal-months');
+  const months = box.querySelector('.af-cal-months'), days = box.querySelector('.af-cal-days');
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
   let drawn = null, k = 2, last;  // (last: the day the pointer was last on)
   let paper = pageOf(box);
@@ -586,8 +610,15 @@ AF.calendar = function (root, data, env) {
     const win = windowOf(H, swiped ? 'swiped' : view, page, year, count);
     drawn = Object.assign(paint(H, win, sp, paper), { win, count });
     last = undefined;
+    // (a page's slide is for paging alone: go starts it again after this; any other drawing, a day
+    // marked say, must not replay it, the new canvas taking the class still on the grid)
+    grid.classList.remove('af-cal-from-left', 'af-cal-from-right');
     grid.querySelectorAll('canvas').forEach(c => c.remove());
+    drawn.above.className = 'af-cal-above';
+    grid.insertBefore(drawn.above, notes);
     drawn.cv.className = 'af-cal-canvas';
+    drawn.cv.setAttribute('role', 'img');
+    drawn.cv.setAttribute('aria-label', described);
     grid.insertBefore(drawn.cv, notes);
     const may = can(win);
     btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
@@ -621,9 +652,10 @@ AF.calendar = function (root, data, env) {
   function lay() {
     const d = drawn;
     k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : scaleFor(grid.clientWidth || d.W * 2, d.W, view === 'by_year');
-    d.cv.style.width = d.W * k + 'px'; d.cv.style.height = d.Hh * k + 'px';
+    d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
+    d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
     box.querySelectorAll('.af-cal-swatch').forEach(sw => { sw.style.width = sw.style.height = TILE * k + 'px'; });  // (the key's tiles as big as the calendar's)
-    d.cv.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
+    d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
     let html = '', lastM = -1;
     for (const c of d.cells) {
       const day = new Date(c.ms);
@@ -631,9 +663,14 @@ AF.calendar = function (root, data, env) {
       lastM = day.getUTCMonth();
       // January is its year alone, every other month its name
       const text = lastM === 0 ? String(day.getUTCFullYear()) : MONTHS[lastM];
-      html += `<span${text !== MONTHS[lastM] ? ' class="af-cal-year"' : ''} style="left:${c.x * k}px">${text}</span>`;
+      html += `<span${text !== MONTHS[lastM] ? ' class="af-cal-year"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
     }
     months.innerHTML = html;
+    // the weekdays of the second, fourth and sixth rows, beside the weeks (shown with the key, on hover)
+    if (!swiped) {
+      const top = d.cv.offsetTop;
+      days.innerHTML = [1, 3, 5].map(r => `<span style="top:${top + (d.band + r * CELL + TILE / 2) * k}px">${WEEKDAYS[(weekStart + r) % 7]}</span>`).join('');
+    }
     // where two would touch (a narrow calendar), the one with a year stays and the other goes
     let prev = null;
     for (const s of months.children) {
@@ -720,13 +757,16 @@ AF.calendar = function (root, data, env) {
   let touched = false;  // (the last press a finger's: pointerdown below)
   // (where on the canvas, AF.u.pointIn: right on a page the app zooms and in the phone's sideways
   // view; on anything but the canvas, nothing)
+  let hit = null;  // (the mark over or under the weeks the pointer is on, if any: cellAt)
   const cellAt = e => {
+    hit = null;
     if (e.target !== drawn.cv) return null;
     const [x, y] = AF.u.pointIn(e, drawn.cv), px = x / k, py = y / k;
     const pad = touched && (py < drawn.band || py >= drawn.band + ROWS * CELL) ? TOUCH_PAD : 0;
     const off = m => Math.max(m.x0 - px, 0, px - m.x1 + 1) + Math.max(m.y0 - py, 0, py - m.y1 + 1);
     const mark = drawn.marks.filter(m => px >= m.x0 - pad && px < m.x1 + pad && py >= m.y0 - pad && py < m.y1 + pad)
       .sort((a, b) => off(a) - off(b))[0];
+    hit = mark || null;
     if (mark) return mark.c;
     const col = Math.floor(px / CELL), row = Math.floor((py - drawn.band) / CELL);
     return px >= 0 && row >= 0 && row < ROWS ? drawn.at.get(col * ROWS + row) || null : null;
@@ -736,11 +776,52 @@ AF.calendar = function (root, data, env) {
   const dueNow = c => c.o === 0 && !c.n && H.dueToday > 0;
   const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first;
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
+  // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
+  const took = o => {
+    const s = H.time(o);
+    if (!s) return '';
+    const m = Math.round(s / 60);
+    return m < 1 ? ' in under a minute' : m < 60 ? ` in ${m} min` : ` in ${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}`;
+  };
+  // a month in a few words, on its label: the days studied, the reviews and about how many a day;
+  // and for the days ahead in it, the cards due
+  const monthSummary = (y, m) => {
+    const from = (Date.UTC(y, m, 1) - H.today) / DAY_MS, to = (Date.UTC(y, m + 1, 1) - H.today) / DAY_MS - 1;
+    const lines = [`<b>${MONTH_NAMES[m]} ${y}</b>`];
+    const a = Math.max(from, H.first), b = Math.min(to, 0);
+    if (from > 0) { /* all ahead */ } else if (b < a) lines.push('No reviews yet');
+    else {
+      let studied = 0, reviews = 0;
+      for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); }
+      const span = b - a + 1, now = b === 0 && to > 0 ? ' so far' : '';
+      if (!studied) lines.push(`Not studied${now}`);
+      else {
+        lines.push(`Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now}`);
+        lines.push(`${cards(reviews, 'review')}, about ${num(Math.round(reviews / span))} a day`);
+      }
+    }
+    let due = 0;
+    for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) due += H.n(o);
+    if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : ' in the days ahead'}`);
+    return lines.join('<br>');
+  };
+  const pointMonth = lab => {
+    ring(null);
+    grid.classList.remove('af-click');
+    tip.innerHTML = monthSummary(+lab.dataset.y, +lab.dataset.m);
+    tip.hidden = false;
+    const r = lab.getBoundingClientRect(), b0 = box.getBoundingClientRect();
+    const cx = r.left - b0.left + r.width / 2, under = r.bottom - b0.top + TIP_GAP;
+    tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = under + 'px';
+  };
   // its date, its reviews or cards due, and where it sits in its streak
   const point = e => {
-    const c = cellAt(e);
-    if (c === last) return;  // (still on the same day: nothing changes)
-    last = c;
+    const lab = e.target && e.target.closest ? e.target.closest('.af-cal-months span') : null;
+    if (lab) { if (lab !== last) { last = lab; pointMonth(lab); } return; }
+    const c = cellAt(e), on = hit || c;
+    if (on === last) return;  // (still on the same day, or mark: nothing changes)
+    last = on;
     ring(c);
     grid.classList.toggle('af-click', !!c && opens(c));
     if (!c) { tip.hidden = true; return; }
@@ -750,8 +831,8 @@ AF.calendar = function (root, data, env) {
       : c.o > H.ahead ? 'Too far ahead to show'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
-      : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far, ${num(H.dueToday)} still due`
-      : c.n ? cards(c.n, 'review') : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
+      : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far${took(c.o)}, ${num(H.dueToday)} still due`
+      : c.n ? cards(c.n, 'review') + took(c.o) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;
@@ -759,14 +840,15 @@ AF.calendar = function (root, data, env) {
     const total = run ? run.days : 0;
     const where = run && off ? `Doesn't break your ${num(total)}-day streak` : !run ? ''
       : (run === H.current ? `Day ${num(day)} of your ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
-        + (H.podium.has(run) ? `<br>Your ${TROPHIES[H.podium.get(run)].place} streak` : '');
+        // (which of your longest it is: on its trophy, not on each of its days)
+        + (hit && hit.trophy >= 0 && H.podium.has(run) ? `<br>Your ${TROPHIES[hit.trophy].place} streak` : '');
     const goal = H.goal && H.goal.o === c.o
       // (with no earlier streak of that rank to pass, the goal is a trophy's first length)
       ? (H.goal.beats ? `<br>Reach this day to ${H.goal.rank ? 'pass' : 'beat'} your ${GOALS[H.goal.rank].place} streak, ${num(H.goal.beats)} days`
         : `<br>Reach this day for a ${num(SHOWN_STREAK)}-day streak`) : '';
     const began = H.fs === c.o ? '<br>Your forest began' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
-    const marked = H.marked.has(c.o) ? '<br>Marked as important' : '';
+    const marked = H.marked.has(c.o) ? `<br>${esc(markLine(H.marked.get(c.o), c.o))}` : '';
     // (in cards, not reviews: a card reviewed twice that day counts once)
     const [lost, of] = c.o <= 0 && c.n ? H.gone.get(c.o) || [0, 0] : [0, 0];
     const gone = !lost ? '' : lost >= of ? `<br>${of === 1 ? 'Its card has' : `All ${num(of)} of its cards have`} since been deleted`
@@ -800,17 +882,87 @@ AF.calendar = function (root, data, env) {
     const c = cellAt(e);
     if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`);
   });
-  // a right-click on a day marks it as important (an exam, say: marks.py), or takes its mark
-  // away: kept by the add-on, and drawn here at once (the forest itself is not drawn again)
+  // a right-click on a day marks it as important (an exam, say: marks.py) and opens a small editor
+  // over it: the icons side by side, its own lit, its name, and × to take the mark away.
+  // Enter, or a click anywhere else, keeps it; Esc puts back what was there. Kept by the add-on,
+  // and drawn here at once (the forest itself is not drawn again).
+  const pin = box.querySelector('.af-cal-pin'), pinName = pin.querySelector('.af-cal-pin-name');
+  const pinIcons = pin.querySelector('.af-cal-pin-icons');
+  pinIcons.setAttribute('role', 'radiogroup'); pinIcons.setAttribute('aria-label', 'Its icon');
+  // each icon a small button of its own, drawn from its sprite at a scale of 2
+  MARK_ORDER.forEach(key => {
+    const b = document.createElement('button'), cv = document.createElement('canvas'), rows = MARK_ICONS[key].rows, s = 2;
+    b.type = 'button'; b.className = 'af-cal-pin-icon'; b.dataset.icon = key; b.setAttribute('role', 'radio');
+    b.title = MARK_ICONS[key].label; b.setAttribute('aria-label', MARK_ICONS[key].label);
+    cv.width = rows[0].length * s; cv.height = rows.length * s;
+    const g = cv.getContext('2d');
+    rows.forEach((line, y) => { for (let x = 0; x < line.length; x++) if (MARK_PAL[line[x]]) { g.fillStyle = MARK_PAL[line[x]]; g.fillRect(x * s, y * s, s, s); } });
+    b.appendChild(cv);
+    b.addEventListener('mousedown', e => e.preventDefault());  // (the name keeps the focus)
+    b.addEventListener('click', () => {
+      const m = editing && H.marked.get(editing.o);
+      if (!m) return;
+      m.icon = key;
+      showIcon(m);
+      draw();
+    });
+    pinIcons.appendChild(b);
+  });
+  let editing = null;  // { o, ms, before }: the day being edited, and its mark before (null: none)
+  const keepMarks = () => {  // (for a forest redrawn from this data)
+    cal.marks = [...H.marked].map(([o, m]) => ({ day: iso(H.today + o * DAY_MS), icon: m.icon, name: m.name }));
+  };
+  const showIcon = m => {  // (its icon lit among them, and its name's placeholder the icon's)
+    for (const b of pinIcons.children) {
+      const on = b.dataset.icon === (MARK_ICONS[m.icon] ? m.icon : 'pin');
+      b.classList.toggle('af-on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    pinName.placeholder = markOf(m).label;
+  };
+  const closePin = keep => {
+    if (!editing) return;
+    const { o, ms, before } = editing, m = H.marked.get(o);
+    editing = null;
+    pin.hidden = true;
+    send(`${data.channel}:typing:0`);
+    if (!keep) {  // (back as it was)
+      if (before) H.marked.set(o, before); else H.marked.delete(o);
+    } else if (m) {
+      m.name = pinName.value.trim().replace(/\s+/g, ' ');
+      if (!before || before.icon !== m.icon || before.name !== m.name) send(`${data.channel}:mark:${iso(ms)}:${m.icon}:${m.name}`);
+    } else if (before) send(`${data.channel}:unmark:${iso(ms)}`);
+    keepMarks();
+    draw();
+  };
   grid.addEventListener('contextmenu', e => {
     const c = cellAt(e);
     if (!c || !data.inAnki) return;  // (on the phone there is no add-on to keep the mark)
     e.preventDefault();
-    if (!H.marked.delete(c.o)) H.marked.add(c.o);
-    cal.marks = [...H.marked].map(o => iso(H.today + o * DAY_MS));  // (for a forest redrawn from this data)
+    if (editing) closePin(true);
+    const before = H.marked.get(c.o);
+    editing = { o: c.o, ms: c.ms, before: before ? Object.assign({}, before) : null };
+    if (!before) H.marked.set(c.o, { icon: MARK_ORDER[0], name: '' });
     unpoint();
     draw();
-    send(`${data.channel}:mark:${iso(c.ms)}`);
+    const m = H.marked.get(c.o);
+    showIcon(m);
+    pinName.value = m.name;
+    pin.hidden = false;
+    // above the day, as its tooltip stands, inside the heatmap's sides
+    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
+    const cx = left + (c.x + TILE / 2) * k;
+    pin.style.left = Math.min(box.clientWidth - pin.offsetWidth, Math.max(0, cx - pin.offsetWidth / 2)) + 'px';
+    pin.style.top = (canvasTop + (c.y - 1) * k - pin.offsetHeight - TIP_GAP) + 'px';
+    send(`${data.channel}:typing:1`);  // (Anki's one-key shortcuts wait while a name is typed)
+    pinName.focus();
   });
+  pin.querySelector('.af-cal-pin-del').addEventListener('mousedown', e => e.preventDefault());
+  pin.querySelector('.af-cal-pin-del').addEventListener('click', () => { if (editing) { H.marked.delete(editing.o); closePin(true); } });
+  pinName.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); closePin(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePin(false); }
+  });
+  pinName.addEventListener('blur', () => closePin(true));
 };
 })();

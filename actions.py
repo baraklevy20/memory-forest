@@ -9,6 +9,7 @@ from anki.collection import SearchNode
 from aqt import dialogs, mw
 from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
+from aqt.qt import QShortcut
 from aqt.utils import tooltip
 
 from . import events_state, marks, news, payload, study_log
@@ -79,6 +80,25 @@ def _open_browser(terms: list, did: int | None = None) -> None:
     browser.search_for(" ".join(terms))
 
 
+_held: list = []  # the main window's shortcuts switched off while a name is typed (hold_shortcuts)
+
+
+def hold_shortcuts(hold: bool) -> None:
+    """Switch the main window's shortcuts off while a mark's name is typed on the deck list (its
+    one-key ones, d, s, a, b, t and y, would act on every letter typed), and back on after."""
+    if hold and not _held:
+        _held.extend(s for s in mw.findChildren(QShortcut) if s.isEnabled())
+        for s in _held:
+            s.setEnabled(False)
+    elif not hold:
+        for s in _held:
+            try:
+                s.setEnabled(True)
+            except RuntimeError:  # (one Anki has dropped since, on a change of screen)
+                pass
+        _held.clear()
+
+
 def on_js_message(handled, message, context):
     if not isinstance(context, (DeckBrowser, Overview)) or not isinstance(message, str) or not message.startswith(MODULE + ":"):
         return handled
@@ -96,8 +116,12 @@ def on_js_message(handled, message, context):
             return (True, events_state.strike_before(":".join(cmd[1:])))
         elif cmd[0] == "deep":  # zoomed in among the trees: the deep forest's, one by one
             return (True, payload.deep_trees(cmd[1] if len(cmd) > 1 else ""))
-        elif cmd[0] == "mark" and len(cmd) > 1:  # a study calendar day marked as important, or no longer
-            marks.toggle(mw.col, cmd[1])  # (the calendar has drawn it already: no redraw)
+        elif cmd[0] == "mark" and len(cmd) > 2:  # a heatmap day marked as important: mark:day:icon:name
+            marks.set_mark(mw.col, cmd[1], cmd[2], ":".join(cmd[3:]))  # (the heatmap has drawn it already: no redraw)
+        elif cmd[0] == "unmark" and len(cmd) > 1:
+            marks.unmark(mw.col, cmd[1])
+        elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait
+            hold_shortcuts(cmd[1:] == ["1"])
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked
             browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None, len(cmd) > 3 and cmd[3] == "due")
         elif cmd[0] == "browse":

@@ -41,7 +41,7 @@ class DB:
         self.con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer default 0, mod integer default 0);
-            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer default 0, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer default 0, lastIvl integer default 0, time integer default 0);
             create table notes (id integer, tags text, mod integer default 0);
         """)
 

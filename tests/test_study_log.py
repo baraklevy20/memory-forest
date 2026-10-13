@@ -288,6 +288,25 @@ class FreeDayTests(unittest.TestCase):
         self.assertEqual(self.free([(10, 0)]), [[9, 0]])
 
 
+class DayTimeTests(unittest.TestCase):
+    """The time each day's reviews took (study_log.load_day_time)."""
+
+    def test_a_day_s_answers_add_up_and_new_cards_seen_but_not_answered_do_not(self):
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        con.executescript("""
+            create table cards (id integer, did integer, odid integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer);
+        """)
+        con.execute("insert into cards values (1, 10, 0)")
+        for days, ease, rtype, ms_taken in ((3, 3, 1, 40000), (3, 1, 1, 20000), (3, 0, 4, 9000), (1, 3, 0, 5500)):
+            con.execute("insert into revlog values (?, 1, ?, ?, ?)", (ms(days) + ms_taken, ease, rtype, ms_taken))
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+        self.assertEqual(study_log.load_day_time(DB(), CUTOFF, None), {3: 60, 1: 5})
+
+
 class EventQueryTests(unittest.TestCase):
     """What the events read on their own: the backlog, and the leeches cured."""
 

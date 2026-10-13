@@ -279,6 +279,14 @@ def _day_reviews(cutoff: int, dids: list | None, excluded, begin: int | None, sk
                       lambda: study_log.load_day_reviews(mw.col.db, cutoff, dids, excluded, begin, skip))
 
 
+def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
+    """The seconds spent reviewing on each day the heatmap shows, oldest first (study_log.load_day_time),
+    remembered until the study data changes."""
+    seconds = remembered("day_time", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+                         lambda: study_log.load_day_time(mw.col.db, cutoff, dids, excluded, skip))
+    return [seconds.get(ago, 0) for ago in range(oldest, -1, -1)]
+
+
 def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed) -> dict:
     """The numbers the page shows, their streak the study calendar's. With a start date, the
     streak is still your real one, unbroken by it (a young forest is a choice of look, not a
@@ -355,6 +363,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     return {"view": calendar_view(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
                        if animals else [],
+            # the time each day's reviews took, in seconds, day by day as `days` (none for a made-up day)
+            "time": [] if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
             "breakDays": forest_data.BREAK_DAYS,
             "forestStart": forest_start,
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)

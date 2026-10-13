@@ -88,11 +88,13 @@ Hover a day for its numbers, and click it to open its cards.
   going. It only grows on the days you study.
 - **Trophies and a goal**: gold, silver and bronze for your three longest streaks, and a flag
   on the day your streak would earn its next one.
-- **Milestones**: each animal that joined your forest stands above the day it came.
+- **Milestones**: point at the heatmap to see each animal that joined your forest, on the
+  day it came.
 - **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
   system's.
 - **Every deck**: each deck's screen shows that deck's own heatmap and streak.
-- **Important days**: right-click a day to mark it, like an exam or a trip.
+- **Important days**: right-click a day to mark it, like an exam or a trip, and give it
+  a name and an icon. A day ahead counts down to it.
 - **On your phone**: the same heatmap, under your forest on the phone card.
 
 Each scenery gives the heatmap its own colours.

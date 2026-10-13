@@ -266,6 +266,18 @@ def load_day_reviews(db, day_cutoff: int, dids: list | None, excluded: Iterable 
         day_cutoff, day_cutoff * 1000))
 
 
+def load_day_time(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
+                  skip: Iterable | None = None) -> dict:
+    """{days ago: seconds} spent on the reviews load_day_reviews counts, in the same decks: the
+    time Anki logged for each answer (which it caps, a minute by default, so a card left open
+    while away counts no more), for the study heatmap's "655 reviews in 48 min"."""
+    _in_decks, only = _filters(dids, excluded, skip)
+    return {ago: ms // 1000 for ago, ms in db.all(
+        f"select (? - 1 - id / 1000) / {DAY_SECS}, sum(time) from revlog "
+        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only} group by 1",
+        day_cutoff, day_cutoff * 1000)}
+
+
 def load_due(db, today: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None,
              dids: list | None = None) -> list:
     """How many cards fall due on each of the `days` days from today (today first), for the

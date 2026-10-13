@@ -431,7 +431,7 @@ class CuredTests(unittest.TestCase):
         reset([(1, 10, 30), (2, 10, 20)], {"nature": "wild"})
         mw.col.db.con.execute("update cards set ivl = 25 where id = 1")
         mw.col.db.con.execute("update notes set tags = ' leech ' where id = 1")
-        mw.col.db.con.execute("insert into revlog values (?, 1, 3, 1, 25, 12)", (ms(2),))  # mature two days ago
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, 1, 3, 1, 25, 12)", (ms(2),))  # mature two days ago
         trees = {t["ago"]: t for t in payload.payload()["trees"]}
         self.assertEqual((trees[30].get("cured"), trees[30].get("leeches"), trees[20].get("cured")), (1, None, None))
 
@@ -545,7 +545,7 @@ class DeckForestTests(unittest.TestCase):
                 reset([(1, deck, 30), (2, 10, 30)], {"nature": "wild", "deck_forest_mode": "own"})
                 mw.col.db.con.execute("update cards set ivl = 25 where id = 1")
                 mw.col.db.con.execute("update notes set tags = ' leech ' where id = 1")
-                mw.col.db.con.execute("insert into revlog values (?, 1, 3, 1, 25, 12)", (ms(2),))
+                mw.col.db.con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, 1, 3, 1, 25, 12)", (ms(2),))
                 trees = {t["ago"]: t for t in payload.payload(10)["trees"]}
                 self.assertEqual(trees[30].get("cured"), robin)
 
