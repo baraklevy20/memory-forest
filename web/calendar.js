@@ -29,7 +29,7 @@ const { SEEDLING } = AF.STAGE;
 const CELL = 11, TILE = 9, TOP = 3, ROWS = 7, BRACKET = 15;  // (TOP: room between the months' labels and the weeks)
 // css pixels: the footer's row (the journal and the key), the month labels' band and the streaks'
 // notes (forest.css), for the room kept for the calendar before it is drawn
-const FOOT_H = 18, MONTHS_H = 14, NOTES_H = 16;
+const FOOT_H = 18, FOOT_GAP = 7, MONTHS_H = 16, ROW_UNDER = 20;  // (ROW_UNDER: the first row's top under the months' row, its baseline 8px above it)
 const LABEL_END = 30;  // css px: a month's label starting this close to the row's end is left out
 // the smallest scale the pixels stay crisp at, in device pixels; below it they are smoothed, and
 // Timeline shows fewer months
@@ -89,7 +89,8 @@ const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (m
 // the phone: the calendar is one long timeline swiped along (no buttons to page with), its pixels
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
-const LABEL_GAP = 6, TIP_GAP = 8;  // css px between two month labels, and between a day and its tooltip
+const LABEL_GAP = 6, TIP_GAP = 8;
+const DAYS_ROOM = 28, NOTE_ROOM = 44;  // css px: room the weekdays need left of the forest; a streak's length, about  // css px between two month labels, and between a day and its tooltip
 const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
 const TOUCH_PAD = 6, TAP_SLOP = 10;
@@ -383,9 +384,10 @@ function paletteOf(H, sp, paper) {
     const lv = H.shade(c.n);
     return tilesOf(S.grass[lv], S.edge[lv], look)[v];
   };
-  const lit = S.grass[dark ? 3 : 0][0];  // the hover's colour: the shade that stands out most from the page
-  // (the key: the four shades of a day studied; the soil and the empty days say what they are)
-  return { tile, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(lit), glow: rgb(lit, 0.45) };
+  // (the key: the four shades of a day studied; the soil and the empty days say what they are; the
+  // hover's ring in today's frame colours, which show on every shade, its inside clear, so the day
+  // and its mark keep their colours)
+  return { tile, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(dark ? P.today : P.todayOnLight), glow: 'transparent' };
 }
 // a seedling of its own day's kind (pine or broadleaf, and its look)
 function seedlingOf(sp, ms) {
@@ -398,21 +400,27 @@ function frame(g, x, y, T, dark) {  // a light frame round today's tile (dark on
   g.fillRect(tx, ty, T + 1, 1); g.fillRect(tx, ty + T, T + 1, 1); g.fillRect(tx, ty, 1, T + 1); g.fillRect(tx + T, ty, 1, T + 1);
 }
 
+/* the days of a view in weeks, [offset, ms, column, row], its first day on top; Timeline starts each
+ * month in a column of its own (By year runs its months on in the same weeks). (Timeline: a month
+ * that starts its week, the one before having filled its last, has no ragged edge to set it apart,
+ * so an empty column comes between them) */
+function columns(H, win) {
+  const out = [];
+  let col = 0;
+  for (let o = win.from; o <= win.to; o++) {
+    const ms = H.today + o * DAY_MS, row = dow(ms), first = o === win.from, starts = win.apart && new Date(ms).getUTCDate() === 1;
+    if (!first && starts) col += row === 0 ? 2 : 1;
+    else if (!first && row === 0) col++;
+    out.push([o, ms, col, row]);
+  }
+  return out;
+}
 /* one view drawn: the canvas, and where everything on it is */
 function paint(H, win, sp, paper) {
   const dark = paper.dark, band = TOP;
   // the days in weeks, their first day on top; Timeline starts each month in a column of its own (By
   // year runs its months on in the same weeks)
-  const cells = [];
-  let col = 0;
-  // (Timeline: a month that starts its week, the one before having filled its last, has no
-  // ragged edge to set it apart, so an empty column comes between them)
-  for (let o = win.from; o <= win.to; o++) {
-    const ms = H.today + o * DAY_MS, row = dow(ms), first = o === win.from, starts = win.apart && new Date(ms).getUTCDate() === 1;
-    if (!first && starts) col += row === 0 ? 2 : 1;
-    else if (!first && row === 0) col++;
-    cells.push({ o, ms, n: H.n(o), col, row });
-  }
+  const cells = columns(H, win).map(([o, ms, col, row]) => ({ o, ms, n: H.n(o), col, row }));
   const xOf = c => 1 + c.col * CELL, yOf = c => band + c.row * CELL + 1;
   const at = new Map();  // (each day by its column and row, for the pointer)
   for (const c of cells) { c.x = xOf(c); c.y = yOf(c); at.set(c.col * ROWS + c.row, c); }
@@ -521,28 +529,36 @@ const widthOf = view => (view === 'by_year' ? 53 : 65) * CELL + 1;
 const dpr = () => window.devicePixelRatio || 1;
 const sharpK = () => Math.min(1, SHARP / dpr());
 /* the scale `W` low-res pixels fill `width` css pixels at: whole device pixels, every tile and gap
- * the same; or, too narrow to stay crisp that way, all the width, smoothed (lay). By year (`fill`)
- * always takes all the width, its year being no wider or narrower than it is: whole pixels left a
- * gap between December and the key */
+ * the same; or, too narrow to stay crisp that way, all the width, smoothed (lay). Both views
+ * (`fill`) take all the width, the forest's: By year its year, Timeline a year of it exactly
+ * (countFor), never a thirteenth month */
 const scaleFor = (width, W, fill) => { const k = Math.floor(width / W * dpr()) / dpr(); return k >= sharpK() && !fill ? k : width / W; };
 /* the months Timeline shows in a grid this wide: a year at least, filling the width at whole
  * device pixels; fewer, down to MONTHS_MIN, where a year would be too small to stay crisp */
 function countFor(view, width) {
   if (view !== 'timeline' || !width) return MONTHS_SHOWN;
-  const k = Math.floor(width / widthOf(view) * dpr()) / dpr();
-  if (k >= sharpK()) return Math.max(MONTHS_SHOWN, Math.floor(MONTHS_SHOWN * width / (widthOf(view) * k)));
+  // (a year exactly, never a thirteenth month: stretched to the width, lay; fewer months only where a
+  // year would be too small to stay crisp)
+  if (width / widthOf(view) >= sharpK()) return MONTHS_SHOWN;
   return Math.max(MONTHS_MIN, Math.floor(MONTHS_SHOWN * width / (widthOf(view) * sharpK())));
 }
 // the phone's timeline scale for weeks this tall (css px): whole pixels, from SWIPED_K up
 AF.calendarScaleFor = height => Math.max(SWIPED_K, Math.floor(height * dpr() / (TOP + ROWS * CELL + BRACKET)) / dpr());
-/* whether an earlier streak, ended, is long enough for its length under its bracket: with none in
- * your whole history, the row kept for those lengths is left out (and never comes and goes as you page) */
-const hasNotes = H => H.runs.some(r => r !== H.current && r.days >= SHOWN_STREAK);
+/* the room over the canvas for the months' labels: the first row ROW_UNDER under the row's top,
+ * at any zoom (the canvas's own TOP grows with it) */
+const monthsRoom = k => Math.round(ROW_UNDER - (TOP + 1) * k);
 /* how tall the calendar will be at this width, for the room kept for it until it is drawn */
 AF.calendarHeight = function (cal, width) {
-  const view = cal.view === 'by_year' ? 'by_year' : 'timeline', W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN;
-  const k = width > 0 ? scaleFor(width, W, view === 'by_year') : 1;
-  return Math.ceil(MONTHS_H + (TOP + ROWS * CELL + BRACKET) * k + (hasNotes(history(cal)) ? NOTES_H : 0) + FOOT_H);
+  const view = cal.view === 'by_year' ? 'by_year' : 'timeline';
+  // (the scale is the width's: the view's exact weeks, as it will lay them out)
+  let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN;
+  if (width > 0) {
+    weekStart = cal.weekStart == null ? 1 : cal.weekStart;
+    const cols = columns(history(cal), windowOf(history(cal), view, 0, null, countFor(view, width)));
+    W = 1 + cols[cols.length - 1][2] * CELL + CELL;
+  }
+  const k = width > 0 ? scaleFor(width, W, true) : 1;
+  return Math.round(monthsRoom(k) + (TOP + ROWS * CELL + BRACKET) * k + FOOT_GAP + FOOT_H);  // (rounded as the page rounds the drawn height)
 };
 
 AF.calendar = function (root, data, env) {
@@ -556,7 +572,6 @@ AF.calendar = function (root, data, env) {
   const H = history(cal), view = cal.view === 'by_year' ? 'by_year' : 'timeline', sp = sceneOf(data, env);
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
-  box.classList.toggle('af-cal-no-notes', !hasNotes(H));
   let page = 0, year = null;  // Timeline's stretch (0: today's), By year's year
   // what a screen reader says for the picture: the year in a sentence, its streak
   let studiedYear = 0;
@@ -572,6 +587,7 @@ AF.calendar = function (root, data, env) {
     + '<button type="button" class="af-cal-chev af-cal-today" data-go="0">Today</button>'
     + '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
     + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
+    + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>'
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
@@ -586,7 +602,15 @@ AF.calendar = function (root, data, env) {
   const grid = box.querySelector('.af-cal-grid'), btn = go => box.querySelector(`[data-go="${go}"]`);
   // (on the phone only Today, which brings today back into view)
   if (swiped) { btn(-1).hidden = btn(1).hidden = true; grid.classList.add('af-cal-scroll'); }
-  box.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => (swiped ? toToday(true) : go(b.dataset.go))));
+  box.querySelectorAll('[data-go]').forEach(b => {
+    b.addEventListener('click', () => (swiped ? toToday(true) : go(b.dataset.go)));
+    // (a click must leave no focus behind, which would keep them in view after the pointer leaves)
+    b.addEventListener('mousedown', e => e.preventDefault());
+  });
+  // ‹ Today › on the months' row, at its right end, beside the period they change (as calendars
+  // have them; on the phone, Today alone stays in the footer)
+  const acts = box.querySelector('.af-cal-acts');
+  if (!swiped) grid.appendChild(acts);
   const months = box.querySelector('.af-cal-months'), days = box.querySelector('.af-cal-days');
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
   let drawn = null, k = 2, last;  // (last: the day the pointer was last on)
@@ -607,8 +631,8 @@ AF.calendar = function (root, data, env) {
 
   function draw() {
     const count = swiped ? MONTHS_SHOWN : countFor(view, grid.clientWidth);
-    const win = windowOf(H, swiped ? 'swiped' : view, page, year, count);
-    drawn = Object.assign(paint(H, win, sp, paper), { win, count });
+    const win = windowOf(H, swiped ? 'swiped' : view, page, year, count), d = paint(H, win, sp, paper);
+    drawn = Object.assign(d, { win, count });
     last = undefined;
     // (a page's slide is for paging alone: go starts it again after this; any other drawing, a day
     // marked say, must not replay it, the new canvas taking the class still on the grid)
@@ -627,7 +651,11 @@ AF.calendar = function (root, data, env) {
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     [word('Less')].concat(drawn.key.map(swatch), [word('More')]).forEach(el => keyBox.appendChild(el));
-    btn(0).disabled = !swiped && (view === 'by_year' ? win.year === yearOf(H.today) : page === 0);
+    // (on today's page already: the pill goes, the jump stays where it is, dimmed; it points the
+    // way today lies, » from the past, « from the days ahead)
+    box.querySelectorAll('[data-go="0"]').forEach(b => { b.disabled = !swiped && (view === 'by_year' ? win.year === yearOf(H.today) : page === 0); });
+    const ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : page > 0;
+    box.querySelector('.af-cal-now').textContent = ahead ? '«' : '»';
     lay();
   }
   function go(where) {
@@ -651,7 +679,8 @@ AF.calendar = function (root, data, env) {
   // fitted to the room there is (scaleFor), smaller than its pixels if need be: no scrolling
   function lay() {
     const d = drawn;
-    k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : scaleFor(grid.clientWidth || d.W * 2, d.W, view === 'by_year');
+    k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : scaleFor(grid.clientWidth || d.W * 2, d.W, true);
+    grid.style.paddingTop = monthsRoom(k) + 'px';
     d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
     d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
     box.querySelectorAll('.af-cal-swatch').forEach(sw => { sw.style.width = sw.style.height = TILE * k + 'px'; });  // (the key's tiles as big as the calendar's)
@@ -667,9 +696,11 @@ AF.calendar = function (root, data, env) {
     }
     months.innerHTML = html;
     // the weekdays of the second, fourth and sixth rows, beside the weeks (shown with the key, on hover)
+    // (not where they would hang off the page: they stand just outside the forest's edge)
     if (!swiped) {
       const top = d.cv.offsetTop;
       days.innerHTML = [1, 3, 5].map(r => `<span style="top:${top + (d.band + r * CELL + TILE / 2) * k}px">${WEEKDAYS[(weekStart + r) % 7]}</span>`).join('');
+      days.hidden = box.getBoundingClientRect().left < DAYS_ROOM;
     }
     // where two would touch (a narrow calendar), the one with a year stays and the other goes
     let prev = null;
@@ -681,8 +712,22 @@ AF.calendar = function (root, data, env) {
       }
       prev = s;
     }
-    // each earlier streak's length under its bracket, if there is room for it (the current one's is in the caption)
-    notes.innerHTML = d.brackets.filter(b => !b.live && (b.x1 - b.x0) * k >= 48).map(b =>
+    // ‹ Today › stand over the months' row, in the gap above it, unless the forest's caption's last
+    // line reaches them there: then they go down onto the row, and a label under them makes way
+    // while they show (forest.css)
+    if (!swiped) {
+      acts.classList.remove('af-acts-low');
+      const a = acts.getBoundingClientRect(), cap = root.querySelector('.af-caption');
+      const words = cap ? [...cap.children].map(el => el.getBoundingClientRect()).filter(r => r.width && r.bottom > a.top - 30) : [];
+      const low = words.some(r => r.right > a.left - LABEL_GAP && r.bottom > a.top - 4);
+      acts.classList.toggle('af-acts-low', low);
+      const edge = acts.offsetLeft - LABEL_GAP;
+      for (const s of months.children) s.classList.toggle('af-under', low && s.offsetLeft + s.offsetWidth > edge);
+    }
+    // each earlier streak's length in the trophies' lane, centred under its bracket, where it clears
+    // the trophy at the bracket's end (the current one's is in the caption)
+    notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - 5.5 + 'px';
+    notes.innerHTML = d.brackets.filter(b => !b.live && (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4)).map(b =>
       `<span class="af-cal-note" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days</span>`).join('');
     if (swiped) { away(); clip(); }
   }
@@ -797,7 +842,7 @@ AF.calendar = function (root, data, env) {
       if (!studied) lines.push(`Not studied${now}`);
       else {
         lines.push(`Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now}`);
-        lines.push(`${cards(reviews, 'review')}, about ${num(Math.round(reviews / span))} a day`);
+        lines.push(`${cards(reviews, 'review')}, about ${num(Math.round(reviews / studied))} a day studied`);
       }
     }
     let due = 0;
@@ -811,9 +856,9 @@ AF.calendar = function (root, data, env) {
     tip.innerHTML = monthSummary(+lab.dataset.y, +lab.dataset.m);
     tip.hidden = false;
     const r = lab.getBoundingClientRect(), b0 = box.getBoundingClientRect();
-    const cx = r.left - b0.left + r.width / 2, under = r.bottom - b0.top + TIP_GAP;
+    const cx = r.left - b0.left + r.width / 2, over = r.top - b0.top - tip.offsetHeight - TIP_GAP;
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
-    tip.style.top = under + 'px';
+    tip.style.top = over + 'px';  // (above its label, off the month's own weeks)
   };
   // its date, its reviews or cards due, and where it sits in its streak
   const point = e => {
@@ -855,12 +900,12 @@ AF.calendar = function (root, data, env) {
       : `<br>${num(lost)} of its ${num(of)} cards ${lost === 1 ? 'has' : 'have'} since been deleted`;
     tip.innerHTML = `<b>${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}</b><br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
     tip.hidden = false;
-    // above the day, centred on it, so it never covers the days you read next (below it when
-    // there is no room above), kept inside the calendar's sides; placed by the page's own
-    // offsets, which a zoomed page leaves right
+    // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
+    // (above it when there is no room below in the window), kept inside the calendar's sides;
+    // placed by the page's own offsets, which a zoomed page leaves right
     const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
     const cx = left + (c.x + TILE / 2) * k, top = canvasTop + (c.y - 1) * k, bottom = canvasTop + (c.y + TILE + 1) * k;
-    const above = drawn.cv.getBoundingClientRect().top + (c.y - 1) * k - tip.offsetHeight - TIP_GAP >= 0;
+    const above = drawn.cv.getBoundingClientRect().top + (c.y + TILE + 1) * k + TIP_GAP + tip.offsetHeight > window.innerHeight;
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
     tip.style.top = (above ? top - tip.offsetHeight - TIP_GAP : bottom + TIP_GAP) + 'px';
   };
