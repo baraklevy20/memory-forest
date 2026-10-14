@@ -9,7 +9,7 @@ import datetime as _dt
 
 KEY = "memoryForestImportantDays"  # the collection config key (synced)
 # the icons a mark can wear (calendar.js MARK_ICONS draws them), the first the one a mark starts with
-ICONS = ("pin", "exam", "trip", "birthday", "star", "heart")
+ICONS = ("pin", "exam", "trip", "birthday", "star", "heart", "done", "sick")
 NAME_MAX = 40  # characters a mark's name keeps
 
 

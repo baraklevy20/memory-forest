@@ -56,6 +56,8 @@ const MARK_ICONS = {
   birthday: { label: 'Birthday', rows: ['..LL..', '..DD..', '.RRRR.', '.WRWW.', 'RRRRRR', 'RRRRRR'] },
   star: { label: 'Star', rows: ['..RR..', '..RR..', 'RRWRRR', '.RRRR.', '.RRRR.', 'RR..RR'] },
   heart: { label: 'Heart', rows: ['RR..RR', 'RRRRRR', 'RWRRRR', 'RRRRRR', '.RRRR.', '..RR..'] },
+  done: { label: 'Done', rows: ['......', '.....R', '....RR', 'R..RR.', 'RRRR..', '.RR...'] },
+  sick: { label: 'Sick', rows: ['......', 'R.....', 'RWW...', 'RRRRRR', 'RRRRRR', 'R....R'] },
 };
 const MARK_ORDER = Object.keys(MARK_ICONS);
 for (const m of Object.values(MARK_ICONS)) m.spr = { frames: [m.rows], pal: MARK_PAL };
@@ -123,6 +125,11 @@ let weekStart = 1;
 const dow = ms => (new Date(ms).getUTCDay() - weekStart + 7) % 7;
 const num = n => n.toLocaleString('en');
 const yearOf = ms => new Date(ms).getUTCFullYear();
+// a stretch of time in seconds, in minutes: "under a minute", "48 min", "1 hr 12 min"
+const lasted = secs => {
+  const m = Math.round(secs / 60);
+  return m < 1 ? 'under a minute' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}`;
+};
 
 /* every day by its offset from today (0 today, -1 yesterday, 1 tomorrow): its reviews or cards
  * due, the streaks (runs of days studied), the breaks long enough to make a pond, and the
@@ -816,29 +823,29 @@ AF.calendar = function (root, data, env) {
   const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first;
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
-  const took = o => {
-    const s = H.time(o);
-    if (!s) return '';
-    const m = Math.round(s / 60);
-    return m < 1 ? ' in under a minute' : m < 60 ? ` in ${m} min` : ` in ${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}`;
-  };
-  // a month in a few words, on its label: the days studied, the reviews and about how many a day;
-  // and for the days ahead in it, the cards due
-  const monthSummary = (y, m) => {
-    const from = (Date.UTC(y, m, 1) - H.today) / DAY_MS, to = (Date.UTC(y, m + 1, 1) - H.today) / DAY_MS - 1;
-    const lines = [`<b>${MONTH_NAMES[m]} ${y}</b>`];
+  const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
+  // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
+  // reviews and about how many a day; only the days since your first review, up to today
+  const studiedLines = (from, to) => {
     const a = Math.max(from, H.first), b = Math.min(to, 0);
-    if (from > 0) { /* all ahead */ } else if (b < a) lines.push('No reviews yet');
-    else {
-      let studied = 0, reviews = 0;
-      for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); }
-      const span = b - a + 1, now = b === 0 && to > 0 ? ' so far' : '';
-      if (!studied) lines.push(`Not studied${now}`);
-      else {
-        lines.push(`Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now}`);
-        lines.push(`${cards(reviews, 'review')}, about ${num(Math.round(reviews / studied))} a day studied`);
-      }
-    }
+    if (b < a) return ['No reviews yet'];
+    let studied = 0, reviews = 0, secs = 0;
+    for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
+    const span = b - a + 1, now = b === 0 && to > 0 ? ' so far' : '';
+    if (!studied) return [`Not studied${now}`];
+    const on = studied < span ? ' on the days studied' : '';
+    return [`Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.round(100 * studied / span)}%)`,
+      `${cards(reviews, 'review')}, about ${cards(Math.round(reviews / studied), 'review')} a day${on}`,
+      // (the time, where the review log kept it)
+      ...(secs ? [`${lasted(secs)} in all, about ${lasted(secs / studied)} a day${on}`] : [])];
+  };
+  // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
+  // due. January's label shows its year, so it tells the year's days studied first
+  const monthSummary = (y, m) => {
+    const at = (yy, mm) => (Date.UTC(yy, mm, 1) - H.today) / DAY_MS;
+    const from = at(y, m), to = at(y, m + 1) - 1;
+    const year = m === 0 && from <= 0 ? [`<b>${y}</b>`, ...studiedLines(from, at(y + 1, 0) - 1), ''] : [];
+    const lines = [...year, `<b>${MONTH_NAMES[m]} ${y}</b>`, ...(from > 0 ? [] : studiedLines(from, to))];
     let due = 0;
     for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) due += H.n(o);
     if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : ' in the days ahead'}`);
