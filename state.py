@@ -118,7 +118,7 @@ def keeps_suspended(cfg: dict | None = None) -> bool:
 # (with or without the forest above it)
 CALENDAR_VIEWS = ("timeline", "by_year")
 CALENDAR_SCREENS = {"main": "calendar_main", "decks": "calendar_decks"}
-# what a day's shade goes by: its reviews, or the time they took (the toggle beside the key)
+# what a day's shade goes by: its reviews, or the time they took (the toggle beside the heatmap's arrows)
 CALENDAR_SHADES = ("reviews", "time")
 
 

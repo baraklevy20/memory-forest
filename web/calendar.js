@@ -201,6 +201,10 @@ function history(cal) {
   for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o)) { recent.push(n(o)); if (time(o)) recentTime.push(time(o)); }
   for (let o = 1; o <= Math.min(SHADE_SPAN, cal.due.length - 1); o++) busiest = Math.max(busiest, n(o));
   const byReviews = splitsOf(recent), byTime = splitsOf(recentTime);
+  // (by time, each split just under a whole minute, 5 minutes from half an hour: the key's "Under
+  // 45 min" then holds for every day whose tooltip says less, and reads as a round number)
+  const snap = s => { const m = Math.max(1, Math.round(s / 60)); return (m >= 30 ? Math.round(m / 5) * 5 : m) * 60 - 30; };
+  for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(t[i - 1] + 60, snap(t[i]));
   const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
   // (a day with reviews but no time kept, an old import's, takes the fewest)
   const H = { by: cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews', timed: recentTime.length > 0 };
@@ -598,8 +602,9 @@ AF.calendar = function (root, data, env) {
     + '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
     + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
     + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>'
-    + '</span><span class="af-cal-by" role="radiogroup" aria-label="Shade the days by">'
-    + '<button type="button" role="radio" data-by="reviews">Reviews</button><button type="button" role="radio" data-by="time">Time</button>'
+    + '</span><span class="af-cal-by" role="radiogroup" aria-label="Shade the days by"><span class="af-cal-by-label" aria-hidden="true">Shade by</span>'
+    + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
+    + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
@@ -631,6 +636,14 @@ AF.calendar = function (root, data, env) {
   if (!swiped) acts.insertBefore(byBox, acts.firstChild);
   byBox.querySelectorAll('button').forEach(b => {
     b.addEventListener('mousedown', e => e.preventDefault());  // (no focus left behind: as the arrows)
+    b.addEventListener('keydown', e => {  // (←/→ move the choice, as radio buttons do)
+      const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      const next = b.dataset.by === 'reviews' ? 'time' : 'reviews';
+      const to = byBox.querySelector(`[data-by="${next}"]`);
+      to.focus(); to.click();
+    });
     b.addEventListener('click', () => {
       if (H.by === b.dataset.by) return;
       H.by = b.dataset.by;
@@ -683,7 +696,7 @@ AF.calendar = function (root, data, env) {
     [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
     byBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.by === H.by;
-      b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on);
+      b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
     });
     // (on today's page already: the pill goes, the jump stays where it is, dimmed; it points the
     // way today lies, » from the past, « from the days ahead)
@@ -910,9 +923,9 @@ AF.calendar = function (root, data, env) {
       : c.o > H.ahead ? 'Too far ahead to show'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
-      : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far${took(c.o)}, ${num(H.dueToday)} still due`
+      : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${lasted(H.time(c.o))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
-      : c.n ? (H.by === 'time' && H.time(c.o) ? `${lasted(H.time(c.o))}, ${cards(c.n, 'review')}` : cards(c.n, 'review') + took(c.o)) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
+      : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${lasted(H.time(c.o))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;
