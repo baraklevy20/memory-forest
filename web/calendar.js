@@ -4,8 +4,8 @@
  * reviewed (measured against your own days, so every pace uses all four shades); a missed day is
  * a faint tile (the tooltip says when a break made a pond); the days ahead are tilled soil,
  * stronger the more cards fall due. The milestones are the forest's own: each of its animals
- * (AF.VISITOR_SPRITES) stands on the day it came, in the scenery's own look for them, and today's
- * seedling (AF.pixel.sprite) stands on today once you have studied. The current streak has a
+ * (AF.VISITOR_SPRITES) stands on the day it came, in the scenery's own look for them (today's tile
+ * keeps only its frame). The current streak has a
  * bracket under it, with the trophies and the goal ahead in a lane below. A click on a day opens
  * its cards in Anki's browser (actions.browse_calendar_day); a right-click pins it (marks.py).
  *
@@ -444,12 +444,6 @@ function paint(H, win, sp, paper) {
   }
   const animals = H.animals;
   const marks = [];  // (where the marks over the weeks stand, for the pointer)
-  // today's seedling, once today is studied (an animal that came today stands there instead)
-  const sown = cells.find(c => c.o === 0 && c.n && !animals.has(0));
-  if (sown) {
-    const s = seedlingOf(sp, sown.ms);
-    g.drawImage(s, sown.x + Math.floor((TILE - 1 - s.width) / 2) + 1, sown.y + TILE - s.height);
-  }
   // the days you marked: each its icon, painted on its tile, centred on what shows of it, the day's shade round it
   // (important enough to sit on the data; its tooltip gives the day's count)
   for (const c of cells) {
