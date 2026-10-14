@@ -354,9 +354,12 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     # with a start date (Ignore before), the reviews from before it too: the calendar shows your
     # whole record as if there were none, but for the animals, the forest's own (web/calendar.js)
     begin, forest_start, own = since(cfg), None, day_reviews  # (the animals' days stay the forest's own)
+    hidden_before = None  # (with that record left out, the start date: the days before it say why they're empty)
     if begin and not test and shows_record(cfg):
         forest_start = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
         day_reviews = _day_reviews(cutoff, dids, excluded, None, skip, changed)
+    elif begin and not test:
+        hidden_before = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
     oldest = max(day_reviews, default=0)
     days = [day_reviews.get(ago, 0) for ago in range(oldest, -1, -1)]
     due = remembered("calendar_due", changed and (changed, cutoff, frozenset(excluded), frozenset(skip), tuple(dids or ())),
@@ -368,6 +371,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "time": [] if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
             "breakDays": forest_data.BREAK_DAYS,
             "forestStart": forest_start,
+            "hiddenBefore": hidden_before,
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
             "marks": marks.important_days(col),
             # the days' cards since deleted, [days ago, how many, of how many], where a day has any (the whole

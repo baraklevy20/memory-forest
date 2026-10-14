@@ -54,6 +54,7 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual([i for i, n in enumerate(cal["days"]) if n], [0, 2])
         reset(CARDS, {"ignore_before": "2026-09-16", "calendar_record": False})  # a clean slate: from the start date only
         self.assertIsNone(payload.payload()["calendar"]["forestStart"])
+        self.assertEqual(payload.payload()["calendar"]["hiddenBefore"], "2026-09-16")  # (its days before say why they're empty)
         self.assertEqual(len(payload.payload()["calendar"]["days"]), 4)
         reset(CARDS)
         self.assertIsNone(payload.payload()["calendar"]["forestStart"])

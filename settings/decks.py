@@ -28,7 +28,7 @@ from .widgets import Tab, date_field, group, grow_window, hint
 DECK_ROLE = Qt.ItemDataRole.UserRole
 DATE_FORMAT = "d MMMM yyyy"
 DECKS_NOTE = "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
-SINCE_NOTE = "Days before this are left out. Untick it to bring them back."
+SINCE_NOTE = "Days before this grow no trees. The heatmap still shows them (Heatmap tab)."
 SINCE_OFF_NOTE = "Your forest starts on your first day of study, {first}."
 SUSPENDED_NOTE = "They keep their tree's size but never hurt its health."
 COUNTING = "Counting your trees…"

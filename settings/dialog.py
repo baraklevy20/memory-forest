@@ -36,13 +36,17 @@ SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to meas
 # choices about your study data rather than the forest's look: Restore defaults keeps them (and the
 # phone switch, which lives in the collection, it never touches)
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start")
+# set on the heatmap itself (its Reviews | Time toggle), maybe while the dialog is open: saved as
+# it is now, never as the dialog found it, and Cancel leaves it be
+OUTSIDE_KEYS = ("calendar_shade",)
 RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
-RESTORE_NOTE = ("This resets the scenery and Customize, Nature (to {nature}), your city, where the forest "
-                "and the study heatmap show (finished decks too), the heatmap's view, week start and what its shades go by, animation and the "
-                "planting message. It keeps the decks you left out, the start date (and how the heatmap and your streak go "
-                "by it), suspended cards and the forest on your phone.\n\nCancel still puts back the settings you had before.")
+RESTORE_NOTE = ("Resets: the scenery and Customize, Nature (to {nature}), your city, where the forest and the "
+                "heatmap show (finished decks too), the heatmap's view, week start and shades, animation and the "
+                "planting message.\n\nKeeps: the decks you left out, the start date (and how the heatmap and your "
+                "streak go by it), suspended cards, your marked days and the forest on your phone.\n\n"
+                "Cancel still puts back the settings you had before.")
 # the tab the dialog was left on, for the next time it opens while Anki is: kept in memory
 # only, so Anki starts again on the Scenery tab (not the config either: it is no setting)
 _last_tab = ""
@@ -167,7 +171,12 @@ class SettingsDialog(QDialog):
         targets = self.news_targets()
         for key in news.setting_tags(cfg, today(cfg)):
             if key in targets:
-                whats_new.tag(targets[key][0], targets[key][1])
+                tab = targets[key][0]
+                # (a whole new tab wears NEW on its name only, not on its first group too)
+                if key in getattr(tab, "new_tab_keys", ()):
+                    whats_new.tag_tab(self.tabs, self.tabs.indexOf(self._page(tab)))
+                else:
+                    whats_new.tag(tab, targets[key][1])
         self.show_news(focus)
         self.layout().activate()
         self.fit_screen()
@@ -264,7 +273,8 @@ class SettingsDialog(QDialog):
         self.tabs.setCurrentWidget(self._page(tab))
         if hasattr(tab, "reveal"):
             tab.reveal(widget)
-        whats_new.tag(tab, widget)
+        if focus not in getattr(tab, "new_tab_keys", ()):  # (a new tab's NEW is on its name)
+            whats_new.tag(tab, widget)
         if tab in self.pages:
             self.pages[tab].ensureWidgetVisible(widget)
         widget.setFocus()
@@ -309,7 +319,8 @@ class SettingsDialog(QDialog):
     def values(self) -> dict:
         # keep only current options, so settings from older versions don't linger
         known = mw.addonManager.addonConfigDefaults(self.module) or {}
-        cfg = {k: v for k, v in self.opened.items() if k in known}
+        cfg = {k: v for k, v in self.opened.items() if k in known and k not in OUTSIDE_KEYS}
+        cfg.update({k: v for k, v in self._current().items() if k in OUTSIDE_KEYS})
         for tab in (self.scenery, self.forest, self.heatmap, self.debug):
             cfg.update(tab.values())
         cfg.update(self.decks.values(self._current()))
@@ -397,7 +408,8 @@ class SettingsDialog(QDialog):
         self._debounce.stop()
         if self._reverting:
             known = mw.addonManager.addonConfigDefaults(self.module) or {}
-            cfg = dict(self.original)
+            cfg = {k: v for k, v in self.original.items() if k not in OUTSIDE_KEYS}
+            cfg.update({k: v for k, v in self._current().items() if k in OUTSIDE_KEYS})
             # a deck left out or brought back from its gear menu meanwhile stays that way; only
             # what was changed here is undone
             self.decks.reload(self._current())

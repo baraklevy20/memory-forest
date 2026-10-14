@@ -13,6 +13,7 @@ from fake_anki import PACKAGE, mw
 dialog = importlib.import_module(f"{PACKAGE}.settings.dialog")
 decks = importlib.import_module(f"{PACKAGE}.settings.decks")
 palette = importlib.import_module(f"{PACKAGE}.settings.palette")
+whats_new = importlib.import_module(f"{PACKAGE}.settings.whats_new")
 
 
 def cancel(original: set, *outside: set) -> set:
@@ -42,6 +43,18 @@ class CancelDecksTests(unittest.TestCase):
     def test_unticked_here_then_left_out_outside_too_stays_out(self):
         # the gear menu left out a deck the dialog had already left out: nothing moved there
         self.assertEqual(cancel({10}, ({10, 20}, {10, 20})), {10})
+
+
+class OutsideTests(unittest.TestCase):
+    def test_the_heatmaps_toggle_outlives_the_dialog(self):
+        # Reviews | Time clicked on the heatmap while the dialog is open: neither its next
+        # change nor Cancel puts it back
+        now = {"calendar_shade": "time", "nature": "wild"}
+        opened = {"calendar_shade": "reviews", "nature": "peaceful"}
+        kept = {k: v for k, v in opened.items() if k not in dialog.OUTSIDE_KEYS}
+        kept.update({k: v for k, v in now.items() if k in dialog.OUTSIDE_KEYS})
+        self.assertEqual(kept, {"calendar_shade": "time", "nature": "peaceful"})
+        self.assertNotIn("calendar_shade", dialog.DATA_KEYS)  # (Restore defaults still resets it)
 
 
 class RestoreDefaultsTests(unittest.TestCase):
@@ -90,6 +103,55 @@ class HeatmapViewTests(unittest.TestCase):
         tab = importlib.import_module(f"{PACKAGE}.settings.heatmap_tab")
         state = importlib.import_module(f"{PACKAGE}.state")
         self.assertEqual([key for key, _label in tab.CALENDAR_OPTIONS], list(state.CALENDAR_VIEWS))
+
+
+
+class FakeTabs:
+    """A tab widget's names, and any widget put on a tab (which there must be none of)."""
+
+    def __init__(self, *names):
+        self.names, self.buttons = list(names), []
+
+    def tabText(self, i):
+        return self.names[i]
+
+    def setTabText(self, i, text):
+        self.names[i] = text
+
+    def tabBar(self):
+        return types.SimpleNamespace(setTabButton=lambda *a: self.buttons.append(a), ButtonPosition=types.SimpleNamespace(RightSide=1, LeftSide=0))
+
+
+class NewTabTests(unittest.TestCase):
+    def setUp(self):
+        # (the pill a stand-in, so a tag that puts one beside the name fails on that, not on building it)
+        self.pill = whats_new.pill
+        whats_new.pill = lambda: "NEW pill"
+
+    def tearDown(self):
+        whats_new.pill = self.pill
+
+    def test_a_new_tab_says_so_in_its_name(self):
+        tabs = FakeTabs("Scenery", "Heatmap")
+        whats_new.tag_tab(tabs, 1)
+        self.assertEqual(tabs.names, ["Scenery", "Heatmap \u2022 New"])
+
+    def test_no_widget_beside_a_tab_name(self):
+        # (macOS's tabs cut the name short to make room for one: "He... NEW")
+        tabs = FakeTabs("Heatmap")
+        whats_new.tag_tab(tabs, 0)
+        self.assertEqual(tabs.buttons, [])
+
+    def test_tagged_once(self):
+        tabs = FakeTabs("Heatmap")
+        whats_new.tag_tab(tabs, 0)
+        whats_new.tag_tab(tabs, 0)
+        self.assertEqual(tabs.names, ["Heatmap \u2022 New"])
+
+    def test_no_tab_no_tag(self):
+        tabs = FakeTabs("Heatmap")
+        whats_new.tag_tab(tabs, -1)
+        self.assertEqual(tabs.names, ["Heatmap"])
 
 
 if __name__ == "__main__":

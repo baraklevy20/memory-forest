@@ -7,26 +7,32 @@ from __future__ import annotations
 
 from aqt.qt import QCheckBox, QPushButton, QSizePolicy, Qt, QVBoxLayout
 
+from ..payload import _week_start_day
 from ..state import calendar_on, calendar_view, shows_record, streak_from_start, week_start
 from .forest_tab import beside
 from .palette import color
-from .widgets import Choice, Tab, form, group
+from .widgets import Choice, Tab, form, group, hint, hint_style
 
 # how much of it shows at once, and the day its weeks start on
 CALENDAR_OPTIONS = [("timeline", "Timeline"), ("by_year", "By year")]
 WEEK_OPTIONS = [("system", "Auto"), ("monday", "Mon"), ("sunday", "Sun"), ("saturday", "Sat")]
 WEEK_TIPS = {"system": "Your system's first day of the week", "monday": "Monday", "sunday": "Sunday", "saturday": "Saturday"}
-# the week's start as joined buttons, one control, the chosen one filled as Anki fills a default
-# button (the corners rounded only at the row's two ends)
+# the days as the page counts them (Sunday 0): Auto's label names the system's
+DAY_NAMES = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+# the week's start as joined buttons, one control, the chosen one a soft grey with a blue edge (the
+# solid blue was the loudest thing on the tab; the corners rounded only at the row's two ends)
 WEEK_STYLE = """
 QPushButton {{ border: 1px solid {line}; border-left-width: {left}px; border-radius: 0; padding: 3px 10px;
               border-top-left-radius: {r0}px; border-bottom-left-radius: {r0}px;
               border-top-right-radius: {r1}px; border-bottom-right-radius: {r1}px;
               background: rgba(128, 128, 128, 0.10); }}
 QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
-QPushButton:checked {{ background: {ring}; color: white; border-color: {ring}; }}
+QPushButton:checked {{ background: rgba(128, 128, 128, 0.38); border-color: {ring}; }}
+QPushButton:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.05); }}
+QPushButton:checked:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.22); border-color: {line}; }}
 """
 WEEK_RADIUS = 6
+VIEW_NOTE = "Timeline: the past year and the weeks ahead. By year: January to December."
 # (one line: SETTINGS_GUIDELINES.md)
 # where your streak counts from: your real one (from your first review), or from the forest's start date
 STREAK_FROM_OPTIONS = [(False, "Your first review"), (True, "Your forest's start date")]
@@ -43,12 +49,17 @@ class WeekChoice(Choice):
     def make_button(self, key, label: str):
         at = [k for k, _label in WEEK_OPTIONS].index(key)
         first, last = at == 0, at == len(WEEK_OPTIONS) - 1
+        tip = WEEK_TIPS[key]
+        if key == "system":  # (Auto (Mon): the day it comes to here)
+            day = DAY_NAMES[_week_start_day({})]
+            label, tip = f"{label} ({day[:3]})", f"{tip}: {day}"
         b = QPushButton(label)
-        b.setToolTip(WEEK_TIPS[key])
+        b.setToolTip(tip)
         b.setAutoDefault(False)  # Enter in the dialog means Done
         b.setCheckable(True)
         b.setCursor(Qt.CursorShape.PointingHandCursor)
-        b.setStyleSheet(WEEK_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"), left=1 if first else 0,
+        b.setStyleSheet(WEEK_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"), off=color("FG_DISABLED"),
+                                          left=1 if first else 0,
                                           r0=WEEK_RADIUS if first else 0, r1=WEEK_RADIUS if last else 0))
         return b
 
@@ -70,8 +81,12 @@ class HeatmapTab(Tab):
 
         where = form()
         where.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
-        layout = form()
+        layout = self.layout_form = form()
         layout.addRow("View", self.calendar)
+        self.view_note = hint(VIEW_NOTE)
+        # (greyed out with the view, which a plain hint's colour would not be)
+        self.view_note.setStyleSheet(f"QLabel {{ {hint_style()} }} QLabel:disabled {{ color: {color('FG_DISABLED')}; }}")
+        layout.addRow("", self.view_note)
         layout.addRow("Week starts on", self.week)
         layout.addRow(self.record)
         streak = form()
@@ -83,6 +98,9 @@ class HeatmapTab(Tab):
         self.streak_group = group("Streak", streak)
         v.addWidget(self.streak_group)
         v.addStretch(1)
+
+    # the notes that make this whole tab new: their NEW goes on the tab's name too
+    new_tab_keys = ("calendar",)
 
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
@@ -98,7 +116,11 @@ class HeatmapTab(Tab):
     def sync(self) -> None:
         # (how it shows only matters while it shows somewhere)
         on = self.calendar_main.isChecked() or self.calendar_decks.isChecked()
-        self.calendar.setEnabled(on); self.week.setEnabled(on); self.record.setEnabled(on)
+        self.calendar.setEnabled(on); self.week.setEnabled(on); self.record.setEnabled(on); self.view_note.setEnabled(on)
+        for field in (self.calendar, self.week):  # (their labels grey out with them)
+            label = self.layout_form.labelForField(field)
+            if label is not None:
+                label.setEnabled(on)
         # (a heatmap that leaves out the reviews before the start date counts the streak from it too)
         self.streak_from.setEnabled(self.record.isChecked())
         self.fit()

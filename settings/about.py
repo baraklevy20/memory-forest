@@ -42,7 +42,8 @@ OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
 
 HOW = ("One tree for every day you learn new cards. Today's seedling is at the front, the oldest "
        "tree at the back. Trees grow as those cards settle into memory and get a few yellow "
-       "leaves when some slip. Review-only days plant no tree, but keep yours healthy.")
+       "leaves when some slip. Review-only days plant no tree, but keep yours healthy.<br><br>"
+       "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it.")
 THANKS_ALL = ("Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or "
               "reports a bug. Thank you!")
 THANKS_SPONSORS = "And a special thank-you to my Sponsors on Patreon:"

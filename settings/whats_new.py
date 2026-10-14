@@ -20,6 +20,17 @@ def pill() -> QLabel:
     return label
 
 
+# on a tab, in its own text: macOS's tabs leave no room for a widget beside the name and cut it
+# short ("He... NEW"), whatever the side or as an icon
+TAB_TAG = " \u2022 New"
+
+
+def tag_tab(tabs, index: int) -> None:
+    """NEW on a tab's name ("Heatmap \u2022 New"), for a tab that is new as a whole (once)."""
+    if index >= 0 and not tabs.tabText(index).endswith(TAB_TAG):
+        tabs.setTabText(index, tabs.tabText(index) + TAB_TAG)
+
+
 def _holds(item, widget: QWidget) -> bool:
     """Whether a layout item is the widget, or a layout with it somewhere inside."""
     if item is None:

@@ -52,7 +52,7 @@ const MARK_ICONS = {
   // its edge or gap: TILE_FACE)
   pin: { label: 'Pin', rows: ['.RRRR.', 'RRWWRR', 'RRWWRR', 'RRRRRR', '.RRRR.', '..RR..'] },
   exam: { label: 'Exam', rows: ['RRRRRR', 'KRWWWR', 'RRRRRR', 'KRWWWR', 'RRRRRR', 'KRRRRR'] },
-  trip: { label: 'Trip', rows: ['..R...', '..RR..', 'RRRRRR', 'RRRRRR', '..RR..', '..R...'] },
+  trip: { label: 'Trip', rows: ['..RR..', '..RR..', '.RRRR.', 'RRRRRR', '..RR..', '.RRRR.'] },  // (a plane from above, nose up: on its side it read as a red cross)
   birthday: { label: 'Birthday', rows: ['..LL..', '..DD..', '.RRRR.', '.WRWW.', 'RRRRRR', 'RRRRRR'] },
   star: { label: 'Star', rows: ['..RR..', '..RR..', 'RRWRRR', '.RRRR.', '.RRRR.', 'RR..RR'] },
   heart: { label: 'Heart', rows: ['RR..RR', 'RRRRRR', 'RWRRRR', 'RRRRRR', '.RRRR.', '..RR..'] },
@@ -92,6 +92,9 @@ const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (m
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
 const LABEL_GAP = 6, TIP_GAP = 8;
+const SPOT_DIM = 0.72;  // the days a hover is not about: this far into the page (a key's shade, a month, a streak)
+const TIP_WAIT = 150;  // ms the first tooltip waits, the pointer just come onto the heatmap
+const SWIPE_PX = 40, SWIPE_QUIET = 250;  // a trackpad's sideways swipe: css px to turn a page; ms still that ends it
 const DAYS_ROOM = 28, NOTE_ROOM = 44;  // css px: room the weekdays need left of the forest; a streak's length, about  // css px between two month labels, and between a day and its tooltip
 const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
@@ -125,10 +128,10 @@ let weekStart = 1;
 const dow = ms => (new Date(ms).getUTCDay() - weekStart + 7) % 7;
 const num = n => n.toLocaleString('en');
 const yearOf = ms => new Date(ms).getUTCFullYear();
-// a stretch of time in seconds, in minutes: "under a minute", "48 min", "1 hr 12 min"
+// a stretch of time in seconds, in minutes: "under a minute", "a minute", "48 min", "1 hr 12 min"
 const lasted = secs => {
   const m = Math.round(secs / 60);
-  return m < 1 ? 'under a minute' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}`;
+  return m < 1 ? 'under a minute' : m === 1 ? 'a minute' : m < 60 ? `${m} min` : m >= 600 ? `${Math.round(m / 60)} hr` : `${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}`;
 };
 
 /* every day by its offset from today (0 today, -1 yesterday, 1 tomorrow): its reviews or cards
@@ -215,6 +218,8 @@ function history(cal) {
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
   return Object.assign(H, {
     today, first, n, fs, free, runs, pond, current, runOf, podium, goal, animals,
+    // (with the reviews before the forest's start date left out, Heatmap tab: the day it began)
+    hid: cal.hiddenBefore ? (utc(cal.hiddenBefore) - today) / DAY_MS : null,
     // the days you marked, each with its icon and name (an older version's: a bare date)
     marked: new Map((cal.marks || []).map(m => typeof m === 'string' ? { day: m } : m).filter(m => m && m.day)
       .map(m => [(utc(m.day) - today) / DAY_MS, { icon: m.icon || 'pin', name: m.name || '' }])),
@@ -240,18 +245,21 @@ function windowOf(H, view, page, year, count) {
     return { from: (Date.UTC(y, 0, 1) - H.today) / DAY_MS, to: (Date.UTC(y, 11, 31) - H.today) / DAY_MS, year: y };
   }
   // Timeline: this month TODAY_AT along (a year: eight months before it and three after), the
-  // past being the story
-  const t = new Date(H.today), y = t.getUTCFullYear(), m = t.getUTCMonth() - Math.round(count * TODAY_AT) + page * count;
+  // past being the story; `page` months back (negative) or on
+  const t = new Date(H.today), y = t.getUTCFullYear(), m = t.getUTCMonth() - Math.round(count * TODAY_AT) + page;
   return { from: (Date.UTC(y, m, 1) - H.today) / DAY_MS, to: (Date.UTC(y, m + count, 1) - H.today) / DAY_MS - 1, apart: true };
 }
 
 /* the four shades a day studied takes, fewest reviews to most, with their tiles' edges: built
  * round the scenery's colour (its own `calendar` colour, or its most colourful crown colour,
  * AF.foliage), from pale to deep, so the calendar belongs to the scene */
-const PALE = [232, 228, 216], DARK = [16, 16, 16];
+const DARK = [16, 16, 16];
 // a light page's four shades: their lightness (OKLab L), fewest reviews to most, and the least
 // colourfulness they keep (a near-grey key would otherwise give grey tiles)
-const LIGHT_STEPS = [0.86, 0.72, 0.58, 0.44], LIGHT_CHROMA = 0.08;
+const LIGHT_STEPS = [0.82, 0.69, 0.56, 0.43], LIGHT_CHROMA = 0.08;  // (0.86 sat too near a missed day's grey)
+// and a dark page's, from a clear dim colour to a bright one (Natural's own, about): mixed towards
+// black, a dusky scenery's fewest reviews sank into the page and a missed day's grey (2026-10-14)
+const DARK_STEPS = [0.44, 0.54, 0.65, 0.77], DARK_CHROMA = [0.55, 0.75, 0.95, 0.9];  // (and their share of the key's colourfulness: the dimmer, the greyer, as before)
 /* `t` of the way from colour `a` to `b`, through OKLab, where equal steps look equal (a plain mix
  * of a blue and a green dips muddy in the middle) */
 const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -271,6 +279,12 @@ function fromOklab(L, A, B) {
   const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
   return [unlin(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), unlin(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
     unlin(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
+}
+// whether an OKLab colour is one the screen can show (each channel, before it is clipped, in 0..1)
+function fits(L, A, B) {
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s].every(v => v >= -0.0005 && v <= 1.0005);
 }
 // a scenery's colour kept within a lightness and saturation a tile can show: a silhouette
 // scenery's near-black trees (Witch across the moon) would make every tile black
@@ -313,11 +327,14 @@ function shades(env, dark) {
   // deep one, keeping only the key's hue and colourfulness: mixed towards white and black they
   // went grey, and a ramp's dark start and bright end met in the same muddy middle; and the
   // texture stronger: the white between the tiles otherwise outshines them)
-  const steps = dark ? [mix(keys[0], DARK, 0.6), mix(keys[1], DARK, 0.42), mix(keys[2], DARK, 0.2), mix(keys[3], PALE, 0.2)]
-    : LIGHT_STEPS.map((L, i) => {
-      const k = oklab(keys[i]), C = Math.max(LIGHT_CHROMA, Math.hypot(k[1], k[2])), h = Math.atan2(k[2], k[1]);
-      return fromOklab(L, C * Math.cos(h), C * Math.sin(h));
-    });
+  const steps = (dark ? DARK_STEPS : LIGHT_STEPS).map((L, i) => {
+    const k = oklab(keys[i]), h = Math.atan2(k[2], k[1]);
+    // (where the colour is beyond the screen's, its colourfulness gives way, not its lightness: a
+    // clipped neon pink came out darker than the shade under it)
+    let C = Math.max(LIGHT_CHROMA, Math.hypot(k[1], k[2])) * (dark ? DARK_CHROMA[i] : 1);
+    while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95;
+    return fromOklab(L, C * Math.cos(h), C * Math.sin(h));
+  });
   const tone = dark ? 0.07 : 0.16, rim = dark ? 0.22 : 0.3;
   return { grass: steps.map(c => [c, mix(c, DARK, tone)]), edge: steps.map(c => mix(c, DARK, rim)) };
 }
@@ -392,7 +409,13 @@ function paletteOf(H, sp, paper) {
   const look = draw && { name: sp.mood.special, draw };  // (a scenery's own tiles, when it draws them)
   // the soil faded into the page, so the days ahead sit behind the days you studied
   const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
-  const soil = lv => till[lv].map(c => mix(c, paper.bg, fade)), soilEdge = lv => mix(edges[lv], paper.bg, fade);
+  // (on a light page in lightness only, keeping most of its colour: mixed with white, brown went grey-mauve)
+  const bgL = oklab(paper.bg)[0], toPage = c => {
+    if (dark) return mix(c, paper.bg, fade);
+    const k = oklab(c);
+    return fromOklab(k[0] + (bgL - k[0]) * fade, k[1] * (1 - 0.6 * fade), k[2] * (1 - 0.6 * fade));
+  };
+  const soil = lv => till[lv].map(toPage), soilEdge = lv => toPage(edges[lv]);
   // (more due stands out more, as more studied does: lighter on a dark page, darker on a light one)
   const dueLv = n => dark ? 3 - H.dueShade(n) : H.dueShade(n);
   const tile = c => {
@@ -414,10 +437,15 @@ function seedlingOf(sp, ms) {
   const seed = hashStr('calendar|' + iso(ms));
   return spriteOf({ stage: SEEDLING, kind: seed % 100 < PINE_PERCENT ? 1 : 0, size: 0, health: 0, variant: seed % 7, seed, index: -1 }, 7, sp);
 }
-function frame(g, x, y, T, dark) {  // a light frame round today's tile (dark on a light page)
+// a light frame round today's tile (dark on a light page), in the gaps all round it: on the page's
+// colour, so it shows whatever the day's shade (on the tile's own edge, a busy day's dark tile hid it)
+function frame(g, x, y, T, dark, bg) {
   g.fillStyle = rgb(dark ? P.today : P.todayOnLight);
   const tx = x - 1, ty = y - 1;
-  g.fillRect(tx, ty, T + 1, 1); g.fillRect(tx, ty + T, T + 1, 1); g.fillRect(tx, ty, 1, T + 1); g.fillRect(tx + T, ty, 1, T + 1);
+  g.fillRect(tx, ty, T + 2, 1); g.fillRect(tx, ty + T + 1, T + 2, 1); g.fillRect(tx, ty, 1, T + 2); g.fillRect(tx + T + 1, ty, 1, T + 2);
+  // (and a line of the page's colour just inside it, so it never runs into a tile as dark as it is)
+  g.fillStyle = rgb(bg);
+  g.fillRect(x, y, T, 1); g.fillRect(x, y + T - 1, T, 1); g.fillRect(x, y, 1, T); g.fillRect(x + T - 1, y, 1, T);
 }
 
 /* the days of a view in weeks, [offset, ms, column, row], its first day on top; Timeline starts each
@@ -470,10 +498,12 @@ function paint(H, win, sp, paper) {
     if (!H.marked.has(c.o)) continue;
     const spr = markOf(H.marked.get(c.o)).spr, rows = spr.frames[0];
     const x0 = c.x + Math.floor((TILE_FACE - rows[0].length) / 2), y0 = c.y + Math.floor((TILE_FACE - rows.length) / 2);
-    rows.forEach((line, y) => { for (let x = 0; x < line.length; x++) if (spr.pal[line[x]]) { g.fillStyle = spr.pal[line[x]]; g.fillRect(x0 + x, y0 + y, 1, 1); } });
+    // (cut out of the tile by a line of the page's colour, as the animals are: red on Lanterns' or
+    // Cherry blossom's tiles was lost)
+    drawAnimal(g, spr, x0, y0, null, paper.bg);
   }
   const today = cells.find(c => c.o === 0);
-  if (today) frame(g, today.x, today.y, TILE, dark);
+  if (today) frame(g, today.x, today.y, TILE, dark, paper.bg);
   // the streaks: a bracket under the weeks each ran through, gold for the current one, cut at
   // the view's edges (with no end mark there)
   const by = band + ROWS * CELL + 3, brackets = [];
@@ -497,7 +527,7 @@ function paint(H, win, sp, paper) {
       g.clearRect(wx0, by, wx1 - wx0 + 1, 1);
       for (let x = wx0; x <= wx1; x += 2) g.fillRect(x, by, 1, 1);
     }
-    brackets.push({ x0, x1, len, live });
+    brackets.push({ x0, x1, len, live, run: r });
   }
   // the streak lane: a trophy under the last day of each of your longest streaks and the goal
   // pennant under its day, below the brackets, and a dotted gold line from today on to the goal
@@ -513,7 +543,8 @@ function paint(H, win, sp, paper) {
   if (H.goal) lane.push([H.goal.o, GOALS[H.goal.rank]]);
   for (const [o, spr] of lane) {
     if (o < win.from || o > win.to) continue;
-    const c = cells[o - win.from], w = spr.frames[0][0].length, x0 = c.x + Math.floor((TILE - w) / 2), y0 = by + 3;
+    // (the goal's pole on the day's middle, under the dotted line's end; a trophy centred)
+    const c = cells[o - win.from], w = spr.frames[0][0].length, x0 = c.x + (GOALS.includes(spr) ? 4 : Math.floor((TILE - w) / 2)), y0 = by + 3;
     // (on a light page in their deeper shades: pale gold and silver would fade into it)
     const metal = !dark && METALS_ON_LIGHT[spr.pal.G];
     drawAnimal(g, metal ? Object.assign({}, spr, { pal: Object.assign({}, spr.pal, metal) }) : spr, x0, y0, null, paper.bg);
@@ -586,12 +617,16 @@ AF.calendar = function (root, data, env) {
   const H = history(cal), view = cal.view === 'by_year' ? 'by_year' : 'timeline', sp = sceneOf(data, env);
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
-  let page = 0, year = null;  // Timeline's stretch (0: today's), By year's year
+  let page = 0, year = null;  // Timeline's stretch, in months from today's (0), By year's year
   // what a screen reader says for the picture: the year in a sentence, its streak
-  let studiedYear = 0;
-  for (let o = Math.max(H.first, -364); o <= 0; o++) if (H.n(o)) studiedYear++;
-  const described = `Study heatmap: ${num(studiedYear)} day${studiedYear === 1 ? '' : 's'} studied in the last year`
-    + (H.current ? `, current streak ${num(H.current.days)} day${H.current.days === 1 ? '' : 's'}` : '');
+  // (the stretch in view, paged to or not: "Study heatmap, Feb 2025 to Jan 2026: 203 days studied")
+  const described = win => {
+    let studied = 0;
+    for (let o = Math.max(H.first, win.from); o <= Math.min(0, win.to); o++) if (H.n(o)) studied++;
+    const month = o => { const d = new Date(H.today + o * DAY_MS); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+    return `Study heatmap, ${month(win.from)} to ${month(win.to)}: ${num(studied)} day${studied === 1 ? '' : 's'} studied`
+      + (H.current && win.to >= 0 && win.from <= 0 ? `, a ${num(H.current.days)}-day streak` : '');
+  };
 
   // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ ›,
   // with Today before them only once paged away, so they stay where they are as it comes and
@@ -608,7 +643,7 @@ AF.calendar = function (root, data, env) {
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
-    + '<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="Its name">'
+    + '<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="Mark name">'
     + '<button type="button" class="af-cal-pin-del" aria-label="Remove the mark" title="Remove the mark">\u00d7</button></div>';
   if (swiped) box.classList.add('af-cal-swiped');
   // the forest's journal comes down to the foot of the panel: a forest's caption with the
@@ -657,21 +692,52 @@ AF.calendar = function (root, data, env) {
   let drawn = null, k = 2, last;  // (last: the day the pointer was last on)
   let paper = pageOf(box);
   // the day under the pointer: lit with the shade that stands out most and ringed in it, lifted a little
+  // the days a hover is about stand out (a shade in the key, a month, a streak): the others
+  // dimmed into the page, on a layer over the weeks
+  let spotCv = null;
+  const spot = keep => {
+    if (spotCv) { spotCv.remove(); spotCv = null; }
+    if (!keep || !drawn) return;
+    const [cv, g] = layer(drawn.W, drawn.Hh);
+    g.fillStyle = rgb(paper.bg, SPOT_DIM);
+    for (const c of drawn.cells) if (!keep(c)) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
+    cv.className = 'af-cal-above af-cal-spot';
+    Object.assign(cv.style, { left: drawn.cv.offsetLeft + 'px', top: drawn.cv.offsetTop + 'px', width: drawn.cv.style.width,
+      height: drawn.cv.style.height, imageRendering: drawn.cv.style.imageRendering });
+    grid.insertBefore(cv, notes);
+    spotCv = cv;
+  };
   const ring = c => {
+    spot(null);
+    if (!c && editing && drawn) c = drawn.cells.find(x => x.o === editing.o) || null;  // (a day being marked keeps it)
     hover.hidden = !c;
     if (!c) return;
     const cv = drawn.cv;
     hover.style.left = (cv.offsetLeft + (c.x - 1) * k) + 'px';
     hover.style.top = (cv.offsetTop + (c.y - 1) * k) + 'px';
-    hover.style.width = hover.style.height = (TILE + 1) * k + 'px';
+    hover.style.width = hover.style.height = (TILE + 2) * k + 'px';  // (round the whole tile, as today's frame)
     hover.style.borderColor = drawn.ring; hover.style.background = drawn.glow;
   };
-  const unpoint = () => { tip.hidden = true; ring(null); last = undefined; };
+  // the first tooltip after the pointer comes onto the heatmap waits a moment, so crossing it on the
+  // way elsewhere flashes none; from one day to the next after that, at once (a tap and the
+  // keyboard at once too)
+  let warm = false, waking = 0;
+  const reveal = () => {
+    tip.hidden = false;
+    if (warm || touched || document.activeElement === (drawn && drawn.cv)) { tip.style.visibility = ''; warm = true; return; }
+    tip.style.visibility = 'hidden';
+    clearTimeout(waking);
+    waking = setTimeout(() => { tip.style.visibility = ''; warm = true; }, TIP_WAIT);
+  };
+  const unpoint = () => { tip.hidden = true; ring(null); last = undefined; warm = false; clearTimeout(waking); };
   // how far you can page: back to the first day counted, on to the last day ahead counted
   const can = win => ({ back: win.from > H.first, on: win.to < H.ahead });
 
   function draw() {
+    const hadCv = !!drawn && document.activeElement === drawn.cv;  // (the keyboard on the days: kept there)
     const count = swiped ? MONTHS_SHOWN : countFor(view, grid.clientWidth);
+    // (paged away, a narrower or wider heatmap keeps the month you were looking at last in view)
+    if (drawn && page && drawn.count !== count) page += drawn.count - count - Math.round(drawn.count * TODAY_AT) + Math.round(count * TODAY_AT);
     const win = windowOf(H, swiped ? 'swiped' : view, page, year, count), d = paint(H, win, sp, paper);
     drawn = Object.assign(d, { win, count });
     last = undefined;
@@ -683,17 +749,19 @@ AF.calendar = function (root, data, env) {
     grid.insertBefore(drawn.above, notes);
     drawn.cv.className = 'af-cal-canvas';
     drawn.cv.setAttribute('role', 'img');
-    drawn.cv.setAttribute('aria-label', described);
+    drawn.cv.setAttribute('aria-label', described(win));
     grid.insertBefore(drawn.cv, notes);
+    const focused = box.contains(document.activeElement) ? document.activeElement : null;
+    if (!swiped) drawn.cv.tabIndex = 0;  // (the days a tab stop: the keyboard's way along them, below)
+    if (hadCv) drawn.cv.focus();
     const may = can(win);
     btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
     // what the tiles mean, read off the tiles themselves
     const swatch = cv => { const c = document.createElement('canvas'); c.width = c.height = TILE; c.getContext('2d').drawImage(cv, 0, 0); c.className = 'af-cal-swatch'; return c; };
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
-    // (by time, its ends say what the shades mean: "Under 12 min" .. "1 hr 25 min+", from your splits)
-    const cuts = H.splits(), ends = H.by === 'time' ? [`Under ${lasted(cuts[1])}`, `${lasted(cuts[3])}+`] : ['Less', 'More'];
-    [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
+    // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
+    [word('Less')].concat(drawn.key.map(swatch), [word('More')]).forEach(el => keyBox.appendChild(el));
     byBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.by === H.by;
       b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
@@ -703,6 +771,9 @@ AF.calendar = function (root, data, env) {
     box.querySelectorAll('[data-go="0"]').forEach(b => { b.disabled = !swiped && (view === 'by_year' ? win.year === yearOf(H.today) : page === 0); });
     const ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : page > 0;
     box.querySelector('.af-cal-now').textContent = ahead ? '«' : '»';
+    // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
+    // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
+    if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
     lay();
   }
   function go(where) {
@@ -712,7 +783,7 @@ AF.calendar = function (root, data, env) {
       const may = can(drawn.win);
       if (where === '-1' ? !may.back : !may.on) return;  // (a click on a button just disabled)
       if (view === 'by_year') year = (year || yearOf(H.today)) + +where;
-      else page += +where;
+      else page += +where * drawn.count;
     }
     unpoint();
     draw();
@@ -730,7 +801,8 @@ AF.calendar = function (root, data, env) {
     grid.style.paddingTop = monthsRoom(k) + 'px';
     d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
     d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
-    box.querySelectorAll('.af-cal-swatch').forEach(sw => { sw.style.width = sw.style.height = TILE * k + 'px'; });  // (the key's tiles as big as the calendar's)
+    // (the key's tiles as big as the calendar's, and as far apart)
+    box.querySelectorAll('.af-cal-swatch').forEach((sw, i, all) => { sw.style.width = sw.style.height = TILE * k + 'px'; if (i < all.length - 1) sw.style.marginRight = (CELL - TILE) * k + 'px'; });
     d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
     let html = '', lastM = -1;
     for (const c of d.cells) {
@@ -797,7 +869,8 @@ AF.calendar = function (root, data, env) {
   draw();
   if (swiped) {
     toToday(false);
-    grid.addEventListener('scroll', () => { away(); clip(); }, { passive: true }); away(); clip();
+    // (a tooltip goes with a swipe: it would point at a day no longer under it)
+    grid.addEventListener('scroll', () => { away(); clip(); if (!tip.hidden) unpoint(); }, { passive: true }); away(); clip();
     // turned on its side (the phone's full screen, web/phone.js), a swipe along the calendar runs
     // down the screen, which the page's own scrolling won't follow: it is followed here
     let from = null;
@@ -816,6 +889,7 @@ AF.calendar = function (root, data, env) {
     if (grid.clientWidth === lastW) return;
     lastW = grid.clientWidth;
     if (!swiped && countFor(view, lastW) !== drawn.count) draw(); else lay();
+    if (editing) placePin();  // (a mark's editor, open, stays by its day)
   }) : null;
   if (ro) ro.observe(grid);
   // Anki switched between light and dark: the page's colour is read again and the days painted
@@ -860,13 +934,18 @@ AF.calendar = function (root, data, env) {
       .sort((a, b) => off(a) - off(b))[0];
     hit = mark || null;
     if (mark) return mark.c;
+    // (or a streak's bracket, or the lane under it: the streak itself)
+    const by = drawn.band + ROWS * CELL + 3, br = py >= by - 3 && py < by + 12 ? drawn.brackets.find(b => px >= b.x0 - 1 && px <= b.x1 + 1) : null;
+    if (br) { hit = br; return null; }
     const col = Math.floor(px / CELL), row = Math.floor((py - drawn.band) / CELL);
     return px >= 0 && row >= 0 && row < ROWS ? drawn.at.get(col * ROWS + row) || null : null;
   };
   // which days a click opens: a day with reviews (today too, once studied), a day ahead with cards
   // due, and today before you study, its cards due
   const dueNow = c => c.o === 0 && !c.n && H.dueToday > 0;
-  const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first;
+  // (not a day whose cards have all since been deleted: the browser would open on none)
+  const allGone = o => { const g = H.gone.get(o); return !!g && g[0] >= g[1]; };
+  const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first && !allGone(c.o);
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
   const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
@@ -874,16 +953,18 @@ AF.calendar = function (root, data, env) {
   // reviews and about how many a day; only the days since your first review, up to today
   const studiedLines = (from, to) => {
     const a = Math.max(from, H.first), b = Math.min(to, 0);
-    if (b < a) return ['No reviews yet'];
+    if (b < a) return [H.hid !== null && b < H.hid ? 'Before your forest began' : 'Before your first review'];
     let studied = 0, reviews = 0, secs = 0;
     for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
-    const span = b - a + 1, now = b === 0 && to > 0 ? ' so far' : '';
+    // (a stretch your history starts inside counts from your first review: "since Mar 1")
+    const since = a > from ? ` since ${new Date(H.today + a * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}` : '';
+    const span = b - a + 1, now = since || (b === 0 && to > 0 ? ' so far' : '');
     if (!studied) return [`Not studied${now}`];
     const on = studied < span ? ' on the days studied' : '';
-    return [`Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.round(100 * studied / span)}%)`,
+    return [studied === span ? `Studied every day${now}` : `Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,  // (never 100% with a day missed, nor 0% with one studied)
       `${cards(reviews, 'review')}, about ${cards(Math.round(reviews / studied), 'review')} a day${on}`,
       // (the time, where the review log kept it)
-      ...(secs ? [`${lasted(secs)} in all, about ${lasted(secs / studied)} a day${on}`] : [])];
+      ...(secs ? [`${cap(lasted(secs))} in all, ${secs / studied < 30 ? '' : 'about '}${lasted(secs / studied)} a day${on}`] : [])];
   };
   // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
   // due. January's label shows its year, so it tells the year's days studied first
@@ -892,62 +973,120 @@ AF.calendar = function (root, data, env) {
     const from = at(y, m), to = at(y, m + 1) - 1;
     const year = m === 0 && from <= 0 ? [`<b>${y}</b>`, ...studiedLines(from, at(y + 1, 0) - 1), ''] : [];
     const lines = [...year, `<b>${MONTH_NAMES[m]} ${y}</b>`, ...(from > 0 ? [] : studiedLines(from, to))];
+    // (its marked days, by date and name, as their tooltips name them)
+    const marked = [...H.marked].filter(([o]) => o >= from && o <= to).sort((p, q) => p[0] - q[0]);
+    for (const [o, mk] of marked.slice(0, 4)) lines.push(`<i>${new Date(H.today + o * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}:</i> ${esc(mk.name || markOf(mk).label)}`);
+    if (marked.length > 4) lines.push(`<i>and ${marked.length - 4} more marked</i>`);
     let due = 0;
     for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) due += H.n(o);
-    if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : ' in the days ahead'}`);
+    if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : ' later this month'}`);
+    else if (from > H.ahead) lines.push('Too far ahead to count');
+    else if (from > 0) lines.push('Nothing due yet');
     return lines.join('<br>');
   };
   const pointMonth = lab => {
     ring(null);
+    // (its days stand out while it tells them)
+    spot(c => { const d = new Date(c.ms); return d.getUTCFullYear() === +lab.dataset.y && d.getUTCMonth() === +lab.dataset.m; });
     grid.classList.remove('af-click');
     tip.innerHTML = monthSummary(+lab.dataset.y, +lab.dataset.m);
-    tip.hidden = false;
+    reveal();
     const r = lab.getBoundingClientRect(), b0 = box.getBoundingClientRect();
     const cx = r.left - b0.left + r.width / 2, over = r.top - b0.top - tip.offsetHeight - TIP_GAP;
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
-    tip.style.top = over + 'px';  // (above its label, off the month's own weeks)
+    // (above its label, off the month's own weeks; under it when the window has no room above)
+    tip.style.top = (r.top - tip.offsetHeight - TIP_GAP < 0 ? r.bottom - b0.top + TIP_GAP : over) + 'px';
+  };
+  // a shade in the key, pointed at, tells what it stands for, in a few words: "65–109 reviews",
+  // "8–12 min", "Under 3 min", "154+ reviews"
+  const shadeLine = lv => {
+    const s = H.splits(), by = H.by === 'time';
+    const at = i => by ? lasted(s[i]) : num(s[i]), upto = i => by ? lasted(s[i] - 60) : num(s[i] - 1);
+    const unit = by ? '' : ' reviews';
+    if (lv === 0) return `Under ${at(1)}${unit}`;
+    if (lv === 3) return by && /^[0-9]+ min$/.test(at(3)) ? `${at(3).slice(0, -4)}+ min` : `${at(3)}+${unit}`;  // ("20+ min", as "154+ reviews")
+    const lo = at(lv), hi = upto(lv + 1);
+    if (lo === hi) return by ? lo : cards(s[lv], 'review');
+    // ("8–12 min": the first minutes' unit left to the second)
+    const from = !by ? lo : lo === 'a minute' ? '1' : / min$/.test(hi) && !/hr/.test(lo + hi) ? lo.slice(0, -4) : lo;
+    return `${from}\u2013${hi}${unit}`;
+  };
+  const keyEl = box.querySelector('.af-cal-key');
+  keyEl.addEventListener('mouseover', e => {
+    const sw = e.target.classList && e.target.classList.contains('af-cal-swatch') ? e.target : null;
+    const lv = sw ? [...keyEl.querySelectorAll('.af-cal-swatch')].indexOf(sw) : -1;
+    if (lv < 0 || sw === last) return;
+    last = sw;
+    ring(null);
+    tip.textContent = shadeLine(lv);
+    tip.hidden = false;
+    const r = sw.getBoundingClientRect(), b0 = box.getBoundingClientRect();
+    tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, r.left - b0.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = (r.top - b0.top - tip.offsetHeight - TIP_GAP) + 'px';  // (above the key, at the heatmap's foot)
+    spot(c => c.o <= 0 && c.n > 0 && H.shade(c.o) === lv);  // (and its days stand out)
+  });
+  keyEl.addEventListener('mouseleave', unpoint);
+  // a streak's bracket, pointed at: its first and last days, and its days lit
+  const streak = b => {
+    const r = b.run, day = o => esc(fmt(H.today + o * DAY_MS)), year = o => yearOf(H.today + o * DAY_MS);
+    // ("Jun 1 to Dec 19, 2025": a year said once)
+    const first = !b.live && year(r.from) === year(r.to) ? day(r.from).replace(/, [0-9]{4}$/, '') : day(r.from);
+    tip.innerHTML = `<b>${first} to ${b.live ? 'today' : day(r.to)}</b><br>${b.live ? `Your ${num(r.days)}-day streak` : `${num(r.days)} days in a row`}`;
+    tip.hidden = false;
+    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, cx = left + (b.x0 + b.x1) / 2 * k;
+    tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = grid.offsetTop + drawn.cv.offsetTop + (drawn.band + ROWS * CELL + BRACKET) * k + TIP_GAP + 'px';  // (under the lane)
+    spot(c => c.o >= r.from && c.o <= r.to);
   };
   // its date, its reviews or cards due, and where it sits in its streak
   const point = e => {
+    if (editing) return;  // (no tooltips while a mark is named: its day keeps the ring)
     const lab = e.target && e.target.closest ? e.target.closest('.af-cal-months span') : null;
     if (lab) { if (lab !== last) { last = lab; pointMonth(lab); } return; }
     const c = cellAt(e), on = hit || c;
     if (on === last) return;  // (still on the same day, or mark: nothing changes)
     last = on;
+    tell(c);
+  };
+  // a day's tooltip and ring, for the pointer's day or the keyboard's
+  const tell = c => {
     ring(c);
     grid.classList.toggle('af-click', !!c && opens(c));
-    if (!c) { tip.hidden = true; return; }
+    if (!c) { tip.hidden = true; if (hit && hit.run) streak(hit); return; }
     const off = c.o <= 0 && !c.n && H.free.has(c.o);  // (a day with nothing due)
     const run = c.o <= 0 && (c.n || off) ? H.runOf(c.o) : null;
-    const what = c.o < H.first ? 'No reviews yet'
-      : c.o > H.ahead ? 'Too far ahead to show'
+    const what = c.o < H.first ? (H.hid !== null && c.o < H.hid ? 'Before your forest began' : 'Before your first review')
+      : c.o > H.ahead ? 'Too far ahead to count'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
-      : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
-      : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${lasted(H.time(c.o))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
+      : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
+      : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
-      : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${lasted(H.time(c.o))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
+      : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;
     for (let o = run ? run.from : 1; o <= c.o; o++) if (H.n(o)) day++;
     const total = run ? run.days : 0;
-    const where = run && off ? `Doesn't break your ${num(total)}-day streak` : !run ? ''
-      : (run === H.current ? `Day ${num(day)} of your ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
+    // (a lone day between missed ones is no run: nothing to say)
+    const where = run && off ? (run === H.current ? `Doesn't break your ${num(total)}-day streak` : `Didn't break a ${num(total)}-day streak`) : !run || (total === 1 && run !== H.current) ? ''
+      : (run === H.current ? (day === total ? `Day ${num(day)} of your streak` : `Day ${num(day)} of your ${num(total)}-day streak`) : day === total && total >= SHOWN_STREAK ? `Last day of a ${num(total)}-day streak` : total >= SHOWN_STREAK ? `Day ${num(day)} of a ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
         // (which of your longest it is: on its trophy, not on each of its days)
         + (hit && hit.trophy >= 0 && H.podium.has(run) ? `<br>Your ${TROPHIES[hit.trophy].place} streak` : '');
     const goal = H.goal && H.goal.o === c.o
       // (with no earlier streak of that rank to pass, the goal is a trophy's first length)
-      ? (H.goal.beats ? `<br>Reach this day to ${H.goal.rank ? 'pass' : 'beat'} your ${GOALS[H.goal.rank].place} streak, ${num(H.goal.beats)} days`
-        : `<br>Reach this day for a ${num(SHOWN_STREAK)}-day streak`) : '';
-    const began = H.fs === c.o ? '<br>Your forest began' : '';
+      ? (H.goal.beats ? `<br>${H.goal.rank ? 'Pass' : 'Beat'} your ${GOALS[H.goal.rank].place} streak (${num(H.goal.beats)} days) on this day`
+        : `<br>Reach a ${num(SHOWN_STREAK)}-day streak on this day`) : '';
+    const began = H.fs === c.o ? '<br>Your forest began' : H.fs !== null && c.o < H.fs && c.o >= H.first ? '<br><i>Before your forest began</i>' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
     const marked = H.marked.has(c.o) ? `<br>${esc(markLine(H.marked.get(c.o), c.o))}` : '';
     // (in cards, not reviews: a card reviewed twice that day counts once)
     const [lost, of] = c.o <= 0 && c.n ? H.gone.get(c.o) || [0, 0] : [0, 0];
-    const gone = !lost ? '' : lost >= of ? `<br>${of === 1 ? 'Its card has' : `All ${num(of)} of its cards have`} since been deleted`
-      : `<br>${num(lost)} of its ${num(of)} cards ${lost === 1 ? 'has' : 'have'} since been deleted`;
-    tip.innerHTML = `<b>${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}</b><br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
-    tip.hidden = false;
+    const gone = !lost ? '' : lost >= of ? `<br><i>${of === 1 ? 'Its card has' : of === 2 ? 'Both of its cards have' : `All ${num(of)} of its cards have`} since been deleted</i>`
+      : `<br><i>${num(lost)} of its ${num(of)} cards ${lost === 1 ? 'has' : 'have'} since been deleted</i>`;
+    // (today, yesterday and tomorrow by name, the year left out)
+    const near = { '-1': 'Yesterday', 0: 'Today', 1: 'Tomorrow' }[c.o];
+    tip.innerHTML = `<b>${near ? `${near}, ${esc(weekday(c.ms))}, ${esc(fmt(c.ms).replace(/, \d{4}$/, ''))}` : `${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}`}</b><br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
+    reveal();
     // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
     // (above it when there is no room below in the window), kept inside the calendar's sides;
     // placed by the page's own offsets, which a zoomed page leaves right
@@ -958,6 +1097,37 @@ AF.calendar = function (root, data, env) {
     tip.style.top = (above ? top - tip.offsetHeight - TIP_GAP : bottom + TIP_GAP) + 'px';
   };
   grid.addEventListener('mousemove', point);
+  // the days by the keyboard: ← → a week, ↑ ↓ a day, the page turning at its ends; PageUp and
+  // PageDown a page, Home back to today; each day's tooltip as the pointer gives it; Enter opens
+  // the day, Esc puts the tooltip away
+  let cur = null;
+  const curCell = () => drawn.cells.find(c => c.o === cur) || null;
+  const toCur = () => { cur = Math.max(drawn.win.from, Math.min(drawn.win.to, cur)); hit = null; last = curCell(); tell(last); };
+  if (!swiped) {
+    tip.setAttribute('aria-live', 'polite');
+    grid.addEventListener('focusin', e => {
+      if (e.target !== drawn.cv) return;
+      if (cur === null || !curCell()) cur = drawn.cells.some(c => c.o === 0) ? 0 : drawn.win.to;
+      toCur();
+    });
+    grid.addEventListener('focusout', e => { if (e.target === drawn.cv) unpoint(); });
+    grid.addEventListener('keydown', e => {
+      if (e.target !== drawn.cv || e.altKey || e.ctrlKey || e.metaKey) return;
+      const step = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
+      if (e.key === 'Escape') { if (!tip.hidden) { e.preventDefault(); e.stopPropagation(); unpoint(); } return; }
+      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`); return; }
+      if (e.key === 'Home') { e.preventDefault(); cur = 0; if (!curCell()) go('0'); toCur(); return; }
+      if (!step && !pg) return;
+      e.preventDefault();
+      if (pg) { const along = cur - drawn.win.from; go(pg); cur = drawn.win.from + along; }
+      else {
+        cur += step;
+        const may = can(drawn.win);
+        if (cur < drawn.win.from && may.back) go('-1'); else if (cur > drawn.win.to && may.on) go('1');
+      }
+      toCur();
+    });
+  }
   // a finger's tap, taken as it lifts (a phone's web view need not make up a mouse's move for
   // it), unless it was a swipe along the timeline
   let down = null;
@@ -966,12 +1136,31 @@ AF.calendar = function (root, data, env) {
     down = touched ? [e.clientX, e.clientY] : null;
   });
   grid.addEventListener('pointerup', e => {
-    if (down && Math.abs(e.clientX - down[0]) + Math.abs(e.clientY - down[1]) < TAP_SLOP) { last = undefined; point(e); }
+    if (down && Math.abs(e.clientX - down[0]) + Math.abs(e.clientY - down[1]) < TAP_SLOP) {
+      // (a second tap on what shows its tooltip puts it away)
+      const again = !tip.hidden && last;
+      last = undefined; point(e);
+      if (again && last === again) { unpoint(); last = again; }  // (the mouse a phone makes up after must not bring it back)
+    }
     down = null;
   });
   grid.addEventListener('pointercancel', () => { down = null; });
   grid.addEventListener('mouseleave', () => { unpoint(); grid.classList.remove('af-click'); });
+  // a sideways swipe on a trackpad (or Shift and the wheel) turns the page, once a swipe: the
+  // swipe's own momentum turns no more
+  let swept = 0, sweeping = 0;
+  if (!swiped) grid.addEventListener('wheel', e => {
+    const dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+    if (!dx || Math.abs(dx) <= (e.shiftKey ? 0 : Math.abs(e.deltaY))) return;
+    e.preventDefault();
+    clearTimeout(sweeping);
+    sweeping = setTimeout(() => { swept = 0; }, SWIPE_QUIET);
+    if (swept === null) return;
+    swept += dx;
+    if (Math.abs(swept) >= SWIPE_PX) { const to = swept > 0 ? '1' : '-1'; swept = null; go(to); }
+  }, { passive: false });
   grid.addEventListener('click', e => {
+    if (e.detail > 1) return;  // (a double-click opens the day once)
     const c = cellAt(e);
     if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`);
   });
@@ -981,7 +1170,7 @@ AF.calendar = function (root, data, env) {
   // and drawn here at once (the forest itself is not drawn again).
   const pin = box.querySelector('.af-cal-pin'), pinName = pin.querySelector('.af-cal-pin-name');
   const pinIcons = pin.querySelector('.af-cal-pin-icons');
-  pinIcons.setAttribute('role', 'radiogroup'); pinIcons.setAttribute('aria-label', 'Its icon');
+  pinIcons.setAttribute('role', 'radiogroup'); pinIcons.setAttribute('aria-label', 'Mark icon');
   // each icon a small button of its own, drawn from its sprite at a scale of 2
   MARK_ORDER.forEach(key => {
     const b = document.createElement('button'), cv = document.createElement('canvas'), rows = MARK_ICONS[key].rows, s = 2;
@@ -1010,14 +1199,26 @@ AF.calendar = function (root, data, env) {
       const on = b.dataset.icon === (MARK_ICONS[m.icon] ? m.icon : 'pin');
       b.classList.toggle('af-on', on);
       b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
     }
     pinName.placeholder = markOf(m).label;
+  };
+  // the editor above its day, as its tooltip stands, inside the heatmap's sides (under the day when
+  // the window has no room above it); placed again when the heatmap is laid out anew
+  const placePin = () => {
+    const c = editing && drawn.cells.find(x => x.o === editing.o);
+    if (!c) return;
+    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
+    const cx = left + (c.x + TILE / 2) * k, room = drawn.cv.getBoundingClientRect().top + (c.y - 1) * k - pin.offsetHeight - TIP_GAP;
+    pin.style.left = Math.min(box.clientWidth - pin.offsetWidth, Math.max(0, cx - pin.offsetWidth / 2)) + 'px';
+    pin.style.top = (room < 0 ? canvasTop + (c.y + TILE + 1) * k + TIP_GAP : canvasTop + (c.y - 1) * k - pin.offsetHeight - TIP_GAP) + 'px';
   };
   const closePin = keep => {
     if (!editing) return;
     const { o, ms, before } = editing, m = H.marked.get(o);
     editing = null;
     pin.hidden = true;
+    ring(null);
     send(`${data.channel}:typing:0`);
     if (!keep) {  // (back as it was)
       if (before) H.marked.set(o, before); else H.marked.delete(o);
@@ -1038,24 +1239,29 @@ AF.calendar = function (root, data, env) {
     if (!before) H.marked.set(c.o, { icon: MARK_ORDER[0], name: '' });
     unpoint();
     draw();
+    ring(null);
     const m = H.marked.get(c.o);
     showIcon(m);
     pinName.value = m.name;
     pin.hidden = false;
-    // above the day, as its tooltip stands, inside the heatmap's sides
-    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
-    const cx = left + (c.x + TILE / 2) * k;
-    pin.style.left = Math.min(box.clientWidth - pin.offsetWidth, Math.max(0, cx - pin.offsetWidth / 2)) + 'px';
-    pin.style.top = (canvasTop + (c.y - 1) * k - pin.offsetHeight - TIP_GAP) + 'px';
+    placePin();
     send(`${data.channel}:typing:1`);  // (Anki's one-key shortcuts wait while a name is typed)
     pinName.focus();
   });
   pin.querySelector('.af-cal-pin-del').addEventListener('mousedown', e => e.preventDefault());
   pin.querySelector('.af-cal-pin-del').addEventListener('click', () => { if (editing) { H.marked.delete(editing.o); closePin(true); } });
-  pinName.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); closePin(true); }
+  // (by the keyboard: Enter keeps it from anywhere in it but ×, Esc puts it back; the icons a radio
+  // group, one tab stop, ← → moving the choice)
+  pin.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.target.classList.contains('af-cal-pin-del')) { e.preventDefault(); closePin(true); }
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePin(false); }
+    else if (e.target.parentNode === pinIcons && /^Arrow/.test(e.key)) {
+      e.preventDefault();
+      const all = [...pinIcons.children], d = /Left|Up/.test(e.key) ? -1 : 1, to = all[(all.indexOf(e.target) + d + all.length) % all.length];
+      to.focus(); to.click();
+    }
   });
-  pinName.addEventListener('blur', () => closePin(true));
+  // (closed as the focus leaves it, not as it moves from the name to an icon or ×)
+  pin.addEventListener('focusout', e => { if (!pin.contains(e.relatedTarget)) closePin(true); });
 };
 })();

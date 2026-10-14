@@ -181,8 +181,8 @@
   font: inherit; font-size: 11px; line-height: 16px; cursor: pointer;
 }
 .af-cal-by-label { margin-right: 2px; color: var(--fg-subtle, #8a8f8c); }
-.af-cal-by button:hover { background: rgba(128, 128, 128, 0.12) !important; }
-.af-cal-by button.af-on, .af-cal-by button.af-on:hover { background: rgba(128, 128, 128, 0.28) !important; cursor: default; }
+.af-cal-by button:hover { color: var(--fg, inherit) !important; }  /* (as the arrows brighten; a fill is the chosen one's alone) */
+.af-cal-by button.af-on, .af-cal-by button.af-on:hover { background: rgba(128, 128, 128, 0.28) !important; color: var(--fg, inherit) !important; cursor: default; }  /* (grey on its fill read fainter than the other word) */
 .af-cal-by button:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
 .af-cal-grid > .af-cal-acts .af-cal-by button { height: 16px; line-height: 14px; }
 /* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar.js; on
@@ -192,7 +192,7 @@
 .af-cal-acts + .af-cal-key { margin-left: 0; }
 .af-cal-grid > .af-cal-acts { position: absolute; top: -20px; right: 0; height: 16px; padding-bottom: 4px; margin: 0; z-index: 1; }  /* (lifted over the months' row, in the gap above it: no label is ever under them; the padding keeps the pointer on the heatmap between them and the row) */
 .af-cal-grid > .af-cal-acts.af-acts-low { top: 0; padding-bottom: 0; }  /* (where the forest's caption reaches them: back on the row) */
-.af-cal-grid > .af-cal-acts .af-cal-chev { height: 16px; line-height: 16px; }
+.af-cal-grid > .af-cal-acts .af-cal-chev { height: 16px; line-height: 13px; padding-bottom: 3px !important; }  /* (the glyphs on the words' line: centred in the box, they sat 2px low) */
 .af-cal-grid > .af-cal-acts .af-cal-today { height: 16px; line-height: 14px; }
 /* a month's label under them (only when they are back on the row) makes way while they show */
 .af-cal-months .af-under { transition: opacity 0.2s; }
@@ -238,18 +238,22 @@
 .af-cal-from-right .af-cal-canvas, .af-cal-from-right .af-cal-months, .af-cal-from-right .af-cal-notes { animation: af-cal-from-right 0.18s ease-out; }
 @media (prefers-reduced-motion: reduce) { .af-cal-from-left *, .af-cal-from-right * { animation: none !important; } }
 .af-cal-canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.af-cal-canvas:focus { outline: none; }  /* (the day the keyboard is on has the hover's ring and its tooltip) */
 .af-cal-months { position: absolute; top: 0; left: 0; right: 0; height: 16px; }
 .af-cal-months span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; }  /* (baseline about 12px down) */
 .af-cal-months .af-cal-year { color: inherit; }
 .af-cal-hover {
   position: absolute; box-sizing: border-box; pointer-events: none;
-  border: 2px solid; border-radius: 2px;  /* its colour: today's frame's, which shows on every shade (calendar.js) */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  transform: translateY(-1px); transition: left 0.06s ease-out, top 0.06s ease-out;
+  border: 2px solid;  /* its colour: today's frame's, which shows on every shade (calendar.js) */
+  transition: left 0.06s ease-out, top 0.06s ease-out;  /* (square, flat and on the grid, as the pixels round it: a soft shadow and a lift blurred it off the tiles) */
 }
 .af-cal-hover[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .af-cal-hover { transition: none; } }
-.af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; }  /* (in the trophies' lane: calendar.js lay) */
+<<<<<<< ours
+.af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (in the trophies' lane: calendar.js lay; the pointer goes through to the trophies and the pennant under it) */
+=======
+.af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (the streak under them answers: calendar.js cellAt) */  /* (in the trophies' lane: calendar.js lay) */
+>>>>>>> theirs
 .af-cal-note { position: absolute; transform: translateX(-50%); font-size: 11px; line-height: 11px; white-space: nowrap; }
 /* a marked day's editor (calendar.js, on a right-click): the icons side by side, all in full colour,
  * the chosen one in a soft square (dimmed would read as disabled: UI_GUIDELINES.md), its name and ×, dressed as the tooltip is; margins rather than gap (Chromium 77) */
@@ -266,6 +270,7 @@
 .af-cal-pin-icon:hover, .af-cal-pin-icon:active, .af-cal-pin-icon:focus { background: var(--af-tip-hover) !important; border: 0 !important; box-shadow: none !important; }
 .af-cal-pin-icon.af-on, .af-cal-pin-icon.af-on:hover, .af-cal-pin-icon.af-on:active, .af-cal-pin-icon.af-on:focus { background: var(--af-tip-chosen) !important; }
 .af-cal-pin-icon canvas { display: block; image-rendering: pixelated; }
+.af-cal-pin-icon:focus-visible { outline: 2px solid var(--af-tip-fg) !important; outline-offset: -2px; }
 .af-cal-pin-name { width: 150px; padding: 3px 2px; border: none; border-bottom: 1px solid var(--af-tip-line); outline: none;
   background: transparent; color: var(--af-tip-fg); font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; }
 .af-cal-pin-name::placeholder { color: var(--af-tip-faint); }
@@ -287,4 +292,5 @@
 .af-cal-above { position: absolute; display: block; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges;
   opacity: 0; transition: opacity 0.2s; }
 .af-cal:hover .af-cal-above, .af-cal:focus-within .af-cal-above, .af-cal-swiped .af-cal-above { opacity: 1; }
+.af-cal-above.af-cal-spot { opacity: 1; transition: none; }  /* (the dimmed days round a hover's own: calendar.js spot) */
 @media (prefers-reduced-motion: reduce) { .af-cal-above { transition: none; } }
