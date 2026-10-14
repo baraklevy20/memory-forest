@@ -257,9 +257,13 @@ const DARK = [16, 16, 16];
 // a light page's four shades: their lightness (OKLab L), fewest reviews to most, and the least
 // colourfulness they keep (a near-grey key would otherwise give grey tiles)
 const LIGHT_STEPS = [0.82, 0.69, 0.56, 0.43], LIGHT_CHROMA = 0.08;  // (0.86 sat too near a missed day's grey)
-// and a dark page's, from a clear dim colour to a bright one (Natural's own, about): mixed towards
-// black, a dusky scenery's fewest reviews sank into the page and a missed day's grey (2026-10-14)
-const DARK_STEPS = [0.44, 0.54, 0.65, 0.77], DARK_CHROMA = [0.55, 0.75, 0.95, 0.9];  // (and their share of the key's colourfulness: the dimmer, the greyer, as before)
+// and a dark page's, from a clear dim colour to a pale bright one: the middle two at 0.10-0.11 apart
+// (OKLab x100) read as one in a small tile; these, from a search (dev/heatmap_shades.py search), put
+// every neighbour at least 12.6 apart and the fewest a step off a missed day's grey, in the room
+// Anki's lighter dark page leaves; each shade's share of its key's colourfulness rises to the third,
+// and the top keeps only half: a vivid colour that light glowed (2026-10-14; a cap on top of the
+// half trimmed two sceneries by 0.004, so dev/heatmap_shades.py check guards it instead)
+const DARK_STEPS = [0.45, 0.58, 0.72, 0.85], DARK_CHROMA = [0.6, 1.0, 1.0, 0.5];
 /* `t` of the way from colour `a` to `b`, through OKLab, where equal steps look equal (a plain mix
  * of a blue and a green dips muddy in the middle) */
 const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -464,6 +468,42 @@ function columns(H, win) {
   return out;
 }
 /* one view drawn: the canvas, and where everything on it is */
+/* a mark's colour, the scenery's own: of every bright hue at a few lightnesses, the one that stands
+ * out most from the scenery's shades on both pages and from a missed day, for normal vision and
+ * the three colour blindnesses at their strongest (Machado et al. 2009), and at least MARK_HUE_APART
+ * round the colour wheel from every shade's hue (an equally distant violet still read as one of
+ * Pumpkin patch's purples). One red for every scenery
+ * sat on Lanterns' and Cherry blossom's reds, and for a red-green colour-blind eye on Natural's
+ * greens (2026-10-14) */
+const CVD = [null,
+  [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],  // (deutan)
+  [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],  // (protan)
+  [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.303900]]];  // (tritan)
+const MARK_LS = [0.6, 0.66, 0.72, 0.78], MARK_C = 0.17, MARK_HUE_APART = Math.PI / 3, MARK_PAGES = [[44, 44, 44], [245, 245, 245]];  // (Anki's dark and light pages)
+const markPals = new Map();
+function markPalOf(sp) {
+  const key = sp.mood.special;
+  if (!markPals.has(key)) {
+    const sim = (c, m) => { if (!m) return c; const l = c.map(lin); return m.map(r => unlin(r[0] * l[0] + r[1] * l[1] + r[2] * l[2])); };
+    const dist = (a, b) => { const p = oklab(a), q = oklab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+    const backs = [...shades(sp, true).grass, ...shades(sp, false).grass].map(p => p[0])
+      .concat([mix(MARK_PAGES[0], [128, 128, 128], 0.11), mix(MARK_PAGES[1], [128, 128, 128], 0.2)]);
+    const at = (L, h) => { let C = MARK_C; while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95; return [L, C, h]; };
+    const hues = backs.map(oklab).filter(k => Math.hypot(k[1], k[2]) > 0.04).map(k => Math.atan2(k[2], k[1]));
+    const apart = h => hues.every(g => Math.abs(Math.atan2(Math.sin(h - g), Math.cos(h - g))) >= MARK_HUE_APART);
+    let best = null, most = -1;
+    for (const L of MARK_LS) for (let deg = 0; deg < 360; deg += 10) {
+      if (!apart(deg * Math.PI / 180)) continue;
+      const lch = at(L, deg * Math.PI / 180), col = fromOklab(lch[0], lch[1] * Math.cos(lch[2]), lch[1] * Math.sin(lch[2]));
+      const worst = Math.min(...CVD.flatMap(m => backs.map(b => dist(sim(col, m), sim(b, m)))));
+      if (worst > most) { most = worst; best = lch; }
+    }
+    const [L, C, h] = best, pale = at(Math.min(0.9, L + 0.14), h);
+    markPals.set(key, Object.assign({}, MARK_PAL, { R: rgb(fromOklab(L, C * Math.cos(h), C * Math.sin(h))),
+      L: rgb(fromOklab(pale[0], pale[1] * 0.55 * Math.cos(h), pale[1] * 0.55 * Math.sin(h))) }));
+  }
+  return markPals.get(key);
+}
 function paint(H, win, sp, paper) {
   const dark = paper.dark, band = TOP;
   // the days in weeks, their first day on top; Timeline starts each month in a column of its own (By
@@ -500,7 +540,7 @@ function paint(H, win, sp, paper) {
     const x0 = c.x + Math.floor((TILE_FACE - rows[0].length) / 2), y0 = c.y + Math.floor((TILE_FACE - rows.length) / 2);
     // (cut out of the tile by a line of the page's colour, as the animals are: red on Lanterns' or
     // Cherry blossom's tiles was lost)
-    drawAnimal(g, spr, x0, y0, null, paper.bg);
+    drawAnimal(g, Object.assign({}, spr, { pal: markPalOf(sp) }), x0, y0, null, paper.bg);
   }
   const today = cells.find(c => c.o === 0);
   if (today) frame(g, today.x, today.y, TILE, dark, paper.bg);
@@ -1178,7 +1218,8 @@ AF.calendar = function (root, data, env) {
     b.title = MARK_ICONS[key].label; b.setAttribute('aria-label', MARK_ICONS[key].label);
     cv.width = rows[0].length * s; cv.height = rows.length * s;
     const g = cv.getContext('2d');
-    rows.forEach((line, y) => { for (let x = 0; x < line.length; x++) if (MARK_PAL[line[x]]) { g.fillStyle = MARK_PAL[line[x]]; g.fillRect(x * s, y * s, s, s); } });
+    const markPal = markPalOf(sp);  // (in the colour the heatmap draws them in)
+    rows.forEach((line, y) => { for (let x = 0; x < line.length; x++) if (markPal[line[x]]) { g.fillStyle = markPal[line[x]]; g.fillRect(x * s, y * s, s, s); } });
     b.appendChild(cv);
     b.addEventListener('mousedown', e => e.preventDefault());  // (the name keeps the focus)
     b.addEventListener('click', () => {
