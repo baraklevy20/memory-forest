@@ -17,6 +17,7 @@ from . import whats_new
 from .about import AboutTab
 from .decks import DecksTab
 from .forest_tab import ForestTab
+from .heatmap_tab import HeatmapTab
 from .scenery_picker import ROW_H, ROWS_FEWEST, ROWS_SHOWN
 from .scenery_tab import SceneryTab
 from .widgets import Scrolled
@@ -104,12 +105,13 @@ class SettingsDialog(QDialog):
         tags = news.tile_tags(cfg, today(cfg))
         self.scenery = SceneryTab(cfg, [k for k, t in tags.items() if t == "new"], [k for k, t in tags.items() if t == "improved"])
         self.custom = self.scenery.custom
-        self.forest = ForestTab(cfg, on_phone, carry.get("phone_was"))
+        self.heatmap = HeatmapTab(cfg)
+        self.forest = ForestTab(cfg, on_phone, self.heatmap, carry.get("phone_was"))
         self.decks = DecksTab(cfg, self.original)
         # the made-up test forest and the event switches are a developer's tool: their tab is
         # only there while debug is on (its values are still kept, so they wait for next time)
         self.debug = debug_tab(cfg)
-        shown = [(self.scenery, "Scenery"), (self.forest, "Forest"), (self.decks, "Decks")]
+        shown = [(self.scenery, "Scenery"), (self.forest, "Forest"), (self.heatmap, "Heatmap"), (self.decks, "Decks")]
         if not isinstance(self.debug, NoDebugTab):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))
@@ -147,7 +149,7 @@ class SettingsDialog(QDialog):
         self.scenery.real_sky.toggled.connect(self._real_sky_toggled)
         # the tiles move unless the forest is still (Qt can't tell what the system asks for)
         self.forest.animations.on_change(lambda: self.scenery.picker.animate(self.forest.animations.currentData() != "off"))
-        for tab in (self.scenery, self.forest, self.decks, self.debug):
+        for tab in (self.scenery, self.forest, self.heatmap, self.decks, self.debug):
             tab.connect(self._changed)
         # the dialog's own timer, so a closed (and deleted) dialog is never called back
         self._city_check = QTimer(self); self._city_check.setSingleShot(True); self._city_check.setInterval(CITY_RECHECK_MS)
@@ -232,7 +234,7 @@ class SettingsDialog(QDialog):
         return self.pages.get(tab, tab)
 
     def tab_widgets(self) -> dict:
-        return {"scenery": self.scenery, "forest": self.forest, "decks": self.decks, "debug": self.debug, "about": self.about}
+        return {"scenery": self.scenery, "forest": self.forest, "heatmap": self.heatmap, "decks": self.decks, "debug": self.debug, "about": self.about}
 
     def show_tab(self, key: str) -> bool:
         tab = self.tab_widgets().get(OLD_TAB_KEYS.get(key, key))
@@ -247,12 +249,12 @@ class SettingsDialog(QDialog):
 
     def news_targets(self) -> dict:
         """Every setting a note can point at: key -> (its tab, the widget, its name)."""
-        return {key: (tab, widget, name) for tab in (self.scenery, self.forest, self.decks)
+        return {key: (tab, widget, name) for tab in (self.scenery, self.forest, self.heatmap, self.decks)
                 for key, (widget, name) in tab.news_targets().items()}
 
     def show_news(self, focus: str) -> None:
-        """Go where a note's button points (news.opens): a tab ("scenery", "forest", "decks",
-        "about"), or a setting (news_targets), shown tagged NEW."""
+        """Go where a note's button points (news.opens): a tab ("scenery", "forest", "heatmap",
+        "decks", "about"), or a setting (news_targets), shown tagged NEW."""
         if not focus or self.show_tab(focus):
             return
         target = self.news_targets().get(focus)
@@ -296,6 +298,7 @@ class SettingsDialog(QDialog):
         self.scenery.offer(day, self.custom.look(), debug_edition(dict(self._current(), **self.debug.values())))
         self.scenery.sync()
         self.forest.sync()
+        self.heatmap.sync()
         self.decks.sync()
         self.debug.sync()
 
@@ -307,7 +310,7 @@ class SettingsDialog(QDialog):
         # keep only current options, so settings from older versions don't linger
         known = mw.addonManager.addonConfigDefaults(self.module) or {}
         cfg = {k: v for k, v in self.opened.items() if k in known}
-        for tab in (self.scenery, self.forest, self.debug):
+        for tab in (self.scenery, self.forest, self.heatmap, self.debug):
             cfg.update(tab.values())
         cfg.update(self.decks.values(self._current()))
         # anything still at its default stays unset, so a better default in a later

@@ -1,7 +1,7 @@
-"""The forest's settings dialog: four tabs, Scenery (the picker, the real sky, and
+"""The forest's settings dialog: five tabs, Scenery (the picker, the real sky, and
 Customize: the five settings a scenery fills in), Forest (Nature, where it shows, motion,
-the planting message and the phone), Decks (which decks and days the forest grows from),
-and About. Each tab is a file of its own here; dialog.py puts them together and saves."""
+the planting message and the phone), Heatmap (where the study heatmap shows, its view and
+week), Decks (which decks and days the forest grows from), and About. Each tab is a file of its own here; dialog.py puts them together and saves."""
 
 from __future__ import annotations
 

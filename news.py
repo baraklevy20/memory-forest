@@ -272,8 +272,8 @@ def tried(key: str) -> None:
 
 
 def opens(news_id: str) -> str:
-    """Where a note's button opens the settings: a tab ("scenery", "forest", "decks",
-    "about"), a setting one of them names (their news_targets, e.g. "animations"), or ""."""
+    """Where a note's button opens the settings: a tab ("scenery", "forest", "heatmap",
+    "decks", "about"), a setting one of them names (their news_targets, e.g. "animations"), or ""."""
     pick = _load().get("debug")
     if news_id == DEBUG_NOTE and isinstance(pick, dict) and pick.get("opens"):
         return pick["opens"]

@@ -1,5 +1,6 @@
 """The Forest tab: how the forest behaves and where it shows - Nature, the screens it is on,
-the study calendar, motion and the planting message, and the forest on your phone."""
+motion and the planting message, and the forest on your phone. The heatmap under it has a tab
+of its own (heatmap_tab.py)."""
 
 from __future__ import annotations
 
@@ -26,11 +27,8 @@ from ..state import (
     MAX_WIDTH_MAX,
     MAX_WIDTH_MIN,
     animation_mode,
-    calendar_on,
-    calendar_view,
     shows_on_deck_list,
     shows_on_finished,
-    week_start,
 )
 from .palette import color
 from .scenery_picker import crisp
@@ -51,47 +49,11 @@ ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
 # where the forest shows: the same "No forest" in both, so the two rows read alike
 MAIN_OPTIONS = [(True, "Your forest"), (False, "No forest")]
 DECK_OPTIONS = [("highlight", "Your forest, that deck's trees lit up"), ("own", "A forest of that deck's own"), ("off", "No forest")]
-# the study calendar: how much of it shows at once, and the day its weeks start on
-CALENDAR_OPTIONS = [("timeline", "Timeline"), ("by_year", "By year")]
-WEEK_OPTIONS = [("system", "Auto"), ("monday", "Mon"), ("sunday", "Sun"), ("saturday", "Sat")]
-WEEK_TIPS = {"system": "Your system's first day of the week", "monday": "Monday", "sunday": "Sunday", "saturday": "Saturday"}
-# the week's start as joined buttons, one control, the chosen one filled as Anki fills a default
-# button (the corners rounded only at the row's two ends)
-WEEK_STYLE = """
-QPushButton {{ border: 1px solid {line}; border-left-width: {left}px; border-radius: 0; padding: 3px 10px;
-              border-top-left-radius: {r0}px; border-bottom-left-radius: {r0}px;
-              border-top-right-radius: {r1}px; border-bottom-right-radius: {r1}px;
-              background: rgba(128, 128, 128, 0.10); }}
-QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
-QPushButton:checked {{ background: {ring}; color: white; border-color: {ring}; }}
-"""
-WEEK_RADIUS = 6
 # points between two fields sharing a row (the deck screens' forest and "On finished decks too",
-# the calendar's two screens), so the tab grows no taller (SETTINGS_GUIDELINES.md)
+# the heatmap's two screens), so the tab grows no taller (SETTINGS_GUIDELINES.md)
 CALENDAR_GAP = 24
 WIDTH_STEP = 50
 WIDTH_BOX_W = 110
-
-
-class WeekChoice(Choice):
-    """The day the study calendar's weeks start on, as a row of joined buttons: Auto (the
-    system's), Mon, Sun, Sat."""
-
-    def __init__(self, value: str):
-        super().__init__(WEEK_OPTIONS, value, "system", gap=0, stretch=False)
-        self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)  # (its own width, not the row's)
-
-    def make_button(self, key, label: str):
-        at = [k for k, _label in WEEK_OPTIONS].index(key)
-        first, last = at == 0, at == len(WEEK_OPTIONS) - 1
-        b = QPushButton(label)
-        b.setToolTip(WEEK_TIPS[key])
-        b.setAutoDefault(False)  # Enter in the dialog means Done
-        b.setCheckable(True)
-        b.setCursor(Qt.CursorShape.PointingHandCursor)
-        b.setStyleSheet(WEEK_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"), left=1 if first else 0,
-                                          r0=WEEK_RADIUS if first else 0, r1=WEEK_RADIUS if last else 0))
-        return b
 
 
 class NatureChoice(Choice):
@@ -125,25 +87,19 @@ def beside(first, *rest, top: bool = False) -> QHBoxLayout:
 
 
 class ForestTab(Tab):
-    def __init__(self, cfg: dict, on_phone, phone_was: bool | None = None):
+    def __init__(self, cfg: dict, on_phone, heatmap, phone_was: bool | None = None):
         super().__init__()
+        self.heatmap = heatmap  # (its deck screens: "On finished decks too" covers them too)
         self.on_phone = on_phone  # makes or takes away the phone's deck (actions.phone_switched)
         self.nature = NatureChoice(nature_level(cfg.get("nature")))
         self.nature_note = hint("")
         self.nature_note.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (its room fits the longest level)
         self.main_forest = Choice(MAIN_OPTIONS, shows_on_deck_list(cfg), True)
         self.deck_mode = Choice(DECK_OPTIONS, cfg.get("deck_forest_mode", "highlight"), "highlight", vertical=True)
-        # the deck screens' forest and calendar on a deck you have finished too (Anki's
+        # the deck screens' forest and heatmap on a deck you have finished too (Anki's
         # congratulations page), beside their choice
         self.finished = QCheckBox("On finished decks too")
         self.finished.setChecked(shows_on_finished(cfg))
-        # the study calendar, under the forest or without it: on which screens, its view, its week
-        self.calendar_main = QCheckBox("Main screen")
-        self.calendar_main.setChecked(calendar_on("main", cfg))
-        self.calendar_decks = QCheckBox("Deck screens")
-        self.calendar_decks.setChecked(calendar_on("decks", cfg))
-        self.calendar = Choice(CALENDAR_OPTIONS, calendar_view(cfg), "timeline")
-        self.week = WeekChoice(week_start(cfg))
         self.max_width = QSpinBox(); self.max_width.setRange(MAX_WIDTH_MIN, MAX_WIDTH_MAX); self.max_width.setSingleStep(WIDTH_STEP); self.max_width.setSuffix(" px")
         self.max_width.setMaximumWidth(WIDTH_BOX_W)
         try:
@@ -169,10 +125,6 @@ class ForestTab(Tab):
         where.addRow("Main screen", self.main_forest)
         where.addRow("Deck screens", beside(self.deck_mode, self.finished, top=True))
         where.addRow("Forest width", self.max_width)
-        cal = form()
-        cal.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
-        cal.addRow("View", self.calendar)
-        cal.addRow("Week starts on", self.week)
         motion = QVBoxLayout()
         animate = form()
         animate.addRow("Animate the forest", self.animations)
@@ -185,8 +137,6 @@ class ForestTab(Tab):
         self.nature_group = group("Nature", nv)
         v.addWidget(self.nature_group)
         v.addWidget(group("Where it shows", where))
-        self.calendar_group = group("Study heatmap", cal)
-        v.addWidget(self.calendar_group)
         v.addWidget(group("Motion and messages", motion))
         v.addWidget(group("On your phone", pv))
         v.addStretch(1)
@@ -201,15 +151,15 @@ class ForestTab(Tab):
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"nature": (self.nature_group.title, "Nature"), "main_forest": (self.main_forest, "Main screen"),
                 "deck_forest_mode": (self.deck_mode, "Deck screens"),
-                "calendar": (self.calendar_group.title, "Study heatmap"), "max_width": (self.max_width, "Forest width"),
+                "max_width": (self.max_width, "Forest width"),
                 "animations": (self.animations, "Animate the forest"), "planting_tooltip": (self.planting, "The planting message"),
                 "phone": (self.phone, "Your forest on your phone")}
 
     def connect(self, changed) -> None:
-        for choice in (self.animations, self.main_forest, self.deck_mode, self.calendar, self.week):
+        for choice in (self.animations, self.main_forest, self.deck_mode):
             choice.on_change(changed)
         self.max_width.valueChanged.connect(changed)
-        for box in (self.planting, self.phone, self.calendar_main, self.calendar_decks, self.finished):
+        for box in (self.planting, self.phone, self.finished):
             box.toggled.connect(changed)
         self.nature.on_change(changed)
 
@@ -217,11 +167,8 @@ class ForestTab(Tab):
         level = self.nature.currentData()
         note = NATURE_NOTES.get(level, "")
         self.nature_note.setText(note if calm(level) else f"{note} {NATURE_SWITCH_NOTE}")
-        # (how it shows only matters while it shows somewhere)
-        on = self.calendar_main.isChecked() or self.calendar_decks.isChecked()
         # (a finished deck's screen shows what the deck screens do, so only while they show something)
-        self.finished.setEnabled(self.deck_mode.currentData() != "off" or self.calendar_decks.isChecked())
-        self.calendar.setEnabled(on); self.week.setEnabled(on)
+        self.finished.setEnabled(self.deck_mode.currentData() != "off" or self.heatmap.calendar_decks.isChecked())
         self.fit()
 
     def fit(self) -> None:
@@ -242,10 +189,6 @@ class ForestTab(Tab):
             "nature": self.nature.currentData(),
             "main_forest": self.main_forest.currentData(),
             "deck_forest_mode": self.deck_mode.currentData(),
-            "calendar": self.calendar.currentData(),
-            "calendar_week_start": self.week.currentData(),
-            "calendar_main": self.calendar_main.isChecked(),
-            "calendar_decks": self.calendar_decks.isChecked(),
             "finished_decks": self.finished.isChecked(),
             "max_width": self.max_width.value(),
         }

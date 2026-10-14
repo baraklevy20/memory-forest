@@ -85,5 +85,12 @@ class PaletteTests(unittest.TestCase):
         self.assertIsNone(palette.chevron())  # Qt draws its own arrow
 
 
+class HeatmapViewTests(unittest.TestCase):
+    def test_the_view_choice_offers_every_view(self):
+        tab = importlib.import_module(f"{PACKAGE}.settings.heatmap_tab")
+        state = importlib.import_module(f"{PACKAGE}.state")
+        self.assertEqual([key for key, _label in tab.CALENDAR_OPTIONS], list(state.CALENDAR_VIEWS))
+
+
 if __name__ == "__main__":
     unittest.main()
