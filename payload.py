@@ -291,8 +291,8 @@ def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: 
     """The numbers the page shows, their streak the study calendar's. With a start date, the
     streak is still your real one, unbroken by it (a young forest is a choice of look, not a
     lapse): only the forest's own milestones (its animals, the journal's) go by the days since it
-    began, from `stats` as the forest has them. Unless the Decks tab says to count the streak
-    from the start date too, or the calendar on this screen shows nothing before it. Under the
+    began, from `stats` as the forest has them. Unless the Heatmap tab says to count the streak
+    from the start date, or the calendar on this screen shows nothing before it. Under the
     whole forest on a deck's screen the calendar is the deck's own, and so is the streak. A day
     with nothing due never breaks it (_free_days), as on the calendar."""
     if test:

@@ -22,7 +22,7 @@ from aqt.qt import (
 from .. import study_log
 from ..phone_note import phone_cards, phone_decks
 from ..scope import anki_today, day_cutoff
-from ..state import OFF_VALUES, log, shows_record, streak_from_start
+from ..state import OFF_VALUES, log
 from .widgets import Tab, date_field, group, grow_window, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole
@@ -106,13 +106,8 @@ class DecksTab(Tab):
         sv = QVBoxLayout()
         since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
         self.since_hint = hint(SINCE_NOTE)
-        # and the reviews from before it, in the study calendar all the same
-        self.record = QCheckBox("Show earlier reviews in the heatmap")
-        self.record.setChecked(shows_record(cfg))
-        # and your streak: your real one unless you'd rather it start again on that day too
-        self.streak_from_start = QCheckBox("Count my streak from the start date too")
-        self.streak_from_start.setChecked(streak_from_start(cfg))
-        sv.addLayout(since_row); sv.addWidget(self.since_hint); sv.addWidget(self.record); sv.addWidget(self.streak_from_start)
+        # (the reviews from before it, and where your streak counts from: the Heatmap tab)
+        sv.addLayout(since_row); sv.addWidget(self.since_hint)
         sv.addSpacing(WHAT_COUNTS_GAP)
         self.keep_suspended = QCheckBox("Keep suspended cards in their trees")
         self.keep_suspended.setChecked(cfg.get("keep_suspended", True) not in OFF_VALUES)
@@ -282,14 +277,10 @@ class DecksTab(Tab):
         self.decks.itemChanged.connect(deck_toggled)
         self.since_on.toggled.connect(changed)
         self.keep_suspended.toggled.connect(changed)
-        self.record.toggled.connect(changed)
-        self.streak_from_start.toggled.connect(changed)
         self.since.dateChanged.connect(changed)
 
     def sync(self) -> None:
         self.since.setEnabled(self.since_on.isChecked())
-        self.record.setEnabled(self.since_on.isChecked())  # (only a start date leaves reviews before it)
-        self.streak_from_start.setEnabled(self.since_on.isChecked())
         self.recount()
 
     def values(self, cfg: dict) -> dict:
@@ -302,8 +293,6 @@ class DecksTab(Tab):
             "excluded_decks": sorted(excluded),
             "ignore_before": self.since.date().toString("yyyy-MM-dd") if self.since_on.isChecked() else "",
             "keep_suspended": self.keep_suspended.isChecked(),
-            "calendar_record": self.record.isChecked(),
-            "streak_from_start": self.streak_from_start.isChecked(),
         }
 
 

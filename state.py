@@ -134,14 +134,14 @@ def shows_on_finished(cfg: dict | None = None) -> bool:
 
 
 def shows_record(cfg: dict | None = None) -> bool:
-    """Whether the study calendar shows your reviews from before the start date too (Decks:
-    "Show earlier reviews in the heatmap"). It does unless switched off."""
+    """Whether the study calendar shows your reviews from before the start date too (Heatmap tab:
+    "Show reviews from before your forest's start date"). It does unless switched off."""
     return (cfg if cfg is not None else config()).get("calendar_record", True) not in OFF_VALUES
 
 
 def streak_from_start(cfg: dict | None = None) -> bool:
-    """Whether the streak starts again at the start date (Decks: "Count my streak from the start
-    date too"); off unless switched on, so a start date leaves your streak whole."""
+    """Whether the streak starts again at the start date (Heatmap tab: "Count my streak
+    from: Your forest's start date"); off unless switched on, so a start date leaves your streak whole."""
     value = (cfg if cfg is not None else config()).get("streak_from_start", False)
     return bool(value) and value not in OFF_VALUES
 
