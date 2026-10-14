@@ -12,7 +12,7 @@
  * Two views, each fitted to the room there is: Timeline (`timeline`: a year or more with this
  * month most of the way along, paged back and on with ‹ ›; on the phone, the whole history swiped
  * along) and By year (`by_year`: January to December). payload.py sends data.calendar = { view,
- * start, days, due, time, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
+ * start, days, due, time, shadeBy, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
  * the date of the first day counted, the reviews of each day from it to today, the cards due on
  * each day from today on, the day each animal came, the forest's own rule for ponds, whether a
  * click opens a day, the days you pinned, the forest's start date (if any), whether the streak
@@ -185,32 +185,41 @@ function history(cal) {
     // (the days still to study, from today, or from tomorrow once today is studied)
     if (rank >= 0) goal = { o: (current.to === 0 ? 1 : 0) + need(rank) - len - 1, rank, beats: others[rank] || 0 };
   }
-  // the shades: where your days studied in the last year split into four (at least 1 apart)
+  // the shades: where your days studied in the last year split into four (at least 1 apart), by
+  // their reviews, or by the seconds those took (`by`: the toggle beside the arrows)
   const splitsOf = vals => {
     vals.sort((a, b) => a - b);
     const splits = [1];
     for (const share of SHADE_SPLITS) splits.push(Math.max(splits[splits.length - 1] + 1, vals.length ? vals[Math.floor(share * (vals.length - 1))] + 1 : splits.length * 50));
-    return v => splits.reduce((lv, s, i) => v >= s ? i : lv, 0);  // 0 the fewest .. 3 the most
+    const lv = v => splits.reduce((at, s, i) => v >= s ? i : at, 0);  // 0 the fewest .. 3 the most
+    lv.splits = splits;
+    return lv;
   };
-  const recent = [];
+  const time = o => (cal.time || [])[o - first] || 0;  // (seconds a day's reviews took, as the days are kept)
+  const recent = [], recentTime = [];
   let busiest = 1;
-  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o)) recent.push(n(o));
+  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o)) { recent.push(n(o)); if (time(o)) recentTime.push(time(o)); }
   for (let o = 1; o <= Math.min(SHADE_SPAN, cal.due.length - 1); o++) busiest = Math.max(busiest, n(o));
-  const shade = splitsOf(recent), dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
+  const byReviews = splitsOf(recent), byTime = splitsOf(recentTime);
+  const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
+  // (a day with reviews but no time kept, an old import's, takes the fewest)
+  const H = { by: cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews', timed: recentTime.length > 0 };
+  H.shade = o => H.by === 'time' ? byTime(time(o)) : byReviews(n(o));
+  H.splits = () => (H.by === 'time' ? byTime : byReviews).splits;
   // the animals, each on the day it came (none before the forest began)
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
-  return {
+  return Object.assign(H, {
     today, first, n, fs, free, runs, pond, current, runOf, podium, goal, animals,
     // the days you marked, each with its icon and name (an older version's: a bare date)
     marked: new Map((cal.marks || []).map(m => typeof m === 'string' ? { day: m } : m).filter(m => m && m.day)
       .map(m => [(utc(m.day) - today) / DAY_MS, { icon: m.icon || 'pin', name: m.name || '' }])),
     // each day's cards since deleted: still counted in its reviews, but its click can't list them
     gone: new Map((cal.gone || []).map(([ago, count, of]) => [-ago, [count, of || count]])),
-    shade, dueShade, dueToday: cal.due[0] || 0,
+    dueShade, dueToday: cal.due[0] || 0,
     ahead: cal.due.length - 1,  // the last day ahead counted
-    time: o => (cal.time || [])[o - first] || 0  // (seconds a day's reviews took, as the days are kept)
-  };
+    time
+  });
 }
 
 /* the days a view shows, [from, to] as offsets: Timeline's `count` months (a year, more when
@@ -388,7 +397,7 @@ function paletteOf(H, sp, paper) {
     if (c.o === 0 && !c.n && H.dueToday) return soilTile(dueLv(H.dueToday));
     if (!c.n || c.o > H.ahead) return null;
     if (c.o > 0) return soilTile(dueLv(c.n));
-    const lv = H.shade(c.n);
+    const lv = H.shade(c.o);
     return tilesOf(S.grass[lv], S.edge[lv], look)[v];
   };
   // (the key: the four shades of a day studied; the soil and the empty days say what they are; the
@@ -589,6 +598,8 @@ AF.calendar = function (root, data, env) {
     + '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
     + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
     + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>'
+    + '</span><span class="af-cal-by" role="radiogroup" aria-label="Shade the days by">'
+    + '<button type="button" role="radio" data-by="reviews">Reviews</button><button type="button" role="radio" data-by="time">Time</button>'
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
@@ -612,6 +623,22 @@ AF.calendar = function (root, data, env) {
   // have them; on the phone, Today alone stays in the footer)
   const acts = box.querySelector('.af-cal-acts');
   if (!swiped) grid.appendChild(acts);
+  // what the shades go by, on the months' row just left of the arrows: the day's reviews, or the
+  // time they took (kept by the add-on; on the phone, and with no time kept, as the add-on has it,
+  // no choice)
+  const byBox = box.querySelector('.af-cal-by');
+  byBox.hidden = swiped || !H.timed;
+  if (!swiped) acts.insertBefore(byBox, acts.firstChild);
+  byBox.querySelectorAll('button').forEach(b => {
+    b.addEventListener('mousedown', e => e.preventDefault());  // (no focus left behind: as the arrows)
+    b.addEventListener('click', () => {
+      if (H.by === b.dataset.by) return;
+      H.by = b.dataset.by;
+      send(`${data.channel}:shade:${H.by}`);
+      unpoint();
+      draw();
+    });
+  });
   const months = box.querySelector('.af-cal-months'), days = box.querySelector('.af-cal-days');
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
   let drawn = null, k = 2, last;  // (last: the day the pointer was last on)
@@ -651,7 +678,13 @@ AF.calendar = function (root, data, env) {
     const swatch = cv => { const c = document.createElement('canvas'); c.width = c.height = TILE; c.getContext('2d').drawImage(cv, 0, 0); c.className = 'af-cal-swatch'; return c; };
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
-    [word('Less')].concat(drawn.key.map(swatch), [word('More')]).forEach(el => keyBox.appendChild(el));
+    // (by time, its ends say what the shades mean: "Under 12 min" .. "1 hr 25 min+", from your splits)
+    const cuts = H.splits(), ends = H.by === 'time' ? [`Under ${lasted(cuts[1])}`, `${lasted(cuts[3])}+`] : ['Less', 'More'];
+    [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
+    byBox.querySelectorAll('button').forEach(b => {
+      const on = b.dataset.by === H.by;
+      b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on);
+    });
     // (on today's page already: the pill goes, the jump stays where it is, dimmed; it points the
     // way today lies, » from the past, « from the days ahead)
     box.querySelectorAll('[data-go="0"]').forEach(b => { b.disabled = !swiped && (view === 'by_year' ? win.year === yearOf(H.today) : page === 0); });
@@ -878,7 +911,8 @@ AF.calendar = function (root, data, env) {
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `${cards(H.dueToday, 'card')} due, not studied yet`
       : c.o === 0 && H.dueToday ? `${cards(c.n, 'review')} so far${took(c.o)}, ${num(H.dueToday)} still due`
-      : c.n ? cards(c.n, 'review') + took(c.o) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
+      // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
+      : c.n ? (H.by === 'time' && H.time(c.o) ? `${lasted(H.time(c.o))}, ${cards(c.n, 'review')}` : cards(c.n, 'review') + took(c.o)) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;

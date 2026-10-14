@@ -90,6 +90,8 @@ Hover a day for its numbers, and click it to open its cards.
   on the day your streak would earn its next one.
 - **Milestones**: point at the heatmap to see each animal that joined your forest, on the
   day it came.
+- **Reviews or time**: shade the days by how many reviews you did, or by how long you
+  studied (the toggle beside the arrows).
 - **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
   system's.
 - **Every deck**: each deck's screen shows that deck's own heatmap and streak.

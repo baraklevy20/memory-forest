@@ -40,7 +40,7 @@ RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("This resets the scenery and Customize, Nature (to {nature}), your city, where the forest "
-                "and the study heatmap show (finished decks too), the heatmap's view and week start, animation and the "
+                "and the study heatmap show (finished decks too), the heatmap's view, week start and what its shades go by, animation and the "
                 "planting message. It keeps the decks you left out, the start date (and how the heatmap and your streak go "
                 "by it), suspended cards and the forest on your phone.\n\nCancel still puts back the settings you had before.")
 # the tab the dialog was left on, for the next time it opens while Anki is: kept in memory

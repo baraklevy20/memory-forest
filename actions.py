@@ -19,7 +19,7 @@ from .phone import switch
 from .phone_note import PHONE_NOTETYPE, phone_decks
 from .scope import excluded_decks
 from .settings import open_settings as open_dialog
-from .state import MODULE, config, keeps_suspended, log, save_config
+from .state import CALENDAR_SHADES, MODULE, config, keeps_suspended, log, save_config
 
 
 def settings_changed() -> None:
@@ -120,6 +120,8 @@ def on_js_message(handled, message, context):
             marks.set_mark(mw.col, cmd[1], cmd[2], ":".join(cmd[3:]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "unmark" and len(cmd) > 1:
             marks.unmark(mw.col, cmd[1])
+        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the key's toggle: reviews or time
+            save_config(dict(config(), calendar_shade=cmd[1]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait
             hold_shortcuts(cmd[1:] == ["1"])
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked

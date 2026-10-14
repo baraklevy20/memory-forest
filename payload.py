@@ -26,6 +26,7 @@ from .state import (
     WEEK_START_DAYS,
     animation_mode,
     calendar_on,
+    calendar_shade,
     calendar_view,
     clamp_int,
     config,
@@ -360,7 +361,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     days = [day_reviews.get(ago, 0) for ago in range(oldest, -1, -1)]
     due = remembered("calendar_due", changed and (changed, cutoff, frozenset(excluded), frozenset(skip), tuple(dids or ())),
                      lambda: study_log.load_due(col.db, col.sched.today, CALENDAR_DUE_DAYS, excluded, skip, dids))
-    return {"view": calendar_view(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
+    return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (none for a made-up day)
