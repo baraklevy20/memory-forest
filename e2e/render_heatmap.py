@@ -23,7 +23,7 @@ def heatmap_calendar(view: str, years) -> dict:
         reviews = 20 + (i * 37) % 180 if on else 0
         days.append(reviews)
         time_.append(reviews * (5 + i % 6) if reviews else 0)
-    return {"view": view, "shadeBy": "reviews", "yearsShown": years, "weekStart": 1, "start": start.isoformat(),
+    return {"view": view, "shadeBy": "reviews", "_open": years, "weekStart": 1, "start": start.isoformat(),
             "days": days, "time": time_, "due": [40] + [30 + i % 25 for i in range(1, 200)], "animals": [],
             "breakDays": 7, "forestStart": None, "hiddenBefore": None, "streakFromStart": False,
             "marks": [{"day": "2026-03-04", "icon": "sick", "name": ""}], "gone": [], "browse": False}
@@ -59,6 +59,17 @@ async function probes(r) {
   const kept = AnkiForest.calendarHeight(window.D.calendar, box.clientWidth, !!window.D.journal);
   const took = box.getBoundingClientRect().height;
   if (Math.abs(kept - took) > 1) r.errors.push(`heatmap: ${Math.round(took)}px drawn in ${kept}px kept (the panel jumps)`);
+  // By year's earlier years, shown by their switch (never at first); then Timeline and back, which
+  // must come back to the year in view alone, and shown again for the probes below
+  const open = window.D.calendar._open, click = sel => { const b = document.querySelector(sel); if (b) b.click(); return !!b; };
+  if (open) {
+    if (!click('.af-cal-more-near')) r.errors.push('heatmap: no switch for the earlier years');
+    if (open === 'all' && !click('.af-cal-more-all')) r.errors.push('heatmap: no "Show all years"');
+    if (!document.querySelector('.af-cal-past-year')) r.errors.push('heatmap: the earlier years did not show');
+    click('[data-view="timeline"]'); click('[data-view="by_year"]');
+    if (document.querySelector('.af-cal-past-year')) r.errors.push('heatmap: back from Timeline, By year kept its earlier years');
+    click('.af-cal-more-near'); if (open === 'all') click('.af-cal-more-all');
+  }
   const cv = document.querySelector('.af-cal-grid > canvas.af-cal-canvas'), c = into(cv);
   // a day: the first spot along the middle row whose tooltip names a day
   let day = '';

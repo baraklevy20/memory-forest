@@ -38,7 +38,7 @@ SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to meas
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start")
 # set on the heatmap itself (its Reviews | Time toggle, By year's earlier years), maybe while the dialog is open: saved as
 # it is now, never as the dialog found it, and Cancel leaves it be
-OUTSIDE_KEYS = ("calendar_shade", "calendar_years")
+OUTSIDE_KEYS = ("calendar_shade",)
 
 
 def keep_heatmap_view(cfg: dict, current: dict, touched: bool) -> None:

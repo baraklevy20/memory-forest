@@ -128,16 +128,6 @@ def calendar_shade(cfg: dict | None = None) -> str:
     return value if value in CALENDAR_SHADES else "reviews"
 
 
-def calendar_years(cfg: dict | None = None) -> bool | str:
-    """Whether By year shows its earlier years under the year in view (its "Show 2 earlier years"
-    switch, on the heatmap itself): False, True (back to the streak worth seeing) or "all" (back to
-    the first review, its "Show all years"); hidden unless shown there."""
-    value = (cfg if cfg is not None else config()).get("calendar_years", False)
-    if value == "all":
-        return "all"
-    return bool(value) and value not in OFF_VALUES
-
-
 def calendar_view(cfg: dict | None = None) -> str:
     """The study calendar's view: Timeline ("timeline": a year with this month most of the way
     along) or By year ("by_year": January to December)."""
