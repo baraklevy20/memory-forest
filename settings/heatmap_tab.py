@@ -6,7 +6,7 @@ itself, not repeated here."""
 
 from __future__ import annotations
 
-from aqt.qt import QCheckBox, QPushButton, QSizePolicy, Qt, QVBoxLayout
+from aqt.qt import QCheckBox, QEvent, QPushButton, QSizePolicy, Qt, QVBoxLayout
 
 from ..payload import _week_start_day
 from ..state import calendar_on, calendar_view, shows_record, streak_from_start, week_start
@@ -47,6 +47,26 @@ class WeekChoice(Choice):
     def __init__(self, value: str):
         super().__init__(WEEK_OPTIONS, value, "system", gap=0, stretch=False)
         self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)  # (its own width, not the row's)
+        # one Tab stop, the chosen day, and the arrow keys from day to day, as round radio buttons
+        # do (push buttons are each a Tab stop of their own, with no arrows)
+        for b in self.buttons.values():
+            b.installEventFilter(self)
+        self.group.buttonToggled.connect(lambda _b, _on: self._tab_stop())
+        self._tab_stop()
+
+    def _tab_stop(self) -> None:
+        for b in self.buttons.values():
+            b.setFocusPolicy(Qt.FocusPolicy.StrongFocus if b.isChecked() else Qt.FocusPolicy.ClickFocus)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.KeyPress and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down):
+            keys = list(self.buttons)
+            at = keys.index(self.currentData()) + (1 if event.key() in (Qt.Key.Key_Right, Qt.Key.Key_Down) else -1)
+            if 0 <= at < len(keys):
+                self.buttons[keys[at]].setChecked(True)
+                self.buttons[keys[at]].setFocus()
+            return True
+        return False
 
     def make_button(self, key, label: str):
         at = [k for k, _label in WEEK_OPTIONS].index(key)

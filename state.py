@@ -128,7 +128,6 @@ def calendar_shade(cfg: dict | None = None) -> str:
     return value if value in CALENDAR_SHADES else "reviews"
 
 
-
 def calendar_view(cfg: dict | None = None) -> str:
     """The study calendar's view: Timeline ("timeline": a year with this month most of the way
     along) or By year ("by_year": January to December)."""
