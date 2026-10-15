@@ -95,6 +95,10 @@ class HeatmapTab(Tab):
         self.calendar_decks = QCheckBox("Deck screens")
         self.calendar_decks.setChecked(calendar_on("decks", cfg))
         self.calendar = Choice(CALENDAR_OPTIONS, calendar_view(cfg), "timeline")
+        # (the same setting as the switch on the heatmap: what it was when last read here, and
+        # whether it was changed here since, so the switch's change is taken in, not undone)
+        self.view_known, self.view_touched = self.calendar.currentData(), False
+        self.calendar.on_change(self._view_changed_here)
         self.week = WeekChoice(week_start(cfg))
         # the reviews from before the forest's start date, in the heatmap all the same
         self.record = QCheckBox("Show the reviews from before it")
@@ -164,6 +168,17 @@ class HeatmapTab(Tab):
         if label is not None:
             label.setEnabled(record)
         self.fit()
+
+    def _view_changed_here(self) -> None:
+        self.view_touched = self.calendar.currentData() != self.view_known
+
+    def reload_view(self, cfg: dict) -> None:
+        """Take in a view chosen on the heatmap itself since it was last read here (Timeline |
+        By year), unless it was changed here since."""
+        outside = calendar_view(cfg)
+        if outside != self.view_known and not self.view_touched:
+            self.calendar.set_quietly(outside)
+        self.view_known = outside
 
     def values(self) -> dict:
         return {

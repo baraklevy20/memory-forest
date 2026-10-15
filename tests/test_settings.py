@@ -57,6 +57,23 @@ class OutsideTests(unittest.TestCase):
         self.assertNotIn("calendar_shade", dialog.DATA_KEYS)  # (Restore defaults still resets it)
 
 
+    def test_the_heatmaps_view_switch_outlives_the_dialog(self):
+        # By year chosen on the heatmap while the dialog is open: kept on its next save and on Cancel
+        cfg = {"calendar": "timeline", "nature": "peaceful"}
+        dialog.keep_heatmap_view(cfg, {"calendar": "by_year"}, touched=False)
+        self.assertEqual(cfg, {"calendar": "by_year", "nature": "peaceful"})
+
+    def test_the_view_changed_here_wins(self):
+        cfg = {"calendar": "timeline"}
+        dialog.keep_heatmap_view(cfg, {"calendar": "by_year"}, touched=True)
+        self.assertEqual(cfg, {"calendar": "timeline"})
+
+    def test_the_default_view_left_unset(self):
+        cfg = {"calendar": "timeline"}
+        dialog.keep_heatmap_view(cfg, {}, touched=False)
+        self.assertEqual(cfg, {})
+
+
 class RestoreDefaultsTests(unittest.TestCase):
     def test_it_says_what_it_keeps(self):
         note = dialog.restore_note(mw.addonManager.addonConfigDefaults("x"))

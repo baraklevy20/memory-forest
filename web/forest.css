@@ -175,6 +175,7 @@
    months' row just left of the arrows (calendar.js; not on the phone, nor with no study time kept) */
 .af-cal-by { display: inline-flex; flex: none; align-items: center; margin: 0 8px 0 0; font-size: 11px; white-space: nowrap; }
 .af-cal-by[hidden] { display: none; }
+.af-cal-view { margin-right: 14px; }  /* (Timeline | By year, then Shade by: apart enough to read as two choices) */
 .af-cal-by button {
   box-sizing: border-box; height: 18px; margin: 0 0 0 2px !important; padding: 0 5px !important;
   border: 1px solid transparent !important; border-radius: 4px !important; background: transparent !important; color: inherit !important; box-shadow: none !important;
@@ -223,7 +224,26 @@
 .af-cal-grid > .af-cal-acts .af-cal-today { display: none; }
 .af-cal-now { font-size: 14px; }
 .af-cal-swiped .af-cal-now { display: none; }
-.af-cal-grid { position: relative; padding-top: 16px; padding-bottom: 0; }  /* (its top, calendar.js monthsRoom: the first row 8px under the months' baseline at any zoom) */
+.af-cal-grid { position: relative; padding-top: 16px; padding-bottom: 0; }
+/* By year's earlier years (calendar.js past): one switch under the year in view shows or hides them
+   all ("Show 2 earlier years"), each a whole year with a line of words over it. Plain, small, as
+   the arrows are; always in view, so it is found (MORE_H, PAST_HEAD, PAST_GAP: the room kept for them) */
+/* (.af-cal-past is not positioned: its years are placed, and point, by the heatmap's own offsets, as the year in view is) */
+.af-cal-more {
+  display: inline-flex; align-items: center; box-sizing: border-box; height: 18px; margin: 4px 0 0 -5px !important; padding: 0 6px 0 4px !important;
+  border: 0 !important; border-radius: 4px !important; background: transparent !important; color: inherit !important; box-shadow: none !important;
+  font: inherit; font-size: 11px; line-height: 18px; cursor: pointer;
+}
+.af-cal-more:hover { background: rgba(128, 128, 128, 0.18) !important; color: var(--fg, inherit) !important; }
+.af-cal-more:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+.af-cal-more-chev { display: inline-block; width: 12px; margin-right: 3px; font-size: 10px; text-align: center; }
+.af-cal-past-year { margin-top: 8px; }
+.af-cal-past-head { height: 18px; font-size: 11px; line-height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.af-cal-past-head b { margin-right: 8px; font-weight: 600; color: var(--fg, inherit); }  /* (a margin, not flex gap: Chromium 77 has none) */
+/* (shown: they come down into place, briefly; never with the forest kept still, nor reduced motion) */
+@keyframes af-cal-past-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.af-cal-past-in .af-cal-past-year { animation: af-cal-past-in 0.2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .af-cal-past-in .af-cal-past-year { animation: none; } }  /* (its top, calendar.js monthsRoom: the first row 8px under the months' baseline at any zoom) */
 /* on the phone: one long timeline, swiped along (calendar.js SWIPED_K) */
 .af-cal-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .af-cal-scroll::-webkit-scrollbar { display: none; }  /* (swiped, never dragged by a bar) */
@@ -250,12 +270,9 @@
 }
 .af-cal-hover[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .af-cal-hover { transition: none; } }
-<<<<<<< ours
 .af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (in the trophies' lane: calendar.js lay; the pointer goes through to the trophies and the pennant under it) */
-=======
-.af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (the streak under them answers: calendar.js cellAt) */  /* (in the trophies' lane: calendar.js lay) */
->>>>>>> theirs
 .af-cal-note { position: absolute; transform: translateX(-50%); font-size: 11px; line-height: 11px; white-space: nowrap; }
+.af-cal-since { transform: none; }  /* (at the bracket's cut start, reading on from it) */
 /* a marked day's editor (calendar.js, on a right-click): the icons side by side, all in full colour,
  * the chosen one in a soft square (dimmed would read as disabled: UI_GUIDELINES.md), its name and ×, dressed as the tooltip is; margins rather than gap (Chromium 77) */
 .af-cal-pin { position: absolute; z-index: 3; display: flex; align-items: center; padding: 5px 6px; border-radius: 8px;

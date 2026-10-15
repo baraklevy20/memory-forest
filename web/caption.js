@@ -26,7 +26,10 @@ AF.caption = function (root, data) {
     + (canBrowse() && !data.testForest ? ' Click to see their cards.' : ''),
     data.testForest ? '' : `${data.channel}:browse:${data.merged.from_ago}:${deckFor(data)}:${data.merged.to_ago}`]);
   if (s.ancient) items.push([`${s.ancient} ancient`, `${cap(words.many)} whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not.`]);
-  if (s.streak) items.push([`${s.streak}-day streak`, "Days you studied, in a row. A day with nothing due doesn't break it."]);
+  // (a click shows it year by year in the heatmap under the forest, while it is on Timeline)
+  const byYear = r => r.afCalByYear && r.afCalByYear();
+  byYear.hint = r => (r.afCalByYear && r.afCalByYear(true) ? '<br><span class="af-hint">Click to see it year by year</span>' : '');
+  if (s.streak) items.push([`${s.streak}-day streak`, "Days you studied, in a row. A day with nothing due doesn't break it.", byYear]);
   items.push(...AF.events.collect('caption', data, words, animates(data)));  // the asteroid, on its way or struck
   // the scene's name, unless it is the plain default
   if (data.sceneName) items.push([data.sceneName, data.sceneTip || 'The scenery, chosen in the forest settings.']);
@@ -62,7 +65,10 @@ AF.captionTips = function (root) {
     el.addEventListener('pointerdown', e => { touched = e.pointerType !== 'mouse'; });
     el.addEventListener('mouseenter', () => {
       capTip.textContent = el.dataset.tip;
-      if (el.dataset.act) capTip.insertAdjacentHTML('beforeend', AF.watchHint(touched));
+      const act = el.dataset.act && root.afCaptionActs[el.dataset.act];
+      // (an item's own hint, or the event's replay; none where its click does nothing now)
+      const hint = act ? (act.hint ? act.hint(root) : AF.watchHint(touched)) : '';
+      if (act) { capTip.insertAdjacentHTML('beforeend', hint); el.classList.toggle('af-click', !!hint); }
       capTip.hidden = false;
       place(el);
     });

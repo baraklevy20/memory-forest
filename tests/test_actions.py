@@ -40,6 +40,12 @@ class ActionTests(unittest.TestCase):
         actions.browse_day(400, None, 30)
         self.assertEqual(browser.searches, [f'introduced:401 -is:suspended -introduced:30 -"deck:German" {NOT_PHONE}'])
 
+    def test_by_year_s_earlier_years_shown_hidden_or_all(self):
+        context = actions.DeckBrowser()
+        for sent, kept in (("1", True), ("all", "all"), ("0", False)):
+            actions.on_js_message((False, None), f"{addon.state.MODULE}:years:{sent}", context)
+            self.assertEqual(addon.state.calendar_years(), kept)
+
     def test_only_this_add_ons_messages_are_answered(self):
         context = actions.DeckBrowser()
         self.assertEqual(actions.on_js_message((False, None), "someone_else:browse:5", context), (False, None))

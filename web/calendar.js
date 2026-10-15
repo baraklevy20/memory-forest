@@ -95,7 +95,7 @@ const LABEL_GAP = 6, TIP_GAP = 8;
 const SPOT_DIM = 0.72;  // the days a hover is not about: this far into the page (a key's shade, a month, a streak)
 const TIP_WAIT = 150;  // ms the first tooltip waits, the pointer just come onto the heatmap
 const SWIPE_PX = 40, SWIPE_QUIET = 250, SWIPE_AGAIN = 1.5;  // a trackpad's sideways swipe: css px to turn a page; ms still that ends it; how much faster than the last step a new swipe starts
-const DAYS_ROOM = 28, NOTE_ROOM = 44;  // css px: room the weekdays need left of the forest; a streak's length, about  // css px between two month labels, and between a day and its tooltip
+const DAYS_ROOM = 28, NOTE_ROOM = 44, SINCE_ROOM = 150;  // css px: room the weekdays need left of the forest; a streak's length, about  // css px between two month labels, and between a day and its tooltip
 const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
 const TOUCH_PAD = 6, TAP_SLOP = 10;
@@ -230,6 +230,32 @@ function history(cal) {
     time
   });
 }
+
+/* By year's earlier years, shown all at once under the year in view by its "earlier years" switch:
+ * back to the one the streaks worth seeing began in - the current one, and the last one before it of
+ * SHOWN_STREAK days or more (a long streak just broken, then three days: the broken one is what
+ * people look for) - and with neither before the year in view, every year; `all`: every year, back to your first
+ * review ("Show all years", under them). Never before your first review; newest first */
+function reachOf(H) {
+  const long = H.runs.filter(r => r.days >= SHOWN_STREAK && r !== H.current).sort((a, b) => b.to - a.to)[0];
+  const starts = [H.current, long].filter(Boolean).map(r => r.from);
+  return starts.length ? Math.min(...starts) : H.first;
+}
+function pastYears(H, shown, all) {
+  const lo = Math.max(yearOf(H.today + H.first * DAY_MS), yearOf(H.today + (all ? H.first : reachOf(H)) * DAY_MS)), out = [];
+  for (let y = shown - 1; y >= lo; y--) out.push(y);
+  return out;
+}
+// the earlier years shown for a state (false, true or 'all'): true reaches the streak worth seeing,
+// or, where that began in the year in view, every year (nothing short of them to offer)
+function yearsFor(H, shown, state) {
+  if (!state) return [];
+  const streak = pastYears(H, shown, false);
+  return state === 'all' || !streak.length ? pastYears(H, shown, true) : streak;
+}
+// css px: the switch's line under the year in view, and each earlier year's line of words over it
+// and the room above that (the room kept before drawing counts them: calendarHeight)
+const MORE_H = 22, PAST_HEAD = 18, PAST_GAP = 8;
 
 /* the days a view shows, [from, to] as offsets: Timeline's `count` months (a year, more when
  * wide, fewer when narrow), `page` such stretches back (negative) or on; the phone's whole
@@ -566,7 +592,7 @@ function paint(H, win, sp, paper) {
       g.clearRect(wx0, by, wx1 - wx0 + 1, 1);
       for (let x = wx0; x <= wx1; x += 2) g.fillRect(x, by, 1, 1);
     }
-    brackets.push({ x0, x1, len, live, run: r });
+    brackets.push({ x0, x1, len, live, run: r, cut: fo > r.from });
   }
   // the streak lane: a trophy under the last day of each of your longest streaks and the goal
   // pennant under its day, below the brackets, and a dotted gold line from today on to the goal
@@ -642,7 +668,13 @@ AF.calendarHeight = function (cal, width) {
     W = 1 + cols[cols.length - 1][2] * CELL + CELL;
   }
   const k = width > 0 ? scaleFor(width, W, true) : 1;
-  return Math.round(monthsRoom(k) + (TOP + ROWS * CELL + BRACKET) * k + FOOT_GAP + FOOT_H);  // (rounded as the page rounds the drawn height)
+  // (By year: the switch for its earlier years, and those years when shown)
+  const H = view === 'by_year' && width > 0 ? history(cal) : null, y = H ? yearOf(H.today) : 0;
+  const any = H ? pastYears(H, y, true).length : 0, past = H ? yearsFor(H, y, cal.yearsShown).length : 0;
+  // (and "Show all years" under them, while there are more back to the first review)
+  const further = past && past < any;
+  const more = any ? MORE_H + past * (PAST_GAP + PAST_HEAD + (TOP + ROWS * CELL + BRACKET) * k) + (further ? MORE_H : 0) : 0;
+  return Math.round(monthsRoom(k) + (TOP + ROWS * CELL + BRACKET) * k + more + FOOT_GAP + FOOT_H);  // (rounded as the page rounds the drawn height)
 };
 
 AF.calendar = function (root, data, env) {
@@ -653,7 +685,8 @@ AF.calendar = function (root, data, env) {
   let box = root.querySelector('.af-cal');
   if (!box) { box = document.createElement('div'); box.className = 'af-cal'; root.append(box); }
   weekStart = cal.weekStart == null ? 1 : cal.weekStart;
-  const H = history(cal), view = cal.view === 'by_year' ? 'by_year' : 'timeline', sp = sceneOf(data, env);
+  const H = history(cal), sp = sceneOf(data, env);
+  let view = cal.view === 'by_year' ? 'by_year' : 'timeline';  // (the switch on the heatmap changes it)
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
   let page = 0, year = null;  // Timeline's stretch, in months from today's (0), By year's year
@@ -670,13 +703,16 @@ AF.calendar = function (root, data, env) {
   // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ ›,
   // with Today before them only once paged away, so they stay where they are as it comes and
   // goes) and the key, the last two shown on hover (forest.css)
-  box.innerHTML = '<div class="af-cal-grid"><div class="af-cal-months"></div><div class="af-cal-days"></div><div class="af-cal-hover" hidden></div><div class="af-cal-notes"></div></div>'
+  box.innerHTML = '<div class="af-cal-grid"><div class="af-cal-months"></div><div class="af-cal-days"></div><div class="af-cal-hover" hidden></div><div class="af-cal-notes"></div><div class="af-cal-past"></div></div>'
     + '<div class="af-cal-foot"><span class="af-cal-journal"></span><span class="af-cal-acts">'
     + '<button type="button" class="af-cal-chev af-cal-today" data-go="0">Today</button>'
     + '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
     + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
     + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>'
-    + '</span><span class="af-cal-by" role="radiogroup" aria-label="Shade the days by"><span class="af-cal-by-label" aria-hidden="true">Shade by</span>'
+    + '</span><span class="af-cal-by af-cal-view" role="radiogroup" aria-label="View">'
+    + '<button type="button" role="radio" data-view="timeline" title="A year, with this month most of the way along">Timeline</button>'
+    + '<button type="button" role="radio" data-view="by_year" title="January to December, and your streak\'s earlier years under it">By year</button>'
+    + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by"><span class="af-cal-by-label" aria-hidden="true">Shade by</span>'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
     + '</span><span class="af-cal-key"></span></div>'
@@ -705,9 +741,40 @@ AF.calendar = function (root, data, env) {
   // what the shades go by, on the months' row just left of the arrows: the day's reviews, or the
   // time they took (kept by the add-on; on the phone, and with no time kept, as the add-on has it,
   // no choice)
-  const byBox = box.querySelector('.af-cal-by');
+  const byBox = box.querySelector('.af-cal-shade');
   byBox.hidden = swiped || !H.timed;
   if (!swiped) acts.insertBefore(byBox, acts.firstChild);
+  // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
+  // (as the shade is; not on the phone, which swipes along its own)
+  const viewBox = box.querySelector('.af-cal-view');
+  viewBox.hidden = swiped;
+  if (!swiped) acts.insertBefore(viewBox, acts.firstChild);
+  viewBox.querySelectorAll('button').forEach(b => {
+    b.addEventListener('mousedown', e => e.preventDefault());
+    b.addEventListener('keydown', e => {
+      const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      const to = viewBox.querySelector(`[data-view="${b.dataset.view === 'timeline' ? 'by_year' : 'timeline'}"]`);
+      to.focus(); to.click();
+    });
+    b.addEventListener('click', () => {
+      if (view === b.dataset.view) return;
+      view = b.dataset.view; page = 0; year = null;
+      send(`${data.channel}:view:${view}`);
+      unpoint();
+      draw();
+    });
+  });
+  // the caption's streak, clicked: By year, as the switch would (`ask`: whether it would do anything)
+  root.afCalByYear = ask => {
+    if (swiped || view === 'by_year') return false;
+    if (ask) return true;
+    // (and its earlier years shown, so the whole streak is there)
+    if (!yearsShown && pastYears(H, yearOf(H.today)).length) { yearsShown = true; send(`${data.channel}:years:1`); }
+    viewBox.querySelector('[data-view="by_year"]').click();
+    return true;
+  };
   byBox.querySelectorAll('button').forEach(b => {
     b.addEventListener('mousedown', e => e.preventDefault());  // (no focus left behind: as the arrows)
     b.addEventListener('keydown', e => {  // (←/→ move the choice, as radio buttons do)
@@ -728,7 +795,7 @@ AF.calendar = function (root, data, env) {
   });
   const months = box.querySelector('.af-cal-months'), days = box.querySelector('.af-cal-days');
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
-  let drawn = null, k = 2, last;  // (last: the day the pointer was last on)
+  let drawn = null, k = 2, last, pointed = null;  // (pointed: the year the pointer is on, the one in view or an earlier one shown)  // (last: the day the pointer was last on)
   let paper = pageOf(box);
   // the day under the pointer: lit with the shade that stands out most and ringed in it, lifted a little
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
@@ -737,12 +804,13 @@ AF.calendar = function (root, data, env) {
   const spot = keep => {
     if (spotCv) { spotCv.remove(); spotCv = null; }
     if (!keep || !drawn) return;
-    const [cv, g] = layer(drawn.W, drawn.Hh);
+    const d = pointed || drawn;  // (a streak's bracket on an earlier year lights that year's days)
+    const [cv, g] = layer(d.W, d.Hh);
     g.fillStyle = rgb(paper.bg, SPOT_DIM);
-    for (const c of drawn.cells) if (!keep(c)) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
+    for (const c of d.cells) if (!keep(c)) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
     cv.className = 'af-cal-above af-cal-spot';
-    Object.assign(cv.style, { left: drawn.cv.offsetLeft + 'px', top: drawn.cv.offsetTop + 'px', width: drawn.cv.style.width,
-      height: drawn.cv.style.height, imageRendering: drawn.cv.style.imageRendering });
+    Object.assign(cv.style, { left: d.cv.offsetLeft + 'px', top: d.cv.offsetTop + 'px', width: d.cv.style.width,
+      height: d.cv.style.height, imageRendering: d.cv.style.imageRendering });
     grid.insertBefore(cv, notes);
     spotCv = cv;
   };
@@ -751,7 +819,7 @@ AF.calendar = function (root, data, env) {
     if (!c && editing && drawn) c = drawn.cells.find(x => x.o === editing.o) || null;  // (a day being marked keeps it)
     hover.hidden = !c;
     if (!c) return;
-    const cv = drawn.cv;
+    const cv = (pointed || drawn).cv;
     hover.style.left = (cv.offsetLeft + (c.x - 1) * k) + 'px';
     hover.style.top = (cv.offsetTop + (c.y - 1) * k) + 'px';
     hover.style.width = hover.style.height = (TILE + 2) * k + 'px';  // (round the whole tile, as today's frame)
@@ -768,7 +836,7 @@ AF.calendar = function (root, data, env) {
     clearTimeout(waking);
     waking = setTimeout(() => { tip.style.visibility = ''; warm = true; }, TIP_WAIT);
   };
-  const unpoint = () => { tip.hidden = true; ring(null); last = undefined; warm = false; clearTimeout(waking); };
+  const unpoint = () => { tip.hidden = true; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; };
   // how far you can page: back to the first day counted, on to the last day ahead counted
   const can = win => ({ back: win.from > H.first, on: win.to < H.ahead });
 
@@ -810,6 +878,11 @@ AF.calendar = function (root, data, env) {
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
     [word('Less')].concat(drawn.key.map(swatch), [word('More')]).forEach(el => keyBox.appendChild(el));
+    viewBox.querySelectorAll('button').forEach(b => {
+      const on = b.dataset.view === view;
+      b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
+    });
+    past();
     byBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.by === H.by;
       b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
@@ -823,6 +896,95 @@ AF.calendar = function (root, data, env) {
     // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
     if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
     lay();
+  }
+  const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
+  // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
+  const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
+  // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
+  // reviews and about how many a day; only the days since your first review, up to today
+  const studiedLines = (from, to) => {
+    // (today counts once studied: until then it isn't over, nor missed)
+    const end = H.n(0) ? 0 : -1, a = Math.max(from, H.first), b = Math.min(to, end);
+    if (b < a) return [a === 0 ? 'Not studied yet' : H.hid !== null && b < H.hid ? 'Before your forest began' : 'Before your first review'];
+    let studied = 0, reviews = 0, secs = 0;
+    for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
+    // (a stretch your history starts inside counts from your first review: "since Mar 1")
+    const since = a > from ? ` since ${new Date(H.today + a * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}` : '';
+    const span = b - a + 1, now = since || (b === end && to > end ? ' so far' : '');
+    if (!studied) return [`Not studied${now}`];
+    // (short enough not to wrap: the totals on one line, the day's average on the next, "studied"
+    // only where some days were missed; the time where the review log kept it)
+    const on = studied < span ? ' studied' : '', avg = cards(Math.round(reviews / studied), 'review');
+    return [studied === span ? `Studied every day${now}` : `Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,  // (never 100% with a day missed, nor 0% with one studied)
+      cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
+      `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
+  };
+  // By year's earlier years, all shown or all hidden by one switch under the year in view ("Show 2
+  // earlier years"), each a whole year with its line of words over it, as the year in view is drawn;
+  // shown or not is kept (`calendar_years`), as the shade is
+  const pastBox = box.querySelector('.af-cal-past');
+  // (false, true: back to the streak worth seeing, or 'all': back to the first review)
+  let yearsShown = cal.yearsShown === 'all' ? 'all' : !!cal.yearsShown, pasts = [];
+  function past() {
+    pastBox.textContent = '';
+    pasts = [];
+    const y0 = drawn.win.year, every = swiped || view !== 'by_year' ? [] : pastYears(H, y0, true);
+    if (!every.length) return;
+    // (the switch reaches the streak worth seeing; with none before the year in view, every year)
+    const streak = pastYears(H, y0, false), years = yearsFor(H, y0, yearsShown), reach = streak.length ? streak : every;
+    const n = reach.length, toAll = !streak.length;
+    const name = yearsShown ? (years.length === 1 ? `Hide ${years[0]}` : 'Hide the earlier years')
+      : n === 1 ? `Show ${reach[0]}` : toAll ? `Show all years, back to ${reach[n - 1]}` : `Show ${n} earlier years`;
+    const more = document.createElement('button');
+    more.type = 'button'; more.className = 'af-cal-more';
+    more.setAttribute('aria-expanded', !!yearsShown);
+    more.title = yearsShown ? (years.length === 1 ? `Hide ${years[0]}` : `Hide ${years[years.length - 1]} to ${years[0]}`)
+      : n === 1 ? `Show ${reach[0]}` : `Show the earlier years, back to ${reach[n - 1]}`;
+    more.innerHTML = `<span class="af-cal-more-chev" aria-hidden="true">${yearsShown ? '\u25b4' : '\u25be'}</span>${esc(name)}`;
+    const set = state => {
+      yearsShown = state;
+      send(`${data.channel}:years:${state === 'all' ? 'all' : state ? 1 : 0}`);
+      unpoint();
+      past();
+      lay();
+      if (state && animates(data)) pastBox.classList.add('af-cal-past-in');
+    };
+    more.addEventListener('mousedown', e => e.preventDefault());
+    more.addEventListener('click', () => set(yearsShown ? false : toAll ? 'all' : true));
+    pastBox.classList.remove('af-cal-past-in');
+    pastBox.appendChild(more);
+    if (!yearsShown) return;
+    for (const y of years) {
+      const win = windowOf(H, 'by_year', 0, y), d = Object.assign(paint(H, win, sp, paper), { win }), el = document.createElement('div');
+      const [first, second] = studiedLines(win.from, win.to);
+      el.className = 'af-cal-past-year';
+      el.innerHTML = `<div class="af-cal-past-head"><b>${y}</b><span>${esc(first)}${second ? ` \u00b7 ${esc(second)}` : ''}</span></div>`;
+      d.cv.className = 'af-cal-canvas af-cal-past-weeks';
+      d.cv.setAttribute('role', 'img');
+      d.cv.setAttribute('aria-label', described(win));
+      d.above.className = 'af-cal-above';
+      el.appendChild(d.cv);
+      el.appendChild(d.above);
+      pastBox.appendChild(el);
+      pasts.push(d);
+    }
+    // (back to the first review, one more click: the years before the streak worth seeing)
+    const rest = every.slice(years.length);
+    if (!rest.length) return;
+    const all = document.createElement('button');
+    all.type = 'button'; all.className = 'af-cal-more af-cal-more-all';
+    all.title = rest.length === 1 ? `Show ${rest[0]} too` : `Show ${rest[rest.length - 1]} to ${rest[0]} too, back to your first review`;
+    all.innerHTML = `<span class="af-cal-more-chev" aria-hidden="true">\u25be</span>${rest.length === 1 ? `Show ${rest[0]}` : `Show all years, back to ${rest[rest.length - 1]}`}`;
+    all.addEventListener('mousedown', e => e.preventDefault());
+    all.addEventListener('click', () => set('all'));
+    pastBox.appendChild(all);
+  }
+  function layPast() {
+    for (const d of pasts) {
+      d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
+      d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
+      d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';
+    }
   }
   function go(where) {
     const was = drawn.win.from;
@@ -849,6 +1011,7 @@ AF.calendar = function (root, data, env) {
     grid.style.paddingTop = monthsRoom(k) + 'px';
     d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
     d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
+    layPast();
     // (the key's tiles as big as the calendar's, and as far apart)
     box.querySelectorAll('.af-cal-swatch').forEach((sw, i, all) => { sw.style.width = sw.style.height = TILE * k + 'px'; if (i < all.length - 1) sw.style.marginRight = (CELL - TILE) * k + 'px'; });
     d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
@@ -895,7 +1058,10 @@ AF.calendar = function (root, data, env) {
     // the trophy at the bracket's end (the current one's is in the caption)
     notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - 5.5 + 'px';
     notes.innerHTML = d.brackets.filter(b => !b.live && (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4)).map(b =>
-      `<span class="af-cal-note" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days</span>`).join('');
+      `<span class="af-cal-note" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days</span>`).join('')
+      // (the current streak, begun before the view: since when, at its cut start, as the bracket has no start mark there)
+      + d.brackets.filter(b => b.live && b.cut && (b.x1 - b.x0) * k >= SINCE_ROOM).map(b =>
+        `<span class="af-cal-note af-cal-since" style="left:${b.x0 * k}px">Since ${esc(fmt(H.today + b.run.from * DAY_MS))}</span>`).join('');
     if (swiped) { away(); clip(); }
   }
   // the phone's timeline: opened on today, most of the way across, the days behind it in view
@@ -974,19 +1140,21 @@ AF.calendar = function (root, data, env) {
   let hit = null;  // (the mark over or under the weeks the pointer is on, if any: cellAt)
   const cellAt = e => {
     hit = null;
-    if (e.target !== drawn.cv) return null;
-    const [x, y] = AF.u.pointIn(e, drawn.cv), px = x / k, py = y / k;
-    const pad = touched && (py < drawn.band || py >= drawn.band + ROWS * CELL) ? TOUCH_PAD : 0;
+    // (the year in view, or an earlier one shown under it)
+    pointed = e.target === drawn.cv ? drawn : pasts.find(d => d.cv === e.target) || null;
+    if (!pointed) return null;
+    const [x, y] = AF.u.pointIn(e, pointed.cv), px = x / k, py = y / k;
+    const pad = touched && (py < pointed.band || py >= pointed.band + ROWS * CELL) ? TOUCH_PAD : 0;
     const off = m => Math.max(m.x0 - px, 0, px - m.x1 + 1) + Math.max(m.y0 - py, 0, py - m.y1 + 1);
-    const mark = drawn.marks.filter(m => px >= m.x0 - pad && px < m.x1 + pad && py >= m.y0 - pad && py < m.y1 + pad)
+    const mark = pointed.marks.filter(m => px >= m.x0 - pad && px < m.x1 + pad && py >= m.y0 - pad && py < m.y1 + pad)
       .sort((a, b) => off(a) - off(b))[0];
     hit = mark || null;
     if (mark) return mark.c;
     // (or a streak's bracket, or the lane under it: the streak itself)
-    const by = drawn.band + ROWS * CELL + 3, br = py >= by - 3 && py < by + 12 ? drawn.brackets.find(b => px >= b.x0 - 1 && px <= b.x1 + 1) : null;
+    const by = pointed.band + ROWS * CELL + 3, br = py >= by - 3 && py < by + 12 ? pointed.brackets.find(b => px >= b.x0 - 1 && px <= b.x1 + 1) : null;
     if (br) { hit = br; return null; }
-    const col = Math.floor(px / CELL), row = Math.floor((py - drawn.band) / CELL);
-    return px >= 0 && row >= 0 && row < ROWS ? drawn.at.get(col * ROWS + row) || null : null;
+    const col = Math.floor(px / CELL), row = Math.floor((py - pointed.band) / CELL);
+    return px >= 0 && row >= 0 && row < ROWS ? pointed.at.get(col * ROWS + row) || null : null;
   };
   // which days a click opens: a day with reviews (today too, once studied), a day ahead with cards
   // due, and today before you study, its cards due
@@ -994,28 +1162,6 @@ AF.calendar = function (root, data, env) {
   // (not a day whose cards have all since been deleted: the browser would open on none)
   const allGone = o => { const g = H.gone.get(o); return !!g && g[0] >= g[1]; };
   const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first && !allGone(c.o);
-  const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
-  // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
-  const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
-  // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
-  // reviews and about how many a day; only the days since your first review, up to today
-  const studiedLines = (from, to) => {
-    // (today counts once studied: until then it isn't over, nor missed)
-    const end = H.n(0) ? 0 : -1, a = Math.max(from, H.first), b = Math.min(to, end);
-    if (b < a) return [a === 0 ? 'Not studied yet' : H.hid !== null && b < H.hid ? 'Before your forest began' : 'Before your first review'];
-    let studied = 0, reviews = 0, secs = 0;
-    for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
-    // (a stretch your history starts inside counts from your first review: "since Mar 1")
-    const since = a > from ? ` since ${new Date(H.today + a * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}` : '';
-    const span = b - a + 1, now = since || (b === end && to > end ? ' so far' : '');
-    if (!studied) return [`Not studied${now}`];
-    // (short enough not to wrap: the totals on one line, the day's average on the next, "studied"
-    // only where some days were missed; the time where the review log kept it)
-    const on = studied < span ? ' studied' : '', avg = cards(Math.round(reviews / studied), 'review');
-    return [studied === span ? `Studied every day${now}` : `Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,  // (never 100% with a day missed, nor 0% with one studied)
-      cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
-      `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
-  };
   // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
   // due. January's label shows its year, so it tells the year's days studied first
   const monthSummary = (y, m) => {
@@ -1083,15 +1229,16 @@ AF.calendar = function (root, data, env) {
     const first = !b.live && year(r.from) === year(r.to) ? day(r.from).replace(/, [0-9]{4}$/, '') : day(r.from);
     tip.innerHTML = `<b>${first} to ${b.live ? 'today' : day(r.to)}</b><br>${b.live ? `Your ${num(r.days)}-day streak` : `${num(r.days)} days in a row`}`;
     tip.hidden = false;
-    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, cx = left + (b.x0 + b.x1) / 2 * k;
+    const on = pointed || drawn, left = grid.offsetLeft + on.cv.offsetLeft - grid.scrollLeft, cx = left + (b.x0 + b.x1) / 2 * k;
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
-    tip.style.top = grid.offsetTop + drawn.cv.offsetTop + (drawn.band + ROWS * CELL + BRACKET) * k + TIP_GAP + 'px';  // (under the lane)
+    tip.style.top = grid.offsetTop + on.cv.offsetTop + (on.band + ROWS * CELL + BRACKET) * k + TIP_GAP + 'px';  // (under the lane)
     spot(c => c.o >= r.from && c.o <= r.to);
   };
   // its date, its reviews or cards due, and where it sits in its streak
   const point = e => {
     if (editing) return;  // (no tooltips while a mark is named: its day keeps the ring)
     const lab = e.target && e.target.closest ? e.target.closest('.af-cal-months span') : null;
+    if (lab) pointed = null;
     if (lab) { if (lab !== last) { last = lab; pointMonth(lab); } return; }
     const c = cellAt(e), on = hit || c;
     if (on === last) return;  // (still on the same day, or mark: nothing changes)
@@ -1140,9 +1287,9 @@ AF.calendar = function (root, data, env) {
     // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
     // (above it when there is no room below in the window), kept inside the calendar's sides;
     // placed by the page's own offsets, which a zoomed page leaves right
-    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
+    const on = (pointed || drawn).cv, left = grid.offsetLeft + on.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + on.offsetTop;
     const cx = left + (c.x + TILE / 2) * k, top = canvasTop + (c.y - 1) * k, bottom = canvasTop + (c.y + TILE + 1) * k;
-    const above = drawn.cv.getBoundingClientRect().top + (c.y + TILE + 1) * k + TIP_GAP + tip.offsetHeight > window.innerHeight;
+    const above = on.getBoundingClientRect().top + (c.y + TILE + 1) * k + TIP_GAP + tip.offsetHeight > window.innerHeight;
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, cx - tip.offsetWidth / 2)) + 'px';
     tip.style.top = (above ? top - tip.offsetHeight - TIP_GAP : bottom + TIP_GAP) + 'px';
   };

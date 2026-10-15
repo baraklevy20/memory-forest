@@ -14,6 +14,7 @@
     "calendar_decks": true,
     "calendar_week_start": "system",
     "calendar_shade": "reviews",
+    "calendar_years": false,
     "calendar_record": true,
     "streak_from_start": false,
     "finished_decks": true,
