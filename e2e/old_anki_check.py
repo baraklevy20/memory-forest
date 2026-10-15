@@ -607,6 +607,6 @@ class Ghost(QObject):
 
 
 _ghost = Ghost()
-if os.environ.get("MEMORY_FOREST_SHOW") != "1":  # (dev/old_anki.py --show: watch it instead)
+if os.environ.get("MEMORY_FOREST_SHOW") != "1":  # (e2e/old_anki.py --show: watch it instead)
     QApplication.instance().installEventFilter(_ghost)
 gui_hooks.profile_did_open.append(lambda: QTimer.singleShot(500, opened))

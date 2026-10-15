@@ -1,4 +1,4 @@
-// node dev/phone_check.mjs <card.html> <chrome>: the taps of dev/phone_check.py, in headless Chrome
+// node e2e/phone_check.mjs <card.html> <chrome>: the taps of e2e/phone_check.py, in headless Chrome
 // as a phone. Prints JSON: { forest: { setup: { tree: tooltip } }, calendar: { setup: { pixel:
 // tooltip } }, errors: [...] }, each tooltip "" where a tap showed none.
 import puppeteer from 'puppeteer-core';

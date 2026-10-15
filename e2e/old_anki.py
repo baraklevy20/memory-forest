@@ -1,12 +1,12 @@
 """Open an old Anki version on a throwaway profile, with this add-on in it, to check it still works there.
 
-    python3 dev/old_anki.py                                # Anki 2.1.45, to look around by hand
-    python3 dev/old_anki.py 2.1.54-qt5                     # any Anki in ANKIS, or the path to an Anki.app
-    python3 dev/old_anki.py --keep                         # reuse the last throwaway profile
-    python3 dev/old_anki.py --check [ANKI ...]             # check it (built, as it ships) by itself, then quit
-    python3 dev/old_anki.py --check --all                  # in every Anki in RELEASE_ANKIS (what a release runs)
-    python3 dev/old_anki.py --check --all --package x.ankiaddon   # the built add-on rather than this folder
-    python3 dev/old_anki.py --check --show                 # with its windows in view (by default a check's
+    python3 e2e/old_anki.py                                # Anki 2.1.45, to look around by hand
+    python3 e2e/old_anki.py 2.1.54-qt5                     # any Anki in ANKIS, or the path to an Anki.app
+    python3 e2e/old_anki.py --keep                         # reuse the last throwaway profile
+    python3 e2e/old_anki.py --check [ANKI ...]             # check it (built, as it ships) by itself, then quit
+    python3 e2e/old_anki.py --check --all                  # in every Anki in RELEASE_ANKIS (what a release runs)
+    python3 e2e/old_anki.py --check --all --package x.ankiaddon   # the built add-on rather than this folder
+    python3 e2e/old_anki.py --check --show                 # with its windows in view (by default a check's
                                                            # windows are all but see-through and take no clicks)
 
 An Anki named by its key in ANKIS is downloaded from Anki's GitHub releases the first time
@@ -20,7 +20,7 @@ and unpacks that into a fresh base folder under the temp dir and starts that Ank
 with -b, so your own collection and your dev config are never touched.
 
 --check needs no hands: the profile starts in English and the dark theme, with no update
-check, and dev/old_anki_check.py goes in beside the add-on. Once the profile is open it
+check, and e2e/old_anki_check.py goes in beside the add-on. Once the profile is open it
 fills the collection with made-up reviews, checks the forest built from them (a big
 learning day's flowers too), measures the cog in the deck list, opens the settings, each of
 their tabs and the scenery picker, picks another scenery and checks the forest was built
@@ -147,7 +147,7 @@ def install(package: str | None) -> str:
 
 
 def progress() -> str:
-    """dev/old_anki_check.py's log of how far it got."""
+    """e2e/old_anki_check.py's log of how far it got."""
     path = os.path.join(BASE, "check.log")
     return ("check.log:\n" + open(path, encoding="utf-8").read()) if os.path.exists(path) else "(no check.log: the check add-on never loaded)\n"
 
@@ -269,7 +269,7 @@ def built() -> str:
     when no --package is given, since the readable source is never what anyone runs."""
     out = os.path.join(tempfile.gettempdir(), "memory-forest-check.ankiaddon")
     edition = ["--edition", "base"] if os.path.exists(os.path.join(ADDON, "editions.json")) else []
-    subprocess.run([sys.executable, os.path.join(HERE, "package.py"), *edition, out], check=True, stdout=subprocess.DEVNULL)
+    subprocess.run([sys.executable, os.path.join(ADDON, "dev", "package.py"), *edition, out], check=True, stdout=subprocess.DEVNULL)
     return out
 
 

@@ -55,7 +55,7 @@ ESBUILD = os.path.join(ADDON, "node_modules", ".bin", "esbuild")
 # The oldest browser that draws the forest: the Mac builds of Anki before 2.1.50, and its
 # Qt5 builds for older Macs up to 2.1.66, have Qt 5.14's web view, Chromium 77. esbuild rewrites newer syntax (`??`,
 # `?.`) into what it knows, and refuses what it cannot rewrite; newer built-in functions
-# it leaves alone, so dev/old_anki.py --check in that Anki is still what proves it runs.
+# it leaves alone, so e2e/old_anki.py --check in that Anki is still what proves it runs.
 OLDEST_BROWSER = "chrome77"
 
 # The shipped defaults: the debug tools (the made-up test forest) stay on this machine.
@@ -225,7 +225,7 @@ def main() -> None:
         names = z.namelist()
     # the whole point of this script: prove none of it got in
     banned = [n for n in names if "meta.json" in n or "user_files" in n or "__pycache__" in n
-              or n.startswith("dev/") or n.startswith("tests/") or n in DEBUG_ONLY]
+              or n.startswith("dev/") or n.startswith("tests/") or n.startswith("e2e/") or n in DEBUG_ONLY]
     if banned:
         sys.exit("refusing to ship: " + ", ".join(banned))
     with zipfile.ZipFile(out) as z:

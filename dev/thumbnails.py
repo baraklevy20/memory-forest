@@ -27,11 +27,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
 sys.path.insert(0, ADDON)
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "e2e"))  # (the render check's page and Chrome)
 
 import editions
-import render_check
+import render_page
 import stale_tiles
-from render_check import WORKERS, render
+from render_check import WORKERS
+from render_page import render
 
 import catalog
 import presets
@@ -85,7 +87,7 @@ def main() -> None:
     failed = []
     for out, width, height, panel in SIZES:
         os.makedirs(out, exist_ok=True)
-        render_check.PANEL_PX = panel  # (the page is drawn at this width; one size at a time)
+        render_page.PANEL_PX = panel  # (the page is drawn at this width; one size at a time)
         with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
             for key, r in pool.map(render, cases):
                 if r.get("errors") or not r.get("png"):

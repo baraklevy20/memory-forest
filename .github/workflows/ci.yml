@@ -53,7 +53,7 @@ jobs:
           python-version: "3.13"
       - run: npm run ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'render' || 'render:quick' }}
 
-  # the Ankis a release is checked in, the oldest supported to the newest: dev/old_anki.py's
+  # the Ankis a release is checked in, the oldest supported to the newest: e2e/old_anki.py's
   # RELEASE_ANKIS, read here so the two never part
   anki-versions:
     name: Anki versions
@@ -63,9 +63,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - id: list
-        run: echo "list=$(python3 -c 'import json, sys; sys.path.insert(0, "dev"); import old_anki; print(json.dumps(old_anki.RELEASE_ANKIS))')" >> "$GITHUB_OUTPUT"
+        run: echo "list=$(python3 -c 'import json, sys; sys.path.insert(0, "e2e"); import old_anki; print(json.dumps(old_anki.RELEASE_ANKIS))')" >> "$GITHUB_OUTPUT"
 
-  # the add-on, built as it ships, run by itself in each of those Ankis (dev/old_anki.py
+  # the add-on, built as it ships, run by itself in each of those Ankis (e2e/old_anki.py
   # --check): the macOS builds, downloaded from Anki's releases and kept in the cache; the
   # Intel-only ones (before 2.1.50, and the Qt5 builds) run under Rosetta
   anki:
@@ -91,7 +91,7 @@ jobs:
         with:
           path: ~/Library/Caches/memory-forest/anki/${{ matrix.anki }}.app
           key: anki-${{ matrix.anki }}
-      - run: python3 dev/old_anki.py --check ${{ matrix.anki }}
+      - run: python3 e2e/old_anki.py --check ${{ matrix.anki }}
       - id: results
         if: always()
         run: echo "dir=$(python3 -c 'import os, tempfile; print(os.path.join(tempfile.gettempdir(), "memory-forest-old-anki"))')" >> "$GITHUB_OUTPUT"

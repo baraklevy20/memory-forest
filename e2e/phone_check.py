@@ -1,11 +1,11 @@
 """Taps on the phone card land where the finger is: the forest's trees and the study calendar's
 days answer a tap with their own tooltip, upright or turned sideways (the full screen), and on a
-page the app zooms (AnkiDroid's card zoom). Run: python3 dev/phone_check.py (npm run test:phone);
+page the app zooms (AnkiDroid's card zoom). Run: python3 e2e/phone_check.py (npm run test:phone);
 `npm test` runs it with --if-changed: only when the phone's files changed (PHONE_FILES), uncommitted
 or in the last commit.
 
 It builds the phone card from this copy's files (phone_data.bundle, phone.CSS) with a made-up
-forest and calendar, opens it in headless Chrome (dev/phone_check.mjs) as a phone, and taps the
+forest and calendar, opens it in headless Chrome (e2e/phone_check.mjs) as a phone, and taps the
 same trees and days in each set-up: each tooltip must be the one an upright, unzoomed card
 shows. Needs Chrome, and node with the dev packages (npm install)."""
 
@@ -31,7 +31,7 @@ SIM = "af-fs-sim"  # headless Chrome has no full screen: a class stands in for :
 CAL_DAYS, CAL_AHEAD = 240, 120
 # the files a phone card's taps go through (paths from this folder): a change to one runs this
 PHONE_FILES = ("phone.py", "phone_data.py", "phone_note.py", "web/phone.js", "web/calendar.js", "web/hover.js",
-               "web/util.js", "web/forest.css", "dev/phone_check.py", "dev/phone_check.mjs")  # the made-up calendar: days of history, days ahead
+               "web/util.js", "web/forest.css", "e2e/phone_check.py", "e2e/phone_check.mjs")  # the made-up calendar: days of history, days ahead
 # the browser's full screen, stubbed: the phone card's own full-screen code runs as on a phone
 FULLSCREEN_STUB = """<script>
 Object.defineProperty(document, 'fullscreenEnabled', { value: true });
@@ -52,7 +52,7 @@ def card_css() -> str:
 def note() -> dict:
     """The note's data: the dev payload's forest, still (so the animals stay put), and a calendar
     of CAL_DAYS days studied most days, with cards due ahead."""
-    raw = open(os.path.join(HERE, "payload.js"), encoding="utf-8").read()
+    raw = open(os.path.join(ROOT, "dev", "payload.js"), encoding="utf-8").read()
     page = json.loads(raw.split("=", 1)[1].strip().rstrip(";"))
     today = dt.date.today()
     days = [0 if i % 9 == 4 else 20 + (i * 37) % 300 for i in range(CAL_DAYS)]

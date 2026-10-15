@@ -6,7 +6,7 @@ fingerprints with the files as they are now, so an edited scenery asks for its t
     python3 dev/stale_tiles.py   # the tiles to draw again, and the commands that do it
 
 Only the files a preset itself is drawn from count: a change to the engine everyone shares
-(trees.js, sky.js) would mark every tile at once. dev/render_check.py compare names the
+(trees.js, sky.js) would mark every tile at once. e2e/render_check.py compare names the
 presets whose scenes drew differently instead, which is where such a change shows.
 
 Only the sceneries some edition ships are noted, so the file names nothing private (drafts

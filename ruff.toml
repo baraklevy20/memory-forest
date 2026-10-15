@@ -15,6 +15,7 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-# the tests and dev scripts add the add-on folder to sys.path before importing it
+# the tests, dev scripts and e2e checks add the add-on folder to sys.path before importing it
 "tests/*" = ["E402", "RUF012", "SIM115"]
 "dev/*" = ["E402", "SIM115"]
+"e2e/*" = ["E402", "SIM115"]

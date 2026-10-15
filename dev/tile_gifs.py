@@ -25,11 +25,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
 sys.path.insert(0, ADDON)
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "e2e"))  # (the render check's page and Chrome)
 
 import make_gif
 import stale_tiles
 import thumbnails
-from render_check import CHROME, WORKERS
+from render_check import WORKERS
+from render_page import CHROME
 
 import presets
 
