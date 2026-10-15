@@ -233,13 +233,18 @@ function history(cal) {
 
 /* By year's earlier years, shown all at once under the year in view by its "earlier years" switch:
  * back to the one the streaks worth seeing began in - the current one, and the last one before it of
- * SHOWN_STREAK days or more (a long streak just broken, then three days: the broken one is what
- * people look for) - and with neither before the year in view, every year; `all`: every year, back to your first
- * review ("Show all years", under them). Never before your first review; newest first */
+ * SHOWN_STREAK days or more while it is longer than the current one and broke at most BROKE_LATELY
+ * days before it began (a long streak just broken, then three days: the broken one is what people
+ * look for; one passed since, or broken months ago, not) - and with neither before the year in
+ * view, every year; `all`: every year, back to your first review ("Show all years", under them).
+ * Never before your first review; newest first */
+const BROKE_LATELY = 30;
 function reachOf(H) {
-  const long = H.runs.filter(r => r.days >= SHOWN_STREAK && r !== H.current).sort((a, b) => b.to - a.to)[0];
+  const now = H.current ? H.current.days : 0, began = H.current ? H.current.from : 1;
+  const long = H.runs.filter(r => r !== H.current && r.days >= SHOWN_STREAK && r.days > now && began - r.to <= BROKE_LATELY)
+    .sort((a, b) => b.to - a.to)[0];
   const starts = [H.current, long].filter(Boolean).map(r => r.from);
-  return starts.length ? Math.min(...starts) : H.first;
+  return starts.length ? Math.min(...starts) : 0;  // (none: nothing short of every year to offer)
 }
 function pastYears(H, shown, all) {
   const lo = Math.max(yearOf(H.today + H.first * DAY_MS), yearOf(H.today + (all ? H.first : reachOf(H)) * DAY_MS)), out = [];
@@ -712,7 +717,7 @@ AF.calendar = function (root, data, env) {
     + '</span><span class="af-cal-by af-cal-view" role="radiogroup" aria-label="View">'
     + '<button type="button" role="radio" data-view="timeline" title="A year, with this month most of the way along">Timeline</button>'
     + '<button type="button" role="radio" data-view="by_year" title="January to December, and your streak\'s earlier years under it">By year</button>'
-    + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by"><span class="af-cal-by-label" aria-hidden="true">Shade by</span>'
+    + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
     + '</span><span class="af-cal-key"></span></div>'
@@ -738,12 +743,12 @@ AF.calendar = function (root, data, env) {
   // have them; on the phone, Today alone stays in the footer)
   const acts = box.querySelector('.af-cal-acts');
   if (!swiped) grid.appendChild(acts);
-  // what the shades go by, on the months' row just left of the arrows: the day's reviews, or the
-  // time they took (kept by the add-on; on the phone, and with no time kept, as the add-on has it,
-  // no choice)
+  // what the shades go by, in the footer just left of the key it changes (Reviews | Time  Less ..
+  // More): the day's reviews, or the time they took (kept by the add-on; on the phone, and with no
+  // time kept, as the add-on has it, no choice). Not on the months' row: with the view and the
+  // arrows there, that corner read as one crowded line of words (2026-10-15)
   const byBox = box.querySelector('.af-cal-shade');
   byBox.hidden = swiped || !H.timed;
-  if (!swiped) acts.insertBefore(byBox, acts.firstChild);
   // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
   const viewBox = box.querySelector('.af-cal-view');
@@ -797,6 +802,7 @@ AF.calendar = function (root, data, env) {
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
   let drawn = null, k = 2, last, pointed = null;  // (pointed: the year the pointer is on, the one in view or an earlier one shown)  // (last: the day the pointer was last on)
   let paper = pageOf(box);
+  box.classList.toggle('af-cal-on-light', !paper.dark);  // (a choice's chosen half: a white pill on a light page)
   // the day under the pointer: lit with the shade that stands out most and ringed in it, lifted a little
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
   // dimmed into the page, on a layer over the weeks
@@ -1115,6 +1121,7 @@ AF.calendar = function (root, data, env) {
     const p = pageOf(box);
     if (p.bg.join() === paper.bg.join()) return;
     paper = p; unpoint();
+    box.classList.toggle('af-cal-on-light', !paper.dark);
     draw();
   };
   const rethink = () => { if (!box.isConnected) { stop(); return; } requestAnimationFrame(repaper); setTimeout(repaper, THEME_SETTLE_MS); };

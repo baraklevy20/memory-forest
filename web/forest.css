@@ -110,6 +110,9 @@
 .af-dragging .af-canvas { cursor: grabbing !important; }
 .af-dragging .af-tip { display: none !important; }
 .af-top { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+/* (no forest above: the heatmap comes up so its controls share the cog's line, left of it) */
+.af-top + .af-cal { margin-top: -4px; }
+.af-top + .af-cal .af-cal-grid > .af-cal-acts { right: 36px; }
 /* on the forest: its top right corner (the zoom button moves beside it) */
 .af-scene .af-top { position: absolute; z-index: 3; top: 8px; right: 8px; margin: 0; line-height: normal; }
 .af-has-cog .af-zoom { right: 42px; }
@@ -171,21 +174,28 @@
 .af-cal-key span:last-child { margin-right: 0; }  /* (the key ends on the forest's edge) */
 .af-cal-key .af-cal-swatch:last-of-type { margin-right: 4px; }
 .af-cal-swatch { width: 9px; height: 9px; margin-right: 2px; image-rendering: pixelated; image-rendering: crisp-edges; }
-/* what the shades go by: "Shade by" Reviews | Time, plain words, the chosen one filled, on the
-   months' row just left of the arrows (calendar.js; not on the phone, nor with no study time kept) */
-.af-cal-by { display: inline-flex; flex: none; align-items: center; margin: 0 8px 0 0; font-size: 11px; white-space: nowrap; }
+/* a choice of two, drawn as one control: a track round both words, the chosen one lifted on it
+   (a pill, white on a light page), the other its words alone, as macOS, Apple Calendar and GitHub
+   draw theirs. Timeline | By year on the months' row left of the arrows; Reviews | Time in the
+   footer, left of the key it changes (calendar.js; neither on the phone, the second not with no
+   study time kept). Plain filled words read as labels, "Shade by" as a third choice (2026-10-15) */
+.af-cal-by {
+  display: inline-flex; flex: none; align-items: center; box-sizing: border-box; height: 18px; margin: 0 16px 0 0;
+  padding: 1px; border-radius: 6px; background: rgba(128, 128, 128, 0.16); font-size: 11px; white-space: nowrap;
+}
 .af-cal-by[hidden] { display: none; }
-.af-cal-view { margin-right: 14px; }  /* (Timeline | By year, then Shade by: apart enough to read as two choices) */
 .af-cal-by button {
-  box-sizing: border-box; height: 18px; margin: 0 0 0 2px !important; padding: 0 5px !important;
-  border: 1px solid transparent !important; border-radius: 4px !important; background: transparent !important; color: inherit !important; box-shadow: none !important;
+  box-sizing: border-box; height: 16px; margin: 0 !important; padding: 0 7px !important;
+  border: 0 !important; border-radius: 5px !important; background: transparent !important; color: var(--fg-subtle, #8a8f8c) !important; box-shadow: none !important;
   font: inherit; font-size: 11px; line-height: 16px; cursor: pointer;
 }
-.af-cal-by-label { margin-right: 2px; color: var(--fg-subtle, #8a8f8c); }
-.af-cal-by button:hover { color: var(--fg, inherit) !important; }  /* (as the arrows brighten; a fill is the chosen one's alone) */
-.af-cal-by button.af-on, .af-cal-by button.af-on:hover { background: rgba(128, 128, 128, 0.28) !important; color: var(--fg, inherit) !important; cursor: default; }  /* (grey on its fill read fainter than the other word) */
+.af-cal-by button:hover { color: var(--fg, inherit) !important; }  /* (its words brighten, no fill: a fill is the chosen one's alone, two read as both chosen) */
+.af-cal-by button.af-on, .af-cal-by button.af-on:hover { background: rgba(255, 255, 255, 0.17) !important; color: var(--fg, inherit) !important; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important; cursor: default; }
+.af-cal-on-light .af-cal-by button.af-on, .af-cal-on-light .af-cal-by button.af-on:hover { background: #fff !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important; }
 .af-cal-by button:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
-.af-cal-grid > .af-cal-acts .af-cal-by button { height: 16px; line-height: 14px; }
+/* (in the footer: Reviews | Time, then the key, both shown on hover) */
+.af-cal-foot > .af-cal-shade { margin: 0 12px 0 auto; align-self: center; }
+.af-cal-foot > .af-cal-shade + .af-cal-key { margin-left: 0; }
 /* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar.js; on
    the phone Today alone, in the footer): plain, small, and with the key only there while the
    pointer is on the calendar (on the phone, where nothing hovers, always) */
@@ -198,10 +208,11 @@
 /* a month's label under them (only when they are back on the row) makes way while they show */
 .af-cal-months .af-under { transition: opacity 0.2s; }
 .af-cal:hover .af-cal-months .af-under, .af-cal:focus-within .af-cal-months .af-under { opacity: 0; }
-.af-cal-acts, .af-cal-key { opacity: 0; transition: opacity 0.2s; }
+.af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade { opacity: 0; transition: opacity 0.2s; }
 .af-cal:hover .af-cal-acts, .af-cal:hover .af-cal-key, .af-cal:focus-within .af-cal-acts, .af-cal:focus-within .af-cal-key,
+.af-cal:hover .af-cal-foot > .af-cal-shade, .af-cal:focus-within .af-cal-foot > .af-cal-shade,
 .af-cal-swiped .af-cal-acts, .af-cal-swiped .af-cal-key { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .af-cal-acts, .af-cal-key { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade { transition: none; } }
 .af-cal-chev {
   position: relative; box-sizing: border-box; height: 18px; min-width: 24px; margin: 0 0 0 2px !important; padding: 0 4px !important;
   border: 0 !important; border-radius: 4px !important; background: transparent !important; color: inherit !important; box-shadow: none !important;
