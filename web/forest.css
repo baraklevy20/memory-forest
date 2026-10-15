@@ -238,7 +238,8 @@
 .af-cal-from-right .af-cal-canvas, .af-cal-from-right .af-cal-months, .af-cal-from-right .af-cal-notes { animation: af-cal-from-right 0.18s ease-out; }
 @media (prefers-reduced-motion: reduce) { .af-cal-from-left *, .af-cal-from-right * { animation: none !important; } }
 .af-cal-canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
-.af-cal-canvas:focus { outline: none; }  /* (the day the keyboard is on has the hover's ring and its tooltip) */
+.af-cal-canvas:focus { outline: none; }
+.af-cal-gone { position: absolute; width: 0; height: 0; visibility: hidden; pointer-events: none; }  /* (the last weeks, kept for a swipe still on them: calendar.js draw) */  /* (the day the keyboard is on has the hover's ring and its tooltip) */
 .af-cal-months { position: absolute; top: 0; left: 0; right: 0; height: 16px; }
 .af-cal-months span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; }  /* (baseline about 12px down) */
 .af-cal-months .af-cal-year { color: inherit; }

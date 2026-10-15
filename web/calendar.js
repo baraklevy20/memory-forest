@@ -57,7 +57,7 @@ const MARK_ICONS = {
   star: { label: 'Star', rows: ['..RR..', '..RR..', 'RRWRRR', '.RRRR.', '.RRRR.', 'RR..RR'] },
   heart: { label: 'Heart', rows: ['RR..RR', 'RRRRRR', 'RWRRRR', 'RRRRRR', '.RRRR.', '..RR..'] },
   done: { label: 'Done', rows: ['......', '.....R', '....RR', 'R..RR.', 'RRRR..', '.RR...'] },
-  sick: { label: 'Sick', rows: ['......', 'R.....', 'RWW...', 'RRRRRR', 'RRRRRR', 'R....R'] },
+  sick: { label: 'Sick', rows: ['......', 'R.....', 'RLL...', 'RLLWWR', 'RRRRRR', 'R....R'] },  // (a head on the pillow, a sheet over them: a bare bed read as a flag)
 };
 const MARK_ORDER = Object.keys(MARK_ICONS);
 for (const m of Object.values(MARK_ICONS)) m.spr = { frames: [m.rows], pal: MARK_PAL };
@@ -94,7 +94,7 @@ const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened 
 const LABEL_GAP = 6, TIP_GAP = 8;
 const SPOT_DIM = 0.72;  // the days a hover is not about: this far into the page (a key's shade, a month, a streak)
 const TIP_WAIT = 150;  // ms the first tooltip waits, the pointer just come onto the heatmap
-const SWIPE_PX = 40, SWIPE_QUIET = 250;  // a trackpad's sideways swipe: css px to turn a page; ms still that ends it
+const SWIPE_PX = 40, SWIPE_QUIET = 250, SWIPE_AGAIN = 1.5;  // a trackpad's sideways swipe: css px to turn a page; ms still that ends it; how much faster than the last step a new swipe starts
 const DAYS_ROOM = 28, NOTE_ROOM = 44;  // css px: room the weekdays need left of the forest; a streak's length, about  // css px between two month labels, and between a day and its tooltip
 const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
@@ -258,11 +258,10 @@ const DARK = [16, 16, 16];
 // colourfulness they keep (a near-grey key would otherwise give grey tiles)
 const LIGHT_STEPS = [0.82, 0.69, 0.56, 0.43], LIGHT_CHROMA = 0.08;  // (0.86 sat too near a missed day's grey)
 // and a dark page's, from a clear dim colour to a pale bright one: the middle two at 0.10-0.11 apart
-// (OKLab x100) read as one in a small tile; these, from a search (dev/heatmap_shades.py search), put
+// (OKLab x100) read as one in a small tile; these, from a search over every scenery, put
 // every neighbour at least 12.6 apart and the fewest a step off a missed day's grey, in the room
 // Anki's lighter dark page leaves; each shade's share of its key's colourfulness rises to the third,
-// and the top keeps only half: a vivid colour that light glowed (2026-10-14; a cap on top of the
-// half trimmed two sceneries by 0.004, so dev/heatmap_shades.py check guards it instead)
+// and the top keeps only half: a vivid colour that light glowed (2026-10-14)
 const DARK_STEPS = [0.45, 0.58, 0.72, 0.85], DARK_CHROMA = [0.6, 1.0, 1.0, 0.5];
 /* `t` of the way from colour `a` to `b`, through OKLab, where equal steps look equal (a plain mix
  * of a blue and a green dips muddy in the middle) */
@@ -775,6 +774,7 @@ AF.calendar = function (root, data, env) {
 
   function draw() {
     const hadCv = !!drawn && document.activeElement === drawn.cv;  // (the keyboard on the days: kept there)
+    const old = drawn && drawn.cv;
     const count = swiped ? MONTHS_SHOWN : countFor(view, grid.clientWidth);
     // (paged away, a narrower or wider heatmap keeps the month you were looking at last in view)
     if (drawn && page && drawn.count !== count) page += drawn.count - count - Math.round(drawn.count * TODAY_AT) + Math.round(count * TODAY_AT);
@@ -784,7 +784,15 @@ AF.calendar = function (root, data, env) {
     // (a page's slide is for paging alone: go starts it again after this; any other drawing, a day
     // marked say, must not replay it, the new canvas taking the class still on the grid)
     grid.classList.remove('af-cal-from-left', 'af-cal-from-right');
-    grid.querySelectorAll('canvas').forEach(c => c.remove());
+    grid.querySelectorAll('canvas').forEach(c => { if (c !== old) c.remove(); });
+    // (the last weeks stay in the page, unseen, until the next drawing: a Mac's trackpad sends the
+    // rest of a swipe, and the next one, to the element it began on until the pointer moves, and a
+    // removed one passes them to nothing)
+    if (old) {
+      old.className = 'af-cal-gone';
+      old.removeAttribute('style'); old.removeAttribute('role'); old.removeAttribute('aria-label');
+      old.setAttribute('aria-hidden', 'true'); old.tabIndex = -1;
+    }
     drawn.above.className = 'af-cal-above';
     grid.insertBefore(drawn.above, notes);
     drawn.cv.className = 'af-cal-canvas';
@@ -992,19 +1000,21 @@ AF.calendar = function (root, data, env) {
   // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
   // reviews and about how many a day; only the days since your first review, up to today
   const studiedLines = (from, to) => {
-    const a = Math.max(from, H.first), b = Math.min(to, 0);
-    if (b < a) return [H.hid !== null && b < H.hid ? 'Before your forest began' : 'Before your first review'];
+    // (today counts once studied: until then it isn't over, nor missed)
+    const end = H.n(0) ? 0 : -1, a = Math.max(from, H.first), b = Math.min(to, end);
+    if (b < a) return [a === 0 ? 'Not studied yet' : H.hid !== null && b < H.hid ? 'Before your forest began' : 'Before your first review'];
     let studied = 0, reviews = 0, secs = 0;
     for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
     // (a stretch your history starts inside counts from your first review: "since Mar 1")
     const since = a > from ? ` since ${new Date(H.today + a * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}` : '';
-    const span = b - a + 1, now = since || (b === 0 && to > 0 ? ' so far' : '');
+    const span = b - a + 1, now = since || (b === end && to > end ? ' so far' : '');
     if (!studied) return [`Not studied${now}`];
-    const on = studied < span ? ' on the days studied' : '';
+    // (short enough not to wrap: the totals on one line, the day's average on the next, "studied"
+    // only where some days were missed; the time where the review log kept it)
+    const on = studied < span ? ' studied' : '', avg = cards(Math.round(reviews / studied), 'review');
     return [studied === span ? `Studied every day${now}` : `Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,  // (never 100% with a day missed, nor 0% with one studied)
-      `${cards(reviews, 'review')}, about ${cards(Math.round(reviews / studied), 'review')} a day${on}`,
-      // (the time, where the review log kept it)
-      ...(secs ? [`${cap(lasted(secs))} in all, ${secs / studied < 30 ? '' : 'about '}${lasted(secs / studied)} a day${on}`] : [])];
+      cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
+      `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
   };
   // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
   // due. January's label shows its year, so it tells the year's days studied first
@@ -1188,13 +1198,18 @@ AF.calendar = function (root, data, env) {
   grid.addEventListener('mouseleave', () => { unpoint(); grid.classList.remove('af-click'); });
   // a sideways swipe on a trackpad (or Shift and the wheel) turns the page, once a swipe: the
   // swipe's own momentum turns no more
-  let swept = 0, sweeping = 0;
+  let swept = 0, sweeping = 0, lastDx = 0;
   if (!swiped) grid.addEventListener('wheel', e => {
     const dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
     if (!dx || Math.abs(dx) <= (e.shiftKey ? 0 : Math.abs(e.deltaY))) return;
     e.preventDefault();
     clearTimeout(sweeping);
-    sweeping = setTimeout(() => { swept = 0; }, SWIPE_QUIET);
+    sweeping = setTimeout(() => { swept = 0; lastDx = 0; }, SWIPE_QUIET);
+    // (a swipe's momentum only slows; picking up speed again, or turning back, is a new swipe,
+    // even before the momentum has died away)
+    const fresh = swept === null && (Math.sign(dx) !== Math.sign(lastDx) || Math.abs(dx) > SWIPE_AGAIN * Math.abs(lastDx));
+    lastDx = dx;
+    if (fresh) swept = 0;
     if (swept === null) return;
     swept += dx;
     if (Math.abs(swept) >= SWIPE_PX) { const to = swept > 0 ? '1' : '-1'; swept = null; go(to); }

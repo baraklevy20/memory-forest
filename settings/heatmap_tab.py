@@ -1,7 +1,8 @@
-"""The Heatmap tab: the study heatmap under the forest - the screens it shows on, its view, the
-day its weeks start on, the reviews from before the forest's start date, and where your streak
-counts from. Without a start date (Decks tab) the last two change nothing, so they never need
-greying out there."""
+"""The Heatmap tab: the study heatmap under the forest - the screens it shows on, its view and the
+day its weeks start on; and, under Start date, the reviews from before the forest's start date and
+where your streak counts from. Without a start date (Decks tab) those two change nothing, so they
+are never greyed out for it: a hint says so. What the shades go by is the toggle on the heatmap
+itself, not repeated here."""
 
 from __future__ import annotations
 
@@ -35,7 +36,8 @@ WEEK_RADIUS = 6
 VIEW_NOTE = "Timeline: the past year and the weeks ahead. By year: January to December."
 # (one line: SETTINGS_GUIDELINES.md)
 # where your streak counts from: your real one (from your first review), or from the forest's start date
-STREAK_FROM_OPTIONS = [(False, "Your first review"), (True, "Your forest's start date")]
+STREAK_FROM_OPTIONS = [(False, "Your first review"), (True, "The start date")]
+START_NOTE = "Your forest's start date is set on the Decks tab. Without one, these change nothing."
 
 
 class WeekChoice(Choice):
@@ -75,9 +77,10 @@ class HeatmapTab(Tab):
         self.calendar = Choice(CALENDAR_OPTIONS, calendar_view(cfg), "timeline")
         self.week = WeekChoice(week_start(cfg))
         # the reviews from before the forest's start date, in the heatmap all the same
-        self.record = QCheckBox("Show reviews from before your forest's start date")
+        self.record = QCheckBox("Show the reviews from before it")
         self.record.setChecked(shows_record(cfg))
         self.streak_from = Choice(STREAK_FROM_OPTIONS, streak_from_start(cfg), False)
+        self._streak_pick = self.streak_from.currentData()  # (what it goes back to once the reviews before show again)
 
         where = form()
         where.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
@@ -88,15 +91,22 @@ class HeatmapTab(Tab):
         self.view_note.setStyleSheet(f"QLabel {{ {hint_style()} }} QLabel:disabled {{ color: {color('FG_DISABLED')}; }}")
         layout.addRow("", self.view_note)
         layout.addRow("Week starts on", self.week)
-        layout.addRow(self.record)
-        streak = form()
-        streak.addRow("Count my streak from", self.streak_from)
+        start = self.start_form = form()
+        start.addRow(self.record)
+        start.addRow("Count your streak from", self.streak_from)
+        start.addRow(hint(START_NOTE))
+        # (the three groups' fields start on one line)
+        labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (where, layout, start) for r in range(f.rowCount())
+                  if f.itemAt(r, f.ItemRole.LabelRole) and f.itemAt(r, f.ItemRole.LabelRole).widget()]
+        widest = max(label.sizeHint().width() for label in labels)
+        for label in labels:
+            label.setMinimumWidth(widest)
         v = QVBoxLayout(self)
         self.where_group = group("Where it shows", where)
         v.addWidget(self.where_group)
         v.addWidget(group("Layout", layout))
-        self.streak_group = group("Streak", streak)
-        v.addWidget(self.streak_group)
+        self.start_group = group("Start date", start)
+        v.addWidget(self.start_group)
         v.addStretch(1)
 
     # the notes that make this whole tab new: their NEW goes on the tab's name too
@@ -105,7 +115,7 @@ class HeatmapTab(Tab):
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"calendar": (self.where_group.title, "Study heatmap"),
-                "streak_from_start": (self.streak_from, "Count my streak from")}
+                "streak_from_start": (self.streak_from, "Count your streak from")}
 
     def connect(self, changed) -> None:
         for choice in (self.calendar, self.week, self.streak_from):
@@ -121,8 +131,18 @@ class HeatmapTab(Tab):
             label = self.layout_form.labelForField(field)
             if label is not None:
                 label.setEnabled(on)
-        # (a heatmap that leaves out the reviews before the start date counts the streak from it too)
-        self.streak_from.setEnabled(self.record.isChecked())
+        # (a heatmap that leaves out the reviews before the start date counts the streak from it
+        # too: shown as such while it can't be changed, and back to your own pick after)
+        record = self.record.isChecked()
+        if record and not self.streak_from.isEnabled():
+            self.streak_from.set_quietly(self._streak_pick)
+        elif not record and self.streak_from.isEnabled():
+            self._streak_pick = self.streak_from.currentData()
+            self.streak_from.set_quietly(True)
+        self.streak_from.setEnabled(record)
+        label = self.start_form.labelForField(self.streak_from)
+        if label is not None:
+            label.setEnabled(record)
         self.fit()
 
     def values(self) -> dict:
@@ -132,5 +152,6 @@ class HeatmapTab(Tab):
             "calendar_main": self.calendar_main.isChecked(),
             "calendar_decks": self.calendar_decks.isChecked(),
             "calendar_record": self.record.isChecked(),
-            "streak_from_start": self.streak_from.currentData(),
+            # (your own pick kept while the start date decides it)
+            "streak_from_start": self.streak_from.currentData() if self.record.isChecked() else self._streak_pick,
         }
