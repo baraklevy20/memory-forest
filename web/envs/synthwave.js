@@ -18,7 +18,8 @@ const H6 = a => a.map(hex);
 const HOURS = {
   dawn: { sky: ['#1a1040', '#3a2a6a', '#6a4a8a', '#c06a9a', '#ff9a9a', '#ffc4a0'], sun: { y: 0.37, r: 21, c: '#fff0b0', c2: '#ff7a8a' },
           far: '#3a2a5a', farLine: '#ffb0d0', near: '#2a1a4a', nearLine: '#ff8ab0', g0: '#1e0f38', g1: '#120826', clouds: ['#ffb8c8', '#c07aa0'] },
-  day: { sky: ['#4a3a8a', '#6a58a8', '#8c78c0', '#b098d4', '#d4b8e4', '#ecd4ee'], sun: { y: 0.22, r: 21, c: '#fff4d0', c2: '#ffc0a0' },
+  // (day: a deeper top, a warmer horizon under the sun)
+  day: { sky: ['#423c8a', '#5c54a2', '#8c78c0', '#b098d4', '#ddc1d9', '#f0d7e0'], sun: { y: 0.22, r: 21, c: '#fff4d0', c2: '#ffc0a0' },
          far: '#5a4a90', farLine: '#f0e0ff', near: '#3e3070', nearLine: '#ff9ad8', g0: '#241a4a', g1: '#160e34', clouds: ['#f4ecff', '#c8b8e8'] },
   golden_hour: { sky: ['#140430', '#3a0a50', '#7a1e5a', '#c0405a', '#f07a50', '#ffb060'], sun: { y: 0.31, r: 21, c: '#ffe070', c2: '#ff5a3a' },
                  far: '#3a0e40', farLine: '#ffb04a', near: '#240830', nearLine: '#ff6a8a', g0: '#1a0428', g1: '#0e0118', clouds: ['#ff9a6a', '#8a2a5a'] },

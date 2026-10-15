@@ -312,10 +312,13 @@ AF.env('lanterns', {
 
   after(th, mood) {
     const night = isLit(mood), w = mood.weather;
+    // (by day a richer sky: a deeper blue at the top, warmer low down, so the crowns and the
+    // lantern strings have more to stand against)
+    if (mood.time === 'day' && (!w || w === 'clear')) th.sky = ['#5c92c8', '#6f9fce', '#9cc6e6', '#b5d4ea', '#d8e0dd', '#e7e9dc'];
     if (night) {
       Object.assign(th, { g0: '#2e1a30', g1: '#1c1020', grass: '#44263e', far: '#2e1c3c', near: '#241430', haze: '#4a2a4c',
         tint: '#1d1530', tintAmt: 0.12, water: '#2e1f40', rim: null });
-      th.sky = ['#0c0922', '#1c1238', '#2e1846', '#44204e', '#5e2a54', '#7a3658'];
+      th.sky = ['#0a081e', '#170f2f', '#2e1846', '#44204e', '#57305b', '#6d395e'];  // (a deeper top, a faint glow low down: a richer sky to frame the lanterns)
       if (CFG.moon.own) {
         // a full festival moon on the right third, painted by this environment; the engine's
         // orb only keeps the glitter on the water under it (gone where the weather hides it)

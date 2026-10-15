@@ -43,7 +43,7 @@ const LOOKS = {
     far: '#3a3662', near: '#2c2a50', g0: '#8c8ab8', g1: '#5c5a8c', grass: '#aeacd2', haze: '#5c5684', hzStep: 0.1,
     water: '#4a4a7a', clouds: null, stars: 0, birdC: '#1a1830', shadow: 0 },
   night: {
-    sky: ['#03060f', '#060c1c', '#0a1328', '#0f1a36', '#162240', '#1e2a4c'],
+    sky: ['#03050e', '#050a19', '#0a1328', '#0f1a36', '#1f294b', '#253055'],
     far: '#141c34', near: '#10162a', g0: '#4c5c84', g1: '#2e3a5c', grass: '#6c7ca4', haze: '#1e2848', hzStep: 0.1,
     water: '#1d2a4a', clouds: null, stars: 0, birdC: '#0a0e1c', shadow: 0 },
   dawn: {
@@ -51,7 +51,7 @@ const LOOKS = {
     far: '#6a6a90', near: '#56587e', g0: '#b6bad6', g1: '#8a8eb2', grass: '#d2d4e8', haze: '#9c96b6', hzStep: 0.11,
     water: '#9a9ac0', clouds: { n: 3, top: '#f6dcd6', bot: '#b89cb4', a: 225 }, stars: 0, birdC: '#3a3450', shadow: 0 },
   day: {
-    sky: ['#6a94c6', '#82a8d2', '#9cbcdc', '#b4cee6', '#cadcee', '#dce8f2'],
+    sky: ['#5c84ba', '#6f94c4', '#9cbcdc', '#b4cee6', '#d6dde0', '#e4e6e3'],  // (deeper at the top, warmer low down: the snow and the town stand against it)
     far: '#9aaccc', near: '#8ea0bc', g0: '#e0e8f3', g1: '#bcc9de', grass: '#f0f4fa', haze: '#c4d2e2', hzStep: 0.12,
     water: '#a8c0dc', clouds: { n: 4, top: '#ffffff', bot: '#d8e2ee', a: 240 }, stars: 0, birdC: '#3d4a5a', shadow: 0.5 },
 };

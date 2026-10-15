@@ -20,7 +20,7 @@ const H6 = a => a.map(hex);
 // fresh jade, a deeper green and a cool sage for the leaves; a blue-green for the second kind.
 // Tones run outline, shade, mid, lit, highlight; the canes use them too, so they yellow as well.
 const JADE = H6(['#163424', '#2a6040', '#3f8a4e', '#6cb45c', '#a8d87a']);
-const DEEP = H6(['#112a1e', '#1f4c2e', '#2f6e3c', '#4f944c', '#86bc6c']);
+const DEEP = H6(['#0e2419', '#1a4228', '#286236', '#468a44', '#7cb262']);
 const SAGE = H6(['#182e28', '#335646', '#517a64', '#7aa286', '#b0cca8']);
 const TEAL = H6(['#10302c', '#1f5448', '#2e7a62', '#4ea27a', '#8ccc98']);
 const LAMP = '#ffcf7a', LAMP_D = '#e0763a';
@@ -407,12 +407,12 @@ AF.env('bamboo', {
     if (!th.rain) return;
     const dusk = mood.time === 'dusk';
     // night is a deep green-blue, light enough that the canes and the far groves still read
-    th.sky = nightTime ? ['#182c32', '#1e363a', '#244040', '#2c4a46', '#36564c', '#406052']
+    th.sky = nightTime ? ['#162a32', '#1c343a', '#223e40', '#2a4846', '#3a564c', '#4c6452']
       : dusk ? ['#3a4a50', '#4e5e5c', '#687468', '#8a8a74', '#a8987c', '#b8a484']
-      : ['#6e8c84', '#82a096', '#98b2a6', '#b0c4b2', '#c8d4bc', '#dad8bc'];
+      : ['#62807e', '#7a9894', '#96b0a4', '#b8c8ae', '#d8d6b0', '#ece2b8'];  // (light breaking low through the rain: warm and bright behind the grove)
     Object.assign(th, nightTime
       ? { far: '#30504a', near: '#28463c', haze: '#3a5a52', g0: '#2e4c34', g1: '#203826', grass: '#3e5e40', tint: '#14302a', tintAmt: 0.16 }
-      : { far: dusk ? '#5e6e66' : '#8aa89c', near: dusk ? '#4e6454' : '#6e9a80', haze: dusk ? '#8a8e80' : '#b8ccbc', tint: '#3e5a48', tintAmt: 0.12 });
+      : { far: dusk ? '#647470' : '#9cb8b6', near: dusk ? '#506656' : '#78a28e', haze: dusk ? '#909690' : '#c6d8d4', tint: '#3e5a48', tintAmt: 0.12 });  // (further is paler and bluer: atmospheric perspective)
     th.water = nightTime ? '#142e30' : dusk ? '#23403c' : '#2a5048';
     th.clouds = { n: 5, top: nightTime ? '#2a4042' : '#c4d2c8', bot: nightTime ? '#1c3032' : '#9eb2a8', a: 235, y0: 0, dy: 0.12, speed: 0.8 };
     th.deck = { n: 3, top: nightTime ? '#20343a' : '#b0c2b6', bot: nightTime ? '#162828' : '#8ea49a', a: 245 };

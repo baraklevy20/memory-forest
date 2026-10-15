@@ -144,6 +144,10 @@ AF.env('aurora', {
       ? { sky: ['#01050b', '#030d17', '#05141f', '#071a26', '#081d2a', '#0a202e'],
           g0: '#6e8cae', g1: '#46628a', grass: '#a8c0d8', haze: '#22384c', hzStep: 0.09, tint: '#0a1a2a', tintAmt: 0.08, water: '#0e1e30' }
       : { g0: '#e4ecf4', g1: '#c4d2e2', grass: '#f4f8fc' });
+    // (by day a deeper polar blue: under the plain day sky the snowy forest, the snow and the sky
+    // sat within 0.05 of each other in lightness, so the forest had nothing to stand against;
+    // dawn and golden hour keep their own warm skies)
+    if (!night && mood.time === 'day') th.sky = ['#4a80c4', '#6290cc', '#7ea4d4', '#9cb9de', '#bccfe6', '#d6e2ee'];
     if (th.clouds) th.clouds.n = 0;  // nothing drifting across the lights
   },
   pals: { round: GHOST, pine: SPRUCE, bark: BARK, leaf: hex('#23604c'), leafL: hex('#7af0b4'), stem: hex('#4a4652') },
