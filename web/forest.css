@@ -195,6 +195,19 @@
 .af-cal-by button:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
 /* (in the footer: Reviews | Time, then the key, both shown on hover) */
 .af-cal-foot > .af-cal-shade { margin: 0 12px 0 auto; align-self: center; }
+/* with By year's earlier years on offer: their switch at the footer's left, the shade and key on its
+ * right, the journal a line of its own under them (calendar.js past) */
+.af-cal-foot.af-cal-foot-more { flex-wrap: wrap; }
+.af-cal-foot-more > .af-cal-more { order: 0; margin: 0 0 0 -5px !important; align-self: center; }
+.af-cal-foot-more > .af-cal-shade { order: 1; }
+.af-cal-foot-more > .af-cal-key { order: 2; }
+.af-cal-foot-more > .af-cal-journal { order: 3; flex: 1 0 100%; margin: 4px 0 0; }
+.af-cal-foot-more > .af-cal-journal:empty { display: none; }
+.af-cal-foot-more > .af-cal-more-all { order: 0; margin-left: 4px !important; }
+/* the years shown: one picture, the "Since" under the year in view gone (the years below say it),
+ * Hide on the controls' row too (calendar.js past) */
+.af-cal-years-open .af-cal-since { display: none; }
+.af-cal-grid > .af-cal-acts .af-cal-hide-years { height: 16px; line-height: 14px; margin-right: 8px; padding: 0 6px !important; font-size: 11px; white-space: nowrap; }
 .af-cal-foot > .af-cal-shade + .af-cal-key { margin-left: 0; }
 /* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar.js; on
    the phone Today alone, in the footer): plain, small, and with the key only there while the

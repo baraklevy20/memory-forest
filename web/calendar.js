@@ -258,9 +258,10 @@ function yearsFor(H, shown, state) {
   const streak = pastYears(H, shown, false);
   return state === 'all' || !streak.length ? pastYears(H, shown, true) : streak;
 }
-// css px: the switch's line under the year in view, and each earlier year's line of words over it
-// and the room above that (the room kept before drawing counts them: calendarHeight)
-const MORE_H = 22, PAST_HEAD = 18, PAST_GAP = 8;
+// css px: each earlier year's line of words over it
+// and the room above that, and the journal's own line under the footer once the switch shares the
+// key's row (the room kept before drawing counts them: calendarHeight)
+const PAST_HEAD = 18, PAST_GAP = 8, JOURNAL_LINE = 21.5;
 
 /* the days a view shows, [from, to] as offsets: Timeline's `count` months (a year, more when
  * wide, fewer when narrow), `page` such stretches back (negative) or on; the phone's whole
@@ -663,7 +664,7 @@ AF.calendarScaleFor = height => Math.max(SWIPED_K, Math.floor(height * dpr() / (
  * at any zoom (the canvas's own TOP grows with it) */
 const monthsRoom = k => Math.round(ROW_UNDER - (TOP + 1) * k);
 /* how tall the calendar will be at this width, for the room kept for it until it is drawn */
-AF.calendarHeight = function (cal, width) {
+AF.calendarHeight = function (cal, width, journal) {
   const view = cal.view === 'by_year' ? 'by_year' : 'timeline';
   // (the scale is the width's: the view's exact weeks, as it will lay them out)
   let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN;
@@ -676,9 +677,9 @@ AF.calendarHeight = function (cal, width) {
   // (By year: the switch for its earlier years, and those years when shown)
   const H = view === 'by_year' && width > 0 ? history(cal) : null, y = H ? yearOf(H.today) : 0;
   const any = H ? pastYears(H, y, true).length : 0, past = H ? yearsFor(H, y, cal.yearsShown).length : 0;
-  // (and "Show all years" under them, while there are more back to the first review)
-  const further = past && past < any;
-  const more = any ? MORE_H + past * (PAST_GAP + PAST_HEAD + (TOP + ROWS * CELL + BRACKET) * k) + (further ? MORE_H : 0) : 0;
+  // (the switch, and "Show all years" by it, on the footer's row, the journal then a line of its
+  // own under it)
+  const more = any ? past * (PAST_GAP + PAST_HEAD + (TOP + ROWS * CELL + BRACKET) * k) + (journal ? JOURNAL_LINE : 0) : 0;
   return Math.round(monthsRoom(k) + (TOP + ROWS * CELL + BRACKET) * k + more + FOOT_GAP + FOOT_H);  // (rounded as the page rounds the drawn height)
 };
 
@@ -931,10 +932,20 @@ AF.calendar = function (root, data, env) {
   const pastBox = box.querySelector('.af-cal-past');
   // (false, true: back to the streak worth seeing, or 'all': back to the first review)
   let yearsShown = cal.yearsShown === 'all' ? 'all' : !!cal.yearsShown, pasts = [];
+  // (with earlier years to offer, the footer comes up under the year in view, the switch at its
+  // left: the key on the same row, the journal a line under it, the years shown below all of it,
+  // so showing them moves nothing above; with none, the footer is the panel's last line again)
+  const foot = box.querySelector('.af-cal-foot');
   function past() {
     pastBox.textContent = '';
     pasts = [];
+    foot.querySelectorAll('.af-cal-more').forEach(b => b.remove());
+    acts.querySelectorAll('.af-cal-hide-years').forEach(b => b.remove());
+    box.classList.remove('af-cal-years-open');
     const y0 = drawn.win.year, every = swiped || view !== 'by_year' ? [] : pastYears(H, y0, true);
+    foot.classList.toggle('af-cal-foot-more', every.length > 0);
+    if (every.length) grid.insertBefore(foot, pastBox);
+    else if (foot.parentNode !== box) box.insertBefore(foot, grid.nextSibling);
     if (!every.length) return;
     // (the switch reaches the streak worth seeing; with none before the year in view, every year)
     const streak = pastYears(H, y0, false), years = yearsFor(H, y0, yearsShown), reach = streak.length ? streak : every;
@@ -958,8 +969,20 @@ AF.calendar = function (root, data, env) {
     more.addEventListener('mousedown', e => e.preventDefault());
     more.addEventListener('click', () => set(yearsShown ? false : toAll ? 'all' : true));
     pastBox.classList.remove('af-cal-past-in');
-    pastBox.appendChild(more);
+    foot.insertBefore(more, foot.firstChild);
     if (!yearsShown) return;
+    // (shown: the years one picture under the year in view, nothing between them - the footer and
+    // the journal go to the very bottom, the "Since" under the year in view goes, the years below
+    // saying it - and, as the bottom may be far down, Hide on the controls' row up top too, shown
+    // on hover as they are, so out of a picture taken to share)
+    box.classList.add('af-cal-years-open');
+    grid.appendChild(foot);
+    const up = document.createElement('button');
+    up.type = 'button'; up.className = 'af-cal-chev af-cal-hide-years';
+    up.textContent = 'Hide earlier years'; up.title = more.title;
+    up.addEventListener('mousedown', e => e.preventDefault());
+    up.addEventListener('click', () => set(false));
+    acts.insertBefore(up, viewBox.nextSibling);
     for (const y of years) {
       const win = windowOf(H, 'by_year', 0, y), d = Object.assign(paint(H, win, sp, paper), { win }), el = document.createElement('div');
       const [first, second] = studiedLines(win.from, win.to);
@@ -983,7 +1006,7 @@ AF.calendar = function (root, data, env) {
     all.innerHTML = `<span class="af-cal-more-chev" aria-hidden="true">\u25be</span>${rest.length === 1 ? `Show ${rest[0]}` : `Show all years, back to ${rest[rest.length - 1]}`}`;
     all.addEventListener('mousedown', e => e.preventDefault());
     all.addEventListener('click', () => set('all'));
-    pastBox.appendChild(all);
+    foot.insertBefore(all, more.nextSibling);
   }
   function layPast() {
     for (const d of pasts) {
@@ -1244,6 +1267,8 @@ AF.calendar = function (root, data, env) {
   // its date, its reviews or cards due, and where it sits in its streak
   const point = e => {
     if (editing) return;  // (no tooltips while a mark is named: its day keeps the ring)
+    // (the footer, inside the grid in By year: its key and switches answer for themselves)
+    if (e.target && e.target.closest && e.target.closest('.af-cal-foot')) return;
     const lab = e.target && e.target.closest ? e.target.closest('.af-cal-months span') : null;
     if (lab) pointed = null;
     if (lab) { if (lab !== last) { last = lab; pointMonth(lab); } return; }

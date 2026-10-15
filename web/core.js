@@ -43,7 +43,7 @@ AF.mount = function (root, data, opts) {
   // otherwise push the page down a moment after it appears
   if (data.calendar) {
     const cal = document.createElement('div'); cal.className = 'af-cal'; root.append(cal);
-    cal.style.minHeight = AF.calendarHeight(data.calendar, cal.clientWidth) + 'px';
+    cal.style.minHeight = AF.calendarHeight(data.calendar, cal.clientWidth, !!data.journal) + 'px';
   }
   AF.caption(root, data);
   AF.captionTips(root);
