@@ -5,7 +5,7 @@ is tagged in its own text: point at one to mark a whole group of controls."""
 
 from __future__ import annotations
 
-from aqt.qt import QBoxLayout, QFormLayout, QHBoxLayout, QLabel, QLayout, QSizePolicy, Qt, QWidget
+from aqt.qt import QBoxLayout, QEvent, QFormLayout, QHBoxLayout, QLabel, QLayout, QObject, QSizePolicy, Qt, QWidget
 
 NEW_TAG = "NEW"
 NEW_STYLE = "color: white; background: #2f8f52; border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: bold;"
@@ -20,15 +20,51 @@ def pill() -> QLabel:
     return label
 
 
-# on a tab, in its own text: macOS's tabs leave no room for a widget beside the name and cut it
-# short ("He... NEW"), whatever the side or as an icon
-TAB_TAG = " \u2022 New"
+# on a tab, the pill laid over room made after its name: macOS's tabs leave no room for a widget
+# put on a tab (setTabButton) and cut the name short ("He... NEW"), on either side or as an icon
+TAB_ROOM = "\u2002"  # (en spaces after the name, as wide as the pill)
+TAB_GAP = 6  # px between the name and the pill
+
+
+def tab_text(name: str, pill_width: int, space_width: int) -> str:
+    """The tab's name with room after it for a pill `pill_width` wide."""
+    return name + TAB_ROOM * -(-(pill_width + TAB_GAP) // max(1, space_width))
+
+
+class _KeepPlaced(QObject):
+    """Puts the pill back after the name whenever the tab bar is laid out again."""
+
+    def __init__(self, bar, place):
+        super().__init__(bar)
+        self.place = place
+
+    def eventFilter(self, obj, event):
+        if event.type() in (QEvent.Type.Resize, QEvent.Type.Show, QEvent.Type.LayoutRequest, QEvent.Type.FontChange, QEvent.Type.StyleChange):
+            self.place()
+        return False
 
 
 def tag_tab(tabs, index: int) -> None:
-    """NEW on a tab's name ("Heatmap \u2022 New"), for a tab that is new as a whole (once)."""
-    if index >= 0 and not tabs.tabText(index).endswith(TAB_TAG):
-        tabs.setTabText(index, tabs.tabText(index) + TAB_TAG)
+    """NEW on a tab's name, the same pill as everywhere else, for a tab that is new as a whole (once)."""
+    bar = tabs.tabBar()
+    if index < 0 or bar.property("af_new_tab"):
+        return
+    bar.setProperty("af_new_tab", True)
+    name, badge = tabs.tabText(index), pill()
+    badge.setParent(bar)
+    badge.adjustSize()
+    fm = bar.fontMetrics()
+    text = tab_text(name, badge.width(), fm.horizontalAdvance(TAB_ROOM))
+    tabs.setTabText(index, text)
+
+    def place() -> None:
+        # (the style centres the text, the room after the name included)
+        r = bar.tabRect(index)
+        badge.move(r.center().x() - fm.horizontalAdvance(text) // 2 + fm.horizontalAdvance(name) + TAB_GAP,
+                   r.center().y() - badge.height() // 2 + 1)
+    bar.installEventFilter(_KeepPlaced(bar, place))
+    badge.show()
+    place()
 
 
 def _holds(item, widget: QWidget) -> bool:

@@ -106,11 +106,61 @@ class HeatmapViewTests(unittest.TestCase):
 
 
 
-class FakeTabs:
-    """A tab widget's names, and any widget put on a tab (which there must be none of)."""
+class FakeBadge:
+    """The NEW pill: 40 x 16, where it was put and on what."""
 
+    def __init__(self):
+        self.parent, self.at, self.shown = None, None, False
+
+    def setParent(self, parent):
+        self.parent = parent
+
+    def adjustSize(self):
+        pass
+
+    def width(self):
+        return 40
+
+    def height(self):
+        return 16
+
+    def move(self, x, y):
+        self.at = (x, y)
+
+    def show(self):
+        self.shown = True
+
+
+class FakeBar:
+    """A tab bar: each character 8 px wide, each tab 100 px from x 0, any widget put on a tab
+    (which there must be none of)."""
+
+    def __init__(self):
+        self.props, self.buttons, self.filters = {}, [], []
+        self.ButtonPosition = types.SimpleNamespace(RightSide=1, LeftSide=0)
+
+    def property(self, key):
+        return self.props.get(key)
+
+    def setProperty(self, key, value):
+        self.props[key] = value
+
+    def fontMetrics(self):
+        return types.SimpleNamespace(horizontalAdvance=lambda text: 8 * len(text))
+
+    def tabRect(self, i):
+        return types.SimpleNamespace(center=lambda: types.SimpleNamespace(x=lambda: 100 * i + 50, y=lambda: 12))
+
+    def installEventFilter(self, f):
+        self.filters.append(f)
+
+    def setTabButton(self, *a):
+        self.buttons.append(a)
+
+
+class FakeTabs:
     def __init__(self, *names):
-        self.names, self.buttons = list(names), []
+        self.names, self.bar = list(names), FakeBar()
 
     def tabText(self, i):
         return self.names[i]
@@ -119,39 +169,57 @@ class FakeTabs:
         self.names[i] = text
 
     def tabBar(self):
-        return types.SimpleNamespace(setTabButton=lambda *a: self.buttons.append(a), ButtonPosition=types.SimpleNamespace(RightSide=1, LeftSide=0))
+        return self.bar
 
 
 class NewTabTests(unittest.TestCase):
     def setUp(self):
-        # (the pill a stand-in, so a tag that puts one beside the name fails on that, not on building it)
-        self.pill = whats_new.pill
-        whats_new.pill = lambda: "NEW pill"
+        # (stand-ins for the pill and the bar's watcher, which the tests' Qt can't build)
+        self.saved = whats_new.pill, whats_new._KeepPlaced
+        self.badges = []
+        whats_new.pill = lambda: self.badges.append(FakeBadge()) or self.badges[-1]
+        whats_new._KeepPlaced = lambda bar, place: place
 
     def tearDown(self):
-        whats_new.pill = self.pill
+        whats_new.pill, whats_new._KeepPlaced = self.saved
 
-    def test_a_new_tab_says_so_in_its_name(self):
+    def test_room_after_the_name_for_the_pill(self):
+        text = whats_new.tab_text("Heatmap", 40, 8)
+        self.assertTrue(text.startswith("Heatmap"))
+        self.assertGreaterEqual(8 * (len(text) - len("Heatmap")), 40 + whats_new.TAB_GAP)
+
+    def test_no_widget_put_on_the_tab(self):
+        # (macOS's tabs cut the name short to make room for one: "He... NEW")
         tabs = FakeTabs("Scenery", "Heatmap")
         whats_new.tag_tab(tabs, 1)
-        self.assertEqual(tabs.names, ["Scenery", "Heatmap \u2022 New"])
+        self.assertEqual(tabs.bar.buttons, [])
 
-    def test_no_widget_beside_a_tab_name(self):
-        # (macOS's tabs cut the name short to make room for one: "He... NEW")
+    def test_the_pill_sits_after_the_name_on_the_bar(self):
+        tabs = FakeTabs("Scenery", "Heatmap")
+        whats_new.tag_tab(tabs, 1)
+        badge, text = self.badges[0], tabs.names[1]
+        self.assertIs(badge.parent, tabs.bar)
+        self.assertTrue(badge.shown)
+        name_end = 150 - 8 * len(text) // 2 + 8 * len("Heatmap")
+        self.assertEqual(badge.at[0], name_end + whats_new.TAB_GAP)
+        self.assertLessEqual(badge.at[0] + badge.width(), 150 + 8 * len(text) // 2)  # (inside the room made)
+
+    def test_kept_in_place_when_the_bar_is_laid_out_again(self):
         tabs = FakeTabs("Heatmap")
         whats_new.tag_tab(tabs, 0)
-        self.assertEqual(tabs.buttons, [])
+        self.assertEqual(len(tabs.bar.filters), 1)
 
     def test_tagged_once(self):
         tabs = FakeTabs("Heatmap")
         whats_new.tag_tab(tabs, 0)
+        once = tabs.names[0]
         whats_new.tag_tab(tabs, 0)
-        self.assertEqual(tabs.names, ["Heatmap \u2022 New"])
+        self.assertEqual((tabs.names[0], len(self.badges)), (once, 1))
 
     def test_no_tab_no_tag(self):
         tabs = FakeTabs("Heatmap")
         whats_new.tag_tab(tabs, -1)
-        self.assertEqual(tabs.names, ["Heatmap"])
+        self.assertEqual((tabs.names, self.badges), (["Heatmap"], []))
 
 
 if __name__ == "__main__":
