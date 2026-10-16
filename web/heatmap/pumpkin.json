@@ -1,0 +1,9 @@
+{
+ "order": 6,
+ "label": "Pumpkins",
+ "tip": "Witch across the moon's pumpkin ribs, in its week only",
+ "env": "pumpkin_patch",
+ "season": "pumpkin_patch",
+ "gaps": true,
+ "smooth": true
+}

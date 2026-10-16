@@ -1,0 +1,8 @@
+{
+ "order": 4,
+ "label": "Brush",
+ "tip": "Starry night's brushstrokes",
+ "env": "starry_night",
+ "gaps": true,
+ "smooth": true
+}

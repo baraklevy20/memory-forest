@@ -23,6 +23,8 @@ SCRIPTS = (
     "caption.js", "news.js", "hover.js", "visit.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
     "engines/pixel/water.js", "engines/pixel/engine.js", "calendar.js",
+    # the heatmap's tile styles, each in a file of its own (and its .json, for the Heatmap tab)
+    "heatmap/flat.js", "heatmap/rounded.js", "heatmap/bands.js",
     # the events, each drawing in the order it loads (see web/events.js)
     "events.js", "events/crows.js", "events/robins.js", "events/grass.js", "events/tumbleweeds.js",
     "events/flowers.js", "events/asteroid.js", "events/fire.js",
@@ -45,11 +47,17 @@ def core_scripts(web: str = WEB) -> tuple:
 
 
 def draft_scripts(web: str = WEB) -> tuple:
-    """The scripts in web/drafts/, if this copy has any: none in a release."""
+    """The scripts in web/drafts/ and its folders (web/drafts/heatmap/: tile styles still in the
+    works), if this copy has any: none in a release."""
     folder = os.path.join(web, DRAFTS)
     if not os.path.isdir(folder):
         return ()
-    return tuple(f"{DRAFTS}/{n}" for n in sorted(os.listdir(folder)) if n.endswith(".js"))
+    out = []
+    for root, dirs, names in os.walk(folder):
+        dirs.sort()
+        rel = os.path.relpath(root, web).replace(os.sep, "/")
+        out += [f"{rel}/{n}" for n in sorted(names) if n.endswith(".js")]
+    return tuple(out)
 
 
 def scenery_files(mood: dict, web: str = WEB) -> list:

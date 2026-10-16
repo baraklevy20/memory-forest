@@ -14,6 +14,14 @@
     "calendar_decks": true,
     "calendar_week_start": "system",
     "calendar_shade": "reviews",
+    "calendar_colours": "scenery",
+    "calendar_mine": [
+        "#2a9d8f",
+        "#e9c46a"
+    ],
+    "calendar_mine_two": false,
+    "calendar_tiles": "flat",
+    "calendar_busier": "lighter",
     "calendar_record": true,
     "streak_from_start": false,
     "streak_week": 7,
@@ -32,6 +40,9 @@
     "debug_backlog_cleared": 0,
     "debug_backlog_was": 0,
     "debug_big_days": false,
+    "debug_light_shades": "lightness",
+    "debug_gaps": null,
+    "debug_smooth": null,
     "debug_date": "",
     "debug_edition": ""
 }

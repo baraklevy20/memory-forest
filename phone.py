@@ -25,7 +25,7 @@ import traceback
 
 from aqt import mw
 
-from . import events_state, live_weather, payload, phone_data
+from . import events_state, heatmap_look, live_weather, payload, phone_data
 from .edition import DEV_PACKAGE, PLUS_PACKAGE, is_plus_folder, manifest
 from .phone_note import OLD_PHONE_SWITCH, PHONE_DECK, PHONE_NOTETYPE, phone_note_ids, phone_on, remember_phone_cards
 from .seasons import follow_season, today
@@ -242,7 +242,7 @@ def _read(path: str) -> bytes:
         return f.read()
 
 
-def _scripts(col, days: list) -> tuple:
+def _scripts(col, days: list, extra=()) -> tuple:
     """(the script the card loads, {scenery file: its name} for the days' scenes): in the
     collection's media, under names made from what is in them. Every scenery this copy ships
     is written, not only the days': so changing the scenery uploads nothing new, and the media
@@ -272,7 +272,8 @@ def _scripts(col, days: list) -> tuple:
         if old:
             col.media.trash_files(old)
         _written = (here, frozenset(files))
-    return name, {rel: names[rel] for rel in phone_data.scenery(days, web)}  # the note names only the days'
+    # the note names only the days', and those the heatmap's look borrows (heatmap_look.page_look)
+    return name, {rel: names[rel] for rel in phone_data.scenery(days, web) + list(extra) if rel in names}
 
 
 def _keep_new(col, note) -> None:
@@ -358,7 +359,7 @@ def publish() -> None:
     """Write the forest as it is now into the note, if there is one and it changed; with
     none, take away whatever is left of it (its deck, its script)."""
     col = mw.col
-    cfg = follow_season(config())  # before the forest is drawn for it, as the desktop's is
+    cfg = heatmap_look.follow_season(follow_season(config()))  # before the forest is drawn for it, as the desktop's is
     if col is None or steps_aside():
         return
     if not phone_on(col):
@@ -377,7 +378,7 @@ def publish() -> None:
             page = dict(page, strike=dict(strike, **(events_state.strike_before(strike["seen"]) or {})))
         scene_name = (lambda date: name(cfg, date)) if name else (lambda _date: {})
         days = phone_data.schedule(cfg, now, real, place, scene_name)
-        script, parts = _scripts(col, days)
+        script, parts = _scripts(col, days, ((page.get("calendar") or {}).get("look") or {}).get("files") or ())
         data = phone_data.phone_payload(page, cfg, now, script, real, place, scene_name, parts, days)
         if not phone_data.same_forest(note["Forest"], data):
             note["Forest"] = phone_data.encode(data)

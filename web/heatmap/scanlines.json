@@ -1,0 +1,8 @@
+{
+ "order": 5,
+ "label": "Scanlines",
+ "tip": "Synthwave's scanlines",
+ "env": "synthwave",
+ "gaps": true,
+ "smooth": true
+}

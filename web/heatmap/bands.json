@@ -1,0 +1,9 @@
+{
+ "order": 3,
+ "label": "Bands",
+ "tip": "The days you studied as one shape, its shades in flat bands, like a contour map",
+ "gaps": false,
+ "smooth": false,
+ "shape": true,
+ "sample": "bands"
+}

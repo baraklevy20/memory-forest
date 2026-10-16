@@ -39,9 +39,9 @@ try {
           return env.placed.filter(q => !q.it.pond).sort((a, b) => b.y - a.y).slice(0, 10)
             .map(q => ({ key: `tree ${q.it.index}`, x: q.x * s, y: (q.y - STAGE_H[q.it.stage] * env.u * q.s / 2) * s }));
         }
-        const cv = document.querySelector('.af-cal-canvas'), s = cv.clientWidth / cv.width, out = [];
+        const cv = document.querySelector('.af-cal-canvas'), pw = +cv.dataset.pixels || cv.width, s = cv.clientWidth / pw, out = [];
         for (let j = 0; j < 6; j++) for (const row of [1, 3, 5]) {
-          const x = cv.width - 11 * (2 * j + 4) + 5, y = 14 + 11 * row + 5;  // (a cell is 11 pixels, the weeks 14 down)
+          const x = pw - 11 * (2 * j + 4) + 5, y = 14 + 11 * row + 5;  // (a cell is 11 pixels, the weeks 14 down)
           out.push({ key: `pixel ${x},${y}`, x: x * s, y: y * s });
         }
         return out;

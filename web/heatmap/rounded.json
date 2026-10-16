@@ -1,0 +1,9 @@
+{
+ "order": 2,
+ "label": "Round",
+ "tip": "Each day a little round tile",
+ "gaps": true,
+ "smooth": false,
+ "shape": true,
+ "sample": "round"
+}

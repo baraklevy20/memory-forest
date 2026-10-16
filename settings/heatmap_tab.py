@@ -1,12 +1,14 @@
 """The Heatmap tab: the study heatmap under the forest - the screens it shows on, its view and the
-day its weeks start on; and, under Start date, the reviews from before the forest's start date and
-where your streak counts from; under Streak, how many days a week it counts. Without a start date (Decks tab) those two change nothing, so they
+day its weeks start on; under Streak, how many days a week it counts; under Start date, the reviews
+from before the forest's start date and where your streak counts from; and its look: whose colours
+its days take and how its tiles are drawn (heatmap_look.py, chosen by eye: settings/heatmap_look.py).
+Without a start date (Decks tab) the earlier reviews and the streak's start change nothing, so they
 are never greyed out for it: a hint says so. What the shades go by is the toggle on the heatmap
 itself, not repeated here."""
 
 from __future__ import annotations
 
-from aqt.qt import QCheckBox, QEvent, QPushButton, QSizePolicy, Qt, QVBoxLayout
+from aqt.qt import QCheckBox, QHBoxLayout, QLabel, QSizePolicy, QStackedWidget, QVBoxLayout, QWidget
 
 from ..payload import _week_start_day
 from ..scope import anki_today
@@ -21,8 +23,9 @@ from ..state import (
     week_start,
 )
 from .forest_tab import beside
+from .heatmap_look import LookControls
 from .palette import color
-from .widgets import Choice, Tab, form, group, hint, hint_style
+from .widgets import Choice, JoinedChoice, Link, Tab, form, group, hint, hint_style, resize_with
 
 # how much of it shows at once, and the day its weeks start on
 CALENDAR_OPTIONS = [("timeline", "Timeline"), ("by_year", "By year")]
@@ -30,23 +33,13 @@ WEEK_OPTIONS = [("system", "Auto"), ("monday", "Mon"), ("sunday", "Sun"), ("satu
 WEEK_TIPS = {"system": "Your system's first day of the week", "monday": "Monday", "sunday": "Sunday", "saturday": "Saturday"}
 # the days as the page counts them (Sunday 0): Auto's label names the system's
 DAY_NAMES = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
-# the week's start as joined buttons, one control, the chosen one a soft grey with a blue edge (the
-# solid blue was the loudest thing on the tab; the corners rounded only at the row's two ends)
-WEEK_STYLE = """
-QPushButton {{ border: 1px solid {line}; border-left-width: {left}px; border-radius: 0; padding: 3px 10px;
-              border-top-left-radius: {r0}px; border-bottom-left-radius: {r0}px;
-              border-top-right-radius: {r1}px; border-bottom-right-radius: {r1}px;
-              background: rgba(128, 128, 128, 0.10); }}
-QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
-QPushButton:checked {{ background: rgba(128, 128, 128, 0.38); border-color: {ring}; }}
-QPushButton:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.05); }}
-QPushButton:checked:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.22); border-color: {line}; }}
-"""
-WEEK_RADIUS = 6
 VIEW_NOTE = "Timeline: the past year and the weeks ahead. By year: January to December."
 # (one line: SETTINGS_GUIDELINES.md)
 # where your streak counts from: your real one (from your first review), or from the forest's start date
 STREAK_FROM_OPTIONS = [(False, "Your first review"), (True, "The start date")]
+# the look's page: the line that opens it, under the settings, and its header
+LOOK_LINK, LOOK_BACK, LOOK_TITLE = "Colours and tiles \u203a", "\u2039 Heatmap", "Colours and tiles"
+LOOK_SUMMARY_GAP, LOOK_HEADER_GAP = 10, 14
 START_NOTE = "Your forest's start date is set on the Decks tab. Without one, these change nothing."
 # how many days a week it counts: a week's other days, missed, pass as a day with nothing due does
 STREAK_WEEK_OPTIONS = [(7, "Every day"), (6, "6 days a week"), (5, "5 days a week")]
@@ -54,50 +47,19 @@ STREAK_WEEK_OPTIONS = [(7, "Every day"), (6, "6 days a week"), (5, "5 days a wee
 STREAK_WEEK_NOTE = "A day off keeps your streak but doesn't add to it. Days off count from the day you choose this."
 
 
-class WeekChoice(Choice):
+class WeekChoice(JoinedChoice):
     """The day the heatmap's weeks start on, as a row of joined buttons: Auto (the system's),
     Mon, Sun, Sat."""
 
     def __init__(self, value: str):
-        super().__init__(WEEK_OPTIONS, value, "system", gap=0, stretch=False)
-        self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)  # (its own width, not the row's)
-        # one Tab stop, the chosen day, and the arrow keys from day to day, as round radio buttons
-        # do (push buttons are each a Tab stop of their own, with no arrows)
-        for b in self.buttons.values():
-            b.installEventFilter(self)
-        self.group.buttonToggled.connect(lambda _b, _on: self._tab_stop())
-        self._tab_stop()
+        super().__init__(WEEK_OPTIONS, value, "system", WEEK_TIPS)
 
-    def _tab_stop(self) -> None:
-        for b in self.buttons.values():
-            b.setFocusPolicy(Qt.FocusPolicy.StrongFocus if b.isChecked() else Qt.FocusPolicy.ClickFocus)
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.KeyPress and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down):
-            keys = list(self.buttons)
-            at = keys.index(self.currentData()) + (1 if event.key() in (Qt.Key.Key_Right, Qt.Key.Key_Down) else -1)
-            if 0 <= at < len(keys):
-                self.buttons[keys[at]].setChecked(True)
-                self.buttons[keys[at]].setFocus()
-            return True
-        return False
-
-    def make_button(self, key, label: str):
-        at = [k for k, _label in WEEK_OPTIONS].index(key)
-        first, last = at == 0, at == len(WEEK_OPTIONS) - 1
+    def label_for(self, key, label: str) -> tuple:
         tip = WEEK_TIPS[key]
         if key == "system":  # (Auto (Mon): the day it comes to here)
             day = DAY_NAMES[_week_start_day({})]
             label, tip = f"{label} ({day[:3]})", f"{tip}: {day}"
-        b = QPushButton(label)
-        b.setToolTip(tip)
-        b.setAutoDefault(False)  # Enter in the dialog means Done
-        b.setCheckable(True)
-        b.setCursor(Qt.CursorShape.PointingHandCursor)
-        b.setStyleSheet(WEEK_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"), off=color("FG_DISABLED"),
-                                          left=1 if first else 0,
-                                          r0=WEEK_RADIUS if first else 0, r1=WEEK_RADIUS if last else 0))
-        return b
+        return label, tip
 
 
 class HeatmapTab(Tab):
@@ -145,14 +107,90 @@ class HeatmapTab(Tab):
         widest = max(label.sizeHint().width() for label in labels)
         for label in labels:
             label.setMinimumWidth(widest)
-        v = QVBoxLayout(self)
+        # its look: whose colours (Scenery, the ready ramps, your own) and its tiles, on a page of
+        # their own in the settings' place (as Customize takes the scenery tiles'), opened from a
+        # line at the foot of the settings that shows what is chosen
+        self.look = LookControls(cfg)
+        self.look.on_refresh(self._show_summary)
+        self.summary_strip, self.summary_text = QLabel(), QLabel()
+        self.open_look = Link(LOOK_LINK, lambda: self.show_look(True))
+        summary = QHBoxLayout()
+        summary.setSpacing(LOOK_SUMMARY_GAP)
+        summary.addWidget(self.summary_strip)
+        summary.addWidget(self.summary_text)
+        summary.addStretch(1)
+        summary.addWidget(self.open_look)
+        settings = QWidget()
+        sv = QVBoxLayout(settings)
+        sv.setContentsMargins(0, 0, 0, 0)
         self.where_group = group("Where it shows", where)
-        v.addWidget(self.where_group)
-        v.addWidget(group("Layout", layout))
-        v.addWidget(group("Streak", streak))
+        sv.addWidget(self.where_group)
+        sv.addWidget(group("Layout", layout))
+        sv.addWidget(group("Streak", streak))
         self.start_group = group("Start date", start)
-        v.addWidget(self.start_group)
+        sv.addWidget(self.start_group)
+        self.look_group = group("Look", summary)
+        sv.addWidget(self.look_group)
+        look_page = QWidget()
+        lv = QVBoxLayout(look_page)
+        lv.setContentsMargins(0, 0, 0, 0)
+        self.back = Link(LOOK_BACK, lambda: self.show_look(False))
+        title = QLabel(LOOK_TITLE)
+        font = title.font(); font.setBold(True); title.setFont(font)
+        header = QHBoxLayout()
+        header.setSpacing(LOOK_HEADER_GAP)
+        header.addWidget(self.back)
+        header.addWidget(title, 1)
+        for w in (self.back, title):  # (the header keeps its line's height, the groups take the rest)
+            w.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        lv.addLayout(header)
+        lv.addSpacing(LOOK_HEADER_GAP)
+        self.colours_group = group("Colours", self.look.colours)
+        lv.addWidget(self.colours_group)
+        self.tiles_group = group("Tiles", self.look.tiles_box)
+        lv.addWidget(self.tiles_group)
+        lv.addStretch(1)
+        self.stack = QStackedWidget()
+        self.stack.addWidget(settings)
+        self.stack.addWidget(look_page)
+        self._size_to_page()
+        v = QVBoxLayout(self)
+        v.addWidget(self.stack)
         v.addStretch(1)
+        self._show_summary()
+
+    def show_look(self, on: bool) -> None:
+        """The look's page in the settings' place, or the settings back, the window as much
+        shorter or taller as the page is (as the Scenery tab's Customize)."""
+        if on == self.looking():
+            return
+
+        def turn() -> None:
+            self.stack.setCurrentIndex(1 if on else 0)
+            self._size_to_page()
+            self.updateGeometry()
+        resize_with(self, turn)
+        (self.back if on else self.open_look).setFocus()
+
+    def looking(self) -> bool:
+        return self.stack.currentIndex() == 1
+
+    def _size_to_page(self) -> None:
+        """Only the page in view counts towards the stack's height (scenery_tab._size_to_page)."""
+        for i in range(self.stack.count()):
+            vertical = QSizePolicy.Policy.Preferred if i == self.stack.currentIndex() else QSizePolicy.Policy.Ignored
+            self.stack.widget(i).setSizePolicy(QSizePolicy.Policy.Preferred, vertical)
+        self.stack.updateGeometry()
+
+    def _show_summary(self) -> None:
+        pix, text = self.look.summary()
+        self.summary_strip.setPixmap(pix)
+        self.summary_text.setText(text)
+
+    def reveal(self, widget) -> None:
+        """Open the look's page if `widget` is on it, so a note pointing there finds it."""
+        if self.stack.widget(1).isAncestorOf(widget):
+            self.show_look(True)
 
     # the notes that make this whole tab new: their NEW goes on the tab's name too
     new_tab_keys = ("calendar",)
@@ -161,13 +199,21 @@ class HeatmapTab(Tab):
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"calendar": (self.where_group.title, "Study heatmap"),
                 "streak_from_start": (self.streak_from, "Count your streak from"),
-                "streak_week": (self.streak_week, "Your streak counts")}
+                "streak_week": (self.streak_week, "Your streak counts"),
+                "calendar_colours": (self.colours_group.title, "Heatmap colours"),
+                "calendar_tiles": (self.tiles_group.title, "Heatmap tiles")}
 
     def connect(self, changed) -> None:
         for choice in (self.calendar, self.week, self.streak_from, self.streak_week):
             choice.on_change(changed)
         for box in (self.calendar_main, self.calendar_decks, self.record):
             box.toggled.connect(changed)
+        self.look.on_change(changed)
+
+    def set_scenery(self, key: str, edition_cfg: dict) -> None:
+        """The scenery the Scenery tab has chosen, and the edition the Debug tab pretends this is:
+        Match the scenery shows its picture, and the Plus sceneries are locked as the picker's are."""
+        self.look.set_scenery(key, edition_cfg)
 
     def sync(self) -> None:
         # (how it shows only matters while it shows somewhere)
@@ -189,6 +235,8 @@ class HeatmapTab(Tab):
         label = self.start_form.labelForField(self.streak_from)
         if label is not None:
             label.setEnabled(record)
+        for g in (self.colours_group, self.tiles_group, self.look_group):
+            g.setEnabled(on)
         self.fit()
 
     def _view_changed_here(self) -> None:
@@ -212,6 +260,7 @@ class HeatmapTab(Tab):
             # (your own pick kept while the start date decides it)
             "streak_from_start": self.streak_from.currentData() if self.record.isChecked() else self._streak_pick,
             **self.week_values(),
+            **self.look.values(),
         }
 
     def week_values(self) -> dict:

@@ -65,7 +65,10 @@ def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: b
     mood = info["mood"]
     data = json.dumps(info, ensure_ascii=False).replace("</", "<\\/")
     # only the pieces this scene actually needs are loaded, and each lives in one file of its own
-    srcs = [_url(s) for s in core_scripts() + draft_scripts()] + [_url(rel) for rel in scenery_files(mood)] + [_url(BOOT)]
+    # (and those the heatmap's look borrows from another scenery: its colours, its tiles)
+    look = (info.get("calendar") or {}).get("look") or {}
+    srcs = ([_url(s) for s in core_scripts() + draft_scripts()] + [_url(rel) for rel in scenery_files(mood)]
+            + [_url(rel) for rel in look.get("files") or [] if rel not in scenery_files(mood)] + [_url(BOOT)])
     srcs.pop()  # the boot script: the page adds it last, and a swap has no need of it
     return ROOT, data, srcs
 

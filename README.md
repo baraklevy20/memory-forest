@@ -100,6 +100,8 @@ Hover a day for its numbers, and click it to open its cards.
 - **Important days**: right-click a day to mark it, like an exam or a trip, and give it
   a name and an icon. A day ahead counts down to it.
 - **On your phone**: the same heatmap, under your forest on the phone card.
+- **Your look**: your scenery's colours, a ready set like Flame, or your own; the tiles; and
+  on a dark page, busier days lighter or darker (Heatmap tab).
 
 Each scenery gives the heatmap its own colours.
 

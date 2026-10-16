@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, journal, live_weather, marks, milestones, news, presets, scene, study_log
+from . import events_state, forest_data, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
 from .edition import debug_available, debug_edition
 from .phone_note import phone_cards
 from .scope import anki_today, changes, day_cutoff, deck_ids, excluded_decks, since
@@ -181,7 +181,7 @@ def debug_tools(cfg: dict):
 
 
 def payload(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> dict:
-    cfg = follow_season(config())
+    cfg = heatmap_look.follow_season(follow_season(config()))
     # the test forest is a developer's tool, so it only exists while debug is on
     tools = debug_tools(cfg)
     test = bool(tools) and bool(cfg.get("test_forest", False))
@@ -251,7 +251,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "showForest": show_forest,
         # the study calendar (web/calendar.js): the whole collection's on the main screen, the
         # deck's own on a deck's screen
-        "calendar": calendar,
+        "calendar": _with_look(calendar, cfg, mood),
         **extras,
     }
 
@@ -407,6 +407,12 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "daysOff": sorted(_days_off(cfg, cutoff, set(studied), frozenset(), oldest)) if test else sorted(_days_off(cfg, cutoff, {a for a, n in day_reviews.items() if n},
                                                         _free_days(cutoff, dids, excluded, skip, changed))),
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
+
+
+def _with_look(cal: dict | None, cfg: dict, mood: dict) -> dict | None:
+    """The calendar with the Heatmap tab's colours and tiles (heatmap_look.page_look): the
+    scenery's own unless chosen, whichever scenery is on."""
+    return None if cal is None else dict(cal, look=heatmap_look.page_look(cfg, mood))
 
 
 def _scene_name(cfg: dict, today: _dt.date) -> dict:

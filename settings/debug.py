@@ -12,10 +12,11 @@ from .. import news
 from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
+from ..heatmap_look import LIGHT_SHADES, light_shades
 from ..seasons import forget_seasons
 from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
 from .decks import DATE_FORMAT
-from .widgets import date_field, group, hint
+from .widgets import Choice, date_field, form, group, hint
 
 TREES_STEP, TREES_PAGE = 10, 250
 TIMELINE_NOTE = ("Days pass on the test forest, and what they bring follows from them as it would: "
@@ -46,6 +47,9 @@ EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plu
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
 HAPPENINGS = {"leech": ("a card turns leech", "{n} cards turn leech"), "cure": ("a leech cured", "{n} leeches cured")}
 
+
+LIGHT_SHADES_NOTE = ("On a light page the heatmap's four shades go by lightness, as released, or take the dark "
+                     "page's own colours. Only while debug is on.")
 
 class DebugTab(QWidget):
     def __init__(self, cfg: dict):
@@ -94,6 +98,8 @@ class DebugTab(QWidget):
         self.was = cfg.get("debug_backlog_was") if type(cfg.get("debug_backlog_was")) is int else 0
         self.clear = QPushButton("Clear the backlog")
         self.clear.clicked.connect(self._clear_backlog)
+        # the heatmap's shades on a light page: by lightness (as released), or the dark page's own
+        self.light_shades = Choice(LIGHT_SHADES, light_shades(dict(cfg, debug=True)), LIGHT_SHADES[0][0])
         self.big = QCheckBox("Big learning days (wildflowers)"); self.big.setChecked(bool(cfg.get("debug_big_days", False)))
         # the date the scenery is chosen for
         try:
@@ -166,6 +172,9 @@ class DebugTab(QWidget):
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
         dv.addWidget(group("Study events", ev))
+        hf = form(); hf.addRow("Light-page shades", self.light_shades)
+        hv = QVBoxLayout(); hv.addLayout(hf); hv.addWidget(hint(LIGHT_SHADES_NOTE))
+        dv.addWidget(group("Heatmap", hv))
         dv.addStretch(1)
 
     def _timeline_step(self, kind) -> None:
@@ -236,6 +245,7 @@ class DebugTab(QWidget):
             box.toggled.connect(changed)
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
+        self.light_shades.on_change(changed)
         for box in (self.trees_box, self.backlog):
             box.valueChanged.connect(changed)
 
@@ -275,6 +285,7 @@ class DebugTab(QWidget):
             "debug_backlog_cleared": self.clears,
             "debug_backlog_was": self.was,
             "debug_big_days": self.big.isChecked(),
+            "debug_light_shades": self.light_shades.currentData(),
             "debug_date": self._date().isoformat() if self._date() else "",
             "debug_edition": self.edition.currentData() or "",
         }

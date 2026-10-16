@@ -12,7 +12,7 @@
  * Two views, each fitted to the room there is: Timeline (`timeline`: a year or more with this
  * month most of the way along, paged back and on with ‹ ›; on the phone, the whole history swiped
  * along) and By year (`by_year`: January to December). payload.py sends data.calendar = { view,
- * start, days, due, time, shadeBy, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
+ * start, days, due, time, shadeBy, look, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
  * the date of the first day counted, the reviews of each day from it to today, the cards due on
  * each day from today on, the day each animal came, the forest's own rule for ponds, whether a
  * click opens a day, the days you pinned, the forest's start date (if any), whether the streak
@@ -230,6 +230,7 @@ function history(cal) {
     // each day's cards since deleted: still counted in its reviews, but its click can't list them
     gone: new Map((cal.gone || []).map(([ago, count, of]) => [-ago, [count, of || count]])),
     dueShade, dueToday: cal.due[0] || 0,
+    look: cal.look || null,  // the Heatmap tab's colours and tiles (paletteOf)
     ahead: cal.due.length - 1,  // the last day ahead counted
     time
   });
@@ -288,7 +289,27 @@ function windowOf(H, view, page, year, count) {
 /* the four shades a day studied takes, fewest reviews to most, with their tiles' edges: built
  * round the scenery's colour (its own `calendar` colour, or its most colourful crown colour,
  * AF.foliage), from pale to deep, so the calendar belongs to the scene */
-const DARK = [16, 16, 16];
+const DARK = [16, 16, 16], DARK_PAPER = { bg: [44, 44, 44], dark: true };
+// an empty day's grey on a dark page (EMPTY), the least the faintest shade stands apart from it
+// (OKLab), and how much lighter it is made when closer (heatmap_look.py has the same sums)
+const EMPTY_GREY = [128, 128, 128], EMPTY_ALPHA = 0.11, EMPTY_APART = 0.06;
+const EMPTY_ALPHA_LIGHT = 0.2;
+const blankOn = paper => mix(paper.bg, EMPTY_GREY, paper.dark ? EMPTY_ALPHA : EMPTY_ALPHA_LIGHT);  // (an empty day's grey over the page)
+/* the four shades of colours you picked (yours, the ready ones), the same on a light page and a
+ * dark one: the busiest exactly the last colour, the others stepping to it from the first through
+ * OKLab; with one colour, from dim to full, dimmed into the page (its hue kept). Only the faintest
+ * fades into the page a little (FAINT_FADE), so the quiet days sit back, less where it would come
+ * too near an empty day */
+const FAINT_FADE = 0.25, FADE_STEP = 0.05, DIM = [0.55, 0.36, 0.18, 0];
+function exactSteps(colours, paper) {
+  const two = Array.isArray(colours), a = hex(two ? colours[0] : colours), b = two ? hex(colours[1]) : a;
+  const at = (i, f) => two ? (i ? blend(a, b, i / 3) : mix(a, paper.bg, f)) : mix(a, paper.bg, i ? DIM[i] : f);
+  const blank = blankOn(paper);
+  let f = two ? FAINT_FADE : DIM[0];
+  while (f > 0 && apart(at(0, f), blank) < EMPTY_APART) f = Math.max(0, f - FADE_STEP);
+  return [0, 1, 2, 3].map(i => (i === 3 ? b : at(i, f)));
+}
+const apart = (a, b) => { const p = oklab(a), q = oklab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
 // a light page's four shades: their lightness (OKLab L), fewest reviews to most, and the least
 // colourfulness they keep (a near-grey key would otherwise give grey tiles)
 const LIGHT_STEPS = [0.82, 0.69, 0.56, 0.43], LIGHT_CHROMA = 0.08;  // (0.86 sat too near a missed day's grey)
@@ -352,11 +373,14 @@ function pageOf(el) {
 /* the shades run towards the page's opposite, so a day stands out the more you studied: darker
  * for more on a light page, brighter for more on a dark one (a dark page's pale tiles would
  * otherwise draw the eye to your quietest days) */
-function shades(env, dark) {
+function shades(env, paper, look) {
+  // (your colours and the ready ones are `exact`: as picked, on either page: exactSteps)
   // a scenery whose trees are not its colour names its own (`calendar`: Frozen market's ice blue),
   // or two, the fewest reviews' and the most's, for a ramp between them (Aurora's night blue to
-  // its green): each shade then takes its own colour along it
-  const chroma = c => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]), own = AF.envOf(env).calendar;
+  // its green): each shade then takes its own colour along it. The Heatmap tab's colours
+  // (heatmap_look.py) come in the same way, as one colour or two (`look.colours`)
+  const dark = paper.dark, chosen = look && look.colours, exact = !!(look && look.exact && chosen);
+  const chroma = c => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]), own = chosen || AF.envOf(env).calendar;
   const keys = Array.isArray(own) ? [0, 1, 2, 3].map(i => readable(blend(hex(own[0]), hex(own[1]), i / 3)))
     : Array(4).fill(readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a)));
   // (about evenly far apart; on a dark page the top one only a little towards white, so a busy
@@ -373,6 +397,11 @@ function shades(env, dark) {
     while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95;
     return fromOklab(L, C * Math.cos(h), C * Math.sin(h));
   });
+  // (your colours and the ready ones: as picked, exactSteps)
+  if (exact) steps.splice(0, 4, ...exactSteps(look.colours, paper));
+  // (the Heatmap tab's "Busier days: Darker": a dark page's shades the other way round, a pale tint
+  // for a quiet day down to a clear dim colour for a busy one, still well clear of a missed day's grey)
+  if (dark && look && look.darker) steps.reverse();
   const tone = dark ? 0.07 : 0.16, rim = dark ? 0.22 : 0.3;
   return { grass: steps.map(c => [c, mix(c, DARK, tone)]), edge: steps.map(c => mix(c, DARK, rim)) };
 }
@@ -395,9 +424,9 @@ function spriteOf(t, h, env) {
 }
 /* a missed day, a day ahead with nothing due, or one before your history, drawn empty: a faint
  * grey square (no edge of its own) that sits back on Anki's light and dark pages alike */
-const EMPTY = 'rgba(128, 128, 128, 0.11)', EMPTY_LIGHT = 'rgba(128, 128, 128, 0.2)';  // (clearer on a light page, so the weeks hold together)
+const EMPTY = `rgba(128, 128, 128, ${EMPTY_ALPHA})`, EMPTY_LIGHT = `rgba(128, 128, 128, ${EMPTY_ALPHA_LIGHT})`;  // (clearer on a light page, so the weeks hold together)
 const FREE_MARK = 'rgba(128, 128, 128, 0.5)';  // a day with nothing due: a single pixel, darker grey
-function empty(g, x, y, fill = EMPTY) { g.fillStyle = fill; g.fillRect(x, y, TILE, TILE); }
+function empty(g, x, y, fill = EMPTY, T = TILE) { g.fillStyle = fill; g.fillRect(x, y, T, T); }
 /* a tile's texture: two tones in 2x2 clusters and an edge, its four corners left off so it reads
  * soft and round at its size (2026-10-16: bevel, dither, a soft brush and an inset were tried; at
  * 1x only the corners showed). A scenery with a look of its own (Starry night's brushstrokes) draws
@@ -414,13 +443,16 @@ function plainTile(g, pal, edge, v, T) {
 }
 /* a shade's tiles, each of its TILE_VARIANTS textures drawn once, kept for every calendar after */
 const tiles = new Map();
-function tilesOf(pal, edge, look) {
-  const key = (look ? look.name : '') + '|' + pal.concat([edge]).map(c => c.join(',')).join('|');
+function tilesOf(pal, edge, look, gapless = false) {
+  const key = (look ? look.name : '') + (gapless ? '|whole' : '') + '|' + pal.concat([edge]).map(c => c.join(',')).join('|');
   if (!tiles.has(key)) {
     const out = [];
     for (let v = 0; v < TILE_VARIANTS; v++) {
-      const [cv, g] = layer(TILE, TILE);
-      (look ? look.draw : plainTile)(g, pal, edge, v, TILE);
+      // (with no spaces between the days, a tile fills its whole cell: drawn a pixel bigger, so the
+      // gap every tile style keeps in its last row and column falls outside it)
+      const [cv, g] = layer(gapless ? CELL : TILE, gapless ? CELL : TILE);
+      (look ? look.draw : plainTile)(g, pal, edge, v, gapless ? CELL + 1 : TILE);
+      cv.fill = pal[0];  // (its colour, for Smooth: the rounded face filled, then its texture over it)
       out.push(cv);
     }
     tiles.set(key, out);
@@ -447,8 +479,15 @@ function drawAnimal(g, spr, x0, y0, tint, outline) {
 /* the shades a view draws with: the scenery's for days studied, soil for days ahead: a day's
  * tile among them (or null for an empty one), the key's, and the hover's */
 function paletteOf(H, sp, paper) {
-  const dark = paper.dark, S = shades(sp, dark), draw = AF.envOf(sp).calendarTile;
-  const look = draw && { name: sp.mood.special, draw };  // (a scenery's own tiles, when it draws them)
+  // the Heatmap tab's look (heatmap_look.page_look): another scenery's own colours (`env`, its file
+  // loaded with today's), and another's tiles (`tile`: "plain", or a scenery that draws its own);
+  // either one missing, the scenery's own
+  const L = H.look || {}, has = e => e === 'natural' || !!AF.ENVS[e];
+  const cs = L.env && has(L.env) ? Object.assign({}, sp, { mood: Object.assign({}, sp.mood, { special: L.env }) }) : sp;
+  const drawn = AF.heatmapTiles[L.tile], by = L.tile === 'plain' || drawn ? null : L.tile && AF.ENVS[L.tile] && AF.ENVS[L.tile].calendarTile ? L.tile : sp.mood.special;
+  // (the Debug tab's "Same as the dark page": a light page's days in the dark page's own shades)
+  const dark = paper.dark, S = shades(cs, !dark && L.lightSame ? DARK_PAPER : paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
+  const look = drawn && drawn.draw ? { name: L.tile, draw: drawn.draw } : draw && { name: by, draw };  // (a scenery's own tiles, when it draws them)
   // the soil faded into the page, so the days ahead sit behind the days you studied
   const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
   // (on a light page in lightness only, keeping most of its colour: mixed with white, brown went grey-mauve)
@@ -460,19 +499,29 @@ function paletteOf(H, sp, paper) {
   const soil = lv => till[lv].map(toPage), soilEdge = lv => toPage(edges[lv]);
   // (more due stands out more, as more studied does: lighter on a dark page, darker on a light one)
   const dueLv = n => dark ? 3 - H.dueShade(n) : H.dueShade(n);
-  const tile = c => {
-    const v = hashStr(iso(c.ms)) % TILE_VARIANTS, soilTile = lv => tilesOf(soil(lv), soilEdge(lv), look)[v];
+  // a day's shade: its two tones and edge, whether it is soil (a day ahead), and its texture (v)
+  const shadeOf = c => {
+    const v = hashStr(iso(c.ms)) % TILE_VARIANTS, soilOf = lv => ({ pal: soil(lv), edge: soilEdge(lv), soil: true, v, lv });
     // today before you study: soil, by the cards it has due, until your first review
-    if (c.o === 0 && !c.n && H.dueToday) return soilTile(dueLv(H.dueToday));
+    if (c.o === 0 && !c.n && H.dueToday) return soilOf(dueLv(H.dueToday));
     if (!c.n || c.o > H.ahead) return null;
-    if (c.o > 0) return soilTile(dueLv(c.n));
+    if (c.o > 0) return soilOf(dueLv(c.n));
     const lv = H.shade(c.o);
-    return tilesOf(S.grass[lv], S.edge[lv], look)[v];
+    return { pal: S.grass[lv], edge: S.edge[lv], soil: false, v, lv };
   };
+  // (the Heatmap tab's "Spaces between days" off: each tile fills its cell)
+  const gapless = L.gaps === false;
+  const tile = c => { const t = shadeOf(c); return t && tilesOf(t.pal, t.edge, look, gapless)[t.v]; };
   // (the key: the four shades of a day studied; the soil and the empty days say what they are; the
   // hover's ring in today's frame colours, which show on every shade, its inside clear, so the day
   // and its mark keep their colours)
-  return { tile, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(dark ? P.today : P.todayOnLight), glow: 'transparent' };
+  // (a shape with spaces and smooth corners whose style gives a `smoothRadius`, Round: each day a
+  // tile of its own, as round as its shape cut in pixels but its edge drawn at the screen's
+  // resolution, antialiased: plainTile, under sharpen with that radius)
+  const style = AF.heatmapTiles[L.tile], roundTile = !!(style && style.smoothRadius && L.smooth && !gapless);
+  return { tile, shadeOf, gapless, roundTile, shapes: isShape(L.tile) && !roundTile ? L.tile : null, grass: S.grass, edge: S.edge,
+    // (for the shapes: the soil's four shades, the empty days' grey as one colour, and the page)
+    tills: [0, 1, 2, 3].map(lv => soil(lv)[0]), blank: blankOn(paper), page: paper.bg, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(dark ? P.today : P.todayOnLight), glow: 'transparent' };
 }
 // a seedling of its own day's kind (pine or broadleaf, and its look)
 function seedlingOf(sp, ms) {
@@ -505,6 +554,97 @@ function columns(H, win) {
   }
   return out;
 }
+/* The heatmap's tile styles (the Heatmap tab's Tiles), each in a file of its own: web/heatmap/<key>.js
+ * (and .json, what the tab says of it), or for one still in the works, web/drafts/ (this copy only).
+ * A style registers itself in AF.heatmapTiles[key] as one of:
+ *  - { draw(g, pal, edge, v, T) }: each day a tile of its own, drawn as plainTile is (Flat);
+ *  - { fields, prepare(ctx), paint(ctx, c, x, y, edge, i, state) }: a joined shape (Round, Bands):
+ *    the days of each field (`fields`: the days studied 'grass', the days ahead 'soil', the empty
+ *    days 'blank') side by side are one shape, the gutters between them filled while there are no
+ *    spaces between days, each shape's outer corners cut and inner corners filled in whole-pixel
+ *    steps; `paint` gives each pixel's colour (`edge`: on the shape's rim; `prepare` any work
+ *    first, its answer `state`). Shapes join where the days touch: across months in By year,
+ *    while Timeline's months, each in columns of their own, stay apart (2026-10-14);
+ *  - { pass(ctx) }: draws the days itself, and gives back each pixel's day (an Int32Array, -1
+ *    none) for the pointer, or null.
+ * A scenery's own tiles (Brush, Scanlines, the seasonal ones) are its `calendarTile` instead. */
+AF.heatmapTiles = AF.heatmapTiles || {};
+const isShape = k => { const t = AF.heatmapTiles[k]; return !!t && !t.draw; };
+const DIAG = [[-1, -1], [1, -1], [-1, 1], [1, 1]], N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const FIELD_SIGMA = 6, FIELD_REACH = 2;
+/* the shade at a pixel of a day's field, 0 to 3, unrounded: the days round it of its own kind (studied,
+ * or ahead) weighted by how near their tiles' centres are (a Gaussian about a day across) */
+function fieldLv(c, x, y, get) {
+  const t = c.shade;
+  let sum = 0, w = 0;
+  for (let dc = -FIELD_REACH; dc <= FIELD_REACH; dc++) for (let dr = -FIELD_REACH; dr <= FIELD_REACH; dr++) {
+    const n = get(c.col + dc, c.row + dr);
+    if (!n || !n.shade || n.shade.blank || !n.shade.soil !== !t.soil) continue;
+    const dx = n.x + (TILE >> 1) - x, dy = n.y + (TILE >> 1) - y, k = Math.exp(-(dx * dx + dy * dy) / (2 * FIELD_SIGMA * FIELD_SIGMA));
+    sum += n.shade.lv * k; w += k;
+  }
+  return Math.min(3, Math.max(0, w ? sum / w : t.lv));
+}
+// a shape's outline: the days ahead their own shade's edge, the days studied a pixel darker than the busiest's
+const outlineOf = (t, pal, dark) => (t.soil ? mix(t.edge, DARK, dark ? 0.15 : 0.2) : mix(pal.edge[3], DARK, dark ? 0.45 : 0.35));
+function shapesPass(g, cells, at, W, Hh, H, pal, dark) {
+  const style = AF.heatmapTiles[pal.shapes], rows = ROWS;
+  const get = (col, row) => (row >= 0 && row < rows ? at.get(col * ROWS + row) : undefined);
+  const ctx = { g, cells, get, W, Hh, H, pal, rows, dark, TOP, CELL, TILE, FADE, DARK, layer, mix, hashStr, iso, fieldLv, outlineOf };
+  if (style.pass) return style.pass(ctx);
+  const [cv, rg] = layer(W, Hh), img = rg.createImageData(W, Hh), d = img.data;
+  const kind = c => (!c || !c.shade ? '' : c.shade.blank ? 'blank' : c.shade.soil ? 'soil' : 'grass');
+  for (const field of style.fields) {
+    const isIn = c => kind(c) === field;
+    // each pixel's day (-1 none): a day's tile, the gutter to a neighbour right or below that is
+    // in too, and the corner between four
+    const own = new Int32Array(W * Hh).fill(-1);
+    const put = (x0, y0, w, h, i) => { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) own[y * W + x] = i; };
+    cells.forEach((c, i) => {
+      if (!isIn(c)) return;
+      put(c.x, c.y, TILE, TILE, i);
+      // (with "Spaces between days" on, no day joins another: each its own little shape)
+      if (!pal.gapless) return;
+      const R = isIn(get(c.col + 1, c.row)), D = isIn(get(c.col, c.row + 1));
+      if (R) put(c.x + TILE, c.y, CELL - TILE, TILE, i);
+      if (D) put(c.x, c.y + TILE, TILE, CELL - TILE, i);
+      if (R && D && isIn(get(c.col + 1, c.row + 1))) put(c.x + TILE, c.y + TILE, CELL - TILE, CELL - TILE, i);
+    });
+    // the corners, two pixels round: outer ones cut, inner ones filled
+    const f = (x, y) => x >= 0 && y >= 0 && x < W && y < Hh && own[y * W + x] >= 0, out = own.slice();
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      if (f(x, y)) {
+        for (const [dx, dy] of DIAG) if (!f(x + dx, y) && !f(x, y + dy)) {
+          out[i] = -1;
+          if (f(x - dx, y) && !f(x - dx, y + dy)) out[i - dx] = -1;
+          if (f(x, y - dy) && !f(x + dx, y - dy)) out[i - dy * W] = -1;
+        }
+      } else {
+        for (const [dx, dy] of DIAG) if (f(x + dx, y) && f(x, y + dy) && f(x + dx, y + dy)) {
+          out[i] = own[i + dx];
+          if (!f(x - dx, y) && f(x - dx, y + dy)) out[i - dx] = own[i - dx + dy * W];
+          if (!f(x, y - dy) && f(x + dx, y - dy)) out[i - dy * W] = own[i + dx - dy * W];
+        }
+      }
+    }
+    // each pixel in its day's colour, as the style paints it (a day before the start date faded,
+    // as its tile would be)
+    const edgeAt = (x, y) => N4.some(([dx, dy]) => { const X = x + dx, Y = y + dy; return X < 0 || Y < 0 || X >= W || Y >= Hh || out[Y * W + X] < 0; });
+    const state = style.prepare ? style.prepare(Object.assign({ out }, ctx)) : null;
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+      const o = out[y * W + x];
+      if (o < 0) continue;
+      const c = cells[o], k = (y * W + x) * 4;
+      const col = style.paint(ctx, c, x, y, edgeAt(x, y), y * W + x, state);
+      d[k] = col[0]; d[k + 1] = col[1]; d[k + 2] = col[2];
+      d[k + 3] = H.fs !== null && c.o < H.fs ? Math.round(255 * (1 - FADE)) : 255;
+    }
+  }
+  rg.putImageData(img, 0, 0);
+  g.drawImage(cv, 0, 0);
+  return null;
+}
 /* one view drawn: the canvas, and where everything on it is */
 /* a mark's colour, the scenery's own: of every bright hue at a few lightnesses, the one that stands
  * out most from the scenery's shades on both pages and from a missed day, for normal vision and
@@ -524,7 +664,7 @@ function markPalOf(sp) {
   if (!markPals.has(key)) {
     const sim = (c, m) => { if (!m) return c; const l = c.map(lin); return m.map(r => unlin(r[0] * l[0] + r[1] * l[1] + r[2] * l[2])); };
     const dist = (a, b) => { const p = oklab(a), q = oklab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
-    const backs = [...shades(sp, true).grass, ...shades(sp, false).grass].map(p => p[0])
+    const backs = [...shades(sp, { bg: MARK_PAGES[0], dark: true }).grass, ...shades(sp, { bg: MARK_PAGES[1], dark: false }).grass].map(p => p[0])
       .concat([mix(MARK_PAGES[0], [128, 128, 128], 0.11), mix(MARK_PAGES[1], [128, 128, 128], 0.2)]);
     const at = (L, h) => { let C = MARK_C; while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95; return [L, C, h]; };
     const hues = backs.map(oklab).filter(k => Math.hypot(k[1], k[2]) > 0.04).map(k => Math.atan2(k[2], k[1]));
@@ -542,6 +682,51 @@ function markPalOf(sp) {
   }
   return markPals.get(key);
 }
+/* Smooth (the Heatmap tab's switch, `look.smooth`): each day's tile, in whichever style is chosen,
+ * drawn inside a rounded square at the screen's own resolution, as GitHub's are (drawn in the
+ * heatmap's own pixels and scaled up, corners step). The tiles, the empty days and today's frame are
+ * drawn by sharpen once the scale is known; the marks, the free days' dots, the brackets and the
+ * lane stay on the heatmap's pixels, over them. Not with the joined shapes (Bands, a drafted shape,
+ * Round without spaces), which are no tiles. (The path by hand: Chromium 77, Anki 2.1.45's, has no
+ * roundRect) */
+const SMOOTH_R = 1.8;  // (the corners' radius, in the heatmap's pixels: GitHub's 2px on a 10px tile)
+function rounded(g, x, y, w, h, r) {
+  g.beginPath(); g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+/* a view's tiles, empty days and today's frame drawn smooth on `hi`, `s` device pixels to the
+ * heatmap's pixel, under `lo` (the rest of it, in its pixels) */
+function sharpen(hi, lo, cells, H, dark, paper, s, F, R) {
+  const W = lo.width, Hh = lo.height;
+  hi.width = Math.round(W * s); hi.height = Math.round(Hh * s);
+  const g = hi.getContext('2d');
+  g.setTransform(hi.width / W, 0, 0, hi.height / Hh, 0, 0);
+  g.imageSmoothingEnabled = false;  // (a tile's own texture stays crisp inside its smooth outline)
+  // (the rounded square is the tile's face, F: its last row and column are the gap between days,
+  // which a style draws in its edge tone and which inside a smooth outline read as a stepped rim)
+  const tile = (c, inset) => {
+    const i = inset || 0;
+    rounded(g, c.x + i, c.y + i, F - 2 * i, F - 2 * i, Math.max(0.6, R - i));
+    if (c.t) {
+      g.fillStyle = rgb(c.t.fill); g.fill();
+      g.save(); g.clip(); g.drawImage(c.t, 0, 0, F, F, c.x, c.y, F, F); g.restore();
+    } else { g.fillStyle = dark ? EMPTY : EMPTY_LIGHT; g.fill(); }
+  };
+  for (const c of cells) {
+    g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
+    tile(c);
+  }
+  g.globalAlpha = 1;
+  const today = cells.find(c => c.o === 0);
+  if (today) {
+    // (as frame: a light ring in the gaps all round, a line of the page's colour just inside it)
+    rounded(g, today.x - 1, today.y - 1, F + 2, F + 2, R + 1); g.fillStyle = rgb(dark ? P.today : P.todayOnLight); g.fill();
+    rounded(g, today.x, today.y, F, F, R); g.fillStyle = rgb(paper.bg); g.fill();
+    tile(today, 1);
+  }
+  g.drawImage(lo, 0, 0);
+}
 function paint(H, win, sp, paper) {
   const dark = paper.dark, band = TOP;
   // the days in weeks, their first day on top; Timeline starts each month in a column of its own (By
@@ -555,17 +740,28 @@ function paint(H, win, sp, paper) {
   // the animals (and the forest's first seedling) on a layer of their own over it, shown while the
   // pointer is on the heatmap (forest.css): the forest's milestones, which the forest shows already
   const [above, ag] = layer(W, Hh);
-  const pal = paletteOf(H, sp, paper);
+  const pal = paletteOf(H, sp, paper), smooth = !!(H.look && H.look.smooth) && !pal.shapes;
   // the tiles first, each with a texture of its own day's (the same whichever page it is on); a
   // missed day, or one before your history, faint, so the view is never half bare
   for (const c of cells) {
-    const t = pal.tile(c);
+    // (Rounded, Smooth, Bands, a drafted shape: the days studied, and the days ahead, are drawn after,
+    // as shapes: shapesPass; all but Rounded the empty days too)
+    // (a style that draws the empty days too, as Bands does, gets them as shades of their own)
+    const style = pal.shapes && AF.heatmapTiles[pal.shapes];
+    if (style) c.shade = pal.shadeOf(c) || (!style.fields || style.fields.indexOf('blank') >= 0 ? { blank: true } : null);
+    const t = pal.shapes ? null : pal.tile(c);
     // (a day before the forest's start date, studied or not, dimmed)
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
-    if (t) g.drawImage(t, c.x, c.y);
-    else empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT);
-    // (a day with nothing due: one pixel in its middle, the streak's day off)
-    if (H.free.has(c.o) && !c.n) { g.fillStyle = FREE_MARK; g.fillRect(c.x + (TILE >> 1), c.y + (TILE >> 1), 1, 1); }
+    if (smooth) c.t = t;  // (drawn by sharpen)
+    else if (t) g.drawImage(t, c.x, c.y);
+    else if (!c.shade) empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT, pal.gapless ? CELL : TILE);
+    g.globalAlpha = 1;
+  }
+  const pane = pal.shapes ? shapesPass(g, cells, at, W, Hh, H, pal, dark) : null;  // (a drafted shape: each pixel's day, for the pointer)
+  // (a day with nothing due: one pixel in its middle, the streak's day off; over the shapes)
+  for (const c of cells) if (H.free.has(c.o) && !c.n) {
+    g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
+    g.fillStyle = FREE_MARK; g.fillRect(c.x + (TILE >> 1), c.y + (TILE >> 1), 1, 1);
     g.globalAlpha = 1;
   }
   const animals = H.animals;
@@ -581,7 +777,7 @@ function paint(H, win, sp, paper) {
     drawAnimal(g, Object.assign({}, spr, { pal: markPalOf(sp) }), x0, y0, null, paper.bg);
   }
   const today = cells.find(c => c.o === 0);
-  if (today) frame(g, today.x, today.y, TILE, dark, paper.bg);
+  if (today && !smooth) frame(g, today.x, today.y, TILE, dark, paper.bg);
   // the streaks: a bracket under the weeks each ran through, gold for the current one, cut at
   // the view's edges (with no end mark there)
   const by = band + ROWS * CELL + 3, brackets = [];
@@ -643,7 +839,18 @@ function paint(H, win, sp, paper) {
       ag.drawImage(s, c.x + Math.floor((TILE - s.width) / 2), c.y + Math.floor((TILE - s.height) / 2));
     }
   }
-  return { cv, above, W, Hh, cells, at, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key };
+  const radius = pal.roundTile ? AF.heatmapTiles[H.look.tile].smoothRadius : SMOOTH_R;  // (smooth: each tile's corners)
+  const out = { cv, above, W, Hh, cells, at, pane, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key, smooth, radius };
+  if (smooth) {
+    // (shown on a canvas of its own at the screen's resolution, drawn again when the scale changes)
+    const [hi] = layer(W, Hh);
+    hi.dataset.pixels = W;  // (the heatmap's width in its own pixels, for e2e/phone_check)
+    let drawnAt = 0;
+    const F = pal.gapless ? CELL : TILE_FACE;  // (each tile's face: no gap of its own when the days have none)
+    out.cv = hi; out.sharpen = s => { if (s !== drawnAt) { drawnAt = s; sharpen(hi, cv, cells, H, dark, paper, s, F, radius); } };
+    out.sharpen(dpr());
+  }
+  return out;
 }
 
 // a year's weeks, about as wide as they come: By year's, or Timeline's months apart (its
@@ -842,6 +1049,7 @@ AF.calendar = function (root, data, env) {
     hover.style.left = (cv.offsetLeft + (c.x - 1) * k) + 'px';
     hover.style.top = (cv.offsetTop + (c.y - 1) * k) + 'px';
     hover.style.width = hover.style.height = (TILE + 2) * k + 'px';  // (round the whole tile, as today's frame)
+    hover.style.borderRadius = drawn.smooth ? (drawn.radius + 1) * k + 'px' : '';
     hover.style.borderColor = drawn.ring; hover.style.background = drawn.glow;
   };
   // the first tooltip after the pointer comes onto the heatmap waits a moment, so crossing it on the
@@ -892,7 +1100,15 @@ AF.calendar = function (root, data, env) {
     const may = can(win);
     btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
     // what the tiles mean, read off the tiles themselves
-    const swatch = cv => { const c = document.createElement('canvas'); c.width = c.height = TILE; c.getContext('2d').drawImage(cv, 0, 0); c.className = 'af-cal-swatch'; return c; };
+    // (Smooth: the face alone, filled, as the days are drawn: no gap row and column for a rim)
+    const swatch = cv => {
+      const c = document.createElement('canvas'), F = drawn.smooth ? TILE_FACE : TILE, g = c.getContext('2d');
+      c.width = c.height = F;
+      if (drawn.smooth) { g.fillStyle = rgb(cv.fill); g.fillRect(0, 0, F, F); }
+      g.drawImage(cv, 0, 0, F, F, 0, 0, F, F);
+      c.className = 'af-cal-swatch';
+      return c;
+    };
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
@@ -1029,6 +1245,7 @@ AF.calendar = function (root, data, env) {
       d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
       d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
       d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';
+      if (d.sharpen) d.sharpen(k * dpr());
     }
   }
   function go(where) {
@@ -1061,8 +1278,13 @@ AF.calendar = function (root, data, env) {
     d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
     layPast();
     // (the key's tiles as big as the calendar's, and as far apart)
-    box.querySelectorAll('.af-cal-swatch').forEach((sw, i, all) => { sw.style.width = sw.style.height = TILE * k + 'px'; if (i < all.length - 1) sw.style.marginRight = (CELL - TILE) * k + 'px'; });
+    box.querySelectorAll('.af-cal-swatch').forEach((sw, i, all) => {
+      const F = d.smooth ? TILE_FACE : TILE;
+      sw.style.width = sw.style.height = F * k + 'px'; if (i < all.length - 1) sw.style.marginRight = (CELL - F) * k + 'px';
+      sw.style.borderRadius = d.smooth ? d.radius * k + 'px' : '';
+    });
     d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
+    if (d.sharpen) d.sharpen(k * dpr());
     let html = '', lastM = -1;
     for (const c of d.cells) {
       const day = new Date(c.ms);
@@ -1206,6 +1428,9 @@ AF.calendar = function (root, data, env) {
     // (or a streak's bracket, or the lane under it: the streak itself)
     const by = pointed.band + ROWS * CELL + 3, br = py >= by - 3 && py < by + 12 ? pointed.brackets.find(b => px >= b.x0 - 1 && px <= b.x1 + 1) : null;
     if (br) { hit = br; return null; }
+    // (a drafted shape: the pixel's own day, as it drew it, not the square of the grid)
+    const pane = pointed.pane && px >= 0 && py >= 0 && px < pointed.W && py < pointed.Hh ? pointed.pane[Math.floor(py) * pointed.W + Math.floor(px)] : -1;
+    if (pane >= 0) return pointed.cells[pane];
     const col = Math.floor(px / CELL), row = Math.floor((py - pointed.band) / CELL);
     return px >= 0 && row >= 0 && row < ROWS ? pointed.at.get(col * ROWS + row) || null : null;
   };

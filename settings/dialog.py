@@ -56,7 +56,7 @@ RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("Resets: the scenery and Customize, Nature (to {nature}), your city, where the forest and the "
-                "heatmap show (finished decks too), the heatmap's view, week start and shades, animation and the "
+                "heatmap show (finished decks too), the heatmap's view, week start, shades, colours and tiles, animation and the "
                 "planting message.\n\nKeeps: the decks you left out, the start date (and how the heatmap and your "
                 "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
                 "Cancel still puts back the settings you had before.")
@@ -140,11 +140,16 @@ class SettingsDialog(QDialog):
         tabs = self.tabs = QTabWidget()
         tabs.currentChanged.connect(self._show_whole)
         self.about = AboutTab()
-        # the Forest and Debug tabs scroll on a screen too short for them (widgets.Scrolled); the
-        # others fit (Scenery by showing fewer rows of tiles: fit_screen)
+        # the Forest, Heatmap and Debug tabs scroll on a screen too short for them (widgets.Scrolled);
+        # the others fit (Scenery by showing fewer rows of tiles: fit_screen)
+        # (the Heatmap tab, the longest, asks for no more than Forest: shown, the dialog grows to
+        # show it whole where the screen has room, _show_whole, rather than every tab being as tall)
         self.pages = {self.forest: Scrolled(self.forest)}
+        self.pages[self.heatmap] = Scrolled(self.heatmap, cap=lambda: self.pages[self.forest].sizeHint().height())
         if not isinstance(self.debug, NoDebugTab):
-            self.pages[self.debug] = Scrolled(self.debug)
+            # (the Debug tab, the longest by far, asks for no more than Forest either, and never grows
+            # the dialog when shown: the dialog is as tall with debug on as without, Debug scrolls)
+            self.pages[self.debug] = Scrolled(self.debug, cap=lambda: self.pages[self.forest].sizeHint().height())
         for widget, name in shown + [(self.about, "About")]:
             tabs.addTab(self._page(widget), name)
 
@@ -232,7 +237,7 @@ class SettingsDialog(QDialog):
 
     def _show_whole_step(self) -> None:
         page = self.tabs.currentWidget()
-        if not isinstance(page, Scrolled):
+        if not isinstance(page, Scrolled) or page.widget() is self.debug:
             return
         over, room = page.verticalScrollBar().maximum(), self._room()
         if over > 0 and room is not None and self.height() < room:
@@ -321,6 +326,11 @@ class SettingsDialog(QDialog):
         self.scenery.offer(day, self.custom.look(), debug_edition(dict(self._current(), **self.debug.values())))
         self.scenery.sync()
         self.forest.sync()
+        key = self.scenery.preset.currentData()
+        if key == presets.CUSTOM:  # (your own mix: the heatmap matches its environment's scenery)
+            env = self.custom.look().get("environment")
+            key = next((p.key for p in presets.FOREST_PRESETS if p.environment == env), presets.FOREST_PRESETS[0].key)
+        self.heatmap.set_scenery(key, dict(self._current(), **self.debug.values()))
         self.heatmap.sync()
         self.decks.sync()
         self.debug.sync()

@@ -1,0 +1,9 @@
+{
+ "order": 7,
+ "label": "Ice",
+ "tip": "Frozen river market's ice, in its week only",
+ "env": "frozen_market",
+ "season": "frozen_market",
+ "gaps": true,
+ "smooth": true
+}

@@ -1,0 +1,7 @@
+{
+ "order": 1,
+ "label": "Flat",
+ "tip": "Square tiles, each one solid colour, their corners smooth",
+ "gaps": true,
+ "smooth": true
+}

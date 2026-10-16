@@ -8,6 +8,7 @@ from aqt.qt import (
     QColor,
     QComboBox,
     QDateEdit,
+    QEvent,
     QFormLayout,
     QFrame,
     QGroupBox,
@@ -15,9 +16,11 @@ from aqt.qt import (
     QIcon,
     QLabel,
     QPixmap,
+    QPushButton,
     QRadioButton,
     QScrollArea,
     QSize,
+    QSizePolicy,
     Qt,
     QTextCharFormat,
     QTimer,
@@ -103,6 +106,70 @@ class Choice(QWidget):
     def on_change(self, changed) -> None:
         """Call `changed()` once a choice is made (not again for the one it replaces)."""
         self.group.buttonToggled.connect(lambda _b, on: on and changed())
+
+
+# a few short choices as joined buttons, one control, the chosen one a soft grey with a blue edge (a
+# solid blue was the loudest thing on the tab; the corners rounded only at the row's two ends): the
+# Heatmap tab's week start, Busier days
+JOINED_STYLE = """
+QPushButton {{ border: 1px solid {line}; border-left-width: {left}px; border-radius: 0; padding: 3px 10px;
+              border-top-left-radius: {r0}px; border-bottom-left-radius: {r0}px;
+              border-top-right-radius: {r1}px; border-bottom-right-radius: {r1}px;
+              background: rgba(128, 128, 128, 0.10); }}
+QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
+QPushButton:checked {{ background: rgba(128, 128, 128, 0.38); border-color: {ring}; }}
+QPushButton:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.05); }}
+QPushButton:checked:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.22); border-color: {line}; }}
+"""
+JOINED_RADIUS = 6
+
+
+class JoinedChoice(Choice):
+    """A few short choices as a row of joined buttons (JOINED_STYLE), as wide as they are; `tips`,
+    each one's tooltip. One Tab stop, the chosen one, and the arrow keys from one to the next, as
+    round radio buttons have (push buttons are each a Tab stop of their own, with no arrows)."""
+
+    def __init__(self, options, value, fallback=None, tips: dict | None = None):
+        self.keys, self.tips = [k for k, _label in options], tips or {}
+        super().__init__(options, value, fallback, gap=0, stretch=False)
+        self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)  # (its own width, not the row's)
+        for b in self.buttons.values():
+            b.installEventFilter(self)
+        self.group.buttonToggled.connect(lambda _b, _on: self._tab_stop())
+        self._tab_stop()
+
+    def _tab_stop(self) -> None:
+        for b in self.buttons.values():
+            b.setFocusPolicy(Qt.FocusPolicy.StrongFocus if b.isChecked() else Qt.FocusPolicy.ClickFocus)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.KeyPress and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down):
+            keys = list(self.buttons)
+            at = keys.index(self.currentData()) + (1 if event.key() in (Qt.Key.Key_Right, Qt.Key.Key_Down) else -1)
+            if 0 <= at < len(keys):
+                self.buttons[keys[at]].setChecked(True)
+                self.buttons[keys[at]].setFocus()
+            return True
+        return False
+
+    def label_for(self, key, label: str) -> tuple:
+        """(the button's words, its tooltip)."""
+        return label, self.tips.get(key, "")
+
+    def make_button(self, key, label: str):
+        at = self.keys.index(key)
+        first, last = at == 0, at == len(self.keys) - 1
+        label, tip = self.label_for(key, label)
+        b = QPushButton(label)
+        if tip:
+            b.setToolTip(tip)
+        b.setAutoDefault(False)  # Enter in the dialog means Done
+        b.setCheckable(True)
+        b.setCursor(Qt.CursorShape.PointingHandCursor)
+        b.setStyleSheet(JOINED_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"), off=color("FG_DISABLED"),
+                                            left=1 if first else 0,
+                                            r0=JOINED_RADIUS if first else 0, r1=JOINED_RADIUS if last else 0))
+        return b
 
 
 class Link(QLabel):
@@ -329,8 +396,9 @@ class Scrolled(QScrollArea):
     where there is room, so it opens like any other tab, and only as small as SCROLL_MIN_H asks
     where there isn't, the rest a scroll away."""
 
-    def __init__(self, tab: QWidget):
+    def __init__(self, tab: QWidget, cap=None):
         super().__init__()
+        self.cap = cap  # () -> the most it asks for, so a long tab doesn't make every tab as tall
         self.setWidget(tab)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
@@ -345,7 +413,8 @@ class Scrolled(QScrollArea):
 
     def sizeHint(self) -> QSize:
         inner = self.widget().minimumSizeHint().expandedTo(self.widget().sizeHint())
-        return QSize(inner.width() + self.bar(), inner.height() + 2 * self.frameWidth())
+        height = inner.height() if self.cap is None else min(inner.height(), max(SCROLL_MIN_H, self.cap()))
+        return QSize(inner.width() + self.bar(), height + 2 * self.frameWidth())
 
     def minimumSizeHint(self) -> QSize:
         return QSize(self.widget().minimumSizeHint().width() + self.bar(), SCROLL_MIN_H)
