@@ -4,12 +4,14 @@ changes), the day's scene and weather (live_weather.py), and the numbers the pag
 from __future__ import annotations
 
 import datetime as _dt
+import html
+import re
 import time
 from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, growth, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
+from . import events_state, forest_data, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
 from .edition import debug_available, debug_edition
 from .phone_note import phone_cards
 from .scope import anki_today, changes, day_cutoff, deck_ids, excluded_decks, since
@@ -291,11 +293,34 @@ def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: i
     return [seconds.get(ago, 0) for ago in range(oldest, -1, -1)]
 
 
-def _day_growth(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
-    """Each day's Growth, oldest first (growth.load_day_growth), remembered until the study data changes."""
-    days = remembered("day_growth", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
-                      lambda: growth.load_day_growth(mw.col, cutoff, dids, excluded, skip))
-    return [list(days[ago]) if ago in days else None for ago in range(oldest, -1, -1)]
+def _day_friction(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
+    """Each day's Friction, oldest first (study_log.load_day_friction), remembered until the study data changes."""
+    days = remembered("day_friction", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.load_day_friction(mw.col.db, cutoff, dids, excluded, skip))
+    return [[round(100 * days[ago][0] / days[ago][1], 1), *days[ago]] if ago in days else None for ago in range(oldest, -1, -1)]
+
+
+FRICTION_NAME = 60  # (the most of a card's name its row shows)
+
+
+def friction_cards(ago: int, did: int | None) -> list:
+    """The cards behind a day's Friction, for the heatmap's list (study_log.friction_cards): each as
+    {cid, secs, again, name}, the name the note's sort field without its markup."""
+    cfg, col = config(), mw.col
+    excluded, skip = excluded_decks(cfg), phone_cards()
+    dids = deck_ids(did, excluded) if did else None
+    out = []
+    for cid, secs, again, name in study_log.friction_cards(col.db, day_cutoff(col), ago, dids, excluded, skip):
+        text = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]*>", " ", name))).strip()
+        out.append({"cid": cid, "secs": secs, "again": again, "name": text[:FRICTION_NAME] or "(empty)"})
+    return out
+
+
+def _day_recall(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
+    """Each day's average answer, oldest first (study_log.load_day_recall), remembered until the study data changes."""
+    days = remembered("day_recall", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.load_day_recall(mw.col.db, cutoff, dids, excluded, skip))
+    return [round(days[ago], 2) if ago in days else None for ago in range(oldest, -1, -1)]
 
 
 def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
@@ -397,12 +422,11 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (none for a made-up day)
             "time": [] if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
-            # Growth (growth.py): whether it can be had (FSRS on), and, while it is what the shades go
-            # by, each day's [median % change in stability, cards] or None, as `days` (worked out only
-            # then: the page asks for it, and is drawn again, when Growth is picked)
-            "growthOn": not test and growth.fsrs_on(col),
-            "growth": _day_growth(cutoff, dids, excluded, skip, changed, oldest)
-                      if not test and calendar_shade(cfg) == "growth" else None,
+            # Recall: each day's average answer, Again 0 to Easy 3 (None with no reviews), as `days`
+            "recall": [] if test else _day_recall(cutoff, dids, excluded, skip, changed, oldest),
+            # Friction: each day's [% of its review time spent relearning forgotten cards, seconds
+            # relearning, seconds in all], or None with no review time kept, as `days`
+            "friction": [] if test else _day_friction(cutoff, dids, excluded, skip, changed, oldest),
             "breakDays": forest_data.BREAK_DAYS,
             "forestStart": forest_start,
             "hiddenBefore": hidden_before,

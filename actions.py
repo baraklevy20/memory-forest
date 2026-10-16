@@ -120,14 +120,16 @@ def on_js_message(handled, message, context):
             marks.set_mark(mw.col, cmd[1], cmd[2], ":".join(cmd[3:]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "unmark" and len(cmd) > 1:
             marks.unmark(mw.col, cmd[1])
-        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the key: reviews, time or growth
+        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the key: reviews, time, recall or friction
             save_config(dict(config(), calendar_shade=cmd[1]))  # (the heatmap has drawn it already: no redraw)
-            if cmd[1] == "growth" and len(cmd) > 2 and cmd[2] == "load":  # (but Growth's days come only once asked for)
-                refresh()
         elif cmd[0] == "view" and len(cmd) > 1 and cmd[1] in CALENDAR_VIEWS:  # Timeline | By year, on the heatmap
             save_config(dict(config(), calendar=cmd[1]))  # (drawn already; the Heatmap tab's View follows it)
         elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait
             hold_shortcuts(cmd[1:] == ["1"])
+        elif cmd[0] == "friction" and len(cmd) > 1:  # a day clicked while the heatmap shows Friction: its cards
+            return (True, payload.friction_cards(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None))
+        elif cmd[0] == "card" and len(cmd) > 1:  # one of them clicked: the browser on it
+            _open_browser([f"cid:{int(cmd[1])}"])
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked
             browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None, len(cmd) > 3 and cmd[3] == "due")
         elif cmd[0] == "browse":

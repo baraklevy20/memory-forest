@@ -4,5 +4,6 @@
  "tip": "Starry night's brushstrokes",
  "env": "starry_night",
  "gaps": true,
- "smooth": true
+ "smooth": true,
+ "phrase": "Brushstroke tiles"
 }

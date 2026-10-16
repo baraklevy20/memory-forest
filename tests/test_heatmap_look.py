@@ -122,6 +122,17 @@ class TileFileTests(unittest.TestCase):
                 with open(os.path.join(web, rel), encoding="utf-8") as f:
                     self.assertIn(f"AF.heatmapTiles.{key} =", f.read(), key)
 
+    def test_a_style_s_smooth_corners_are_the_same_in_its_script_and_its_file(self):
+        import re
+        for key, spec in HL.TILE_SPECS.items():
+            for name in ("smoothRadius", "smoothGrow"):
+                if name not in spec:
+                    continue
+                with open(os.path.join(ADDON_DIR, "web", "heatmap", f"{key}.js"), encoding="utf-8") as f:
+                    m = re.search(name + r": ([0-9.]+)", f.read())
+                self.assertIsNotNone(m, f"{key}.js has no {name}")
+                self.assertEqual(float(m.group(1)), spec[name], f"{key}: {name}")
+
     def test_a_release_s_tiles_never_come_from_the_drafts(self):
         released = {n[:-5] for n in os.listdir(os.path.join(ADDON_DIR, "web", "heatmap")) if n.endswith(".json")}
         self.assertTrue({"flat", "round", "contours"} <= released)
@@ -174,7 +185,7 @@ class ShadeTests(unittest.TestCase):
     def test_a_pale_colour_is_said_to_be_hard_to_see_on_a_light_page(self):
         self.assertEqual(HL.faint_on("#f6efb0"), ["light"])
         self.assertEqual(HL.faint_on(["#000000", "#1a1a1a"]), ["dark"])
-        self.assertEqual(HL.faint_on(HL.READY["green"]), [])
+        self.assertEqual(HL.faint_on(["#1e6823", "#378f36"]), [])
 
     def test_the_shade_steps_are_calendar_js_s(self):
         with open(os.path.join(ADDON_DIR, "web", "calendar.js"), encoding="utf-8") as f:

@@ -1,9 +1,10 @@
 {
  "order": 7,
- "label": "Ice",
+ "label": "Ice blocks",
  "tip": "Frozen river market's ice, in its week only",
  "env": "frozen_market",
  "season": "frozen_market",
  "gaps": true,
- "smooth": true
+ "smooth": true,
+ "phrase": "Ice blocks"
 }

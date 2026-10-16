@@ -65,17 +65,19 @@ TILE_SEASONS = {k: v["season"] for k, v in TILE_SPECS.items() if v.get("season")
 # them back to its own, so the switches show what a user would see
 TILE_STYLE = {k: (v.get("gaps", True) is not False, v.get("smooth") is True) for k, v in TILE_SPECS.items()}
 
-# the ready ramps, after Review Heatmap's CSS: one colour dim to full, or two, light days to busy ones
+# the ready ramps: Review Heatmap's five themes, by their names and in its order, each from its
+# darkest to its lightest shade (its review-heatmap.css, dark mode), so someone coming from it finds
+# theirs: Olive and Lime were nearly half of the heatmaps posted on Reddit (2026-10-16)
 MINE_DEFAULT = ["#2a9d8f", "#e9c46a"]
 
 READY = {
-    "green": "#3f8f3a",
-    "olive": "#78a851",
+    "olive": ["#3b6427", "#dae289"],
+    "lime": ["#3f9a14", "#c6ff00"],  # (a real lime: Review Heatmap's is GitHub's old forest green, lime in name only)
     "ice": ["#0063de", "#a8d5f6"],
-    "flame": ["#c0262a", "#ffd23f"],
-    "magenta": ["#6a1a8a", "#ea4e9c"],
+    "magenta": ["#ae017e", "#fcc5c0"],  # (its pink stretch: its ends, deep purple and near white, read as purple, not the pink its users see)
+    "flame": ["#e31a1c", "#fed976"],  # (its bright stretch: its dark wine and near-white yellow ends went dull)
 }
-READY_LABELS = {"green": "Green", "olive": "Olive", "ice": "Ice", "flame": "Flame", "magenta": "Magenta"}
+READY_LABELS = {"olive": "Olive", "lime": "Lime", "ice": "Ice", "magenta": "Magenta", "flame": "Flame"}
 # and each scenery's own colours, on any scenery ("ready:aurora", by its preset): shaded as that
 # scenery shades them (not `exact`), from its colour in KEYS_FILE. For now every scenery with one,
 # until the ready colours are chosen (2026-10-16); a Plus one this copy lacks isn't offered
@@ -212,7 +214,7 @@ def tile_env(cfg: dict) -> str:
 
 def page_look(cfg: dict, mood: dict) -> dict:
     """What calendar.js draws the heatmap with (data.calendar.look): `colours` (a colour, or two
-    for a ramp) in place of the scenery's own (None: the scenery's); `tile`, whose tiles ("plain", or an environment with calendarTile; None: the scenery's);
+    for a ramp) in place of the scenery's own (None: the scenery's); `tile`, whose tiles ("flat", a shape such as "round", or an environment with calendarTile);
     `files`, the scenery files they need beyond today's (the page loads them, the phone too);
     `exact`, colours you picked (yours, a ready ramp), shown as picked on either page (exact_steps);
     `lightSame`, a light page shaded as a dark one (the Debug tab's switch, light_shades);

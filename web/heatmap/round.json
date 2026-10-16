@@ -5,5 +5,7 @@
  "gaps": true,
  "smooth": true,
  "shape": true,
- "sample": "round"
+ "sample": "round",
+ "smoothRadius": 3.2,
+ "smoothGrow": 0.5
 }

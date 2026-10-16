@@ -23,7 +23,7 @@ from ..state import (
     week_start,
 )
 from .forest_tab import beside
-from .heatmap_look import LookControls
+from .heatmap_look import LOOK_NOTE, LookControls
 from .palette import color
 from .widgets import Choice, JoinedChoice, Link, Tab, form, group, hint, hint_style, resize_with
 
@@ -85,9 +85,10 @@ class HeatmapTab(Tab):
         self.streak_week = Choice(STREAK_WEEK_OPTIONS, streak_week(cfg), 7)
         self.week_was = (self.streak_week.currentData(), streak_week_since(cfg))
 
-        where = form()
-        where.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
+        # (where it shows: Layout's first row, not a group of one row: the tab was taller than a
+        # 720-pixel screen has room for, and the Look line at its foot went out of sight)
         layout = self.layout_form = form()
+        layout.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
         layout.addRow("View", self.calendar)
         self.view_note = hint(VIEW_NOTE)
         # (greyed out with the view, which a plain hint's colour would not be)
@@ -101,8 +102,8 @@ class HeatmapTab(Tab):
         start.addRow(self.record)
         start.addRow("Count your streak from", self.streak_from)
         start.addRow(hint(START_NOTE))
-        # (the three groups' fields start on one line)
-        labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (where, layout, streak, start) for r in range(f.rowCount())
+        # (the groups' fields start on one line)
+        labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (layout, streak, start) for r in range(f.rowCount())
                   if f.itemAt(r, f.ItemRole.LabelRole) and f.itemAt(r, f.ItemRole.LabelRole).widget()]
         widest = max(label.sizeHint().width() for label in labels)
         for label in labels:
@@ -123,14 +124,14 @@ class HeatmapTab(Tab):
         settings = QWidget()
         sv = QVBoxLayout(settings)
         sv.setContentsMargins(0, 0, 0, 0)
-        self.where_group = group("Where it shows", where)
-        sv.addWidget(self.where_group)
-        sv.addWidget(group("Layout", layout))
+        self.layout_group = group("Layout", layout)
+        sv.addWidget(self.layout_group)
         sv.addWidget(group("Streak", streak))
         self.start_group = group("Start date", start)
         sv.addWidget(self.start_group)
         self.look_group = group("Look", summary)
         sv.addWidget(self.look_group)
+        sv.addStretch(1)  # (in a taller window the groups keep together, the room left under them)
         look_page = QWidget()
         lv = QVBoxLayout(look_page)
         lv.setContentsMargins(0, 0, 0, 0)
@@ -144,6 +145,7 @@ class HeatmapTab(Tab):
         for w in (self.back, title):  # (the header keeps its line's height, the groups take the rest)
             w.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         lv.addLayout(header)
+        lv.addWidget(hint(LOOK_NOTE))
         lv.addSpacing(LOOK_HEADER_GAP)
         self.colours_group = group("Colours", self.look.colours)
         lv.addWidget(self.colours_group)
@@ -197,7 +199,7 @@ class HeatmapTab(Tab):
 
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
-        return {"calendar": (self.where_group.title, "Study heatmap"),
+        return {"calendar": (self.layout_group.title, "Study heatmap"),
                 "streak_from_start": (self.streak_from, "Count your streak from"),
                 "streak_week": (self.streak_week, "Your streak counts"),
                 "calendar_colours": (self.colours_group.title, "Heatmap colours"),

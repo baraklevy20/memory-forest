@@ -4,5 +4,6 @@
  "tip": "Synthwave's scanlines",
  "env": "synthwave",
  "gaps": true,
- "smooth": true
+ "smooth": true,
+ "phrase": "Scanline tiles"
 }

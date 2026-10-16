@@ -300,6 +300,19 @@
 .af-cal-pin { position: absolute; z-index: 3; display: flex; align-items: center; padding: 5px 6px; border-radius: 8px;
   background: var(--af-tip-panel); box-shadow: var(--af-tip-shadow); }  /* (solid: what you type must not sit on the month names) */
 .af-cal-pin[hidden] { display: none; }
+/* by Friction, a day's cards (calendar.js openFriction): dressed as the mark editor, a row for each,
+ * its name and what it cost, one under another; margins rather than gap (Chromium 77) */
+.af-cal-fric { position: absolute; z-index: 3; width: 300px; max-width: calc(100% - 8px); padding: 8px 6px 6px; border-radius: 8px;
+  background: var(--af-tip-panel); box-shadow: var(--af-tip-shadow); color: var(--af-tip-fg); font-size: 12px; line-height: 1.35; }
+.af-cal-fric[hidden] { display: none; }
+.af-cal-fric-head { font-weight: 600; margin: 0 6px 6px; }
+.af-cal-fric .af-cal-fric-row { display: flex !important; justify-content: space-between; align-items: baseline; width: 100% !important;
+  margin: 0 !important; padding: 3px 6px !important; border: 0 !important; border-radius: 5px !important; box-shadow: none !important;
+  background: transparent !important; color: inherit !important; font: inherit !important; text-align: left; cursor: pointer; }
+.af-cal-fric .af-cal-fric-row:hover, .af-cal-fric .af-cal-fric-row:focus-visible { background: var(--af-tip-chosen) !important; outline: none; }
+.af-cal-fric-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+.af-cal-fric-what { flex: none; color: var(--af-tip-soft); white-space: nowrap; }
+.af-cal-fric-note { margin: 6px 6px 0; color: var(--af-tip-soft); }
 .af-cal-pin-icons { display: inline-flex; margin-right: 6px; }
 /* (Anki's own button styles are more specific, and add a border, padding and a shadow on hover and
    press, which would change the editor's size under the pointer: so the box itself is !important,

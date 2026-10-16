@@ -84,9 +84,9 @@ def page(web: str) -> str:
 </div></div></body></html>"""
 
 
-def phone_changed() -> bool:
-    """Whether any of PHONE_FILES has changed: in the working tree or the index (untracked too),
-    or, with nothing uncommitted, in the last commit (as CI sees a push)."""
+def phone_changed(files: tuple = PHONE_FILES) -> bool:
+    """Whether any of `files` (PHONE_FILES) has changed: in the working tree or the index
+    (untracked too), or, with nothing uncommitted, in the last commit (as CI sees a push)."""
     def names(*cmd):
         run = subprocess.run(["git", *cmd], capture_output=True, text=True, cwd=ROOT)
         return {line[3:] if cmd[0] == "status" else line for line in run.stdout.splitlines()}
@@ -96,7 +96,7 @@ def phone_changed() -> bool:
     here = os.path.relpath(ROOT, subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
                                                  cwd=ROOT).stdout.strip())
     strip = lambda p: p[len(here) + 1:] if here != "." and p.startswith(here + "/") else p  # noqa: E731
-    return any(strip(p.strip('"')) in PHONE_FILES for p in changed)
+    return any(strip(p.strip('"')) in files for p in changed)
 
 
 def main() -> int:

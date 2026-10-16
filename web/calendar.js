@@ -70,7 +70,7 @@ const markLine = (m, o) => {
 // the goal ahead: a pennant on the day the current streak would pass the next record, gold when
 // it would be your longest, silver your second-longest (P its pole, G the metal, L its shine)
 const GOAL = ['PGGGG', 'PGGLG', 'PGGG.', 'PG...', 'P....', 'P....', 'P....', 'P....'];
-const GOALS = TROPHIES.slice(0, 2).map(t => ({ frames: [GOAL], pal: { P: '#8a7a6a', G: t.pal.G, L: t.pal.L }, place: t.place }));
+const GOALS = TROPHIES.map(t => ({ frames: [GOAL], pal: { P: '#8a7a6a', G: t.pal.G, L: t.pal.L }, place: t.place }));
 const GOAL_LINE = 0.75;  // the dotted line from today to the goal: gold, this strong (on a dark page)
 // the trophies' and the pennant's metals on a light page, by their own metal: gold, silver, bronze
 const METALS_ON_LIGHT = { '#e3b04b': { G: '#b07d1e', L: '#e3b04b', D: '#8f6a1c' }, '#c9ccd1': { G: '#8b9098', L: '#c9ccd1', D: '#6f747c' },
@@ -84,7 +84,10 @@ const SHADE_SPLITS = [0.4, 0.7, 0.9], SHADE_SPAN = 365;
 // The days that sit back, faded this far into the page's colour, light or dark: the days ahead
 // (their soil) and the days before the forest's start date (your record, not the forest's time)
 const FADE = 0.5;
-const TILE_VARIANTS = 4;  // each shade's tile comes in this many textures, drawn once
+const TILE_VARIANTS = 4;
+// what the shades can go by on the toggle beside the key; Recall (the average answer) and Friction
+// (time relearning forgotten cards) are built and kept, but not offered for now (2026-10-16)
+const SHADES_OFFERED = ['reviews', 'time'];  // each shade's tile comes in this many textures, drawn once
 const TILE_FACE = TILE - 1;  // a tile's face: all but its last row and column (a plain tile's edge, a scenery's own tile's gap)
 const DAY_MS = 86400000;
 const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (more when wide, fewer when narrow), this month this far along
@@ -182,13 +185,16 @@ function history(cal) {
   // above a later one as long), each with a trophy at its last day: gold, silver, bronze
   const podium = new Map(runs.filter(r => r.days >= SHOWN_STREAK)
     .sort((a, b) => b.days - a.days || a.from - b.from).slice(0, TROPHIES.length).map((r, i) => [r, i]));
-  // the goal: the day the current streak, kept up, passes the second-longest of the others (to be
-  // second) or, once it has, the longest (to be first); none once it is the longest already
+  // the goal: the day the current streak, kept up, earns its next trophy: the third-longest's, then
+  // the second's, then the longest's; none once it is the longest already
   let goal = null;
   if (current) {
     const others = runs.filter(r => r !== current && r.days >= SHOWN_STREAK).map(r => r.days).sort((a, b) => b - a);
     const len = current.days, need = i => Math.max(SHOWN_STREAK, (others[i] || 0) + 1);
-    const rank = others.length && len < need(1) ? 1 : len < need(0) ? 0 : -1;
+    // (the next place up: the trophy it would hold once long enough, the third at most, or, once it
+    // holds it, the one above; none once it is the longest)
+    const place = Math.min(others.filter(d => d >= len).length, TROPHIES.length - 1);
+    const rank = len < need(place) ? place : place - 1;
     // (the days still to study, from today, or from tomorrow once today is studied)
     if (rank >= 0) goal = { o: (current.to === 0 ? 1 : 0) + need(rank) - len - 1, rank, beats: others[rank] || 0 };
   }
@@ -213,25 +219,39 @@ function history(cal) {
   const snap = s => { const m = Math.max(1, Math.round(s / 60)); return (m >= 30 ? Math.round(m / 5) * 5 : m) * 60 - 30; };
   for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(t[i - 1] + 60, snap(t[i]));
   const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
-  // Growth (growth.py): each day's [median % change in its cards' FSRS stability, cards], or null
-  // where there is no estimate; split as the others are, by your last year's days, in whole percents
-  // (negative ones too: a day of lapses)
-  const growth = o => (cal.growth || [])[o - first] || null, recentGrowth = [];
-  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && growth(o)) recentGrowth.push(growth(o)[0]);
-  recentGrowth.sort((a, b) => a - b);
-  const growthSplits = [-Infinity];
+  // Recall: each day's average answer, Again 0 .. Easy 3, split as the others are, in hundredths
+  // (most people's days sit within a few tenths of each other)
+  const recall = o => { const v = (cal.recall || [])[o - first]; return v === null || v === undefined ? null : v; }, recentRecall = [];
+  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && recall(o) !== null) recentRecall.push(recall(o));
+  recentRecall.sort((a, b) => a - b);
+  const recallSplits = [-Infinity];
   for (const share of SHADE_SPLITS) {
-    const at = recentGrowth.length ? Math.round(recentGrowth[Math.floor(share * (recentGrowth.length - 1))]) : growthSplits.length * 20;
-    growthSplits.push(growthSplits.length > 1 ? Math.max(growthSplits[growthSplits.length - 1] + 1, at) : at);
+    const at = recentRecall.length ? Math.round(recentRecall[Math.floor(share * (recentRecall.length - 1))] * 100) / 100 : recallSplits.length * 0.7;
+    recallSplits.push(recallSplits.length > 1 ? Math.max(Math.round((recallSplits[recallSplits.length - 1] + 0.01) * 100) / 100, at) : at);
   }
-  const byGrowth = v => growthSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);
-  byGrowth.splits = growthSplits;
-  // (a day with reviews but no time kept, an old import's, takes the fewest; so does one with no
-  // Growth estimate, its cards all new)
-  const by = cal.shadeBy === 'time' && recentTime.length ? 'time' : cal.shadeBy === 'growth' && cal.growthOn ? 'growth' : 'reviews';
-  const H = { by, timed: recentTime.length > 0, growthOn: !!cal.growthOn, growthIn: !!cal.growth, growth };
-  H.shade = o => H.by === 'time' ? byTime(time(o)) : H.by === 'growth' ? (growth(o) ? byGrowth(growth(o)[0]) : 0) : byReviews(n(o));
-  H.splits = () => (H.by === 'time' ? byTime : H.by === 'growth' ? byGrowth : byReviews).splits;
+  const byRecall = v => recallSplits.reduce((at, sp, i) => v >= sp - 1e-9 ? i : at, 0);
+  byRecall.splits = recallSplits;
+  // Friction: each day's [% of its review time spent relearning cards you had forgotten, seconds
+  // relearning, seconds in all], or null; split as the others are, by your last year's days, in
+  // whole percents. More is more friction: a reason to look at those cards, not a bad day
+  const friction = o => (cal.friction || [])[o - first] || null, recentFriction = [];
+  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && friction(o)) recentFriction.push(friction(o)[0]);
+  recentFriction.sort((a, b) => a - b);
+  const frictionSplits = [0];
+  for (const share of SHADE_SPLITS) {
+    const at = recentFriction.length ? Math.round(recentFriction[Math.floor(share * (recentFriction.length - 1))]) : frictionSplits.length * 10;
+    frictionSplits.push(Math.max(frictionSplits[frictionSplits.length - 1] + 1, at));
+  }
+  const byFriction = v => frictionSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);
+  byFriction.splits = frictionSplits;
+  // (a day with reviews but no time kept, an old import's, takes the fewest)
+  const offered = k => SHADES_OFFERED.indexOf(k) >= 0;
+  const by = cal.shadeBy === 'time' && recentTime.length ? 'time' : cal.shadeBy === 'recall' && recentRecall.length && offered('recall') ? 'recall'
+    : cal.shadeBy === 'friction' && recentFriction.length && offered('friction') ? 'friction' : 'reviews';
+  const H = { by, timed: recentTime.length > 0, recall, recalled: recentRecall.length > 0, friction, frictional: recentFriction.length > 0 };
+  H.shade = o => H.by === 'time' ? byTime(time(o)) : H.by === 'recall' ? (recall(o) !== null ? byRecall(recall(o)) : 0)
+    : H.by === 'friction' ? (friction(o) ? byFriction(friction(o)[0]) : 0) : byReviews(n(o));
+  H.splits = () => ({ time: byTime, recall: byRecall, friction: byFriction }[H.by] || byReviews).splits;
   // the animals, each on the day it came (none before the forest began)
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
@@ -673,12 +693,15 @@ const CVD = [null,
   [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.303900]]];  // (tritan)
 const MARK_LS = [0.6, 0.66, 0.72, 0.78], MARK_C = 0.17, MARK_HUE_APART = Math.PI / 3, MARK_PAGES = [[44, 44, 44], [245, 245, 245]];  // (Anki's dark and light pages)
 const markPals = new Map();
-function markPalOf(sp) {
-  const key = sp.mood.special;
+function markPalOf(sp, look) {
+  // (the heatmap's own shades, so the mark stands out from the colours the Heatmap tab chose
+  // too, not only the scenery's: a red that stood out from green sat on Flame's reds)
+  const L0 = look && look.colours ? { colours: look.colours, exact: !!look.exact } : null;
+  const key = sp.mood.special + '|' + JSON.stringify(L0);
   if (!markPals.has(key)) {
     const sim = (c, m) => { if (!m) return c; const l = c.map(lin); return m.map(r => unlin(r[0] * l[0] + r[1] * l[1] + r[2] * l[2])); };
     const dist = (a, b) => { const p = oklab(a), q = oklab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
-    const backs = [...shades(sp, { bg: MARK_PAGES[0], dark: true }).grass, ...shades(sp, { bg: MARK_PAGES[1], dark: false }).grass].map(p => p[0])
+    const backs = [...shades(sp, { bg: MARK_PAGES[0], dark: true }, L0).grass, ...shades(sp, { bg: MARK_PAGES[1], dark: false }, L0).grass].map(p => p[0])
       .concat([mix(MARK_PAGES[0], [128, 128, 128], 0.11), mix(MARK_PAGES[1], [128, 128, 128], 0.2)]);
     const at = (L, h) => { let C = MARK_C; while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95; return [L, C, h]; };
     const hues = backs.map(oklab).filter(k => Math.hypot(k[1], k[2]) > 0.04).map(k => Math.atan2(k[2], k[1]));
@@ -790,7 +813,7 @@ function paint(H, win, sp, paper) {
     const x0 = c.x + Math.floor((TILE_FACE - rows[0].length) / 2), y0 = c.y + Math.floor((TILE_FACE - rows.length) / 2);
     // (cut out of the tile by a line of the page's colour, as the animals are: red on Lanterns' or
     // Cherry blossom's tiles was lost)
-    drawAnimal(g, Object.assign({}, spr, { pal: markPalOf(sp) }), x0, y0, null, paper.bg);
+    drawAnimal(g, Object.assign({}, spr, { pal: markPalOf(sp, H.look) }), x0, y0, null, paper.bg);
   }
   const today = cells.find(c => c.o === 0);
   if (today && !smooth) frame(g, today.x, today.y, TILE, dark, paper.bg);
@@ -821,12 +844,14 @@ function paint(H, win, sp, paper) {
   }
   // the streak lane: a trophy under the last day of each of your longest streaks and the goal
   // pennant under its day, below the brackets, and a dotted gold line from today on to the goal
-  // (all the streak's marks together, none cutting through the weeks)
+  // (all the streak's marks together, none cutting through the weeks). On the layer shown while
+  // you hover the heatmap, as the animals are (2026-10-16): the streak's own line stays in view,
+  // the trophies and the goal, the gamey part, come with the pointer
   if (H.goal && H.current && H.current.to >= win.from && H.current.to <= win.to) {
     const a = cells[H.current.to - win.from], gc = H.goal.o <= win.to ? cells[H.goal.o - win.from] : cells[cells.length - 1];
-    g.fillStyle = dark ? rgb(P.gold, GOAL_LINE) : rgb(P.goldOnLight);
-    for (let x = a.x + TILE; x <= gc.x + 4; x += 2) g.fillRect(x, by, 1, 1);
-    if (H.goal.o <= win.to) g.fillRect(gc.x + 4, by - 2, 1, 2);
+    ag.fillStyle = dark ? rgb(P.gold, GOAL_LINE) : rgb(P.goldOnLight);
+    for (let x = a.x + TILE; x <= gc.x + 4; x += 2) ag.fillRect(x, by, 1, 1);
+    if (H.goal.o <= win.to) ag.fillRect(gc.x + 4, by - 2, 1, 2);
   }
   const lane = [];
   for (const [run, i] of H.podium) lane.push([run.to, TROPHIES[i]]);
@@ -837,7 +862,7 @@ function paint(H, win, sp, paper) {
     const c = cells[o - win.from], w = spr.frames[0][0].length, x0 = c.x + (GOALS.includes(spr) ? 4 : Math.floor((TILE - w) / 2)), y0 = by + 3;
     // (on a light page in their deeper shades: pale gold and silver would fade into it)
     const metal = !dark && METALS_ON_LIGHT[spr.pal.G];
-    drawAnimal(g, metal ? Object.assign({}, spr, { pal: Object.assign({}, spr.pal, metal) }) : spr, x0, y0, null, paper.bg);
+    drawAnimal(ag, metal ? Object.assign({}, spr, { pal: Object.assign({}, spr.pal, metal) }) : spr, x0, y0, null, paper.bg);
     marks.push({ x0, x1: x0 + w, y0, y1: y0 + spr.frames[0].length, c, trophy: TROPHIES.indexOf(spr) });
   }
   // on the layer shown while you hover the heatmap, each on its own day's tile: the animals, each
@@ -948,9 +973,11 @@ AF.calendar = function (root, data, env) {
     + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
-    + '<button type="button" role="radio" data-by="growth" title="Shade each day by how much it strengthened your memory: the median change in your cards\' FSRS stability">Growth</button>'
+    + '<button type="button" role="radio" data-by="recall" title="Shade each day by how well you recalled: your average answer, Again 0 to Easy 3">Recall</button>'
+    + '<button type="button" role="radio" data-by="friction" title="Shade each day by its friction: the share of its review time spent relearning cards you had forgotten. More is a reason to look at those cards, not a bad day">Friction</button>'
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
+    + '<div class="af-cal-fric" role="dialog" aria-label="The cards behind the day\'s friction" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
     + '<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="Mark name">'
     + '<button type="button" class="af-cal-pin-del" aria-label="Remove the mark" title="Remove the mark">\u00d7</button></div>';
@@ -977,10 +1004,12 @@ AF.calendar = function (root, data, env) {
   // time kept, as the add-on has it, no choice). Not on the months' row: with the view and the
   // arrows there, that corner read as one crowded line of words (2026-10-15)
   const byBox = box.querySelector('.af-cal-shade');
-  // (Time only with time kept, Growth only with FSRS on; no toggle with one choice left)
+  // (Time only with time kept, Recall and Friction only with reviews to go by; no toggle with one choice left)
   byBox.querySelector('[data-by="time"]').hidden = !H.timed;
-  byBox.querySelector('[data-by="growth"]').hidden = !H.growthOn;
-  byBox.hidden = swiped || (!H.timed && !H.growthOn);
+  // (Recall and Friction are kept but not offered for now, 2026-10-16: SHADES_OFFERED)
+  byBox.querySelector('[data-by="recall"]').hidden = !H.recalled || SHADES_OFFERED.indexOf('recall') < 0;
+  byBox.querySelector('[data-by="friction"]').hidden = !H.frictional || SHADES_OFFERED.indexOf('friction') < 0;
+  byBox.hidden = swiped || [...byBox.querySelectorAll('button')].filter(b => !b.hidden).length < 2;
   // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
   const viewBox = box.querySelector('.af-cal-view');
@@ -1033,9 +1062,8 @@ AF.calendar = function (root, data, env) {
     });
     b.addEventListener('click', () => {
       if (H.by === b.dataset.by) return;
-      // (Growth's days come only once asked for: the add-on works them out and draws the heatmap again)
-      if (b.dataset.by === 'growth' && !H.growthIn) { send(`${data.channel}:shade:growth:load`); return; }
       H.by = b.dataset.by;
+      closeFriction();
       send(`${data.channel}:shade:${H.by}`);
       unpoint();
       draw();
@@ -1135,7 +1163,9 @@ AF.calendar = function (root, data, env) {
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
-    [word('Less')].concat(drawn.key.map(swatch), [word('More')]).forEach(el => keyBox.appendChild(el));
+    // (by Friction the key says what grows: more friction)
+    const ends = H.by === 'friction' ? ['Less friction', 'More friction'] : ['Less', 'More'];
+    [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
     viewBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.view === view;
       b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
@@ -1158,9 +1188,11 @@ AF.calendar = function (root, data, env) {
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
   const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
-  // a day's Growth: "Stability +48% (median of 123 cards)"
-  const pct = v => (v < 0 ? '\u2212' : '+') + Math.abs(Math.round(v)) + '%';
-  const growthText = ([v, count]) => `Stability ${pct(v)} (median of ${cards(count, 'card')})`;
+  // a day's Friction: "Friction 12%: 3 min of 25 relearning forgotten cards"
+  const frictionText = ([v, retry, total]) => `Friction ${Math.round(v)}%` + (retry ? `: ${lasted(retry)} of ${lasted(total)} relearning forgotten cards` : ', nothing forgotten');
+  // a day's Recall: "Average answer 2.4 (Good)", the answer it is nearest
+  const ANSWERS = ['Again', 'Hard', 'Good', 'Easy'];
+  const recallText = v => `Average answer ${v.toFixed(2)} (${ANSWERS[Math.min(3, Math.max(0, Math.round(v)))]})`;
   // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
   // reviews and about how many a day; only the days since your first review, up to today
   const studiedLines = (from, to) => {
@@ -1301,8 +1333,10 @@ AF.calendar = function (root, data, env) {
     grid.style.paddingTop = '0px';
     pastBox.style.paddingBottom = monthsRoom(k) + (box.classList.contains('af-cal-years-open') ? ACTS_ROOM : 0) + 'px';
     d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
-    d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
     layPast();
+    // (the layer placed once the earlier years above are laid out: their size moves the year in
+    // view down, and a layer placed before sat that much too high, its trophies over another year)
+    d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
     // (the key's tiles as big as the calendar's, and as far apart)
     box.querySelectorAll('.af-cal-swatch').forEach((sw, i, all) => {
       const F = d.smooth ? TILE_FACE : TILE;
@@ -1465,6 +1499,8 @@ AF.calendar = function (root, data, env) {
   const dueNow = c => c.o === 0 && !c.n && H.dueToday > 0;
   // (not a day whose cards have all since been deleted: the browser would open on none)
   const allGone = o => { const g = H.gone.get(o); return !!g && g[0] >= g[1]; };
+  // (by Friction, a past day with some relearning opens the list of its cards instead)
+  const frictionOpens = c => H.by === 'friction' && cal.browse && c.o <= 0 && !!H.friction(c.o) && H.friction(c.o)[1] > 0 && !!window.pycmd;
   const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first && !allGone(c.o);
   // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
   // due. January's label shows its year, so it tells the year's days studied first
@@ -1501,7 +1537,8 @@ AF.calendar = function (root, data, env) {
   // "8–12 min", "Under 3 min", "154+ reviews"
   const shadeLine = lv => {
     const s = H.splits(), by = H.by === 'time';
-    if (H.by === 'growth') return lv === 0 ? `Stability under ${pct(s[1])}` : lv === 3 ? `Stability ${pct(s[3])} or more` : `Stability ${pct(s[lv])} to ${pct(s[lv + 1] - 1)}`;
+    if (H.by === 'friction') return lv === 0 ? `Under ${s[1]}% friction` : lv === 3 ? `${s[3]}%+ friction` : s[lv] === s[lv + 1] - 1 ? `${s[lv]}% friction` : `${s[lv]}\u2013${s[lv + 1] - 1}% friction`;
+    if (H.by === 'recall') { const t = v => v.toFixed(2); return lv === 0 ? `Average answer under ${t(s[1])}` : lv === 3 ? `Average answer ${t(s[3])} or more` : `Average answer ${t(s[lv])} to ${t(s[lv + 1] - 0.01)}`; }
     const at = i => by ? lasted(s[i]) : num(s[i]), upto = i => by ? lasted(s[i] - 60) : num(s[i] - 1);
     const unit = by ? '' : ' reviews';
     if (lv === 0) return `Under ${at(1)}${unit}`;
@@ -1565,7 +1602,9 @@ AF.calendar = function (root, data, env) {
       : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
       : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
-      : c.n && H.by === 'growth' ? (H.growth(c.o) ? `${growthText(H.growth(c.o))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no Growth estimate (only new cards)`)
+      : c.n && H.by === 'friction' && H.friction(c.o) ? frictionText(H.friction(c.o)) + `, ${cards(c.n, 'review')}`
+        + (frictionOpens(c) ? '<br><span class="af-hint">Click to see the cards</span>' : '')
+      : c.n && H.by === 'recall' && H.recall(c.o) !== null ? `${recallText(H.recall(c.o))}, ${cards(c.n, 'review')}`
       : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
@@ -1590,7 +1629,11 @@ AF.calendar = function (root, data, env) {
       : `<br><i>${num(lost)} of its ${num(of)} cards ${lost === 1 ? 'has' : 'have'} since been deleted</i>`;
     // (today, yesterday and tomorrow by name, the year left out)
     const near = { '-1': 'Yesterday', 0: 'Today', 1: 'Tomorrow' }[c.o];
-    tip.innerHTML = `<b>${near ? `${near}, ${esc(weekday(c.ms))}, ${esc(fmt(c.ms).replace(/, \d{4}$/, ''))}` : `${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}`}</b><br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
+    const head = `<b>${near ? `${near}, ${esc(weekday(c.ms))}, ${esc(fmt(c.ms).replace(/, \d{4}$/, ''))}` : `${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}`}</b>`;
+    // (a trophy pointed at: its day and its streak, no more; the day's own numbers are on its tile)
+    const trophy = hit && hit.trophy >= 0 && run && H.podium.has(run);
+    tip.innerHTML = trophy ? `${head}<br>Your ${TROPHIES[hit.trophy].place} streak: ${num(total)} days`
+      : `${head}<br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
     reveal();
     // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
     // (above it when there is no room below in the window), kept inside the calendar's sides;
@@ -1620,7 +1663,7 @@ AF.calendar = function (root, data, env) {
       if (e.target !== drawn.cv || e.altKey || e.ctrlKey || e.metaKey) return;
       const step = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
       if (e.key === 'Escape') { if (!tip.hidden) { e.preventDefault(); e.stopPropagation(); unpoint(); } return; }
-      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`); return; }
+      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c && frictionOpens(c)) { openFriction(c); return; } if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`); return; }
       if (e.key === 'Home') { e.preventDefault(); cur = 0; if (!curCell()) go('0'); toCur(); return; }
       if (!step && !pg) return;
       e.preventDefault();
@@ -1672,8 +1715,40 @@ AF.calendar = function (root, data, env) {
   grid.addEventListener('click', e => {
     if (e.detail > 1) return;  // (a double-click opens the day once)
     const c = cellAt(e);
-    if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`);
+    if (c && frictionOpens(c)) openFriction(c);
+    else if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`);
   });
+  // by Friction, a day with some clicked: the cards behind it, the most time relearning first, then
+  // the most times forgotten (study_log.friction_cards), each opening in the browser, so the few that
+  // take up a large part of your time can be simplified, split or looked into. Esc, a click
+  // elsewhere, or another shade closes it
+  const fric = box.querySelector('.af-cal-fric');
+  let fricDay = null;
+  const closeFriction = () => { fric.hidden = true; fricDay = null; };
+  const openFriction = c => {
+    fricDay = c.o;
+    window.pycmd(`${data.channel}:friction:${-c.o}:${deck}`, got => {
+      if (fricDay !== c.o) return;
+      fric.textContent = '';
+      const add = (tag, cls, text) => { const el = document.createElement(tag); el.className = cls; el.textContent = text; return el; };
+      fric.appendChild(add('div', 'af-cal-fric-head', `${fmt(c.ms)}: ${frictionText(H.friction(c.o))}`));
+      for (const row of got || []) {
+        const b = add('button', 'af-cal-fric-row', '');
+        b.type = 'button';
+        b.title = 'Open it in the browser';
+        b.appendChild(add('span', 'af-cal-fric-name', row.name));
+        b.appendChild(add('span', 'af-cal-fric-what', [row.secs ? `${row.secs < 60 ? `${row.secs} s` : `${Math.floor(row.secs / 60)} min${row.secs % 60 ? ` ${row.secs % 60} s` : ''}`} relearning` : '', row.again ? `forgot ${row.again}\u00d7` : ''].filter(Boolean).join(', ')));
+        b.addEventListener('click', () => send(`${data.channel}:card:${row.cid}`));
+        fric.appendChild(b);
+      }
+      fric.appendChild(add('div', 'af-cal-fric-note', 'Some relearning is expected. These are the cards worth a look: to simplify, split or reword.'));
+      tip.hidden = true;  // (the day's tooltip gives way to its list)
+      fric.hidden = false;
+      placeOver(fric, c);
+    });
+  };
+  document.addEventListener('mousedown', e => { if (!fric.hidden && !fric.contains(e.target)) closeFriction(); });
+  box.addEventListener('keydown', e => { if (e.key === 'Escape' && !fric.hidden) { e.preventDefault(); e.stopPropagation(); closeFriction(); } });
   // a right-click on a day marks it as important (an exam, say: marks.py) and opens a small editor
   // over it: the icons side by side, its own lit, its name, and × to take the mark away.
   // Enter, or a click anywhere else, keeps it; Esc puts back what was there. Kept by the add-on,
@@ -1688,7 +1763,7 @@ AF.calendar = function (root, data, env) {
     b.title = MARK_ICONS[key].label; b.setAttribute('aria-label', MARK_ICONS[key].label);
     cv.width = rows[0].length * s; cv.height = rows.length * s;
     const g = cv.getContext('2d');
-    const markPal = markPalOf(sp);  // (in the colour the heatmap draws them in)
+    const markPal = markPalOf(sp, H.look);  // (in the colour the heatmap draws them in)
     rows.forEach((line, y) => { for (let x = 0; x < line.length; x++) if (markPal[line[x]]) { g.fillStyle = markPal[line[x]]; g.fillRect(x * s, y * s, s, s); } });
     b.appendChild(cv);
     b.addEventListener('mousedown', e => e.preventDefault());  // (the name keeps the focus)
@@ -1716,13 +1791,15 @@ AF.calendar = function (root, data, env) {
   };
   // the editor above its day, as its tooltip stands, inside the heatmap's sides (under the day when
   // the window has no room above it); placed again when the heatmap is laid out anew
+  const placeOver = (el, c) => {
+    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
+    const cx = left + (c.x + TILE / 2) * k, room = drawn.cv.getBoundingClientRect().top + (c.y - 1) * k - el.offsetHeight - TIP_GAP;
+    el.style.left = Math.min(box.clientWidth - el.offsetWidth, Math.max(0, cx - el.offsetWidth / 2)) + 'px';
+    el.style.top = (room < 0 ? canvasTop + (c.y + TILE + 1) * k + TIP_GAP : canvasTop + (c.y - 1) * k - el.offsetHeight - TIP_GAP) + 'px';
+  };
   const placePin = () => {
     const c = editing && drawn.cells.find(x => x.o === editing.o);
-    if (!c) return;
-    const left = grid.offsetLeft + drawn.cv.offsetLeft - grid.scrollLeft, canvasTop = grid.offsetTop + drawn.cv.offsetTop;
-    const cx = left + (c.x + TILE / 2) * k, room = drawn.cv.getBoundingClientRect().top + (c.y - 1) * k - pin.offsetHeight - TIP_GAP;
-    pin.style.left = Math.min(box.clientWidth - pin.offsetWidth, Math.max(0, cx - pin.offsetWidth / 2)) + 'px';
-    pin.style.top = (room < 0 ? canvasTop + (c.y + TILE + 1) * k + TIP_GAP : canvasTop + (c.y - 1) * k - pin.offsetHeight - TIP_GAP) + 'px';
+    if (c) placeOver(pin, c);
   };
   const closePin = keep => {
     if (!editing) return;

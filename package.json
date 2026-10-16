@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build": "python3 dev/package.py",
-    "test": "python3 -m unittest discover -s tests && python3 e2e/phone_check.py --if-changed",
+    "test": "python3 -m unittest discover -s tests && python3 e2e/phone_check.py --if-changed && python3 e2e/heatmap_check.py --if-changed",
     "test:phone": "python3 e2e/phone_check.py",
     "lint": "npm run lint:js && npm run lint:py",
     "lint:js": "eslint web",
