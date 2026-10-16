@@ -51,8 +51,8 @@ SCENERY_READY_TIP = "{name}'s colours, on any scenery"
 # the scenery's colours, as a dropdown first among the ready ones: the scenery's own (they follow
 # it), or any scenery's, kept when you change the scenery (2026-10-16: one button, no row of its own)
 PICK_LABEL = "{name} \u25be"
-PICK_TIP = "The scenery's own colours, which follow it, or any scenery's, kept when you change the scenery"
-FOLLOW_NAME = "This scenery's own"
+PICK_TIP = "Your current scenery's colours, or another scenery's, which stay when you change scenery"
+FOLLOW_NAME = "Current scenery"  # (plain words: "This scenery's own" read as complex, 2026-10-16)
 BUSIER_LABEL = "Busier days"
 # the ready ramps' tooltips: what they run from and to (each scenery's says whose it is)
 READY_TIPS = {"olive": "Review Heatmap's Olive: deep olive green to pale yellow-green",
@@ -71,7 +71,6 @@ FAINT_NOTE = "Your busiest colour is hard to see on {pages} page. The heatmap sh
 PAGE_NAMES = {"light": "a light", "dark": "a dark"}
 # (one line: SETTINGS_GUIDELINES.md; under the page's header, as it is about both groups. "Your colours
 # stay when you change the scenery" was cut: Scenery, the default, changes with it)
-LOOK_NOTE = "The heatmap behind this window shows each choice."
 BUTTON_STYLE = NATURE_STYLE.replace(" font-weight: bold;", "")
 
 
@@ -120,7 +119,28 @@ def tile_sample(look: dict, key: str, cfg: dict, here_env: str) -> QPixmap:
     spec = HL.TILE_SPECS[key]
     drawer = "flat" if smooth and spec.get("smoothRadius") else HL.drawer_for(dict(cfg, calendar_tiles=key), here_env)
     corners = (spec.get("smoothRadius", SMOOTH_R), spec.get("smoothGrow", 0)) if smooth and gaps else None
-    return strip(look, drawer, sample=True, gaps=gaps, smooth=corners)
+    return _pair(strip(look, drawer, sample=True, gaps=gaps, smooth=corners), gaps)
+
+
+# a style's sample: a quiet day's tile and a busy day's, side by side at two points a pixel (all four
+# shades made the buttons too wide for one row: 2026-10-16)
+PAIR_W, PAIR_H = 2 * (2 * HL.TILE + STRIP_GAP), 2 * ICON_H
+
+
+def _pair(pm: QPixmap, gaps: bool = True) -> QPixmap:
+    """The first and last tiles of a four-tile sample (`strip(..., sample=True)`), side by side: with
+    the space between them a style has (`gaps`), or none for one whose days join (Contours: its
+    band's two ends, one band)."""
+    dpr = pm.devicePixelRatio()
+    out = QPixmap(int(PAIR_W * dpr), int(PAIR_H * dpr))
+    out.setDevicePixelRatio(dpr)
+    out.fill(QColor(0, 0, 0, 0))
+    p = QPainter(out)
+    w = 2 * HL.TILE
+    for at, src in ((0, 0), (w + (2 * STRIP_GAP if gaps else 0), 3 * 2 * (HL.TILE + STRIP_GAP))):
+        p.drawPixmap(QRectF(at, 0, w, PAIR_H), pm, QRectF(src * dpr, 0, w * dpr, PAIR_H * dpr))
+    p.end()
+    return out
 
 
 def _smoothed(pm: QPixmap, shades, scale: int, radius: float, grow: float) -> QPixmap:
@@ -417,7 +437,6 @@ class LookControls(QObject):
         self.edition_cfg = cfg
         self.mine = HL.mine(cfg)
         self.changed = None
-        self.refreshed = None  # (the Heatmap tab's line that shows what is chosen)
         self.source = OneOf(self)
         # the scenery's own colours first (the default), then the ready ramps
         ready = QGridLayout()
@@ -477,7 +496,7 @@ class LookControls(QObject):
         self.tile_buttons = {}
         for key in HL.TILES:
             b = option_button(TILE_LABELS[key], TILE_TIPS[key])
-            b.setIconSize(QSize(2 * ICON_W, 2 * ICON_H))  # (a sample: two points a pixel)
+            b.setIconSize(QSize(PAIR_W, PAIR_H))  # (a quiet day's tile and a busy day's: _pair)
             self.tile_buttons[key] = b
             self.tile_choice.add(key, b)
         self.tiles_grid = tiles_row
@@ -512,9 +531,12 @@ class LookControls(QObject):
         self.colours.addLayout(rows)
         self.tiles_box = QVBoxLayout()
         self.tiles_box.addLayout(tiles_row)
+        # (debugging only, and not while the Debug tab pretends this is the base or Plus edition,
+        # which have neither: set_scenery shows or hides them as the edition changes)
         if HL.debug_available(cfg):
             self.tiles_box.addWidget(self.smooth)
             self.tiles_box.addWidget(self.gaps)
+        self.debug_switches = HL.debug_available(cfg)
         self.source.buttonToggled.connect(lambda _b, on: on and self._source_changed())
         self.busier.on_change(self._announce)
         self.tile_choice.buttonToggled.connect(lambda _b, on: on and self._announce())
@@ -524,24 +546,6 @@ class LookControls(QObject):
 
     def on_change(self, changed) -> None:
         self.changed = changed
-
-    def on_refresh(self, refreshed) -> None:
-        self.refreshed = refreshed
-
-    def summary(self) -> tuple:
-        """What is chosen, for the line that opens the look's page: the colours as the tiles draw
-        them (a sample), and in one phrase, the tiles then the colours ("Round tiles in Aurora's
-        colours", "Ice blocks in the scenery's colours"; a tile's `phrase`, else its name and "tiles")."""
-        here_env = presets.by_key()[self.here].environment
-        cfg = dict(self.edition_cfg, **self.values())
-        source = self.source.currentData() or HL.MATCH
-        ready = source[len(HL.READY_PREFIX):]
-        colours = ("the scenery's colours" if source == HL.MATCH else "your colours" if source == HL.MINE
-                   else HL.READY_LABELS.get(ready) or f"{HL.SCENERY_READY[ready]}'s colours")  # ("Aurora" alone read as the scenery)
-        tile = self.tile_choice.currentData() or HL.TILE_DEFAULT
-        tiles = HL.TILE_SPECS.get(tile, {}).get("phrase") or f"{TILE_LABELS[tile]} tiles"
-        pix = tile_sample(HL.preview_look(cfg, here_env), tile, cfg, here_env)
-        return pix, f"{tiles} in {colours}"
 
     def _announce(self) -> None:
         self.refresh()
@@ -588,15 +592,22 @@ class LookControls(QObject):
             spec = presets.of_the_day(today(edition_cfg))
         self.here = spec.key if spec else self.here
         self.edition_cfg = edition_cfg
+        # (the debug switches: not while the Debug tab pretends this is a release; set once they
+        # have a parent, or they would flash up as windows of their own)
+        if self.debug_switches:
+            for box in (self.smooth, self.gaps):
+                if box.parent() is not None:
+                    box.setVisible(not HL.debug_edition(edition_cfg))
         # (only what can be had: no Plus colours or tiles this copy lacks, a seasonal scenery's only
         # in its week; a choice no longer offered shows the default)
         colours = list(self.ready)
         tiles = [k for k in self.tile_buttons if HL.tile_shown(k, edition_cfg)]
         self._place(self.ready_grid, [self.scenery] + [self.ready[k] for k in colours], [self.ready[k] for k in self.ready if k not in colours])
-        self._place(self.tiles_grid, [self.tile_buttons[k] for k in tiles], [self.tile_buttons[k] for k in self.tile_buttons if k not in tiles])
+        # (the styles in one row: a few, each a short word and a small sample)
+        self._place(self.tiles_grid, [self.tile_buttons[k] for k in tiles], [self.tile_buttons[k] for k in self.tile_buttons if k not in tiles],
+                    columns=len(tiles))
         # (even columns: each grid's buttons as wide as its widest, and Yours as the colours')
         self._even([self.scenery, *(self.ready[k] for k in colours), self.yours])
-        self._even([self.tile_buttons[k] for k in tiles])
         source = self.source.currentData()
         offered = [*colours, *(k[len(HL.READY_PREFIX):] for k, _n, _i in self._scenery_items())]
         if source is None or (source.startswith(HL.READY_PREFIX) and source[len(HL.READY_PREFIX):] not in offered):
@@ -628,21 +639,23 @@ class LookControls(QObject):
             b.setMinimumWidth(widest)
 
     @staticmethod
-    def _place(grid, shown: list, hidden: list) -> None:
+    def _place(grid, shown: list, hidden: list, columns: int = BUTTON_COLUMNS) -> None:
         """`shown` in `grid`, at most BUTTON_COLUMNS to a row and the rows as even as they can be
         (four are two and two, not three and one; seven are three, two and two), and `hidden` out of it."""
         for b in shown + hidden:
             grid.removeWidget(b)
         for b in hidden:
             b.setVisible(False)
-        rows = max(1, -(-len(shown) // BUTTON_COLUMNS))
+        rows = max(1, -(-len(shown) // max(1, columns)))
         sizes = [len(shown) // rows + (1 if r < len(shown) % rows else 0) for r in range(rows)]
         places = [(r, c) for r, n in enumerate(sizes) for c in range(n)]
         for b, (row, col) in zip(shown, places):
             grid.addWidget(b, row, col)
             if b.parent() is not None:  # (never shown before it has a parent: it would flash up as a window)
                 b.setVisible(True)
-        grid.setColumnStretch(BUTTON_COLUMNS, 1)
+        used = max(sizes) if shown else 0
+        for c in range(grid.columnCount() + 1):  # (the room left over goes after the last column used)
+            grid.setColumnStretch(c, 1 if c == used else 0)
 
     def values(self) -> dict:
         return {
@@ -663,8 +676,6 @@ class LookControls(QObject):
 
     def refresh(self) -> None:
         """Draw every picture again for the choices as they are now (and the theme)."""
-        if self.refreshed:
-            self.refreshed()
         # (Busier days only in dark mode; set once it has a parent: shown before, it flashes up as a window)
         if self.busier_box.parent() is not None:
             dark = page_bg()[1]

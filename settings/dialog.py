@@ -37,19 +37,10 @@ SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to meas
 # phone switch, which lives in the collection, it never touches)
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start",
              "streak_week", "streak_week_since")
-# set on the heatmap itself (its Reviews | Time toggle, By year's earlier years), maybe while the dialog is open: saved as
-# it is now, never as the dialog found it, and Cancel leaves it be
-OUTSIDE_KEYS = ("calendar_shade",)
-
-
-def keep_heatmap_view(cfg: dict, current: dict, touched: bool) -> None:
-    """The view (Timeline | By year) as the switch on the heatmap left it, unless the View row here
-    was changed: on a save and on Cancel, the dialog open beside the heatmap all the while."""
-    if touched:
-        return
-    cfg.pop("calendar", None)
-    if "calendar" in current:
-        cfg["calendar"] = current["calendar"]
+# set on the heatmap itself (its Reviews | Time toggle, its Timeline | By year switch), maybe while
+# the dialog is open: saved as it is now, never as the dialog found it, and Cancel leaves it be (the
+# view had a row here too until 2026-10-16: the switch on the heatmap is where it is changed)
+OUTSIDE_KEYS = ("calendar_shade", "calendar")
 
 
 RESTORE_TITLE = "Restore defaults"
@@ -347,7 +338,6 @@ class SettingsDialog(QDialog):
         for tab in (self.scenery, self.forest, self.heatmap, self.debug):
             cfg.update(tab.values())
         cfg.update(self.decks.values(self._current()))
-        keep_heatmap_view(cfg, self._current(), self.heatmap.view_touched)
         # anything still at its default stays unset, so a better default in a later
         # version still reaches people who never changed it
         return {k: v for k, v in cfg.items() if known.get(k, object()) != v}
@@ -359,7 +349,6 @@ class SettingsDialog(QDialog):
         """Back in the dialog: a deck may have been left out from its gear menu meanwhile."""
         if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow() and hasattr(self, "decks"):
             self.decks.reload(self._current())
-            self.heatmap.reload_view(self._current())
         super().changeEvent(event)
 
     def apply(self) -> None:
@@ -435,7 +424,6 @@ class SettingsDialog(QDialog):
             known = mw.addonManager.addonConfigDefaults(self.module) or {}
             cfg = {k: v for k, v in self.original.items() if k not in OUTSIDE_KEYS}
             cfg.update({k: v for k, v in self._current().items() if k in OUTSIDE_KEYS})
-            keep_heatmap_view(cfg, self._current(), self.heatmap.view_touched)
             # a deck left out or brought back from its gear menu meanwhile stays that way; only
             # what was changed here is undone
             self.decks.reload(self._current())

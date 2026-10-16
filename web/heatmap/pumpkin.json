@@ -5,6 +5,6 @@
  "env": "pumpkin_patch",
  "season": "pumpkin_patch",
  "gaps": true,
- "smooth": true,
+ "smooth": false,
  "phrase": "Pumpkin tiles"
 }

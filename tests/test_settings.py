@@ -59,19 +59,7 @@ class OutsideTests(unittest.TestCase):
 
     def test_the_heatmaps_view_switch_outlives_the_dialog(self):
         # By year chosen on the heatmap while the dialog is open: kept on its next save and on Cancel
-        cfg = {"calendar": "timeline", "nature": "peaceful"}
-        dialog.keep_heatmap_view(cfg, {"calendar": "by_year"}, touched=False)
-        self.assertEqual(cfg, {"calendar": "by_year", "nature": "peaceful"})
-
-    def test_the_view_changed_here_wins(self):
-        cfg = {"calendar": "timeline"}
-        dialog.keep_heatmap_view(cfg, {"calendar": "by_year"}, touched=True)
-        self.assertEqual(cfg, {"calendar": "timeline"})
-
-    def test_the_default_view_left_unset(self):
-        cfg = {"calendar": "timeline"}
-        dialog.keep_heatmap_view(cfg, {}, touched=False)
-        self.assertEqual(cfg, {})
+        self.assertIn("calendar", dialog.OUTSIDE_KEYS)
 
 
 class RestoreDefaultsTests(unittest.TestCase):
@@ -114,14 +102,6 @@ class PaletteTests(unittest.TestCase):
             self.assertEqual(palette.color(new), f"{was}-night")
         self.assertEqual(palette.radius(), palette.OLD_RADIUS)
         self.assertIsNone(palette.chevron())  # Qt draws its own arrow
-
-
-class HeatmapViewTests(unittest.TestCase):
-    def test_the_view_choice_offers_every_view(self):
-        tab = importlib.import_module(f"{PACKAGE}.settings.heatmap_tab")
-        state = importlib.import_module(f"{PACKAGE}.state")
-        self.assertEqual([key for key, _label in tab.CALENDAR_OPTIONS], list(state.CALENDAR_VIEWS))
-
 
 
 class FakeBadge:

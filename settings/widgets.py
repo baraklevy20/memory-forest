@@ -112,15 +112,19 @@ class Choice(QWidget):
 # solid blue was the loudest thing on the tab; the corners rounded only at the row's two ends): the
 # Heatmap tab's week start, Busier days
 JOINED_STYLE = """
-QPushButton {{ border: 1px solid {line}; border-left-width: {left}px; border-radius: 0; padding: 3px 10px;
+QPushButton {{ border: 1px solid {line}; border-left-width: {left}px; border-radius: 0; padding: 3px 10px 3px {pad}px;
               border-top-left-radius: {r0}px; border-bottom-left-radius: {r0}px;
               border-top-right-radius: {r1}px; border-bottom-right-radius: {r1}px;
               background: rgba(128, 128, 128, 0.10); }}
 QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
-QPushButton:checked {{ background: rgba(128, 128, 128, 0.38); border-color: {ring}; }}
+QPushButton:checked {{ background: rgba(128, 128, 128, 0.38); border-color: {ring}; border-left-width: 1px; padding-left: {pad_on}px; }}
 QPushButton:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.05); }}
 QPushButton:checked:disabled {{ color: {off}; background: rgba(128, 128, 128, 0.22); border-color: {line}; }}
 """
+# (a button after the first has no left border, its neighbour's right one between them; chosen, its
+# ring needs all four sides: its left border comes back, a pixel of padding giving way, so it keeps
+# its width)
+JOINED_PAD = 10
 JOINED_RADIUS = 6
 
 
@@ -167,7 +171,7 @@ class JoinedChoice(Choice):
         b.setCheckable(True)
         b.setCursor(Qt.CursorShape.PointingHandCursor)
         b.setStyleSheet(JOINED_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"), off=color("FG_DISABLED"),
-                                            left=1 if first else 0,
+                                            left=1 if first else 0, pad=JOINED_PAD, pad_on=JOINED_PAD - (0 if first else 1),
                                             r0=JOINED_RADIUS if first else 0, r1=JOINED_RADIUS if last else 0))
         return b
 
