@@ -94,8 +94,8 @@ Hover a day for its numbers, and click it to open its cards.
   day it came.
 - **Reviews or time**: shade the days by how many reviews you did, or by how long you
   studied (the toggle beside the arrows).
-- **Two views**: Timeline, your last year and the months ahead, or By year, January to
-  December, with your earlier years a click away.
+- **Two views**: Timeline, a rolling 10-month view of recent study and the months ahead,
+  or By year, January to December, with your earlier years a click away.
 - **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
   system's.
 - **Every deck**: each deck's screen shows that deck's own heatmap and streak.

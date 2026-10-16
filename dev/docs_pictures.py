@@ -3,8 +3,8 @@ copy's scripts with a made-up forest and history (never anyone's own reviews), i
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
 
-calendar.png: the forest by the lake with its heatmap under it, the pointer on a day of the
-current streak (its tooltip), the trophies and the goal's flag, and one important day ahead.
+calendar.png: the forest by the lake with its heatmap under it, visible streak labels,
+the trophies and the goal's flag, and one important day ahead.
 calendar_sceneries.png: one heatmap in four base sceneries, each beside its picker picture, with
 its trophies and flag and no other marks. Needs Chrome, and node with the dev packages.
 """
@@ -179,12 +179,12 @@ def main() -> None:
     exam = [{"day": (dt.date.today() + dt.timedelta(days=MARK_AHEAD)).isoformat(), "icon": "exam", "name": "Exam"}]
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
-        # the big picture: the forest and its heatmap, the pointer on a day of the streak
+        # the big picture: the forest and its heatmap, with the streak labels unobstructed
         big = dict(forest_data(lake), calendar=calendar(lake, exam), showForest=True)
         path = os.path.join(tmp, "big.html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(page(lake, big, 756, ".af-cog { display: none !important }"))
-        jobs.append({"page": path, "width": 800, "shoot": "#p", "point": [0.52, 0.6], "out": os.path.join(DOCS, "calendar.png")})
+        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "calendar.png")})
         # the sceneries: the heatmap alone, its trophies and flag shown as the pointer shows them
         shots = {}
         for key in SCENERIES:
