@@ -119,12 +119,14 @@ def keeps_suspended(cfg: dict | None = None) -> bool:
 # (with or without the forest above it)
 CALENDAR_VIEWS = ("timeline", "by_year")
 CALENDAR_SCREENS = {"main": "calendar_main", "decks": "calendar_decks"}
-# what a day's shade goes by: its reviews, or the time they took (the toggle beside the heatmap's arrows)
-CALENDAR_SHADES = ("reviews", "time")
+# what a day's shade goes by: its reviews, the time they took, or how much they strengthened your
+# memory (growth.py, with FSRS on): the toggle beside the heatmap's key
+CALENDAR_SHADES = ("reviews", "time", "growth")
 
 
 def calendar_shade(cfg: dict | None = None) -> str:
-    """What the heatmap's shades go by: "reviews" (how many) or "time" (how long they took)."""
+    """What the heatmap's shades go by: "reviews" (how many), "time" (how long they took) or
+    "growth" (how much stronger they made your memory, growth.py)."""
     value = (cfg if cfg is not None else config()).get("calendar_shade", "reviews")
     return value if value in CALENDAR_SHADES else "reviews"
 

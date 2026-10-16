@@ -86,15 +86,15 @@ def strip(look: dict, drawer: str = "plain", sample: bool = False, page: tuple |
 
 
 def _strip_pixels(shades, drawer: str, dark: bool, gaps: bool = True) -> dict:
-    # (a shape's sample as its file says: "round", "bands" or "panes"; with spaces between the days,
-    # round or bands as a tile for each)
+    # (a shape's sample as its file says: "round", "contours" or "panes"; with spaces between the days,
+    # round or contours as a tile for each)
     sample = HL.TILE_SPECS.get(drawer, {}).get("sample")
     if sample == "panes":
         return pane_pixels(shades, dark)
-    if sample in ("round", "bands") and gaps:
-        return round_tiles(shades, outlined=sample == "bands", dark=dark)
-    if sample == "bands":
-        return bands_pixels(shades, dark)
+    if sample in ("round", "contours") and gaps:
+        return round_tiles(shades, outlined=sample == "contours", dark=dark)
+    if sample == "contours":
+        return contour_pixels(shades, dark)
     if sample == "round":
         return rounded_pixels(shades, False, dark)
     pixels = {}
@@ -137,13 +137,13 @@ def rounded_pixels(shades, smooth: bool = False, dark: bool = True) -> dict:
 
 def round_tiles(shades, outlined: bool = False, dark: bool = True) -> dict:
     """Round's sample with spaces between the days (calendar.js shapesPass): each shade a tile of
-    its own, textured, its corners cut round; Bands' (`outlined`), each a flat tile with its edge."""
+    its own in one colour, its corners cut round; Contours' (`outlined`), each a flat tile with its edge."""
     pixels, face = {}, HL.TILE - 1
-    for i, (colour, tone, _edge) in enumerate(shades):
+    for i, (colour, _tone, _edge) in enumerate(shades):
         tile = {}
         for x in range(face):
             for y in range(face):
-                tile[x, y] = colour if outlined or (HL.hash_str(f"{i},{x >> 1},{y >> 1}") & 3) else tone
+                tile[x, y] = colour  # (one colour, as Flat's)
         _cut_corners(tile, face, face)
         if outlined:
             ink = HL.mix(shades[3][2], HL.DARK, 0.45 if dark else 0.35)
@@ -161,9 +161,9 @@ def _cut_corners(pixels: dict, w: int, h: int) -> None:
             pixels.pop(p, None)
 
 
-def bands_pixels(shades, dark: bool = True) -> dict:
-    """Bands' sample: the four shades as one outlined shape in flat bands, a line in the higher
-    band's edge colour where a band rises (calendar.js bandsAt)."""
+def contour_pixels(shades, dark: bool = True) -> dict:
+    """Contours' sample: the four shades as one outlined shape in flat bands, a line in the higher
+    band's edge colour where a band rises (web/heatmap/contours.js)."""
     w, h, pixels = ICON_W, HL.TILE - 1, {}
     ink = HL.mix(shades[3][2], HL.DARK, 0.45 if dark else 0.35)
     band = [min(3, round(3 * x / (w - 1))) for x in range(w)]

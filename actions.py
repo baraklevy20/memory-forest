@@ -120,8 +120,10 @@ def on_js_message(handled, message, context):
             marks.set_mark(mw.col, cmd[1], cmd[2], ":".join(cmd[3:]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "unmark" and len(cmd) > 1:
             marks.unmark(mw.col, cmd[1])
-        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the arrows: reviews or time
+        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the key: reviews, time or growth
             save_config(dict(config(), calendar_shade=cmd[1]))  # (the heatmap has drawn it already: no redraw)
+            if cmd[1] == "growth" and len(cmd) > 2 and cmd[2] == "load":  # (but Growth's days come only once asked for)
+                refresh()
         elif cmd[0] == "view" and len(cmd) > 1 and cmd[1] in CALENDAR_VIEWS:  # Timeline | By year, on the heatmap
             save_config(dict(config(), calendar=cmd[1]))  # (drawn already; the Heatmap tab's View follows it)
         elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait

@@ -58,7 +58,7 @@ class ChoiceTests(unittest.TestCase):
     def test_tiles(self):
         self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, GOLDEN)["files"], ["envs/synthwave.js"])
         self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, {"special": "synthwave"})["files"], [])
-        for plain in ("flat", "rounded", "bands"):
+        for plain in ("flat", "round", "contours"):
             look = HL.page_look({"calendar_tiles": plain}, GOLDEN)
             self.assertEqual((look["tile"], look["files"]), (plain, []))
 
@@ -79,7 +79,7 @@ class ChoiceTests(unittest.TestCase):
         for style, (gaps, smooth) in HL.TILE_STYLE.items():
             cfg = {"calendar_tiles": style, "debug_gaps": not gaps, "debug_smooth": not smooth}  # (debug off: ignored)
             self.assertEqual((HL.gaps(cfg), HL.smooth(cfg)), (gaps, smooth), style)
-        self.assertFalse(HL.gaps({"calendar_tiles": "bands"}))
+        self.assertFalse(HL.gaps({"calendar_tiles": "contours"}))
         debugging = addon.edition.debug_available({"debug": True})
         self.assertEqual(HL.gaps({"debug": True, "debug_gaps": False}), not debugging)
         self.assertTrue(HL.gaps({"debug": True, "debug_gaps": None}))  # (None: the style's own)
@@ -124,8 +124,13 @@ class TileFileTests(unittest.TestCase):
 
     def test_a_release_s_tiles_never_come_from_the_drafts(self):
         released = {n[:-5] for n in os.listdir(os.path.join(ADDON_DIR, "web", "heatmap")) if n.endswith(".json")}
-        self.assertTrue({"flat", "rounded", "bands"} <= released)
+        self.assertTrue({"flat", "round", "contours"} <= released)
         self.assertNotIn("glass", released)  # (it waits for its scenery: web/drafts/heatmap/)
+        drafts = [k for k, v in HL.TILE_SPECS.items() if v.get("draft")]
+        for edition in ("base", "plus"):  # (nor while the Debug tab pretends this is a release)
+            pretend = {"debug": True, "debug_edition": edition}
+            if addon.edition.debug_available(pretend) and HL.debug_edition(pretend):
+                self.assertEqual([k for k in drafts if HL.tile_shown(k, pretend)], [], edition)
 
 
 class SceneryColourTests(unittest.TestCase):
@@ -183,9 +188,9 @@ class ShadeTests(unittest.TestCase):
 
 class PayloadTests(unittest.TestCase):
     def test_the_calendar_carries_the_look(self):
-        reset([(1, 10, 3)], {"calendar_colours": "ready:ice", "calendar_tiles": "rounded"})
+        reset([(1, 10, 3)], {"calendar_colours": "ready:ice", "calendar_tiles": "round"})
         look = payload.payload()["calendar"]["look"]
-        self.assertEqual((look["colours"], look["tile"]), (HL.READY["ice"], "rounded"))
+        self.assertEqual((look["colours"], look["tile"]), (HL.READY["ice"], "round"))
 
 
 if __name__ == "__main__":

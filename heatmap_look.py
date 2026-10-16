@@ -24,7 +24,7 @@ from .state import save_config
 MATCH, MINE = "scenery", "mine"
 READY_PREFIX = "ready:"
 # the tile styles, each in a file of its own (web/heatmap/<key>.json, and .js where it draws itself:
-# calendar.js AF.heatmapTiles), in their `order`: Flat (the default), Round, Bands, and a scenery's
+# calendar.js AF.heatmapTiles), in their `order`: Flat (the default), Round, Contours, and a scenery's
 # own tiles (`env`: its calendarTile), a seasonal one's only in its week (`season`: its preset). Each
 # says its `label` and `tip` for the Heatmap tab, its spaces between the days and smooth corners
 # (`gaps`, `smooth`), whether it is a joined shape (`shape`) and how its sample is drawn (`sample`).
@@ -37,7 +37,7 @@ TILE_DIRS = (os.path.join(catalog.WEB, "heatmap"), os.path.join(catalog.WEB, cat
 def tile_specs() -> dict:
     """key -> what its file says, every tile style this copy has, in their order."""
     found = []
-    for folder in TILE_DIRS:
+    for folder, draft in zip(TILE_DIRS, (False, True)):
         if not os.path.isdir(folder):
             continue
         for name in os.listdir(folder):
@@ -49,7 +49,7 @@ def tile_specs() -> dict:
             except (OSError, ValueError):
                 continue
             if isinstance(spec, dict):
-                found.append((spec.get("order", 99), name[:-5], spec))
+                found.append((spec.get("order", 99), name[:-5], dict(spec, draft=draft)))
     return {key: spec for _order, key, spec in sorted(found, key=lambda t: (t[0], t[1]))}
 
 
@@ -176,7 +176,7 @@ def _style(cfg: dict, key: str, i: int) -> bool:
 
 def gaps(cfg: dict) -> bool:
     """Whether the days keep the spaces between them: as the tile style has them (TILE_STYLE), or
-    while debugging, as "Spaces between days" says. For Round and Bands too: with spaces, each day
+    while debugging, as "Spaces between days" says. For Round and Contours too: with spaces, each day
     is a shape of its own."""
     return _style(cfg, "debug_gaps", 0)
 
@@ -189,9 +189,12 @@ def smooth(cfg: dict) -> bool:
 
 
 def tile_shown(key: str, cfg: dict) -> bool:
-    """Whether a tile style is offered just now: not a Plus one this copy lacks, and a seasonal
-    scenery's only in its week (today's, or the debug date's)."""
+    """Whether a tile style is offered just now: not a Plus one this copy lacks, a seasonal
+    scenery's only in its week (today's, or the debug date's), and one still in the works (a
+    draft's) not while the Debug tab pretends this is the base or Plus edition, which has none."""
     if key in TILE_ENVS and plus_locked(TILE_ENVS[key], cfg):
+        return False
+    if TILE_SPECS.get(key, {}).get("draft") and debug_edition(cfg):
         return False
     spec = presets.by_key().get(TILE_SEASONS.get(key, ""))
     return spec is None or presets.unlocked(spec, today(cfg))

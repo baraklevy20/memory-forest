@@ -1,4 +1,4 @@
-/* Memory Forest - the heatmap's Bands tiles (the Heatmap tab's Tiles; bands.json; the blob study's
+/* Memory Forest - the heatmap's Contours tiles (the Heatmap tab's Tiles; contours.json; the blob study's
  * "Iso-bands"): a joined shape (calendar.js shapesPass) of the days studied, the days ahead and the
  * empty days, each filled with flat bands of its days' shades, like a contour map: each pixel's shade
  * the days round it weighted by nearness (fieldLv), rounded to the four, a line in the higher band's
@@ -8,7 +8,7 @@
 'use strict';
 const AF = window.AnkiForest;
 AF.heatmapTiles = AF.heatmapTiles || {};
-AF.heatmapTiles.bands = {
+AF.heatmapTiles.contours = {
   fields: ['blank', 'soil', 'grass'],
   // (each pixel's band first, to find where a band rises)
   prepare({ out, cells, W, Hh, get, fieldLv }) {

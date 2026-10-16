@@ -213,10 +213,25 @@ function history(cal) {
   const snap = s => { const m = Math.max(1, Math.round(s / 60)); return (m >= 30 ? Math.round(m / 5) * 5 : m) * 60 - 30; };
   for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(t[i - 1] + 60, snap(t[i]));
   const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
-  // (a day with reviews but no time kept, an old import's, takes the fewest)
-  const H = { by: cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews', timed: recentTime.length > 0 };
-  H.shade = o => H.by === 'time' ? byTime(time(o)) : byReviews(n(o));
-  H.splits = () => (H.by === 'time' ? byTime : byReviews).splits;
+  // Growth (growth.py): each day's [median % change in its cards' FSRS stability, cards], or null
+  // where there is no estimate; split as the others are, by your last year's days, in whole percents
+  // (negative ones too: a day of lapses)
+  const growth = o => (cal.growth || [])[o - first] || null, recentGrowth = [];
+  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && growth(o)) recentGrowth.push(growth(o)[0]);
+  recentGrowth.sort((a, b) => a - b);
+  const growthSplits = [-Infinity];
+  for (const share of SHADE_SPLITS) {
+    const at = recentGrowth.length ? Math.round(recentGrowth[Math.floor(share * (recentGrowth.length - 1))]) : growthSplits.length * 20;
+    growthSplits.push(growthSplits.length > 1 ? Math.max(growthSplits[growthSplits.length - 1] + 1, at) : at);
+  }
+  const byGrowth = v => growthSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);
+  byGrowth.splits = growthSplits;
+  // (a day with reviews but no time kept, an old import's, takes the fewest; so does one with no
+  // Growth estimate, its cards all new)
+  const by = cal.shadeBy === 'time' && recentTime.length ? 'time' : cal.shadeBy === 'growth' && cal.growthOn ? 'growth' : 'reviews';
+  const H = { by, timed: recentTime.length > 0, growthOn: !!cal.growthOn, growthIn: !!cal.growth, growth };
+  H.shade = o => H.by === 'time' ? byTime(time(o)) : H.by === 'growth' ? (growth(o) ? byGrowth(growth(o)[0]) : 0) : byReviews(n(o));
+  H.splits = () => (H.by === 'time' ? byTime : H.by === 'growth' ? byGrowth : byReviews).splits;
   // the animals, each on the day it came (none before the forest began)
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
@@ -487,7 +502,12 @@ function paletteOf(H, sp, paper) {
   const drawn = AF.heatmapTiles[L.tile], by = L.tile === 'plain' || drawn ? null : L.tile && AF.ENVS[L.tile] && AF.ENVS[L.tile].calendarTile ? L.tile : sp.mood.special;
   // (the Debug tab's "Same as the dark page": a light page's days in the dark page's own shades)
   const dark = paper.dark, S = shades(cs, !dark && L.lightSame ? DARK_PAPER : paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
-  const look = drawn && drawn.draw ? { name: L.tile, draw: drawn.draw } : draw && { name: by, draw };  // (a scenery's own tiles, when it draws them)
+  // (a shape with spaces and smooth corners whose style gives a `smoothRadius`, Round: each day a
+  // tile of its own, as round as its shape cut in pixels but its edge drawn at the screen's
+  // resolution, antialiased, in Flat's one colour: under sharpen with that radius)
+  const gapless = L.gaps === false, roundTile = !!(drawn && drawn.smoothRadius && L.smooth && !gapless);
+  const flat = AF.heatmapTiles.flat, look = roundTile ? { name: 'flat', draw: flat.draw }
+    : drawn && drawn.draw ? { name: L.tile, draw: drawn.draw } : draw && { name: by, draw };  // (a scenery's own tiles, when it draws them)
   // the soil faded into the page, so the days ahead sit behind the days you studied
   const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
   // (on a light page in lightness only, keeping most of its colour: mixed with white, brown went grey-mauve)
@@ -509,16 +529,10 @@ function paletteOf(H, sp, paper) {
     const lv = H.shade(c.o);
     return { pal: S.grass[lv], edge: S.edge[lv], soil: false, v, lv };
   };
-  // (the Heatmap tab's "Spaces between days" off: each tile fills its cell)
-  const gapless = L.gaps === false;
   const tile = c => { const t = shadeOf(c); return t && tilesOf(t.pal, t.edge, look, gapless)[t.v]; };
   // (the key: the four shades of a day studied; the soil and the empty days say what they are; the
   // hover's ring in today's frame colours, which show on every shade, its inside clear, so the day
   // and its mark keep their colours)
-  // (a shape with spaces and smooth corners whose style gives a `smoothRadius`, Round: each day a
-  // tile of its own, as round as its shape cut in pixels but its edge drawn at the screen's
-  // resolution, antialiased: plainTile, under sharpen with that radius)
-  const style = AF.heatmapTiles[L.tile], roundTile = !!(style && style.smoothRadius && L.smooth && !gapless);
   return { tile, shadeOf, gapless, roundTile, shapes: isShape(L.tile) && !roundTile ? L.tile : null, grass: S.grass, edge: S.edge,
     // (for the shapes: the soil's four shades, the empty days' grey as one colour, and the page)
     tills: [0, 1, 2, 3].map(lv => soil(lv)[0]), blank: blankOn(paper), page: paper.bg, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(dark ? P.today : P.todayOnLight), glow: 'transparent' };
@@ -558,7 +572,7 @@ function columns(H, win) {
  * (and .json, what the tab says of it), or for one still in the works, web/drafts/ (this copy only).
  * A style registers itself in AF.heatmapTiles[key] as one of:
  *  - { draw(g, pal, edge, v, T) }: each day a tile of its own, drawn as plainTile is (Flat);
- *  - { fields, prepare(ctx), paint(ctx, c, x, y, edge, i, state) }: a joined shape (Round, Bands):
+ *  - { fields, prepare(ctx), paint(ctx, c, x, y, edge, i, state) }: a joined shape (Round, Contours):
  *    the days of each field (`fields`: the days studied 'grass', the days ahead 'soil', the empty
  *    days 'blank') side by side are one shape, the gutters between them filled while there are no
  *    spaces between days, each shape's outer corners cut and inner corners filled in whole-pixel
@@ -686,7 +700,7 @@ function markPalOf(sp) {
  * drawn inside a rounded square at the screen's own resolution, as GitHub's are (drawn in the
  * heatmap's own pixels and scaled up, corners step). The tiles, the empty days and today's frame are
  * drawn by sharpen once the scale is known; the marks, the free days' dots, the brackets and the
- * lane stay on the heatmap's pixels, over them. Not with the joined shapes (Bands, a drafted shape,
+ * lane stay on the heatmap's pixels, over them. Not with the joined shapes (Contours, a drafted shape,
  * Round without spaces), which are no tiles. (The path by hand: Chromium 77, Anki 2.1.45's, has no
  * roundRect) */
 const SMOOTH_R = 1.8;  // (the corners' radius, in the heatmap's pixels: GitHub's 2px on a 10px tile)
@@ -697,16 +711,18 @@ function rounded(g, x, y, w, h, r) {
 }
 /* a view's tiles, empty days and today's frame drawn smooth on `hi`, `s` device pixels to the
  * heatmap's pixel, under `lo` (the rest of it, in its pixels) */
-function sharpen(hi, lo, cells, H, dark, paper, s, F, R) {
+function sharpen(hi, lo, cells, H, dark, paper, s, F, R, G = 0) {
   const W = lo.width, Hh = lo.height;
   hi.width = Math.round(W * s); hi.height = Math.round(Hh * s);
   const g = hi.getContext('2d');
   g.setTransform(hi.width / W, 0, 0, hi.height / Hh, 0, 0);
   g.imageSmoothingEnabled = false;  // (a tile's own texture stays crisp inside its smooth outline)
   // (the rounded square is the tile's face, F: its last row and column are the gap between days,
-  // which a style draws in its edge tone and which inside a smooth outline read as a stepped rim)
+  // which a style draws in its edge tone and which inside a smooth outline read as a stepped rim;
+  // a style may grow it by G all round, its colour filling the rim, so the spaces between days are
+  // narrower)
   const tile = (c, inset) => {
-    const i = inset || 0;
+    const i = (inset || 0) - G;
     rounded(g, c.x + i, c.y + i, F - 2 * i, F - 2 * i, Math.max(0.6, R - i));
     if (c.t) {
       g.fillStyle = rgb(c.t.fill); g.fill();
@@ -721,8 +737,8 @@ function sharpen(hi, lo, cells, H, dark, paper, s, F, R) {
   const today = cells.find(c => c.o === 0);
   if (today) {
     // (as frame: a light ring in the gaps all round, a line of the page's colour just inside it)
-    rounded(g, today.x - 1, today.y - 1, F + 2, F + 2, R + 1); g.fillStyle = rgb(dark ? P.today : P.todayOnLight); g.fill();
-    rounded(g, today.x, today.y, F, F, R); g.fillStyle = rgb(paper.bg); g.fill();
+    rounded(g, today.x - 1 - G, today.y - 1 - G, F + 2 + 2 * G, F + 2 + 2 * G, R + 1 + G); g.fillStyle = rgb(dark ? P.today : P.todayOnLight); g.fill();
+    rounded(g, today.x - G, today.y - G, F + 2 * G, F + 2 * G, R + G); g.fillStyle = rgb(paper.bg); g.fill();
     tile(today, 1);
   }
   g.drawImage(lo, 0, 0);
@@ -744,9 +760,9 @@ function paint(H, win, sp, paper) {
   // the tiles first, each with a texture of its own day's (the same whichever page it is on); a
   // missed day, or one before your history, faint, so the view is never half bare
   for (const c of cells) {
-    // (Rounded, Smooth, Bands, a drafted shape: the days studied, and the days ahead, are drawn after,
+    // (Round, Contours, a drafted shape: the days studied, and the days ahead, are drawn after,
     // as shapes: shapesPass; all but Rounded the empty days too)
-    // (a style that draws the empty days too, as Bands does, gets them as shades of their own)
+    // (a style that draws the empty days too, as Contours does, gets them as shades of their own)
     const style = pal.shapes && AF.heatmapTiles[pal.shapes];
     if (style) c.shade = pal.shadeOf(c) || (!style.fields || style.fields.indexOf('blank') >= 0 ? { blank: true } : null);
     const t = pal.shapes ? null : pal.tile(c);
@@ -847,7 +863,8 @@ function paint(H, win, sp, paper) {
     hi.dataset.pixels = W;  // (the heatmap's width in its own pixels, for e2e/phone_check)
     let drawnAt = 0;
     const F = pal.gapless ? CELL : TILE_FACE;  // (each tile's face: no gap of its own when the days have none)
-    out.cv = hi; out.sharpen = s => { if (s !== drawnAt) { drawnAt = s; sharpen(hi, cv, cells, H, dark, paper, s, F, radius); } };
+    const grow = pal.roundTile && !pal.gapless ? AF.heatmapTiles[H.look.tile].smoothGrow || 0 : 0;
+    out.cv = hi; out.sharpen = s => { if (s !== drawnAt) { drawnAt = s; sharpen(hi, cv, cells, H, dark, paper, s, F, radius, grow); } };
     out.sharpen(dpr());
   }
   return out;
@@ -931,6 +948,7 @@ AF.calendar = function (root, data, env) {
     + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
+    + '<button type="button" role="radio" data-by="growth" title="Shade each day by how much it strengthened your memory: the median change in your cards\' FSRS stability">Growth</button>'
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
@@ -959,7 +977,10 @@ AF.calendar = function (root, data, env) {
   // time kept, as the add-on has it, no choice). Not on the months' row: with the view and the
   // arrows there, that corner read as one crowded line of words (2026-10-15)
   const byBox = box.querySelector('.af-cal-shade');
-  byBox.hidden = swiped || !H.timed;
+  // (Time only with time kept, Growth only with FSRS on; no toggle with one choice left)
+  byBox.querySelector('[data-by="time"]').hidden = !H.timed;
+  byBox.querySelector('[data-by="growth"]').hidden = !H.growthOn;
+  byBox.hidden = swiped || (!H.timed && !H.growthOn);
   // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
   const viewBox = box.querySelector('.af-cal-view');
@@ -1006,12 +1027,14 @@ AF.calendar = function (root, data, env) {
       const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
       if (!step) return;
       e.preventDefault();
-      const next = b.dataset.by === 'reviews' ? 'time' : 'reviews';
-      const to = byBox.querySelector(`[data-by="${next}"]`);
+      const shown = [...byBox.querySelectorAll('button')].filter(x => !x.hidden);
+      const to = shown[(shown.indexOf(b) + step + shown.length) % shown.length];
       to.focus(); to.click();
     });
     b.addEventListener('click', () => {
       if (H.by === b.dataset.by) return;
+      // (Growth's days come only once asked for: the add-on works them out and draws the heatmap again)
+      if (b.dataset.by === 'growth' && !H.growthIn) { send(`${data.channel}:shade:growth:load`); return; }
       H.by = b.dataset.by;
       send(`${data.channel}:shade:${H.by}`);
       unpoint();
@@ -1135,6 +1158,9 @@ AF.calendar = function (root, data, env) {
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
   const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
+  // a day's Growth: "Stability +48% (median of 123 cards)"
+  const pct = v => (v < 0 ? '\u2212' : '+') + Math.abs(Math.round(v)) + '%';
+  const growthText = ([v, count]) => `Stability ${pct(v)} (median of ${cards(count, 'card')})`;
   // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
   // reviews and about how many a day; only the days since your first review, up to today
   const studiedLines = (from, to) => {
@@ -1475,6 +1501,7 @@ AF.calendar = function (root, data, env) {
   // "8–12 min", "Under 3 min", "154+ reviews"
   const shadeLine = lv => {
     const s = H.splits(), by = H.by === 'time';
+    if (H.by === 'growth') return lv === 0 ? `Stability under ${pct(s[1])}` : lv === 3 ? `Stability ${pct(s[3])} or more` : `Stability ${pct(s[lv])} to ${pct(s[lv + 1] - 1)}`;
     const at = i => by ? lasted(s[i]) : num(s[i]), upto = i => by ? lasted(s[i] - 60) : num(s[i] - 1);
     const unit = by ? '' : ' reviews';
     if (lv === 0) return `Under ${at(1)}${unit}`;
@@ -1538,6 +1565,7 @@ AF.calendar = function (root, data, env) {
       : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
       : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
+      : c.n && H.by === 'growth' ? (H.growth(c.o) ? `${growthText(H.growth(c.o))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no Growth estimate (only new cards)`)
       : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)

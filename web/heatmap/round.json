@@ -3,7 +3,7 @@
  "label": "Round",
  "tip": "Each day a little round tile",
  "gaps": true,
- "smooth": false,
+ "smooth": true,
  "shape": true,
  "sample": "round"
 }

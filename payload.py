@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
+from . import events_state, forest_data, growth, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
 from .edition import debug_available, debug_edition
 from .phone_note import phone_cards
 from .scope import anki_today, changes, day_cutoff, deck_ids, excluded_decks, since
@@ -291,6 +291,13 @@ def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: i
     return [seconds.get(ago, 0) for ago in range(oldest, -1, -1)]
 
 
+def _day_growth(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
+    """Each day's Growth, oldest first (growth.load_day_growth), remembered until the study data changes."""
+    days = remembered("day_growth", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+                      lambda: growth.load_day_growth(mw.col, cutoff, dids, excluded, skip))
+    return [list(days[ago]) if ago in days else None for ago in range(oldest, -1, -1)]
+
+
 def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
     """The numbers the page shows, their streak the study calendar's. With a start date, the
     streak is still your real one, unbroken by it (a young forest is a choice of look, not a
@@ -390,6 +397,12 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (none for a made-up day)
             "time": [] if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
+            # Growth (growth.py): whether it can be had (FSRS on), and, while it is what the shades go
+            # by, each day's [median % change in stability, cards] or None, as `days` (worked out only
+            # then: the page asks for it, and is drawn again, when Growth is picked)
+            "growthOn": not test and growth.fsrs_on(col),
+            "growth": _day_growth(cutoff, dids, excluded, skip, changed, oldest)
+                      if not test and calendar_shade(cfg) == "growth" else None,
             "breakDays": forest_data.BREAK_DAYS,
             "forestStart": forest_start,
             "hiddenBefore": hidden_before,
