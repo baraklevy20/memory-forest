@@ -1,7 +1,7 @@
 {
  "order": 0,
  "label": "Scenery",
- "tip": "The scenery's own style, which changes with it: Starry night's brushstrokes, Synthwave's scanlines, a holiday's own in its week, and Flat for the rest",
+ "tip": "Uses the current scenery's own tile style and updates when you change scenery",
  "follow": true,
  "phrase": "The scenery's own tiles"
 }
