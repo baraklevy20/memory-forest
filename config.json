@@ -20,7 +20,7 @@
         "#e9c46a"
     ],
     "calendar_mine_two": false,
-    "calendar_tiles": "flat",
+    "calendar_tiles": "scenery",
     "calendar_busier": "lighter",
     "calendar_record": true,
     "streak_from_start": false,
@@ -43,6 +43,7 @@
     "debug_light_shades": "lightness",
     "debug_gaps": null,
     "debug_smooth": null,
+    "debug_tile_gap": null,
     "debug_date": "",
     "debug_edition": ""
 }

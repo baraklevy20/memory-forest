@@ -1,7 +1,10 @@
 {
  "natural": "#8fb35e",
- "bamboo": "#a8d87a",
- "lanterns": "#a44a5a",
+ "bamboo": "#4aa070",
+ "lanterns": [
+  "#7a3450",
+  "#ff9a6a"
+ ],
  "synthwave": [
   "#2e2a7a",
   "#ff4fa3"

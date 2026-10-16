@@ -422,6 +422,7 @@ AF.env('bamboo', {
     const night = env.mood.time === 'night';
     if (env.theme.rain) env.fxColors = { rain: night ? 'rgba(150,190,170,.4)' : 'rgba(225,240,228,.5)', rainFar: night ? 'rgba(150,190,170,.2)' : 'rgba(225,240,228,.28)', splash: 'rgba(235,245,238,.8)' };
   },
+  calendar: '#4aa070',  // the study calendar in jade, the grove's own (its lime was Natural's green again)
   pals: { rounds: [JADE, DEEP, SAGE], pine: TEAL, bark: { l: hex('#6a9a4a'), m: hex('#4a7a3a'), d: hex('#2e5428') },
     leaf: hex('#6cb45c'), leafL: hex('#a8d87a'), stem: hex('#3f8a4e') },
 

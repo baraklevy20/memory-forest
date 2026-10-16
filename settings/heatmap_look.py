@@ -114,7 +114,8 @@ def strip(look: dict, drawer: str = HL.TILE_DEFAULT, sample: bool = False, page:
 def tile_sample(look: dict, key: str, cfg: dict, here_env: str) -> QPixmap:
     """The tile style `key`'s sample in `look`'s colours, as the heatmap draws it: its own spaces and
     smooth corners (TILE_STYLE); smooth Round is a Flat tile, rounder and a little bigger
-    (calendar.js paletteOf)."""
+    (calendar.js paletteOf). Scenery's is the scenery's own (heatmap_look.tile_style)."""
+    key = HL.tile_style(dict(cfg, calendar_tiles=key), here_env)
     gaps, smooth = HL.TILE_STYLE[key]
     spec = HL.TILE_SPECS[key]
     drawer = "flat" if smooth and spec.get("smoothRadius") else HL.drawer_for(dict(cfg, calendar_tiles=key), here_env)
@@ -577,7 +578,7 @@ class LookControls(QObject):
         """A tile style picked: its smooth corners and spaces back to its own (TILE_STYLE), so the
         debug switches show what a user would see."""
         if key in HL.TILE_STYLE:
-            gaps, smooth = HL.TILE_STYLE[key]
+            gaps, smooth = self._own_style(key)
             for box, on in ((self.gaps, gaps), (self.smooth, smooth)):
                 box.blockSignals(True)
                 box.setChecked(on)
@@ -629,7 +630,7 @@ class LookControls(QObject):
 
     def _values_now(self) -> dict:
         return {"calendar_mine": list(self.mine), "calendar_mine_two": self.blend.isChecked(),
-                "calendar_tiles": self.tile_choice.currentData() or HL.TILE_DEFAULT,
+                "calendar_tiles": self.tile_choice.currentData() or HL.TILE_FOLLOW,
                 "calendar_busier": self.busier.currentData() or "lighter"}
 
     @staticmethod
@@ -662,15 +663,20 @@ class LookControls(QObject):
             "calendar_colours": self.source.currentData() or HL.MATCH,
             "calendar_mine": list(self.mine),
             "calendar_mine_two": self.blend.isChecked(),
-            "calendar_tiles": self.tile_choice.currentData() or HL.TILE_DEFAULT,
+            "calendar_tiles": self.tile_choice.currentData() or HL.TILE_FOLLOW,
             "calendar_busier": self.busier.currentData() or "lighter",
             **self.style_values(),
         }
 
+    def _own_style(self, key: str) -> tuple:
+        """(spaces, smooth corners) of the style `key` draws in just now: Scenery's, the scenery's own."""
+        here_env = presets.by_key()[self.here].environment
+        return HL.TILE_STYLE[HL.tile_style(dict(self.edition_cfg, calendar_tiles=key), here_env)]
+
     def style_values(self) -> dict:
         """The debug switches, kept only where they differ from the tile style's own (None: as the
         style has it), so a later change to a style still reaches anyone who never touched them."""
-        gaps, smooth = HL.TILE_STYLE[self.tile_choice.currentData() or HL.TILE_DEFAULT]
+        gaps, smooth = self._own_style(self.tile_choice.currentData() or HL.TILE_FOLLOW)
         return {"debug_gaps": None if self.gaps.isChecked() == gaps else self.gaps.isChecked(),
                 "debug_smooth": None if self.smooth.isChecked() == smooth else self.smooth.isChecked()}
 

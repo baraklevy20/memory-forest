@@ -333,6 +333,7 @@ AF.env('lanterns', {
     th.lanternNight = night;
   },
 
+  calendar: ['#7a3450', '#ff9a6a'],  // the study calendar from the night's plum to the lanterns' glow
   pals: { rounds: ROUNDS, pine: PINE, bark: { l: hex('#5a3a44'), m: hex('#3e2432'), d: hex('#22121e') },
     leaf: hex('#b25a5e'), leafL: hex('#f58a6e'), stem: hex('#6e3662') },
   leafColors: ['#e8c840', '#c09a2c'],

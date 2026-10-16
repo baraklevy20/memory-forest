@@ -55,9 +55,11 @@ def tile_specs() -> dict:
 
 TILE_SPECS = tile_specs()
 TILES = tuple(TILE_SPECS)
-TILE_DEFAULT = "flat"
+TILE_DEFAULT = "flat"  # (what a style that can't be had falls back to, and Scenery's on a scenery with none of its own)
+TILE_FOLLOW = "scenery"  # (the default: the scenery's own style, changing with it; web/heatmap/scenery.json)
 SHAPES = tuple(k for k, v in TILE_SPECS.items() if v.get("shape"))
-TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}  # whose calendarTile draws them
+TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
+# (Scenery has no style of its own: it is the scenery's, tile_style)  # whose calendarTile draws them
 TILE_SEASONS = {k: v["season"] for k, v in TILE_SPECS.items() if v.get("season")}  # by the preset whose week they come in
 # each style's spaces between the days and smooth corners (drawn at the screen's resolution), as a
 # release has them: neither is a setting of its own. While debugging, two switches under the tiles
@@ -134,9 +136,43 @@ def scenery_ready_env(key: str, cfg: dict) -> str | None:
 
 
 def tiles_choice(cfg: dict) -> str:
-    """The tile style chosen: one of TILES, else Flat (as a style since cut, Plain or Smooth, is)."""
-    value = cfg.get("calendar_tiles", TILE_DEFAULT)
+    """The tile style chosen: one of TILES (Scenery, TILE_FOLLOW, the default: it follows the
+    scenery), else Flat (as a style since cut, Plain or Smooth, is)."""
+    value = cfg.get("calendar_tiles", TILE_FOLLOW)
     return value if value in TILES else TILE_DEFAULT
+
+
+# the space between the days' tiles, in the heatmap's pixels: calendar.js's GAP, or the style's own
+# (its file's "gap": Round keeps 2, its circles apart), but while debugging the Debug tab's "Space
+# between tiles" (`debug_tile_gap`), to try others
+GAP_DEFAULT, GAP_MAX = 1, 6
+
+
+def _gap(value) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= GAP_MAX else None
+
+
+def debug_gap(cfg: dict) -> int | None:
+    """The Debug tab's space between tiles while debugging, or None."""
+    return _gap(cfg.get("debug_tile_gap")) if debug_available(cfg) else None
+
+
+def tile_gap(cfg: dict, here: str = "") -> int | None:
+    """The Debug tab's space between tiles while debugging, else the style's own, or None:
+    calendar.js's own, GAP_DEFAULT."""
+    value = debug_gap(cfg)
+    return value if value is not None else _gap(TILE_SPECS.get(tile_style(cfg, here), {}).get("gap"))
+
+
+def tile_style(cfg: dict, here: str = "") -> str:
+    """The style the heatmap is drawn in for `cfg` while the scenery's environment is `here`:
+    Scenery's is that scenery's own (the style its environment draws, TILE_ENVS: Brush on Starry
+    night, a holiday's in its week), else Flat; any other is itself if it can be had just now
+    (tile_shown), else Flat."""
+    choice = tiles_choice(cfg)
+    if choice == TILE_FOLLOW:
+        return next((k for k, env in TILE_ENVS.items() if env == here and tile_shown(k, cfg)), TILE_DEFAULT)
+    return choice if tile_shown(choice, cfg) else TILE_DEFAULT
 
 
 def mine(cfg: dict) -> list:
@@ -169,25 +205,25 @@ def busier(cfg: dict) -> str:
     return "darker" if cfg.get("calendar_busier") == "darker" else "lighter"
 
 
-def _style(cfg: dict, key: str, i: int) -> bool:
+def _style(cfg: dict, key: str, i: int, here: str = "") -> bool:
     value = cfg.get(key)
     if isinstance(value, bool) and debug_available(cfg):
         return value
-    return TILE_STYLE[tiles_choice(cfg)][i]
+    return TILE_STYLE[tile_style(cfg, here)][i]
 
 
-def gaps(cfg: dict) -> bool:
+def gaps(cfg: dict, here: str = "") -> bool:
     """Whether the days keep the spaces between them: as the tile style has them (TILE_STYLE), or
     while debugging, as "Spaces between days" says. For Round and Contours too: with spaces, each day
     is a shape of its own."""
-    return _style(cfg, "debug_gaps", 0)
+    return _style(cfg, "debug_gaps", 0, here)
 
 
-def smooth(cfg: dict) -> bool:
+def smooth(cfg: dict, here: str = "") -> bool:
     """Whether the tiles are drawn as smooth rounded squares at the screen's resolution: as the tile
     style has them (TILE_STYLE), or while debugging, as "Smooth corners" says. Not with the joined
     shapes, which are no tiles; Round with spaces is a tile, so it can be."""
-    return _style(cfg, "debug_smooth", 1)
+    return _style(cfg, "debug_smooth", 1, here)
 
 
 def tile_shown(key: str, cfg: dict) -> bool:
@@ -202,14 +238,12 @@ def tile_shown(key: str, cfg: dict) -> bool:
     return spec is None or presets.unlocked(spec, today(cfg))
 
 
-def tile_env(cfg: dict) -> str:
-    """Whose tiles draw the heatmap: "flat", a shape (SHAPES), or the
-    environment whose medium was chosen (Brush, Scanlines, a seasonal scenery's), if it can be
-    had just now (tile_shown); else Flat."""
-    choice = tiles_choice(cfg)
-    if not tile_shown(choice, cfg):
-        return TILE_DEFAULT
-    return TILE_ENVS.get(choice, choice)
+def tile_env(cfg: dict, here: str = "") -> str:
+    """Whose tiles draw the heatmap (tile_style, while the scenery's environment is `here`):
+    "flat", a shape (SHAPES), or the environment whose medium it is (Brush, Scanlines, a seasonal
+    scenery's)."""
+    style = tile_style(cfg, here)
+    return TILE_ENVS.get(style, style)
 
 
 def page_look(cfg: dict, mood: dict) -> dict:
@@ -230,12 +264,12 @@ def page_look(cfg: dict, mood: dict) -> dict:
     elif choice.startswith(READY_PREFIX):
         env = scenery_ready_env(choice[len(READY_PREFIX):], cfg)
         colours = own_keys()[env] if env else None
-    tile = tile_env(cfg)
+    tile = tile_env(cfg, here)
     files = [f"envs/{tile}.js" for _ in [0] if tile not in ("flat", *SHAPES, here)
              and os.path.exists(os.path.join(catalog.WEB, "envs", f"{tile}.js"))]
     return {"colours": colours, "exact": exact, "env": None, "tile": tile, "files": files,
-            "lightSame": light_shades(cfg) == "dark", "darker": busier(cfg) == "darker", "gaps": gaps(cfg),
-            "smooth": smooth(cfg)}
+            "lightSame": light_shades(cfg) == "dark", "darker": busier(cfg) == "darker", "gaps": gaps(cfg, here),
+            "smooth": smooth(cfg, here), "gap": tile_gap(cfg, here)}
 
 
 def preview_look(cfg: dict, here_env: str) -> dict:
@@ -509,9 +543,9 @@ def tile_pixels(drawer: str, shade, v: int = 0) -> dict:
     return DRAWERS.get(drawer, _plain)([colour, tone], edge, v, TILE)
 
 
-def drawer_for(cfg: dict, _here_env: str = "") -> str:
-    """Which DRAWERS key (or shape) draws the tiles for the choice in `cfg`."""
-    return tile_env(cfg)
+def drawer_for(cfg: dict, here_env: str = "") -> str:
+    """Which DRAWERS key (or shape) draws the tiles for the choice in `cfg` on the scenery `here_env`."""
+    return tile_env(cfg, here_env)
 
 
 def out_of_season(cfg: dict) -> dict:

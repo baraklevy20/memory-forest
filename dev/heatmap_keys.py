@@ -22,8 +22,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
 sys.path.insert(0, ADDON)
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(ADDON, "e2e"))  # (render_page)
 
-import render_check
+import render_page
 
 import catalog
 import presets
@@ -84,7 +85,7 @@ window.__keys = out;
         mjs = os.path.join(tmp, "keys.mjs")
         with open(mjs, "w", encoding="utf-8") as f:
             f.write(SCRIPT % {"puppeteer": os.path.join(ADDON, "node_modules", "puppeteer-core", "lib", "esm", "puppeteer", "puppeteer-core.js"),
-                              "chrome": json.dumps(render_check.CHROME), "page": page})
+                              "chrome": json.dumps(render_page.CHROME), "page": page})
         keys = json.loads(subprocess.run(["node", mjs], check=True, capture_output=True, text=True).stdout)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(keys, f, indent=1)

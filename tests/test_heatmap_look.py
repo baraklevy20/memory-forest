@@ -55,6 +55,26 @@ class ChoiceTests(unittest.TestCase):
         self.assertFalse(look["exact"])
         self.assertEqual(look["files"], [])  # (its colour comes from KEYS_FILE, not its scenery's file)
 
+    def test_scenery_s_style_follows_the_scenery_and_a_chosen_one_stays(self):
+        starry, synth = {"special": "starry_night"}, {"special": "synthwave"}
+        self.assertEqual(HL.page_look({}, starry)["tile"], "starry_night")  # (Scenery, the default: Brush there)
+        self.assertEqual(HL.page_look({}, synth)["tile"], "synthwave")
+        self.assertEqual(HL.page_look({}, GOLDEN)["tile"], "flat")  # (a scenery with no style of its own)
+        self.assertEqual(HL.page_look({"calendar_tiles": "flat"}, starry)["tile"], "flat")  # (chosen: kept)
+        self.assertEqual(HL.tile_style({"calendar_tiles": "scenery"}, "starry_night"), "brush")
+        self.assertEqual(HL.gaps({}, "starry_night"), HL.TILE_STYLE["brush"][0])
+
+    def test_the_space_between_tiles_is_the_debug_tab_s_only_while_debugging(self):
+        self.assertIsNone(HL.page_look({"debug_tile_gap": 4}, GOLDEN)["gap"])  # (debug off: calendar.js's own)
+        debugging = addon.edition.debug_available({"debug": True})
+        self.assertEqual(HL.tile_gap({"debug": True, "debug_tile_gap": 4}), 4 if debugging else None)
+        for bad in (-1, 99, "3", True, None):
+            self.assertIsNone(HL.tile_gap({"debug": True, "debug_tile_gap": bad}), bad)
+        # (Round keeps its 2: its circles apart; the rest calendar.js's own)
+        self.assertEqual(HL.page_look({"calendar_tiles": "round"}, GOLDEN)["gap"], 2)
+        self.assertEqual(HL.tile_gap({"debug": True, "debug_tile_gap": 4, "calendar_tiles": "round"}), 4 if debugging else 2)
+        self.assertIsNone(HL.debug_gap({"calendar_tiles": "round"}))
+
     def test_tiles(self):
         self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, GOLDEN)["files"], ["envs/synthwave.js"])
         self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, {"special": "synthwave"})["files"], [])
@@ -76,7 +96,9 @@ class ChoiceTests(unittest.TestCase):
                          addon.edition.debug_available({"debug": True}))
 
     def test_each_tile_style_has_its_own_spaces_and_corners_but_while_debugging(self):
-        for style, (gaps, smooth) in HL.TILE_STYLE.items():
+        for style in HL.TILE_STYLE:
+            # (each as the style it draws in: Scenery's, or one out of its week, Flat's here)
+            gaps, smooth = HL.TILE_STYLE[HL.tile_style({"calendar_tiles": style})]
             cfg = {"calendar_tiles": style, "debug_gaps": not gaps, "debug_smooth": not smooth}  # (debug off: ignored)
             self.assertEqual((HL.gaps(cfg), HL.smooth(cfg)), (gaps, smooth), style)
         self.assertFalse(HL.gaps({"calendar_tiles": "contours"}))
@@ -114,6 +136,8 @@ class TileFileTests(unittest.TestCase):
         scripts = set(addon.catalog.SCRIPTS) | set(addon.catalog.draft_scripts())
         for key, spec in HL.TILE_SPECS.items():
             self.assertTrue(spec.get("label") and spec.get("tip"), key)
+            if spec.get("follow"):  # (Scenery: no drawing of its own, the scenery's)
+                continue
             if spec.get("env"):
                 self.assertTrue(os.path.exists(os.path.join(web, "envs", f"{spec['env']}.js")) or HL.plus_locked(spec["env"], {}), key)
             else:  # (a style that draws itself has its script loaded, and it registers under its key)

@@ -26,7 +26,11 @@ const { SEEDLING } = AF.STAGE;
 // low-res pixels: a day's square, the tile drawn in it, a little room above the weeks under the
 // months' labels (every mark sits on its own day's tile), and the streak lane below the weeks: the
 // brackets, with the trophies and the goal pennant under them
-const CELL = 11, TILE = 9, TOP = 3, ROWS = 7, BRACKET = 15;  // (TOP: room between the months' labels and the weeks)
+const TILE = 9, TOP = 3, ROWS = 7, BRACKET = 15, GAP = 1;
+// a day's cell, its tile and the space after it: set by each heatmap measured or drawn, the space
+// GAP but while debugging (the Debug tab's "Space between tiles", look.gap), as weekStart is
+let CELL = TILE + GAP;
+const cellOf = cal => TILE + (cal && cal.look && Number.isInteger(cal.look.gap) ? cal.look.gap : GAP);  // (TOP: room between the months' labels and the weeks)
 // css pixels: the footer's row (the journal and the key), the month labels' band and the streaks'
 // notes (forest.css), for the room kept for the calendar before it is drawn
 const FOOT_H = 18, FOOT_GAP = 7, ROW_UNDER = 20;  // (ROW_UNDER: the first row's top under the months' row, its baseline 8px above it)
@@ -479,7 +483,7 @@ function plainTile(g, pal, edge, v, T) {
 /* a shade's tiles, each of its TILE_VARIANTS textures drawn once, kept for every calendar after */
 const tiles = new Map();
 function tilesOf(pal, edge, look, gapless = false) {
-  const key = (look ? look.name : '') + (gapless ? '|whole' : '') + '|' + pal.concat([edge]).map(c => c.join(',')).join('|');
+  const key = (look ? look.name : '') + (gapless ? '|whole' + CELL : '') + '|' + pal.concat([edge]).map(c => c.join(',')).join('|');
   if (!tiles.has(key)) {
     const out = [];
     for (let v = 0; v < TILE_VARIANTS; v++) {
@@ -928,6 +932,7 @@ AF.calendarScaleFor = height => Math.max(SWIPED_K, Math.floor(height * dpr() / (
 const monthsRoom = k => Math.round(ROW_UNDER - (TOP + 1) * k);
 /* how tall the calendar will be at this width, for the room kept for it until it is drawn */
 AF.calendarHeight = function (cal, width) {
+  CELL = cellOf(cal);
   const view = cal.view === 'by_year' ? 'by_year' : 'timeline';
   // (the scale is the width's: the view's exact weeks, as it will lay them out)
   let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN;
@@ -949,7 +954,7 @@ AF.calendar = function (root, data, env) {
   if (root.afCalStop) root.afCalStop();
   let box = root.querySelector('.af-cal');
   if (!box) { box = document.createElement('div'); box.className = 'af-cal'; root.append(box); }
-  weekStart = cal.weekStart == null ? 1 : cal.weekStart;
+  weekStart = cal.weekStart == null ? 1 : cal.weekStart; CELL = cellOf(cal);
   const H = history(cal), sp = sceneOf(data, env);
   let view = cal.view === 'by_year' ? 'by_year' : 'timeline';  // (the switch on the heatmap changes it)
   const deck = data.deckId && !data.testForest ? data.deckId : '';
