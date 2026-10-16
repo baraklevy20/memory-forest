@@ -79,35 +79,23 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 ## Your study heatmap
 
-<p align="center"><img src="docs/calendar.png" alt="The forest with its study heatmap under it: the days studied in green, a day's tooltip, trophies and the goal's flag along the bottom, the cards coming due in brown"></p>
+<p align="center"><img src="docs/calendar.png" alt="The forest with its study heatmap below: days studied in green, a silver streak trophy, a goal flag, an exam marker, and cards coming due in brown"></p>
 
-Every day you studied, in your scenery's colours, with your streak and the cards coming due.
-Hover a day for its numbers, and click it to open its cards.
+Your study days, streaks and upcoming reviews, in your scenery's colours.
+Hover for details; click a day to open its cards.
 
-- **A fair streak**: a day with no cards due, as a small deck often has, keeps your streak
-  going. It only grows on the days you study.
-- **Rest days**: if you like, your streak can count 6 or 5 days a week, so a day or two off
-  each week doesn't break it (Heatmap tab).
-- **Trophies and a goal**: gold, silver and bronze for your three longest streaks, and a flag
-  on the day your streak would earn its next one.
-- **Milestones**: point at the heatmap to see each animal that joined your forest, on the
-  day it came.
-- **Reviews or time**: shade the days by how many reviews you did, or by how long you
-  studied (the toggle beside the arrows).
-- **Two views**: Timeline, a rolling 10-month view of recent study and the months ahead,
-  or By year, January to December, with your earlier years a click away.
-- **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
-  system's.
-- **Every deck**: each deck's screen shows that deck's own heatmap and streak.
-- **Important days**: right-click a day to mark it, like an exam or a trip, and give it
-  a name and an icon. A day ahead counts down to it.
-- **On your phone**: the same heatmap, under your forest on the phone card.
-- **Your look**: your scenery's colours, a ready set, or your own, and the tiles' style
-  (Heatmap tab).
+- **Views**: a rolling 10-month timeline or a full year.
+- **Reviews or time**: shade days by review count or study time.
+- **Per deck**: each deck has its own heatmap and streak.
+- **Fair streaks**: days with nothing due don't break your streak.
+- **Rest days**: choose a 5- or 6-day study week.
+- **Trophies**: medals for your three longest streaks, and a flag for your next goal.
+- **Milestones**: see when each animal joined your forest.
+- **Important days**: right-click to mark exams, trips and other dates.
+- **Week start**: Monday, Sunday, Saturday or your system's setting.
+- **Your look**: customize colours, tiles and rest days in the Heatmap tab.
 
-Each scenery gives the heatmap its own colours, and some their own tiles.
-
-<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue under the aurora, plum to lantern glow at night, violet to pink scanlines in Synthwave"></p>
+<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, and violet to pink scanlines in Synthwave"></p>
 
 ## On your phone
 
