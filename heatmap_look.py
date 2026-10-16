@@ -240,16 +240,17 @@ def page_look(cfg: dict, mood: dict) -> dict:
     for a ramp) in place of the scenery's own (None: the scenery's); `tile`, whose tiles ("flat", a shape such as "round", or an environment with calendarTile);
     `files`, the scenery files they need beyond today's (the page loads them, the phone too);
     `exact`, colours you picked (yours, a ready ramp), shown as picked on either page (exact_steps);
-    `lightSame`, a light page shaded as a dark one (the Debug tab's switch, light_shades);
+    `flipLight`, a ready ramp run the other way on a light page, its deep colour the busiest (as
+    Review Heatmap's light mode: its ramps run pale to deep on a dark page);
     `darker`, a dark page's busier days darker (busier)."""
     here = mood.get("special") or "natural"
     choice = colours_choice(cfg)
-    colours, exact = None, False
+    colours, exact, flip = None, False, False
     if choice == MINE:
         first, second = mine(cfg)
         colours, exact = ([first, second] if mine_two(cfg) else first), True
     elif choice.startswith(READY_PREFIX) and choice[len(READY_PREFIX):] in READY:
-        colours, exact = READY[choice[len(READY_PREFIX):]], True
+        colours, exact, flip = READY[choice[len(READY_PREFIX):]], True, True
     elif choice.startswith(READY_PREFIX):
         env = scenery_ready_env(choice[len(READY_PREFIX):], cfg)
         colours = own_keys()[env] if env else None
@@ -257,7 +258,7 @@ def page_look(cfg: dict, mood: dict) -> dict:
     files = [f"envs/{tile}.js" for _ in [0] if tile not in ("flat", *SHAPES, here)
              and os.path.exists(os.path.join(catalog.WEB, "envs", f"{tile}.js"))]
     return {"colours": colours, "exact": exact, "env": None, "tile": tile, "files": files,
-            "lightSame": light_shades(cfg) == "dark", "darker": busier(cfg) == "darker", "gaps": gaps(cfg, here),
+            "flipLight": flip, "darker": busier(cfg) == "darker", "gaps": gaps(cfg, here),
             "smooth": smooth(cfg, here), "gap": tile_gap(cfg, here)}
 
 
@@ -371,7 +372,7 @@ def empty_on(bg, dark: bool) -> tuple:
     return mix(bg, EMPTY_GREY, EMPTY_ALPHA if dark else EMPTY_ALPHA_LIGHT)
 
 
-DARK_PAGE = (44, 44, 44)  # Anki's dark page, for a light page shaded as a dark one (light_shades)
+DARK_PAGE = (44, 44, 44)  # Anki's dark page
 FAINT_FADE, FADE_STEP, DIM = 0.25, 0.05, (0.55, 0.36, 0.18, 0)
 
 
@@ -394,13 +395,11 @@ def exact_steps(colours, bg, dark: bool) -> list:
     return [at(i, f) for i in range(3)] + [b]
 
 
-def shades(colours, bg, dark: bool, exact: bool = False, light_same: bool = False, darker: bool = False) -> list:
+def shades(colours, bg, dark: bool, exact: bool = False, flip_light: bool = False, darker: bool = False) -> list:
     """The four shades of a day studied, fewest reviews to most, each (its colour, its darker
     tone, its edge), for `colours` (one, or two for a ramp) on a page of colour `bg` (calendar.js
-    shades). `exact`: colours you picked (exact_steps); `light_same`: a light page takes the dark
-    page's own (the Debug tab); `darker`: a dark page's run the other way (busier)."""
-    if light_same and not dark:
-        bg, dark = DARK_PAGE, True
+    shades). `exact`: colours you picked (exact_steps); `flip_light`: a ready ramp the other way
+    round on a light page, its deep colour the busiest; `darker`: a dark page's run the other way (busier)."""
     pair = isinstance(colours, (list, tuple))
     keys = [readable(blend(hexc(colours[0]), hexc(colours[1]), i / 3)) for i in range(4)] if pair else [readable(hexc(colours))] * 4
     steps = []
@@ -411,7 +410,7 @@ def shades(colours, bg, dark: bool, exact: bool = False, light_same: bool = Fals
             C *= 0.95
         steps.append(from_oklab(L, C * math.cos(h), C * math.sin(h)))
     if exact:
-        steps = exact_steps(colours, bg, dark)
+        steps = exact_steps(list(colours)[::-1] if flip_light and not dark and pair else colours, bg, dark)
     if dark and darker:
         steps.reverse()
     tone, rim = (0.07, 0.22) if dark else (0.16, 0.3)
@@ -560,13 +559,3 @@ def follow_season(cfg: dict) -> dict:
     cfg = dict(cfg, **change)
     save_config(cfg)
     return cfg
-
-
-# ---- the Debug tab's switch: a light page's shades by lightness (released), or the dark page's ----
-LIGHT_SHADES = [("lightness", "By lightness"), ("dark", "Same as the dark page")]
-
-
-def light_shades(cfg: dict) -> str:
-    """How a light page shades the heatmap: "lightness" always in a release; "dark" (the dark
-    page's own four colours) only while debug is on and the Debug tab says so."""
-    return "dark" if cfg.get("debug_light_shades") == "dark" and debug_available(cfg) else "lightness"

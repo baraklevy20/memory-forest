@@ -328,7 +328,7 @@ function windowOf(H, view, page, year, count) {
 /* the four shades a day studied takes, fewest reviews to most, with their tiles' edges: built
  * round the scenery's colour (its own `calendar` colour, or its most colourful crown colour,
  * AF.foliage), from pale to deep, so the calendar belongs to the scene */
-const DARK = [16, 16, 16], DARK_PAPER = { bg: [44, 44, 44], dark: true };
+const DARK = [16, 16, 16];
 // an empty day's grey on a dark page (EMPTY), the least the faintest shade stands apart from it
 // (OKLab), and how much lighter it is made when closer (heatmap_look.py has the same sums)
 const EMPTY_GREY = [128, 128, 128], EMPTY_ALPHA = 0.11, EMPTY_APART = 0.06;
@@ -436,8 +436,10 @@ function shades(env, paper, look) {
     while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95;
     return fromOklab(L, C * Math.cos(h), C * Math.sin(h));
   });
-  // (your colours and the ready ones: as picked, exactSteps)
-  if (exact) steps.splice(0, 4, ...exactSteps(look.colours, paper));
+  // (your colours and the ready ones: as picked, exactSteps; a ready ramp the other way round on a
+  // light page, its deep colour the busiest, as Review Heatmap's light mode: `flipLight`)
+  const flip = exact && !dark && look.flipLight && Array.isArray(look.colours);
+  if (exact) steps.splice(0, 4, ...exactSteps(flip ? look.colours.slice().reverse() : look.colours, paper));
   // (the Heatmap tab's "Busier days: Darker": a dark page's shades the other way round, a pale tint
   // for a quiet day down to a clear dim colour for a busy one, still well clear of a missed day's grey)
   if (dark && look && look.darker) steps.reverse();
@@ -524,8 +526,7 @@ function paletteOf(H, sp, paper) {
   const L = H.look || {}, has = e => e === 'natural' || !!AF.ENVS[e];
   const cs = L.env && has(L.env) ? Object.assign({}, sp, { mood: Object.assign({}, sp.mood, { special: L.env }) }) : sp;
   const drawn = AF.heatmapTiles[L.tile], by = L.tile === 'plain' || drawn ? null : L.tile && AF.ENVS[L.tile] && AF.ENVS[L.tile].calendarTile ? L.tile : sp.mood.special;
-  // (the Debug tab's "Same as the dark page": a light page's days in the dark page's own shades)
-  const dark = paper.dark, S = shades(cs, !dark && L.lightSame ? DARK_PAPER : paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
+  const dark = paper.dark, S = shades(cs, paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
   // (a shape with spaces and smooth corners whose style gives a `smoothRadius`, Round: each day a
   // tile of its own, as round as its shape cut in pixels but its edge drawn at the screen's
   // resolution, antialiased, in Flat's one colour: under sharpen with that radius)

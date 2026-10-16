@@ -105,7 +105,7 @@ def strip(look: dict, drawer: str = HL.TILE_DEFAULT, sample: bool = False, page:
     with smooth corners (`smooth`: (radius, grow) in the heatmap's pixels), each tile's face a
     rounded square drawn smooth, as the heatmap draws it."""
     bg, dark = page or page_bg()
-    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("lightSame", False), look.get("darker", False))
+    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False))
     scale = 2 if sample else 1
     pm = _pixmap(_strip_pixels(shades, drawer, dark, gaps), ICON_W, ICON_H, scale)
     return _smoothed(pm, shades, scale, *smooth) if smooth else pm
@@ -292,7 +292,7 @@ def quad(look: dict, drawer: str = HL.TILE_DEFAULT) -> QPixmap:
     """The four shades of `look` as tiles two by two, quietest top left, busiest bottom right: a
     strip for a square place (the scenery picker's list)."""
     bg, dark = page_bg()
-    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("lightSame", False), look.get("darker", False))
+    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False))
     pixels = {}
     for i, shade in enumerate(shades):
         for (x, y), c in HL.tile_pixels(drawer, shade, i).items():

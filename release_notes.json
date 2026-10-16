@@ -13,9 +13,7 @@
             "title": "New: a study heatmap",
             "text": "Under your forest, a heatmap of your study days, your streak and the cards due ahead.",
             "settings": [
-              "calendar",
-              "calendar_colours",
-              "calendar_tiles"
+              "calendar"
             ]
           }
         },

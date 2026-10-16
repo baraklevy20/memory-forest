@@ -79,7 +79,7 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 ## Your study heatmap
 
-<p align="center"><img src="docs/calendar.png" alt="The forest with its study heatmap under it: the days studied in green, the streak along the bottom, the cards coming due in brown"></p>
+<p align="center"><img src="docs/calendar.png" alt="The forest with its study heatmap under it: the days studied in green, a day's tooltip, trophies and the goal's flag along the bottom, the cards coming due in brown"></p>
 
 Every day you studied, in your scenery's colours, with your streak and the cards coming due.
 Hover a day for its numbers, and click it to open its cards.
@@ -94,18 +94,20 @@ Hover a day for its numbers, and click it to open its cards.
   day it came.
 - **Reviews or time**: shade the days by how many reviews you did, or by how long you
   studied (the toggle beside the arrows).
+- **Two views**: Timeline, your last year and the months ahead, or By year, January to
+  December, with your earlier years a click away.
 - **Your week**: it starts on the day you choose, Monday, Sunday or Saturday, or on your
   system's.
 - **Every deck**: each deck's screen shows that deck's own heatmap and streak.
 - **Important days**: right-click a day to mark it, like an exam or a trip, and give it
   a name and an icon. A day ahead counts down to it.
 - **On your phone**: the same heatmap, under your forest on the phone card.
-- **Your look**: your scenery's colours, a ready set like Flame, or your own; the tiles; and
-  on a dark page, busier days lighter or darker (Heatmap tab).
+- **Your look**: your scenery's colours, a ready set, or your own, and the tiles' style
+  (Heatmap tab).
 
-Each scenery gives the heatmap its own colours.
+Each scenery gives the heatmap its own colours, and some their own tiles.
 
-<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue under the aurora, crimson by lantern light, night blue in brushstrokes under the starry night"></p>
+<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue under the aurora, plum to lantern glow at night, violet to pink scanlines in Synthwave"></p>
 
 ## On your phone
 

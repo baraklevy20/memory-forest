@@ -84,11 +84,11 @@ class ChoiceTests(unittest.TestCase):
         look = HL.page_look(base, GOLDEN)
         self.assertEqual((look["colours"], look["env"], look["tile"], look["files"]), (None, None, "flat", []))
 
-    def test_light_page_shades_are_the_debug_tab_s_only_while_debug_is_on(self):
-        self.assertFalse(HL.page_look({"debug_light_shades": "dark"}, GOLDEN)["lightSame"])
-        reset(config={"debug": True})
-        self.assertEqual(HL.light_shades({"debug": True, "debug_light_shades": "dark"}) == "dark",
-                         addon.edition.debug_available({"debug": True}))
+    def test_only_a_ready_ramp_runs_the_other_way_on_a_light_page(self):
+        self.assertTrue(HL.page_look({"calendar_colours": "ready:ice"}, GOLDEN)["flipLight"])
+        mine = {"calendar_colours": "mine", "calendar_mine": ["#112233", "#445566"], "calendar_mine_two": True}
+        self.assertFalse(HL.page_look(mine, GOLDEN)["flipLight"])  # (your own: as you picked them)
+        self.assertFalse(HL.page_look({}, GOLDEN)["flipLight"])
 
     def test_each_tile_style_has_its_own_spaces_and_corners_but_while_debugging(self):
         for style in HL.TILE_STYLE:
@@ -191,8 +191,11 @@ class ShadeTests(unittest.TestCase):
             self.assertGreaterEqual(HL.apart(HL.shades(colours, self.DARK, True)[0][0], empty), HL.EMPTY_APART - 1e-6)
         self.assertGreaterEqual(HL.apart(HL.shades(["#2a9d8f", "#e9c46a"], self.DARK, True, exact=True)[0][0], empty), HL.EMPTY_APART - 1e-6)
 
-    def test_a_light_page_can_take_the_dark_page_s_shades(self):
-        self.assertEqual(HL.shades("#8fb35e", self.LIGHT, False, light_same=True), HL.shades("#8fb35e", self.DARK, True))
+    def test_a_ready_ramp_s_busiest_day_is_its_deep_colour_on_a_light_page(self):
+        ice = HL.READY["ice"]
+        light = HL.shades(ice, self.LIGHT, False, exact=True, flip_light=True)
+        self.assertEqual(light[3][0], HL.hexc(ice[0]))  # (the busiest: deep blue)
+        self.assertEqual(HL.shades(ice, self.DARK, True, exact=True, flip_light=True)[3][0], HL.hexc(ice[1]))  # (dark: pale)
 
     def test_busier_days_darker_turns_only_a_dark_page_s_shades_round(self):
         self.assertFalse(HL.page_look({}, GOLDEN)["darker"])
