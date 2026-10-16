@@ -38,7 +38,9 @@ VIEW_NOTE = "Timeline: the past year and the weeks ahead. By year: January to De
 # where your streak counts from: your real one (from your first review), or from the forest's start date
 STREAK_FROM_OPTIONS = [(False, "Your first review"), (True, "The start date")]
 # the look's page: the line that opens it, under the settings, and its header
-LOOK_LINK, LOOK_BACK, LOOK_TITLE = "Colours and tiles \u203a", "\u2039 Heatmap", "Colours and tiles"
+# ("Style", not "Tiles", which could as well be the tiles' colours; one word, as Colours is, and
+# shape or texture alike, which "Pattern" was not for Flat and Round: 2026-10-16)
+LOOK_LINK, LOOK_BACK, LOOK_TITLE = "Colours and style \u203a", "\u2039 Heatmap", "Colours and style"
 LOOK_SUMMARY_GAP, LOOK_HEADER_GAP = 10, 14
 START_NOTE = "Your forest's start date is set on the Decks tab. Without one, these change nothing."
 # how many days a week it counts: a week's other days, missed, pass as a day with nothing due does
@@ -149,7 +151,7 @@ class HeatmapTab(Tab):
         lv.addSpacing(LOOK_HEADER_GAP)
         self.colours_group = group("Colours", self.look.colours)
         lv.addWidget(self.colours_group)
-        self.tiles_group = group("Tiles", self.look.tiles_box)
+        self.tiles_group = group("Style", self.look.tiles_box)
         lv.addWidget(self.tiles_group)
         lv.addStretch(1)
         self.stack = QStackedWidget()
@@ -203,7 +205,7 @@ class HeatmapTab(Tab):
                 "streak_from_start": (self.streak_from, "Count your streak from"),
                 "streak_week": (self.streak_week, "Your streak counts"),
                 "calendar_colours": (self.colours_group.title, "Heatmap colours"),
-                "calendar_tiles": (self.tiles_group.title, "Heatmap tiles")}
+                "calendar_tiles": (self.tiles_group.title, "Heatmap style")}
 
     def connect(self, changed) -> None:
         for choice in (self.calendar, self.week, self.streak_from, self.streak_week):

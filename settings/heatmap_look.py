@@ -14,6 +14,7 @@ from aqt.qt import (
     QHBoxLayout,
     QIcon,
     QImage,
+    QLabel,
     QMenu,
     QObject,
     QPainter,
@@ -43,12 +44,16 @@ STRIP_GAP = 2
 ICON_W, ICON_H = 4 * (HL.TILE + STRIP_GAP) - STRIP_GAP, HL.TILE
 SWATCH_W, SWATCH_H = 28, 16
 BUTTON_COLUMNS, BUTTON_GAP = 3, 6  # the ready ramps and the tiles, three to a row (the dialog stays its width)
-SCENERY_LABEL, SCENERY_TIP = "Scenery", "The scenery's own colours: they change with the scenery"
+SCENERY_LABEL = "Scenery"
 SCENERY_READY_TIP = "{name}'s colours, on any scenery"
 # any scenery's colours, kept when the scenery changes: one button that opens a list of them (a button
 # each grew with every scenery, and several looked alike: Aurora, Starry night and Frozen market)
-PICK_LABEL, PICK_NONE = "{name} \u25be", "Pick a scenery \u25be"
-PICK_TIP = "Any scenery's colours, kept when you change the scenery"
+# the scenery's colours, as a dropdown first among the ready ones: the scenery's own (they follow
+# it), or any scenery's, kept when you change the scenery (2026-10-16: one button, no row of its own)
+PICK_LABEL = "{name} \u25be"
+PICK_TIP = "The scenery's own colours, which follow it, or any scenery's, kept when you change the scenery"
+FOLLOW_NAME = "This scenery's own"
+BUSIER_LABEL = "Busier days"
 # the ready ramps' tooltips: what they run from and to (each scenery's says whose it is)
 READY_TIPS = {"olive": "Review Heatmap's Olive: deep olive green to pale yellow-green",
               "lime": "Lime: green to bright lime",
@@ -306,8 +311,8 @@ class PickButton(QPushButton):
     `items()` gives the list: (key, name, icon)."""
 
     def __init__(self, items, tip: str):
-        super().__init__(PICK_NONE)
-        self.items, self.key, self.picked = items, None, None
+        super().__init__(PICK_LABEL.format(name=SCENERY_LABEL))
+        self.items, self.key, self.picked = items, HL.MATCH, None
         self.setIconSize(QSize(ICON_W, ICON_H))
         self.setAutoDefault(False)
         self.setCheckable(True)
@@ -328,12 +333,15 @@ class PickButton(QPushButton):
     def set_key(self, key) -> None:
         """(its strip is drawn with the others': LookControls.refresh)"""
         self.key = key
-        self.setText(PICK_LABEL.format(name=next((n for k, n, _i in self.items() if k == key), key)))
+        name = SCENERY_LABEL if key == HL.MATCH else next((n for k, n, _i in self.items() if k == key), key)
+        self.setText(PICK_LABEL.format(name=name))
 
     def _open(self) -> None:
         menu = QMenu(self)
         menu.setStyleSheet(f"QMenu {{ icon-size: {QUAD}px; }}")  # (each one's four tiles at their own size)
-        for key, name, icon in self.items():
+        for i, (key, name, icon) in enumerate(self.items()):
+            if i == 1:
+                menu.addSeparator()  # (the scenery's own, then every scenery's)
             act = menu.addAction(icon, name)
             act.setIconVisibleInMenu(True)  # (macOS leaves menus' icons out unless asked)
             if self.isChecked() and key == self.key:  # (the one chosen in bold: a tick took the strip's place)
@@ -415,8 +423,10 @@ class LookControls(QObject):
         ready = QGridLayout()
         ready.setContentsMargins(0, 0, 0, 0)
         ready.setSpacing(BUTTON_GAP)
-        self.scenery = option_button(SCENERY_LABEL, SCENERY_TIP)
-        self.source.add(HL.MATCH, self.scenery)
+        # (the scenery's colours: its own, or any scenery's, from one dropdown: _scenery_items)
+        self.scenery = PickButton(self._scenery_items, PICK_TIP)
+        self.scenery.picked = self._announce
+        self.source.add("scenery", self.scenery)
         ready.addWidget(self.scenery, 0, 0)
         self.ready = {}
         # (a seasonal scenery's only in its week, a Plus one only in Plus: _place)
@@ -426,15 +436,8 @@ class LookControls(QObject):
             self.ready[key] = b
             self.source.add(HL.READY_PREFIX + key, b)
         self.ready_grid = ready
-        # any scenery's colours: one button, its list only what can be had just now (_scenery_items)
-        self.pick = PickButton(self._scenery_items, PICK_TIP)
-        self.pick.picked = self._announce
-        self.source.add("pick", self.pick)
-        pick_row = QHBoxLayout()
-        pick_row.setContentsMargins(0, 0, 0, 0)
-        pick_row.addWidget(self.pick)
-        pick_row.addStretch(1)
-        self.yours = option_button("Yours", "Your own colours: one, dim to full, or two, blending from the first to the second")
+        # (Custom, not "Yours": with no row labels, the word says these are colours you pick; 2026-10-16)
+        self.yours = option_button("Custom", "Colours you pick: one, dim to full, or two, blending from the first to the second")
         self.source.add(HL.MINE, self.yours)
         self.first = QPushButton()
         self.second = QPushButton()
@@ -461,6 +464,8 @@ class LookControls(QObject):
         self.busier_box = QWidget()
         busier_row = QHBoxLayout(self.busier_box)
         busier_row.setContentsMargins(0, 0, 0, 0)
+        busier_row.addWidget(QLabel(BUSIER_LABEL))  # (in its row: the rows above have no labels)
+        busier_row.addSpacing(BUTTON_GAP)
         busier_row.addWidget(self.busier)
         busier_row.addStretch(1)
         self.faint = hint("")
@@ -493,17 +498,17 @@ class LookControls(QObject):
 
         # the two groups' insides: the tab puts them in place
         self.colours = QVBoxLayout()
+        # (no row labels: the group's name says what they are, and Custom says which are yours;
+        # "Ready colours" read oddly, 2026-10-16)
         rows = form()
-        rows.addRow("Ready colours", ready)
-        rows.addRow("Another scenery's", pick_row)
+        rows.addRow(ready)
         # (the note that your busiest colour is faint sits under your colours, not under Busier days)
         mine_box = QVBoxLayout()
         mine_box.setContentsMargins(0, 0, 0, 0)
         mine_box.addLayout(mine_row)
         mine_box.addWidget(self.faint)
-        rows.addRow("Your colours", mine_box)
-        rows.addRow("Busier days", self.busier_box)
-        self.busier_label = rows.labelForField(self.busier_box)
+        rows.addRow(mine_box)
+        rows.addRow(self.busier_box)
         self.colours.addLayout(rows)
         self.tiles_box = QVBoxLayout()
         self.tiles_box.addLayout(tiles_row)
@@ -590,7 +595,7 @@ class LookControls(QObject):
         self._place(self.ready_grid, [self.scenery] + [self.ready[k] for k in colours], [self.ready[k] for k in self.ready if k not in colours])
         self._place(self.tiles_grid, [self.tile_buttons[k] for k in tiles], [self.tile_buttons[k] for k in self.tile_buttons if k not in tiles])
         # (even columns: each grid's buttons as wide as its widest, and Yours as the colours')
-        self._even([self.scenery, *(self.ready[k] for k in colours), self.yours, self.pick])
+        self._even([self.scenery, *(self.ready[k] for k in colours), self.yours])
         self._even([self.tile_buttons[k] for k in tiles])
         source = self.source.currentData()
         offered = [*colours, *(k[len(HL.READY_PREFIX):] for k, _n, _i in self._scenery_items())]
@@ -601,14 +606,15 @@ class LookControls(QObject):
         self.refresh()
 
     def _scenery_items(self) -> list:
-        """Every scenery's colours that can be had just now (HL.scenery_ready_env), as the picker lists
-        them: (key, name, its strip in the tiles chosen)."""
+        """The scenery dropdown's list: the scenery's own (they follow it), then every scenery's colours
+        that can be had just now (HL.scenery_ready_env): (key, name, its strip in the tiles chosen)."""
         here_env = presets.by_key()[self.here].environment
         cfg = dict(self.edition_cfg, **self._values_now())
         drawn = HL.drawer_for(cfg, here_env)
         drawn = drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT
-        return [(HL.READY_PREFIX + k, name, QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=HL.READY_PREFIX + k), here_env), drawn)))
-                for k, name in HL.SCENERY_READY.items() if k in presets.by_key() and HL.scenery_ready_env(k, self.edition_cfg)]
+        own = [(HL.MATCH, FOLLOW_NAME, QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=HL.MATCH), here_env), drawn)))]
+        return own + [(HL.READY_PREFIX + k, name, QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=HL.READY_PREFIX + k), here_env), drawn)))
+                      for k, name in HL.SCENERY_READY.items() if k in presets.by_key() and HL.scenery_ready_env(k, self.edition_cfg)]
 
     def _values_now(self) -> dict:
         return {"calendar_mine": list(self.mine), "calendar_mine_two": self.blend.isChecked(),
@@ -623,13 +629,17 @@ class LookControls(QObject):
 
     @staticmethod
     def _place(grid, shown: list, hidden: list) -> None:
-        """`shown` in `grid`, BUTTON_COLUMNS to a row with no holes, and `hidden` out of it."""
+        """`shown` in `grid`, at most BUTTON_COLUMNS to a row and the rows as even as they can be
+        (four are two and two, not three and one; seven are three, two and two), and `hidden` out of it."""
         for b in shown + hidden:
             grid.removeWidget(b)
         for b in hidden:
             b.setVisible(False)
-        for i, b in enumerate(shown):
-            grid.addWidget(b, i // BUTTON_COLUMNS, i % BUTTON_COLUMNS)
+        rows = max(1, -(-len(shown) // BUTTON_COLUMNS))
+        sizes = [len(shown) // rows + (1 if r < len(shown) % rows else 0) for r in range(rows)]
+        places = [(r, c) for r, n in enumerate(sizes) for c in range(n)]
+        for b, (row, col) in zip(shown, places):
+            grid.addWidget(b, row, col)
             if b.parent() is not None:  # (never shown before it has a parent: it would flash up as a window)
                 b.setVisible(True)
         grid.setColumnStretch(BUTTON_COLUMNS, 1)
@@ -659,8 +669,6 @@ class LookControls(QObject):
         if self.busier_box.parent() is not None:
             dark = page_bg()[1]
             self.busier_box.setVisible(dark)
-            if self.busier_label is not None:
-                self.busier_label.setVisible(dark)
         # a colour of your own that hardly stands out from a page: said, not changed (shown only
         # once in the tab: a widget shown before it has a parent flashes up as a window)
         mine_look = HL.preview_look(dict(self.edition_cfg, **self.values()), presets.by_key()[self.here].environment)
@@ -677,13 +685,11 @@ class LookControls(QObject):
         # (each in the tiles chosen, as the heatmap's key draws them; a joined shape's as Flat's)
         drawn = HL.drawer_for(cfg, here_env)
         drawn = drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT
-        self.scenery.setIcon(QIcon(strip(HL.preview_look(dict(cfg, calendar_colours=HL.MATCH), here_env), drawn)))
+        self.scenery.setIcon(QIcon(strip(HL.preview_look(dict(cfg, calendar_colours=self.scenery.key), here_env), drawn)))
         for key, b in self.ready.items():
             look = HL.preview_look(dict(cfg, calendar_colours=HL.READY_PREFIX + key), here_env)
             b.setIcon(QIcon(strip(look, drawn)))
         self.yours.setIcon(QIcon(strip(HL.preview_look(dict(cfg, calendar_colours=HL.MINE), here_env), drawn)))
-        if self.pick.key:
-            self.pick.setIcon(QIcon(strip(HL.preview_look(dict(cfg, calendar_colours=self.pick.key), here_env), drawn)))
         for b, c in ((self.first, self.mine[0]), (self.second, self.mine[1])):
             icon = QIcon(swatch(c))
             icon.addPixmap(swatch(c), QIcon.Mode.Disabled)  # (unblended, the second keeps its colour, its button greyed)
