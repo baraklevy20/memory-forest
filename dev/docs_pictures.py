@@ -1,24 +1,29 @@
 """Draw the README's heatmap pictures, docs/calendar.png and docs/calendar_sceneries.png, from this
-copy's scripts with a made-up forest and history (never anyone's own reviews), in headless Chrome.
+copy's scripts in headless Chrome. Uses made-up history unless --collection is supplied.
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
+    python3 dev/docs_pictures.py --collection /path/to/collection.anki2
 
 calendar.png: the forest by the lake with its heatmap under it, visible streak labels,
-the trophies and the goal's flag, and one important day ahead.
+the current streak's silver trophy, its next goal's flag, and an upcoming exam note.
 calendar_sceneries.png: one heatmap in four base sceneries, each beside its picker picture, with
-its trophies and flag and no other marks. Needs Chrome, and node with the dev packages.
+its current trophy and flag and no other streak markers. Needs Chrome, and node with the dev packages.
 """
 
 from __future__ import annotations
 
+import argparse
 import datetime as dt
 import importlib
 import json
 import os
 import random
+import sqlite3
 import subprocess
 import sys
 import tempfile
+from contextlib import closing
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
@@ -46,8 +51,7 @@ HISTORY = 520
 STREAKS = ((0, 139), (150, 209), (230, 409))
 SCATTER = 0.35  # (the share of the days studied outside a streak)
 SEED = 20261016
-MARK_AHEAD = 18  # (an exam this many days ahead, its countdown in the tooltip)
-SCENERIES = ("golden_lake", "aurora", "lanterns", "synthwave")  # (base sceneries only: the README is the base edition's)
+SCENERIES = ("golden_lake", "starry_night", "lanterns", "synthwave")
 
 
 def history() -> dict:
@@ -69,6 +73,36 @@ def history() -> dict:
     return {"start": (today - dt.timedelta(days=HISTORY - 1)).isoformat(), "days": days, "time": time, "due": due}
 
 
+REAL_DATA = None
+REAL_HISTORY = None
+
+
+def collection_data(path: str) -> None:
+    """Read a consistent snapshot; never write to the user's collection."""
+    global REAL_DATA, REAL_HISTORY
+    import export_payload as export
+
+    db = export.DB(":memory:")
+    with closing(sqlite3.connect(Path(path).expanduser().resolve().as_uri() + "?mode=ro", uri=True)) as source:
+        source.backup(db.con)
+    try:
+        rollover = int(db.scalar("select val from config where key = 'rollover'") or 4)
+        cutoff = export.day_cutoff(rollover)
+        today = export.sched_today(int(db.scalar("select crt from col")), cutoff, rollover)
+        rows = export.study_log.load_rows(db, cutoff)
+        forest = export.forest_data.merge_old(export.forest_data.build_forest(rows, cutoff, today, dt.datetime.now().timestamp()))
+        REAL_DATA = {"trees": forest["trees"], "stats": forest["stats"], "merged": forest.get("merged"), "forestSeed": forest["forest_seed"]}
+        reviews = export.study_log.load_day_reviews(db, cutoff, None)
+        times = export.study_log.load_day_time(db, cutoff, None)
+        oldest = max(reviews, default=0)
+        REAL_HISTORY = {"start": export.study_log.day_date(oldest, cutoff).isoformat(),
+                        "days": [reviews.get(a, 0) for a in range(oldest, -1, -1)],
+                        "time": [times.get(a, 0) for a in range(oldest, -1, -1)],
+                        "due": export.study_log.load_due(db, today, 366)}
+    finally:
+        db.con.close()
+
+
 def mood_of(key: str) -> dict:
     p = presets.by_key()[key]
     return scene.choose_mood({"environment": p.environment, "landscape": p.landscape, "landmark": p.landmark,
@@ -77,7 +111,7 @@ def mood_of(key: str) -> dict:
 
 def calendar(mood: dict, marks: list) -> dict:
     look = HL.page_look({}, mood)
-    return dict(history(), view="timeline", weekStart=1, shadeBy="reviews", animals=[], breakDays=7, browse=False,
+    return dict(REAL_HISTORY or history(), view="timeline", weekStart=1, shadeBy="reviews", animals=[], breakDays=7, browse=False,
                 marks=marks, free=[], daysOff=[], streakFromStart=False, look=look)
 
 
@@ -86,22 +120,31 @@ def page(mood: dict, data: dict, width: int, extra_css: str = "") -> str:
     files = [os.path.join(catalog.WEB, s) for s in catalog.SCRIPTS]
     files += [os.path.join(catalog.WEB, f) for f in catalog.scenery_files(mood)]
     files += [os.path.join(catalog.WEB, f) for f in data["calendar"]["look"].get("files", [])]
-    tags = "".join(f'<script src="file://{f}"></script>' for f in dict.fromkeys(files))
+    tags = ""
+    for f in dict.fromkeys(files):
+        if os.path.basename(f) == "calendar.js":
+            # Screenshot presentation only: keep the real ranking, show just the current streak.
+            script = Path(f).read_text()
+            script = script.replace("for (const r of H.runs) {", "for (const r of [H.current].filter(Boolean)) {")
+            script = script.replace("for (const [run, i] of H.podium) lane.push", "for (const [run, i] of H.podium) if (run === H.current) lane.push")
+            tags += f"<script>{script}</script>"
+        else:
+            tags += f'<script src="file://{f}"></script>'
     return f"""<!doctype html><meta charset="utf-8"><style>body {{ margin: 0; padding: 0; background: {PAGE_BG}; color: {PAGE_FG};
---fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} {extra_css}</style>
+--fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} .af-cal-tip {{ display: none !important }} .af-cal .af-cal-above {{ opacity: 1 }} {extra_css}</style>
 <div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}
 <script>AnkiForest.mount(document.getElementById('p'), {json.dumps(data)});</script>"""
 
 
 def forest_data(mood: dict) -> dict:
-    """The dev payload's settings with a made-up forest: its trees, and a caption that agrees with
-    the history (the current streak, the longest)."""
+    """Preview settings with the chosen forest and matching study statistics."""
     raw = open(os.path.join(HERE, "payload.js"), encoding="utf-8").read()
     data = json.loads(raw.split("=", 1)[1].strip().rstrip(";"))
     forest = fake_forest.make(150)
     stats = dict(forest["stats"], streak=STREAKS[0][1] + 1, longest_streak=STREAKS[2][1] - STREAKS[2][0] + 1)
-    return dict(data, trees=forest["trees"], stats=stats, visitors=[], anniversaries=[], events=[], journal="",
-                forestSeed=forest["forest_seed"], mood=mood, animations=False, inAnki=True, maxWidth=756)
+    data.update(REAL_DATA or {"trees": forest["trees"], "stats": stats, "forestSeed": forest["forest_seed"]})
+    return dict(data, visitors=[], anniversaries=[], events=[], journal="",
+                mood=mood, animations=False, inAnki=True, maxWidth=756)
 
 
 SHOOT = r"""
@@ -115,18 +158,19 @@ for (const j of jobs) {
   await p.goto('file://' + j.page);
   await p.waitForSelector('.af-cal-canvas', { timeout: 15000 });
   await new Promise(r => setTimeout(r, 1500));
-  if (j.point) {  // (a day of the current streak, some weeks back: its tooltip between the trophies)
-    const box = await p.$eval('.af-cal-canvas', e => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; });
-    let tip = '';
-    for (let x = box[0] + box[2] * j.point[0]; x < box[0] + box[2] * j.point[1] && !/of your/.test(tip); x += 3) {
-      await p.mouse.move(x, box[1] + box[3] * 0.12);
-      await new Promise(r => setTimeout(r, 450));  // (the tooltip waits a moment, calendar.js TIP_WAIT)
-      tip = await p.$eval('.af-cal-tip', e => e.hidden ? '' : e.innerText);
-    }
-    console.log(j.out, '|', tip.replace(/\n/g, ' / '));
-  }
   const el = await p.$(j.shoot);
-  await el.screenshot({ path: j.out });
+  if (j.fromMonth !== undefined) {
+    const clip = await el.evaluate((e, month) => {
+      const r = e.getBoundingClientRect();
+      const start = e.querySelector(`.af-cal-months span[data-m="${month}"]`);
+      if (!start) throw new Error('Comparison start month is outside the timeline');
+      const x = Math.max(r.left, Math.floor(start.getBoundingClientRect().left) - 2);
+      return { x, y: r.top, width: r.right - x, height: r.height };
+    }, j.fromMonth);
+    await p.screenshot({ path: j.out, clip });
+  } else {
+    await el.screenshot({ path: j.out });
+  }
 }
 await b.close();
 """
@@ -175,26 +219,31 @@ def sceneries_picture(shots: dict, out: str) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--collection", help="Use your own review history and forest (read-only)")
+    args = parser.parse_args()
+    if args.collection:
+        collection_data(args.collection)
     lake = mood_of("golden_lake")
-    exam = [{"day": (dt.date.today() + dt.timedelta(days=MARK_AHEAD)).isoformat(), "icon": "exam", "name": "Exam"}]
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
         # the big picture: the forest and its heatmap, with the streak labels unobstructed
-        big = dict(forest_data(lake), calendar=calendar(lake, exam), showForest=True)
+        note = {"day": (dt.date.today() + dt.timedelta(days=18)).isoformat(), "icon": "exam", "name": "Exam"}
+        big = dict(forest_data(lake), calendar=calendar(lake, [note]), showForest=True)
         path = os.path.join(tmp, "big.html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(page(lake, big, 756, ".af-cog { display: none !important }"))
         jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "calendar.png")})
-        # the sceneries: the heatmap alone, its trophies and flag shown as the pointer shows them
+        # the sceneries: the heatmap alone, with only the current trophy and flag revealed
         shots = {}
         for key in SCENERIES:
             mood = mood_of(key)
-            data = dict(forest_data(mood), calendar=calendar(mood, []), showForest=False, maxWidth=560)
+            data = dict(forest_data(mood), calendar=calendar(mood, []), showForest=False, maxWidth=756)
             path = os.path.join(tmp, f"{key}.html")
             with open(path, "w", encoding="utf-8") as f:
-                f.write(page(mood, data, 560, ".af-cal .af-cal-above { opacity: 1 } .af-cal-foot, .af-cal-notes { display: none }"))
+                f.write(page(mood, data, 756, ".af-cal .af-cal-above { opacity: 1 } .af-cal-foot, .af-cal-notes { display: none }"))
             shots[key] = os.path.join(tmp, f"{key}.png")
-            jobs.append({"page": path, "width": 620, "shoot": ".af-cal", "out": shots[key]})
+            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": 3, "out": shots[key]})
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "calendar_sceneries.png"))
     print("docs/calendar.png, docs/calendar_sceneries.png")

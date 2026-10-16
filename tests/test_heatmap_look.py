@@ -56,6 +56,10 @@ class ChoiceTests(unittest.TestCase):
         self.assertEqual(look["files"], [])  # (its colour comes from KEYS_FILE, not its scenery's file)
 
     def test_scenery_s_style_follows_the_scenery_and_a_chosen_one_stays(self):
+        lanterns = {"special": "lanterns"}
+        look = HL.page_look({}, lanterns)
+        self.assertEqual((look["tile"], look["smooth"], look["gap"]), ("round", True, 2))
+        self.assertEqual(HL.page_look({"calendar_tiles": "flat"}, lanterns)["tile"], "flat")
         starry, synth = {"special": "starry_night"}, {"special": "synthwave"}
         # The public/base copy lacks Starry Night: its tiles fall back to Flat.
         has_starry = os.path.isfile(os.path.join(ADDON_DIR, "web", "envs", "starry_night.js"))

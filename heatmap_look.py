@@ -156,10 +156,12 @@ def tile_gap(cfg: dict, here: str = "") -> int | None:
 def tile_style(cfg: dict, here: str = "") -> str:
     """The style the heatmap is drawn in for `cfg` while the scenery's environment is `here`:
     Scenery's is that scenery's own (the style its environment draws, TILE_ENVS: Brush on Starry
-    night, a holiday's in its week), else Flat; any other is itself if it can be had just now
+    night, Round on Lanterns, a holiday's in its week), else Flat; any other is itself if it can be had just now
     (tile_shown), else Flat."""
     choice = tiles_choice(cfg)
     if choice == TILE_FOLLOW:
+        if here == "lanterns":
+            return "round"
         return next((k for k, env in TILE_ENVS.items() if env == here and tile_shown(k, cfg)), TILE_DEFAULT)
     return choice if tile_shown(choice, cfg) else TILE_DEFAULT
 
