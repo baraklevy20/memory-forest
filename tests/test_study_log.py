@@ -17,6 +17,7 @@ class DeckFilterTests(unittest.TestCase):
     def test_deck_forest_only_counts_that_decks_cards_and_reviews(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
             create table revlog (id integer, cid integer, ease integer, type integer);
@@ -73,6 +74,7 @@ class SuspendedTests(unittest.TestCase):
     def test_the_loader_only_brings_them_when_asked(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
             create table revlog (id integer, cid integer, ease integer, type integer);
@@ -98,6 +100,7 @@ class HistoryFilterTests(unittest.TestCase):
     def setUp(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
             create table revlog (id integer, cid integer, ease integer, type integer);
@@ -178,6 +181,7 @@ class TreeCountTests(unittest.TestCase):
     def setUp(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
             create table revlog (id integer, cid integer, ease integer, type integer);
@@ -244,6 +248,7 @@ class FreeDayTests(unittest.TestCase):
         card, new and suspended, answered on the `others` days)."""
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer);
@@ -294,6 +299,7 @@ class DayTimeTests(unittest.TestCase):
     def test_a_day_s_answers_add_up_and_new_cards_seen_but_not_answered_do_not(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer);
             create table revlog (id integer, cid integer, ease integer, type integer, time integer);
@@ -313,6 +319,7 @@ class DayRecallTests(unittest.TestCase):
     def test_a_day_s_answers_average_and_a_card_seen_but_not_answered_does_not_count(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer);
             create table revlog (id integer, cid integer, ease integer, type integer, time integer);
@@ -329,10 +336,10 @@ class DayRecallTests(unittest.TestCase):
 class FrictionTests(unittest.TestCase):
     """Friction (study_log.load_day_friction, friction_cards): time relearning forgotten cards."""
 
-    @staticmethod
-    def db():
+    def db(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer, nid integer);
             create table notes (id integer, sfld text);
@@ -361,10 +368,10 @@ class FrictionTests(unittest.TestCase):
 class EventQueryTests(unittest.TestCase):
     """What the events read on their own: the backlog, and the leeches cured."""
 
-    @staticmethod
-    def db():
+    def db(self):
         import sqlite3
         con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer);

@@ -21,6 +21,7 @@ import sqlite3
 import sys
 import tempfile
 import types
+import weakref
 
 from helpers import CUTOFF, TODAY, ms
 
@@ -38,6 +39,8 @@ class DB:
 
     def __init__(self):
         self.con = sqlite3.connect(":memory:")
+        # Also close collections created directly by tests, or kept until shutdown.
+        self.close = weakref.finalize(self, self.con.close)
         self.con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer default 0, mod integer default 0);
@@ -233,6 +236,8 @@ def reset(cards=(), config=None, current_deck: int = 10, leeches=()):
     """A fresh collection holding `cards` - (cid, deck, first review days ago[, home deck]) -
     each reviewed once and due in a month (the cids in `leeches` tagged leech, and not yet
     cured), and `config` over the defaults; the add-on forgets what it cached and remembered."""
+    if mw.col is not None:
+        mw.col.db.close()
     mw.col = Col()
     mw.col.decks.current_id = current_deck
     mw.state = "deckBrowser"

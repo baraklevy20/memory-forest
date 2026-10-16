@@ -57,12 +57,14 @@ class ChoiceTests(unittest.TestCase):
 
     def test_scenery_s_style_follows_the_scenery_and_a_chosen_one_stays(self):
         starry, synth = {"special": "starry_night"}, {"special": "synthwave"}
-        self.assertEqual(HL.page_look({}, starry)["tile"], "starry_night")  # (Scenery, the default: Brush there)
+        # The public/base copy lacks Starry Night: its tiles fall back to Flat.
+        has_starry = os.path.isfile(os.path.join(ADDON_DIR, "web", "envs", "starry_night.js"))
+        self.assertEqual(HL.page_look({}, starry)["tile"], "starry_night" if has_starry else "flat")
         self.assertEqual(HL.page_look({}, synth)["tile"], "synthwave")
         self.assertEqual(HL.page_look({}, GOLDEN)["tile"], "flat")  # (a scenery with no style of its own)
         self.assertEqual(HL.page_look({"calendar_tiles": "flat"}, starry)["tile"], "flat")  # (chosen: kept)
-        self.assertEqual(HL.tile_style({"calendar_tiles": "scenery"}, "starry_night"), "brush")
-        self.assertEqual(HL.gaps({}, "starry_night"), HL.TILE_STYLE["brush"][0])
+        self.assertEqual(HL.tile_style({"calendar_tiles": "scenery"}, "starry_night"), "brush" if has_starry else "flat")
+        self.assertEqual(HL.gaps({}, "starry_night"), HL.TILE_STYLE["brush" if has_starry else "flat"][0])
 
     def test_the_space_between_tiles_is_the_style_s_own(self):
         # (Round keeps its 2: its circles apart; the rest calendar.js's own)
