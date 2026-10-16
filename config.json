@@ -43,7 +43,6 @@
     "debug_light_shades": "lightness",
     "debug_gaps": null,
     "debug_smooth": null,
-    "debug_tile_gap": null,
     "debug_date": "",
     "debug_edition": ""
 }

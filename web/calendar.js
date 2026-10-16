@@ -28,7 +28,7 @@ const { SEEDLING } = AF.STAGE;
 // brackets, with the trophies and the goal pennant under them
 const TILE = 9, TOP = 3, ROWS = 7, BRACKET = 15, GAP = 1;
 // a day's cell, its tile and the space after it: set by each heatmap measured or drawn, the space
-// GAP but while debugging (the Debug tab's "Space between tiles", look.gap), as weekStart is
+// GAP but a style's own where it has one (look.gap: Round's 2), as weekStart is
 let CELL = TILE + GAP;
 const cellOf = cal => TILE + (cal && cal.look && Number.isInteger(cal.look.gap) ? cal.look.gap : GAP);  // (TOP: room between the months' labels and the weeks)
 // css pixels: the footer's row (the journal and the key), the month labels' band and the streaks'

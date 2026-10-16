@@ -12,7 +12,7 @@ from .. import news
 from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
-from ..heatmap_look import GAP_DEFAULT, GAP_MAX, LIGHT_SHADES, debug_gap, light_shades
+from ..heatmap_look import LIGHT_SHADES, light_shades
 from ..seasons import forget_seasons
 from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
 from .decks import DATE_FORMAT
@@ -100,10 +100,6 @@ class DebugTab(QWidget):
         self.clear.clicked.connect(self._clear_backlog)
         # the heatmap's shades on a light page: by lightness (as released), or the dark page's own
         self.light_shades = Choice(LIGHT_SHADES, light_shades(dict(cfg, debug=True)), LIGHT_SHADES[0][0])
-        # the space between the heatmap's tiles, in its pixels, to try others than its own
-        self.tile_gap = QSpinBox(); self.tile_gap.setRange(0, GAP_MAX); self.tile_gap.setSuffix(" px")
-        gap = debug_gap(dict(cfg, debug=True))
-        self.tile_gap.setValue(GAP_DEFAULT if gap is None else gap)
         self.big = QCheckBox("Big learning days (wildflowers)"); self.big.setChecked(bool(cfg.get("debug_big_days", False)))
         # the date the scenery is chosen for
         try:
@@ -176,7 +172,7 @@ class DebugTab(QWidget):
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
         dv.addWidget(group("Study events", ev))
-        hf = form(); hf.addRow("Light-page shades", self.light_shades); hf.addRow("Space between tiles", self.tile_gap)
+        hf = form(); hf.addRow("Light-page shades", self.light_shades)
         hv = QVBoxLayout(); hv.addLayout(hf); hv.addWidget(hint(LIGHT_SHADES_NOTE))
         dv.addWidget(group("Heatmap", hv))
         dv.addStretch(1)
@@ -250,7 +246,6 @@ class DebugTab(QWidget):
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
         self.light_shades.on_change(changed)
-        self.tile_gap.valueChanged.connect(changed)
         for box in (self.trees_box, self.backlog):
             box.valueChanged.connect(changed)
 
@@ -291,8 +286,6 @@ class DebugTab(QWidget):
             "debug_backlog_was": self.was,
             "debug_big_days": self.big.isChecked(),
             "debug_light_shades": self.light_shades.currentData(),
-            # (its own, GAP_DEFAULT, kept as none: a later default still reaches it)
-            "debug_tile_gap": None if self.tile_gap.value() == GAP_DEFAULT else self.tile_gap.value(),
             "debug_date": self._date().isoformat() if self._date() else "",
             "debug_edition": self.edition.currentData() or "",
         }

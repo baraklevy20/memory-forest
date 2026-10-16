@@ -142,26 +142,15 @@ def tiles_choice(cfg: dict) -> str:
     return value if value in TILES else TILE_DEFAULT
 
 
-# the space between the days' tiles, in the heatmap's pixels: calendar.js's GAP, or the style's own
-# (its file's "gap": Round keeps 2, its circles apart), but while debugging the Debug tab's "Space
-# between tiles" (`debug_tile_gap`), to try others
-GAP_DEFAULT, GAP_MAX = 1, 6
-
-
-def _gap(value) -> int | None:
-    return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= GAP_MAX else None
-
-
-def debug_gap(cfg: dict) -> int | None:
-    """The Debug tab's space between tiles while debugging, or None."""
-    return _gap(cfg.get("debug_tile_gap")) if debug_available(cfg) else None
+# the space between the days' tiles, in the heatmap's pixels: calendar.js's GAP (1), or the style's
+# own (its file's "gap": Round keeps 2, its circles apart)
+GAP_MAX = 6
 
 
 def tile_gap(cfg: dict, here: str = "") -> int | None:
-    """The Debug tab's space between tiles while debugging, else the style's own, or None:
-    calendar.js's own, GAP_DEFAULT."""
-    value = debug_gap(cfg)
-    return value if value is not None else _gap(TILE_SPECS.get(tile_style(cfg, here), {}).get("gap"))
+    """The style's own space between tiles, or None: calendar.js's own."""
+    value = TILE_SPECS.get(tile_style(cfg, here), {}).get("gap")
+    return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= GAP_MAX else None
 
 
 def tile_style(cfg: dict, here: str = "") -> str:

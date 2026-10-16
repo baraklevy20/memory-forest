@@ -64,16 +64,11 @@ class ChoiceTests(unittest.TestCase):
         self.assertEqual(HL.tile_style({"calendar_tiles": "scenery"}, "starry_night"), "brush")
         self.assertEqual(HL.gaps({}, "starry_night"), HL.TILE_STYLE["brush"][0])
 
-    def test_the_space_between_tiles_is_the_debug_tab_s_only_while_debugging(self):
-        self.assertIsNone(HL.page_look({"debug_tile_gap": 4}, GOLDEN)["gap"])  # (debug off: calendar.js's own)
-        debugging = addon.edition.debug_available({"debug": True})
-        self.assertEqual(HL.tile_gap({"debug": True, "debug_tile_gap": 4}), 4 if debugging else None)
-        for bad in (-1, 99, "3", True, None):
-            self.assertIsNone(HL.tile_gap({"debug": True, "debug_tile_gap": bad}), bad)
+    def test_the_space_between_tiles_is_the_style_s_own(self):
         # (Round keeps its 2: its circles apart; the rest calendar.js's own)
         self.assertEqual(HL.page_look({"calendar_tiles": "round"}, GOLDEN)["gap"], 2)
-        self.assertEqual(HL.tile_gap({"debug": True, "debug_tile_gap": 4, "calendar_tiles": "round"}), 4 if debugging else 2)
-        self.assertIsNone(HL.debug_gap({"calendar_tiles": "round"}))
+        self.assertIsNone(HL.page_look({"calendar_tiles": "flat"}, GOLDEN)["gap"])
+        self.assertIsNone(HL.page_look({"debug": True, "debug_tile_gap": 4}, GOLDEN)["gap"])  # (no debug setting)
 
     def test_tiles(self):
         self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, GOLDEN)["files"], ["envs/synthwave.js"])
