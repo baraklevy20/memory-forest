@@ -398,11 +398,15 @@ function spriteOf(t, h, env) {
 const EMPTY = 'rgba(128, 128, 128, 0.11)', EMPTY_LIGHT = 'rgba(128, 128, 128, 0.2)';  // (clearer on a light page, so the weeks hold together)
 const FREE_MARK = 'rgba(128, 128, 128, 0.5)';  // a day with nothing due: a single pixel, darker grey
 function empty(g, x, y, fill = EMPTY) { g.fillStyle = fill; g.fillRect(x, y, TILE, TILE); }
-/* a tile's texture: two tones in 2x2 clusters and an edge. A scenery with a look of its own
- * (Starry night's brushstrokes) draws its tiles in it instead (`calendarTile(g, pal, edge, v, size)`:
- * `pal` the shade and its darker tone, `v` which of the TILE_VARIANTS) */
+/* a tile's texture: two tones in 2x2 clusters and an edge, its four corners left off so it reads
+ * soft and round at its size (2026-10-16: bevel, dither, a soft brush and an inset were tried; at
+ * 1x only the corners showed). A scenery with a look of its own (Starry night's brushstrokes) draws
+ * its tiles in it instead (`calendarTile(g, pal, edge, v, size)`: `pal` the shade and its darker
+ * tone, `v` which of the TILE_VARIANTS) */
 function plainTile(g, pal, edge, v, T) {
+  // today's two-tone texture, its four corners left off, so a tile reads round at its size
   for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+    if ((x === 0 || x === T - 1) && (y === 0 || y === T - 1)) continue;
     const e = y === T - 1 || x === T - 1;
     g.fillStyle = rgb(e ? edge : pal[(hashStr(v + ',' + (x >> 1) + ',' + (y >> 1)) & 3) === 0 ? 1 : 0]);
     g.fillRect(x, y, 1, 1);
