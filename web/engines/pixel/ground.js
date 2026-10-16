@@ -158,6 +158,7 @@ function deepForest(env, lg) {
   const R = rng((env.data.forestSeed || 11) ^ 0x5eed);
   const land = AF.landOf(env);
   d.boxes = [];  // where it really ends up, so only that is hoverable
+  d.rims = new Map();  // outer skyline only, for an old day's linked highlight
 
   for (let k = d.bands - 1; k >= 0; k--) {  // furthest band first, so nearer ones sit in front
     const hz = AF.deepHaze(th, k);
@@ -180,6 +181,7 @@ function deepForest(env, lg) {
         const x = Math.round(x0) + i;
         const edge = land.deepEdge ? land.deepEdge(env, i, top.length) : 1;
         const y0 = Math.round(base - (base - top[i]) * edge);
+        if (!d.rims.has(x) || y0 < d.rims.get(x)) d.rims.set(x, y0);
         for (let y = y0; y <= base; y++) paint(y - y0 < 1 ? rim : ((x + y) & 1 ? c2 : c1), x, y);
         if (land.deepUnder) land.deepUnder(env, paint, x, base, i, top.length, edge);
       }

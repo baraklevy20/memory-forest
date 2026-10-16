@@ -18,9 +18,49 @@ AF.watchHint = touched => `<br><span class="af-hint">${touched ? 'Tap again' : '
 AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, redraw }) {
   const words = AF.WORDS;
   let hover = null, deepHover = null, eventHover = null, touched = false, armed = null, shown = null;  // armed: what one more tap replays; shown: the tip as written
+  let linkedAgo = null, lifted = null;
+  const plantedDays = new Set((data.calendar && data.calendar.planted || []).map(t => t[0]));
+  root.afPointTreeDay = ago => {
+    if (linkedAgo === ago) return;
+    linkedAgo = ago; lifted = null; redraw();
+  };
   function drawMarker(g) {
+    const env = current();
+    const p = env && linkedAgo !== null && env.placed.find(p => !p.it.pond && p.it.ago === linkedAgo);
+    if (p) {
+      // sprite() borrows a scratch canvas: keep one outlined copy until the scene changes.
+      if (!lifted || lifted.env !== env) {
+        const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
+        const [cv, cg] = AF.u.layer(spr.width + 2, spr.height + 2);
+        for (const [x, y] of [[0, 1], [2, 1], [1, 0], [1, 2]]) cg.drawImage(spr, x, y);
+        cg.globalCompositeOperation = 'source-in'; cg.fillStyle = '#fff8e0'; cg.fillRect(0, 0, cv.width, cv.height);
+        cg.globalCompositeOperation = 'source-over'; cg.drawImage(spr, 1, 1);
+        lifted = { env, cv };
+      }
+      const cv = lifted.cv, x = Math.round(p.x - (cv.width - 2) / 2) - 1, y = Math.round(p.y - (cv.height - 2) + 1) - 1;
+      g.save();
+      if (env.flipLight) { g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); }
+      else g.drawImage(cv, x, y);
+      g.restore();
+      marker(g, p.x, y);
+      return;
+    }
+    const deep = env && env.deep, merged = data.merged;
+    if (linkedAgo !== null && merged && plantedDays.has(linkedAgo) && linkedAgo >= merged.to_ago && linkedAgo <= merged.from_ago
+        && deep && deep.boxes.length && !(root.afVisits && root.afVisits.on)) {
+      g.save(); g.fillStyle = '#fff8e0'; g.globalAlpha = 0.6;
+      for (const [x, y] of deep.rims || []) g.fillRect(x, y - 1, 1, 1);
+      g.restore();
+      const box = deep.boxes.reduce((a, b) => Math.abs((a.x0 + a.x1) / 2 - env.W / 2) < Math.abs((b.x0 + b.x1) / 2 - env.W / 2) ? a : b);
+      const x = Math.round((box.x0 + box.x1) / 2);
+      marker(g, x, deep.rims && deep.rims.has(x) ? deep.rims.get(x) : box.y0);
+      return;
+    }
     if (!hover) return;
-    const x = Math.round(hover.x), y = Math.round(hover.top - 3);
+    marker(g, hover.x, hover.top);
+  }
+  function marker(g, cx, top) {
+    const x = Math.round(cx), y = Math.round(top - 3);
     g.fillStyle = 'rgba(20,20,20,.7)'; g.fillRect(x - 3, y - 1, 7, 1);
     g.fillStyle = '#fff8e0';
     for (let r = 0; r < 3; r++) g.fillRect(x - (2 - r), y + r, 5 - 2 * r, 1);
@@ -68,7 +108,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       const hit = hitAt(env, e);
       deepHover = null; eventHover = null;
       if (!hit || !hit.event || hit.event.html !== armed) armed = null;  // a tap on something else starts over
-      if (!hit) { hover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; return; }
+      if (!hit) { const changed = !!hover; hover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; if (changed) redraw(); return; }
       let html;
       if (hit.visitor) { hover = null; html = AF.tips.visitor(hit.visitor); canvas.style.cursor = ''; }
       else if (hit.event) {
@@ -121,7 +161,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     });
   }
   /* the scene was rebuilt under the pointer (zooming in): what it pointed at is gone */
-  function clear() { hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
+  function clear() { linkedAgo = null; lifted = null; hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
   return { drawMarker, clear };
 };
 })();

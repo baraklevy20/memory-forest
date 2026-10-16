@@ -957,6 +957,8 @@ AF.calendar = function (root, data, env) {
   if (!box) { box = document.createElement('div'); box.className = 'af-cal'; root.append(box); }
   weekStart = cal.weekStart == null ? 1 : cal.weekStart; CELL = cellOf(cal);
   const H = history(cal), sp = sceneOf(data, env);
+  const treesByDay = new Map((data.trees || []).map(t => [-t.ago, t]));
+  for (const [ago, n] of cal.planted || []) if (!treesByDay.has(-ago)) treesByDay.set(-ago, { ago, n });
   let view = cal.view === 'by_year' ? 'by_year' : 'timeline';  // (the switch on the heatmap changes it)
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
@@ -1157,7 +1159,8 @@ AF.calendar = function (root, data, env) {
     clearTimeout(waking);
     waking = setTimeout(() => { tip.style.visibility = ''; warm = true; }, TIP_WAIT);
   };
-  const unpoint = () => { tip.hidden = true; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; };
+  const pointTree = c => { if (root.afPointTreeDay) root.afPointTreeDay(c ? -c.o : null); };
+  const unpoint = () => { pointTree(null); tip.hidden = true; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; };
   // how far you can page: back to the first day counted, on to the last day ahead counted
   const can = win => ({ back: win.from > H.first, on: win.to < H.ahead });
 
@@ -1564,6 +1567,7 @@ AF.calendar = function (root, data, env) {
     return lines.join('<br>');
   };
   const pointMonth = lab => {
+    pointTree(null);
     ring(null);
     // (its days stand out while it tells them)
     spot(c => { const d = new Date(c.ms); return d.getUTCFullYear() === +lab.dataset.y && d.getUTCMonth() === +lab.dataset.m; });
@@ -1598,6 +1602,7 @@ AF.calendar = function (root, data, env) {
     const lv = sw ? [...keyEl.querySelectorAll('.af-cal-swatch')].indexOf(sw) : -1;
     if (lv < 0 || sw === last) return;
     last = sw;
+    pointTree(null);
     ring(null);
     tip.textContent = shadeLine(lv);
     tip.hidden = false;
@@ -1634,6 +1639,7 @@ AF.calendar = function (root, data, env) {
   };
   // a day's tooltip and ring, for the pointer's day or the keyboard's
   const tell = c => {
+    pointTree(c);
     ring(c);
     grid.classList.toggle('af-click', !!c && opens(c));
     if (!c) { tip.hidden = true; if (hit && hit.run) streak(hit); return; }
@@ -1675,8 +1681,15 @@ AF.calendar = function (root, data, env) {
     const head = `<b>${near ? `${near}, ${esc(weekday(c.ms))}, ${esc(fmt(c.ms).replace(/, \d{4}$/, ''))}` : `${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}`}</b>`;
     // (a trophy pointed at: its day and its streak, no more; the day's own numbers are on its tile)
     const trophy = hit && hit.trophy >= 0 && run && H.podium.has(run);
+    const tree = treesByDay.get(c.o), planted = tree ? `<br>${esc(cap(AF.WORDS.planted))} ${esc(AF.WORDS.one || 'tree')}: ${num(tree.n)} new cards` : '';
+    const zoom = root.afVisits, scene = root.afEnv;
+    const inView = tree && scene && scene.placed.some(p => !p.it.pond && p.it.ago === tree.ago);
+    const location = !tree || data.showForest === false || inView ? '' : zoom && zoom.on
+      ? '<br><i>This tree is outside your current zoom view</i>'
+      : data.merged && tree.ago >= data.merged.to_ago && tree.ago <= data.merged.from_ago
+        ? '<br><i>This day’s tree is part of your deep forest</i>' : '';
     tip.innerHTML = trophy ? `${head}<br>Your ${TROPHIES[hit.trophy].place} streak: ${num(total)} days`
-      : `${head}<br>${what}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
+      : `${head}<br>${what}${planted}${location}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
     reveal();
     // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
     // (above it when there is no room below in the window), kept inside the calendar's sides;

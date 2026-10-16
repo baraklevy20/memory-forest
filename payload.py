@@ -428,6 +428,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     due = remembered("calendar_due", changed and (changed, cutoff, frozenset(excluded), frozenset(skip), tuple(dids or ())),
                      lambda: study_log.load_due(col.db, col.sched.today, CALENDAR_DUE_DAYS, excluded, skip, dids))
     return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
+            # Compact planting dates survive the drawing limit, without sending old sprites.
+            "planted": [[t["ago"], t["n"]] for t in trees],
             "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up

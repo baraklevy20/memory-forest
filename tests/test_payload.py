@@ -214,6 +214,10 @@ class PayloadTests(unittest.TestCase):
         self.assertGreater(deep[0]["ago"], deep[-1]["ago"])  # oldest first
         self.assertGreater(deep[-1]["ago"], p["trees"][0]["ago"])  # all older than the trees drawn
         self.assertFalse(set(payload.PAGE_LEAVES_OUT) & set(deep[0]))
+        planted = dict(p["calendar"]["planted"])
+        self.assertEqual(len(planted), 1000)
+        self.assertEqual(planted[deep[0]["ago"]], deep[0]["n"])
+        self.assertEqual(planted[p["trees"][-1]["ago"]], p["trees"][-1]["n"])
         self.assertEqual(payload.deep_trees("12345"), [])  # a forest never sent: nothing
 
     def test_the_forest_is_built_once_until_the_study_data_changes(self):
