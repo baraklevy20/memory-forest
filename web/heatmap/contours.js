@@ -16,6 +16,8 @@ AF.heatmapTiles.contours = {
     for (let i = 0; i < W * Hh; i++) if (out[i] >= 0 && !cells[out[i]].shade.blank) band[i] = Math.round(fieldLv(cells[out[i]], i % W, Math.floor(i / W), get));
     return { band, out, W };
   },
+  // (a pixel's shade for a hover's highlight: its band, so a shade of the key lights its bands)
+  level: (state, i) => state.band[i],
   paint(ctx, c, x, y, edge, i, { band, out, W }) {
     const t = c.shade, { pal, dark, mix, DARK } = ctx;
     if (t.blank) return pal.blank;

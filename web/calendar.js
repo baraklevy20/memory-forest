@@ -625,8 +625,11 @@ function shapesPass(g, cells, at, W, Hh, H, pal, dark) {
   const style = AF.heatmapTiles[pal.shapes], rows = ROWS;
   const get = (col, row) => (row >= 0 && row < rows ? at.get(col * ROWS + row) : undefined);
   const ctx = { g, cells, get, W, Hh, H, pal, rows, dark, TOP, CELL, TILE, FADE, DARK, layer, mix, hashStr, iso, fieldLv, outlineOf };
-  if (style.pass) return style.pass(ctx);
+  if (style.pass) return { owner: style.pass(ctx), lvAt: null };
   const [cv, rg] = layer(W, Hh), img = rg.createImageData(W, Hh), d = img.data;
+  // (each pixel's day and shade, for a hover's highlight: a month, a streak, or a shade of the key
+  // lit by the shape's own pixels, not by squares across it; `level` a style's own, Contours' bands)
+  const owner = new Int32Array(W * Hh).fill(-1), lvAt = new Int8Array(W * Hh).fill(-1);
   const kind = c => (!c || !c.shade ? '' : c.shade.blank ? 'blank' : c.shade.soil ? 'soil' : 'grass');
   for (const field of style.fields) {
     const isIn = c => kind(c) === field;
@@ -671,13 +674,15 @@ function shapesPass(g, cells, at, W, Hh, H, pal, dark) {
       if (o < 0) continue;
       const c = cells[o], k = (y * W + x) * 4;
       const col = style.paint(ctx, c, x, y, edgeAt(x, y), y * W + x, state);
+      owner[y * W + x] = o;
+      if (c.shade && !c.shade.blank && !c.shade.soil) lvAt[y * W + x] = style.level ? style.level(state, y * W + x) : c.shade.lv;
       d[k] = col[0]; d[k + 1] = col[1]; d[k + 2] = col[2];
       d[k + 3] = H.fs !== null && c.o < H.fs ? Math.round(255 * (1 - FADE)) : 255;
     }
   }
   rg.putImageData(img, 0, 0);
   g.drawImage(cv, 0, 0);
-  return null;
+  return { owner, lvAt };
 }
 /* one view drawn: the canvas, and where everything on it is */
 /* a mark's colour, the scenery's own: of every bright hue at a few lightnesses, the one that stands
@@ -796,7 +801,9 @@ function paint(H, win, sp, paper) {
     else if (!c.shade) empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT, pal.gapless ? CELL : TILE);
     g.globalAlpha = 1;
   }
-  const pane = pal.shapes ? shapesPass(g, cells, at, W, Hh, H, pal, dark) : null;  // (a drafted shape: each pixel's day, for the pointer)
+  // (a joined shape: each pixel's day and shade, for the highlight; a drafted one's days also for the pointer)
+  const joined = pal.shapes ? shapesPass(g, cells, at, W, Hh, H, pal, dark) : null;
+  const pane = joined && !joined.lvAt ? joined.owner : null;
   // (a day with nothing due: one pixel in its middle, the streak's day off; over the shapes)
   for (const c of cells) if (H.free.has(c.o) && !c.n) {
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
@@ -881,7 +888,7 @@ function paint(H, win, sp, paper) {
     }
   }
   const radius = pal.roundTile ? AF.heatmapTiles[H.look.tile].smoothRadius : SMOOTH_R;  // (smooth: each tile's corners)
-  const out = { cv, above, W, Hh, cells, at, pane, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key, smooth, radius };
+  const out = { cv, above, W, Hh, cells, at, pane, joined, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key, smooth, radius };
   if (smooth) {
     // (shown on a canvas of its own at the screen's resolution, drawn again when the scale changes)
     const [hi] = layer(W, Hh);
@@ -1078,13 +1085,43 @@ AF.calendar = function (root, data, env) {
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
   // dimmed into the page, on a layer over the weeks
   let spotCv = null;
-  const spot = keep => {
+  const spot = (keep, lv) => {
     if (spotCv) { spotCv.remove(); spotCv = null; }
     if (!keep || !drawn) return;
     const d = pointed || drawn;  // (a streak's bracket on an earlier year lights that year's days)
     const [cv, g] = layer(d.W, d.Hh);
     g.fillStyle = rgb(paper.bg, SPOT_DIM);
-    for (const c of d.cells) if (!keep(c)) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
+    if (d.joined) {
+      // (a joined shape dimmed by its own pixels: a month or a streak lights its days' part of the
+      // shape, a shade of the key the bands in that shade, `lv`, where the style has bands)
+      const img = g.createImageData(d.W, d.Hh), px = img.data, [r0, g0, b0] = paper.bg, a0 = Math.round(255 * SPOT_DIM);
+      const { owner, lvAt } = d.joined, W = d.W, Hh = d.Hh;
+      let lit = new Uint8Array(owner.length);
+      for (let i = 0; i < owner.length; i++) { const o = owner[i]; lit[i] = o >= 0 && (lv !== undefined && lvAt ? lvAt[i] === lv : keep(d.cells[o])) ? 1 : 0; }
+      {  // (its corners two pixels round, outer cut and inner filled, as shapesPass draws the shapes:
+        // a month starts and ends partway through a week, and its square steps read as cut out;
+        // an outline and whole weeks were tried, 2026-10-16)
+        const f = (x, y) => x >= 0 && y >= 0 && x < W && y < Hh && lit[y * W + x], out = lit.slice();
+        for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+          const i = y * W + x;
+          if (f(x, y)) {
+            for (const [dx, dy] of DIAG) if (!f(x + dx, y) && !f(x, y + dy)) {
+              out[i] = 0;
+              if (f(x - dx, y) && !f(x - dx, y + dy)) out[i - dx] = 0;
+              if (f(x, y - dy) && !f(x + dx, y - dy)) out[i - dy * W] = 0;
+            }
+          } else if (owner[i] >= 0) {
+            for (const [dx, dy] of DIAG) if (f(x + dx, y) && f(x, y + dy) && f(x + dx, y + dy)) out[i] = 1;
+          }
+        }
+        lit = out;
+      }
+      for (let i = 0; i < owner.length; i++) {
+        if (lit[i]) continue;
+        px[i * 4] = r0; px[i * 4 + 1] = g0; px[i * 4 + 2] = b0; px[i * 4 + 3] = a0;
+      }
+      g.putImageData(img, 0, 0);
+    } else for (const c of d.cells) if (!keep(c)) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
     cv.className = 'af-cal-above af-cal-spot';
     Object.assign(cv.style, { left: d.cv.offsetLeft + 'px', top: d.cv.offsetTop + 'px', width: d.cv.style.width,
       height: d.cv.style.height, imageRendering: d.cv.style.imageRendering });
@@ -1561,7 +1598,7 @@ AF.calendar = function (root, data, env) {
     const r = sw.getBoundingClientRect(), b0 = box.getBoundingClientRect();
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth, Math.max(0, r.left - b0.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
     tip.style.top = (r.top - b0.top - tip.offsetHeight - TIP_GAP) + 'px';  // (above the key, at the heatmap's foot)
-    spot(c => c.o <= 0 && c.n > 0 && H.shade(c.o) === lv);  // (and its days stand out)
+    spot(c => c.o <= 0 && c.n > 0 && H.shade(c.o) === lv, lv);  // (and its days stand out)
   });
   keyEl.addEventListener('mouseleave', unpoint);
   // a streak's bracket, pointed at: its first and last days, and its days lit
