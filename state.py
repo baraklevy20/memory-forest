@@ -3,6 +3,7 @@ set them, and the per-profile state file."""
 
 from __future__ import annotations
 
+import datetime as _dt
 import os
 
 from aqt import mw
@@ -152,6 +153,26 @@ def streak_from_start(cfg: dict | None = None) -> bool:
     streak from: The start date"); off unless switched on, so a start date leaves your streak whole."""
     value = (cfg if cfg is not None else config()).get("streak_from_start", False)
     return bool(value) and value not in OFF_VALUES
+
+
+# how many days a week the streak counts (the Heatmap tab): every day, or 6 or 5, the rest of a
+# week's missed days passed over (forest_data.days_off), from the day it was chosen
+# (`streak_week_since`, kept by the dialog), never back in time
+STREAK_WEEKS = (7, 6, 5)
+
+
+def streak_week(cfg: dict | None = None) -> int:
+    """The days a week your streak counts: 7 (every day, the default), 6 or 5."""
+    value = (cfg if cfg is not None else config()).get("streak_week", 7)
+    return value if value in STREAK_WEEKS and not isinstance(value, bool) else 7
+
+
+def streak_week_since(cfg: dict | None = None) -> _dt.date | None:
+    """The day a streak of fewer than 7 days a week was chosen (its first day off), or None."""
+    try:
+        return _dt.date.fromisoformat(str((cfg if cfg is not None else config()).get("streak_week_since") or ""))
+    except ValueError:
+        return None
 
 
 # the day the study calendar's weeks start on: the system's own (its region's), or one chosen,

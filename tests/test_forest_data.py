@@ -99,6 +99,23 @@ class StatsTests(unittest.TestCase):
         self.assertEqual(fd._streaks({4, 5}, frozenset({1, 2, 3})), (2, 2))  # nothing due since: still current
         self.assertEqual(fd._streaks({4, 5}, frozenset({2, 3})), (0, 2))  # yesterday was due and missed
 
+    def test_days_off_pass_a_week_s_first_missed_days_from_the_day_chosen(self):
+        today, monday = dt.date(2026, 10, 14), 1  # a Wednesday; 4 and 5 days ago: Sat 10 and Fri 9 October
+        studied = set(range(1, 30)) - {4, 5}
+        self.assertEqual(fd.days_off(studied, frozenset(), 2, 60, today, monday), frozenset({4, 5}))
+        self.assertEqual(fd.days_off(studied, frozenset(), 1, 60, today, monday), frozenset({5}))  # the week's first
+        self.assertEqual(fd.days_off(studied, frozenset(), 2, 3, today, monday), frozenset())  # chosen after them
+        self.assertEqual(fd.days_off(studied, frozenset(), 0, 60, today, monday), frozenset())  # every day
+        self.assertEqual(fd._streaks(studied, fd.days_off(studied, frozenset(), 2, 60, today, monday)), (27, 27))
+
+    def test_days_off_go_by_the_week_start_and_never_spend_a_day_with_nothing_due(self):
+        today = dt.date(2026, 10, 14)
+        studied = set(range(1, 30)) - {3, 4}  # Sun 11 and Sat 10 October
+        self.assertEqual(fd.days_off(studied, frozenset(), 1, 60, today, 1), frozenset({4}))  # one Monday week
+        self.assertEqual(fd.days_off(studied, frozenset(), 1, 60, today, 0), frozenset({3, 4}))  # a Sunday week each
+        self.assertEqual(fd.days_off(set(range(1, 30)) - {4, 5}, frozenset({5}), 1, 60, today, 1), frozenset({4}))
+        self.assertEqual(fd.days_off({2, 3}, frozenset(), 2, 60, today, 1), frozenset({1}))  # today isn't over
+
     def test_long_break_becomes_a_pond_before_the_next_tree(self):
         cards = [card(1, s=30), card(2, s=30)]
         fl = {1: (ms(30), ms(1)), 2: (ms(15), ms(1))}

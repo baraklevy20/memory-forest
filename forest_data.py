@@ -13,6 +13,7 @@ script against a plain sqlite3 connection.
 
 from __future__ import annotations
 
+import datetime as _dt
 import hashlib
 
 try:
@@ -159,6 +160,26 @@ def _streaks(review_days: set, free: frozenset = frozenset()) -> tuple:
         run = run + 1 if d in review_days else run if d in free else 0
         longest = max(longest, run)
     return current, longest
+
+
+def days_off(review_days: set, free: frozenset, per_week: int, since: int | None, today: _dt.date, week_start: int) -> frozenset:
+    """The missed days (as `ago`) a streak of 6 or 5 days a week passes over as it does a day with
+    nothing due: in each week (starting on `week_start`, as the page counts days: Sunday 0), the
+    first `per_week` days with cards due and no review, from the day this was chosen (`since`,
+    days ago), or your first review if later, to yesterday. Today is never one: it isn't over."""
+    if not per_week or since is None or not review_days:
+        return frozenset()
+    used: dict = {}
+    out = []
+    for d in range(min(since, max(review_days)), 0, -1):  # (oldest first: a week's first misses are its days off)
+        if d in review_days or d in free:
+            continue
+        day = today - _dt.timedelta(days=d)
+        week = (day - _dt.timedelta(days=((day.weekday() + 1) % 7 - week_start) % 7)).toordinal()
+        if used.get(week, 0) < per_week:
+            used[week] = used.get(week, 0) + 1
+            out.append(d)
+    return frozenset(out)
 
 
 def _breaks(review_days: set, oldest: int) -> list:

@@ -149,6 +149,10 @@ function history(cal) {
   // them, neither broken nor growing
   const free = new Set();
   for (const [older, newer] of cal.free || []) for (let a = newer; a <= older; a++) free.add(-a);
+  // the days off a streak of 6 or 5 days a week passes over (payload._days_off): drawn as a day with
+  // nothing due; only their tooltip tells them apart
+  const daysOff = new Set((cal.daysOff || []).map(a => -a));
+  daysOff.forEach(o => free.add(o));
   const runs = [], pond = new Set();
   let run = null, gap = null;
   for (let o = first; o <= 0; o++) {
@@ -217,7 +221,7 @@ function history(cal) {
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
   return Object.assign(H, {
-    today, first, n, fs, free, runs, pond, current, runOf, podium, goal, animals,
+    today, first, n, fs, free, daysOff, runs, pond, current, runOf, podium, goal, animals,
     // (with the reviews before the forest's start date left out, Heatmap tab: the day it began)
     hid: cal.hiddenBefore ? (utc(cal.hiddenBefore) - today) / DAY_MS : null,
     // the days you marked, each with its icon and name (an older version's: a bare date)
@@ -1305,7 +1309,7 @@ AF.calendar = function (root, data, env) {
       : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
       : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
-      : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
+      : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
     let day = 0;

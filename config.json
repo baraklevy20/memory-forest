@@ -16,6 +16,8 @@
     "calendar_shade": "reviews",
     "calendar_record": true,
     "streak_from_start": false,
+    "streak_week": 7,
+    "streak_week_since": "",
     "finished_decks": true,
     "nature": "peaceful",
     "excluded_decks": [],

@@ -12,7 +12,7 @@ from aqt import mw
 from . import events_state, forest_data, journal, live_weather, marks, milestones, news, presets, scene, study_log
 from .edition import debug_available, debug_edition
 from .phone_note import phone_cards
-from .scope import changes, day_cutoff, deck_ids, excluded_decks, since
+from .scope import anki_today, changes, day_cutoff, deck_ids, excluded_decks, since
 from .seasons import follow_season, season_returns
 from .seasons import today as scenery_day
 from .state import (
@@ -39,6 +39,8 @@ from .state import (
     settings_open,
     shows_record,
     streak_from_start,
+    streak_week,
+    streak_week_since,
     week_start,
 )
 
@@ -211,12 +213,13 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     day = scenery_day(cfg)  # today, or the debug date: the scenery is chosen for it
     mood = scene.choose_mood(cfg, _dt.datetime.combine(day, now.time()), real, place)
     evs = scene.events(forest["stats"], today, new_ancient)
+    calendar = _calendar(forest, all_trees, cfg, test, changed, did, highlight)
 
     return {
         # each tree's count of cards known well only adds up to the animals' milestones, and
         # its day number is only for remembering ancient trees: the page needs neither
         "trees": [_for_page(t) for t in forest["trees"]],
-        "stats": _page_stats(forest["stats"], cfg, test, did, highlight, changed),
+        "stats": _page_stats(forest["stats"], cfg, test, did, highlight, changed, calendar),
         "visitors": forest["visitors"],
         "anniversaries": ann,
         "mood": mood,
@@ -248,7 +251,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "showForest": show_forest,
         # the study calendar (web/calendar.js): the whole collection's on the main screen, the
         # deck's own on a deck's screen
-        "calendar": _calendar(forest, all_trees, cfg, test, changed, did, highlight),
+        "calendar": calendar,
         **extras,
     }
 
@@ -288,7 +291,7 @@ def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: i
     return [seconds.get(ago, 0) for ago in range(oldest, -1, -1)]
 
 
-def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed) -> dict:
+def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
     """The numbers the page shows, their streak the study calendar's. With a start date, the
     streak is still your real one, unbroken by it (a young forest is a choice of look, not a
     lapse): only the forest's own milestones (its animals, the journal's) go by the days since it
@@ -296,8 +299,13 @@ def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: 
     from the start date, or the calendar on this screen shows nothing before it. Under the
     whole forest on a deck's screen the calendar is the deck's own, and so is the streak. A day
     with nothing due never breaks it (_free_days), as on the calendar."""
-    if test:
-        return stats
+    if test:  # (the made-up days' streak, with the days off the calendar passes over)
+        if not calendar["daysOff"]:
+            return stats
+        days = calendar["days"]
+        studied = {len(days) - 1 - i for i, n in enumerate(days) if n}
+        streak, _longest = forest_data._streaks(studied, frozenset(calendar["daysOff"]))
+        return dict(stats, streak=streak, streak_week=streak_week(cfg))
     begin = since(cfg)
     calendar_here = calendar_on("decks" if did else "main", cfg)
     from_start = begin is not None and (streak_from_start(cfg) or (calendar_here and not shows_record(cfg)))
@@ -305,8 +313,21 @@ def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: 
     cutoff, excluded, skip = day_cutoff(mw.col), excluded_decks(cfg), phone_cards()
     dids = deck_ids(did, excluded) if did and (own or not highlight) else None
     days = set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, skip, changed))
-    streak, longest = forest_data._streaks(days, _free_days(cutoff, dids, excluded, skip, changed))
-    return dict(stats, streak=streak, longest_streak=longest)
+    free = _free_days(cutoff, dids, excluded, skip, changed)
+    streak, longest = forest_data._streaks(days, free | _days_off(cfg, cutoff, days, free))
+    return dict(stats, streak=streak, longest_streak=longest, streak_week=streak_week(cfg))
+
+
+def _days_off(cfg: dict, cutoff: int, review_days: set, free: frozenset, ago: int | None = None) -> frozenset:
+    """The missed days (as `ago`) a streak of 6 or 5 days a week passes over (forest_data.days_off),
+    in the heatmap's own weeks, from the day it was chosen (or `ago` days ago); none while it
+    counts every day."""
+    per_week, chosen = 7 - streak_week(cfg), streak_week_since(cfg)
+    if not per_week or (chosen is None and ago is None):
+        return frozenset()
+    today = anki_today(cutoff)
+    ago = (today - chosen).days if ago is None else ago
+    return forest_data.days_off(review_days, free, per_week, ago, today, _week_start_day(cfg)) if ago >= 0 else frozenset()
 
 
 def _free_days(cutoff: int, dids: list | None, excluded, skip, changed) -> frozenset:
@@ -381,6 +402,10 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
                 lambda: study_log.load_deleted_cards(col.db, cutoff, excluded, skip)).items() if ago <= oldest),
             # the days with nothing due, as [oldest, newest] runs of days ago: a streak passes over them
             "free": [] if test else [r for r in _free_runs(cutoff, dids, excluded, skip, changed) if r[1] <= oldest],
+            # the days off a streak of 6 or 5 days a week passes over (days ago), as it does a free day;
+            # a test forest's from its first made-up day, so they show however lately they were chosen
+            "daysOff": sorted(_days_off(cfg, cutoff, set(studied), frozenset(), oldest)) if test else sorted(_days_off(cfg, cutoff, {a for a, n in day_reviews.items() if n},
+                                                        _free_days(cutoff, dids, excluded, skip, changed))),
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
 
 

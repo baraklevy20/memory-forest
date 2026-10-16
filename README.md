@@ -86,6 +86,8 @@ Hover a day for its numbers, and click it to open its cards.
 
 - **A fair streak**: a day with no cards due, as a small deck often has, keeps your streak
   going. It only grows on the days you study.
+- **Rest days**: if you like, your streak can count 6 or 5 days a week, so a day or two off
+  each week doesn't break it (Heatmap tab).
 - **Trophies and a goal**: gold, silver and bronze for your three longest streaks, and a flag
   on the day your streak would earn its next one.
 - **Milestones**: point at the heatmap to see each animal that joined your forest, on the

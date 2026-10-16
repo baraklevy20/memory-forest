@@ -1,6 +1,6 @@
 """The Heatmap tab: the study heatmap under the forest - the screens it shows on, its view and the
 day its weeks start on; and, under Start date, the reviews from before the forest's start date and
-where your streak counts from. Without a start date (Decks tab) those two change nothing, so they
+where your streak counts from; under Streak, how many days a week it counts. Without a start date (Decks tab) those two change nothing, so they
 are never greyed out for it: a hint says so. What the shades go by is the toggle on the heatmap
 itself, not repeated here."""
 
@@ -9,7 +9,17 @@ from __future__ import annotations
 from aqt.qt import QCheckBox, QEvent, QPushButton, QSizePolicy, Qt, QVBoxLayout
 
 from ..payload import _week_start_day
-from ..state import calendar_on, calendar_view, shows_record, streak_from_start, week_start
+from ..scope import anki_today
+from ..state import (
+    STREAK_WEEKS,
+    calendar_on,
+    calendar_view,
+    shows_record,
+    streak_from_start,
+    streak_week,
+    streak_week_since,
+    week_start,
+)
 from .forest_tab import beside
 from .palette import color
 from .widgets import Choice, Tab, form, group, hint, hint_style
@@ -38,6 +48,10 @@ VIEW_NOTE = "Timeline: the past year and the weeks ahead. By year: January to De
 # where your streak counts from: your real one (from your first review), or from the forest's start date
 STREAK_FROM_OPTIONS = [(False, "Your first review"), (True, "The start date")]
 START_NOTE = "Your forest's start date is set on the Decks tab. Without one, these change nothing."
+# how many days a week it counts: a week's other days, missed, pass as a day with nothing due does
+STREAK_WEEK_OPTIONS = [(7, "Every day"), (6, "6 days a week"), (5, "5 days a week")]
+# (one line: SETTINGS_GUIDELINES.md)
+STREAK_WEEK_NOTE = "A day off keeps your streak but doesn't add to it. Days off count from the day you choose this."
 
 
 class WeekChoice(Choice):
@@ -105,6 +119,9 @@ class HeatmapTab(Tab):
         self.record.setChecked(shows_record(cfg))
         self.streak_from = Choice(STREAK_FROM_OPTIONS, streak_from_start(cfg), False)
         self._streak_pick = self.streak_from.currentData()  # (what it goes back to once the reviews before show again)
+        # days off: counted from the day they are chosen (the dialog keeps that day as it finds it)
+        self.streak_week = Choice(STREAK_WEEK_OPTIONS, streak_week(cfg), 7)
+        self.week_was = (self.streak_week.currentData(), streak_week_since(cfg))
 
         where = form()
         where.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
@@ -115,12 +132,15 @@ class HeatmapTab(Tab):
         self.view_note.setStyleSheet(f"QLabel {{ {hint_style()} }} QLabel:disabled {{ color: {color('FG_DISABLED')}; }}")
         layout.addRow("", self.view_note)
         layout.addRow("Week starts on", self.week)
+        streak = form()
+        streak.addRow("Your streak counts", self.streak_week)
+        streak.addRow("", hint(STREAK_WEEK_NOTE))
         start = self.start_form = form()
         start.addRow(self.record)
         start.addRow("Count your streak from", self.streak_from)
         start.addRow(hint(START_NOTE))
         # (the three groups' fields start on one line)
-        labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (where, layout, start) for r in range(f.rowCount())
+        labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (where, layout, streak, start) for r in range(f.rowCount())
                   if f.itemAt(r, f.ItemRole.LabelRole) and f.itemAt(r, f.ItemRole.LabelRole).widget()]
         widest = max(label.sizeHint().width() for label in labels)
         for label in labels:
@@ -129,6 +149,7 @@ class HeatmapTab(Tab):
         self.where_group = group("Where it shows", where)
         v.addWidget(self.where_group)
         v.addWidget(group("Layout", layout))
+        v.addWidget(group("Streak", streak))
         self.start_group = group("Start date", start)
         v.addWidget(self.start_group)
         v.addStretch(1)
@@ -139,10 +160,11 @@ class HeatmapTab(Tab):
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"calendar": (self.where_group.title, "Study heatmap"),
-                "streak_from_start": (self.streak_from, "Count your streak from")}
+                "streak_from_start": (self.streak_from, "Count your streak from"),
+                "streak_week": (self.streak_week, "Your streak counts")}
 
     def connect(self, changed) -> None:
-        for choice in (self.calendar, self.week, self.streak_from):
+        for choice in (self.calendar, self.week, self.streak_from, self.streak_week):
             choice.on_change(changed)
         for box in (self.calendar_main, self.calendar_decks, self.record):
             box.toggled.connect(changed)
@@ -189,4 +211,15 @@ class HeatmapTab(Tab):
             "calendar_record": self.record.isChecked(),
             # (your own pick kept while the start date decides it)
             "streak_from_start": self.streak_from.currentData() if self.record.isChecked() else self._streak_pick,
+            **self.week_values(),
         }
+
+    def week_values(self) -> dict:
+        """The days a week your streak counts, and the day its days off count from: kept while it
+        stays under 7, today when it goes under, none at every day (so days off never reach back)."""
+        week = self.streak_week.currentData()
+        was, since = self.week_was
+        if week not in STREAK_WEEKS or week == 7:
+            return {"streak_week": 7, "streak_week_since": ""}
+        keep = since if was != 7 and since is not None else anki_today()
+        return {"streak_week": week, "streak_week_since": keep.isoformat()}

@@ -35,7 +35,8 @@ SHRINK_TRIES = 5
 SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to measure its help
 # choices about your study data rather than the forest's look: Restore defaults keeps them (and the
 # phone switch, which lives in the collection, it never touches)
-DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start")
+DATA_KEYS = ("excluded_decks", "ignore_before", "keep_suspended", "calendar_record", "streak_from_start",
+             "streak_week", "streak_week_since")
 # set on the heatmap itself (its Reviews | Time toggle, By year's earlier years), maybe while the dialog is open: saved as
 # it is now, never as the dialog found it, and Cancel leaves it be
 OUTSIDE_KEYS = ("calendar_shade",)
@@ -57,7 +58,7 @@ RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("Resets: the scenery and Customize, Nature (to {nature}), your city, where the forest and the "
                 "heatmap show (finished decks too), the heatmap's view, week start and shades, animation and the "
                 "planting message.\n\nKeeps: the decks you left out, the start date (and how the heatmap and your "
-                "streak go by it), suspended cards, your marked days and the forest on your phone.\n\n"
+                "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
                 "Cancel still puts back the settings you had before.")
 # the tab the dialog was left on, for the next time it opens while Anki is: kept in memory
 # only, so Anki starts again on the Scenery tab (not the config either: it is no setting)

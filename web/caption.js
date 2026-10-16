@@ -29,7 +29,10 @@ AF.caption = function (root, data) {
   // (a click shows it year by year in the heatmap under the forest, while it is on Timeline)
   const byYear = r => r.afCalByYear && r.afCalByYear();
   byYear.hint = r => (r.afCalByYear && r.afCalByYear(true) ? '<br><span class="af-hint">Click to see it year by year</span>' : '');
-  if (s.streak) items.push([`${s.streak}-day streak`, "Days you studied, in a row. A day with nothing due doesn't break it.", byYear]);
+  // (a streak of 6 or 5 days a week: a week's first missed days pass too, payload._days_off)
+  const week = s.streak_week || 7, rest = week === 6 ? 'a day off in a week doesn\'t' : 'two days off in a week don\'t';
+  if (s.streak) items.push([`${s.streak}-day streak`, "Days you studied, in a row. A day with nothing due doesn't break it"
+    + (week < 7 ? `, and as your streak counts ${week} days a week, ${rest} either.` : '.'), byYear]);
   items.push(...AF.events.collect('caption', data, words, animates(data)));  // the asteroid, on its way or struck
   // the scene's name, unless it is the plain default
   if (data.sceneName) items.push([data.sceneName, data.sceneTip || 'The scenery, chosen in the forest settings.']);

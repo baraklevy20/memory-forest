@@ -162,6 +162,17 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(streak, p["stats"]["streak"])
         self.assertFalse(p["calendar"]["browse"])  # a made-up day has no cards to open
 
+    def test_the_test_forest_shows_days_off_however_lately_they_were_chosen(self):
+        reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True, "streak_week": 5, "streak_week_since": "2099-01-01"})
+        p = payload.payload()
+        off, days = p["calendar"]["daysOff"], p["calendar"]["days"]
+        self.assertTrue(off)
+        self.assertTrue(all(not days[-1 - ago] for ago in off))  # only missed days
+        self.assertGreater(p["stats"]["streak"], 0)
+        self.assertEqual(p["stats"]["streak_week"], 5)
+        reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True})
+        self.assertEqual(payload.payload()["calendar"]["daysOff"], [])  # every day: none
+
     def test_zooming_is_held_back_but_while_debugging(self):
         reset(CARDS, {"debug": False})
         self.assertEqual(payload.payload()["zoom"], payload.ZOOM_RELEASED)
