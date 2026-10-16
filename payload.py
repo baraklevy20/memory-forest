@@ -56,6 +56,9 @@ ZOOM_RELEASED = False
 CALENDAR_DUE_DAYS = 800  # (time enough for the next whole year)
 # the test forest's reviews in the calendar: a few for each card a day learned, or a day's worth
 TEST_REVIEWS_PER_CARD, TEST_DAY_REVIEWS = 4, 40
+# the made-up forest's days' time: seconds a review, from a quick day to a slow one, by the day
+# (fixed, so a made-up day takes the same time each time it is drawn)
+TEST_SECS_PER_REVIEW = (5, 12)
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
 # the trees of each forest's deep forest, as last sent (by deck id, "" for the deck list's):
@@ -374,6 +377,13 @@ def _free_runs(cutoff: int, dids: list | None, excluded, skip, changed) -> list:
                       lambda: study_log.load_free_days(mw.col.db, cutoff, dids, excluded, skip))
 
 
+def _test_time(days: list, oldest: int) -> list:
+    """A made-up day's time, in seconds, as `days` runs (oldest first): its reviews at a pace of
+    its own, TEST_SECS_PER_REVIEW apart, the same each time."""
+    lo, hi = TEST_SECS_PER_REVIEW
+    return [n * (lo + (oldest - i) * 7 % (hi - lo + 1)) for i, n in enumerate(days)]
+
+
 def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, did: int | None = None,
               highlight: bool = False) -> dict | None:
     """What the study calendar is drawn from: its view, the date of the first day counted, each
@@ -420,8 +430,9 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
                        if animals else [],
-            # the time each day's reviews took, in seconds, day by day as `days` (none for a made-up day)
-            "time": [] if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
+            # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
+            # day, so Reviews | Time and its key can be tried on the test forest too)
+            "time": _test_time(days, oldest) if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
             # Recall: each day's average answer, Again 0 to Easy 3 (None with no reviews), as `days`
             "recall": [] if test else _day_recall(cutoff, dids, excluded, skip, changed, oldest),
             # Friction: each day's [% of its review time spent relearning forgotten cards, seconds

@@ -162,6 +162,18 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(streak, p["stats"]["streak"])
         self.assertFalse(p["calendar"]["browse"])  # a made-up day has no cards to open
 
+    def test_the_test_forests_days_have_a_made_up_time(self):
+        # (so Reviews | Time, which hides with no time kept, can be tried on it)
+        reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True})
+        cal = payload.payload()["calendar"]
+        self.assertEqual(len(cal["time"]), len(cal["days"]))
+        for n, secs in zip(cal["days"], cal["time"]):
+            self.assertEqual(secs > 0, n > 0)
+            lo, hi = payload.TEST_SECS_PER_REVIEW
+            if n:
+                self.assertTrue(lo * n <= secs <= hi * n)
+        self.assertEqual(payload.payload()["calendar"]["time"], cal["time"])  # (the same each time)
+
     def test_the_test_forest_shows_days_off_however_lately_they_were_chosen(self):
         reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True, "streak_week": 5, "streak_week_since": "2099-01-01"})
         p = payload.payload()
