@@ -13,7 +13,7 @@ from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
 from ..seasons import forget_seasons
-from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
+from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, clamp_int, config
 from .decks import DATE_FORMAT
 from .widgets import date_field, group, hint
 
@@ -60,6 +60,8 @@ class DebugTab(QWidget):
         except (TypeError, ValueError):
             n = TEST_TREES_DEFAULT
         self.trees.setValue(n); self.trees_box.setValue(n)
+        self.heatmap_width = QSpinBox(); self.heatmap_width.setRange(50, 100); self.heatmap_width.setSuffix("% of forest width")
+        self.heatmap_width.setValue(clamp_int(cfg.get("debug_heatmap_width"), 85, 50, 100))
         self.trees.valueChanged.connect(self.trees_box.setValue); self.trees_box.valueChanged.connect(self.trees.setValue)
 
         # and a switch for each study event, to see them without waiting for them
@@ -164,6 +166,9 @@ class DebugTab(QWidget):
         ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addLayout(pr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
+        heatmap = QFormLayout()
+        heatmap.addRow("Width", self.heatmap_width)
+        dv.addWidget(group("Heatmap", heatmap))
         dv.addWidget(group("What's new", ntv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
@@ -238,7 +243,7 @@ class DebugTab(QWidget):
             box.toggled.connect(changed)
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
-        for box in (self.trees_box, self.backlog):
+        for box in (self.trees_box, self.backlog, self.heatmap_width):
             box.valueChanged.connect(changed)
 
     def sync(self) -> None:
@@ -277,6 +282,7 @@ class DebugTab(QWidget):
             "debug_backlog_cleared": self.clears,
             "debug_backlog_was": self.was,
             "debug_big_days": self.big.isChecked(),
+            "debug_heatmap_width": self.heatmap_width.value(),
             "debug_date": self._date().isoformat() if self._date() else "",
             "debug_edition": self.edition.currentData() or "",
         }

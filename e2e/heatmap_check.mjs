@@ -14,6 +14,17 @@ try {
   await p.goto('file://' + html);
   await p.waitForSelector('.af-cal-canvas', { timeout: 10000 });
   await wait(400);
+  const layoutChecks = await p.evaluate(() => {
+    const root = document.getElementById('p'), box = root.querySelector('.af-cal'), failures = [];
+    const css = getComputedStyle(root), contentWidth = root.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
+    if (Math.abs(box.getBoundingClientRect().width / contentWidth - 0.85) > 0.01) failures.push('heatmap did not use the configured 85% width');
+    if (!box.querySelector('.af-cal-current')?.textContent.includes('days')) failures.push('current streak has no day-count label');
+    box.querySelector('[data-view="timeline"]').click();
+    if (box.querySelectorAll('.af-cal-months span[data-m]').length !== 10) failures.push('Timeline did not show ten months');
+    box.querySelector('[data-view="by_year"]').click();
+    return failures;
+  });
+  out.errors.push(...layoutChecks);
   // each year's weeks and its layer: the year in view's (in the grid), and each earlier one's
   const look = () => p.evaluate(() => {
     const pairs = [...document.querySelectorAll('.af-cal-canvas')].map(cv => {

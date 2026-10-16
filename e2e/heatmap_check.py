@@ -38,7 +38,7 @@ def calendar() -> dict:
     days = [0 if (i % 11 == 3 and i < n - 200) else 15 + (i * 37) % 200 for i in range(n)]
     return {"view": "by_year", "weekStart": 1, "start": (today - dt.timedelta(days=n - 1)).isoformat(), "days": days,
             "due": [40] + [max(0, 200 - 2 * i) for i in range(1, 120)], "animals": [], "breakDays": 7, "browse": False,
-            "time": [], "shadeBy": "reviews", "marks": []}
+            "time": [], "shadeBy": "reviews", "marks": [], "width": 85}
 
 
 def page(show_forest=False, deep=False) -> str:

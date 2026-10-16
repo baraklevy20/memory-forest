@@ -41,6 +41,7 @@
     "debug_backlog_was": 0,
     "debug_big_days": false,
     "debug_gaps": null,
+    "debug_heatmap_width": 85,
     "debug_smooth": null,
     "debug_date": "",
     "debug_edition": ""

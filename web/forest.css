@@ -163,8 +163,8 @@
 
 /* the study calendar under the forest (web/calendar.js). Margins rather than gap throughout:
    Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
-/* as wide as the forest, its edges on the forest's */
-.af-cal { position: relative; text-align: left; margin: 24px 0 0; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
+/* Centered under the forest; calendar.js sets the width (85% by default). */
+.af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
 /* the foot of the panel: the forest's journal, and a small key at the right (as GitHub's graph has it) */
 .af-cal-foot { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-top: 7px; }  /* (12px under the trophies' lane: calendar.js FOOT_GAP) */
 .af-cal-journal { font-style: italic; margin-right: 16px; flex: 1 1 auto; min-width: 0; }  /* (it wraps; the key never does) */
@@ -202,9 +202,7 @@
 .af-cal-pastbar .af-cal-more { margin: 0 0 0 -5px !important; }
 .af-cal-pastbar .af-cal-more-all { margin-left: 4px !important; }
 .af-cal-grid > .af-cal-more-near { position: absolute; left: 0; margin: 0 0 0 -5px !important; z-index: 1; }  /* (Hide over the year in view's months, where Show was: calendar.js past) */
-/* the years shown: one picture, the "Since" under the year in view gone (the years below say it),
- * Hide on the controls' row too (calendar.js past) */
-.af-cal-years-open .af-cal-since { display: none; }
+/* The years shown: Hide on the controls' row too (calendar.js past). */
 .af-cal-foot > .af-cal-shade + .af-cal-key { margin-left: 0; }
 /* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar.js; on
    the phone Today alone, in the footer): plain, small, and with the key only there while the
@@ -294,7 +292,6 @@
 @media (prefers-reduced-motion: reduce) { .af-cal-hover { transition: none; } }
 .af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (in the trophies' lane: calendar.js lay; the pointer goes through to the trophies and the pennant under it) */
 .af-cal-note { position: absolute; transform: translateX(-50%); font-size: 11px; line-height: 11px; white-space: nowrap; }
-.af-cal-since { transform: none; }  /* (at the bracket's cut start, reading on from it) */
 /* a marked day's editor (calendar.js, on a right-click): the icons side by side, all in full colour,
  * the chosen one in a soft square (dimmed would read as disabled: UI_GUIDELINES.md), its name and ×, dressed as the tooltip is; margins rather than gap (Chromium 77) */
 .af-cal-pin { position: absolute; z-index: 3; display: flex; align-items: center; padding: 5px 6px; border-radius: 8px;

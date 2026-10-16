@@ -9,7 +9,7 @@
  * bracket under it, with the trophies and the goal ahead in a lane below. A click on a day opens
  * its cards in Anki's browser (actions.browse_calendar_day); a right-click pins it (marks.py).
  *
- * Two views, each fitted to the room there is: Timeline (`timeline`: a year or more with this
+ * Two views, each fitted to the room there is: Timeline (`timeline`: ten months with this
  * month most of the way along, paged back and on with ‹ ›; on the phone, the whole history swiped
  * along) and By year (`by_year`: January to December). payload.py sends data.calendar = { view,
  * start, days, due, time, shadeBy, look, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
@@ -94,7 +94,7 @@ const TILE_VARIANTS = 4;
 const SHADES_OFFERED = ['reviews', 'time'];  // each shade's tile comes in this many textures, drawn once
 const TILE_FACE = TILE - 1;  // a tile's face: all but its last row and column (a plain tile's edge, a scenery's own tile's gap)
 const DAY_MS = 86400000;
-const MONTHS_SHOWN = 12, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: a year (more when wide, fewer when narrow), this month this far along
+const MONTHS_SHOWN = 10, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: ten months, fewer when narrow; this month this far along
 // the phone: the calendar is one long timeline swiped along (no buttons to page with), its pixels
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
@@ -306,8 +306,8 @@ function yearsFor(H, shown, state) {
 // shown on hover (and the switch by them), which closed sit in the band over the months
 const ACTS_ROOM = 20;
 
-/* the days a view shows, [from, to] as offsets: Timeline's `count` months (a year, more when
- * wide, fewer when narrow), `page` such stretches back (negative) or on; the phone's whole
+/* the days a view shows, [from, to] as offsets: Timeline's `count` months (ten, fewer when
+ * narrow), `page` months back (negative) or on; the phone's whole
  * history, swiped along; or By year's January to December */
 function windowOf(H, view, page, year, count) {
   if (view === 'swiped') {  // the phone's: from the first month counted to a few months ahead, swiped along
@@ -319,7 +319,7 @@ function windowOf(H, view, page, year, count) {
     const y = year || yearOf(H.today);
     return { from: (Date.UTC(y, 0, 1) - H.today) / DAY_MS, to: (Date.UTC(y, 11, 31) - H.today) / DAY_MS, year: y };
   }
-  // Timeline: this month TODAY_AT along (a year: eight months before it and three after), the
+  // Timeline: this month TODAY_AT along (ten months: seven before it and two after), the
   // past being the story; `page` months back (negative) or on
   const t = new Date(H.today), y = t.getUTCFullYear(), m = t.getUTCMonth() - Math.round(count * TODAY_AT) + page;
   return { from: (Date.UTC(y, m, 1) - H.today) / DAY_MS, to: (Date.UTC(y, m + count, 1) - H.today) / DAY_MS - 1, apart: true };
@@ -909,20 +909,18 @@ function paint(H, win, sp, paper) {
 
 // a year's weeks, about as wide as they come: By year's, or Timeline's months apart (its
 // months' own weeks, and the odd empty column)
-const widthOf = view => (view === 'by_year' ? 53 : 65) * CELL + 1;
+const widthOf = view => (view === 'by_year' ? 53 : 54) * CELL + 1;
 const dpr = () => window.devicePixelRatio || 1;
 const sharpK = () => Math.min(1, SHARP / dpr());
 /* the scale `W` low-res pixels fill `width` css pixels at: whole device pixels, every tile and gap
  * the same; or, too narrow to stay crisp that way, all the width, smoothed (lay). Both views
- * (`fill`) take all the width, the forest's: By year its year, Timeline a year of it exactly
- * (countFor), never a thirteenth month */
+ * (`fill`) take all the width: By year its year, Timeline ten months (countFor). */
 const scaleFor = (width, W, fill) => { const k = Math.floor(width / W * dpr()) / dpr(); return k >= sharpK() && !fill ? k : width / W; };
-/* the months Timeline shows in a grid this wide: a year at least, filling the width at whole
- * device pixels; fewer, down to MONTHS_MIN, where a year would be too small to stay crisp */
+/* Timeline shows ten months; fewer, down to MONTHS_MIN, where ten would be too small
+ * to stay crisp. */
 function countFor(view, width) {
   if (view !== 'timeline' || !width) return MONTHS_SHOWN;
-  // (a year exactly, never a thirteenth month: stretched to the width, lay; fewer months only where a
-  // year would be too small to stay crisp)
+  // Fewer months only where ten would be too small to stay crisp.
   if (width / widthOf(view) >= sharpK()) return MONTHS_SHOWN;
   return Math.max(MONTHS_MIN, Math.floor(MONTHS_SHOWN * width / (widthOf(view) * sharpK())));
 }
@@ -955,6 +953,7 @@ AF.calendar = function (root, data, env) {
   if (root.afCalStop) root.afCalStop();
   let box = root.querySelector('.af-cal');
   if (!box) { box = document.createElement('div'); box.className = 'af-cal'; root.append(box); }
+  box.style.width = (cal.width == null ? 85 : Math.max(50, Math.min(100, cal.width))) + '%';
   weekStart = cal.weekStart == null ? 1 : cal.weekStart; CELL = cellOf(cal);
   const H = history(cal), sp = sceneOf(data, env);
   const treesByDay = new Map((data.trees || []).map(t => [-t.ago, t]));
@@ -1434,14 +1433,13 @@ AF.calendar = function (root, data, env) {
       const edge = acts.offsetLeft - LABEL_GAP;
       for (const s of months.children) s.classList.toggle('af-under', low && s.offsetLeft + s.offsetWidth > edge);
     }
-    // each earlier streak's length in the trophies' lane, centred under its bracket, where it clears
-    // the trophy at the bracket's end (the current one's is in the caption)
+    // Each streak's length, including the current one, centred under its bracket.
     notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - 5.5 + 'px';
-    notes.innerHTML = d.brackets.filter(b => !b.live && (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4)).map(b =>
-      `<span class="af-cal-note" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days</span>`).join('')
-      // (the current streak, begun before the view: since when, at its cut start, as the bracket has no start mark there)
-      + d.brackets.filter(b => b.live && b.cut && (b.x1 - b.x0) * k >= SINCE_ROOM).map(b =>
-        `<span class="af-cal-note af-cal-since" style="left:${b.x0 * k}px">Since ${esc(fmt(H.today + b.run.from * DAY_MS))}</span>`).join('');
+    notes.innerHTML = d.brackets.filter(b => (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4)).map(b => {
+      const since = b.live && b.cut && !box.classList.contains('af-cal-years-open') && (b.x1 - b.x0) * k >= SINCE_ROOM + NOTE_ROOM
+        ? ` · Since ${esc(fmt(H.today + b.run.from * DAY_MS))}` : '';
+      return `<span class="af-cal-note${b.live ? ' af-cal-current' : ''}" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days${since}</span>`;
+    }).join('');
     if (swiped) { away(); clip(); }
   }
   // the phone's timeline: opened on today, most of the way across, the days behind it in view

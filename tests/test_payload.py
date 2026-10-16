@@ -16,6 +16,16 @@ CARDS = [(1, 10, 5), (2, 11, 5), (3, 20, 3), (4, 30, 3, 10)]
 
 
 class PayloadTests(unittest.TestCase):
+    def test_heatmap_width_is_adjustable_only_in_debug(self):
+        mood = {"special": "natural"}
+        with mock.patch.object(payload, "debug_available", return_value=True):
+            for value, expected in [(None, 85), (70, 70), (0, 50), (200, 100), ("invalid", 85)]:
+                cfg = {"debug": True, "debug_heatmap_width": value}
+                self.assertEqual(payload._with_look({}, cfg, mood)["width"], expected)
+        with mock.patch.object(payload, "debug_available", return_value=False):
+            self.assertEqual(payload._with_look({}, {"debug_heatmap_width": 70}, mood)["width"], 85)
+        self.assertIsNone(payload._with_look(None, {}, mood))
+
     def test_the_whole_collection_grows_one_tree_a_day(self):
         reset(CARDS)
         p = payload.payload()

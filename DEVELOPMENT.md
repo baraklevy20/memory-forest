@@ -68,7 +68,7 @@ code that draws it, and its label (plus, for an environment, its preset). Delete
 and it is gone - nothing else in the add-on names it, and only the pieces a scene actually
 uses are sent to the page.
 
-A preset with a `season` (`{"from": "10-24", "to": "10-31", "first": 2026}`) is hidden
+A preset with a `season` (`{"from": "10-15", "to": "10-31", "first": 2026}`) is hidden
 until `from` in its `first` year. Every year, on its first day in that week, the forest
 changes to it once for everyone, and the day after `to` goes back to what was there, unless
 it was changed in the meantime (presets.follow_season; the record is user_files/season.json).
