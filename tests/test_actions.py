@@ -31,6 +31,55 @@ class ActionTests(unittest.TestCase):
         actions.browse_day(5)
         self.assertEqual(browser.searches, [f"introduced:6 -introduced:5 {NOT_PHONE}"])
 
+    def test_answer_time_sort_is_slowest_first_and_only_for_the_opening_search(self):
+        import types
+
+        hook = []
+        context = types.SimpleNamespace(browser=browser, ids=[1, 2, 3, 4])
+        def search(_text):
+            for callback in hook:
+                callback(context)
+        with mock.patch.object(actions.gui_hooks, "browser_did_search", hook, create=True), \
+                mock.patch.object(browser, "table", mock.Mock(), create=True), \
+                mock.patch.object(browser, "search_for", side_effect=search):
+            browser.table.is_notes_mode.return_value = False
+            actions._open_browser(["rated:1"], answer_times={1: 2000, 2: 9000, 3: 4000})
+            self.assertEqual(context.ids, [2, 3, 1, 4])
+            self.assertEqual(hook, [])
+            browser.table.is_notes_mode.return_value = True
+            context.ids = [100, 200, 300]
+            with mock.patch.object(mw.col.db, "all", return_value=[(1, 100), (2, 100), (3, 200)]):
+                actions._open_browser(["rated:1"], answer_times={1: 2000, 2: 9000, 3: 4000})
+            self.assertEqual(context.ids, [100, 200, 300])
+            self.assertEqual(hook, [])
+            with mock.patch.object(browser, "search_for", side_effect=RuntimeError), self.assertRaises(RuntimeError):
+                actions._open_browser(["rated:1"], answer_times={})
+            self.assertEqual(hook, [])
+
+    def test_review_and_time_clicks_choose_daily_metric_and_second_column(self):
+        for mode, title in (("reviews", "Attempts"), ("time", "Total time"), ("median", "Answer time")):
+            with mock.patch.object(actions.study_log, "day_card_totals", return_value={1: 42}) as totals, \
+                    mock.patch.object(actions.study_log, "day_answer_times", return_value={1: 42}), \
+                    mock.patch.object(actions, "_open_browser") as opened:
+                actions.browse_calendar_day(-2, 10, answer_mode=mode)
+                args = opened.call_args.args
+                self.assertEqual(args[1:3], (10, {1: 42}))
+                self.assertTrue(args[3].startswith(title + " ("))
+                self.assertEqual(args[4], mode)
+                if mode != "median":
+                    self.assertEqual(totals.call_args.args[-1], mode)
+        with mock.patch.object(actions.study_log, "day_card_totals") as totals, \
+                mock.patch.object(actions, "_open_browser") as opened:
+            actions.browse_calendar_day(0, due=True, answer_mode="time")
+            totals.assert_not_called()
+            self.assertIsNone(opened.call_args.args[2])
+
+    def test_metric_modes_are_forwarded_from_heatmap_clicks(self):
+        for mode in ("reviews", "time", "median"):
+            with mock.patch.object(actions, "browse_calendar_day") as browse:
+                actions.on_js_message((False, None), f"{addon.state.MODULE}:day:-2:10:{mode}", actions.DeckBrowser())
+                browse.assert_called_once_with(-2, 10, False, mode)
+
     def test_on_a_deck_screen_only_that_decks_cards(self):
         actions.browse_day(5, 10)
         self.assertEqual(browser.searches, [f'"deck:French" introduced:6 -introduced:5 {NOT_PHONE}'])

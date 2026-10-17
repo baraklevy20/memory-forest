@@ -11,6 +11,11 @@ import datetime as _dt
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
+if __package__:
+    from .numeric import median
+else:  # tests and dev scripts import this as a top-level module
+    from numeric import median
+
 DAY_SECS = 86400
 
 LAPSE_WINDOW_DAYS = 7
@@ -278,51 +283,20 @@ def load_day_time(db, day_cutoff: int, dids: list | None, excluded: Iterable | N
         day_cutoff, day_cutoff * 1000)}
 
 
-def load_day_recall(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
-                    skip: Iterable | None = None) -> dict:
-    """{days ago: the average answer} over the reviews load_day_reviews counts, in the same decks:
-    Again 0, Hard 1, Good 2, Easy 3, for the heatmap's Recall shade."""
+def load_day_answer_time(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
+                         skip: Iterable | None = None) -> dict:
+    """{days ago: median seconds} per answer, using Anki's logged times.
+
+    Zero times are included; manual reschedules and unanswered cards are excluded.
+    """
     _in_decks, only = _filters(dids, excluded, skip)
-    return {ago: total / n for ago, total, n in db.all(
-        f"select (? - 1 - id / 1000) / {DAY_SECS}, sum(ease - 1), count() from revlog "
-        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only} group by 1",
-        day_cutoff, day_cutoff * 1000) if n}
-
-
-# Friction (the heatmap's shade): the time spent relearning cards you had learned and forgot (the
-# review log's relearning steps, type 2), out of all the day's review time. Learning new cards (type
-# 0) is no friction
-RELEARN = 2
-
-
-def load_day_friction(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
-                      skip: Iterable | None = None) -> dict:
-    """{days ago: (seconds relearning, seconds in all)} over the reviews load_day_reviews counts."""
-    _in_decks, only = _filters(dids, excluded, skip)
-    return {ago: (retry // 1000, total // 1000) for ago, retry, total in db.all(
-        f"select (? - 1 - id / 1000) / {DAY_SECS}, sum(case when type = {RELEARN} then time else 0 end), sum(time) "
-        f"from revlog where ease > 0 and type in {STUDY_TYPES} and id < ?{only} group by 1",
-        day_cutoff, day_cutoff * 1000) if total}
-
-
-FRICTION_CARDS = 12  # (the most a day's list shows)
-
-
-def friction_cards(db, day_cutoff: int, ago: int, dids: list | None, excluded: Iterable | None = None,
-                   skip: Iterable | None = None, limit: int = FRICTION_CARDS) -> list:
-    """The cards behind a day's friction, the most time relearning first, then the most times
-    forgotten: [(card id, seconds relearning, times answered Again on a learned card, the note's
-    sort field)]. The cards a click on the day lists, to simplify, split or look into."""
-    _in_decks, only = _filters(dids, excluded, skip)
-    start, end = (day_cutoff - (ago + 1) * DAY_SECS) * 1000, (day_cutoff - ago * DAY_SECS) * 1000
-    rows = db.all(
-        f"select cid, sum(case when type = {RELEARN} then time else 0 end) / 1000, "
-        f"sum(case when ease = 1 and type in (1, {RELEARN}) then 1 else 0 end) from revlog "
-        f"where ease > 0 and type in {STUDY_TYPES} and id >= ? and id < ?{only} group by cid", start, end)
-    rows = sorted((r for r in rows if r[1] or r[2]), key=lambda r: (-r[1], -r[2]))[:limit]
-    ids = ",".join(str(int(r[0])) for r in rows)
-    names = dict(db.all(f"select c.id, n.sfld from cards c join notes n on n.id = c.nid where c.id in ({ids})")) if rows else {}
-    return [(cid, secs, again, str(names.get(cid, ""))) for cid, secs, again in rows]
+    days = {}
+    for ago, milliseconds in db.all(
+        f"select (? - 1 - id / 1000) / {DAY_SECS}, time from revlog "
+        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}",
+        day_cutoff, day_cutoff * 1000):
+        days.setdefault(ago, []).append(milliseconds)
+    return {ago: median(times) / 1000 for ago, times in days.items()}
 
 
 def load_due(db, today: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None,
@@ -435,6 +409,25 @@ def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended:
     if newest > 0:
         terms.append(f"-introduced:{newest}")
     return terms
+
+
+def day_answer_times(db, day_cutoff: int, offset: int) -> dict:
+    """Each card's last recorded answer time on the clicked day, in milliseconds."""
+    start = (day_cutoff + (offset - 1) * DAY_SECS) * 1000
+    end = start + DAY_SECS * 1000
+    return dict(db.all(
+        f"select cid, time from revlog where id >= ? and id < ? "
+        f"and ease > 0 and type in {STUDY_TYPES} order by id", start, end))
+
+
+
+def day_card_totals(db, day_cutoff: int, offset: int, mode: str) -> dict:
+    """Attempts or total milliseconds per card on one day, including learning and retries."""
+    start = (day_cutoff + (offset - 1) * DAY_SECS) * 1000
+    aggregate = "count()" if mode == "reviews" else "sum(time)"
+    return dict(db.all(
+        f"select cid, {aggregate} from revlog where id >= ? and id < ? "
+        f"and ease > 0 and type in {STUDY_TYPES} group by cid", start, start + DAY_SECS * 1000))
 
 
 def calendar_search(db, offset: int, today: int, due: bool = False) -> list:

@@ -89,9 +89,6 @@ const SHADE_SPLITS = [0.4, 0.7, 0.9], SHADE_SPAN = 365;
 // (their soil) and the days before the forest's start date (your record, not the forest's time)
 const FADE = 0.5;
 const TILE_VARIANTS = 4;
-// what the shades can go by on the toggle beside the key; Recall (the average answer) and Friction
-// (time relearning forgotten cards) are built and kept, but not offered for now (2026-10-16)
-const SHADES_OFFERED = ['reviews', 'time'];  // each shade's tile comes in this many textures, drawn once
 const TILE_FACE = TILE - 1;  // a tile's face: all but its last row and column (a plain tile's edge, a scenery's own tile's gap)
 const DAY_MS = 86400000;
 const MONTHS_SHOWN = 10, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: ten months, fewer when narrow; this month this far along
@@ -223,39 +220,27 @@ function history(cal) {
   const snap = s => { const m = Math.max(1, Math.round(s / 60)); return (m >= 30 ? Math.round(m / 5) * 5 : m) * 60 - 30; };
   for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(t[i - 1] + 60, snap(t[i]));
   const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
-  // Recall: each day's average answer, Again 0 .. Easy 3, split as the others are, in hundredths
-  // (most people's days sit within a few tenths of each other)
-  const recall = o => { const v = (cal.recall || [])[o - first]; return v === null || v === undefined ? null : v; }, recentRecall = [];
-  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && recall(o) !== null) recentRecall.push(recall(o));
-  recentRecall.sort((a, b) => a - b);
-  const recallSplits = [-Infinity];
-  for (const share of SHADE_SPLITS) {
-    const at = recentRecall.length ? Math.round(recentRecall[Math.floor(share * (recentRecall.length - 1))] * 100) / 100 : recallSplits.length * 0.7;
-    recallSplits.push(recallSplits.length > 1 ? Math.max(Math.round((recallSplits[recallSplits.length - 1] + 0.01) * 100) / 100, at) : at);
+  // Daily seconds per answer: retain fractions so quick answers remain distinct.
+  const answerTime = o => {
+    return (cal.answerTime || [])[o - first] ?? null;
+  };
+  const answerModes = {};
+  for (const mode of ['median']) {
+    const values = [];
+    for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && answerTime(o, mode) !== null) values.push(answerTime(o, mode));
+    values.sort((a, b) => a - b);
+    const splits = [0];
+    for (const share of SHADE_SPLITS) splits.push(Math.max(splits[splits.length - 1] + 0.1,
+      values.length ? Math.ceil(values[Math.floor(share * (values.length - 1))] * 10) / 10 : splits.length * 5));
+    const level = v => splits.reduce((at, sp, i) => v >= sp ? i : at, 0);
+    level.splits = splits;
+    answerModes[mode] = { available: values.length > 0, level };
   }
-  const byRecall = v => recallSplits.reduce((at, sp, i) => v >= sp - 1e-9 ? i : at, 0);
-  byRecall.splits = recallSplits;
-  // Friction: each day's [% of its review time spent relearning cards you had forgotten, seconds
-  // relearning, seconds in all], or null; split as the others are, by your last year's days, in
-  // whole percents. More is more friction: a reason to look at those cards, not a bad day
-  const friction = o => (cal.friction || [])[o - first] || null, recentFriction = [];
-  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && friction(o)) recentFriction.push(friction(o)[0]);
-  recentFriction.sort((a, b) => a - b);
-  const frictionSplits = [0];
-  for (const share of SHADE_SPLITS) {
-    const at = recentFriction.length ? Math.round(recentFriction[Math.floor(share * (recentFriction.length - 1))]) : frictionSplits.length * 10;
-    frictionSplits.push(Math.max(frictionSplits[frictionSplits.length - 1] + 1, at));
-  }
-  const byFriction = v => frictionSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);
-  byFriction.splits = frictionSplits;
-  // (a day with reviews but no time kept, an old import's, takes the fewest)
-  const offered = k => SHADES_OFFERED.indexOf(k) >= 0;
-  const by = cal.shadeBy === 'time' && recentTime.length ? 'time' : cal.shadeBy === 'recall' && recentRecall.length && offered('recall') ? 'recall'
-    : cal.shadeBy === 'friction' && recentFriction.length && offered('friction') ? 'friction' : 'reviews';
-  const H = { by, timed: recentTime.length > 0, recall, recalled: recentRecall.length > 0, friction, frictional: recentFriction.length > 0 };
-  H.shade = o => H.by === 'time' ? byTime(time(o)) : H.by === 'recall' ? (recall(o) !== null ? byRecall(recall(o)) : 0)
-    : H.by === 'friction' ? (friction(o) ? byFriction(friction(o)[0]) : 0) : byReviews(n(o));
-  H.splits = () => ({ time: byTime, recall: byRecall, friction: byFriction }[H.by] || byReviews).splits;
+  const by = answerModes[cal.shadeBy]?.available ? cal.shadeBy : cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews';
+  const H = { by, answerTime, answerModes, timed: recentTime.length > 0 };
+  H.shade = o => answerModes[H.by] ? (answerTime(o) === null ? 0 : 3 - answerModes[H.by].level(answerTime(o)))
+    : H.by === 'time' ? byTime(time(o)) : byReviews(n(o));
+  H.splits = () => (answerModes[H.by]?.level || (H.by === 'time' ? byTime : byReviews)).splits;
   // the animals, each on the day it came (none before the forest began)
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
@@ -987,11 +972,9 @@ AF.calendar = function (root, data, env) {
     + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
-    + '<button type="button" role="radio" data-by="recall" title="Shade each day by how well you recalled: your average answer, Again 0 to Easy 3">Recall</button>'
-    + '<button type="button" role="radio" data-by="friction" title="Shade each day by its friction: the share of its review time spent relearning cards you had forgotten. More is a reason to look at those cards, not a bad day">Friction</button>'
+    + '<button type="button" role="radio" data-by="median" title="Shade each day by its median seconds per answer">Pace</button>'
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
-    + '<div class="af-cal-fric" role="dialog" aria-label="The cards behind the day\'s friction" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
     + '<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="Mark name">'
     + '<button type="button" class="af-cal-pin-del" aria-label="Remove the mark" title="Remove the mark">\u00d7</button></div>';
@@ -1018,11 +1001,9 @@ AF.calendar = function (root, data, env) {
   // time kept, as the add-on has it, no choice). Not on the months' row: with the view and the
   // arrows there, that corner read as one crowded line of words (2026-10-15)
   const byBox = box.querySelector('.af-cal-shade');
-  // (Time only with time kept, Recall and Friction only with reviews to go by; no toggle with one choice left)
+  // No toggle with only one available mode.
   byBox.querySelector('[data-by="time"]').hidden = !H.timed;
-  // (Recall and Friction are kept but not offered for now, 2026-10-16: SHADES_OFFERED)
-  byBox.querySelector('[data-by="recall"]').hidden = !H.recalled || SHADES_OFFERED.indexOf('recall') < 0;
-  byBox.querySelector('[data-by="friction"]').hidden = !H.frictional || SHADES_OFFERED.indexOf('friction') < 0;
+  for (const mode of ['median']) byBox.querySelector(`[data-by="${mode}"]`).hidden = !H.answerModes[mode].available;
   byBox.hidden = swiped || [...byBox.querySelectorAll('button')].filter(b => !b.hidden).length < 2;
   // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
@@ -1077,7 +1058,6 @@ AF.calendar = function (root, data, env) {
     b.addEventListener('click', () => {
       if (H.by === b.dataset.by) return;
       H.by = b.dataset.by;
-      closeFriction();
       send(`${data.channel}:shade:${H.by}`);
       unpoint();
       draw();
@@ -1208,8 +1188,7 @@ AF.calendar = function (root, data, env) {
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
-    // (by Friction the key says what grows: more friction)
-    const ends = H.by === 'friction' ? ['Less friction', 'More friction'] : ['Less', 'More'];
+    const ends = H.answerModes[H.by] ? ['Slower', 'Faster'] : ['Less', 'More'];
     [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
     viewBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.view === view;
@@ -1233,11 +1212,6 @@ AF.calendar = function (root, data, env) {
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
   const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
-  // a day's Friction: "Friction 12%: 3 min of 25 relearning forgotten cards"
-  const frictionText = ([v, retry, total]) => `Friction ${Math.round(v)}%` + (retry ? `: ${lasted(retry)} of ${lasted(total)} relearning forgotten cards` : ', nothing forgotten');
-  // a day's Recall: "Average answer 2.4 (Good)", the answer it is nearest
-  const ANSWERS = ['Again', 'Hard', 'Good', 'Easy'];
-  const recallText = v => `Average answer ${v.toFixed(2)} (${ANSWERS[Math.min(3, Math.max(0, Math.round(v)))]})`;
   // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
   // reviews and about how many a day; only the days since your first review, up to today
   const studiedLines = (from, to) => {
@@ -1543,8 +1517,6 @@ AF.calendar = function (root, data, env) {
   const dueNow = c => c.o === 0 && !c.n && H.dueToday > 0;
   // (not a day whose cards have all since been deleted: the browser would open on none)
   const allGone = o => { const g = H.gone.get(o); return !!g && g[0] >= g[1]; };
-  // (by Friction, a past day with some relearning opens the list of its cards instead)
-  const frictionOpens = c => H.by === 'friction' && cal.browse && c.o <= 0 && !!H.friction(c.o) && H.friction(c.o)[1] > 0 && !!window.pycmd;
   const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first && !allGone(c.o);
   // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
   // due. January's label shows its year, so it tells the year's days studied first
@@ -1582,8 +1554,11 @@ AF.calendar = function (root, data, env) {
   // "8–12 min", "Under 3 min", "154+ reviews"
   const shadeLine = lv => {
     const s = H.splits(), by = H.by === 'time';
-    if (H.by === 'friction') return lv === 0 ? `Under ${s[1]}% friction` : lv === 3 ? `${s[3]}%+ friction` : s[lv] === s[lv + 1] - 1 ? `${s[lv]}% friction` : `${s[lv]}\u2013${s[lv + 1] - 1}% friction`;
-    if (H.by === 'recall') { const t = v => v.toFixed(2); return lv === 0 ? `Average answer under ${t(s[1])}` : lv === 3 ? `Average answer ${t(s[3])} or more` : `Average answer ${t(s[lv])} to ${t(s[lv + 1] - 0.01)}`; }
+    if (H.answerModes[H.by]) {
+      lv = 3 - lv;
+      const label = 'Median', t = v => v.toFixed(1);
+      return `${label}: ` + (lv === 0 ? `under ${t(s[1])}` : lv === 3 ? `${t(s[3])}+` : `${t(s[lv])} to under ${t(s[lv + 1])}`) + ' s/answer';
+    }
     const at = i => by ? lasted(s[i]) : num(s[i]), upto = i => by ? lasted(s[i] - 60) : num(s[i] - 1);
     const unit = by ? '' : ' reviews';
     if (lv === 0) return `Under ${at(1)}${unit}`;
@@ -1647,11 +1622,9 @@ AF.calendar = function (root, data, env) {
       : c.o > H.ahead ? 'Too far ahead to count'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
+      : c.n && H.answerModes[H.by] && H.answerTime(c.o, H.by) !== null ? `Median ${H.answerTime(c.o, H.by).toFixed(1)} s/answer, ${cards(c.n, 'review')}${c.o === 0 && H.dueToday ? `, ${num(H.dueToday)} still due` : ''}`
       : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
-      : c.n && H.by === 'friction' && H.friction(c.o) ? frictionText(H.friction(c.o)) + `, ${cards(c.n, 'review')}`
-        + (frictionOpens(c) ? '<br><span class="af-hint">Click to see the cards</span>' : '')
-      : c.n && H.by === 'recall' && H.recall(c.o) !== null ? `${recallText(H.recall(c.o))}, ${cards(c.n, 'review')}`
       : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
       : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
     // (where in its streak, in days studied)
@@ -1717,7 +1690,7 @@ AF.calendar = function (root, data, env) {
       if (e.target !== drawn.cv || e.altKey || e.ctrlKey || e.metaKey) return;
       const step = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
       if (e.key === 'Escape') { if (!tip.hidden) { e.preventDefault(); e.stopPropagation(); unpoint(); } return; }
-      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c && frictionOpens(c)) { openFriction(c); return; } if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`); return; }
+      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ':' + H.by}`); return; }
       if (e.key === 'Home') { e.preventDefault(); cur = 0; if (!curCell()) go('0'); toCur(); return; }
       if (!step && !pg) return;
       e.preventDefault();
@@ -1769,40 +1742,8 @@ AF.calendar = function (root, data, env) {
   grid.addEventListener('click', e => {
     if (e.detail > 1) return;  // (a double-click opens the day once)
     const c = cellAt(e);
-    if (c && frictionOpens(c)) openFriction(c);
-    else if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ''}`);
+    if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ':' + H.by}`);
   });
-  // by Friction, a day with some clicked: the cards behind it, the most time relearning first, then
-  // the most times forgotten (study_log.friction_cards), each opening in the browser, so the few that
-  // take up a large part of your time can be simplified, split or looked into. Esc, a click
-  // elsewhere, or another shade closes it
-  const fric = box.querySelector('.af-cal-fric');
-  let fricDay = null;
-  const closeFriction = () => { fric.hidden = true; fricDay = null; };
-  const openFriction = c => {
-    fricDay = c.o;
-    window.pycmd(`${data.channel}:friction:${-c.o}:${deck}`, got => {
-      if (fricDay !== c.o) return;
-      fric.textContent = '';
-      const add = (tag, cls, text) => { const el = document.createElement(tag); el.className = cls; el.textContent = text; return el; };
-      fric.appendChild(add('div', 'af-cal-fric-head', `${fmt(c.ms)}: ${frictionText(H.friction(c.o))}`));
-      for (const row of got || []) {
-        const b = add('button', 'af-cal-fric-row', '');
-        b.type = 'button';
-        b.title = 'Open it in the browser';
-        b.appendChild(add('span', 'af-cal-fric-name', row.name));
-        b.appendChild(add('span', 'af-cal-fric-what', [row.secs ? `${row.secs < 60 ? `${row.secs} s` : `${Math.floor(row.secs / 60)} min${row.secs % 60 ? ` ${row.secs % 60} s` : ''}`} relearning` : '', row.again ? `forgot ${row.again}\u00d7` : ''].filter(Boolean).join(', ')));
-        b.addEventListener('click', () => send(`${data.channel}:card:${row.cid}`));
-        fric.appendChild(b);
-      }
-      fric.appendChild(add('div', 'af-cal-fric-note', 'Some relearning is expected. These are the cards worth a look: to simplify, split or reword.'));
-      tip.hidden = true;  // (the day's tooltip gives way to its list)
-      fric.hidden = false;
-      placeOver(fric, c);
-    });
-  };
-  document.addEventListener('mousedown', e => { if (!fric.hidden && !fric.contains(e.target)) closeFriction(); });
-  box.addEventListener('keydown', e => { if (e.key === 'Escape' && !fric.hidden) { e.preventDefault(); e.stopPropagation(); closeFriction(); } });
   // a right-click on a day marks it as important (an exam, say: marks.py) and opens a small editor
   // over it: the icons side by side, its own lit, its name, and × to take the mark away.
   // Enter, or a click anywhere else, keeps it; Esc puts back what was there. Kept by the add-on,

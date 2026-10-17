@@ -20,6 +20,11 @@ from __future__ import annotations
 
 import zlib
 
+if __package__:
+    from .numeric import median
+else:  # tests and dev scripts import this as a top-level module
+    from numeric import median
+
 NATURE_LABELS = {"peaceful": "Peaceful", "wild": "Wild", "merciless": "Merciless"}
 DEFAULT_NATURE = "peaceful"
 
@@ -332,11 +337,8 @@ def stagnation(trees: list, review_days: set) -> float:
 
 def usual_reviews(day_counts: list) -> float:
     """Your usual day's reviews: the median of the counts of the days you studied."""
-    counts = sorted(n for n in day_counts if n > 0)
-    if not counts:
-        return 0.0
-    mid = len(counts) // 2
-    return float(counts[mid]) if len(counts) % 2 else (counts[mid - 1] + counts[mid]) / 2
+    counts = [n for n in day_counts if n > 0]
+    return float(median(counts)) if counts else 0.0
 
 
 def review_hell(overdue: int, usual: float) -> float:

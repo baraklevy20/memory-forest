@@ -4,8 +4,6 @@ changes), the day's scene and weather (live_weather.py), and the numbers the pag
 from __future__ import annotations
 
 import datetime as _dt
-import html
-import re
 import time
 from types import SimpleNamespace
 
@@ -296,34 +294,11 @@ def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: i
     return [seconds.get(ago, 0) for ago in range(oldest, -1, -1)]
 
 
-def _day_friction(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
-    """Each day's Friction, oldest first (study_log.load_day_friction), remembered until the study data changes."""
-    days = remembered("day_friction", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
-                      lambda: study_log.load_day_friction(mw.col.db, cutoff, dids, excluded, skip))
-    return [[round(100 * days[ago][0] / days[ago][1], 1), *days[ago]] if ago in days else None for ago in range(oldest, -1, -1)]
-
-
-FRICTION_NAME = 60  # (the most of a card's name its row shows)
-
-
-def friction_cards(ago: int, did: int | None) -> list:
-    """The cards behind a day's Friction, for the heatmap's list (study_log.friction_cards): each as
-    {cid, secs, again, name}, the name the note's sort field without its markup."""
-    cfg, col = config(), mw.col
-    excluded, skip = excluded_decks(cfg), phone_cards()
-    dids = deck_ids(did, excluded) if did else None
-    out = []
-    for cid, secs, again, name in study_log.friction_cards(col.db, day_cutoff(col), ago, dids, excluded, skip):
-        text = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]*>", " ", name))).strip()
-        out.append({"cid": cid, "secs": secs, "again": again, "name": text[:FRICTION_NAME] or "(empty)"})
-    return out
-
-
-def _day_recall(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
-    """Each day's average answer, oldest first (study_log.load_day_recall), remembered until the study data changes."""
-    days = remembered("day_recall", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
-                      lambda: study_log.load_day_recall(mw.col.db, cutoff, dids, excluded, skip))
-    return [round(days[ago], 2) if ago in days else None for ago in range(oldest, -1, -1)]
+def _day_answer_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
+    """Daily median seconds per answer, cached with the review data."""
+    days = remembered("day_answer_time", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+                      lambda: study_log.load_day_answer_time(mw.col.db, cutoff, dids, excluded, skip))
+    return [days.get(ago) for ago in range(oldest, -1, -1)]
 
 
 def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
@@ -435,11 +410,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)
             "time": _test_time(days, oldest) if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
-            # Recall: each day's average answer, Again 0 to Easy 3 (None with no reviews), as `days`
-            "recall": [] if test else _day_recall(cutoff, dids, excluded, skip, changed, oldest),
-            # Friction: each day's [% of its review time spent relearning forgotten cards, seconds
-            # relearning, seconds in all], or None with no review time kept, as `days`
-            "friction": [] if test else _day_friction(cutoff, dids, excluded, skip, changed, oldest),
+            # Pace: each day's median seconds per answer, aligned with `days`.
+            "answerTime": [] if test else _day_answer_time(cutoff, dids, excluded, skip, changed, oldest),
             "breakDays": forest_data.BREAK_DAYS,
             "forestStart": forest_start,
             "hiddenBefore": hidden_before,

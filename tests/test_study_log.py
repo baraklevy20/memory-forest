@@ -311,58 +311,22 @@ class DayTimeTests(unittest.TestCase):
         class DB:
             def all(self, q, *a): return con.execute(q, a).fetchall()
         self.assertEqual(study_log.load_day_time(DB(), CUTOFF, None), {3: 60, 1: 5})
+        self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None), {3: 30, 1: 5.5})
+        con.execute("insert into revlog values (?, 1, 3, 2, 120000)", (ms(3) + 120000,))
+        self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, [10])[3], 40)
+        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 120000})
+        con.execute("insert into revlog values (?, 1, 3, 1, 1500)", (ms(3) + 130000,))
+        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 1500})
+        self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -3, "reviews"), {1: 4})
+        self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -3, "time"), {1: 181500})
+        self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -2, "reviews"), {})
+        self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -1, "time"), {1: 5500})
+        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -2), {})
+        self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None, [10]), {})
+        self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None, skip=[1]), {})
+        con.execute("insert into revlog values (?, 1, 3, 1, 0)", (ms(1) + 1,))
+        self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None)[1], 2.75)
 
-
-class DayRecallTests(unittest.TestCase):
-    """Each day's average answer (study_log.load_day_recall): Again 0, Hard 1, Good 2, Easy 3."""
-
-    def test_a_day_s_answers_average_and_a_card_seen_but_not_answered_does_not_count(self):
-        import sqlite3
-        con = sqlite3.connect(":memory:")
-        self.addCleanup(con.close)
-        con.executescript("""
-            create table cards (id integer, did integer, odid integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer);
-        """)
-        con.execute("insert into cards values (1, 10, 0)")
-        for days, ease, rtype in ((3, 1, 1), (3, 4, 1), (3, 3, 1), (3, 0, 4), (1, 3, 0)):
-            con.execute("insert into revlog values (?, 1, ?, ?, 1000)", (ms(days) + ease * 10, ease, rtype))
-
-        class DB:
-            def all(self, q, *a): return con.execute(q, a).fetchall()
-        self.assertEqual(study_log.load_day_recall(DB(), CUTOFF, None), {3: (0 + 3 + 2) / 3, 1: 2.0})
-
-
-class FrictionTests(unittest.TestCase):
-    """Friction (study_log.load_day_friction, friction_cards): time relearning forgotten cards."""
-
-    def db(self):
-        import sqlite3
-        con = sqlite3.connect(":memory:")
-        self.addCleanup(con.close)
-        con.executescript("""
-            create table cards (id integer, did integer, odid integer, nid integer);
-            create table notes (id integer, sfld text);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer);
-        """)
-        for cid in (1, 2, 3):
-            con.execute("insert into cards values (?, 10, 0, ?)", (cid, cid))
-            con.execute("insert into notes values (?, ?)", (cid, f"card {cid}"))
-        # day 2: card 1 forgotten twice (Again on review, then relearning), card 2 new, card 3 a plain review
-        rows = ((1, 1, 1, 10000), (1, 3, 2, 30000), (1, 1, 2, 20000), (1, 3, 2, 10000),
-                (2, 1, 0, 60000), (2, 3, 0, 40000), (3, 3, 1, 30000))
-        for i, (cid, ease, rtype, took) in enumerate(rows):
-            con.execute("insert into revlog values (?, ?, ?, ?, ?)", (ms(2) + i, cid, ease, rtype, took))
-
-        class DB:
-            def all(self, q, *a): return con.execute(q, a).fetchall()
-        return DB()
-
-    def test_a_day_s_friction_is_its_relearning_time_not_its_new_cards(self):
-        self.assertEqual(study_log.load_day_friction(self.db(), CUTOFF, None), {2: (60, 200)})
-
-    def test_the_cards_behind_it_come_most_time_relearning_first(self):
-        self.assertEqual(study_log.friction_cards(self.db(), CUTOFF, 2, None), [(1, 60, 2, "card 1")])
 
 
 class EventQueryTests(unittest.TestCase):

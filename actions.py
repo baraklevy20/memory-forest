@@ -6,18 +6,18 @@ from __future__ import annotations
 import traceback
 
 from anki.collection import SearchNode
-from aqt import dialogs, mw
+from aqt import dialogs, gui_hooks, mw
 from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 from aqt.qt import QShortcut
 from aqt.utils import tooltip
 
-from . import events_state, marks, news, payload, study_log
+from . import answer_column, events_state, marks, news, payload, study_log
 from .panel import refresh
 from .phone import publish as publish_for_phone
 from .phone import switch
 from .phone_note import PHONE_NOTETYPE, phone_decks
-from .scope import excluded_decks
+from .scope import day_cutoff, excluded_decks
 from .settings import open_settings as open_dialog
 from .state import CALENDAR_SHADES, CALENDAR_VIEWS, MODULE, config, keeps_suspended, log, save_config
 
@@ -49,14 +49,21 @@ def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None
     _open_browser(study_log.day_search(days_ago, until_days_ago, keeps_suspended()), did)
 
 
-def browse_calendar_day(offset: int, did: int | None = None, due: bool = False) -> None:
+def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, answer_mode: str = "") -> None:
     """Open the browser on a study calendar day's cards (web/calendar.js): those reviewed that
     day, `offset` days before today (0: today), or those due that day, `offset` days ahead (or
     today, `due`, before you have studied: the cards its tile counts)."""
-    _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did)
+    values, label = None, ""
+    if answer_mode in ("reviews", "time", "median") and offset <= 0 and not due:
+        cutoff = day_cutoff(mw.col)
+        values = (study_log.day_answer_times(mw.col.db, cutoff, offset) if answer_mode == "median"
+                  else study_log.day_card_totals(mw.col.db, cutoff, offset, answer_mode))
+        title = {"reviews": "Attempts", "time": "Total time", "median": "Answer time"}[answer_mode]
+        label = f"{title} ({study_log.day_date(-offset, cutoff).isoformat()})"
+    _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did, values, label, answer_mode)
 
 
-def _open_browser(terms: list, did: int | None = None) -> None:
+def _open_browser(terms: list, did: int | None = None, answer_times: dict | None = None, answer_label: str = "", metric: str = "median") -> None:
     """The browser on `terms`, kept to the cards the forest counts: the deck `did` if given, and
     never a deck left out of the forest or the note that carries it to your phone."""
     terms = list(terms)
@@ -77,7 +84,32 @@ def _open_browser(terms: list, did: int | None = None) -> None:
     # phone_note.phone_cards finds it)
     terms.append(mw.col.build_search_string(SearchNode(negated=SearchNode(note=PHONE_NOTETYPE))))
     browser = dialogs.open("Browser", mw)
-    browser.search_for(" ".join(terms))
+    if answer_times is None:
+        browser.search_for(" ".join(terms))
+        return
+
+    if answer_label:
+        answer_column.show(browser, answer_times, answer_label, " ".join(terms), metric)
+
+    # Sort only this opening search; leave later searches alone.
+    def sort_answers(context):
+        if context.browser is not browser or context.ids is None:
+            return
+        times = answer_times
+        if browser.table.is_notes_mode():
+            times = {}
+            ids = ",".join(str(int(cid)) for cid in answer_times) or "0"
+            for cid, nid in mw.col.db.all(f"select id, nid from cards where id in ({ids})"):
+                if cid in answer_times:
+                    times[nid] = (times.get(nid, 0) + answer_times[cid] if metric in ("reviews", "time")
+                                  else max(times.get(nid, -1), answer_times[cid]))
+        context.ids = sorted(context.ids, key=lambda item: (-times.get(item, -1), item))
+
+    gui_hooks.browser_did_search.append(sort_answers)
+    try:
+        browser.search_for(" ".join(terms))
+    finally:
+        gui_hooks.browser_did_search.remove(sort_answers)
 
 
 _held: list = []  # the main window's shortcuts switched off while a name is typed (hold_shortcuts)
@@ -120,18 +152,15 @@ def on_js_message(handled, message, context):
             marks.set_mark(mw.col, cmd[1], cmd[2], ":".join(cmd[3:]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "unmark" and len(cmd) > 1:
             marks.unmark(mw.col, cmd[1])
-        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the key: reviews, time, recall or friction
+        elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the key: Reviews, Time, or Pace
             save_config(dict(config(), calendar_shade=cmd[1]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "view" and len(cmd) > 1 and cmd[1] in CALENDAR_VIEWS:  # Timeline | By year, on the heatmap
             save_config(dict(config(), calendar=cmd[1]))  # (drawn already; the Heatmap tab's View follows it)
         elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait
             hold_shortcuts(cmd[1:] == ["1"])
-        elif cmd[0] == "friction" and len(cmd) > 1:  # a day clicked while the heatmap shows Friction: its cards
-            return (True, payload.friction_cards(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None))
-        elif cmd[0] == "card" and len(cmd) > 1:  # one of them clicked: the browser on it
-            _open_browser([f"cid:{int(cmd[1])}"])
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked
-            browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None, len(cmd) > 3 and cmd[3] == "due")
+            browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None, len(cmd) > 3 and cmd[3] == "due",
+                                cmd[3] if len(cmd) > 3 else "")
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

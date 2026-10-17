@@ -16,22 +16,16 @@ from __future__ import annotations
 import datetime as _dt
 import hashlib
 
-try:
+if __package__:
     from .memory import retrievability, stability
     from .milestones import visitors
+    from .numeric import median
     from .study_log import DAY_SECS, Rows, day_date, days_ago
-except ImportError:  # tests and dev scripts import these files as top-level modules
+else:  # tests and dev scripts import these files as top-level modules
     from memory import retrievability, stability
     from milestones import visitors
+    from numeric import median
     from study_log import DAY_SECS, Rows, day_date, days_ago
-
-try:
-    from statistics import median
-except ImportError:  # the Anki builds before 2.1.50 do not bundle it
-    def median(values) -> float:
-        v = sorted(values)
-        mid = len(v) // 2
-        return v[mid] if len(v) % 2 else (v[mid - 1] + v[mid]) / 2
 
 
 MATURE_DAYS = 21

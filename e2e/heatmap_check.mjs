@@ -22,6 +22,16 @@ try {
     box.querySelector('[data-view="timeline"]').click();
     if (box.querySelectorAll('.af-cal-months span[data-m]').length !== 10) failures.push('Timeline did not show ten months');
     box.querySelector('[data-view="by_year"]').click();
+    const modes = [...box.querySelectorAll('.af-cal-shade [data-by]')].map(b => b.dataset.by);
+    if (modes.join(',') !== 'reviews,time,median') failures.push(`unexpected heatmap modes: ${modes}`);
+    for (const mode of ['median']) {
+      const button = box.querySelector(`[data-by="${mode}"]`);
+      if (!button || button.hidden) { failures.push(`${mode} answer time unavailable`); continue; }
+      button.click();
+      if (!button.classList.contains('af-on')) failures.push(`${mode} answer time did not activate`);
+      if (!box.querySelector('.af-cal-key').textContent.includes('Slower')) failures.push(`${mode} answer time has no speed legend`);
+    }
+    box.querySelector('[data-by="reviews"]').click();
     return failures;
   });
   out.errors.push(...layoutChecks);
