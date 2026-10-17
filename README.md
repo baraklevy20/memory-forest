@@ -1,6 +1,6 @@
 # Memory Forest
 
-**A forest that grows from your Anki study history.** Every day you learn new
+**A forest that grows from your Anki study history, with a study heatmap under it.** Every day you learn new
 cards plants a tree below your deck list. Trees grow as those cards settle into memory,
 and turn a little yellow when you start to forget them. There is nothing to click and
 nothing to manage: just study, and watch it grow.
