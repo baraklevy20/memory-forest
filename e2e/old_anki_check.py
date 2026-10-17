@@ -16,7 +16,20 @@ import time
 import traceback
 
 from aqt import gui_hooks, mw
-from aqt.qt import QApplication, QEvent, QHeaderView, QMouseEvent, QObject, QPointF, QScrollArea, Qt, QTabBar, QTabWidget, QTimer
+from aqt.qt import (
+    QApplication,
+    QEvent,
+    QEventLoop,
+    QHeaderView,
+    QMouseEvent,
+    QObject,
+    QPointF,
+    QScrollArea,
+    Qt,
+    QTabBar,
+    QTabWidget,
+    QTimer,
+)
 
 FOREST = os.environ.get("MEMORY_FOREST_FOLDER", "anki_forest")
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -594,6 +607,15 @@ def watch_editor(browser):
     add(f"watched at {page.url().toString()}")
 
 
+def pump(ms: int) -> None:
+    """Let Qt (and Chromium's work in it) run for `ms`, as Anki's own loop would: a real event
+    loop until a timer ends it. processEvents() with sleeps between starves Chromium: a page
+    waits for each turn, and on a slow machine (CI's) the browser's editor never loads."""
+    loop = QEventLoop()
+    QTimer.singleShot(ms, loop.quit)
+    (getattr(loop, "exec", None) or loop.exec_)()
+
+
 def heatmap_browser_metrics():
     """Exercise the real browser's hooks, metric cells, sorting, and repeated cleanup."""
     from aqt import dialogs
@@ -603,8 +625,7 @@ def heatmap_browser_metrics():
         # finish before switching modes, searching again or closing its web view.
         end = time.monotonic() + 0.35
         while time.monotonic() < end:
-            QApplication.processEvents()
-            time.sleep(0.01)
+            pump(10)
 
     def open_day(*args, **kwargs):
         settle()
@@ -625,8 +646,7 @@ def heatmap_browser_metrics():
             # reports its actual state instead of queuing diagnostics forever.
             web.page().runJavaScript("typeof saveNow === 'function'", ready.append)
             while not ready and time.monotonic() < end:
-                QApplication.processEvents()
-                time.sleep(0.01)
+                pump(10)
             if ready and ready[0]:
                 return
             settle()
@@ -658,8 +678,7 @@ def heatmap_browser_metrics():
         browser.close()
         end = time.monotonic() + 10
         while dialogs._dialogs["Browser"][1] is browser and time.monotonic() < end:
-            QApplication.processEvents()
-            time.sleep(0.01)
+            pump(10)
         if dialogs._dialogs["Browser"][1] is browser:
             raise AssertionError("browser did not finish its asynchronous close")
         settle()
@@ -671,8 +690,7 @@ def heatmap_browser_metrics():
             text = data.get_cell(data.index(row, section)).text
             if text != "..." or time.monotonic() >= end:
                 return text
-            QApplication.processEvents()
-            time.sleep(0.01)
+            pump(10)
 
     def layout(browser):
         header = browser.table._view.horizontalHeader()
