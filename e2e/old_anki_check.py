@@ -594,14 +594,16 @@ def heatmap_browser_metrics():
         editor_ready(dialogs.open("Browser", mw))
 
     def editor_ready(browser):
-        # A newly opened editor loads its JavaScript asynchronously. Searching or
-        # closing before saveNow exists races Anki's save-before-action callback.
-        if browser.editor.note is None:
-            return  # Anki skips saving entirely while the editor has no note.
+        # Even an empty editor must finish loading: the browser's queued selection
+        # can assign a note before the next search/close saves it. Hidden WebEngine
+        # views can defer initialization on CI's offscreen platform.
+        browser.editor.web.show()
         end = time.monotonic() + 30
         while time.monotonic() < end:
             ready = []
-            browser.editor.web.evalWithCallback("typeof saveNow === 'function'", ready.append)
+            # Bypass Anki's pending-action queue for probes, so a stalled page
+            # reports its actual state instead of queuing diagnostics forever.
+            browser.editor.web.page().runJavaScript("typeof saveNow === 'function'", ready.append)
             while not ready and time.monotonic() < end:
                 QApplication.processEvents()
                 time.sleep(0.01)
@@ -609,7 +611,7 @@ def heatmap_browser_metrics():
                 return
             settle()
         details = []
-        browser.editor.web.evalWithCallback("JSON.stringify({url:location.href,ready:document.readyState,scripts:Array.from(document.scripts).map(s=>s.src)})", details.append)
+        browser.editor.web.page().runJavaScript("JSON.stringify({url:location.href,ready:document.readyState,scripts:Array.from(document.scripts).map(s=>s.src)})", details.append)
         settle()
         raise AssertionError("browser editor did not finish loading: " + str(details))
 
@@ -645,6 +647,7 @@ def heatmap_browser_metrics():
     forest = sys.modules[FOREST]
     col = mw.col
     browser = dialogs.open("Browser", mw)
+    editor_ready(browser)
     # Give the initially empty editor a real note before switching table modes;
     # otherwise its queued selection callback can race the first script load.
     browser.search_for(f"cid:{col.db.scalar('select id from cards order by id limit 1')}")
