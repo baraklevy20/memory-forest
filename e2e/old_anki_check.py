@@ -571,55 +571,51 @@ def heatmap_browser_metrics():
     offset = -200
     stamp = (cutoff + (offset - 1) * 86400 + 3600) * 1000
     model = (col.models.by_name if hasattr(col.models, "by_name") else col.models.byName)("Basic")
-    notes, cards = [], []
-    try:
-        for index in range(3):
-            n = col.new_note(model) if hasattr(col, "new_note") else col.newNote()
-            n["Front"] = n["Back"] = f"heatmap metric card {index}"
-            if hasattr(col, "add_note"):
-                col.add_note(n, col.decks.id("Default"))
-            else:
-                col.addNote(n)
-            notes.append(n.id)
-            cards.append(n.cards()[0].id)
-        # A: most attempts; B: most total time; C: slowest final answer.
-        for index, times in enumerate(((6000, 6000, 1000), (20000, 500), (9000,))):
-            for attempt, elapsed in enumerate(times):
-                col.db.execute("insert into revlog values (?,?,?,?,?,?,?,?,?)",
-                               stamp + index * 10 + attempt, cards[index], -1, 3, 1, 0, 2500, elapsed, 2 if attempt else 1)
-        expectations = (
-            ("reviews", [cards[0], cards[1], cards[2]], {cards[0]: "3", cards[1]: "2", cards[2]: "1"}),
-            ("time", [cards[1], cards[0], cards[2]], {cards[0]: "13.0 s", cards[1]: "20.5 s", cards[2]: "9.0 s"}),
-            ("median", [cards[2], cards[0], cards[1]], {cards[0]: "1.0 s", cards[1]: "0.5 s", cards[2]: "9.0 s"}),
-        )
-        for mode, wanted, values in expectations:
+    # Keep these fixtures until this throwaway profile is discarded. Browser selection
+    # callbacks can still run after close(), and older Ankis fail if their cards are gone.
+    cards = []
+    for index in range(3):
+        n = col.new_note(model) if hasattr(col, "new_note") else col.newNote()
+        n["Front"] = n["Back"] = f"heatmap metric card {index}"
+        if hasattr(col, "add_note"):
+            col.add_note(n, col.decks.id("Default"))
+        else:
+            col.addNote(n)
+        cards.append(n.cards()[0].id)
+    # A: most attempts; B: most total time; C: slowest final answer.
+    for index, times in enumerate(((6000, 6000, 1000), (20000, 500), (9000,))):
+        for attempt, elapsed in enumerate(times):
+            col.db.execute("insert into revlog values (?,?,?,?,?,?,?,?,?)",
+                           stamp + index * 10 + attempt, cards[index], -1, 3, 1, 0, 2500, elapsed, 2 if attempt else 1)
+    expectations = (
+        ("reviews", [cards[0], cards[1], cards[2]], {cards[0]: "3", cards[1]: "2", cards[2]: "1"}),
+        ("time", [cards[1], cards[0], cards[2]], {cards[0]: "13.0 s", cards[1]: "20.5 s", cards[2]: "9.0 s"}),
+        ("median", [cards[2], cards[0], cards[1]], {cards[0]: "1.0 s", cards[1]: "0.5 s", cards[2]: "9.0 s"}),
+    )
+    for mode, wanted, values in expectations:
+        forest.actions.browse_calendar_day(offset, answer_mode=mode)
+        browser = dialogs.open("Browser", mw)
+        table = browser.table
+        if table.is_notes_mode():
+            table.toggle_state(False, browser.current_search())
             forest.actions.browse_calendar_day(offset, answer_mode=mode)
-            browser = dialogs.open("Browser", mw)
-            table = browser.table
-            if table.is_notes_mode():
-                table.toggle_state(False, browser.current_search())
-                forest.actions.browse_calendar_day(offset, answer_mode=mode)
-            data = table._model
-            found = [data.get_item(data.index(i, 0)) for i in range(data.rowCount())]
-            if found != wanted:
-                raise AssertionError(f"{mode}: sorted cards {found}, expected {wanted}")
-            section = data.active_column_index(forest.actions.answer_column.KEY)
-            if table._view.horizontalHeader().visualIndex(section) != 1:
-                raise AssertionError(f"{mode}: metric column is not second")
-            for i, cid in enumerate(found):
-                text = data.get_cell(data.index(i, section)).text
-                if text != values[cid]:
-                    raise AssertionError(f"{mode}: card {cid} shows {text!r}, expected {values[cid]!r}")
-            result["steps"].append(f"heatmap {mode}: browser column and sorting")
-        cleanup = forest.actions.answer_column._session
-        cleanup()
-        cleanup()
-        result["steps"].append("heatmap browser cleanup twice")
-        browser.close()
-    finally:
-        col.db.execute("delete from revlog where id >= ? and id < ?", stamp, stamp + 100)
-        if notes:
-            col.remove_notes(notes) if hasattr(col, "remove_notes") else col.remNotes(notes)
+        data = table._model
+        found = [data.get_item(data.index(i, 0)) for i in range(data.rowCount())]
+        if found != wanted:
+            raise AssertionError(f"{mode}: sorted cards {found}, expected {wanted}")
+        section = data.active_column_index(forest.actions.answer_column.KEY)
+        if table._view.horizontalHeader().visualIndex(section) != 1:
+            raise AssertionError(f"{mode}: metric column is not second")
+        for i, cid in enumerate(found):
+            text = data.get_cell(data.index(i, section)).text
+            if text != values[cid]:
+                raise AssertionError(f"{mode}: card {cid} shows {text!r}, expected {values[cid]!r}")
+        result["steps"].append(f"heatmap {mode}: browser column and sorting")
+    cleanup = forest.actions.answer_column._session
+    cleanup()
+    cleanup()
+    result["steps"].append("heatmap browser cleanup twice")
+    browser.close()
 
 
 def opened():
