@@ -68,7 +68,7 @@ class AnswerColumnTests(unittest.TestCase):
         self.modules = mock.patch.dict(sys.modules, {"aqt.browser.table": types.SimpleNamespace(Column=legacy_column)})
         self.modules.start()
         self.addCleanup(self.modules.stop)
-        self.columns = mock.patch("anki.collection.BrowserColumns", columns, create=True)
+        self.columns = mock.patch.object(sys.modules["anki.collection"], "BrowserColumns", columns, create=True)
         self.columns.start()
         self.addCleanup(self.columns.stop)
         self.addCleanup(self.cleanup)

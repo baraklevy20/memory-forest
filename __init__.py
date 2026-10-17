@@ -17,7 +17,7 @@ from aqt import gui_hooks, mw
 
 from . import events_state, live_weather, news, payload
 from .actions import on_deck_options_menu, on_js_message, open_settings, settings_changed
-from .panel import on_deck_browser, on_overview, on_page_loaded, refresh
+from .panel import on_deck_browser, on_overview, on_page_loaded, refresh, release_shortcuts
 from .phone import after_sync as publish_after_sync
 from .phone import publish as publish_for_phone
 from .planting import on_answer
@@ -25,6 +25,9 @@ from .planting import on_answer
 mw.addonManager.setWebExports(__name__, r"web/.*\.(js|css)")
 
 news.started()  # (before the first forest saves anything)
+gui_hooks.deck_browser_will_render_content.append(release_shortcuts)  # (a mark being named is gone with the page)
+gui_hooks.overview_will_render_content.append(release_shortcuts)
+gui_hooks.state_did_change.append(release_shortcuts)
 gui_hooks.deck_browser_will_render_content.append(on_deck_browser)
 gui_hooks.overview_will_render_content.append(on_overview)
 # a finished deck's congratulations page: the panel added once it has loaded

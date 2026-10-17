@@ -59,6 +59,8 @@ TILE_DEFAULT = "flat"  # (what a style that can't be had falls back to, and Scen
 TILE_FOLLOW = "scenery"  # (the default: the scenery's own style, changing with it; web/heatmap/scenery.json)
 SHAPES = tuple(k for k, v in TILE_SPECS.items() if v.get("shape"))
 TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
+# the sceneries that wear a style anyone can pick as their own (its file's "sceneries": Round on Lanterns)
+TILE_WORN = {env: k for k, v in TILE_SPECS.items() for env in v.get("sceneries", ())}
 # (Scenery has no style of its own: it is the scenery's, tile_style)  # whose calendarTile draws them
 TILE_SEASONS = {k: v["season"] for k, v in TILE_SPECS.items() if v.get("season")}  # by the preset whose week they come in
 # each style's spaces between the days and smooth corners (drawn at the screen's resolution), as a
@@ -156,12 +158,12 @@ def tile_gap(cfg: dict, here: str = "") -> int | None:
 def tile_style(cfg: dict, here: str = "") -> str:
     """The style the heatmap is drawn in for `cfg` while the scenery's environment is `here`:
     Scenery's is that scenery's own (the style its environment draws, TILE_ENVS: Brush on Starry
-    night, Round on Lanterns, a holiday's in its week), else Flat; any other is itself if it can be had just now
+    night; or one it wears, TILE_WORN: Round on Lanterns; a holiday's in its week), else Flat; any other is itself if it can be had just now
     (tile_shown), else Flat."""
     choice = tiles_choice(cfg)
     if choice == TILE_FOLLOW:
-        if here == "lanterns":
-            return "round"
+        if here in TILE_WORN:
+            return TILE_WORN[here]
         return next((k for k, env in TILE_ENVS.items() if env == here and tile_shown(k, cfg)), TILE_DEFAULT)
     return choice if tile_shown(choice, cfg) else TILE_DEFAULT
 

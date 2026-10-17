@@ -7,6 +7,7 @@ script against a plain sqlite3 connection.
 
 from __future__ import annotations
 
+import bisect
 import datetime as _dt
 from collections.abc import Iterable
 from dataclasses import dataclass, field
@@ -201,10 +202,10 @@ def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | 
     oldest first: days a streak passes over (forest_data._streaks), from the review log alone,
     as Anki keeps no record of what was due. Each answer or manual reschedule sets when its card
     falls due (its day plus the interval; a reset to new, none), and the card is due from then
-    until its next one, or after its last one on to today while it is still in learning or review
-    (a card suspended or reset since stops there). A card deleted since, whose deletion Anki keeps
-    no date of, is due from then until the next day you studied anything: a deck deleted and
-    left behind never makes a year away look like days with nothing due."""
+    until its next one, or after its last one on to today while it is still in learning or review.
+    A card suspended, buried or deleted since, whose change Anki keeps no date of, is due from
+    then until the next day you studied anything: suspending an overdue card, or a deck deleted
+    and left behind, never makes days away look like days with nothing due."""
     _in_decks, only = _filters(dids, excluded, skip)
     # each answer's day, the day it set the card due on, and the card's next answer's day (all as
     # days ago), worked out by the database: a big collection has hundreds of thousands
@@ -218,17 +219,17 @@ def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | 
                                     day_cutoff * 1000)}
     # due from due_on back to the day after the next answer, or (its last answer) to today while
     # the card is in learning or review: each span's ends, summed into each day's count
-    # (a deleted card's last answer: -1 here, its end worked out below from the days studied)
+    # (the last answer of a card suspended, buried or deleted since: -1 here, its end worked out
+    # below from the days studied)
     ranges = (f"select min(due_on, {oldest}) as older, case when next is not null then next + 1 "
-              f"when cid in (select id from cards) then 0 else -1 end as newer from ({spans}) "
-              "where due_on is not null and (next is not null or cid in (select id from cards where queue in (1, 2, 3)) "
-              "or cid not in (select id from cards))")
+              f"when cid in (select id from cards where queue in (1, 2, 3)) then 0 else -1 end as newer from ({spans}) "
+              "where due_on is not null")
     due = [0] * (oldest + 2)
     after = sorted(studied)  # (days ago, the most recent first)
     for older, newer, n in db.all(f"select older, newer, count() from ({ranges}) where older >= max(newer, 0) group by 1, 2"):
         if newer < 0:  # due until the first day studied on or after its due day
-            back = [d for d in after if d <= older]
-            newer = back[-1] + 1 if back else 0
+            at = bisect.bisect_right(after, older)  # (the first day studied on or after it)
+            newer = after[at - 1] + 1 if at else 0
             if newer > older:
                 continue
         due[newer] += n
@@ -284,19 +285,46 @@ def load_day_time(db, day_cutoff: int, dids: list | None, excluded: Iterable | N
 
 
 def load_day_answer_time(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
-                         skip: Iterable | None = None) -> dict:
-    """{days ago: median seconds} per answer, using Anki's logged times.
-
-    Zero times are included; manual reschedules and unanswered cards are excluded.
-    """
+                         skip: Iterable | None = None, since_ms: int = 0) -> dict:
+    """{days ago: median seconds} per answer, using Anki's logged times, from `since_ms` on (all
+    of them for 0). Zero times are included; manual reschedules and unanswered cards are
+    excluded. The database takes each day's median: a big collection has hundreds of thousands."""
     _in_decks, only = _filters(dids, excluded, skip)
-    days = {}
-    for ago, milliseconds in db.all(
-        f"select (? - 1 - id / 1000) / {DAY_SECS}, time from revlog "
-        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}",
-        day_cutoff, day_cutoff * 1000):
-        days.setdefault(ago, []).append(milliseconds)
-    return {ago: median(times) / 1000 for ago, times in days.items()}
+    since = f" and id >= {int(since_ms)}" if since_ms else ""
+    answers = (f"select (? - 1 - id / 1000) / {DAY_SECS} as ago, time from revlog "
+               f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}{since}")
+    ranked = (f"select ago, time, row_number() over (partition by ago order by time) as r, "
+              f"count() over (partition by ago) as n from ({answers})")
+    return {ago: ms / 1000 for ago, ms in db.all(
+        f"select ago, avg(time) from ({ranked}) where r in ((n + 1) / 2, (n + 2) / 2) group by ago",
+        day_cutoff, day_cutoff * 1000)}
+
+
+class AnswerTimes:
+    """load_day_answer_time's days for one choice of decks, kept between redraws: read whole the
+    first time, and after that only the days the reviews added since fall on (a day's median
+    needs all its answers, so those days are read again whole). Read whole again when the day or
+    the choice changes, or the newest review is gone (an undo)."""
+
+    def __init__(self):
+        self.key = None
+        self.newest = 0
+        self.days: dict = {}
+
+    def read(self, db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
+             skip: Iterable | None = None) -> dict:
+        key = (day_cutoff, tuple(dids or ()), frozenset(excluded or ()), frozenset(skip or ()))
+        newest = db.scalar("select max(id) from revlog") or 0
+        if key != self.key or newest < self.newest:
+            self.days = load_day_answer_time(db, day_cutoff, dids, excluded, skip)
+            self.key = key
+        elif newest > self.newest:
+            first = db.scalar("select min(id) from revlog where id > ?", self.newest)
+            ago = (day_cutoff - 1 - first // 1000) // DAY_SECS
+            self.days.update(load_day_answer_time(db, day_cutoff, dids, excluded, skip,
+                                                  (day_cutoff - (ago + 1) * DAY_SECS) * 1000))
+        self.newest = newest
+        return self.days
 
 
 def load_due(db, today: int, days: int, excluded: Iterable | None = None, skip: Iterable | None = None,
@@ -441,8 +469,9 @@ def calendar_search(db, offset: int, today: int, due: bool = False) -> list:
     or for a day ahead, the cards due that day, as load_due counts them: a card a filtered deck
     has borrowed by its home deck's due, which an older Anki's `prop:due` doesn't read. Today
     with `due`: the cards due today, as load_due counts them (overdue, and learning by the clock)."""
-    if due and offset == 0:
-        return ["(is:due OR is:learn)", "-is:suspended", "-is:buried"]
+    if due and offset == 0:  # (is:learn would add cards in a relearning step of days, due later)
+        learning = [cid for (cid,) in db.all("select id from cards where queue = 1 order by id")]
+        return [f"(is:due OR cid:{','.join(map(str, learning))})" if learning else "is:due", "-is:suspended", "-is:buried"]
     if offset > 0:
         borrowed = [cid for (cid,) in db.all(
             "select id from cards where queue in (2, 3) and odid != 0 and odue = ? order by id", today + offset)]

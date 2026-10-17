@@ -9,11 +9,10 @@ from anki.collection import SearchNode
 from aqt import dialogs, gui_hooks, mw
 from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
-from aqt.qt import QShortcut
 from aqt.utils import tooltip
 
 from . import answer_column, events_state, marks, news, payload, study_log
-from .panel import refresh
+from .panel import hold_shortcuts, refresh
 from .phone import publish as publish_for_phone
 from .phone import switch
 from .phone_note import PHONE_NOTETYPE, phone_decks
@@ -108,25 +107,6 @@ def _open_browser(terms: list, did: int | None = None, answer_times: dict | None
         browser.search_for(" ".join(terms))
     finally:
         gui_hooks.browser_did_search.remove(sort_answers)
-
-
-_held: list = []  # the main window's shortcuts switched off while a name is typed (hold_shortcuts)
-
-
-def hold_shortcuts(hold: bool) -> None:
-    """Switch the main window's shortcuts off while a mark's name is typed on the deck list (its
-    one-key ones, d, s, a, b, t and y, would act on every letter typed), and back on after."""
-    if hold and not _held:
-        _held.extend(s for s in mw.findChildren(QShortcut) if s.isEnabled())
-        for s in _held:
-            s.setEnabled(False)
-    elif not hold:
-        for s in _held:
-            try:
-                s.setEnabled(True)
-            except RuntimeError:  # (one Anki has dropped since, on a change of screen)
-                pass
-        _held.clear()
 
 
 def on_js_message(handled, message, context):

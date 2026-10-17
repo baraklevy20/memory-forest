@@ -172,6 +172,12 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(streak, p["stats"]["streak"])
         self.assertFalse(p["calendar"]["browse"])  # a made-up day has no cards to open
 
+    def test_the_test_forest_draws_with_its_heatmap_switched_off(self):
+        reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True, "calendar_main": False})
+        p = payload.payload()
+        self.assertIsNone(p["calendar"])
+        self.assertIn("streak", p["stats"])
+
     def test_the_test_forests_days_have_a_made_up_time(self):
         # (so Reviews | Time, which hides with no time kept, can be tried on it)
         reset(CARDS, {"test_forest": True, "test_trees": 30, "debug": True})

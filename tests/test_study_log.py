@@ -275,11 +275,13 @@ class FreeDayTests(unittest.TestCase):
         # due again 6 days ago, the day it was answered; then due today
         self.assertEqual(self.free([(10, 4), (6, 6)]), [[9, 7], [5, 1]])  # (today it is due)
 
-    def test_a_card_suspended_or_reset_since_is_due_nowhere_after(self):
+    def test_a_card_suspended_buried_or_reset_since_is_due_until_the_next_day_studied(self):
         overdue = [(10, 2)]  # due 8 days ago, never answered again
         self.assertEqual(self.free(overdue), [[9, 9]])
-        for gone in (self.free(overdue, queue=-1), self.free(overdue, queue=0)):
-            self.assertEqual(gone, [[9, 0]])
+        for queue in (-1, -2, -3, 0):  # (suspending it today never turns the days missed into free ones)
+            self.assertEqual(self.free(overdue, queue=queue), [[9, 9]])
+            # another card studied 3 days ago: due until then, as a deleted card is, free after
+            self.assertEqual(self.free(overdue, queue=queue, others=[3]), [[9, 9], [2, 0]])
 
     def test_a_deleted_card_is_due_until_the_next_day_studied(self):
         # due 8 days ago, deleted some day after: due on to today with nothing studied since
@@ -327,6 +329,35 @@ class DayTimeTests(unittest.TestCase):
         con.execute("insert into revlog values (?, 1, 3, 1, 0)", (ms(1) + 1,))
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None)[1], 2.75)
         self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -1), {1: 2750})
+
+    def test_answer_times_kept_read_only_the_days_added_to(self):
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
+        con.executescript("""
+            create table cards (id integer, did integer, odid integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer);
+        """)
+        con.execute("insert into cards values (1, 10, 0)")
+        for days, ms_taken in ((3, 4000), (3, 8000), (1, 2000)):
+            con.execute("insert into revlog values (?, 1, 3, 1, ?)", (ms(days) + ms_taken, ms_taken))
+        reads = []
+
+        class DB:
+            def all(self, q, *a):
+                reads.append(q)
+                return con.execute(q, a).fetchall()
+
+            def scalar(self, q, *a): return con.execute(q, a).fetchone()[0]
+        times = study_log.AnswerTimes()
+        self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 2})
+        self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 2})
+        self.assertEqual(len(reads), 1)  # (nothing new: nothing read)
+        con.execute("insert into revlog values (?, 1, 3, 1, 6000)", (ms(1) + 9000,))
+        self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 4})
+        self.assertIn(f"id >= {(CUTOFF - 2 * study_log.DAY_SECS) * 1000}", reads[-1])  # (yesterday's on)
+        con.execute("delete from revlog where time = 6000")  # (an undo: read whole again)
+        self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 2})
 
 
 
@@ -393,6 +424,12 @@ class EventQueryTests(unittest.TestCase):
         self.assertEqual(search(-3), ["prop:rated=-3"])  # (not rated:4 -rated:3, which leaves out a card studied since)
         self.assertEqual(search(5), ["(prop:due=5 OR cid:2)"])  # and the card borrowed, by its home deck's due
         self.assertEqual(search(7), ["prop:due=7"])
+        today_due = ["is:due", "-is:suspended", "-is:buried"]
+        self.assertEqual(study_log.calendar_search(db, 0, TODAY, due=True), today_due)
+        # learning by the clock counts as today's (load_due), a relearning step of days doesn't
+        con.execute("insert into cards values (4, 4, 10, 0, 3, 1, 0, '{}', 0, 0)")
+        con.execute("insert into cards values (5, 5, 10, 0, 3, 3, 0, '{}', ?, 0)", (TODAY + 2,))
+        self.assertEqual(study_log.calendar_search(db, 0, TODAY, due=True), ["(is:due OR cid:4)", *today_due[1:]])
 
     def test_a_leech_is_cured_once_it_grows_mature_and_stays_so(self):
         con, db = self.db()

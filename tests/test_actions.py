@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from fake_anki import addon, browser, mw, reset, tooltips
+from fake_anki import addon, browser, hooks, mw, reset, tooltips
 
 actions = addon.actions
 # the phone's note plants no tree, so the browser leaves it out like the tooltip does
@@ -26,6 +26,17 @@ class Menu:
 class ActionTests(unittest.TestCase):
     def setUp(self):
         reset()
+
+    def test_shortcuts_held_while_a_mark_is_named_come_back_when_its_page_goes(self):
+        shortcut = mock.Mock()
+        shortcut.isEnabled.return_value = True
+        with mock.patch.object(mw, "findChildren", create=True, return_value=[shortcut]):
+            addon.panel.hold_shortcuts(True)
+        shortcut.setEnabled.assert_called_with(False)
+        for hook in (hooks.deck_browser_will_render_content, hooks.overview_will_render_content, hooks.state_did_change):
+            self.assertIn(addon.panel.release_shortcuts, hook)
+        addon.panel.release_shortcuts("deckBrowser", "review")  # (as state_did_change calls it)
+        shortcut.setEnabled.assert_called_with(True)
 
     def test_a_tree_opens_the_browser_on_its_day(self):
         actions.browse_day(5)

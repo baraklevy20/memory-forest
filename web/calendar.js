@@ -224,18 +224,16 @@ function history(cal) {
   const answerTime = o => {
     return (cal.answerTime || [])[o - first] ?? null;
   };
-  const answerModes = {};
-  for (const mode of ['median']) {
-    const values = [];
-    for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && answerTime(o, mode) !== null) values.push(answerTime(o, mode));
-    values.sort((a, b) => a - b);
-    const splits = [0];
-    for (const share of SHADE_SPLITS) splits.push(Math.max(splits[splits.length - 1] + 0.1,
-      values.length ? Math.ceil(values[Math.floor(share * (values.length - 1))] * 10) / 10 : splits.length * 5));
-    const level = v => splits.reduce((at, sp, i) => v >= sp ? i : at, 0);
-    level.splits = splits;
-    answerModes[mode] = { available: values.length > 0, level };
-  }
+  // (Pace, the one shading by answer time: its splits from your answers' medians, as the others')
+  const paces = [];
+  for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && answerTime(o) !== null) paces.push(answerTime(o));
+  paces.sort((a, b) => a - b);
+  const paceSplits = [0];
+  for (const share of SHADE_SPLITS) paceSplits.push(Math.max(paceSplits[paceSplits.length - 1] + 0.1,
+    paces.length ? Math.ceil(paces[Math.floor(share * (paces.length - 1))] * 10) / 10 : paceSplits.length * 5));
+  const paceLevel = v => paceSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);
+  paceLevel.splits = paceSplits;
+  const answerModes = { median: { available: paces.length > 0, level: paceLevel } };
   const by = answerModes[cal.shadeBy]?.available ? cal.shadeBy : cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews';
   const H = { by, answerTime, answerModes, timed: recentTime.length > 0 };
   H.shade = o => answerModes[H.by] ? (answerTime(o) === null ? 0 : 3 - answerModes[H.by].level(answerTime(o)))
@@ -922,7 +920,8 @@ AF.calendarHeight = function (cal, width) {
   let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN;
   if (width > 0) {
     weekStart = cal.weekStart == null ? 1 : cal.weekStart;
-    const cols = columns(history(cal), windowOf(history(cal), view, 0, null, countFor(view, width)));
+    const H = history(cal);  // (once: it builds the whole model)
+    const cols = columns(H, windowOf(H, view, 0, null, countFor(view, width)));
     W = 1 + cols[cols.length - 1][2] * CELL + CELL;
   }
   const k = width > 0 ? scaleFor(width, W, true) : 1;
@@ -1003,7 +1002,7 @@ AF.calendar = function (root, data, env) {
   const byBox = box.querySelector('.af-cal-shade');
   // No toggle with only one available mode.
   byBox.querySelector('[data-by="time"]').hidden = !H.timed;
-  for (const mode of ['median']) byBox.querySelector(`[data-by="${mode}"]`).hidden = !H.answerModes[mode].available;
+  byBox.querySelector('[data-by="median"]').hidden = !H.answerModes.median.available;
   byBox.hidden = swiped || [...byBox.querySelectorAll('button')].filter(b => !b.hidden).length < 2;
   // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
@@ -1622,7 +1621,7 @@ AF.calendar = function (root, data, env) {
       : c.o > H.ahead ? 'Too far ahead to count'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
-      : c.n && H.answerModes[H.by] && H.answerTime(c.o, H.by) !== null ? `Median ${H.answerTime(c.o, H.by).toFixed(1)} s/answer, ${cards(c.n, 'review')}${c.o === 0 && H.dueToday ? `, ${num(H.dueToday)} still due` : ''}`
+      : c.n && H.answerModes[H.by] && H.answerTime(c.o) !== null ? `Median ${H.answerTime(c.o).toFixed(1)} s/answer, ${cards(c.n, 'review')}${c.o === 0 && H.dueToday ? `, ${num(H.dueToday)} still due` : ''}`
       : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
       : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')

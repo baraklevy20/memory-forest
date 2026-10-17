@@ -8,6 +8,7 @@ import os
 import traceback
 
 from aqt import mw
+from aqt.qt import QShortcut
 
 from .catalog import core_scripts, draft_scripts, scenery_files
 from .payload import payload
@@ -151,6 +152,31 @@ def _on_congrats(web) -> bool:
         return False
 
 
+_held: list = []  # the main window's shortcuts switched off while a name is typed (hold_shortcuts)
+
+
+def hold_shortcuts(hold: bool) -> None:
+    """Switch the main window's shortcuts off while a mark's name is typed on the deck list (its
+    one-key ones, d, s, a, b, t and y, would act on every letter typed), and back on after."""
+    if hold and not _held:
+        _held.extend(s for s in mw.findChildren(QShortcut) if s.isEnabled())
+        for s in _held:
+            s.setEnabled(False)
+    elif not hold:
+        for s in _held:
+            try:
+                s.setEnabled(True)
+            except RuntimeError:  # (one Anki has dropped since, on a change of screen)
+                pass
+        _held.clear()
+
+
+def release_shortcuts(*_args) -> None:
+    """The shortcuts back on when the page a mark's name was typed on goes (a redraw, a reload
+    after a sync, another screen): that page never says it stopped typing (hold_shortcuts)."""
+    hold_shortcuts(False)
+
+
 def refresh() -> None:
     """Redraw the forest with the current config (no restart needed).
 
@@ -160,6 +186,7 @@ def refresh() -> None:
     """
     if mw.col is None:  # still starting up, or between profiles
         return
+    release_shortcuts()  # (the swap takes a mark being named away without a word from the page)
     if mw.state == "deckBrowser":
         shows = _main_panel()
         if shows is not None:

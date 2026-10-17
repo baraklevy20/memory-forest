@@ -76,6 +76,8 @@ def deep_trees(key: str) -> list:
 _forest_cache: dict = {}
 # each forest's review log, read whole once and then only what was added (study_log.ReviewLog)
 _logs: dict = {}
+# each heatmap's median answer times, read whole once and then only the days added to (study_log.AnswerTimes)
+_answer_times: dict = {}
 
 
 def after_sync() -> None:
@@ -84,6 +86,7 @@ def after_sync() -> None:
     review deleted by hand, or by Check Database, isn't seen before the next sync, restart or
     new day)."""
     _logs.clear()
+    _answer_times.clear()
     _forest_cache.clear()
     forget_remembered()
 
@@ -295,9 +298,14 @@ def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: i
 
 
 def _day_answer_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
-    """Daily median seconds per answer, cached with the review data."""
+    """Daily median seconds per answer (study_log.AnswerTimes), remembered until the study data
+    changes, and then only the days with new reviews read again."""
+    here = tuple(dids or ())
+    for other in [k for k in _answer_times if k and k != here]:  # (as _logs: the collection's and one deck's)
+        del _answer_times[other]
+    times = _answer_times.setdefault(here, study_log.AnswerTimes())
     days = remembered("day_answer_time", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
-                      lambda: study_log.load_day_answer_time(mw.col.db, cutoff, dids, excluded, skip))
+                      lambda: times.read(mw.col.db, cutoff, dids, excluded, skip))
     return [days.get(ago) for ago in range(oldest, -1, -1)]
 
 
@@ -310,7 +318,7 @@ def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: 
     whole forest on a deck's screen the calendar is the deck's own, and so is the streak. A day
     with nothing due never breaks it (_free_days), as on the calendar."""
     if test:  # (the made-up days' streak, with the days off the calendar passes over)
-        if not calendar["daysOff"]:
+        if not calendar or not calendar["daysOff"]:  # (no heatmap on this screen: None)
             return stats
         days = calendar["days"]
         studied = {len(days) - 1 - i for i, n in enumerate(days) if n}
