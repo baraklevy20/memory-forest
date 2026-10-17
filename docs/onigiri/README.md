@@ -35,7 +35,7 @@ Right-click the tile.
 
 Use the **+** buttons to set **Columns** to the full width of your grid (4 by default)
 and **Rows** to 4. A narrow tile shows a very small forest, and a lower one cuts off the
-study calendar under it.
+study heatmap under it.
 
 ![The tile's menu, with Columns and Rows](05-tile-menu-resize.png)
 
