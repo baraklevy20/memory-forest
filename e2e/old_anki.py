@@ -6,8 +6,7 @@
     python3 e2e/old_anki.py --check [ANKI ...]             # check it (built, as it ships) by itself, then quit
     python3 e2e/old_anki.py --check --all                  # in every Anki in RELEASE_ANKIS (what a release runs)
     python3 e2e/old_anki.py --check --all --package x.ankiaddon   # the built add-on rather than this folder
-    python3 e2e/old_anki.py --check --show                 # with its windows in view (by default a check's
-                                                           # windows are all but see-through and take no clicks)
+    python3 e2e/old_anki.py --check --show                 # with its windows in view (checks are headless by default)
 
 An Anki named by its key in ANKIS is downloaded from Anki's GitHub releases the first time
 and kept in CACHE. The Qt5 builds (every Anki before 2.1.50, and the builds for older
@@ -19,7 +18,8 @@ check builds it first (dev/package.py, the base edition) or takes --package's .a
 and unpacks that into a fresh base folder under the temp dir and starts that Anki
 with -b, so your own collection and your dev config are never touched.
 
---check needs no hands: the profile starts in English and the dark theme, with no update
+--check uses Qt's offscreen platform (no native windows or focus changes) by default.
+--show opts into visible windows. The check needs no hands: the profile starts in English and the dark theme, with no update
 check, and e2e/old_anki_check.py goes in beside the add-on. Once the profile is open it
 fills the collection with made-up reviews, checks the forest built from them (a big
 learning day's flowers too), measures the cog in the deck list, opens the settings, each of
@@ -76,6 +76,11 @@ DARK = 2  # aqt.theme.Theme.DARK: where 2.1.50's own button styles squeezed the 
 # Anki's one-copy-per-user key comes from the user name (getpass, from these variables): a
 # name of its own lets the check run beside the Anki you have open
 CHECK_USER = "memory-forest-check"
+OFFSCREEN_SCRIPT = """window.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 16);
+window.cancelAnimationFrame = clearTimeout;
+window.requestIdleCallback = cb => setTimeout(() => cb({didTimeout:false,timeRemaining:()=>50}), 0);
+window.cancelIdleCallback = clearTimeout;
+"""
 
 
 def fetch(key: str) -> str:
@@ -152,40 +157,6 @@ def progress() -> str:
     return ("check.log:\n" + open(path, encoding="utf-8").read()) if os.path.exists(path) else "(no check.log: the check add-on never loaded)\n"
 
 
-def front_pid() -> int | None:
-    """The process id of the app in front (macOS lsappinfo, which needs no permissions), or None."""
-    try:
-        asn = subprocess.run(["lsappinfo", "front"], capture_output=True, text=True, timeout=5).stdout.strip()
-        out = subprocess.run(["lsappinfo", "info", "-only", "pid", asn], capture_output=True, text=True, timeout=5).stdout
-        return int(out.split("=")[-1].strip().strip('"'))
-    except (OSError, ValueError, subprocess.SubprocessError):
-        return None
-
-
-def front_bundle() -> str | None:
-    """The bundle id of the app in front, to give the focus back to."""
-    try:
-        asn = subprocess.run(["lsappinfo", "front"], capture_output=True, text=True, timeout=5).stdout.strip()
-        out = subprocess.run(["lsappinfo", "info", "-only", "bundleid", asn], capture_output=True, text=True, timeout=5).stdout
-        return out.split("=")[-1].strip().strip('"') or None
-    except (OSError, subprocess.SubprocessError):
-        return None
-
-
-def started_by(pid: int, root: int) -> bool:
-    """Whether process `pid` is `root` or one it started (Anki's launcher may start another)."""
-    for _ in range(4):
-        if pid == root:
-            return True
-        try:
-            pid = int(subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)], capture_output=True, text=True, timeout=5).stdout.strip())
-        except (OSError, ValueError, subprocess.SubprocessError):
-            return False
-        if pid <= 1:
-            return False
-    return False
-
-
 def run_check(binary: str, folder: str) -> tuple:
     """Run Anki with the check add-on until it reports, or CHECK_TIMEOUT_SECS go by:
     (what it reported or None, Anki's own output, whether Anki quit by itself)."""
@@ -193,24 +164,27 @@ def run_check(binary: str, folder: str) -> tuple:
     dest = os.path.join(BASE, "addons21", CHECK_ADDON)
     os.makedirs(dest, exist_ok=True)
     shutil.copy(os.path.join(HERE, "old_anki_check.py"), os.path.join(dest, "__init__.py"))
+    with open(os.path.join(dest, "offscreen.js"), "w", encoding="utf-8") as f:
+        f.write(OFFSCREEN_SCRIPT)
     out, log = os.path.join(BASE, "check.json"), os.path.join(BASE, "anki.log")
     env = dict(os.environ, MEMORY_FOREST_FOLDER=folder, USER=CHECK_USER, LOGNAME=CHECK_USER)
-    # the app you were in keeps the focus: whenever the Anki started here takes it (a launched
-    # app comes to the front), it is handed straight back (not with --show)
-    keep = None if os.environ.get("MEMORY_FOREST_SHOW") == "1" else front_bundle()
+    if env.get("MEMORY_FOREST_SHOW") != "1":
+        # Qt's offscreen platform creates no native windows and cannot activate an
+        # application. Never steal focus and then try to hand it back with `open`.
+        env["QT_QPA_PLATFORM"] = "offscreen"
+        # Use a consistent style without native macOS window decorations.
+        env["QT_STYLE_OVERRIDE"] = "Fusion"
+        flags = "--disable-gpu --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-background-timer-throttling"
+        env["QTWEBENGINE_CHROMIUM_FLAGS"] = (env.get("QTWEBENGINE_CHROMIUM_FLAGS", "") + " " + flags).strip()
     with open(log, "w") as f:
         anki = subprocess.Popen([binary, "-b", BASE, "-l", "en"], env=env, stdout=f, stderr=subprocess.STDOUT)
     deadline, reported = time.time() + CHECK_TIMEOUT_SECS, None
     while anki.poll() is None and time.time() < deadline:
-        if keep:
-            front = front_pid()
-            if front and started_by(front, anki.pid):
-                subprocess.run(["open", "-b", keep], check=False)
         if reported is None and os.path.exists(out):
             reported = time.time()
         if reported and time.time() > reported + QUIT_GRACE_SECS:
             break
-        time.sleep(0.12 if keep else 0.5)  # (looking more often while the focus is being kept)
+        time.sleep(0.5)
     quit_by_itself = anki.poll() is not None
     if not quit_by_itself:
         anki.kill()
@@ -243,7 +217,7 @@ def check(label: str, app: str, package: str | None) -> bool:
         if name.endswith(".png"):
             shutil.copy(os.path.join(BASE, name), shots)
     deck = r.get("deck_list") or {}
-    print(f"Anki {r.get('anki')}, Qt {r.get('qt')}, {deck.get('agent', 'no web view')}")
+    print(f"Anki {r.get('anki')}, Qt {r.get('qt')} ({r.get('platform', 'unknown platform')}), {deck.get('agent', 'no web view')}")
     print("  " + ", ".join(r["steps"]))
     print(f"  forest: {deck.get('trees')} trees, {deck.get('painted')}% painted; screenshots in {shots}")
     if not quit_by_itself:
@@ -276,7 +250,7 @@ def built() -> str:
 def main() -> None:
     args = sys.argv[1:]
     keep, checking, every = "--keep" in args, "--check" in args, "--all" in args
-    if "--show" in args:  # (old_anki_check.py's Ghost leaves the windows as they are)
+    if "--show" in args:
         os.environ["MEMORY_FOREST_SHOW"] = "1"
     package = None
     if "--package" in args:

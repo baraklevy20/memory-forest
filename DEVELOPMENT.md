@@ -79,7 +79,10 @@ Everything runs through npm from this folder, so there is one place to look:
 
 ```
 npm install
-npm run build          # the .ankiaddon to upload, in dist/ (gitignored)
+npm run build          # package only, no tests; output in dist/ (gitignored)
+npm run build:base     # build the public clone's committed source, no tests
+npm run build:plus     # build Plus from HEAD, no tests
+npm run check:anki     # real Anki compatibility tests, headless by default
 npm test               # the unit tests, no Anki needed
 npm run lint           # eslint over the JavaScript, ruff over the Python
 npm run check          # lint, tests and the full render sweep: what to run before tagging
@@ -102,6 +105,12 @@ CPU %, they hardly move with whatever else the machine is doing. It needs macOS,
 is only good for the machine and Chrome it was made on. To look into a cost, `node dev/profile.mjs
 <preset>` breaks it down (`--calls` for who draws what, `--changes` for what moves) and `node
 dev/memory.mjs <preset>` does the same for memory.
+
+Build targets never run tests automatically. CI runs the checks separately. For an
+explicit compatibility check of a particular build, run
+`python3 e2e/old_anki.py --check --all --package path/to/addon.ankiaddon`.
+The Anki checks use Qt's offscreen platform and do not activate native windows;
+`--show` opts into visible windows for interactive debugging.
 
 The render checks need Chrome. The export copies the collection (and its `-wal`) before
 reading, so it is safe while Anki is open. `dev/payload.js` holds your study history and is

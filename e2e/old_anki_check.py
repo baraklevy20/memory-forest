@@ -16,7 +16,7 @@ import time
 import traceback
 
 from aqt import gui_hooks, mw
-from aqt.qt import QApplication, QEvent, QMouseEvent, QObject, QPointF, QScrollArea, Qt, QTabWidget, QTimer, QWidget
+from aqt.qt import QApplication, QEvent, QHeaderView, QMouseEvent, QObject, QPointF, QScrollArea, Qt, QTabBar, QTabWidget, QTimer
 
 FOREST = os.environ.get("MEMORY_FOREST_FOLDER", "anki_forest")
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +25,6 @@ COG_PX, COG_ICON_PX = 28, 15  # forest.css's .af-cog box, and core.js's COG icon
 WAIT_MS, WAIT_TRIES = 1000, 20  # for the deck list (and the forest's idle-time build) to draw
 SEED_CARDS, SEED_DAYS, SEED_REVIEWS = 60, 150, 5  # cards, how far back they start, reviews each
 SEED_BIG_CARDS, SEED_BIG_AGO = 12, 20  # of those, first studied together: a big learning day, with flowers
-GHOST_OPACITY = 0.01  # the check's windows: this see-through (Ghost)
 OLD_DAY_AGO = 400  # a study calendar day this far back, past the year rated: may stop at
 DIALOG_MAX_H = 672  # pt: the room a 1280 x 720 screen leaves the settings dialog, title bar included
 CONSOLE_ERROR = 2  # QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel
@@ -140,6 +139,20 @@ def _dialogs():
 
 
 _dialogs()
+
+
+class OffscreenTabs(QObject):
+    def eventFilter(self, obj, event):
+        # Qt5/mac tab bars call Cocoa border functions on move/show/hide. The
+        # offscreen plugin has no Cocoa window. Layout/paint events still run.
+        return isinstance(obj, QTabBar) and event.type() in (QEvent.Type.Move, QEvent.Type.Show, QEvent.Type.Hide)
+
+
+if sys.platform == "darwin" and os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+    from aqt.qt import QT_VERSION_STR
+    if QT_VERSION_STR.startswith("5."):
+        _offscreen_tabs = OffscreenTabs(mw)
+        QApplication.instance().installEventFilter(_offscreen_tabs)
 
 
 def step(name, fn):
@@ -624,7 +637,10 @@ def heatmap_browser_metrics():
 
     def layout(browser):
         header = browser.table._view.horizontalHeader()
-        return [(header.logicalIndex(i), header.sectionSize(header.logicalIndex(i))) for i in range(header.count())]
+        # The last column stretches to the window's remaining room. Its width is
+        # derived geometry, not a user preference: only fixed widths must survive.
+        return [(header.logicalIndex(i), None if header.sectionResizeMode(header.logicalIndex(i)) == QHeaderView.ResizeMode.Stretch
+                 else header.sectionSize(header.logicalIndex(i))) for i in range(header.count())]
 
     forest = sys.modules[FOREST]
     col = mw.col
@@ -709,10 +725,11 @@ def heatmap_browser_metrics():
                 raise AssertionError("first heatmap click's session survived close")
             browser = dialogs.open("Browser", mw)
             editor_ready(browser)
+            settle()
             if browser.table._model.active_column_index(forest.actions.answer_column.KEY) is not None:
                 raise AssertionError("first heatmap click's column survived reopening")
             if layout(browser) != before:
-                raise AssertionError("first heatmap click changed the reopened browser's layout")
+                raise AssertionError(f"first heatmap click changed the reopened browser's layout: {layout(browser)}, expected {before}")
             result["steps"].append("first heatmap click: close/reopen has no metric column")
 
     # Sibling cards of one note can live in different decks. Their answers must not
@@ -775,6 +792,7 @@ def heatmap_browser_metrics():
         raise AssertionError("heatmap browser session survived close")
     browser = dialogs.open("Browser", mw)
     editor_ready(browser)
+    settle()
     if browser.table._model.active_column_index(forest.actions.answer_column.KEY) is not None:
         raise AssertionError("heatmap column survived browser reopening")
     if layout(browser) != before:
@@ -796,6 +814,11 @@ def heatmap_browser_metrics():
 
 def opened():
     note("profile open")
+    result["platform"] = QApplication.platformName()
+    if os.environ.get("MEMORY_FOREST_SHOW") != "1" and result["platform"] != "offscreen":
+        result["errors"].append("background checks require Qt's offscreen platform")
+        finish()
+        return
     try:
         from anki.buildinfo import version
         result["anki"] = version
@@ -809,11 +832,9 @@ def opened():
 
     def show():
         mw.moveToState("deckBrowser")
-        # in front: the forest builds on the next animation frame, which the web view only
-        # has while its window can be seen (a window behind the Anki you have open gets none);
-        # all but invisible though, and taking no clicks or keys (Ghost), so it is not in the way
         mw.showNormal()
-        mw.raise_()
+        if os.environ.get("MEMORY_FOREST_SHOW") == "1":
+            mw.raise_()
         mw.deckBrowser.refresh()
 
     step("imports", imports)
@@ -824,23 +845,14 @@ def opened():
     QTimer.singleShot(WAIT_MS, lambda: measure(first_look))
 
 
-class Ghost(QObject):
-    """Every window the check opens, all but see-through and passing clicks and keys on to what
-    is under it: the check runs in the background while you work. Still a window on screen, so
-    its web views go on drawing (the offscreen platform leaves their canvases blank)."""
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.Show and isinstance(obj, QWidget) and obj.isWindow() and not obj.property("af_ghost"):
-            obj.setProperty("af_ghost", True)
-            obj.setWindowOpacity(GHOST_OPACITY)
-            obj.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
-            obj.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
-            obj.setWindowFlag(Qt.WindowType.WindowDoesNotAcceptFocus, True)
-            obj.show()  # (new flags hide a window until it is shown again)
-        return False
+# Offscreen Qt does not deliver compositor frames. Keep the real canvas renderer
+# running through timers, without needing visible windows or application focus.
+def offscreen_frames(content, _context):
+    # Anki's editor CSP permits add-on URLs, but forbids inline scripts.
+    content.head = f'<script src="/_addons/{__name__}/offscreen.js"></script>' + content.head
 
 
-_ghost = Ghost()
-if os.environ.get("MEMORY_FOREST_SHOW") != "1":  # (e2e/old_anki.py --show: watch it instead)
-    QApplication.instance().installEventFilter(_ghost)
+if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+    mw.addonManager.setWebExports(__name__, r"offscreen\.js")
+    gui_hooks.webview_will_set_content.append(offscreen_frames)
 gui_hooks.profile_did_open.append(lambda: QTimer.singleShot(500, opened))
