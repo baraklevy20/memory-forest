@@ -175,6 +175,8 @@ def run_check(binary: str, folder: str) -> tuple:
         # Use a consistent style without native macOS window decorations.
         env["QT_STYLE_OVERRIDE"] = "Fusion"
         flags = "--disable-gpu --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-background-timer-throttling"
+        if env.get("CI"):  # (Chromium's own log of every request, kept with the screenshots: what a page waits on)
+            flags += f" --log-net-log={os.path.join(BASE, 'netlog.json')}"
         env["QTWEBENGINE_CHROMIUM_FLAGS"] = (env.get("QTWEBENGINE_CHROMIUM_FLAGS", "") + " " + flags).strip()
     with open(log, "w") as f:
         anki = subprocess.Popen([binary, "-b", BASE, "-l", "en"], env=env, stdout=f, stderr=subprocess.STDOUT)
@@ -218,6 +220,12 @@ def check(label: str, app: str, package: str | None) -> bool:
             shutil.copy(os.path.join(BASE, name), shots)
     with open(os.path.join(shots, "anki.log"), "w", encoding="utf-8") as f:  # (Anki's own output, uploaded by CI too)
         f.write(log)
+    netlog = os.path.join(BASE, "netlog.json")
+    if os.path.exists(netlog):
+        import gzip
+        with open(netlog, "rb") as src, gzip.open(os.path.join(shots, "netlog.json.gz"), "wb") as dst:
+            shutil.copyfileobj(src, dst)
+        os.remove(netlog)
     deck = r.get("deck_list") or {}
     print(f"Anki {r.get('anki')}, Qt {r.get('qt')} ({r.get('platform', 'unknown platform')}), {deck.get('agent', 'no web view')}")
     print("  " + ", ".join(r["steps"]))
