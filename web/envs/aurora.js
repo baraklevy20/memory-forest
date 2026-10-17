@@ -111,21 +111,30 @@ function column(a, x, ts, u) {
  * the scene in one drawImage: as canvas shapes, thousands of thin bands a frame, they were
  * most of what the scene cost Chrome to send to the GPU and draw. The bands blend in the
  * order the canvas painted them (source over), so the look is the same to a level or two. */
-function buffer(env, key, w, h) {
+function buffer(env, key, w, rows) {
   let b = env[key];
-  if (!b || b.w !== w || b.h !== h) {
-    const c = document.createElement('canvas'); c.width = w; c.height = h;
-    const g = c.getContext('2d'), img = g.createImageData(w, h);
-    b = env[key] = { w, h, c, g, img, d: img.data };
+  // the full height of the scene, once: the rows a frame uses change with the curtains' sway,
+  // and a canvas sized to them was a new one most frames
+  if (!b || b.w !== w || b.h !== env.H) {
+    const c = document.createElement('canvas'); c.width = w; c.height = env.H;
+    const g = c.getContext('2d'), img = g.createImageData(w, env.H);
+    b = env[key] = { w, h: env.H, c, g, img, d: img.data, rows: 0 };
   }
-  b.d.fill(0);
+  b.rows = Math.min(rows, b.h);
+  b.d.fill(0, 0, w * b.rows * 4);
   return b;
+}
+/* the rows a frame used, onto the scene at y */
+function blit(b, g, y) {
+  if (b.rows <= 0) return;
+  b.g.putImageData(b.img, 0, 0, 0, 0, b.w, b.rows);
+  g.drawImage(b.c, 0, 0, b.w, b.rows, 0, y, b.w, b.rows);
 }
 /* a column of rows [y0, y1) of the buffer, in [r, g, b, a] (a from 0 to 1), over what is there */
 function span(b, x, y0, y1, c) {
   if (x < 0 || x >= b.w) return;
   const a = c[3], d = b.d;
-  for (let y = Math.max(0, y0), end = Math.min(b.h, y1); y < end; y++) {
+  for (let y = Math.max(0, y0), end = Math.min(b.rows, y1); y < end; y++) {
     const i = (y * b.w + x) * 4, da = d[i + 3] / 255, oa = a + da * (1 - a);
     if (!oa) continue;
     const k = da * (1 - a);
@@ -228,8 +237,7 @@ AF.env('aurora', {
         band(x, y0 - s2, s2 - s1, col[2]);
         band(x, y0 - hh, hh - s2, col[3]);
       } });
-      B.g.putImageData(B.img, 0, 0);
-      g.drawImage(B.c, 0, top);
+      blit(B, g, top);
     },
   },
 
@@ -254,8 +262,7 @@ AF.env('aurora', {
         if (r1 > r0) span(B, x + wob, r0 - L.y0, r1 - L.y0, dim(c));
       }
     } });
-    B.g.putImageData(B.img, 0, 0);
-    g.drawImage(B.c, 0, L.y0);
+    blit(B, g, L.y0);
   },
 });
 })();

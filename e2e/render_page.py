@@ -62,7 +62,7 @@ def page(name: str, cfg: dict, n: int) -> str:
             "mood": mood, "environmentName": name, "animations": False,
             "tooltips": True, "maxWidth": MAX_WIDTH, "testForest": True}
     if heatmap:
-        data.update(calendar=heatmap, showForest=True, inAnki=True, journal="Your forest grew its 300th tree today.")
+        data.update(calendar=heatmap, showForest=True, inAnki=True, journal=heatmap.pop("_journal", "Your forest grew its 300th tree today."))
     body = "body{margin:0;background:#f5f5f5;color:#222}" if paper == "light" else "body{margin:0;background:#2c2c2c;color:#ddd}"
     # (the heatmap is laid out by the add-on's stylesheet; the forest, a canvas, needs none)
     style = open(os.path.join(WEB, "forest.css"), encoding="utf-8").read() if heatmap else ""

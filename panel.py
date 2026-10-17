@@ -116,7 +116,12 @@ def on_page_loaded(web) -> None:
     overview's place, a page of its own that never asks overview_will_render_content, so the
     panel is added to it once it has loaded, as on_overview adds it to the usual screen (and
     is only added where there is none: the usual screen has one already)."""
-    if web is not getattr(mw.overview, "web", None) or mw.state != "overview" or mw.col is None or not shows_on_finished():
+    if web is not getattr(mw.overview, "web", None):
+        return
+    # a page of the main window loaded afresh (the congratulations page after a sync, or after
+    # an unbury) takes a mark being named with it, and no render hook says so (release_shortcuts)
+    release_shortcuts()
+    if mw.state != "overview" or mw.col is None or not shows_on_finished():
         return
     if not _on_congrats(web):  # (the usual screen, with its panel already: nothing to build)
         return
@@ -206,8 +211,9 @@ def refresh() -> None:
                 web.eval("document.querySelectorAll('.af-finished').forEach(e => e.remove())")
         elif shows is not None:
             _swap_or_reload(web, mw.overview.refresh, *shows)
-        else:
-            mw.overview.refresh()
+        else:  # no panel on this deck's screen: drawn again only if one is still on the page
+            js = f"!!document.getElementById({json.dumps(ROOT)})"
+            web.evalWithCallback(js, lambda there: mw.overview.refresh() if there else None)
 
 
 def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False, show_forest: bool = True) -> None:

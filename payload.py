@@ -225,7 +225,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         # each tree's count of cards known well only adds up to the animals' milestones, and
         # its day number is only for remembering ancient trees: the page needs neither
         "trees": [_for_page(t) for t in forest["trees"]],
-        "stats": _page_stats(forest["stats"], cfg, test, did, highlight, changed, calendar),
+        "stats": _page_stats(forest, cfg, test, did, highlight, changed, calendar),
         "visitors": forest["visitors"],
         "anniversaries": ann,
         "mood": mood,
@@ -265,7 +265,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
 # a week start as the page counts days (Date.getUTCDay: Sunday 0, Monday 1 .. Saturday 6)
 
 
-def _week_start_day(cfg: dict) -> int:
+def week_start_day(cfg: dict) -> int:
     """The day the study calendar's weeks start on, as the page counts days: the chosen one, or
     the system's (Qt's locale: a Mac's Language & Region setting, say), Monday if it can't say."""
     chosen = week_start(cfg)
@@ -279,21 +279,43 @@ def _week_start_day(cfg: dict) -> int:
         return WEEK_START_DAYS["monday"]
 
 
+def _cards_changed(changed):
+    """Of scope.changes, only the collection and how many cards it holds: what the heatmap's days
+    before today go by (_by_day, _free_runs, the deleted cards), as a review only ever adds to
+    today. A card suspended, reset or moved with no review since changes which days were free,
+    as it changes which of its old reviews count for the forest: seen the next day, or after a
+    sync (after_sync), as there."""
+    return changed and (changed[0], changed[3])
+
+
+def _by_day(name: str, cutoff: int, dids: list | None, excluded, begin: int | None, skip, changed, load) -> dict:
+    """{days ago: n} as `load(since)` counts the reviews from `since` (epoch seconds) on: today's
+    read afresh each time (a few rows, by the log's index), the days before it remembered until
+    the cards change (_cards_changed), the day ends or a sync brings reviews in."""
+    key = changed and (_cards_changed(changed), cutoff, tuple(dids or ()), frozenset(excluded), begin, frozenset(skip))
+    past = remembered(name, key, lambda: {ago: n for ago, n in load(begin).items() if ago > 0})
+    out = dict(past)
+    out.update(load(max(begin or 0, cutoff - study_log.DAY_SECS)))
+    return out
+
+
 def _day_reviews(cutoff: int, dids: list | None, excluded, begin: int | None, skip, changed) -> dict:
     """{days ago: reviews} in the `dids` decks (the whole collection for None) but the `excluded`
-    ones and the `skip` cards, from `begin` (None: all of them), remembered until the study data
-    changes: the days the caption's streak and the study calendar go by when they are not the
-    forest's own."""
-    name = "day_reviews" if begin is None else "day_reviews_since"  # (one answer is kept per name)
-    return remembered(name, changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), begin, frozenset(skip)),
-                      lambda: study_log.load_day_reviews(mw.col.db, cutoff, dids, excluded, begin, skip))
+    ones and the `skip` cards, from `begin` (None: all of them), remembered as _by_day keeps them:
+    the days the caption's streak and the study calendar go by when they are not the forest's own."""
+    # (one answer is kept per name: the collection's and a deck's, as _logs keeps them)
+    name = ("day_reviews" if begin is None else "day_reviews_since") + (":deck" if dids else "")
+    return _by_day(name, cutoff, dids, excluded, begin, skip, changed,
+                   lambda since: study_log.load_day_reviews(mw.col.db, cutoff, dids, excluded, since, skip))
 
 
-def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
-    """The seconds spent reviewing on each day the heatmap shows, oldest first (study_log.load_day_time),
-    remembered until the study data changes."""
-    seconds = remembered("day_time", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
-                         lambda: study_log.load_day_time(mw.col.db, cutoff, dids, excluded, skip))
+def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int, known: dict | None = None) -> list:
+    """The seconds spent reviewing on each day the heatmap shows, oldest first: `known`, the
+    forest's own days' (study_log.ReviewLog) when the heatmap's days are its, else
+    study_log.load_day_time's, remembered as _by_day keeps them."""
+    seconds = known if known is not None else _by_day(
+        "day_time" + (":deck" if dids else ""), cutoff, dids, excluded, None, skip, changed,
+        lambda since: study_log.load_day_time(mw.col.db, cutoff, dids, excluded, skip, since))
     return [seconds.get(ago, 0) for ago in range(oldest, -1, -1)]
 
 
@@ -309,14 +331,15 @@ def _day_answer_time(cutoff: int, dids: list | None, excluded, skip, changed, ol
     return [days.get(ago) for ago in range(oldest, -1, -1)]
 
 
-def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
+def _page_stats(forest: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
     """The numbers the page shows, their streak the study calendar's. With a start date, the
     streak is still your real one, unbroken by it (a young forest is a choice of look, not a
     lapse): only the forest's own milestones (its animals, the journal's) go by the days since it
-    began, from `stats` as the forest has them. Unless the Heatmap tab says to count the streak
+    began, from its stats as the forest has them. Unless the Heatmap tab says to count the streak
     from the start date, or the calendar on this screen shows nothing before it. Under the
     whole forest on a deck's screen the calendar is the deck's own, and so is the streak. A day
     with nothing due never breaks it (_free_days), as on the calendar."""
+    stats = forest["stats"]
     if test:  # (the made-up days' streak, with the days off the calendar passes over)
         if not calendar or not calendar["daysOff"]:  # (no heatmap on this screen: None)
             return stats
@@ -330,7 +353,13 @@ def _page_stats(stats: dict, cfg: dict, test: bool, did: int | None, highlight: 
     own = bool(did and highlight and calendar_here)
     cutoff, excluded, skip = day_cutoff(mw.col), excluded_decks(cfg), phone_cards()
     dids = deck_ids(did, excluded) if did and (own or not highlight) else None
-    days = set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, skip, changed))
+    # the forest's own days when they are these (its decks, and from the start date only while
+    # the streak counts from there too): read with it, nothing more to read
+    forest_days = forest.get("day_reviews")
+    if forest_days is not None and (dids is None) == (did is None or highlight) and (begin is None or from_start):
+        days = set(forest_days)
+    else:
+        days = set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, skip, changed))
     free = _free_days(cutoff, dids, excluded, skip, changed)
     streak, longest = forest_data._streaks(days, free | _days_off(cfg, cutoff, days, free))
     return dict(stats, streak=streak, longest_streak=longest, streak_week=streak_week(cfg))
@@ -345,7 +374,7 @@ def _days_off(cfg: dict, cutoff: int, review_days: set, free: frozenset, ago: in
         return frozenset()
     today = anki_today(cutoff)
     ago = (today - chosen).days if ago is None else ago
-    return forest_data.days_off(review_days, free, per_week, ago, today, _week_start_day(cfg)) if ago >= 0 else frozenset()
+    return forest_data.days_off(review_days, free, per_week, ago, today, week_start_day(cfg)) if ago >= 0 else frozenset()
 
 
 def _free_days(cutoff: int, dids: list | None, excluded, skip, changed) -> frozenset:
@@ -356,7 +385,9 @@ def _free_days(cutoff: int, dids: list | None, excluded, skip, changed) -> froze
 
 
 def _free_runs(cutoff: int, dids: list | None, excluded, skip, changed) -> list:
-    return remembered("free_days", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
+    # (a review only ends its card's span at today, which is never free: the runs stand until
+    # the cards change, see _cards_changed; the slowest read of the log, so never once a session)
+    return remembered("free_days", changed and (_cards_changed(changed), cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
                       lambda: study_log.load_free_days(mw.col.db, cutoff, dids, excluded, skip))
 
 
@@ -383,6 +414,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     excluded, skip = excluded_decks(cfg), phone_cards()
     dids = deck_ids(did, excluded) if did and not test else None
     animals = not did or not highlight  # a lit-up deck screen shows the main forest's animals, not the deck's
+    day_time = None  # (each day's seconds, when they come with the forest's own days below)
     if test:
         # the test forest's days studied: the debug timeline's, or its trees' days and as many
         # days back from today as its streak claims (the day before it missed, so it is no
@@ -395,29 +427,29 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
         day_reviews = {ago: learned.get(ago, 0) * TEST_REVIEWS_PER_CARD or TEST_DAY_REVIEWS for ago in studied}
     elif dids and highlight:  # the main forest above it: the deck's own days, read on their own
         day_reviews = _day_reviews(cutoff, dids, excluded, since(cfg), skip, changed)
-    else:
-        day_reviews = forest.get("day_reviews") or {}
+    else:  # (the forest's own days, and how long each took, read with it: nothing more to read)
+        day_reviews, day_time = forest.get("day_reviews") or {}, forest.get("day_time")
     # with a start date (Ignore before), the reviews from before it too: the calendar shows your
     # whole record as if there were none, but for the animals, the forest's own (web/calendar.js)
     begin, forest_start, own = since(cfg), None, day_reviews  # (the animals' days stay the forest's own)
     hidden_before = None  # (with that record left out, the start date: the days before it say why they're empty)
     if begin and not test and shows_record(cfg):
         forest_start = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
-        day_reviews = _day_reviews(cutoff, dids, excluded, None, skip, changed)
+        day_reviews, day_time = _day_reviews(cutoff, dids, excluded, None, skip, changed), None
     elif begin and not test:
         hidden_before = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
     oldest = max(day_reviews, default=0)
     days = [day_reviews.get(ago, 0) for ago in range(oldest, -1, -1)]
     due = remembered("calendar_due", changed and (changed, cutoff, frozenset(excluded), frozenset(skip), tuple(dids or ())),
                      lambda: study_log.load_due(col.db, col.sched.today, CALENDAR_DUE_DAYS, excluded, skip, dids))
-    return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": _week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
+    return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             # Compact planting dates survive the drawing limit, without sending old sprites.
             "planted": [[t["ago"], t["n"]] for t in trees],
             "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)
-            "time": _test_time(days, oldest) if test else _day_time(cutoff, dids, excluded, skip, changed, oldest),
+            "time": _test_time(days, oldest) if test else _day_time(cutoff, dids, excluded, skip, changed, oldest, day_time),
             # Pace: each day's median seconds per answer, aligned with `days`.
             "answerTime": [] if test else _day_answer_time(cutoff, dids, excluded, skip, changed, oldest),
             "breakDays": forest_data.BREAK_DAYS,
@@ -429,9 +461,9 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
             "marks": marks.important_days(col),
             # the days' cards since deleted, [days ago, how many, of how many], where a day has any (the whole
-            # collection's calendar only: a deck's counts hold none)
+            # collection's calendar only: a deck's counts hold none; only a deletion changes it, _cards_changed)
             "gone": [] if test or dids else sorted([ago, n, of] for ago, (n, of) in remembered(
-                "deleted_cards", changed and (changed, cutoff, frozenset(excluded), frozenset(skip)),
+                "deleted_cards", changed and (_cards_changed(changed), cutoff, frozenset(excluded), frozenset(skip)),
                 lambda: study_log.load_deleted_cards(col.db, cutoff, excluded, skip)).items() if ago <= oldest),
             # the days with nothing due, as [oldest, newest] runs of days ago: a streak passes over them
             "free": [] if test else [r for r in _free_runs(cutoff, dids, excluded, skip, changed) if r[1] <= oldest],

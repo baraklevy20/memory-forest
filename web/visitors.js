@@ -43,15 +43,17 @@ const VISITORS = {
 AF.VISITOR_SPRITES = VISITORS;  // (the study calendar draws each on the day it came: web/calendar.js)
 const FRONT_SLOTS = [0.9, 0.22, 0.75, 0.38, 0.6];
 // seconds: each animal at the front moves on every ROAM_EVERY (plus a little more per
-// animal, and offset by ROAM_OFFSET each, so they never set off together) and takes
-// WALK_SECS to get there, stepping WALK_FPS frames a second
-const ROAM_EVERY = 150, ROAM_STAGGER = 41, ROAM_OFFSET = 37, WALK_SECS = 4, WALK_FPS = 4;
+// animal, and offset by ROAM_OFFSET each, so they never set off together), walking there at
+// WALK_SPEED pixels a second (of env.u, so the same pace at any size), its legs changing with
+// the ground covered: a step every STRIDE of its own length, never with a clock, so its feet
+// never slide (a short way is a short walk, not a long one on the spot)
+const ROAM_EVERY = 150, ROAM_STAGGER = 41, ROAM_OFFSET = 37, WALK_SPEED = 7, STRIDE = 0.25;
 // how far either side of its spot an animal wanders, as a share of the width
 const ROAM_REACH = 0.045;
 // a resting animal shows its second frame (a glance, a nibble) while a slow wave is above this
 const IDLE_GLANCE = 0.93;
-// a rabbit covers its walk in RABBIT_HOPS hops, RABBIT_HOP_PX high
-const RABBIT_HOPS = 5, RABBIT_HOP_PX = 3;
+// a rabbit hops rather than walks: a hop every RABBIT_HOP_LEN pixels (of env.u), RABBIT_HOP_PX high
+const RABBIT_HOP_LEN = 6, RABBIT_HOP_PX = 3;
 // the animals stand this far below the front row (of the height), never off the canvas
 const VISITOR_DROP = 0.025, VISITOR_LOWEST = 0.995;
 const CABIN_X = 0.05, CABIN_SMOKE_PUFFS = 4;
@@ -246,7 +248,7 @@ AF.drawVisitors = function (g, env, t) {
   for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(SR() * (i + 1)); [slots[i], slots[j]] = [slots[j], slots[i]]; }
   list.forEach((v, i) => {
     const spr = VISITORS[v.key]; if (!spr || i >= slots.length) return;
-    const W = env.W, roam = W * ROAM_REACH, period = ROAM_EVERY + i * ROAM_STAGGER, walk = WALK_SECS, k = Math.floor((t + i * ROAM_OFFSET) / period), ph = (t + i * ROAM_OFFSET) - k * period;
+    const W = env.W, roam = W * ROAM_REACH, period = ROAM_EVERY + i * ROAM_STAGGER, k = Math.floor((t + i * ROAM_OFFSET) / period), ph = (t + i * ROAM_OFFSET) - k * period;
     // a landscape with water across the front keeps each animal to its own bank
     const home = W * slots[i], land = AF.landOf(env);
     // ...and off any pond at the front, and the cabin: stepped aside to its nearer edge
@@ -262,11 +264,13 @@ AF.drawVisitors = function (g, env, t) {
     };
     const spot = n => { const s = home + (rng((daySeed(env) + n * 7919 + i * 104729) >>> 0)() - 0.5) * 2 * roam; return aside(land.dryX ? land.dryX(env, s, baseY, home, roam) : s); };
     // (two spots the same, or all but, and it stays put rather than walking on the spot)
-    const from = spot(k - 1), to = spot(k), moving = !env.still && !AF.LOOP && ph < walk && Math.abs(to - from) >= 1, q = moving ? ph / walk : 1;
-    const x = from + (to - from) * q, dir = to >= from ? 1 : -1;
-    let frame = spr.frames[moving ? Math.floor(ph * WALK_FPS) % spr.frames.length : (Math.sin(t * AF.u.cyc(0.7) + i * 2.1) > IDLE_GLANCE ? spr.frames.length - 1 : 0)], dy = 0;
-    // a rabbit hops rather than walks
-    if (v.key === 'rabbit') { frame = spr.frames[0]; if (moving) dy = -Math.round(Math.abs(Math.sin(q * Math.PI * RABBIT_HOPS)) * RABBIT_HOP_PX); }
+    const from = spot(k - 1), to = spot(k), dist = Math.abs(to - from), walk = dist / (WALK_SPEED * env.u);
+    const moving = !env.still && !AF.LOOP && ph < walk && dist >= 1, q = moving ? ph / walk : 1;
+    const x = from + (to - from) * q, gone = dist * q, dir = to >= from ? 1 : -1;
+    const stride = Math.max(1, spr.frames[0][0].length * STRIDE);
+    let frame = spr.frames[moving ? Math.floor(gone / stride) % spr.frames.length : (Math.sin(t * AF.u.cyc(0.7) + i * 2.1) > IDLE_GLANCE ? spr.frames.length - 1 : 0)], dy = 0;
+    // a rabbit hops rather than walks: each hop a fixed length of ground, the last one shorter
+    if (v.key === 'rabbit') { frame = spr.frames[0]; if (moving) dy = -Math.round(Math.abs(Math.sin(gone / (RABBIT_HOP_LEN * env.u) * Math.PI)) * RABBIT_HOP_PX); }
     const flip = FACES_LEFT[v.key] ? dir > 0 : dir < 0;  // face the way it last went
     // up close (a visit) it stands where the camera sees its spot, as much bigger as things there
     const at = AF.visitProject(env, x, baseY);

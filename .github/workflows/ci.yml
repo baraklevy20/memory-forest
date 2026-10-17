@@ -1,6 +1,6 @@
-# Lint, tests, packaging, the render checks and the add-on in real Ankis on every push. The
-# full render sweep takes a few minutes, so a push runs the quick one; tags and a manual run
-# get the whole sweep.
+# Lint, tests, packaging, the render checks, the phone and heatmap checks and the add-on in
+# real Ankis on every push. The full render sweep takes a few minutes, so a push runs the
+# quick one; tags and a manual run get the whole sweep.
 # A change to docs/ alone runs nothing (tags always run: GitHub skips path filters for them).
 name: CI
 
@@ -42,6 +42,9 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: npm test
 
+  # the render checks, and the phone and heatmap checks (e2e/phone_check.py, e2e/heatmap_check.py),
+  # which drive the runner's Chrome through node: `npm test` runs those only when their files
+  # changed, which a fresh checkout cannot tell, so here they always run
   render:
     runs-on: ubuntu-24.04
     env:
@@ -51,7 +54,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install
       - run: npm run ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'render' || 'render:quick' }}
+      - run: npm run test:phone
+      - run: npm run test:heatmap
 
   # the Ankis a release is checked in, the oldest supported to the newest: e2e/old_anki.py's
   # RELEASE_ANKIS, read here so the two never part

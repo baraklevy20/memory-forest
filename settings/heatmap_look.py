@@ -329,11 +329,12 @@ def option_button(label: str, tip: str = "") -> QPushButton:
 class PickButton(QPushButton):
     """A choice that stands for one of several keys (a scenery's colours, "ready:aurora"): a click
     opens a list of them instead of choosing; picking one from it chooses this button for that key.
-    `items()` gives the list: (key, name, icon)."""
+    `choices()` gives the list, (key, name); `icons()` each key's picture, drawn only as the list
+    opens (every scenery's strip was painted again at each change of the tab)."""
 
-    def __init__(self, items, tip: str):
+    def __init__(self, choices, icons, tip: str):
         super().__init__(PICK_LABEL.format(name=SCENERY_LABEL))
-        self.items, self.key, self.picked = items, HL.MATCH, None
+        self.choices, self.icons, self.key, self.picked = choices, icons, HL.MATCH, None
         self.setIconSize(QSize(ICON_W, ICON_H))
         self.setAutoDefault(False)
         self.setCheckable(True)
@@ -349,21 +350,22 @@ class PickButton(QPushButton):
             self.setChecked(False)
 
     def takes(self, key) -> bool:
-        return any(k == key for k, _name, _icon in self.items())
+        return any(k == key for k, _name in self.choices())
 
     def set_key(self, key) -> None:
         """(its strip is drawn with the others': LookControls.refresh)"""
         self.key = key
-        name = SCENERY_LABEL if key == HL.MATCH else next((n for k, n, _i in self.items() if k == key), key)
+        name = SCENERY_LABEL if key == HL.MATCH else next((n for k, n in self.choices() if k == key), key)
         self.setText(PICK_LABEL.format(name=name))
 
     def _open(self) -> None:
         menu = QMenu(self)
         menu.setStyleSheet(f"QMenu {{ icon-size: {QUAD}px; }}")  # (each one's four tiles at their own size)
-        for i, (key, name, icon) in enumerate(self.items()):
+        icons = self.icons()
+        for i, (key, name) in enumerate(self.choices()):
             if i == 1:
                 menu.addSeparator()  # (the scenery's own, then every scenery's)
-            act = menu.addAction(icon, name)
+            act = menu.addAction(icons[key], name)
             act.setIconVisibleInMenu(True)  # (macOS leaves menus' icons out unless asked)
             if self.isChecked() and key == self.key:  # (the one chosen in bold: a tick took the strip's place)
                 font = act.font(); font.setBold(True); act.setFont(font)
@@ -443,8 +445,8 @@ class LookControls(QObject):
         ready = QGridLayout()
         ready.setContentsMargins(0, 0, 0, 0)
         ready.setSpacing(BUTTON_GAP)
-        # (the scenery's colours: its own, or any scenery's, from one dropdown: _scenery_items)
-        self.scenery = PickButton(self._scenery_items, PICK_TIP)
+        # (the scenery's colours: its own, or any scenery's, from one dropdown: _scenery_choices)
+        self.scenery = PickButton(self._scenery_choices, self._scenery_icons, PICK_TIP)
         self.scenery.picked = self._announce
         self.source.add("scenery", self.scenery)
         ready.addWidget(self.scenery, 0, 0)
@@ -506,13 +508,14 @@ class LookControls(QObject):
             b.clicked.connect(lambda _c=False, k=key: self._tile_clicked(k))
         # each style's smooth corners and spaces between the days are its own (heatmap_look.TILE_STYLE);
         # while debugging, two switches can change them, and picking a style puts them back to its own
+        # (set by _seed_switches once the scenery in view is known: what each goes by is the style
+        # that scenery resolves to, not Flat's)
         self.smooth = QCheckBox("Smooth corners (debug)")
         self.smooth.setToolTip("Each day's tile with smooth, rounded corners, drawn at your screen's resolution. Not for the joined shapes.")
-        self.smooth.setChecked(HL.smooth(dict(cfg, debug=True)))
         self.smooth.toggled.connect(lambda _on: self._announce())
         self.gaps = QCheckBox("Spaces between days (debug)")
-        self.gaps.setChecked(HL.gaps(dict(cfg, debug=True)))
         self.gaps.toggled.connect(lambda _on: self._announce())
+        self._seeded_for = None  # (the scenery the switches were last seeded for)
         for line in (self.faint,):
             line.setVisible(False)
 
@@ -540,7 +543,7 @@ class LookControls(QObject):
         self.debug_switches = HL.debug_available(cfg)
         self.source.buttonToggled.connect(lambda _b, on: on and self._source_changed())
         self.busier.on_change(self._announce)
-        self.tile_choice.buttonToggled.connect(lambda _b, on: on and self._announce())
+        # (a tile style announces from its click, _tile_clicked, once its switches are its own)
         self.source.set_quietly(HL.colours_choice(cfg))
         self._drawn = None  # (what the pictures were last drawn for)
         self.set_scenery("golden_lake", cfg)
@@ -610,23 +613,42 @@ class LookControls(QObject):
         # (even columns: each grid's buttons as wide as its widest, and Yours as the colours')
         self._even([self.scenery, *(self.ready[k] for k in colours), self.yours])
         source = self.source.currentData()
-        offered = [*colours, *(k[len(HL.READY_PREFIX):] for k, _n, _i in self._scenery_items())]
+        offered = [*colours, *(k[len(HL.READY_PREFIX):] for k, _n in self._scenery_choices() if k != HL.MATCH)]
         if source is None or (source.startswith(HL.READY_PREFIX) and source[len(HL.READY_PREFIX):] not in offered):
             self.source.set_quietly(HL.MATCH)
         if self.tile_choice.currentData() not in tiles:
             self.tile_choice.set_quietly(HL.TILE_DEFAULT)
+        self._seed_switches(edition_cfg)
         self.refresh()
 
-    def _scenery_items(self) -> list:
+    def _seed_switches(self, cfg: dict) -> None:
+        """The debug switches as the heatmap draws just now: a saved override (`debug_gaps`,
+        `debug_smooth` a bool), else the style's own for the scenery in view and the style chosen -
+        what style_values compares them to, so switches nobody touched never write anything. Seeded
+        again as the scenery changes (a style picked puts them back itself: _tile_clicked)."""
+        if self._seeded_for == self.here:
+            return
+        self._seeded_for = self.here
+        own = self._own_style(self.tile_choice.currentData() or HL.TILE_FOLLOW)
+        for box, key, theirs in ((self.gaps, "debug_gaps", own[0]), (self.smooth, "debug_smooth", own[1])):
+            saved = cfg.get(key)
+            box.blockSignals(True)
+            box.setChecked(saved if isinstance(saved, bool) else theirs)
+            box.blockSignals(False)
+
+    def _scenery_choices(self) -> list:
         """The scenery dropdown's list: the scenery's own (they follow it), then every scenery's colours
-        that can be had just now (HL.scenery_ready_env): (key, name, its strip in the tiles chosen)."""
+        that can be had just now (HL.scenery_ready_env): (key, name)."""
+        return [(HL.MATCH, FOLLOW_NAME)] + [(HL.READY_PREFIX + k, name) for k, name in HL.SCENERY_READY.items()
+                                           if k in presets.by_key() and HL.scenery_ready_env(k, self.edition_cfg)]
+
+    def _scenery_icons(self) -> dict:
+        """Each of the dropdown's choices as a picture: its strip in the tiles chosen (key -> QIcon)."""
         here_env = presets.by_key()[self.here].environment
         cfg = dict(self.edition_cfg, **self._values_now())
         drawn = HL.drawer_for(cfg, here_env)
         drawn = drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT
-        own = [(HL.MATCH, FOLLOW_NAME, QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=HL.MATCH), here_env), drawn)))]
-        return own + [(HL.READY_PREFIX + k, name, QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=HL.READY_PREFIX + k), here_env), drawn)))
-                      for k, name in HL.SCENERY_READY.items() if k in presets.by_key() and HL.scenery_ready_env(k, self.edition_cfg)]
+        return {key: QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=key), here_env), drawn)) for key, _name in self._scenery_choices()}
 
     def _values_now(self) -> dict:
         return {"calendar_mine": list(self.mine), "calendar_mine_two": self.blend.isChecked(),

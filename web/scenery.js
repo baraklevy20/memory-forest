@@ -39,5 +39,7 @@ AF.landOf = env => {
 
 AF.LANDMARKS = AF.LANDMARKS || {};
 AF.landmark = function (key, spec) { AF.LANDMARKS[key] = spec; };
-AF.markOf = env => AF.LANDMARKS[env.mood.landmark] || {};
+/* An environment may stand a landmark of its own in for the scene's (env.landmarkKey, set in
+ * its prepare: the lanterns' larger moon bridge), leaving the scene's data as it came. */
+AF.markOf = env => AF.LANDMARKS[env.landmarkKey || env.mood.landmark] || {};
 })();

@@ -182,7 +182,8 @@ const DEF = {
   },
 
   /* the grid itself, scrolling towards the horizon. With a lake in front it runs over
-   * the far bank only, and the water carries the sun's reflection instead. */
+   * the far bank only, and the water carries the sun's reflection instead. Then the palms,
+   * painted once a scene, over everything. */
   frame(g, env, t) {
     const { W, H } = env, top = Math.round(env.water ? 0 : H * 0.835);
     if (env.water) {  // chrome water: the sun's stripes lying on it, shivering
@@ -198,26 +199,22 @@ const DEF = {
         const x0 = W / 2 + k * W / 26, x1 = W / 2 + k * W / 5;
         pxLine(g, x0, L.y0, x1, L.y0 + L.lh);
       }
-      return;
+    } else {
+      const grid = env.theme.grid;
+      g.fillStyle = grid.floor; g.fillRect(0, top, W, H - top);
+      g.fillStyle = grid.far; pxLine(g, 0, top, W, top);
+      let last = top;
+      for (let k = 0; k < 7; k++) {
+        const z = ((k + t * AF.u.drift(0.6, 1)) % 7) / 7, y = Math.round(top + (H - top) * z * z);
+        if (y - last < 3) continue;
+        g.fillStyle = z < 0.45 ? grid.far : grid.near; pxLine(g, 0, y, W, y); last = y;
+      }
+      g.fillStyle = grid.near;
+      for (let k = -10; k <= 10; k++) pxLine(g, W / 2 + k * W / 40, top, W / 2 + k * W / 9, H);
     }
-    const grid = env.theme.grid;
-    g.fillStyle = grid.floor; g.fillRect(0, top, W, H - top);
-    g.fillStyle = grid.far; pxLine(g, 0, top, W, top);
-    let last = top;
-    for (let k = 0; k < 7; k++) {
-      const z = ((k + t * AF.u.drift(0.6, 1)) % 7) / 7, y = Math.round(top + (H - top) * z * z);
-      if (y - last < 3) continue;
-      g.fillStyle = z < 0.45 ? grid.far : grid.near; pxLine(g, 0, y, W, y); last = y;
-    }
-    g.fillStyle = grid.near;
-    for (let k = -10; k <= 10; k++) pxLine(g, W / 2 + k * W / 40, top, W / 2 + k * W / 9, H);
+    if (!env._palms) env._palms = palmLayer(env);
+    g.drawImage(env._palms, 0, 0);
   },
-};
-DEF.frame0 = DEF.frame;
-DEF.frame = function (g, env, t) {
-  DEF.frame0(g, env, t);
-  if (!env._palms) env._palms = palmLayer(env);
-  g.drawImage(env._palms, 0, 0);
 };
 /* the study calendar's tiles in scanlines, every other row darker as on an old monitor */
 const SCANLINE = [18, 10, 40];

@@ -306,8 +306,9 @@ AF.env('lanterns', {
   look: (mood, night) => night ? AF.TIMES.plum_night : null,
 
   prepare(env) {
-    // the lanterns' own moon bridge (below): the same red arch, larger
-    if (CFG.bridge && env.mood.landmark === 'moon_bridge') env.mood.landmark = CFG.bridge;
+    // the lanterns' own moon bridge (below): the same red arch, larger (stood in through
+    // env.landmarkKey, see AF.markOf; the scene's data keeps its own landmark)
+    if (CFG.bridge && env.mood.landmark === 'moon_bridge') env.landmarkKey = CFG.bridge;
   },
 
   after(th, mood) {

@@ -47,7 +47,7 @@ RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("Resets: the scenery and Customize, Nature (to {nature}), your city, where the forest and the "
-                "heatmap show (finished decks too), the heatmap's view, week start, shades, colours and tiles, animation and the "
+                "heatmap show (finished decks too), the heatmap's view, week start, shades, colours and style, animation and the "
                 "planting message.\n\nKeeps: the decks you left out, the start date (and how the heatmap and your "
                 "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
                 "Cancel still puts back the settings you had before.")

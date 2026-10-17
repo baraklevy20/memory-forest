@@ -295,6 +295,7 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
     forest = make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)
     forest["review_days"] = rows.review_days  # for the events; never sent to the page
     forest["day_reviews"] = rows.day_reviews  # (and how many each day, to count again from a strike)
+    forest["day_time"] = rows.day_time  # (and how long each day took: the heatmap's, read with the rest)
     return forest
 
 

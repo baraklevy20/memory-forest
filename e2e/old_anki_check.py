@@ -4,8 +4,9 @@ the way it is for everyone (from the study history, not the debug test forest, w
 built add-on does not ship), measures the cog in the real deck list, turns zooming on with
 real mouse clicks, picks a tree, steps a day, walks about and back out, opens the settings
 and paints every tab of them and the scenery picker, picks another scenery and checks the
-forest was built again, writes what it found to check.json in the base folder and quits
-Anki. It runs inside that Anki, so it uses only what every Anki it is run in has."""
+forest was built again, looks at a deck's own screen and at a finished deck's page (Anki's
+congratulations page, which the add-on adds its panel to once it has loaded), writes what it
+found to check.json in the base folder and quits Anki. It runs inside that Anki, so it uses only what every Anki it is run in has."""
 
 import ast
 import json
@@ -95,6 +96,17 @@ ZOOM_STATE = """(() => {
 })()"""
 VISIT_MS = 800  # past the zoom's fade (web/visit.js FADE_MS) and the rebuild
 MARK = "(() => { const e = [...document.querySelectorAll('*')].find(e => e.afEnv); if (e) e.afEnv.checkMark = 1; })()"
+# measured on a finished deck's page (Anki's congratulations page, panel.on_page_loaded): that
+# it is that page, that the panel was put on it (.af-finished), built, and how much of its
+# canvas is painted
+FINISHED_MEASURE = """(() => {
+  const box = document.querySelector('.af-finished'), c = box && box.querySelector('canvas'), root = box && box.querySelector('.af-panel');
+  let painted = 0;
+  if (c && c.width && c.height) { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i]) painted++;
+    painted = Math.round(100 * painted / (c.width * c.height)); }
+  return JSON.stringify({ congrats: location.href.indexOf('congrats') >= 0, box: !!box, canvas: !!c, built: !!(root && root.afEnv), painted });
+})()"""
 
 result = {"anki": None, "qt": None, "errors": [], "problems": [], "steps": []}
 
@@ -467,7 +479,50 @@ def deck_looked(got, raw):
         result["problems"].append("the deck screen's forest never built")
     elif not got.get("painted"):
         result["problems"].append("the deck screen's forest built but its canvas is blank")
-    QTimer.singleShot(500, finish)
+    step("finished deck", finished_deck)
+    if "finished deck" in result["steps"]:
+        QTimer.singleShot(WAIT_MS, finished_look)
+    else:
+        QTimer.singleShot(500, finish)
+
+
+def finished_deck():
+    """A finished deck's page: Anki shows its congratulations page for a deck with nothing to
+    study, an empty one too, and the add-on adds its panel once it has loaded
+    (panel.on_page_loaded)."""
+    col = mw.col
+    col.decks.select(col.decks.id("Finished"))
+    mw.moveToState("overview")
+
+
+def finished_look(tries_left: int = WAIT_TRIES) -> None:
+    """The finished deck's page measured once its forest has built (or WAIT_TRIES seconds
+    have gone): the page may still be the deck screen's while Anki loads it."""
+    web = mw.overview.web
+
+    def looked(raw):
+        note(f"finished deck: {raw}")
+        try:
+            got = json.loads(raw)
+        except Exception:
+            got = {}
+        if not (got.get("built") and got.get("painted")) and tries_left > 1:
+            QTimer.singleShot(WAIT_MS, lambda: finished_look(tries_left - 1))
+            return
+        shot("finished-deck", web)
+        result["finished_deck"] = got
+        if not got.get("congrats"):
+            result["problems"].append("Anki did not show its congratulations page for an empty deck")
+        elif not got.get("canvas"):
+            result["problems"].append("the finished deck's page got no forest panel (.af-finished canvas)")
+        elif not got.get("built"):
+            result["problems"].append("the finished deck's forest never built")
+        elif not got.get("painted"):
+            result["problems"].append("the finished deck's forest built but its canvas is blank")
+        else:
+            result["steps"].append("forest on the finished deck's page")
+        QTimer.singleShot(500, finish)
+    web.evalWithCallback(FINISHED_MEASURE, looked)
 
 
 def catches_import_error(caught) -> bool:
@@ -911,7 +966,21 @@ def offscreen_frames(content, _context):
     content.head = f'<script src="/_addons/{__name__}/offscreen.js"></script>' + content.head
 
 
+def offscreen_page(web) -> None:
+    """A finished deck's page is loaded by its address, never through webview_will_set_content:
+    the timers that stand in for the compositor's frames go in once it has loaded, before the
+    forest's scripts (fetched after the add-on puts them on the page) come to run."""
+    try:
+        if web is not mw.web or "congrats" not in web.url().toString():
+            return
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "offscreen.js"), encoding="utf-8") as f:
+            web.eval(f.read())
+    except Exception:
+        result["errors"].append("offscreen frames on the finished deck's page:\n" + traceback.format_exc())
+
+
 if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
     mw.addonManager.setWebExports(__name__, r"offscreen\.js")
     gui_hooks.webview_will_set_content.append(offscreen_frames)
+    gui_hooks.webview_did_inject_style_into_page.append(offscreen_page)
 gui_hooks.profile_did_open.append(lambda: QTimer.singleShot(500, opened))

@@ -68,7 +68,7 @@ const css = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a.toFixed(3)})
 const dimOf = th => { const s = th.sky; return clamp(1.05 - lum(hex(s[s.length - 1])) / 255 * 1.25, 0, 0.8); };
 
 AF.landscape('river', {
-  busy: true,  // the flecks on the water pass the near bank at up to ~17 px a second
+  busy: env => !env.theme.frozen,  // the flecks on the water pass the near bank at up to ~17 px a second (none on ice)
   center, halfWidth,
   // the animals along the front stand a little higher than on open ground, where the channel
   // is narrower, and never below the ground an environment keeps (synthwave's grid is not ground);

@@ -46,6 +46,7 @@ class Rows:
     today_reviews: int
     leeches: set = field(default_factory=set)  # cids of active cards tagged leech (suspended ones too)
     day_reviews: dict = field(default_factory=dict)  # days_ago -> how many reviews that day
+    day_time: dict = field(default_factory=dict)  # days_ago -> seconds those reviews took
 
 
 def load_rows(db, day_cutoff: int, dids: list | None = None,
@@ -74,7 +75,7 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
         "from cards c "
         f"where c.type != 0{'' if suspended else ' and c.queue != -1'}{in_decks}"
     )
-    first_last, day_reviews = (log or ReviewLog()).read(db, day_cutoff, only, since_ms)
+    first_last, day_reviews, day_time = (log or ReviewLog()).read(db, day_cutoff, only, since_ms)
     if since_ms:
         cards = [row for row in cards if first_last.get(row[0], (row[0],))[0] >= since_ms]
     lapse_since_ms = (day_cutoff - LAPSE_WINDOW_DAYS * DAY_SECS) * 1000
@@ -89,12 +90,13 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
     leeches = {row[0] for row in db.all(
         f"select c.id from cards c join notes n on n.id = c.nid where lower(n.tags) like '% leech %' "
         f"and c.ivl < {CURED_IVL}{in_decks}")} & active
-    return Rows(cards, first_last, recent_lapses, set(day_reviews), total, today, leeches, dict(day_reviews))
+    return Rows(cards, first_last, recent_lapses, set(day_reviews), total, today, leeches, dict(day_reviews),
+                {d: ms // 1000 for d, ms in day_time.items()})
 
 
 class ReviewLog:
     """The review log's totals for one choice of decks and dates - each card's first and
-    last review, and each day's count of reviews - kept between redraws. Read whole the first
+    last review, and each day's count of reviews and the time they took - kept between redraws. Read whole the first
     time, and after that only the reviews added since: a review session adds a few hundred
     rows to a log that can hold hundreds of thousands. It is read whole again when the day
     or the choice changes, or the newest review is gone (an undo).
@@ -108,9 +110,10 @@ class ReviewLog:
         self.newest = 0
         self.first_last: dict = {}
         self.day_reviews: dict = {}
+        self.day_time: dict = {}  # days ago -> milliseconds its answers took (what the heatmap's Time shades by)
 
     def read(self, db, day_cutoff: int, only: str, since_ms: int) -> tuple:
-        """(first_last, day_reviews) as load_rows has always counted them: `only` is
+        """(first_last, day_reviews, day_time) as load_rows has always counted them: `only` is
         _filters' condition on the review log, `since_ms` when the forest begins."""
         key = (day_cutoff, only, since_ms)
         newest = db.scalar("select max(id) from revlog") or 0
@@ -120,7 +123,7 @@ class ReviewLog:
         elif newest > self.newest:
             self._add(db, day_cutoff, only, since_ms, newest)
         self.newest = newest
-        return self.first_last, self.day_reviews
+        return self.first_last, self.day_reviews, self.day_time
 
     def _undone(self, db) -> bool:
         """Whether the newest review read last time is gone (an undo), though one came since."""
@@ -136,22 +139,23 @@ class ReviewLog:
                 f"where ease > 0 and type in {STUDY_TYPES} and id <= ?{only} group by cid", newest)
         }
         since = f" and id >= {since_ms}" if since_ms else ""
-        self.day_reviews = dict(
-            db.all(
-                f"select (? - 1 - id / 1000) / {DAY_SECS}, count() from revlog "
-                f"where ease > 0 and type in {STUDY_TYPES} and id < ? and id <= ?{only}{since} group by 1",
-                day_cutoff, day_cutoff * 1000, newest,
-            )
+        days = db.all(
+            f"select (? - 1 - id / 1000) / {DAY_SECS}, count(), sum(time) from revlog "
+            f"where ease > 0 and type in {STUDY_TYPES} and id < ? and id <= ?{only}{since} group by 1",
+            day_cutoff, day_cutoff * 1000, newest,
         )
+        self.day_reviews = {d: n for d, n, _ms in days}
+        self.day_time = {d: ms for d, _n, ms in days}
 
     def _add(self, db, day_cutoff: int, only: str, since_ms: int, newest: int) -> None:
-        for cid, rid in db.all(f"select cid, id from revlog where id > ? and id <= ? and ease > 0 "
-                               f"and type in {STUDY_TYPES}{only}", self.newest, newest):
+        for cid, rid, took in db.all(f"select cid, id, time from revlog where id > ? and id <= ? and ease > 0 "
+                                     f"and type in {STUDY_TYPES}{only}", self.newest, newest):
             first, last = self.first_last.get(cid, (rid, rid))
             self.first_last[cid] = (min(first, rid), max(last, rid))
             if rid < day_cutoff * 1000 and rid >= since_ms:
                 day = (day_cutoff - 1 - rid // 1000) // DAY_SECS
                 self.day_reviews[day] = self.day_reviews.get(day, 0) + 1
+                self.day_time[day] = self.day_time.get(day, 0) + took
 
 
 def _filters(dids: list | None, excluded: Iterable | None, skip: Iterable | None = None) -> tuple:
@@ -214,8 +218,12 @@ def load_free_days(db, day_cutoff: int, dids: list | None, excluded: Iterable | 
     # each answer's day, the day it set the card due on, and the card's next answer's day (all as
     # days ago), worked out by the database: a big collection has hundreds of thousands
     day = f"(({int(day_cutoff)} - 1 - id / 1000) / {DAY_SECS})"
-    spans = (f"select cid, {day} as d, case when ivl > 0 then {day} - ivl when ivl < 0 then {day} + ivl / {DAY_SECS} end as due_on, "
-             f"lead({day}) over (partition by cid order by id) as next from revlog where id < {int(day_cutoff) * 1000}{only}")
+    # (a learning step, ivl in seconds, falls due that long after the answer itself, which may be
+    # the day after: a 12-hour step answered at 20:00. Not by the cid index: walking the whole
+    # table in order and sorting is about twice as fast)
+    spans = (f"select cid, {day} as d, case when ivl > 0 then {day} - ivl "
+             f"when ivl < 0 then ({int(day_cutoff)} - 1 - id / 1000 + ivl) / {DAY_SECS} end as due_on, "
+             f"lead({day}) over (partition by cid order by id) as next from revlog not indexed where id < {int(day_cutoff) * 1000}{only}")
     oldest = db.all(f"select max({day}) from revlog where id < ?{only}", day_cutoff * 1000)[0][0]
     if oldest is None:
         return []
@@ -277,14 +285,15 @@ def load_day_reviews(db, day_cutoff: int, dids: list | None, excluded: Iterable 
 
 
 def load_day_time(db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
-                  skip: Iterable | None = None) -> dict:
-    """{days ago: seconds} spent on the reviews load_day_reviews counts, in the same decks: the
-    time Anki logged for each answer (which it caps, a minute by default, so a card left open
-    while away counts no more), for the study heatmap's "655 reviews in 48 min"."""
+                  skip: Iterable | None = None, since: int | None = None) -> dict:
+    """{days ago: seconds} spent on the reviews load_day_reviews counts, in the same decks and
+    from `since`: the time Anki logged for each answer (which it caps, a minute by default, so a
+    card left open while away counts no more), for the study heatmap's "655 reviews in 48 min"."""
     _in_decks, only = _filters(dids, excluded, skip)
+    since_part = f" and id >= {int(since) * 1000}" if since else ""
     return {ago: ms // 1000 for ago, ms in db.all(
         f"select (? - 1 - id / 1000) / {DAY_SECS}, sum(time) from revlog "
-        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only} group by 1",
+        f"where ease > 0 and type in {STUDY_TYPES} and id < ?{only}{since_part} group by 1",
         day_cutoff, day_cutoff * 1000)}
 
 
@@ -476,7 +485,13 @@ def calendar_search(db, offset: int, today: int, due: bool = False) -> list:
     with `due`: the cards due today, as load_due counts them (overdue, and learning by the clock)."""
     if due and offset == 0:  # (is:learn would add cards in a relearning step of days, due later)
         learning = [cid for (cid,) in db.all("select id from cards where queue = 1 order by id")]
-        return [f"(is:due OR cid:{','.join(map(str, learning))})" if learning else "is:due", "-is:suspended", "-is:buried"]
+        # is:due reads a borrowed card's due in the filtered deck (its place in it, long past), not
+        # its home deck's: those come by id, the ones load_due counts
+        borrowed = [cid for (cid,) in db.all(
+            "select id from cards where queue in (2, 3) and odid != 0 "
+            "and (case when odue != 0 then odue else due end) <= ? order by id", today)]
+        cids = ",".join(map(str, learning + borrowed))
+        return [f"((is:due -deck:filtered) OR cid:{cids})" if cids else "is:due -deck:filtered", "-is:suspended", "-is:buried"]
     if offset > 0:
         borrowed = [cid for (cid,) in db.all(
             "select id from cards where queue in (2, 3) and odid != 0 and odue = ? order by id", today + offset)]

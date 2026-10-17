@@ -1,12 +1,12 @@
-"""Draw the README's heatmap pictures, docs/calendar.png and docs/calendar_sceneries.png, from this
+"""Draw the README's heatmap pictures, docs/heatmap.png and docs/heatmap_sceneries.png, from this
 copy's scripts in headless Chrome. Uses made-up history unless --collection is supplied.
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
     python3 dev/docs_pictures.py --collection /path/to/collection.anki2
 
-calendar.png: the forest by the lake with its heatmap under it, visible streak labels,
+heatmap.png: the forest by the lake with its heatmap under it, visible streak labels,
 the current streak's silver trophy, its next goal's flag, and an upcoming exam note.
-calendar_sceneries.png: one heatmap in four base sceneries, each beside its picker picture, with
+heatmap_sceneries.png: one heatmap in four sceneries, each beside its picker picture, with
 its current trophy and flag and no other streak markers. Needs Chrome, and node with the dev packages.
 """
 
@@ -51,7 +51,14 @@ HISTORY = 520
 STREAKS = ((0, 139), (150, 209), (230, 409))
 SCATTER = 0.35  # (the share of the days studied outside a streak)
 SEED = 20261016
-SCENERIES = ("golden_lake", "starry_night", "lanterns", "synthwave")
+# each row: its scenery, the tile style (None: the scenery's own) and the view, all Timeline so the
+# rows line up and show the same days, cropped to eight months, May to December (2026-10-17). A
+# fifth row showing Contours (Aurora, By year) was tried and dropped: a whole year shifted and
+# squeezed against the others, Timeline chopped the shape at the month gaps, and a wider By year made
+# a taller row.
+ROWS = (("golden_lake", None, "timeline"), ("starry_night", None, "timeline"), ("lanterns", None, "timeline"),
+        ("synthwave", None, "timeline"))
+SCENERIES = tuple(key for key, _tiles, _view in ROWS)
 
 
 def history() -> dict:
@@ -69,7 +76,18 @@ def history() -> dict:
         n = r.randint(90, 300) * (0.6 if weekday >= 5 else 1.0) * (1.8 if r.random() < 0.08 else 1.0)
         days.append(int(n))
         time.append(int(n * r.uniform(6, 11)))
-    due = [260] + [max(8, int(240 * 0.993 ** k + r.randint(-25, 25))) for k in range(1, 366)]
+    # the cards due ahead, over the whole range the soil's four shades split (calendar.js dueShade,
+    # by the log of the busiest day ahead): a backlog thinning out, light weekends, a heavy day now
+    # and then, a near-empty one here and there
+    due = [260]
+    for k in range(1, 366):
+        base = 24 + 110 * 0.96 ** k
+        if (today + dt.timedelta(days=k)).weekday() >= 5:
+            base *= 0.25
+        if k % 9 == 4:
+            base *= 3.2
+        n = r.randint(1, 3) if r.random() < 0.08 else int(base * r.uniform(0.6, 1.4))
+        due.append(max(1, n))
     return {"start": (today - dt.timedelta(days=HISTORY - 1)).isoformat(), "days": days, "time": time, "due": due}
 
 
@@ -109,9 +127,9 @@ def mood_of(key: str) -> dict:
                               "weather": p.weather, "time_of_day": p.time}, EVENING)
 
 
-def calendar(mood: dict, marks: list) -> dict:
-    look = HL.page_look({}, mood)
-    return dict(REAL_HISTORY or history(), view="timeline", weekStart=1, shadeBy="reviews", animals=[], breakDays=7, browse=False,
+def calendar(mood: dict, marks: list, tiles: str | None = None, view: str = "timeline") -> dict:
+    look = HL.page_look({"calendar_tiles": tiles} if tiles else {}, mood)
+    return dict(REAL_HISTORY or history(), view=view, weekStart=1, shadeBy="reviews", animals=[], breakDays=7, browse=False,
                 marks=marks, free=[], daysOff=[], streakFromStart=False, look=look)
 
 
@@ -233,20 +251,21 @@ def main() -> None:
         path = os.path.join(tmp, "big.html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(page(lake, big, 756, ".af-cog { display: none !important }"))
-        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "calendar.png")})
+        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "heatmap.png")})
         # the sceneries: the heatmap alone, with only the current trophy and flag revealed
         shots = {}
-        for key in SCENERIES:
+        for key, tiles, view in ROWS:
             mood = mood_of(key)
-            data = dict(forest_data(mood), calendar=calendar(mood, []), showForest=False, maxWidth=756)
+            data = dict(forest_data(mood), calendar=calendar(mood, [], tiles, view), showForest=False, maxWidth=756)
             path = os.path.join(tmp, f"{key}.html")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(page(mood, data, 756, ".af-cal .af-cal-above { opacity: 1 } .af-cal-foot, .af-cal-notes { display: none }"))
             shots[key] = os.path.join(tmp, f"{key}.png")
-            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": 3, "out": shots[key]})
+            # (from May's label, eight months; By year's January: the weekday labels left out)
+            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": 0 if view == "by_year" else 4, "out": shots[key]})
         shoot(jobs)
-        sceneries_picture(shots, os.path.join(DOCS, "calendar_sceneries.png"))
-    print("docs/calendar.png, docs/calendar_sceneries.png")
+        sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
+    print("docs/heatmap.png, docs/heatmap_sceneries.png")
 
 
 if __name__ == "__main__":

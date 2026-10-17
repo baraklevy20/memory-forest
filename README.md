@@ -79,7 +79,7 @@ Change your mind at any time: switch back and your forest is just as it was.
 
 ## Your study heatmap
 
-<p align="center"><img src="docs/calendar.png" alt="The forest with its study heatmap below: days studied in green, a silver streak trophy, a goal flag, an exam marker, and cards coming due in brown"></p>
+<p align="center"><img src="docs/heatmap.png" alt="The forest with its study heatmap below: days studied in green, a silver streak trophy, a goal flag, an exam marker, and cards coming due in brown"></p>
 
 Your study days, streaks and upcoming reviews, in your scenery's colours.
 Hover for details; click a day to open its cards.
@@ -93,9 +93,9 @@ Hover for details; click a day to open its cards.
 - **Milestones**: see when each animal joined your forest.
 - **Important days**: right-click to mark exams, trips and other dates.
 - **Week start**: Monday, Sunday, Saturday or your system's setting.
-- **Your look**: customize colours, tiles and rest days in the Heatmap tab.
+- **Your look**: customize its colours and style in the Heatmap tab.
 
-<p align="center"><img src="docs/calendar_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, and violet to pink scanlines in Synthwave"></p>
+<p align="center"><img src="docs/heatmap_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, and violet to pink scanlines in Synthwave"></p>
 
 ## On your phone
 

@@ -248,6 +248,24 @@ class PayloadTests(unittest.TestCase):
         mw.col.db.con.execute("update cards set mod = 5 where id = 1")  # a card suspended or moved
         self.assertIsNot(payload._forest(), second)
 
+    def test_a_redraw_after_one_review_reads_no_whole_log(self):
+        # (a review session adds a few rows to a log of hundreds of thousands: what it changes is
+        # read by the newest review or today, never the whole log again)
+        reset(CARDS)
+        payload.payload()
+        whole, real = [], mw.col.db.all
+
+        def spy(sql, *args):
+            if "revlog" in sql and "id >" not in sql:  # (a read not bounded by the newest review or today)
+                whole.append(sql)
+            return real(sql, *args)
+        mw.col.db.all = spy
+        mw.col.db.con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, 7000)", (ms(0, 15),))
+        p = payload.payload()
+        self.assertEqual(whole, [])
+        self.assertEqual(p["stats"]["today_reviews"], 1)
+        self.assertEqual((p["calendar"]["days"][-1], p["calendar"]["time"][-1]), (1, 7))  # (and still counted)
+
     def test_the_deck_list_keeps_the_last_deck_s_forest(self):
         reset(CARDS)
         deck = payload._forest(10)

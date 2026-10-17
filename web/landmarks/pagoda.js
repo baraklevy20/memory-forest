@@ -31,7 +31,9 @@ function placeOf(env, x) {
 AF.landmark('pagoda', {
   slot: 'land',
   deepBands: 2,
-  place: (env, R) => Math.round(env.W * (0.16 + R() * 0.1)),
+  // (mirrored to the right third when the moon or sun hangs over the left one, as the natural night moon
+  // does at 0.22: behind the spire the two read as one shape. One R() either way, so nothing else moves)
+  place: (env, R) => { const x = 0.16 + R() * 0.1, o = env.theme.orb; return Math.round(env.W * (o && o.y < 0.3 && Math.abs(o.x - 0.21) < 0.18 ? 1 - x : x)); },
   draw(env, lg, x) {
     const th = env.theme, P = placeOf(env, x), s = P.s, cx = P.x, paint = AF.painter(lg);
     const time = env.mood.time, night = time === 'night', lit = night || time === 'dusk';

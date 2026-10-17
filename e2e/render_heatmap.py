@@ -37,6 +37,9 @@ def heatmap_scenes() -> list:
         out.append((f"heatmap-{tag}", {"heatmap": heatmap_calendar(view, years), "page": "dark"}, SCENE_TREES))
     for view in ("timeline", "by_year"):
         out.append((f"heatmap-{view}-light", {"heatmap": heatmap_calendar(view, False), "page": "light"}, SCENE_TREES))
+    # a journal long enough to wrap in the footer: the room kept for the calendar must hold both lines
+    long = dict(heatmap_calendar("timeline", False), _journal="One of your trees became ancient today. Watch for a shooting star tonight, over the lake.")
+    out.append(("heatmap-timeline-long-journal", {"heatmap": long, "page": "dark"}, SCENE_TREES))
     return out
 
 
@@ -56,7 +59,7 @@ async function probes(r) {
     at.dispatchEvent(new MouseEvent(type || 'mousemove', { bubbles: true, clientX: x, clientY: y }));
   };
   const into = el => { el.scrollIntoView({ block: 'center' }); return el.getBoundingClientRect(); };
-  const kept = AnkiForest.calendarHeight(window.D.calendar, box.clientWidth, !!window.D.journal);
+  const kept = AnkiForest.calendarHeight(window.D.calendar, box.clientWidth, box.parentNode);
   const took = box.getBoundingClientRect().height;
   if (Math.abs(kept - took) > 1) r.errors.push(`heatmap: ${Math.round(took)}px drawn in ${kept}px kept (the panel jumps)`);
   // By year's earlier years, shown by their switch (never at first); then Timeline and back, which

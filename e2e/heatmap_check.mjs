@@ -29,7 +29,7 @@ try {
       if (!button || button.hidden) { failures.push(`${mode} answer time unavailable`); continue; }
       button.click();
       if (!button.classList.contains('af-on')) failures.push(`${mode} answer time did not activate`);
-      if (!box.querySelector('.af-cal-key').textContent.includes('Slower')) failures.push(`${mode} answer time has no speed legend`);
+      if (!box.querySelector('.af-cal-key').textContent.includes('Slow')) failures.push(`${mode} answer time has no speed legend`);
     }
     box.querySelector('[data-by="reviews"]').click();
     return failures;

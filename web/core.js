@@ -14,6 +14,10 @@ AF.mount = function (root, data, opts) {
   root.afPointTreeDay = null;
   // the add-on redraws this forest through the panel itself, never through the shared name
   root.afSwap = (d, srcs) => AF.swap(root.id, d, srcs);
+  // one listener a forest: the one before goes now (left until the page was next hidden, it
+  // kept each retired forest - and its canvas - alive, one more at every swap; a swap to the
+  // calendar alone must let go of it too)
+  if (root.afShown) { document.removeEventListener('visibilitychange', root.afShown); root.afShown = null; }
   // the forest switched off on this screen, the study calendar on: only the calendar, drawn
   // straight away in the scenery's colours (web/calendar.js)
   if (data.showForest === false) {
@@ -40,14 +44,16 @@ AF.mount = function (root, data, opts) {
     + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
   const sceneEl = root.querySelector('.af-scene'), canvas = root.querySelector('canvas'), tip = root.querySelector('.af-tip');
   root.style.maxWidth = data.maxWidth + 'px';
-  // the study calendar's room, kept from the start: drawn once the forest is, it would
-  // otherwise push the page down a moment after it appears
-  if (data.calendar) {
-    const cal = document.createElement('div'); cal.className = 'af-cal'; root.append(cal);
-    cal.style.minHeight = AF.calendarHeight(data.calendar, cal.clientWidth) + 'px';
-  }
   AF.caption(root, data);
   AF.captionTips(root);
+  // the study calendar's room, kept from the start: drawn once the forest is, it would
+  // otherwise push the page down a moment after it appears (the caption first: its journal
+  // ends up in the calendar's footer, and a long one wraps there)
+  if (data.calendar) {
+    const cal = document.createElement('div'); cal.className = 'af-cal'; root.append(cal);
+    cal.style.width = AF.calendarWidth(data.calendar);  // (its own width, which sets its scale: measured at the panel's it kept too much)
+    cal.style.minHeight = AF.calendarHeight(data.calendar, cal.clientWidth, root) + 'px';
+  }
   hookCog(root, data);
 
   // the whole forest's layout, and the one being drawn: it, or a visit's close-up (web/visit.js)
@@ -211,16 +217,13 @@ AF.mount = function (root, data, opts) {
     if (visible) wake();
   }).observe(sceneEl);
   const shown = () => { if (current() && !document.hidden) wake(); };
-  // one listener a forest: the one before goes now (left until the page was next hidden, it
-  // kept each retired forest - and its canvas - alive, one more at every swap)
-  if (root.afShown) document.removeEventListener('visibilitychange', root.afShown);
   root.afShown = shown;
   document.addEventListener('visibilitychange', shown);
   let lastW = 0, rt;
   if ('ResizeObserver' in window) new ResizeObserver((_es, obs) => {
     if (!current()) { obs.disconnect(); return; }
     const w = sceneEl.clientWidth; if (!env || Math.abs(w - lastW) < RESIZE_MIN_PX) return; lastW = w;
-    clearTimeout(rt); rt = setTimeout(() => { build(); frame(animate ? performance.now() : stillAt); }, RESIZE_DEBOUNCE_MS);
+    clearTimeout(rt); rt = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, RESIZE_DEBOUNCE_MS);  // (not after a swap: a retired build would take root.afEnv)
   }).observe(sceneEl);
   // build after the deck list has painted, so the forest never delays it - unless this is a
   // swap, where the old forest was just cleared and waiting would show an empty panel

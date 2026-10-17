@@ -1,4 +1,5 @@
-/* The add-on's browser code: plain scripts in Anki's webview, no bundler, no modules.
+/* The add-on's browser code: plain scripts in Anki's webview, no bundler, no modules; and
+ * the node tooling (dev/*.mjs, e2e/*.mjs): ES modules that drive headless Chrome.
  * `npm install && npm run lint` from this folder. */
 export default [
   {
@@ -25,6 +26,37 @@ export default [
       'prefer-const': 'error',
       'eqeqeq': ['error', 'smart'],
       'no-console': ['warn', { allow: ['error', 'warn'] }],
+      'no-unused-expressions': 'error',
+      'no-shadow-restricted-names': 'error',
+      'no-fallthrough': 'error',
+      'no-constant-condition': ['error', { checkLoops: false }],
+    },
+  },
+  {
+    // the node tooling: its output is console.log, and what it runs in the page
+    // (page.evaluate) sees the browser's globals and window.AnkiForest
+    files: ['dev/**/*.mjs', 'e2e/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        process: 'readonly', console: 'readonly', URL: 'readonly', Buffer: 'readonly',
+        setTimeout: 'readonly', clearTimeout: 'readonly', setInterval: 'readonly', clearInterval: 'readonly',
+        performance: 'readonly',
+        window: 'readonly', document: 'readonly', requestAnimationFrame: 'readonly', getComputedStyle: 'readonly',
+        innerWidth: 'readonly', innerHeight: 'readonly', MouseEvent: 'readonly', KeyboardEvent: 'readonly',
+        HTMLCanvasElement: 'readonly', CanvasRenderingContext2D: 'readonly',
+        AnkiForest: 'readonly',
+      },
+    },
+    linterOptions: { reportUnusedDisableDirectives: true },
+    rules: {
+      'no-unused-vars': ['error', { args: 'after-used', argsIgnorePattern: '^_' }],
+      'no-undef': 'error',
+      'no-implicit-globals': 'error',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'eqeqeq': ['error', 'smart'],
       'no-unused-expressions': 'error',
       'no-shadow-restricted-names': 'error',
       'no-fallthrough': 'error',

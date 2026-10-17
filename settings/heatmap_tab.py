@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from aqt.qt import QCheckBox, QVBoxLayout, QWidget
 
-from ..payload import _week_start_day
+from ..payload import week_start_day
 from ..scope import anki_today
 from ..state import (
     STREAK_WEEKS,
@@ -67,7 +67,7 @@ class WeekChoice(JoinedChoice):
     def label_for(self, key, label: str) -> tuple:
         tip = WEEK_TIPS[key]
         if key == "system":  # (Auto (Mon): the day it comes to here)
-            day = DAY_NAMES[_week_start_day({})]
+            day = DAY_NAMES[week_start_day({})]
             label, tip = f"{label} ({day[:3]})", f"{tip}: {day}"
         return label, tip
 
@@ -102,12 +102,13 @@ class HeatmapTab(Tab):
         streak.addRow("Your streak counts", with_hint(self.streak_week, STREAK_WEEK_NOTE))
         streak.addRow("Count your streak from", self.streak_from)
         streak.addRow(hint(START_NOTE))
-        # (the groups' fields start on one line)
+        # (the groups' fields start on one line: one fixed width, which a NEW tag on any of them
+        # grows for all, whats_new._tag_label)
         labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (layout, streak) for r in range(f.rowCount())
                   if f.itemAt(r, f.ItemRole.LabelRole) and f.itemAt(r, f.ItemRole.LabelRole).widget()]
         widest = max(label.sizeHint().width() for label in labels)
         for label in labels:
-            label.setMinimumWidth(widest)
+            label.setFixedWidth(widest)
         # its look first, what people change most: whose colours (Scenery, the ready ramps, your
         # own) and its style; then where it shows, its weeks, the streak and the start date
         self.look = LookControls(cfg)

@@ -238,9 +238,13 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     asked = true;
     const m = data.merged;
     window.pycmd(`${data.channel}:deep:${data.deckId == null ? '' : data.deckId}`, got => {
-      if (!current() || !Array.isArray(got) || !got.length) return;
-      // only the trees of the deep forest drawn here: Anki may have built the forest afresh since
-      if (got.length !== m.count || got[0].ago !== m.from_ago || got[got.length - 1].ago !== m.to_ago) return;
+      if (!current()) return;
+      // only the trees of the deep forest drawn here: Anki may have built the forest afresh
+      // since (or sent nothing); asked again the next time, rather than never
+      if (!Array.isArray(got) || !got.length || got.length !== m.count || got[0].ago !== m.from_ago || got[got.length - 1].ago !== m.to_ago) {
+        asked = false;
+        return;
+      }
       behind = AF.layoutBehind(got, base); every = behind.concat(trees); furthest = backOf(behind);
       shown = undefined;  // (the bar's Previous day may lead somewhere now)
       if (cam) redraw(); else show();
@@ -525,10 +529,12 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     if (b.dataset.day) step(b.dataset.day);
     else if (b.dataset.act === 'back') leave();
   });
-  // the keys, while zooming is on and nothing else on the page is being typed into
+  // the keys, while zooming is on and nothing else on the page is being typed into (nor the
+  // heatmap under the forest, whose controls the arrow keys switch: web/calendar.js)
   const onKey = e => {
     if (!current()) { document.removeEventListener('keydown', onKey); return; }
     if (!on || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) return;
+    if (e.target && e.target.closest && e.target.closest('.af-cal')) return;
     if (e.key === 'Escape') { if (picked != null) pick(null); else leave(); }
     else if (KEYS[e.key]) {
       const [along, rows] = KEYS[e.key];
