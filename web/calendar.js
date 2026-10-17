@@ -458,7 +458,13 @@ function spriteOf(t, h, env) {
  * grey square (no edge of its own) that sits back on Anki's light and dark pages alike */
 const EMPTY = `rgba(128, 128, 128, ${EMPTY_ALPHA})`, EMPTY_LIGHT = `rgba(128, 128, 128, ${EMPTY_ALPHA_LIGHT})`;  // (clearer on a light page, so the weeks hold together)
 const FREE_MARK = 'rgba(128, 128, 128, 0.5)';  // a day with nothing due, outside any streak: a single pixel, darker grey
-const REST_MARK = 3;  // a day a streak passed over (nothing due, or a day off): a block this wide in its bracket's colour
+// a day a streak passed over (nothing due, or a day off) wears a ring in the heatmap's own colour: the
+// first shade, from the faintest, this far (OKLab) from the empty grey it rings (the faintest on a dark
+// page; on a light one, where it is nearly the grey, the second)
+const REST_APART = 0.10;
+const restShade = (pal, paper) => { const blank = blankOn(paper); let lv = 0; while (lv < 3 && apart(pal.grass[lv][0], blank) < REST_APART) lv++; return pal.grass[lv][0]; };
+/* a 1px ring just inside a tile's face, its four corners left off, as the pixel tiles round theirs */
+function restRing(g, x, y, F) { for (let i = 1; i < F - 1; i++) { g.fillRect(x + i, y, 1, 1); g.fillRect(x + i, y + F - 1, 1, 1); g.fillRect(x, y + i, 1, 1); g.fillRect(x + F - 1, y + i, 1, 1); } }
 function empty(g, x, y, fill = EMPTY, T = TILE) { g.fillStyle = fill; g.fillRect(x, y, T, T); }
 /* a tile's texture: two tones in 2x2 clusters and an edge, its four corners left off so it reads
  * soft and round at its size (2026-10-16: bevel, dither, a soft brush and an inset were tried; at
@@ -758,6 +764,12 @@ function sharpen(hi, lo, cells, H, dark, paper, s, F, R, G = 0) {
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
     tile(c);
   }
+  // (a rest day's ring, paint: the tile's own rounded outline in the heatmap's faint shade, the empty grey inside)
+  for (const c of cells) if (c.rest) {
+    g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
+    rounded(g, c.x - G, c.y - G, F + 2 * G, F + 2 * G, Math.max(0.6, R + G)); g.fillStyle = rgb(c.rest); g.fill();
+    rounded(g, c.x + 1 - G, c.y + 1 - G, F + 2 * G - 2, F + 2 * G - 2, Math.max(0.6, R + G - 1)); g.fillStyle = rgb(blankOn(paper)); g.fill();
+  }
   g.globalAlpha = 1;
   const today = cells.find(c => c.o === 0);
   if (today) {
@@ -801,14 +813,18 @@ function paint(H, win, sp, paper) {
   // (a joined shape: each pixel's day and shade, for the highlight; a drafted one's days also for the pointer)
   const joined = pal.shapes ? shapesPass(g, cells, at, W, Hh, H, pal, dark) : null;
   const pane = joined && !joined.lvAt ? joined.owner : null;
-  // (a day with nothing due, or a day off: inside a streak a small block in its bracket's colour,
-  // gold under the current one, so the streak reads unbroken where it passed over the day, not as
-  // a gap (a single pixel was too faint to see, 2026-10-17); outside any streak that pixel; over the shapes)
+  // (a day with nothing due, or a day off: inside a streak, a hollow tile, a ring in the heatmap's
+  // faint shade round the empty grey (restShade), so the day reads as a slot the streak passed
+  // through, unfilled, never as studied, and the week does not read as a gap; a single pixel was
+  // too faint to see and a gold block read as a highlight, 2026-10-17. Not on today, whose frame
+  // says it; outside any streak that pixel; over the shapes. Smooth tiles draw theirs in sharpen)
+  const rest = restShade(pal, paper), face = pal.gapless ? CELL : TILE_FACE;
   for (const c of cells) if (H.free.has(c.o) && !c.n) {
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
-    const run = c.o <= 0 ? H.runOf(c.o) : null, mid = TILE >> 1;
-    if (run) { g.fillStyle = rgb(run === H.current ? (dark ? P.gold : P.goldOnLight) : P.past); g.fillRect(c.x + mid - (REST_MARK >> 1), c.y + mid - (REST_MARK >> 1), REST_MARK, REST_MARK); }
-    else { g.fillStyle = FREE_MARK; g.fillRect(c.x + mid, c.y + mid, 1, 1); }
+    const run = c.o < 0 ? H.runOf(c.o) : null, mid = TILE >> 1;
+    if (run && smooth) c.rest = rest;
+    else if (run) { g.fillStyle = rgb(rest); restRing(g, c.x, c.y, face); }
+    else if (c.o !== 0) { g.fillStyle = FREE_MARK; g.fillRect(c.x + mid, c.y + mid, 1, 1); }
     g.globalAlpha = 1;
   }
   const animals = H.animals;
