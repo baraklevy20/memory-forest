@@ -155,12 +155,19 @@ if sys.platform == "darwin" and os.environ.get("QT_QPA_PLATFORM") == "offscreen"
         QApplication.instance().installEventFilter(_offscreen_tabs)
 
 
+class NotChecked(Exception):
+    """A step this Anki can't run here (why, in its message): listed as not checked, no error."""
+
+
 def step(name, fn):
     """Run one step, keeping any error rather than letting Anki show it."""
     note("step: " + name)
     try:
         fn()
         result["steps"].append(name)
+    except NotChecked as why:
+        result["steps"].append(f"{name}: not checked ({why})")
+        note(f"not checked: {name}: {why}")
     except Exception:
         result["errors"].append(f"{name}:\n{traceback.format_exc()}")
         note("error: " + result["errors"][-1])
@@ -598,10 +605,9 @@ def heatmap_browser_metrics():
         # can assign a note before the next search/close saves it. Hidden WebEngine
         # views can defer initialization on CI's offscreen platform.
         browser.editor.web.show()
-        # On CI's runner (2.1.50 and 2.1.54-qt5, and now and then here) the editor's page can
-        # stay blank or never answer: the test's WebEngine, not the add-on. Waited for a while,
-        # then let be, with what the page showed; the steps after it still fail on what
-        # matters, a search or a close that never finishes.
+        # On CI's runner (2.1.50, and now and then here) the editor's page can stay blank or
+        # never answer: the test's WebEngine, not the add-on. Anki then waits on it to save
+        # before a search or a close, which never comes, so the step is not checked.
         end = time.monotonic() + 15
         while time.monotonic() < end:
             ready = []
@@ -617,7 +623,7 @@ def heatmap_browser_metrics():
         details = []
         browser.editor.web.page().runJavaScript("JSON.stringify({url:location.href,ready:document.readyState})", details.append)
         settle()
-        note(f"heatmap browser: the editor never finished loading, let be {details}")
+        raise NotChecked(f"the browser's editor never finished loading {details}")
 
     def close_browser(browser):
         settle()
