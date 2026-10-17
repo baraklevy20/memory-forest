@@ -114,13 +114,17 @@ class ReviewLog:
         _filters' condition on the review log, `since_ms` when the forest begins."""
         key = (day_cutoff, only, since_ms)
         newest = db.scalar("select max(id) from revlog") or 0
-        if key != self.key or newest < self.newest:
+        if key != self.key or newest < self.newest or self._undone(db):
             self._read_all(db, day_cutoff, only, since_ms, newest)
             self.key = key
         elif newest > self.newest:
             self._add(db, day_cutoff, only, since_ms, newest)
         self.newest = newest
         return self.first_last, self.day_reviews
+
+    def _undone(self, db) -> bool:
+        """Whether the newest review read last time is gone (an undo), though one came since."""
+        return bool(self.newest) and not db.scalar("select exists (select 1 from revlog where id = ?)", self.newest)
 
     def _read_all(self, db, day_cutoff: int, only: str, since_ms: int, newest: int) -> None:
         # up to `newest` only: a review made meanwhile is added next time, not counted twice.
@@ -315,7 +319,8 @@ class AnswerTimes:
              skip: Iterable | None = None) -> dict:
         key = (day_cutoff, tuple(dids or ()), frozenset(excluded or ()), frozenset(skip or ()))
         newest = db.scalar("select max(id) from revlog") or 0
-        if key != self.key or newest < self.newest:
+        undone = bool(self.newest) and not db.scalar("select exists (select 1 from revlog where id = ?)", self.newest)
+        if key != self.key or newest < self.newest or undone:
             self.days = load_day_answer_time(db, day_cutoff, dids, excluded, skip)
             self.key = key
         elif newest > self.newest:

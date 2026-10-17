@@ -154,6 +154,13 @@ class HistoryFilterTests(unittest.TestCase):
         # an undo takes the newest review away: read whole again
         self.db.all("delete from revlog where id = ?", ms(0, 12))
         same(excluded=[20], since=ms(8) // 1000)
+        # an undo, then another answer before the next read: the newest is newer, but the one
+        # read last is gone, so the log is read whole again rather than counting it twice
+        self.db.all("insert into revlog values (?, 4, 3, 1)", ms(0, 13))
+        same(excluded=[20], since=ms(8) // 1000)
+        self.db.all("delete from revlog where id = ?", ms(0, 13))
+        self.db.all("insert into revlog values (?, 4, 3, 1)", ms(0, 14))
+        same(excluded=[20], since=ms(8) // 1000)
         # another choice of decks: read whole again
         same(dids=[10])
 

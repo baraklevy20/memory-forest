@@ -164,22 +164,28 @@ function history(cal) {
       // a break of breakDays or more is a pond, as forest_data._breaks has it (counted from the
       // forest's start)
       const from = fs !== null ? Math.max(gap, fs) : gap;
-      if (gap !== null && o - from >= breakDays) for (let g = from; g < o; g++) pond.add(g);
+      if (!cal.ponds && gap !== null && o - from >= breakDays) for (let g = from; g < o; g++) pond.add(g);
       gap = null;
       // (a streak runs on over the forest's start date, your real one, as the caption counts it;
       // unless the Decks tab says to count it from the start date too)
       // (its length is in days studied: `days`)
-      if (run && !(cal.streakFromStart && o === fs)) { run.to = o; run.days++; } else runs.push(run = { from: o, to: o, days: 1 });
+      // (from the first day studied on or after it, even when the start date itself was free or a day off)
+      if (run && !(cal.streakFromStart && fs !== null && run.from < fs && o >= fs)) { run.to = o; run.days++; } else runs.push(run = { from: o, to: o, days: 1 });
     } else {
       if (!free.has(o)) run = null;
       if (gap === null && o > first) gap = o;
     }
   }
+  // the forest's own ponds (payload: its trees' gaps), the days in them not studied: a deck's
+  // forest has the main forest's breaks, not the days away from that deck alone
+  for (const [a, b] of cal.ponds || []) for (let o = (utc(a) - today) / DAY_MS; o <= (utc(b) - today) / DAY_MS; o++) if (!n(o)) pond.add(o);
   // a streak lives on through today until today ends, and over the days with nothing due since
   // its last day studied (forest_data._streaks)
   const end = runs[runs.length - 1];
   let current = end || null;
   for (let o = end ? end.to + 1 : 0; current && o < 0; o++) if (!free.has(o)) current = null;
+  // (counted from the start date, a streak that ended before it is none of yours now, as the caption has it)
+  if (current && cal.streakFromStart && fs !== null && current.to < fs) current = null;
   // the streak a day belongs to (a day with nothing due since the current one's last day, its)
   const runOf = o => runs.find(r => o >= r.from && o <= r.to) || (current && o > current.to && o <= 0 ? current : null);
   // your three longest streaks (of SHOWN_STREAK days or more; the first to reach a length ranks
@@ -218,7 +224,8 @@ function history(cal) {
   // (by time, each split just under a whole minute, 5 minutes from half an hour: the key's "Under
   // 45 min" then holds for every day whose tooltip says less, and reads as a round number)
   const snap = s => { const m = Math.max(1, Math.round(s / 60)); return (m >= 30 ? Math.round(m / 5) * 5 : m) * 60 - 30; };
-  for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(t[i - 1] + 60, snap(t[i]));
+  // (the first just under a minute at the least, 30 s: never 61 s, past days its tooltips call "a minute")
+  for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(i === 1 ? 30 : t[i - 1] + 60, snap(t[i]));
   const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
   // Daily seconds per answer: retain fractions so quick answers remain distinct.
   const answerTime = o => {
@@ -1638,7 +1645,9 @@ AF.calendar = function (root, data, env) {
     const goal = H.goal && H.goal.o === c.o
       // (with no earlier streak of that rank to pass, the goal is a trophy's first length)
       ? (H.goal.beats ? `<br>${H.goal.rank ? 'Pass' : 'Beat'} your ${GOALS[H.goal.rank].place} streak (${num(H.goal.beats)} days) on this day`
-        : `<br>Reach a ${num(SHOWN_STREAK)}-day streak on this day`) : '';
+        : `<br>Reach a ${num(SHOWN_STREAK)}-day streak on this day`)
+        // (the soonest it can be, with days off a week allowed: if you take none of them)
+        + ((data.stats && data.stats.streak_week || 7) < 7 ? ', studying every day until then' : '') : '';
     const began = H.fs === c.o ? '<br>Your forest began' : H.fs !== null && c.o < H.fs && c.o >= H.first ? '<br><i>Before your forest began</i>' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
     const marked = H.marked.has(c.o) ? `<br>${esc(markLine(H.marked.get(c.o), c.o))}` : '';
@@ -1651,7 +1660,7 @@ AF.calendar = function (root, data, env) {
     const head = `<b>${near ? `${near}, ${esc(weekday(c.ms))}, ${esc(fmt(c.ms).replace(/, \d{4}$/, ''))}` : `${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}`}</b>`;
     // (a trophy pointed at: its day and its streak, no more; the day's own numbers are on its tile)
     const trophy = hit && hit.trophy >= 0 && run && H.podium.has(run);
-    const tree = treesByDay.get(c.o), planted = tree ? `<br>${esc(cap(AF.WORDS.planted))} ${esc(AF.WORDS.one || 'tree')}: ${num(tree.n)} new cards` : '';
+    const tree = data.showForest === false || c.o < H.first ? null : treesByDay.get(c.o), planted = tree ? `<br>${esc(cap(AF.WORDS.planted))} ${esc(AF.WORDS.one || 'tree')}: ${num(tree.n)} new cards` : '';
     const zoom = root.afVisits, scene = root.afEnv;
     const inView = tree && scene && scene.placed.some(p => !p.it.pond && p.it.ago === tree.ago);
     const location = !tree || data.showForest === false || inView ? '' : zoom && zoom.on
@@ -1813,7 +1822,8 @@ AF.calendar = function (root, data, env) {
   };
   grid.addEventListener('contextmenu', e => {
     const c = cellAt(e);
-    if (!c || !data.inAnki) return;  // (on the phone there is no add-on to keep the mark)
+    // (on the phone there is no add-on to keep the mark; an earlier year's day is not marked from here)
+    if (!c || !data.inAnki || pointed !== drawn) return;
     e.preventDefault();
     if (editing) closePin(true);
     const before = H.marked.get(c.o);

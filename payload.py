@@ -421,6 +421,9 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             # Pace: each day's median seconds per answer, aligned with `days`.
             "answerTime": [] if test else _day_answer_time(cutoff, dids, excluded, skip, changed, oldest),
             "breakDays": forest_data.BREAK_DAYS,
+            # the forest's own ponds, [first day, last day] (its trees' gaps): on a deck's screen
+            # the main forest's breaks, not the days away from that deck alone (events_state.apply)
+            "ponds": [[t["gap_from"], t["gap_to"]] for t in trees if t.get("gap") and t.get("gap_from") and t.get("gap_to")],
             "forestStart": forest_start,
             "hiddenBefore": hidden_before,
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
@@ -434,8 +437,10 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "free": [] if test else [r for r in _free_runs(cutoff, dids, excluded, skip, changed) if r[1] <= oldest],
             # the days off a streak of 6 or 5 days a week passes over (days ago), as it does a free day;
             # a test forest's from its first made-up day, so they show however lately they were chosen
-            "daysOff": sorted(_days_off(cfg, cutoff, set(studied), frozenset(), oldest)) if test else sorted(_days_off(cfg, cutoff, {a for a, n in day_reviews.items() if n},
-                                                        _free_days(cutoff, dids, excluded, skip, changed))),
+            # (from the days the caption's streak counts: from the start date when it counts from there)
+            "daysOff": sorted(_days_off(cfg, cutoff, set(studied), frozenset(), oldest)) if test else sorted(_days_off(
+                cfg, cutoff, {a for a, n in (own if forest_start and streak_from_start(cfg) else day_reviews).items() if n},
+                _free_days(cutoff, dids, excluded, skip, changed))),
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
 
 
