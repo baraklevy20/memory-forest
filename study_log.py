@@ -412,12 +412,15 @@ def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended:
 
 
 def day_answer_times(db, day_cutoff: int, offset: int) -> dict:
-    """Each card's last recorded answer time on the clicked day, in milliseconds."""
+    """Each card's median answer time on the clicked day, in milliseconds, retries included."""
     start = (day_cutoff + (offset - 1) * DAY_SECS) * 1000
     end = start + DAY_SECS * 1000
-    return dict(db.all(
+    times = {}
+    for cid, elapsed in db.all(
         f"select cid, time from revlog where id >= ? and id < ? "
-        f"and ease > 0 and type in {STUDY_TYPES} order by id", start, end))
+        f"and ease > 0 and type in {STUDY_TYPES}", start, end):
+        times.setdefault(cid, []).append(elapsed)
+    return {cid: median(values) for cid, values in times.items()}
 
 
 

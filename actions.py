@@ -88,6 +88,9 @@ def _open_browser(terms: list, did: int | None = None, answer_times: dict | None
         browser.search_for(" ".join(terms))
         return
 
+    # Match cards before aggregating notes: a note can have siblings in other decks.
+    matching = set(mw.col.find_cards(" ".join(terms)))
+    answer_times = {cid: value for cid, value in answer_times.items() if cid in matching}
     if answer_label:
         answer_column.show(browser, answer_times, answer_label, " ".join(terms), metric)
 
@@ -97,12 +100,7 @@ def _open_browser(terms: list, did: int | None = None, answer_times: dict | None
             return
         times = answer_times
         if browser.table.is_notes_mode():
-            times = {}
-            ids = ",".join(str(int(cid)) for cid in answer_times) or "0"
-            for cid, nid in mw.col.db.all(f"select id, nid from cards where id in ({ids})"):
-                if cid in answer_times:
-                    times[nid] = (times.get(nid, 0) + answer_times[cid] if metric in ("reviews", "time")
-                                  else max(times.get(nid, -1), answer_times[cid]))
+            times = answer_column.note_values(answer_times, metric)
         context.ids = sorted(context.ids, key=lambda item: (-times.get(item, -1), item))
 
     gui_hooks.browser_did_search.append(sort_answers)

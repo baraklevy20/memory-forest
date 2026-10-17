@@ -314,9 +314,9 @@ class DayTimeTests(unittest.TestCase):
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None), {3: 30, 1: 5.5})
         con.execute("insert into revlog values (?, 1, 3, 2, 120000)", (ms(3) + 120000,))
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, [10])[3], 40)
-        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 120000})
+        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 40000})
         con.execute("insert into revlog values (?, 1, 3, 1, 1500)", (ms(3) + 130000,))
-        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 1500})
+        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 30000})
         self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -3, "reviews"), {1: 4})
         self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -3, "time"), {1: 181500})
         self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -2, "reviews"), {})
@@ -326,6 +326,7 @@ class DayTimeTests(unittest.TestCase):
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None, skip=[1]), {})
         con.execute("insert into revlog values (?, 1, 3, 1, 0)", (ms(1) + 1,))
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None)[1], 2.75)
+        self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -1), {1: 2750})
 
 
 

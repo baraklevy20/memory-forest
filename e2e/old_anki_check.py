@@ -12,6 +12,7 @@ import json
 import os
 import random
 import sys
+import time
 import traceback
 
 from aqt import gui_hooks, mw
@@ -565,8 +566,91 @@ def heatmap_browser_metrics():
     """Exercise the real browser's hooks, metric cells, sorting, and repeated cleanup."""
     from aqt import dialogs
 
+    def settle():
+        # The browser debounces selection/editor updates. Let each real interaction
+        # finish before switching modes, searching again or closing its web view.
+        end = time.monotonic() + 0.35
+        while time.monotonic() < end:
+            QApplication.processEvents()
+            time.sleep(0.01)
+
+    def open_day(*args, **kwargs):
+        settle()
+        forest.actions.browse_calendar_day(*args, **kwargs)
+        settle()
+        editor_ready(dialogs.open("Browser", mw))
+
+    def editor_ready(browser):
+        # A newly opened editor loads its JavaScript asynchronously. Searching or
+        # closing before saveNow exists races Anki's save-before-action callback.
+        if browser.editor.note is None:
+            return  # Anki skips saving entirely while the editor has no note.
+        end = time.monotonic() + 30
+        while time.monotonic() < end:
+            ready = []
+            browser.editor.web.evalWithCallback("typeof saveNow === 'function'", ready.append)
+            while not ready and time.monotonic() < end:
+                QApplication.processEvents()
+                time.sleep(0.01)
+            if ready and ready[0]:
+                return
+            settle()
+        details = []
+        browser.editor.web.evalWithCallback("JSON.stringify({url:location.href,ready:document.readyState,scripts:Array.from(document.scripts).map(s=>s.src)})", details.append)
+        settle()
+        raise AssertionError("browser editor did not finish loading: " + str(details))
+
+    def close_browser(browser):
+        settle()
+        editor_ready(browser)
+        browser.close()
+        end = time.monotonic() + 10
+        while dialogs._dialogs["Browser"][1] is browser and time.monotonic() < end:
+            QApplication.processEvents()
+            time.sleep(0.01)
+        if dialogs._dialogs["Browser"][1] is browser:
+            raise AssertionError("browser did not finish its asynchronous close")
+        settle()
+
+    def text_at(data, row, section):
+        # Recent Ankis fetch row values asynchronously, returning "..." first.
+        end = time.monotonic() + 5
+        while True:
+            text = data.get_cell(data.index(row, section)).text
+            if text != "..." or time.monotonic() >= end:
+                return text
+            QApplication.processEvents()
+            time.sleep(0.01)
+
+    def layout(browser):
+        header = browser.table._view.horizontalHeader()
+        return [(header.logicalIndex(i), header.sectionSize(header.logicalIndex(i))) for i in range(header.count())]
+
     forest = sys.modules[FOREST]
     col = mw.col
+    browser = dialogs.open("Browser", mw)
+    # Give the initially empty editor a real note before switching table modes;
+    # otherwise its queued selection callback can race the first script load.
+    browser.search_for(f"cid:{col.db.scalar('select id from cards order by id limit 1')}")
+    settle()
+    editor_ready(browser)
+    note("heatmap browser: editor ready")
+    if browser.table.is_notes_mode():
+        browser.table.toggle_state(False, browser.current_search())
+    settle()
+    header = browser.table._view.horizontalHeader()
+    if header.count() > 2:
+        header.moveSection(0, 2)
+        header.resizeSection(header.logicalIndex(0), 137)
+    before = layout(browser)
+    browser.table.toggle_state(True, browser.current_search())
+    settle()
+    if header.count() > 2:
+        header.moveSection(2, 0)
+        header.resizeSection(header.logicalIndex(0), 194)
+    before_notes = layout(browser)
+    browser.table.toggle_state(False, browser.current_search())
+    settle()
     cutoff = getattr(col.sched, "day_cutoff", None) or col.sched.dayCutoff
     offset = -200
     stamp = (cutoff + (offset - 1) * 86400 + 3600) * 1000
@@ -582,7 +666,7 @@ def heatmap_browser_metrics():
         else:
             col.addNote(n)
         cards.append(n.cards()[0].id)
-    # A: most attempts; B: most total time; C: slowest final answer.
+    # A: most attempts; B: most total time and slowest median; C: slowest final answer.
     for index, times in enumerate(((6000, 6000, 1000), (20000, 500), (9000,))):
         for attempt, elapsed in enumerate(times):
             col.db.execute("insert into revlog values (?,?,?,?,?,?,?,?,?)",
@@ -590,15 +674,18 @@ def heatmap_browser_metrics():
     expectations = (
         ("reviews", [cards[0], cards[1], cards[2]], {cards[0]: "3", cards[1]: "2", cards[2]: "1"}),
         ("time", [cards[1], cards[0], cards[2]], {cards[0]: "13.0 s", cards[1]: "20.5 s", cards[2]: "9.0 s"}),
-        ("median", [cards[2], cards[0], cards[1]], {cards[0]: "1.0 s", cards[1]: "0.5 s", cards[2]: "9.0 s"}),
+        ("median", [cards[1], cards[2], cards[0]], {cards[0]: "6.0 s", cards[1]: "10.2 s", cards[2]: "9.0 s"}),
     )
     for mode, wanted, values in expectations:
-        forest.actions.browse_calendar_day(offset, answer_mode=mode)
+        note("heatmap browser: cards " + mode)
+        open_day(offset, answer_mode=mode)
         browser = dialogs.open("Browser", mw)
         table = browser.table
         if table.is_notes_mode():
+            settle()
             table.toggle_state(False, browser.current_search())
-            forest.actions.browse_calendar_day(offset, answer_mode=mode)
+            settle()
+            open_day(offset, answer_mode=mode)
         data = table._model
         found = [data.get_item(data.index(i, 0)) for i in range(data.rowCount())]
         if found != wanted:
@@ -606,16 +693,105 @@ def heatmap_browser_metrics():
         section = data.active_column_index(forest.actions.answer_column.KEY)
         if table._view.horizontalHeader().visualIndex(section) != 1:
             raise AssertionError(f"{mode}: metric column is not second")
+        header = table._view.horizontalHeader()
+        if header.sectionSize(section) < header.sectionSizeHint(section):
+            raise AssertionError(f"{mode}: metric column clips its heading")
         for i, cid in enumerate(found):
-            text = data.get_cell(data.index(i, section)).text
+            text = text_at(data, i, section)
             if text != values[cid]:
                 raise AssertionError(f"{mode}: card {cid} shows {text!r}, expected {values[cid]!r}")
         result["steps"].append(f"heatmap {mode}: browser column and sorting")
+        if mode == "reviews":
+            # The first click must clean up too, without visiting another day or
+            # switching Cards/Notes mode before closing the browser.
+            close_browser(browser)
+            if forest.actions.answer_column._session is not None:
+                raise AssertionError("first heatmap click's session survived close")
+            browser = dialogs.open("Browser", mw)
+            editor_ready(browser)
+            if browser.table._model.active_column_index(forest.actions.answer_column.KEY) is not None:
+                raise AssertionError("first heatmap click's column survived reopening")
+            if layout(browser) != before:
+                raise AssertionError("first heatmap click changed the reopened browser's layout")
+            result["steps"].append("first heatmap click: close/reopen has no metric column")
+
+    # Sibling cards of one note can live in different decks. Their answers must not
+    # inflate either a deck's Notes-mode totals or its sorting, or an excluded deck's.
+    scope_model = col.models.copy(model)
+    template = col.models.new_template("Sibling")
+    template["qfmt"], template["afmt"] = "{{Back}}", "{{Front}}"
+    col.models.add_template(scope_model, template)
+    col.models.save(scope_model)
+    selected, outside = col.decks.id("Heatmap selected"), col.decks.id("Heatmap outside")
+    nids = []
+    for index in range(2):
+        n = col.new_note(scope_model)
+        n["Front"], n["Back"] = f"scope {index}", "sibling"
+        col.add_note(n, selected)
+        pair = sorted(n.cards(), key=lambda card: card.ord)
+        col.db.execute("update cards set did=? where id=?", outside, pair[1].id)
+        nids.append(n.id)
+        for part, (card, times) in enumerate(((pair[0], (1000, 9000) if index == 0 else (6000, 6000, 6000)),
+                                             (pair[1], (60000,) * (30 if index == 0 else 1)))):
+            for attempt, elapsed in enumerate(times):
+                col.db.execute("insert into revlog values (?,?,?,?,?,?,?,?,?)", stamp + 1000 + index * 100 + part * 40 + attempt,
+                               card.id, -1, 3, 1, 0, 2500, elapsed, 1)
+    settle()
+    table.toggle_state(True, browser.current_search())
+    settle()
+    for mode, values in (("reviews", ("2", "3")), ("time", ("10.0 s", "18.0 s")), ("median", ("5.0 s", "6.0 s"))):
+        note("heatmap browser: scoped notes " + mode)
+        open_day(offset, selected, answer_mode=mode)
+        data = table._model
+        found = [data.get_item(data.index(i, 0)) for i in range(data.rowCount())]
+        if found != nids[::-1]:
+            raise AssertionError(f"scoped {mode}: note sort {found}, expected {nids[::-1]}")
+        section = data.active_column_index(forest.actions.answer_column.KEY)
+        for nid, value in zip(nids, values):
+            text = text_at(data, found.index(nid), section)
+            if text != value:
+                raise AssertionError(f"scoped {mode}: note shows {text!r}, expected {value!r}")
+    original = dict(forest.state.config())
+    try:
+        forest.state.save_config(dict(original, excluded_decks=[outside]))
+        open_day(offset, answer_mode="reviews")
+        data = table._model
+        found = [data.get_item(data.index(i, 0)) for i in range(data.rowCount())]
+        section = data.active_column_index(forest.actions.answer_column.KEY)
+        if [text_at(data, found.index(nid), section) for nid in nids] != ["2", "3"]:
+            raise AssertionError("excluded sibling answers counted in Notes mode")
+    finally:
+        forest.state.save_config(original)
+    result["steps"].append("heatmap scoped notes: attempts, time, median, sorting and excluded siblings")
+    settle()
+    table.toggle_state(False, browser.current_search())
+    settle()
+    open_day(offset, selected, answer_mode="reviews")
+    # A real close, rather than calling cleanup by hand, must restore the layout before
+    # Anki saves it; reopening must not bring back the dated column or its callbacks.
+    note("heatmap browser: close and reopen")
+    close_browser(browser)
+    if forest.actions.answer_column._session is not None:
+        raise AssertionError("heatmap browser session survived close")
+    browser = dialogs.open("Browser", mw)
+    editor_ready(browser)
+    if browser.table._model.active_column_index(forest.actions.answer_column.KEY) is not None:
+        raise AssertionError("heatmap column survived browser reopening")
+    if layout(browser) != before:
+        raise AssertionError(f"browser layout was not restored: {layout(browser)}, expected {before}")
+    browser.table.toggle_state(True, browser.current_search())
+    settle()
+    if browser.table._model.active_column_index(forest.actions.answer_column.KEY) is not None or layout(browser) != before_notes:
+        raise AssertionError("Notes-mode column or layout survived the temporary metric session")
+    browser.table.toggle_state(False, browser.current_search())
+    settle()
+    result["steps"].append("heatmap browser close/reopen restores columns and widths")
+    open_day(offset, selected, answer_mode="reviews")
     cleanup = forest.actions.answer_column._session
     cleanup()
     cleanup()
     result["steps"].append("heatmap browser cleanup twice")
-    browser.close()
+    close_browser(browser)
 
 
 def opened():

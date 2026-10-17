@@ -13,6 +13,7 @@ from __future__ import annotations
 import ctypes
 import json
 import sys
+from typing import ClassVar
 
 RUSAGE_INFO_V4 = 4
 
@@ -39,7 +40,7 @@ def counters(pid: int) -> dict | None:
     tb = ctypes.CDLL("/usr/lib/libSystem.dylib")
 
     class Timebase(ctypes.Structure):
-        _fields_ = [("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32)]
+        _fields_: ClassVar = [("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32)]
     t = Timebase()
     tb.mach_timebase_info(ctypes.byref(t))
     return {"instructions": info.instructions, "cycles": info.cycles,

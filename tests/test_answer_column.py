@@ -32,13 +32,29 @@ def legacy_column(key, cards_mode_label, notes_mode_label, uses_cell_font, align
     return types.SimpleNamespace(key=key, cards_mode_label=cards_mode_label, notes_mode_label=notes_mode_label, sorting=99)
 
 
+class Watcher:
+    def __init__(self, parent):
+        pass
+
+    def deleteLater(self):
+        pass
+
+
 class AnswerColumnTests(unittest.TestCase):
     def setUp(self):
         reset()
         self.browser = mock.Mock()
         self.model = self.browser.table._model
         self.model.columns = {}
-        self.model.active_column_index.return_value = None
+        self.active = None
+        self.model.active_column_index.side_effect = lambda key: self.active
+        self.browser.table._on_column_toggled.side_effect = lambda on, key: setattr(self, "active", 1 if on else None)
+        watcher = mock.patch.object(column, "QObject", Watcher)
+        watcher.start()
+        self.addCleanup(watcher.stop)
+        event = mock.patch.object(column, "QEvent", types.SimpleNamespace(Type=types.SimpleNamespace(Close=19)))
+        event.start()
+        self.addCleanup(event.stop)
         self.header = self.browser.table._view.horizontalHeader.return_value
         self.header.count.return_value = 4
         self.header.visualIndex.return_value = 3
@@ -89,7 +105,7 @@ class AnswerColumnTests(unittest.TestCase):
             self.show()
         definition = self.model.columns[column.KEY]
         self.assertEqual((definition.sorting_cards, definition.sorting_notes), (0, 0))
-        self.assertIn("last answer", definition.cards_mode_tooltip)
+        self.assertIn("Median seconds", definition.cards_mode_tooltip)
         self.assertEqual(definition.cards_mode_tooltip, definition.notes_mode_tooltip)
 
     def test_attempts_are_counts_and_time_includes_all_cards_in_notes_mode(self):
@@ -109,14 +125,43 @@ class AnswerColumnTests(unittest.TestCase):
 
     def test_reopening_replaces_hooks_and_existing_column(self):
         self.show()
-        self.model.active_column_index.return_value = 1
         self.show("Answer time (2026-10-16)")
         self.assertEqual(len(self.fetch.callbacks), 1)
         self.assertEqual(len(self.search.callbacks), 1)
-        self.browser.table._on_column_toggled.assert_called_once()
+        self.browser.table._on_column_toggled.assert_called_once_with(True, column.KEY)
         self.cleanup()
         self.assertEqual(self.fetch.callbacks, [])
         self.assertEqual(self.search.callbacks, [])
+        self.assertIsNone(self.active)
+        self.assertNotIn(column.KEY, self.model.columns)
+        self.header.restoreState.assert_called_with(self.header.saveState.return_value)
+
+    def test_close_restores_layout_before_browser_preferences_are_saved(self):
+        self.show()
+        watcher = self.browser.installEventFilter.call_args.args[0]
+        event = types.SimpleNamespace(type=lambda: column.QEvent.Type.Close)
+        self.assertFalse(watcher.eventFilter(self.browser, event))
+        self.assertIsNone(self.active)
+        self.assertIsNone(column._session)
+        self.assertEqual(self.fetch.callbacks, [])
+        self.header.restoreState.assert_called_once_with(self.header.saveState.return_value)
+
+    def test_switching_modes_restores_departing_layout_and_replaces_session(self):
+        table = self.browser.table
+        original_toggle = table.toggle_state
+        table.is_notes_mode.return_value = False
+        original_toggle.side_effect = lambda on, search: setattr(table.is_notes_mode, "return_value", on)
+        self.show()
+        previous = column._session
+        with mock.patch.object(mw.col.db, "all", return_value=[(1, 10), (2, 10)]):
+            table.toggle_state(True, "rated:1")
+        original_toggle.assert_called_once_with(True, "rated:1")
+        self.assertIsNot(column._session, previous)
+        self.assertEqual(len(self.fetch.callbacks), 1)
+        self.header.restoreState.assert_called_once_with(self.header.saveState.return_value)
+        self.cleanup()
+        self.assertIs(table.toggle_state, original_toggle)
+        self.assertIsNone(self.active)
 
     def test_cleanup_is_safe_when_called_twice_or_qt_has_destroyed_the_browser(self):
         self.show()

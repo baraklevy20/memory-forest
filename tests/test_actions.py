@@ -40,6 +40,7 @@ class ActionTests(unittest.TestCase):
             for callback in hook:
                 callback(context)
         with mock.patch.object(actions.gui_hooks, "browser_did_search", hook, create=True), \
+                mock.patch.object(mw.col, "find_cards", return_value=[1, 2, 3, 4], create=True), \
                 mock.patch.object(browser, "table", mock.Mock(), create=True), \
                 mock.patch.object(browser, "search_for", side_effect=search):
             browser.table.is_notes_mode.return_value = False
@@ -55,6 +56,14 @@ class ActionTests(unittest.TestCase):
             with mock.patch.object(browser, "search_for", side_effect=RuntimeError), self.assertRaises(RuntimeError):
                 actions._open_browser(["rated:1"], answer_times={})
             self.assertEqual(hook, [])
+
+    def test_metric_values_are_filtered_before_notes_are_aggregated(self):
+        with mock.patch.object(mw.col, "find_cards", return_value=[1], create=True) as find, \
+                mock.patch.object(actions.answer_column, "show") as show, \
+                mock.patch.object(actions.gui_hooks, "browser_did_search", [], create=True):
+            actions._open_browser(["rated:1"], 10, {1: 2, 2: 30}, "Attempts", "reviews")
+            self.assertEqual(show.call_args.args[1], {1: 2})
+            self.assertIn('"deck:French"', find.call_args.args[0])
 
     def test_review_and_time_clicks_choose_daily_metric_and_second_column(self):
         for mode, title in (("reviews", "Attempts"), ("time", "Total time"), ("median", "Answer time")):
