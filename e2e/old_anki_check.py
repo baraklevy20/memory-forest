@@ -155,19 +155,12 @@ if sys.platform == "darwin" and os.environ.get("QT_QPA_PLATFORM") == "offscreen"
         QApplication.instance().installEventFilter(_offscreen_tabs)
 
 
-class NotChecked(Exception):
-    """A step this Anki can't run here (why, in its message): listed as not checked, no error."""
-
-
 def step(name, fn):
     """Run one step, keeping any error rather than letting Anki show it."""
     note("step: " + name)
     try:
         fn()
         result["steps"].append(name)
-    except NotChecked as why:
-        result["steps"].append(f"{name}: not checked ({why})")
-        note(f"not checked: {name}: {why}")
     except Exception:
         result["errors"].append(f"{name}:\n{traceback.format_exc()}")
         note("error: " + result["errors"][-1])
@@ -582,6 +575,25 @@ def old_day():
                                   f" {' '.join(terms)}")
 
 
+editor_events: dict = {}  # each browser editor's page events, for when it never loads
+
+
+def watch_editor(browser):
+    """Keep what the browser's editor page does (load started, progress, finished, its renderer
+    gone) with the time since, for editor_ready's report."""
+    web, t0 = browser.editor.web, time.monotonic()
+    events = editor_events.setdefault(id(web), [])
+
+    def add(what):
+        events.append(f"{time.monotonic() - t0:.1f}s {what}")
+    page = web.page()
+    page.loadStarted.connect(lambda: add("loadStarted"))
+    page.loadFinished.connect(lambda ok: add(f"loadFinished {ok}"))
+    page.renderProcessTerminated.connect(lambda status, code: add(f"renderer ended {status} {code}"))
+    page.urlChanged.connect(lambda url: add(f"url {url.toString()}"))
+    add(f"watched at {page.url().toString()}")
+
+
 def heatmap_browser_metrics():
     """Exercise the real browser's hooks, metric cells, sorting, and repeated cleanup."""
     from aqt import dialogs
@@ -605,25 +617,40 @@ def heatmap_browser_metrics():
         # can assign a note before the next search/close saves it. Hidden WebEngine
         # views can defer initialization on CI's offscreen platform.
         browser.editor.web.show()
-        # On CI's runner (2.1.50, and now and then here) the editor's page can stay blank or
-        # never answer: the test's WebEngine, not the add-on. Anki then waits on it to save
-        # before a search or a close, which never comes, so the step is not checked.
-        end = time.monotonic() + 15
+        web = browser.editor.web
+        end = time.monotonic() + 30
         while time.monotonic() < end:
             ready = []
             # Bypass Anki's pending-action queue for probes, so a stalled page
             # reports its actual state instead of queuing diagnostics forever.
-            browser.editor.web.page().runJavaScript("typeof saveNow === 'function'", ready.append)
+            web.page().runJavaScript("typeof saveNow === 'function'", ready.append)
             while not ready and time.monotonic() < end:
                 QApplication.processEvents()
                 time.sleep(0.01)
             if ready and ready[0]:
                 return
             settle()
+        # (seen only on CI's runner so far, 2.1.50: what the page was doing, to find out why)
         details = []
-        browser.editor.web.page().runJavaScript("JSON.stringify({url:location.href,ready:document.readyState})", details.append)
+        web.page().runJavaScript("JSON.stringify({url:location.href,ready:document.readyState})", details.append)
         settle()
-        raise NotChecked(f"the browser's editor never finished loading {details}")
+        page = web.page()
+        state = {
+            "page": details, "domDone": getattr(web, "_domDone", None),
+            "queued": [name for name, _args in getattr(web, "_pendingActions", [])],
+            "url": page.url().toString(), "requested": page.requestedUrl().toString(),
+            "pid": page.renderProcessPid() if hasattr(page, "renderProcessPid") else None,
+            "visible": [web.isVisible(), browser.isVisible()], "size": [web.width(), web.height()],
+            "events": editor_events.get(id(web), []),
+        }
+        try:  # (Anki's own web server: does it serve the page the editor asked for?)
+            import urllib.request
+            with urllib.request.urlopen(state["requested"] or state["url"], timeout=5) as r:
+                state["served"] = [r.status, len(r.read())]
+        except Exception as e:
+            state["served"] = repr(e)
+        browser.grab().save(os.path.join(BASE, "browser-editor-not-loaded.png"))
+        raise AssertionError(f"browser editor did not finish loading: {json.dumps(state)}")
 
     def close_browser(browser):
         settle()
@@ -657,6 +684,7 @@ def heatmap_browser_metrics():
     forest = sys.modules[FOREST]
     col = mw.col
     browser = dialogs.open("Browser", mw)
+    watch_editor(browser)
     editor_ready(browser)
     # Give the initially empty editor a real note before switching table modes;
     # otherwise its queued selection callback can race the first script load.

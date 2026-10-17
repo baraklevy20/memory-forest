@@ -214,8 +214,10 @@ def check(label: str, app: str, package: str | None) -> bool:
     shutil.rmtree(shots, ignore_errors=True)
     os.makedirs(shots)
     for name in os.listdir(BASE):
-        if name.endswith(".png"):
+        if name.endswith(".png") or name == "check.log":
             shutil.copy(os.path.join(BASE, name), shots)
+    with open(os.path.join(shots, "anki.log"), "w", encoding="utf-8") as f:  # (Anki's own output, uploaded by CI too)
+        f.write(log)
     deck = r.get("deck_list") or {}
     print(f"Anki {r.get('anki')}, Qt {r.get('qt')} ({r.get('platform', 'unknown platform')}), {deck.get('agent', 'no web view')}")
     print("  " + ", ".join(r["steps"]))
