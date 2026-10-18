@@ -34,8 +34,9 @@ export default [
   },
   {
     // the node tooling: its output is console.log, and what it runs in the page
-    // (page.evaluate) sees the browser's globals and window.AnkiForest
-    files: ['dev/**/*.mjs', 'e2e/**/*.mjs'],
+    // (page.evaluate) sees the browser's globals and window.AnkiForest; and the JS unit tests
+    // (tests/js), which run web/'s scripts in node
+    files: ['dev/**/*.mjs', 'e2e/**/*.mjs', 'tests/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -46,7 +47,8 @@ export default [
         window: 'readonly', document: 'readonly', requestAnimationFrame: 'readonly', getComputedStyle: 'readonly',
         innerWidth: 'readonly', innerHeight: 'readonly', MouseEvent: 'readonly', KeyboardEvent: 'readonly',
         HTMLCanvasElement: 'readonly', CanvasRenderingContext2D: 'readonly',
-        AnkiForest: 'readonly',
+        AnkiForest: 'readonly', WheelEvent: 'readonly', Event: 'readonly',
+        Uint8ClampedArray: 'readonly', T: 'readonly',
       },
     },
     linterOptions: { reportUnusedDisableDirectives: true },

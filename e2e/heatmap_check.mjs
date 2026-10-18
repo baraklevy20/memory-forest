@@ -11,6 +11,7 @@ try {
   const p = await browser.newPage();
   await p.setViewport({ width: 900, height: 700, deviceScaleFactor: 2 });
   p.on('pageerror', e => out.errors.push(e.message));
+  p.on('console', m => { if (m.type() === 'error') out.errors.push(`console: ${m.text()}`); });
   await p.goto('file://' + html);
   await p.waitForSelector('.af-cal-canvas', { timeout: 10000 });
   await wait(400);

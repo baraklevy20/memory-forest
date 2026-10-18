@@ -24,8 +24,10 @@ check, and e2e/old_anki_check.py goes in beside the add-on. Once the profile is 
 fills the collection with made-up reviews, checks the forest built from them (a big
 learning day's flowers too), measures the cog in the deck list, opens the settings, each of
 their tabs and the scenery picker, picks another scenery and checks the forest was built
-again, and quits; this prints what went wrong, if anything (a console error in the page
-counts), and exits 1 then. Screenshots of the deck list are kept in RESULTS. Anki runs one
+again, cancels the settings (from the cog, with Esc, across a theme switch), uses the gear
+menu, the page's messages and the reviewer, and quits; this prints what went wrong, if anything
+(a console error in the page counts, and so does any Python traceback, caught or printed), and
+exits 1 then. Screenshots of the deck list are kept in RESULTS. Anki runs one
 copy per user, so the check runs under a user name of its own and leaves an Anki you have
 open alone.
 """
@@ -197,6 +199,26 @@ def run_check(binary: str, folder: str) -> tuple:
         return json.load(f), text, quit_by_itself
 
 
+TRACEBACK = "Traceback (most recent call last)"
+CHAINED = ("During handling of the above exception", "The above exception was the direct cause")
+
+
+def unhandled(log: str) -> list:
+    """Each traceback in Anki's output that the add-on did not log itself (state.log's
+    "[anki_forest] ..." lines, reported as LOGGED): one Python printed for an error nothing
+    caught. A chained one ("During handling of the above exception") is part of the one before."""
+    lines, out = log.splitlines(), []
+    for i, line in enumerate(lines):
+        if TRACEBACK not in line:
+            continue
+        before = [b for b in lines[max(0, i - 3):i] if b.strip()]
+        if before and (before[-1].startswith("[anki_forest] ") or any(c in before[-1] for c in CHAINED)):
+            continue
+        end = next((j for j in range(i + 1, len(lines)) if lines[j] and not lines[j].startswith(" ")), len(lines) - 1)
+        out.append("\n".join(lines[i:end + 1]))
+    return out
+
+
 def check(label: str, app: str, package: str | None) -> bool:
     """Check the add-on in one Anki; prints what it found, and whether it all went well."""
     binary = executable(app)
@@ -235,7 +257,11 @@ def check(label: str, app: str, package: str | None) -> bool:
     logged = [chunk.split("\n\n")[0] for chunk in log.split("[anki_forest] ")[1:] if "Traceback" in chunk]
     for chunk in dict.fromkeys(logged):
         print("  LOGGED " + chunk.strip().replace("\n", "\n    "))
-    ok = not (r["problems"] or r["errors"] or logged)
+    # and any other traceback in Anki's output (one the check's own watch on stderr missed)
+    loose = unhandled(log)
+    for chunk in loose:
+        print("  TRACEBACK " + chunk.strip().replace("\n", "\n    "))
+    ok = not (r["problems"] or r["errors"] or logged or loose)
     print("  ok" if ok else "  FAILED")
     return ok
 

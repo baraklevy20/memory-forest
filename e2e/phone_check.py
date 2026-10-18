@@ -81,18 +81,18 @@ def note() -> dict:
                 sun={"rise": "06:30", "set": "18:30", "twilight": 30})
 
 
-def page(web: str) -> str:
+def page(web: str, data: dict | None = None, stub: str = FULLSCREEN_STUB) -> str:
     """The phone card as AnkiDroid shows it (a transparent page on the app's white), its scripts
-    from `web`."""
+    from `web`; the note's data `data` (note() by default), the full screen stubbed by `stub`."""
     bundle = phone_data.bundle(web=web).replace(":fullscreen", "." + SIM)
     css = card_css().replace(":fullscreen", "." + SIM)
-    data = json.dumps(note()).replace("</", "<\\/")
+    data = json.dumps(note() if data is None else data).replace("</", "<\\/")
     script = bundle.replace("</script", "<\\/script")
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>body {{ margin: 0; background: transparent; font-family: sans-serif }}
 .{SIM} {{ position: fixed !important; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 9 }}
-{css}</style>{FULLSCREEN_STUB}</head>
+{css}</style>{stub}</head>
 <body class="card card1"><div id="content"><div id="qa">
 <div id="memory-forest-phone" class="af-panel"></div>
 <script type="application/json" id="memory-forest-phone-data">{data}</script>

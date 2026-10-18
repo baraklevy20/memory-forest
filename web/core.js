@@ -238,7 +238,12 @@ AF.mount = function (root, data, opts) {
  * fast for a while (a tumbleweed blowing away). */
 AF.busy = env => {
   const says = spec => typeof spec.busy === 'function' ? spec.busy(env) : spec.busy;
-  return Boolean(AF.fx.busy(env) || says(AF.envOf(env)) || says(AF.landOf(env)) || says(AF.markOf(env)) || AF.events.first('busy', env));
+  // (a scene a failed build left half made can't say: calm, so the loop it is asked from goes on)
+  try {
+    return Boolean(AF.fx.busy(env) || says(AF.envOf(env)) || says(AF.landOf(env)) || says(AF.markOf(env)) || AF.events.first('busy', env));
+  } catch {
+    return false;
+  }
 };
 
 /* Load scripts onto this copy of the add-on - a scene's environment, landscape and landmark -

@@ -203,7 +203,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     if tools:
         forest, extras = tools.debug_events.apply(forest, extras, cfg)
     now = _dt.datetime.now()
-    today = now.date()
+    today = anki_today()  # (Anki's day: until the rollover hour, still yesterday's anniversaries)
     all_trees = forest["trees"]
     ann_all = milestones.anniversaries(all_trees, today)
     start = str(cfg.get("ignore_before")) if since(cfg) is not None else None

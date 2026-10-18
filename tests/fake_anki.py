@@ -13,10 +13,12 @@ user_files/.
 
 from __future__ import annotations
 
+import atexit
 import importlib.util
 import itertools
 import json
 import os
+import shutil
 import sqlite3
 import sys
 import tempfile
@@ -147,14 +149,20 @@ class AddonManager:
     def addonsFolder(self, dir_name=None):
         return os.path.join(os.path.dirname(ADDON_DIR), dir_name or "")
 
-    def setWebExports(self, *_a):
-        pass
+    # what the add-on handed Anki as it loaded, by module: the files its pages may fetch (a
+    # pattern), what Tools > Add-ons > Config opens, and what runs after that config is edited
+    web_exports: dict = {}
+    config_actions: dict = {}
+    config_updated_actions: dict = {}
 
-    def setConfigAction(self, *_a):
-        pass
+    def setWebExports(self, module, pattern):
+        self.web_exports[module] = pattern
 
-    def setConfigUpdatedAction(self, *_a):
-        pass
+    def setConfigAction(self, module, action):
+        self.config_actions[module] = action
+
+    def setConfigUpdatedAction(self, module, action):
+        self.config_updated_actions[module] = action
 
 
 class Browser:
@@ -197,11 +205,45 @@ class _Hook(list):
     def __contains__(self, callback):
         raise TypeError(f"argument of type '{type(self).__name__}' is not iterable")
 
+    def count(self) -> int:
+        return len(self)
 
-hooks = types.SimpleNamespace(**{name: _Hook() for name in (
+    def __call__(self, *args) -> None:
+        """Run the callbacks as Anki's hooks do: over the live list, so one that removes itself
+        (or adds another) while it runs changes which run after it."""
+        for callback in list.__iter__(self):
+            try:
+                callback(*args)
+            except Exception:
+                # as Anki's: the callback that raised is taken off the hook, then the error goes on
+                self.remove(callback)
+                raise
+
+    def __bool__(self) -> bool:
+        return True  # (Anki's hook objects have no length: always true, even with nothing on them)
+
+
+class _FilterHook(_Hook):
+    """A filter hook as Anki's (webview_did_receive_js_message): each callback is handed what the
+    one before returned, and the last one's answer is what the hook returns."""
+
+    def __call__(self, value, *args):
+        for callback in list.__iter__(self):
+            try:
+                value = callback(value, *args)
+            except Exception:
+                self.remove(callback)
+                raise
+        return value
+
+
+FILTER_HOOKS = ("webview_did_receive_js_message",)
+hooks = types.SimpleNamespace(**{name: (_FilterHook() if name in FILTER_HOOKS else _Hook()) for name in (
     "deck_browser_will_render_content", "overview_will_render_content", "reviewer_did_answer_card",
     "webview_did_receive_js_message", "webview_did_inject_style_into_page", "deck_browser_will_show_options_menu",
-    "sync_will_start", "sync_did_finish", "collection_did_load", "state_did_change", "theme_did_change")})
+    "sync_will_start", "sync_did_finish", "collection_did_load", "state_did_change", "theme_did_change",
+    # added to, and taken off again, only while the browser is open on a heatmap day (actions, answer_column)
+    "browser_did_search", "browser_did_fetch_row", "browser_will_search")})
 
 
 def _install() -> None:
@@ -237,6 +279,7 @@ def _load():
 _install()
 addon = _load()
 _tmp = tempfile.mkdtemp(prefix="memory-forest-test-")
+atexit.register(shutil.rmtree, _tmp, True)  # (one a run, gone after it)
 addon.state.STATE_PATH = os.path.join(_tmp, "state.json")
 # the seasonal record too: never the real user_files, and fresh for every test
 addon.seasons.SEASON_PATH = os.path.join(_tmp, "season.json")

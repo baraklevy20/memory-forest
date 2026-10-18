@@ -5,8 +5,13 @@ built add-on does not ship), measures the cog in the real deck list, turns zoomi
 real mouse clicks, picks a tree, steps a day, walks about and back out, opens the settings
 and paints every tab of them and the scenery picker, picks another scenery and checks the
 forest was built again, looks at a deck's own screen and at a finished deck's page (Anki's
-congratulations page, which the add-on adds its panel to once it has loaded), writes what it
-found to check.json in the base folder and quits Anki. It runs inside that Anki, so it uses only what every Anki it is run in has."""
+congratulations page, which the add-on adds its panel to once it has loaded), then back on the
+deck list opens the settings from the cog and cancels them (with Esc too, and across a theme
+switch), leaves a deck out from its gear menu and brings it back, sends the page's own messages
+(a day marked, a name typed, a shade picked), answers a new card in the reviewer (today's tree
+planted), and proves an error raised in a Qt slot, a hook or printed to stderr fails the check,
+writes what it found to check.json in the base folder and quits Anki. Any error that reaches
+sys.excepthook or stderr while it runs is one of the check's errors. It runs inside that Anki, so it uses only what every Anki it is run in has."""
 
 import ast
 import json
@@ -125,6 +130,41 @@ def _caught(kind, value, tb):
 
 note("loaded")
 sys.excepthook = _caught
+TRACEBACK = "Traceback (most recent call last)"
+
+
+class Stderr:
+    """sys.stderr kept watch on: a traceback printed there (by Anki's own error handling, or a
+    print_exc anywhere) is an error of the check, not a dialog of Anki's waiting for a click.
+    It is printed whole, in one turn of the event loop, so what one turn writes after it begins
+    is one traceback. Anything else goes on to Anki as before."""
+
+    def __init__(self, wrapped):
+        self.wrapped, self.held = wrapped, None
+
+    def write(self, text):
+        if self.held is None and TRACEBACK not in text:
+            return self.wrapped.write(text) if self.wrapped else len(text)
+        if self.held is None:
+            self.held = []
+            QTimer.singleShot(0, self.flush_traceback)
+        self.held.append(text)
+        return len(text)
+
+    def flush_traceback(self):
+        text, self.held = "".join(self.held or []), None
+        result["errors"].append("printed to stderr:\n" + text)
+        note("error: printed to stderr: " + text)
+
+    def flush(self):
+        if self.wrapped:
+            self.wrapped.flush()
+
+    def __getattr__(self, name):
+        return getattr(self.wrapped, name)
+
+
+sys.stderr = Stderr(sys.stderr)
 
 
 def _console():
@@ -193,6 +233,8 @@ def step(name, fn):
 
 def finish():
     note("finish")
+    if isinstance(sys.stderr, Stderr) and sys.stderr.held:  # (a traceback still being written)
+        sys.stderr.flush_traceback()
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=1)
     mw.unloadProfileAndExit()
@@ -521,8 +563,237 @@ def finished_look(tries_left: int = WAIT_TRIES) -> None:
             result["problems"].append("the finished deck's forest built but its canvas is blank")
         else:
             result["steps"].append("forest on the finished deck's page")
-        QTimer.singleShot(500, finish)
+        QTimer.singleShot(500, real_ui)
     web.evalWithCallback(FINISHED_MEASURE, looked)
+
+
+def ask(web, js: str, secs: float = 10):
+    """What the page answers to `js`, waited for in a real event loop."""
+    got = []
+    web.evalWithCallback(js, got.append)
+    end = time.monotonic() + secs
+    while not got and time.monotonic() < end:
+        pump(20)
+    if not got:
+        raise AssertionError(f"the page never answered {js[:80]!r}")
+    return got[0]
+
+
+def until(test, secs: float, what: str) -> None:
+    """Wait, the event loop running, until `test()` holds; an AssertionError naming `what` if it never does."""
+    end = time.monotonic() + secs
+    while time.monotonic() < end:
+        if test():
+            return
+        pump(50)
+    raise AssertionError(f"timed out waiting for {what}")
+
+
+def config() -> dict:
+    return dict(mw.addonManager.getConfig(FOREST) or {})
+
+
+def real_ui():
+    """Back on the deck list, the things a person does there, each through Anki's own UI and
+    hooks: the settings opened from the cog and cancelled, closed with Esc and across a theme
+    switch, a deck left out from its gear menu and brought back, the page's own messages
+    (a day marked, a name typed, a shade picked), the first answer of the day planting its
+    tree in the reviewer - and last, that an error in a Qt slot or a hook fails this check."""
+    forest = sys.modules[FOREST]
+    step("deck list again", lambda: (mw.moveToState("deckBrowser"),
+                                     until(lambda: json.loads(ask(mw.deckBrowser.web, MEASURE)).get("built"), 20, "the deck list's forest")))
+    step("settings from the cog, cancelled", lambda: settings_cancelled(forest))
+    step("settings closed with Esc", lambda: settings_escaped(forest))
+    step("settings across a theme switch", lambda: settings_theme(forest))
+    step("gear menu leaves a deck out and back", lambda: gear_menu(forest))
+    step("page messages", lambda: page_messages(forest))
+    step("planting on the first answer", lambda: planting(forest))
+    step("errors in slots fail the check", canaries)
+    QTimer.singleShot(500, finish)
+
+
+def _change_scenery(dialog) -> None:
+    box = dialog.scenery.preset
+    box.setCurrentIndex((box.currentIndex() + 1) % box.count())
+    pump(600)  # past the dialog's debounce: saved, and the forest behind it redrawn as a preview
+
+
+def _closed(forest, before: dict, how: str) -> None:
+    until(lambda: forest.settings._open is None, 10, f"{how} to close the settings")
+    after = config()
+    if after != before:
+        changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+        result["problems"].append(f"{how} left the settings changed: {changed}")
+
+
+def settings_cancelled(forest) -> None:
+    from aqt.qt import QDialogButtonBox
+    web = mw.deckBrowser.web
+    before = config()
+    at = json.loads(ask(web, ZOOM_AT + "('.af-cog')"))
+    if "x" not in at:
+        raise AssertionError("no cog on the deck list")
+    click(web, at["x"], at["y"])
+    until(lambda: forest.settings._open is not None and forest.settings._open.isVisible(), 10, "the cog to open the settings")
+    dialog = forest.settings._open
+    _change_scenery(dialog)
+    if config() == before:
+        result["problems"].append("a scenery picked in the settings was not previewed (the config never changed)")
+    dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Cancel).click()
+    _closed(forest, before, "Cancel")
+
+
+def settings_escaped(forest) -> None:
+    from aqt.qt import QKeyEvent
+    before = config()
+    forest.actions.open_settings()
+    dialog = forest.settings._open
+    _change_scenery(dialog)
+    QApplication.sendEvent(dialog, QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Escape, Qt.KeyboardModifier.NoModifier))
+    _closed(forest, before, "Esc")
+
+
+def settings_theme(forest) -> None:
+    if not hasattr(gui_hooks, "theme_did_change"):  # (Anki 2.1.45-2.1.49: the theme changes on a restart)
+        result["steps"].append("no theme_did_change in this Anki")
+        return
+    before = config()
+    forest.actions.open_settings()
+    first = forest.settings._open
+    _change_scenery(first)
+    gui_hooks.theme_did_change()  # what Anki calls once it has switched its theme
+    until(lambda: forest.settings._open is not None and forest.settings._open is not first
+          and forest.settings._open.isVisible(), 10, "the settings to open again in the new theme")
+    from aqt.qt import QDialogButtonBox
+    forest.settings._open.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Cancel).click()
+    _closed(forest, before, "Cancel after a theme switch")
+    gui_hooks.theme_did_change()  # with no dialog open: none of the closed ones may still be on it
+    pump(200)
+
+
+def gear_menu(forest) -> None:
+    """The deck's gear menu, as Anki builds it (deck_browser_will_show_options_menu), its
+    entries triggered as a click would."""
+    from aqt.qt import QMenu
+    did = mw.col.decks.id("Default")
+
+    def entry(text):
+        menu = QMenu(mw)
+        gui_hooks.deck_browser_will_show_options_menu(menu, did)
+        found = [a for a in menu.actions() if a.text() == text]
+        if not found:
+            raise AssertionError(f"no {text!r} in the gear menu: {[a.text() for a in menu.actions()]}")
+        found[0].trigger()
+        pump(300)
+        menu.deleteLater()
+    entry("Leave out of Memory Forest")
+    if did not in [int(d) for d in config().get("excluded_decks") or []]:
+        result["problems"].append("Leave out of Memory Forest left the deck in")
+    entry("Bring back into Memory Forest")
+    if did in [int(d) for d in config().get("excluded_decks") or []]:
+        result["problems"].append("Bring back into Memory Forest left the deck out")
+
+
+def page_messages(forest) -> None:
+    """The page's own messages to Anki (pycmd), sent from the deck list's page as its scripts send them."""
+    from aqt.qt import QShortcut
+    web, channel = mw.deckBrowser.web, forest.state.MODULE
+
+    def send(*parts):
+        web.eval(f"pycmd({json.dumps(':'.join([channel, *parts]))})")
+    day = "2026-01-02"
+    send("mark", day, "exam", "Check: one")
+    until(lambda: forest.marks.important_days(mw.col) == [{"day": day, "icon": "exam", "name": "Check: one"}], 5, "a marked day")
+    send("unmark", day)
+    until(lambda: forest.marks.important_days(mw.col) == [], 5, "a mark taken away")
+    shade = config().get("calendar_shade")
+    send("shade", "time")
+    until(lambda: config().get("calendar_shade") == "time", 5, "the heatmap's shade toggle to be saved")
+    send("shade", shade or "reviews")
+    until(lambda: config().get("calendar_shade", "reviews") == (shade or "reviews"), 5, "the shade put back")
+    on = [s for s in mw.findChildren(QShortcut) if s.isEnabled()]
+    if not on:
+        result["steps"].append("no main window shortcuts to hold")
+        return
+    send("typing", "1")
+    until(lambda: not any(s.isEnabled() for s in on), 5, "Anki's shortcuts held while a mark is named")
+    send("typing", "0")
+    until(lambda: all(s.isEnabled() for s in on), 5, "Anki's shortcuts back after naming a mark")
+    result["steps"].append(f"held {len(on)} shortcuts while a name was typed")
+
+
+def planting(forest) -> None:
+    """A new card answered in the reviewer: reviewer_did_answer_card plants today's tree."""
+    col = mw.col
+    model = (col.models.by_name if hasattr(col.models, "by_name") else col.models.byName)("Basic")
+    did = col.decks.id("Planting check")
+    n = col.new_note(model) if hasattr(col, "new_note") else col.newNote()
+    n["Front"] = n["Back"] = "a card to plant with"
+    if hasattr(col, "add_note"):
+        col.add_note(n, did)
+    else:
+        n.model()["did"] = did
+        col.addNote(n)
+    col.decks.select(did)
+    forest.planting._planted_today = None
+    mw.moveToState("review")
+    reviewer = mw.reviewer
+    until(lambda: getattr(reviewer, "card", None) is not None and getattr(reviewer, "state", None) == "question", 20,
+          "the reviewer to show the new card")
+    pump(500)
+    reviewer._showAnswer()
+    until(lambda: reviewer.state == "answer", 10, "the answer to show")
+    pump(300)
+    reviewer._answerCard(3)
+    until(lambda: forest.planting._planted_today is not None, 15, "the first answer of the day to plant a tree")
+    if forest.state.load_state().get("last_planted") != forest.planting._planted_today:
+        result["problems"].append("the planted tree was not remembered in state.json")
+    mw.moveToState("deckBrowser")
+    pump(500)
+
+
+CANARY = "check canary"
+
+
+def canaries() -> None:
+    """An error raised where nothing of the add-on's own catches it - in a Qt slot (a timer), in a
+    hook Anki calls for a message from a page, in a page's answer to evalWithCallback, printed
+    to stderr - must end up in this check's errors: each is raised here on purpose, looked
+    for, and taken back out. One that goes missing is a problem: the check would pass with it."""
+    before = len(result["errors"])
+
+    def slot():
+        raise RuntimeError(f"{CANARY}: a Qt slot")
+    QTimer.singleShot(0, slot)
+    pump(200)
+
+    def on_message(handled, message, _context):
+        if message == "memory-forest-check:canary":
+            raise RuntimeError(f"{CANARY}: a hook Anki calls for a page's message")
+        return handled
+    gui_hooks.webview_did_receive_js_message.append(on_message)
+    try:
+        mw.deckBrowser.web.eval("pycmd('memory-forest-check:canary')")
+        pump(1000)
+    finally:
+        gui_hooks.webview_did_receive_js_message.remove(on_message)
+
+    def answered(_value):
+        raise RuntimeError(f"{CANARY}: a page's answer to evalWithCallback")
+    mw.deckBrowser.web.evalWithCallback("1", answered)
+    pump(1000)
+    try:
+        raise RuntimeError(f"{CANARY}: printed to stderr")
+    except RuntimeError:
+        traceback.print_exc()
+    pump(200)
+    wanted = ("a Qt slot", "a hook Anki calls", "evalWithCallback", "printed to stderr")
+    caught = [e for e in result["errors"][before:] if CANARY in e]
+    for what in wanted:
+        if not any(what in e for e in caught):
+            result["problems"].append(f"an error raised in {what} did not fail the check")
+    result["errors"][before:] = [e for e in result["errors"][before:] if CANARY not in e]
+    result["steps"].append(f"{len(caught)} of {len(wanted)} canary errors caught")
 
 
 def catches_import_error(caught) -> bool:
@@ -928,6 +1199,11 @@ def heatmap_browser_metrics():
 
 def opened():
     note("profile open")
+    if sys.excepthook is not _caught:  # (something since this add-on loaded took it over: taken back)
+        result["steps"].append(f"excepthook was {getattr(sys.excepthook, '__qualname__', sys.excepthook)}: taken back")
+        sys.excepthook = _caught
+    if not isinstance(sys.stderr, Stderr):
+        sys.stderr = Stderr(sys.stderr)
     result["platform"] = QApplication.platformName()
     if os.environ.get("MEMORY_FOREST_SHOW") != "1" and result["platform"] != "offscreen":
         result["errors"].append("background checks require Qt's offscreen platform")

@@ -158,6 +158,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(buttons)
 
         self._debounce = QTimer(self); self._debounce.setSingleShot(True); self._debounce.setInterval(APPLY_DEBOUNCE_MS)
+        self._theme_pending = False  # (a reopen for a theme switch, waiting for the hook to finish)
         self._debounce.timeout.connect(self.apply)
         self.scenery.preset.currentIndexChanged.connect(self._preset_chosen)
         self.scenery.real_sky.toggled.connect(self._real_sky_toggled)
@@ -424,7 +425,16 @@ class SettingsDialog(QDialog):
         """Anki's theme switched while the dialog is open. Its colours are set as it is built
         (the borders, help lines and links, the heatmap's strips, Busier days in dark mode only),
         so it opens again in its place, on the same tab: the changes kept, and Cancel still
-        going back to how the first dialog found things, as after Restore defaults."""
+        going back to how the first dialog found things, as after Restore defaults. It does so
+        once Anki has run the hook's other callbacks: closing and opening while it is still going
+        through them (its live list) would skip the one after this and run the new dialog's."""
+        if not self._theme_pending:
+            self._theme_pending = True
+            QTimer.singleShot(0, self._reopen_in_theme)
+
+    def _reopen_in_theme(self) -> None:
+        if not self.isVisible():  # (closed meanwhile)
+            return
         if self._debounce.isActive():  # (a change not saved yet)
             self._debounce.stop()
             self.apply()

@@ -20,6 +20,7 @@ try {
       const p = await browser.newPage();
       await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
       p.on('pageerror', e => out.errors.push(`${target}, ${setup}: ${e.message}`));
+      p.on('console', m => { if (m.type() === 'error') out.errors.push(`${target}, ${setup}: console: ${m.text()}`); });
       if (zoom !== 1) await p.evaluateOnNewDocument(z => document.addEventListener('DOMContentLoaded', () => { document.body.style.zoom = z; }), String(zoom));
       await p.goto('file://' + html);
       // drawn: the forest built, and the calendar under it (a moment later)

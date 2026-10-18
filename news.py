@@ -100,7 +100,7 @@ def _load() -> dict:
     that started with nothing of its own (no state.json) is a fresh install: it has seen it all."""
     if not os.path.exists(NEWS_PATH):
         fresh = _fresh_at_start if _fresh_at_start is not None else not load_json(state.STATE_PATH)
-        record = {"seen": _all_ids() if fresh else [], "shown": {}}
+        record = {"seen": _all_ids() if fresh else [], "shown": {}, "tags": {}}
         _save(record)
         return record
     record = load_json(NEWS_PATH)

@@ -6,6 +6,7 @@ This module never imports aqt, so it runs in the tests and the dev scripts.
 
 from __future__ import annotations
 
+import calendar
 import datetime as _dt
 from collections.abc import Iterable
 
@@ -86,11 +87,13 @@ def _arrived_today(key: str, s: dict) -> bool:
 
 
 def anniversaries(trees: Iterable[dict], on: _dt.date) -> list:
-    """Indexes of trees planted on this calendar day in an earlier year."""
+    """Indexes of trees planted on this calendar day in an earlier year. A tree planted on
+    29 Feb has its anniversary on 28 Feb in the years without one."""
+    leapless = on.month == 2 and on.day == 28 and not calendar.isleap(on.year)
     out = []
     for i, t in enumerate(trees):
         d = _dt.date.fromisoformat(t["date"])
-        if d.year < on.year and (d.month, d.day) == (on.month, on.day):
+        if d.year < on.year and ((d.month, d.day) == (on.month, on.day) or (leapless and (d.month, d.day) == (2, 29))):
             out.append(i)
     return out
 
