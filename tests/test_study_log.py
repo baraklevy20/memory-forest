@@ -372,6 +372,13 @@ class DayTimeTests(unittest.TestCase):
         self.assertIn(f"id >= {(CUTOFF - 2 * study_log.DAY_SECS) * 1000}", reads[-1])  # (yesterday's on)
         con.execute("delete from revlog where time = 6000")  # (an undo: read whole again)
         self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 2})
+        before = len(reads)
+        con.execute("update cards set did = 20")  # (moved out of deck 10, no review since)
+        self.assertEqual(times.read(DB(), CUTOFF, [10], cards=(1, 5)), {})
+        self.assertEqual(times.read(DB(), CUTOFF, [10], cards=(1, 5)), {})
+        con.execute("update cards set did = 10")  # (and back: the cards changed, so read whole again)
+        self.assertEqual(times.read(DB(), CUTOFF, [10], cards=(2, 5)), {3: 6, 1: 2})
+        self.assertEqual(len(reads), before + 2)
 
 
 

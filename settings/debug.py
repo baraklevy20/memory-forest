@@ -47,7 +47,6 @@ DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
 HAPPENINGS = {"leech": ("a card turns leech", "{n} cards turn leech"), "cure": ("a leech cured", "{n} leeches cured")}
 
 
-
 class DebugTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
@@ -97,7 +96,6 @@ class DebugTab(QWidget):
         self.was = cfg.get("debug_backlog_was") if type(cfg.get("debug_backlog_was")) is int else 0
         self.clear = QPushButton("Clear the backlog")
         self.clear.clicked.connect(self._clear_backlog)
-        # the heatmap's shades on a light page: by lightness (as released), or the dark page's own
         self.big = QCheckBox("Big learning days (wildflowers)"); self.big.setChecked(bool(cfg.get("debug_big_days", False)))
         # the date the scenery is chosen for
         try:

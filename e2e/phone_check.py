@@ -24,11 +24,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 import catalog
+import fake_forest
+import forest_data
 import phone_data
 
 CHROME = os.environ.get("CHROME") or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 SIM = "af-fs-sim"  # headless Chrome has no full screen: a class stands in for :fullscreen
 CAL_DAYS, CAL_AHEAD = 240, 120
+FOREST_TREES = 150  # the made-up forest's size
+# its look: golden hour by the lake, clear and still (so the tooltips' trees stay put)
+MOOD = {"time": "golden_hour", "clock": False, "weather": "clear", "special": "natural", "wind": False,
+        "environment": "natural", "landscape": "lake", "landmark": "none", "moon": 0.631, "source": "manual"}
 # the files a phone card's taps go through (paths from this folder): a change to one runs this
 PHONE_FILES = ("phone.py", "phone_data.py", "phone_note.py", "web/phone.js", "web/calendar.js", "web/hover.js",
                "web/util.js", "web/forest.css", "e2e/phone_check.py", "e2e/phone_check.mjs")  # the made-up calendar: days of history, days ahead
@@ -45,20 +51,30 @@ document.exitFullscreen = function () { if (window.__fs) window.__fs.classList.r
 
 
 def card_css() -> str:
-    tree = ast.parse(open(os.path.join(ROOT, "phone.py"), encoding="utf-8").read())
+    with open(os.path.join(ROOT, "phone.py"), encoding="utf-8") as f:
+        tree = ast.parse(f.read())
     return next(n.value.value for n in tree.body if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "CSS")
 
 
+def forest_page(n: int = FOREST_TREES) -> dict:
+    """A made-up forest of n trees (fake_forest), as the payload sends it: no study history needed,
+    so the checks run the same in a fresh checkout and on CI."""
+    f = forest_data.merge_old(fake_forest.make(n))
+    return {"trees": f["trees"], "stats": f["stats"], "visitors": f["visitors"], "merged": f.get("merged"),
+            "forestSeed": f["forest_seed"], "anniversaries": [], "events": [], "journal": "", "mood": MOOD,
+            "animations": False, "tooltips": True, "maxWidth": 900, "credit": False}
+
+
 def note() -> dict:
-    """The note's data: the dev payload's forest, still (so the animals stay put), and a calendar
-    of CAL_DAYS days studied most days, with cards due ahead."""
-    raw = open(os.path.join(ROOT, "dev", "payload.js"), encoding="utf-8").read()
-    page = json.loads(raw.split("=", 1)[1].strip().rstrip(";"))
+    """The note's data: a made-up forest (forest_page), still, and a calendar of CAL_DAYS days
+    studied most days, with cards due ahead. No animals: one standing in front of a tapped tree
+    answers for it, and a tap on its edge then flips between the set-ups by a fraction of a pixel."""
+    page = dict(forest_page(), visitors=[])
     today = dt.date.today()
     days = [0 if i % 9 == 4 else 20 + (i * 37) % 300 for i in range(CAL_DAYS)]
     cal = {"view": "timeline", "weekStart": 1, "start": (today - dt.timedelta(days=CAL_DAYS - 1)).isoformat(),
            "days": days, "due": [60] + [max(0, 250 - 2 * i) for i in range(1, CAL_AHEAD)], "animals": [],
-           "breakDays": 7, "browse": False}
+           "browse": False}
     return dict(page, calendar=cal, inAnki=False, tooltips=True, zoom=False, animations=False, maxWidth=1200,
                 updated=dt.datetime.now().isoformat(timespec="minutes"), parts={}, script="x",
                 days=[{"date": today.isoformat(), "mood": page["mood"], "dayNumber": page.get("dayNumber", 1)}],

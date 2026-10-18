@@ -59,8 +59,9 @@ TEST_REVIEWS_PER_CARD, TEST_DAY_REVIEWS = 4, 40
 TEST_SECS_PER_REVIEW = (5, 12)
 # on a deck screen the test forest lights every this-many-th tree, having no real decks
 TEST_LIT_EVERY = 5
-# the trees of each forest's deep forest, as last sent (by deck id, "" for the deck list's):
-# the page asks for them when zoomed in among the trees (web/visit.js), to draw them one by one
+# the trees of each forest's deep forest, as last sent (by deck id, "" for the deck list's), while
+# zoom is on: the page asks for them when zoomed in among the trees (web/visit.js), to draw them
+# one by one
 _deep: dict[str, list] = {}
 
 
@@ -88,6 +89,7 @@ def after_sync() -> None:
     _logs.clear()
     _answer_times.clear()
     _forest_cache.clear()
+    _deep.clear()
     forget_remembered()
 
 
@@ -210,7 +212,9 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     forest = forest_data.merge_old(forest)  # the oldest trees become one deep-forest band
     drawn = len(forest["trees"])
     merged_count = len(all_trees) - drawn
-    _deep[str(did or "")] = all_trees[:merged_count]
+    zoom = ZOOM_RELEASED or (debug_available(cfg) and not debug_edition(cfg))
+    if zoom:  # (kept only while the page can zoom in to ask for them)
+        _deep[str(did or "")] = all_trees[:merged_count]
     # the page can only glow trees it draws; the journal still names any of them
     ann = [i - merged_count for i in ann_all if i >= merged_count]
 
@@ -238,7 +242,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "testForest": test,
         "animations": ANIMATION_VALUES[animation_mode(cfg)],
         "tooltips": True,
-        "zoom": ZOOM_RELEASED or (debug_available(cfg) and not debug_edition(cfg)),
+        "zoom": zoom,
         "maxWidth": clamp_int(cfg.get("max_width"), MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX),
         "credit": mood.get("source") == "real",
         "weatherError": weather_error,
@@ -250,8 +254,9 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "deckName": mw.col.decks.name_if_exists(did) if did else None,
         "highlight": bool(highlight and did),
         "litCount": forest.get("lit_count"),
-        # what's new: a note on the deck list's forest only, and the cog's dot on every one
-        "news": None if did else news.note(cfg, day),
+        # what's new: a note on the deck list's forest only (never counted as shown while that
+        # screen has the heatmap alone, web/news.js), and the cog's dot on every one
+        "news": None if did or not show_forest else news.note(cfg, day),
         "newDot": news.cog_dot(cfg),
         # the forest itself may be switched off on this screen while the study calendar is on
         "showForest": show_forest,
@@ -321,14 +326,16 @@ def _day_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: i
 
 def _day_answer_time(cutoff: int, dids: list | None, excluded, skip, changed, oldest: int) -> list:
     """Daily median seconds per answer (study_log.AnswerTimes), remembered until the study data
-    changes, and then only the days with new reviews read again."""
+    changes, and then only the days with new reviews read again (all of them when the cards
+    change: _cards_changed)."""
     here = tuple(dids or ())
     for other in [k for k in _answer_times if k and k != here]:  # (as _logs: the collection's and one deck's)
         del _answer_times[other]
     times = _answer_times.setdefault(here, study_log.AnswerTimes())
     days = remembered("day_answer_time", changed and (changed, cutoff, tuple(dids or ()), frozenset(excluded), frozenset(skip)),
-                      lambda: times.read(mw.col.db, cutoff, dids, excluded, skip))
-    return [days.get(ago) for ago in range(oldest, -1, -1)]
+                      lambda: times.read(mw.col.db, cutoff, dids, excluded, skip, _cards_changed(changed)))
+    # (to a tenth of a second, as the heatmap shows them: every day goes to the page and the phone)
+    return [None if days.get(ago) is None else round(days[ago], 1) for ago in range(oldest, -1, -1)]
 
 
 def _page_stats(forest: dict, cfg: dict, test: bool, did: int | None, highlight: bool, changed, calendar: dict) -> dict:
@@ -450,9 +457,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)
             "time": _test_time(days, oldest) if test else _day_time(cutoff, dids, excluded, skip, changed, oldest, day_time),
-            # Pace: each day's median seconds per answer, aligned with `days`.
+            # each day's median seconds an answer (what Pace shades by), day by day as `days`
             "answerTime": [] if test else _day_answer_time(cutoff, dids, excluded, skip, changed, oldest),
-            "breakDays": forest_data.BREAK_DAYS,
             # the forest's own ponds, [first day, last day] (its trees' gaps): on a deck's screen
             # the main forest's breaks, not the days away from that deck alone (events_state.apply)
             "ponds": [[t["gap_from"], t["gap_to"]] for t in trees if t.get("gap") and t.get("gap_from") and t.get("gap_to")],

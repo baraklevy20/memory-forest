@@ -56,7 +56,8 @@ class PresetTests(unittest.TestCase):
 
     def test_a_fresh_install_is_a_preset_and_not_custom(self):
         here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        cfg = json.load(open(os.path.join(here, "config.json"), encoding="utf-8"))
+        with open(os.path.join(here, "config.json"), encoding="utf-8") as f:
+            cfg = json.load(f)
         self.assertNotEqual(presets.match(cfg), presets.CUSTOM,
                             "the shipped config should be one of the presets, or the dialog opens on Custom")
 

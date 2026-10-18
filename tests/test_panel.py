@@ -151,7 +151,7 @@ class FinishedDeckTests(unittest.TestCase):
         mw.state = "overview"
 
     def test_the_panel_is_added_to_a_finished_decks_page_once_it_has_loaded(self):
-        self.assertIn(panel.on_page_loaded, hooks.webview_did_inject_style_into_page)
+        self.assertIn(panel.on_page_loaded, list(hooks.webview_did_inject_style_into_page))
         panel.on_page_loaded(self.web)
         self.assertEqual(len(self.web.evaluated), 1)
         js = self.web.evaluated[0]

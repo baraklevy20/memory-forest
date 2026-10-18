@@ -23,9 +23,9 @@ AF.landscape = function (key, spec) { AF.LANDSCAPES[key] = spec; };
 /* A scenery that frames the forest in a window (the rooms) sets env.fitX(x, env) in its
  * prepare: every landscape then plants its rows through it, the landscape's own squeeze
  * still applied first, so each tree stands where it can be seen and hovered. */
-const fitted = new WeakMap();
+const fitted = new WeakMap(), NO_LAND = {};  // (one stand-in for no landscape, so its wrapper is kept too)
 AF.landOf = env => {
-  const land = AF.LANDSCAPES[env.mood.landscape] || {}, fit = env.fitX;
+  const land = AF.LANDSCAPES[env.mood.landscape] || NO_LAND, fit = env.fitX;
   if (!fit) return land;
   let byFit = fitted.get(land);
   if (!byFit) fitted.set(land, byFit = new Map());

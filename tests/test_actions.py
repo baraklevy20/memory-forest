@@ -34,7 +34,7 @@ class ActionTests(unittest.TestCase):
             addon.panel.hold_shortcuts(True)
         shortcut.setEnabled.assert_called_with(False)
         for hook in (hooks.deck_browser_will_render_content, hooks.overview_will_render_content, hooks.state_did_change):
-            self.assertIn(addon.panel.release_shortcuts, hook)
+            self.assertIn(addon.panel.release_shortcuts, list(hook))
         addon.panel.release_shortcuts("deckBrowser", "review")  # (as state_did_change calls it)
         shortcut.setEnabled.assert_called_with(True)
 
@@ -72,12 +72,12 @@ class ActionTests(unittest.TestCase):
         with mock.patch.object(mw.col, "find_cards", return_value=[1], create=True) as find, \
                 mock.patch.object(actions.answer_column, "show") as show, \
                 mock.patch.object(actions.gui_hooks, "browser_did_search", [], create=True):
-            actions._open_browser(["rated:1"], 10, {1: 2, 2: 30}, "Attempts", "reviews")
+            actions._open_browser(["rated:1"], 10, {1: 2, 2: 30}, "Reviews", "reviews")
             self.assertEqual(show.call_args.args[1], {1: 2})
             self.assertIn('"deck:French"', find.call_args.args[0])
 
     def test_review_and_time_clicks_choose_daily_metric_and_second_column(self):
-        for mode, title in (("reviews", "Attempts"), ("time", "Total time"), ("median", "Answer time")):
+        for mode, title in (("reviews", "Reviews"), ("time", "Total time"), ("median", "Answer time")):
             with mock.patch.object(actions.study_log, "day_card_totals", return_value={1: 42}) as totals, \
                     mock.patch.object(actions.study_log, "day_answer_times", return_value={1: 42}), \
                     mock.patch.object(actions, "_open_browser") as opened:

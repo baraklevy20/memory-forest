@@ -106,11 +106,24 @@ function afterglow(env, g) {
   streak(g, P, hor * 0.79, -4, W * 0.14, 1.6 * u);
   streak(g, P, hor * 0.74, W * 0.46, W * 1.02, 2.2 * u);
 }
+/* How much the weather hides the moon (or the day's sun), as the engine veils its own orb:
+ * overcast, fog and snow dim it and rain hides most of it. It never goes completely, so the
+ * witch still has a pale disc to cross. */
+function veilOf(th) {
+  if (th.lightning || th.deepSnow) return 0.85;
+  if (th.rain && !th.rainLight) return 0.75;
+  if (th.fog || th.deck) return 0.6;
+  return th.snow ? 0.45 : 0;
+}
 function paintMoon(env, g) {
   const th = env.theme, m = moonAt(env), P = MOONS[hourOf(th)], { u } = env;
   const px = (c, x, y) => { g.fillStyle = typeof c === 'string' ? c : rgb(c); g.fillRect(x, y, 1, 1); };
+  const veil = veilOf(th);
+  // behind weather the disc is painted as usual and then sunk back into the sky under it
+  const bx = Math.round(m.x - m.r * 2), by = m.y - m.r - 1, bw = m.r * 4, bh = m.r * 2 + Math.round(4 * u);
+  const under = veil ? g.getImageData(bx, by, bw, bh) : null;
   // the halo: an inner ring half-dithered, an outer one fading out in the ordered pattern
-  if (P.glow) {
+  if (P.glow && !veil) {
     const g1 = hex(P.glow), g2 = hex(P.glow2), R1 = 3 * u, R2 = (P.sun ? 10 : 18) * u;
     for (let y = m.y - m.r - R2; y <= m.y + m.r + R2; y++) for (let x = m.x - m.r - R2; x <= m.x + m.r + R2; x++) {
       const d = Math.hypot(x + 0.5 - m.x, y + 0.5 - m.y) - m.r;
@@ -149,6 +162,12 @@ function paintMoon(env, g) {
     streak(g, P, m.y + m.r * 0.08, m.x - m.r * 1.9, m.x + m.r * 0.3, 2.6 * u);
     streak(g, P, m.y + m.r * 0.36, m.x - m.r * 0.15, m.x + m.r * 1.7, 2 * u);
   }
+  if (under) {
+    const over = g.getImageData(bx, by, bw, bh), a = under.data, b = over.data;
+    for (let i = 0; i < b.length; i += 4) for (let k = 0; k < 3; k++) b[i + k] = Math.round(b[i + k] + (a[i + k] - b[i + k]) * veil);
+    g.putImageData(over, bx, by);
+  }
+  m.veil = veil;
   return m;
 }
 
@@ -580,15 +599,13 @@ function patch(env) {
   // the laughers: the nearest lit ones with a laughing face (by day, when none is lit, any
   // with one), never one with another sat on it
   const laughers = [];
-  {
-    const all = loose.concat(...byTree.values()).filter(q => (q.lit || !th.pkLit) && q.size >= 2 && LAUGHS.has(q.face) && !q.stacked && q.x - q.w > 1 && q.x + q.w < W - 2);
-    all.sort((a, b) => b.y - a.y);
-    for (const q of all) {  // a few spares: one mostly hidden behind a trunk is dropped later
-      if (laughers.length >= MAX_LAUGHERS + 3 || laughers.some(o => Math.abs(o.x - q.x) < 22 && Math.abs(o.y - q.y) < 12)) continue;
-      const k = laughers.length;
-      q.laugh = { per: 7 + hashN('pkP', q.x, q.y) * 5, ph: hashN('pkH', q.x, q.y) * 12 + k * 2.3, burst: 1.3 + hashN('pkU', q.x) * 0.8 };
-      laughers.push(q);
-    }
+  const all = loose.concat(...byTree.values()).filter(q => (q.lit || !th.pkLit) && q.size >= 2 && LAUGHS.has(q.face) && !q.stacked && q.x - q.w > 1 && q.x + q.w < W - 2);
+  all.sort((a, b) => b.y - a.y);
+  for (const q of all) {  // a few spares: one mostly hidden behind a trunk is dropped later
+    if (laughers.length >= MAX_LAUGHERS + 3 || laughers.some(o => Math.abs(o.x - q.x) < 22 && Math.abs(o.y - q.y) < 12)) continue;
+    const k = laughers.length;
+    q.laugh = { per: 7 + hashN('pkP', q.x, q.y) * 5, ph: hashN('pkH', q.x, q.y) * 12 + k * 2.3, burst: 1.3 + hashN('pkU', q.x) * 0.8 };
+    laughers.push(q);
   }
   return (env.pkPatch = { byTree, loose, laughers });
 }
@@ -703,7 +720,9 @@ const HILL_COLS = {
   dawn: { hill: '#2a1a32', hillL: '#3c2644', ink: '#120a14', rim: '#ffa8a0', rim2: '#a8607a', grass: '#46304e' },
   day: { hill: '#5e4e6c', hillL: '#6e5c7a', ink: '#2a1e2a', rim: null, rim2: null, grass: '#6e5e7a' },
 };
-const TREE_SEED = 57, TREE_SCALE = 0.66;  // a small black counterweight, out at the edge  // picked from a sheet of seeds: wide, gnarled, crooked
+// the dead tree, a small black counterweight out at the edge: its seed, picked from a sheet of
+// seeds (wide, gnarled, crooked), and its size
+const TREE_SEED = 57, TREE_SCALE = 0.66;
 
 /* the dead tree: a crooked trunk flaring into roots, twisting up into a few gnarled limbs
  * that fork and end in hooked twigs; one crow sits on the long low limb */
@@ -814,16 +833,17 @@ function paintRidge(env, g, m) {
   const { W, u, hor } = env, th = env.theme, hour = hourOf(th), yAt = ridgeY(env);
   const P = MOONS[hour];
   const body = mix(hex(th.far), hex(th.sky[4]), 0.1), crest = mix(body, hex(th.sky[5]), 0.3);  // far off: a shade paler than the near hills
-  const moonLit = hex(P.face[1]);
+  const moonLit = mix(hex(P.face[1]), crest, m.veil || 0), bodyC = rgb(body), crestC = rgb(crest);
+  const litC = rgb(mix(body, moonLit, 0.55)), glintC = rgb(mix(body, moonLit, 0.2)), end = Math.ceil(hor);
   for (let x = 0; x < W; x++) {
     const y0 = yAt(x);
     const inMoon = Math.abs(x + 0.5 - m.x) < m.r && Math.hypot(x + 0.5 - m.x, y0 - m.y) < m.r + 0.5;
-    for (let y = y0; y < hor; y++) {
-      let c = body;
-      if (y === y0) c = inMoon ? mix(body, moonLit, 0.55) : crest;
-      else if (y === y0 + 1 && inMoon && bayer(x, y) < 8) c = mix(body, moonLit, 0.2);
-      g.fillStyle = rgb(c); g.fillRect(x, y, 1, 1);
-    }
+    // (each column in runs: its crest, under the moon a dithered glint below it (dimmed with the moon
+    // behind weather), then the body down to the horizon)
+    let y = y0;
+    if (y < end) { g.fillStyle = inMoon ? litC : crestC; g.fillRect(x, y++, 1, 1); }
+    if (y < end && inMoon && bayer(x, y) < 8) { g.fillStyle = glintC; g.fillRect(x, y++, 1, 1); }
+    if (y < end) { g.fillStyle = bodyC; g.fillRect(x, y, 1, end - y); }
     const h = hashN('rt', x);  // dead grass and scrub along the crest
     if (h < 0.18) { g.fillStyle = rgb(mix(body, [0, 0, 0], 0.15)); g.fillRect(x, y0 - 1, 1, 1); if (h < 0.04) g.fillRect(x, y0 - 2, 1, 1); }
   }

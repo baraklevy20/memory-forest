@@ -18,7 +18,6 @@ from aqt.qt import (
     QFont,
     QFontMetrics,
     QGridLayout,
-    QGuiApplication,
     QLabel,
     QLinearGradient,
     QLineEdit,
@@ -43,7 +42,7 @@ from aqt.qt import (
 from .. import presets
 from .palette import color
 from .patreon import PATREON
-from .widgets import hint, hint_style
+from .widgets import hint, hint_style, pixel_ratio
 
 # each preset's picture, drawn by dev/thumbnails.py: a piece of its scene in the scene's own
 # pixels, shown a pixel a point; and the same piece moving (dev/tile_gifs.py), shown instead
@@ -95,11 +94,6 @@ QLineEdit:focus {{ border-color: {focus}; }}
 """
 
 
-def _pixel_ratio() -> float:
-    screen = QGuiApplication.primaryScreen()
-    return screen.devicePixelRatio() if screen else 1.0
-
-
 def crisp(path: str) -> QPixmap:
     """A pixel-art picture, scaled up in whole pixels for the screen so the art stays sharp
     at a pixel a point; a null pixmap if there is none."""
@@ -109,7 +103,7 @@ def crisp(path: str) -> QPixmap:
 def _whole_pixels(raw: QPixmap) -> QPixmap:
     if raw.isNull():
         return raw
-    dpr = max(1, round(_pixel_ratio()))
+    dpr = max(1, round(pixel_ratio()))
     big = raw.scaled(raw.width() * dpr, raw.height() * dpr, Qt.AspectRatioMode.IgnoreAspectRatio,
                      Qt.TransformationMode.FastTransformation)
     big.setDevicePixelRatio(dpr)
@@ -129,7 +123,7 @@ def moving(key: str) -> str | None:
 
 def mosaic() -> QPixmap:
     """Surprise me daily's picture: four sceneries it takes turns with, a quarter each."""
-    dpr = max(1, round(_pixel_ratio()))
+    dpr = max(1, round(pixel_ratio()))
     out = QPixmap(PICTURE_W * dpr, PICTURE_H * dpr)
     out.fill(QColor(0, 0, 0, 0))
     p = QPainter(out)

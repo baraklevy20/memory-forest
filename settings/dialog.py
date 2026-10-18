@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import math
 
-from aqt import mw
+from aqt import gui_hooks, mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QGuiApplication, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
 from .. import news, presets
@@ -47,7 +47,7 @@ RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("Resets: the scenery and Customize, Nature (to {nature}), your city, where the forest and the "
-                "heatmap show (finished decks too), the heatmap's view, week start, shades, colours and style, animation and the "
+                "heatmap show (finished decks too), the heatmap's view, week start, what its shades go by, its colours (Busier days too) and style, animation and the "
                 "planting message.\n\nKeeps: the decks you left out, the start date (and how the heatmap and your "
                 "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
                 "Cancel still puts back the settings you had before.")
@@ -92,8 +92,9 @@ def debug_tab(cfg: dict):
 
 class SettingsDialog(QDialog):
     def __init__(self, module: str, on_change, on_phone, reopen, parent=None, focus: str = "", carry: dict | None = None):
-        """`carry`: what a dialog Restore defaults closed hands on to the one it opens - the
-        settings and phone as the first dialog found them, for Cancel to put back."""
+        """`carry`: what a dialog Restore defaults (or a theme switch) closed hands on to the one
+        it opens - the settings and phone as the first dialog found them, for Cancel to put back,
+        and after a theme switch its place on the screen."""
         super().__init__(parent or mw)
         self.module = module
         self.on_change, self.on_phone = on_change, on_phone
@@ -114,7 +115,7 @@ class SettingsDialog(QDialog):
         self.scenery = SceneryTab(cfg, [k for k, t in tags.items() if t == "new"], [k for k, t in tags.items() if t == "improved"])
         self.custom = self.scenery.custom
         self.heatmap = HeatmapTab(cfg)
-        self.forest = ForestTab(cfg, on_phone, self.heatmap, carry.get("phone_was"))
+        self.forest = ForestTab(cfg, on_phone, carry.get("phone_was"))
         self.decks = DecksTab(cfg, self.original)
         # the made-up test forest and the event switches are a developer's tool: their tab is
         # only there while debug is on (its values are still kept, so they wait for next time)
@@ -190,6 +191,11 @@ class SettingsDialog(QDialog):
         self.layout().activate()
         self.fit_screen()
         self.adjustSize()
+        if carry.get("geometry") is not None:  # (opened again for a theme switch: where it was)
+            self.restoreGeometry(carry["geometry"])
+        # (Anki 2.1.45-2.1.49 have no theme_did_change: their theme changes only on a restart)
+        if hasattr(gui_hooks, "theme_did_change"):
+            gui_hooks.theme_did_change.append(self._theme_changed)
 
     def fit_screen(self) -> None:
         """On a screen too short for the dialog, the scenery picker shows fewer rows of tiles
@@ -410,6 +416,23 @@ class SettingsDialog(QDialog):
         global _last_tab
         _last_tab = self.tab_key()
         self.decks.days = None
+        # (Anki's hooks aren't lists, `in` fails on them; their remove() lets a missing one pass)
+        if hasattr(gui_hooks, "theme_did_change"):
+            gui_hooks.theme_did_change.remove(self._theme_changed)
+
+    def _theme_changed(self) -> None:
+        """Anki's theme switched while the dialog is open. Its colours are set as it is built
+        (the borders, help lines and links, the heatmap's strips, Busier days in dark mode only),
+        so it opens again in its place, on the same tab: the changes kept, and Cancel still
+        going back to how the first dialog found things, as after Restore defaults."""
+        if self._debounce.isActive():  # (a change not saved yet)
+            self._debounce.stop()
+            self.apply()
+        self._reverting = False  # closing must not write the pre-switch config back
+        geometry = self.saveGeometry()
+        self.close()
+        self.reopen(self.module, self.on_change, self.on_phone,
+                    carry={"original": self.original, "phone_was": self.forest.phone_was, "geometry": geometry})
 
     def accept(self) -> None:
         self._debounce.stop()

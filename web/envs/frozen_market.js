@@ -1135,7 +1135,7 @@ function freezeRiver(env) {
   const { W, H, hor } = env, IP = icePal(env.theme), { HORIZON } = AF.GEOM;
   const lg = env.land.getContext('2d'), img = lg.getImageData(0, 0, W, H), d = img.data;
   const snowA = hex(env.theme.g0), snowB = mix(hex(env.theme.g0), hex(env.theme.g1), 0.45);
-  const across = (x, y) => { const p = (y / H - HORIZON) / (1 - HORIZON), cx = W * RL.center(p), hw = W * RL.halfWidth(p, W); return [p, (x + 0.5 - cx) / Math.max(0.5, hw), hw]; };
+  const across = (x, y) => { const p = (y / H - HORIZON) / (1 - HORIZON), cx = W * RL.center(p, env), hw = W * RL.halfWidth(p, W, env); return [p, (x + 0.5 - cx) / Math.max(0.5, hw), hw]; };
   const lipL = mix(snowA, [255, 255, 255], 0.12), lipR = mix(hex(env.theme.g1), IP.crackD, 0.35);
   for (let y = hor; y < H; y++) for (let x = 0; x < W; x++) {
     const i = y * W + x, j0 = i * 4;
@@ -1162,8 +1162,8 @@ function freezeRiver(env) {
   }
   const CR = rng(313), tint = (x, y, c, k) => { if (x < 0 || x >= W || y < hor || y >= H || !S.vis[y * W + x]) return; const j = (y * W + x) * 4, o = mix([d[j], d[j + 1], d[j + 2]], c, k); d[j] = o[0]; d[j + 1] = o[1]; d[j + 2] = o[2]; };
   for (let n = 0; n < 14; n++) {
-    const y0 = Math.round(hor + (0.35 + 0.6 * CR()) * (H - hor)), [p] = across(0, y0), hw = W * RL.halfWidth(p, W);
-    let x = Math.round(W * RL.center(p) + (CR() - 0.5) * hw * 1.2), y = y0;
+    const y0 = Math.round(hor + (0.35 + 0.6 * CR()) * (H - hor)), [p] = across(0, y0), hw = W * RL.halfWidth(p, W, env);
+    let x = Math.round(W * RL.center(p, env) + (CR() - 0.5) * hw * 1.2), y = y0;
     const len = 4 + Math.floor(CR() * 9), dir = CR() < 0.5 ? -1 : 1;
     for (let s = 0; s < len; s++) { tint(x, y, IP.crack, 0.75); tint(x, y + 1, IP.crackD, 0.4); x += dir; if (CR() < 0.4) y += CR() < 0.5 ? -1 : 1; }
   }
@@ -1482,8 +1482,8 @@ AF.env('frozen_market', {
       if (S && S.vis && RL && RL.center) {
         const { W, H } = env;
         [[0.8, 0.5, 0.35, 'loop', 7], [0.9, 0.45, -0.28, 'pair', 8], [0.86, 0, 0, 'beginner', 9]].forEach(([p, rq, w, kind, n]) => {
-          const cx = W * RL.center(p), rx = W * RL.halfWidth(p, W) * rq, cy = H * (AF.GEOM.HORIZON + (1 - AF.GEOM.HORIZON) * p);
-          st.riverSk.push(kind === 'beginner' ? { kind, n, cx: cx + W * RL.halfWidth(p, W) * 0.3, cy, rx: 4, period: 13, ph: 0.6 } : { kind, n, cx, cy, rx, ry: 1.5, w, ph: n });
+          const cx = W * RL.center(p, env), rx = W * RL.halfWidth(p, W, env) * rq, cy = H * (AF.GEOM.HORIZON + (1 - AF.GEOM.HORIZON) * p);
+          st.riverSk.push(kind === 'beginner' ? { kind, n, cx: cx + W * RL.halfWidth(p, W, env) * 0.3, cy, rx: 4, period: 13, ph: 0.6 } : { kind, n, cx, cy, rx, ry: 1.5, w, ph: n });
         });
       }
       // the fairy lights on the nearest trees, to twinkle: found in the finished land

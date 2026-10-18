@@ -8,6 +8,7 @@ Nothing here imports Qt, so the tests run it as it is."""
 
 from __future__ import annotations
 
+import functools
 import json
 import math
 import os
@@ -55,8 +56,8 @@ def tile_specs() -> dict:
 
 TILE_SPECS = tile_specs()
 TILES = tuple(TILE_SPECS)
-TILE_DEFAULT = "flat"  # (what a style that can't be had falls back to, and Scenery's on a scenery with none of its own)
-TILE_FOLLOW = "scenery"  # (the default: the scenery's own style, changing with it; web/heatmap/scenery.json)
+TILE_DEFAULT = "flat"  # (Scenery's on a scenery with none of its own)
+TILE_FOLLOW = "scenery"  # (the default, and what a style that can't be had falls back to: the scenery's own style, changing with it; web/heatmap/scenery.json)
 SHAPES = tuple(k for k, v in TILE_SPECS.items() if v.get("shape"))
 TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
 # the sceneries that wear a style anyone can pick as their own (its file's "sceneries": Round on Lanterns)
@@ -84,18 +85,21 @@ READY = {
 READY_LABELS = {"olive": "Olive", "lime": "Lime", "ice": "Ice", "magenta": "Magenta", "flame": "Flame"}
 # and each scenery's own colours, on any scenery ("ready:aurora", by its preset): shaded as that
 # scenery shades them (not `exact`), from its colour in KEYS_FILE. For now every scenery with one,
-# until the ready colours are chosen (2026-10-16); a Plus one this copy lacks isn't offered
-SCENERY_READY = {"golden_lake": "Golden lake", "misty_valley": "Misty valley", "cherry_blossom": "Cherry blossom",
-                 "starry_night": "Starry night", "aurora": "Aurora", "lanterns": "Lanterns", "bamboo": "Bamboo",
-                 "synthwave": "Synthwave", "pumpkin_patch": "Witch moon", "frozen_market": "Frozen market"}
+# until the ready colours are chosen (2026-10-16); a Plus one this copy lacks isn't offered. Named
+# by its preset's label, as the scenery picker names it (presets.by_key()[key].label)
+SCENERY_READY = ("golden_lake", "misty_valley", "cherry_blossom", "starry_night", "aurora", "lanterns", "bamboo",
+                 "synthwave", "pumpkin_patch", "frozen_market")
 
 # each scenery's own colour(s) as calendar.js finds them (its `calendar`, or its most colourful
-# crown colour), for the settings' pictures only: the heatmap reads them from the scenery itself.
-# Written by dev/heatmap_keys.py (npm run heatmap-keys) when a scenery is added or recoloured.
+# crown colour): for the settings' pictures, and for another scenery's colours on the heatmap
+# (page_look); a scenery's own the heatmap reads from the scenery itself. Written by
+# dev/heatmap_keys.py (npm run heatmap-keys) when a scenery is added or recoloured.
 KEYS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings", "heatmap_keys.json")
 
 
+@functools.lru_cache(maxsize=None)
 def own_keys() -> dict:
+    """KEYS_FILE, read once (it changes only with a new build)."""
     try:
         with open(KEYS_FILE, encoding="utf-8") as f:
             data = json.load(f)
@@ -138,10 +142,10 @@ def scenery_ready_env(key: str, cfg: dict) -> str | None:
 
 
 def tiles_choice(cfg: dict) -> str:
-    """The tile style chosen: one of TILES (Scenery, TILE_FOLLOW, the default: it follows the
-    scenery), else Flat (as a style since cut, Plain or Smooth, is)."""
+    """The tile style chosen: one of TILES, else Scenery (TILE_FOLLOW, the default: it follows the
+    scenery)."""
     value = cfg.get("calendar_tiles", TILE_FOLLOW)
-    return value if value in TILES else TILE_DEFAULT
+    return value if value in TILES else TILE_FOLLOW
 
 
 # the space between the days' tiles, in the heatmap's pixels: calendar.js's GAP (1), or the style's
@@ -158,14 +162,14 @@ def tile_gap(cfg: dict, here: str = "") -> int | None:
 def tile_style(cfg: dict, here: str = "") -> str:
     """The style the heatmap is drawn in for `cfg` while the scenery's environment is `here`:
     Scenery's is that scenery's own (the style its environment draws, TILE_ENVS: Brush on Starry
-    night; or one it wears, TILE_WORN: Round on Lanterns; a holiday's in its week), else Flat; any other is itself if it can be had just now
-    (tile_shown), else Flat."""
+    night; or one it wears, TILE_WORN: Round on Lanterns; a holiday's in its week), else Flat; any
+    other is itself if it can be had just now (tile_shown), else Scenery's."""
     choice = tiles_choice(cfg)
-    if choice == TILE_FOLLOW:
-        if here in TILE_WORN:
-            return TILE_WORN[here]
-        return next((k for k, env in TILE_ENVS.items() if env == here and tile_shown(k, cfg)), TILE_DEFAULT)
-    return choice if tile_shown(choice, cfg) else TILE_DEFAULT
+    if choice != TILE_FOLLOW and tile_shown(choice, cfg):
+        return choice
+    if here in TILE_WORN:
+        return TILE_WORN[here]
+    return next((k for k, env in TILE_ENVS.items() if env == here and tile_shown(k, cfg)), TILE_DEFAULT)
 
 
 def mine(cfg: dict) -> list:
@@ -179,10 +183,16 @@ def mine_two(cfg: dict) -> bool:
     return cfg.get("calendar_mine_two") not in (False, None, "false", "False", 0, "0")
 
 
+@functools.lru_cache(maxsize=None)
+def _env_file(env: str) -> bool:
+    """Whether this copy has the environment's file (web/envs/<env>.js): asked once each."""
+    return os.path.exists(os.path.join(catalog.WEB, "envs", f"{env}.js"))
+
+
 def plus_locked(env: str, cfg: dict) -> bool:
     """Whether a scenery's environment is one this copy can't use: Plus's, in the base edition
     (or while the Debug tab pretends this is it), or one whose file it lacks."""
-    if env != "natural" and not os.path.exists(os.path.join(catalog.WEB, "envs", f"{env}.js")):
+    if env != "natural" and not _env_file(env):
         return True
     ships = edition_presets(debug_edition(cfg))
     return ships is not None and not any(p.environment == env and p.key in ships for p in presets.FOREST_PRESETS)
@@ -246,7 +256,8 @@ def page_look(cfg: dict, mood: dict) -> dict:
     `exact`, colours you picked (yours, a ready ramp), shown as picked on either page (exact_steps);
     `flipLight`, a ready ramp run the other way on a light page, its deep colour the busiest (as
     Review Heatmap's light mode: its ramps run pale to deep on a dark page);
-    `darker`, a dark page's busier days darker (busier)."""
+    `darker`, a dark page's busier days darker (busier); `smoothRadius`/`smoothGrow`, a style's
+    smooth corners (Round's, from its .json)."""
     here = mood.get("special") or "natural"
     choice = colours_choice(cfg)
     colours, exact, flip = None, False, False
@@ -261,9 +272,10 @@ def page_look(cfg: dict, mood: dict) -> dict:
     tile = tile_env(cfg, here)
     files = [f"envs/{tile}.js" for _ in [0] if tile not in ("flat", *SHAPES, here)
              and os.path.exists(os.path.join(catalog.WEB, "envs", f"{tile}.js"))]
-    return {"colours": colours, "exact": exact, "env": None, "tile": tile, "files": files,
+    corners = {k: v for k, v in TILE_SPECS.get(tile, {}).items() if k in ("smoothRadius", "smoothGrow")}
+    return {"colours": colours, "exact": exact, "tile": tile, "files": files,
             "flipLight": flip, "darker": busier(cfg) == "darker", "gaps": gaps(cfg, here),
-            "smooth": smooth(cfg, here), "gap": tile_gap(cfg, here)}
+            "smooth": smooth(cfg, here), "gap": tile_gap(cfg, here), **corners}
 
 
 def preview_look(cfg: dict, here_env: str) -> dict:
@@ -443,7 +455,6 @@ def faint_on(colours) -> list:
 
 # ---- the tiles' textures (calendar.js plainTile, and the sceneries' calendarTile) ----
 TILE = 9
-TILE_VARIANTS = 4
 
 
 def hash_str(s: str) -> int:
@@ -535,11 +546,6 @@ def tile_pixels(drawer: str, shade, v: int = 0) -> dict:
     return DRAWERS.get(drawer, _plain)([colour, tone], edge, v, TILE)
 
 
-def drawer_for(cfg: dict, here_env: str = "") -> str:
-    """Which DRAWERS key (or shape) draws the tiles for the choice in `cfg` on the scenery `here_env`."""
-    return tile_env(cfg, here_env)
-
-
 def out_of_season(cfg: dict) -> dict:
     """The changes that put a seasonal scenery's colours or tiles, chosen in its week, back to the
     defaults once the week is over (as the scenery itself goes): {} while there are none."""
@@ -550,7 +556,7 @@ def out_of_season(cfg: dict) -> dict:
         if spec is not None and spec.season and not presets.unlocked(spec, today(cfg)):
             change["calendar_colours"] = MATCH
     if cfg.get("calendar_tiles") in TILE_SEASONS and not tile_shown(cfg["calendar_tiles"], cfg):
-        change["calendar_tiles"] = TILE_DEFAULT
+        change["calendar_tiles"] = TILE_FOLLOW
     return change
 
 

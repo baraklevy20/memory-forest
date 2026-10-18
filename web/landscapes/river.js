@@ -8,7 +8,8 @@
  * carries the flecks, the glints and anything an environment floats on it.
  *
  * Depth `p` runs from the horizon (0) to the bottom edge (1); across, everything is a share
- * of the width. Environments that put things on the water use `center` and `halfWidth`. */
+ * of the width. Environments that put things on the water use `center(p, env)` and
+ * `halfWidth(p, W, env)`. */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
@@ -34,13 +35,12 @@ function chan(env, y, p) {
   const q = clamp(depth(g.yFlat, H), 0, 1.2), near = { cx: g.toX(flatCenter(q)), hw: flatHalf(q, W) * g.perW, p: q };
   return g.b >= 1 ? near : { cx: lerp(flat.cx, near.cx, g.b), hw: lerp(flat.hw, near.hw, g.b), p: lerp(flat.p, near.p, g.b) };
 }
-// the scene being drawn, for the environments that ask where the water is by depth alone
-// (`center`, `halfWidth`): up close they are answered as the camera sees it
-let drawing = null;
-const visiting = () => drawing && drawing.layout && drawing.layout.cam;
-const rowOf = p => drawing.H * (HORIZON + p * (1 - HORIZON));
-const center = p => visiting() ? chan(drawing, rowOf(p)).cx / drawing.W : flatCenter(p);
-const halfWidth = (p, W) => visiting() ? chan(drawing, rowOf(p)).hw / drawing.W : flatHalf(p, W);
+// where the water is by depth alone, for the environments (`center`, `halfWidth`, given the scene
+// being drawn): up close they are answered as the camera sees it
+const visiting = env => !!(env && env.layout && env.layout.cam);
+const rowOf = (env, p) => env.H * (HORIZON + p * (1 - HORIZON));
+const center = (p, env) => visiting(env) ? chan(env, rowOf(env, p)).cx / env.W : flatCenter(p);
+const halfWidth = (p, W, env) => visiting(env) ? chan(env, rowOf(env, p)).hw / env.W : flatHalf(p, W);
 // room kept either side of the channel for a tree, and on the left bank for the deer or
 // stag that grazes just to the right of its tree. They only graze in the front rows (at
 // most GRAZER_ROWS from the front, see visitors.js), so further back the bank is planted
@@ -74,7 +74,6 @@ AF.landscape('river', {
   // is narrower, and never below the ground an environment keeps (synthwave's grid is not ground);
   // the forest ends above them, so none of its trees should be in front of them
   prepare(env) {
-    drawing = env;
     env.bot = Math.min(env.bot || GROUND_BOTTOM, RIVER_BOTTOM);
     env.visitorY = env.H * Math.min(ANIMALS_Y, env.bot + ANIMALS_DROP);
   },
@@ -166,7 +165,6 @@ AF.landscape('river', {
 
   // flecks carried down toward you, and the sun or moon glinting where it stands over the water
   frame(g, env, t) {
-    drawing = env;  // (for the environment's frame after this one)
     const S = env.river; if (!S || !S.vis || env.theme.frozen || env.still) return;
     const { W, H, u } = env, hor = env.hor, fa = 1 - S.dim * 0.4, R = rng(71);
     for (let k = 0; k < FLECKS; k++) {

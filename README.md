@@ -85,7 +85,7 @@ Your study days, streaks and upcoming reviews, in your scenery's colours.
 Hover for details; click a day to open its cards.
 
 - **Views**: a rolling 10-month timeline or a full year.
-- **Reviews or time**: shade days by review count or study time.
+- **Reviews, time or pace**: shade days by review count, study time or seconds per answer.
 - **Per deck**: each deck has its own heatmap and streak.
 - **Fair streaks**: days with nothing due don't break your streak.
 - **Rest days**: choose a 5- or 6-day study week.

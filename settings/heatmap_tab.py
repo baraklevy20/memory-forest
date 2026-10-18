@@ -86,6 +86,7 @@ class HeatmapTab(Tab):
         self.record.setChecked(shows_record(cfg))
         self.streak_from = Choice(STREAK_FROM_OPTIONS, streak_from_start(cfg), False)
         self._streak_pick = self.streak_from.currentData()  # (what it goes back to once the reviews before show again)
+        self._streak_free = True  # (whether it is yours to choose just now: sync)
         # days off: counted from the day they are chosen (the dialog keeps that day as it finds it)
         self.streak_week = Choice(STREAK_WEEK_OPTIONS, streak_week(cfg), 7)
         self.week_was = (self.streak_week.currentData(), streak_week_since(cfg))
@@ -100,7 +101,7 @@ class HeatmapTab(Tab):
         layout.addRow(self.record)
         streak = self.start_form = form()
         streak.addRow("Your streak counts", with_hint(self.streak_week, STREAK_WEEK_NOTE))
-        streak.addRow("Count your streak from", self.streak_from)
+        streak.addRow("Your streak counts from", self.streak_from)
         streak.addRow(hint(START_NOTE))
         # (the groups' fields start on one line: one fixed width, which a NEW tag on any of them
         # grows for all, whats_new._tag_label)
@@ -117,7 +118,7 @@ class HeatmapTab(Tab):
         v.addWidget(self.colours_group)
         self.tiles_group = group("Style", self.look.tiles_box)
         v.addWidget(self.tiles_group)
-        self.layout_group = group("Calendar", layout)
+        self.layout_group = group("Layout", layout)
         v.addWidget(self.layout_group)
         v.addWidget(group("Streak", streak))
         v.addStretch(1)  # (in a taller window the groups keep together, the room left under them)
@@ -128,7 +129,7 @@ class HeatmapTab(Tab):
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"calendar": (self.layout_group.title, "Study heatmap"),
-                "streak_from_start": (self.streak_from, "Count your streak from"),
+                "streak_from_start": (self.streak_from, "Your streak counts from"),
                 "streak_week": (self.streak_week, "Your streak counts"),
                 "calendar_colours": (self.colours_group.title, "Heatmap colours"),
                 "calendar_tiles": (self.tiles_group.title, "Heatmap style")}
@@ -154,13 +155,16 @@ class HeatmapTab(Tab):
             label.setEnabled(on)
         # (a heatmap that leaves out the reviews before the start date counts the streak from it
         # too: shown as such while it can't be changed, and back to your own pick after)
-        record = self.record.isChecked()
+        # (with the heatmap shown nowhere the box is greyed, and the streak counts as your pick:
+        # payload._page_stats goes by the start date's record only where a heatmap shows)
+        record = self.record.isChecked() or not on
         if record and not self.streak_from.isEnabled():
             self.streak_from.set_quietly(self._streak_pick)
         elif not record and self.streak_from.isEnabled():
             self._streak_pick = self.streak_from.currentData()
             self.streak_from.set_quietly(True)
         self.streak_from.setEnabled(record)
+        self._streak_free = record
         label = self.start_form.labelForField(self.streak_from)
         if label is not None:
             label.setEnabled(record)
@@ -175,17 +179,18 @@ class HeatmapTab(Tab):
             "calendar_decks": self.calendar_decks.isChecked(),
             "calendar_record": self.record.isChecked(),
             # (your own pick kept while the start date decides it)
-            "streak_from_start": self.streak_from.currentData() if self.record.isChecked() else self._streak_pick,
+            "streak_from_start": self.streak_from.currentData() if self._streak_free else self._streak_pick,
             **self.week_values(),
             **self.look.values(),
         }
 
     def week_values(self) -> dict:
-        """The days a week your streak counts, and the day its days off count from: kept while it
-        stays under 7, today when it goes under, none at every day (so days off never reach back)."""
+        """The days a week your streak counts, and the day its days off count from: kept while the
+        count stays as it was, today when it changes, none at every day (so days off never reach
+        back: from 6 to 5, the old day would give the weeks before a second day off)."""
         week = self.streak_week.currentData()
         was, since = self.week_was
         if week not in STREAK_WEEKS or week == 7:
             return {"streak_week": 7, "streak_week_since": ""}
-        keep = since if was != 7 and since is not None else anki_today()
+        keep = since if week == was and since is not None else anki_today()
         return {"streak_week": week, "streak_week_since": keep.isoformat()}

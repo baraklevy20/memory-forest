@@ -289,7 +289,7 @@ class PayloadTests(unittest.TestCase):
                                   (cid, cid, did, mw.col.sched.today + 30))
             mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, ?, 3, 0)", (ms(days), cid))
             mw.col.db.con.execute("insert into notes (id, tags) values (?, '')", (cid,))
-        self.assertIn(payload.collection_loaded, hooks.collection_did_load)
+        self.assertIn(payload.collection_loaded, list(hooks.collection_did_load))
         for hook in hooks.collection_did_load:
             hook(mw.col)
         self.assertEqual([t["ago"] for t in payload._forest()["trees"]], [7, 5, 3])

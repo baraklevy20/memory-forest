@@ -125,7 +125,7 @@ CALENDAR_SHADES = ("reviews", "time", "median")
 def calendar_shade(cfg: dict | None = None) -> str:
     """Heatmap shading: review count, total time, or median seconds per answer (Pace)."""
     value = (cfg if cfg is not None else config()).get("calendar_shade", "reviews")
-    return "median" if value == "average" else value if value in CALENDAR_SHADES else "reviews"
+    return value if value in CALENDAR_SHADES else "reviews"
 
 
 def calendar_view(cfg: dict | None = None) -> str:

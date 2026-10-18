@@ -165,6 +165,8 @@
   box-shadow: none !important; cursor: pointer; color: var(--af-tip-soft) !important;
 }
 .af-news-acts button:first-child:not(:only-child) { color: var(--af-tip-accent) !important; text-decoration: underline; text-underline-offset: 2px; }
+/* (Chromium 77-86, Anki 2.1.45-2.1.49, has no text-underline-offset: the underline goes under the letters' descent instead) */
+@supports not (text-underline-offset: 2px) { .af-news-acts button:first-child:not(:only-child) { text-underline-position: under; } }
 .af-news-acts button:hover { color: var(--af-tip-fg) !important; }
 .af-news-acts button:focus { outline: 2px solid currentColor; outline-offset: 2px; }
 .af-news-acts button:focus:not(:focus-visible) { outline: none; }
@@ -174,7 +176,7 @@
 /* Centered under the forest; calendar.js sets the width (85% by default). */
 .af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
 /* the foot of the panel: the forest's journal, and a small key at the right (as GitHub's graph has it) */
-.af-cal-foot { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-top: 7px; }  /* (12px under the trophies' lane: calendar.js FOOT_GAP) */
+.af-cal-foot { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-top: 7px; }  /* (7px under the trophies' lane: calendar.js FOOT_GAP) */
 .af-cal-journal { font-style: italic; margin-right: 16px; flex: 1 1 auto; min-width: 0; }  /* (it wraps; the key never does) */
 .af-cal-journal .af-journal { margin: 0; }
 .af-cal-key { display: inline-flex; flex-wrap: nowrap; flex: none; white-space: nowrap; align-items: center; font-size: 11px; margin-left: auto; }
@@ -221,7 +223,6 @@
 .af-cal-grid > .af-cal-acts { position: absolute; top: -20px;  /* (ACTS_ROOM: calendar.js sets it again once the months' row is laid out) */ right: 0; height: 16px; padding-bottom: 4px; margin: 0; z-index: 1; }  /* (lifted over the months' row, in the gap above it: no label is ever under them; the padding keeps the pointer on the heatmap between them and the row) */
 .af-cal-grid > .af-cal-acts.af-acts-low { top: 0; padding-bottom: 0; }  /* (where the forest's caption reaches them: back on the row) */
 .af-cal-grid > .af-cal-acts .af-cal-chev { height: 16px; line-height: 13px; padding-bottom: 3px !important; }  /* (the glyphs on the words' line: centred in the box, they sat 2px low) */
-.af-cal-grid > .af-cal-acts .af-cal-today { height: 16px; line-height: 14px; }
 /* a month's label under them (only when they are back on the row) makes way while they show */
 .af-cal-months .af-under { transition: opacity 0.2s; }
 .af-cal:hover .af-cal-months .af-under, .af-cal:focus-within .af-cal-months .af-under { opacity: 0; }
@@ -242,18 +243,15 @@
 .af-cal-chev:focus:not(:focus-visible) { outline: none; }
 /* each a 24px target at least, however small it looks (WCAG 2.5.8) */
 .af-cal-chev::after { content: ''; position: absolute; top: -4px; bottom: -4px; left: 0; right: 0; }
-/* Today as a small outlined pill, as calendars do it (the arrows beside it stay plain) */
+/* the phone's Today as a small outlined pill, as calendars do it */
 .af-cal-today {
   height: 18px; margin-right: 6px !important; padding: 0 10px !important; font-size: 11px; line-height: 16px;
   border: 1px solid rgba(128, 128, 128, 0.5) !important; border-radius: 10px !important;
 }
-.af-cal-today[disabled] { display: none; }  /* (on today's page already: nothing to go back to) */
-/* on the desktop, a jump back to today after the arrows takes Today's place: » from the past, «
+/* on the desktop, a jump back to today after the arrows in place of the pill: » from the past, «
    from the days ahead; always there, the same width, so nothing comes or goes beside the arrows
    (dimmed on today's page); the phone keeps its Today pill (which scrolls to today) */
-.af-cal-grid > .af-cal-acts .af-cal-today { display: none; }
 .af-cal-now { font-size: 14px; }
-.af-cal-swiped .af-cal-now { display: none; }
 .af-cal-grid { position: relative; padding-top: 16px; padding-bottom: 0; }
 /* By year's earlier years (calendar.js past): one switch over the heatmap shows or hides them all
    ("Show 2 earlier years"), above the year in view, each a whole year with a line of words over it.

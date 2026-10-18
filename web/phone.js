@@ -147,11 +147,12 @@ function layout() {
   const zoom = isFull && mode === 'forest' ? 'always' : false;
   const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal, zoom, data.showForest, !!data.calendar, data.swipedK]), mine = ++layouts;
   if (key === drawn && root.afEnv) return Promise.resolve();
-  return AF.loadScripts(scenery(data.mood)).then(() => {
+  return AF.loadScripts(scenery(data.mood, !!data.calendar)).then(() => {
     if (mine !== layouts) return;
     drawn = key;
-    // a zoomed-in view stays as it is through the new drawing (full screen, a turn)
-    const zoomed = root.afVisits ? root.afVisits.state : null;
+    // a zoomed-in view stays as it is through the new drawing (a turn in full screen), where the
+    // new one zooms too
+    const zoomed = zoom === 'always' && root.afVisits ? root.afVisits.state : null;
     AF.mount(root, data, { now: true, zoom });
     placeTurns();
     if (zoomed && root.afVisits) root.afVisits.resume(zoomed);
@@ -164,9 +165,9 @@ let drawn = '', layouts = 0;
 /* Today's scenery: each environment, landscape and landmark is a file of its own in the
  * collection's media (the note names them), loaded the first time a scene needs it - the
  * one file the card loads holds everything else. */
-function scenery(mood) {
-  // (and the files the heatmap's look borrows from another scenery: its colours, its tiles)
-  const look = (note.calendar && note.calendar.look && note.calendar.look.files) || [];
+function scenery(mood, calendar) {
+  // (and, with the calendar shown, the files the heatmap's look borrows from another scenery: its tiles)
+  const look = (calendar && note.calendar && note.calendar.look && note.calendar.look.files) || [];
   return [['envs', mood.special], ['landscapes', mood.landscape], ['landmarks', mood.landmark]]
     .map(([kind, key]) => key && (note.parts || {})[`${kind}/${key}.js`])
     .concat(look.map(rel => (note.parts || {})[rel])).filter((f, i, all) => f && all.indexOf(f) === i);
@@ -185,13 +186,17 @@ fullCal.className = 'af-turn af-expand af-expand-cal';
 full.hidden = !document.fullscreenEnabled;
 fullCal.hidden = !document.fullscreenEnabled || !note.calendar;
 // (each mount draws the forest and the calendar afresh, the calendar a moment after: the icons
-// are put back on them whenever they are missing)
+// are put back on them whenever they are missing; watched on the panel's own children and the
+// calendar's, whose footer each drawing builds anew, not on the whole forest, whose tooltips and
+// layers come and go all the time)
+const turnsWatch = window.MutationObserver ? new window.MutationObserver(() => placeTurns()) : null;
 function placeTurns() {
-  const sc = root.querySelector('.af-scene'), foot = root.querySelector('.af-cal-foot');
+  const sc = root.querySelector('.af-scene'), cal = root.querySelector('.af-cal'), foot = root.querySelector('.af-cal-foot');
   if (sc && full.parentNode !== sc) sc.appendChild(full);
   if (foot && fullCal.parentNode !== foot) foot.insertBefore(fullCal, foot.firstChild);
+  if (cal && turnsWatch) turnsWatch.observe(cal, { childList: true });
 }
-if (window.MutationObserver) new window.MutationObserver(placeTurns).observe(root, { childList: true, subtree: true });
+if (turnsWatch) turnsWatch.observe(root, { childList: true });
 
 const EXPAND = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3h4v4M7 15H3v-4M15 3l-5 5M3 15l5-5"/></svg>';
 const CLOSE = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.5 4.5l9 9M13.5 4.5l-9 9"/></svg>';

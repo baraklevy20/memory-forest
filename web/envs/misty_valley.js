@@ -75,8 +75,9 @@ AF.env('misty_valley', {
 
   after(th, mood) {
     // by day and by night a richer sky behind the mist: a deeper top, a warmer (by night, a faintly
-    // lit) band low down, so the sun's rays and the peaks have more to stand against
-    if (mood.time === 'day' || mood.time === 'night') {
+    // lit) band low down, so the sun's rays and the peaks have more to stand against. Only with
+    // the sun or moon out: under an overcast, rain or storm sky there is nothing to light it
+    if ((mood.time === 'day' || mood.time === 'night') && th.orb && !th.deck) {
       const night = mood.time === 'night', n = th.sky.length;
       th.sky = th.sky.map((c, i) => i < 2 ? AF.u.mixHex(c, night ? '#02030c' : '#24448a', 0.2) : i >= n - 2 ? AF.u.mixHex(c, night ? '#3e4474' : '#ffe0b0', 0.22) : c);
     }

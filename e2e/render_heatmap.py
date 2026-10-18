@@ -12,8 +12,8 @@ HEATMAP_TODAY = dt.date(2026, 9, 19)
 
 
 def heatmap_calendar(view: str, years) -> dict:
-    """A study history from 2018: patchy years, a long streak from Jun 2024 to today, a mark,
-    the cards due ahead. Fixed, so a scene draws the same every run."""
+    """A study history from 2018: patchy years, a long streak from Jun 2024 to today, a pond, a
+    mark, the cards due ahead. Fixed, so a scene draws the same every run."""
     start = dt.date(2018, 3, 1)
     n = (HEATMAP_TODAY - start).days + 1
     days, time_ = [], []
@@ -25,7 +25,9 @@ def heatmap_calendar(view: str, years) -> dict:
         time_.append(reviews * (5 + i % 6) if reviews else 0)
     return {"view": view, "shadeBy": "reviews", "_open": years, "weekStart": 1, "start": start.isoformat(),
             "days": days, "time": time_, "due": [40] + [30 + i % 25 for i in range(1, 200)], "animals": [],
-            "breakDays": 7, "forestStart": None, "hiddenBefore": None, "streakFromStart": False,
+            # (the forest's own ponds, as payload sends them: on a deck's screen, the main forest's
+            # breaks, which can cover days this deck was studied on)
+            "ponds": [["2023-02-06", "2023-02-17"]], "forestStart": None, "hiddenBefore": None, "streakFromStart": False,
             "marks": [{"day": "2026-03-04", "icon": "sick", "name": ""}], "gone": [], "browse": False}
 
 

@@ -13,11 +13,6 @@ from .dialog import SettingsDialog
 _open: SettingsDialog | None = None
 
 
-def is_open() -> bool:
-    """Whether the dialog is up, so its live preview is not taken for a real change."""
-    return _open is not None and _open.isVisible()
-
-
 def _closed(dialog: SettingsDialog) -> None:
     global _open
     if _open is dialog:  # Restore defaults opens the next one before this one is gone

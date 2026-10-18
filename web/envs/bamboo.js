@@ -126,7 +126,9 @@ function backdrop(env, lg) {
   grove(env, lg, near, x => rd.near(x), 'g3', 2);
 }
 
-/* ---------- the water and its lanterns (as shipped) ---------- */
+/* ---------- the water and its lanterns ----------
+ * Rain-dark water: the reflection is reduced to three soft tones of the river's own
+ * colour, so the grove lies in it as a shadow and the lanterns' light is what shows. */
 function calmWater(env) {
   const L = env.water;
   if (!L || L.calmed) return;
@@ -149,6 +151,8 @@ function calmWater(env) {
   L.rf = cv;
 }
 
+/* one floating lantern on its raft, with a broken warm streak running down from it;
+ * `seen(x, y)` says where the water shows */
 function floatingLantern(g, x, y, lw, flick, reach, k, seen) {
   const lh = lw + 1;
   for (let j = 1; j < reach; j++) {
@@ -158,14 +162,15 @@ function floatingLantern(g, x, y, lw, flick, reach, k, seen) {
   }
   g.fillStyle = `rgba(255,200,120,${(0.12 * flick).toFixed(3)})`; g.fillRect(x - lw, y - lh - 2, lw * 3, lh * 2 + 2);
   g.fillStyle = `rgba(255,200,120,${(0.18 * flick).toFixed(3)})`; g.fillRect(x - 2, y - lh, lw + 4, lh + 2);
-  g.fillStyle = '#3a2a22'; g.fillRect(x - 1, y + 1, lw + 2, 1);
+  g.fillStyle = '#3a2a22'; g.fillRect(x - 1, y + 1, lw + 2, 1);            // the little raft
   g.fillStyle = LAMP; g.fillRect(x, y - lh + 1, lw, lh);
   if (lw < 3) return;
-  g.fillStyle = '#fff0c0'; g.fillRect(x + (lw >> 1) - (lw > 3 ? 1 : 0), y - lh + 2, lw > 3 ? 2 : 1, lh - 2);
+  g.fillStyle = '#fff0c0'; g.fillRect(x + (lw >> 1) - (lw > 3 ? 1 : 0), y - lh + 2, lw > 3 ? 2 : 1, lh - 2);  // the flame inside
   g.fillStyle = LAMP_D; g.fillRect(x, y, lw, 1);
-  g.fillStyle = '#4a3024'; g.fillRect(x, y - lh, lw, 1);
+  g.fillStyle = '#4a3024'; g.fillRect(x, y - lh, lw, 1);                  // its dark top
 }
 
+/* on a river, nine lanterns come down the channel, and one a tree stands in front of is hidden */
 function riverLanterns(g, env, t) {
   const S = env.river, land = AF.landOf(env); if (!S.vis) return;
   const { W, H, u, hor } = env, R = rng(505), tt = env.still ? 0 : t;
@@ -173,16 +178,19 @@ function riverLanterns(g, env, t) {
   const boats = [], gaps = [], lanes = [];
   for (let k = 0; k < 9; k++) { gaps.push(R()); lanes.push(R()); }
   for (let k = 0; k < 9; k++) {
+    // in loop mode a lantern floats down into the next one's place and takes on its lane (handover)
     const at = AF.u.handover(k, tt), lane = (AF.u.along(lanes, at) - 0.5) * 0.9;
     const q = ((at + AF.u.along(gaps, at) * 0.6) / 9 + (AF.LOOP ? 0 : tt * 0.012)) % 1;
     boats.push({ p: 0.06 + Math.pow(q, 1.2) * 0.94, lane, at });
   }
   boats.sort((a, b) => a.p - b.p);
   for (const { p, lane, at } of boats) {
+    // (in loop mode the ninth lantern's place wraps back to the first, so its bob and
+    // flicker carry on across the seam; the reflection's broken rows don't move along)
     const ph = AF.LOOP ? at % 9 : at;
     const y = Math.round(hor + p * (H - hor) + Math.sin(tt * AF.u.cyc(0.8) + ph) * 0.5), lw = Math.max(1, Math.round((0.8 + p * 3) * u));
-    const x = Math.round(W * land.center(p) + lane * W * land.halfWidth(p, W) - lw / 2);
-    if (!seen(x + (lw >> 1), y + 1)) continue;
+    const x = Math.round(W * land.center(p, env) + lane * W * land.halfWidth(p, W, env) - lw / 2);
+    if (!seen(x + (lw >> 1), y + 1)) continue;  // behind a tree, or off the water
     floatingLantern(g, x, y, lw, 0.8 + 0.2 * Math.sin(tt * AF.u.cyc(2.3) + ph * 1.7), Math.round((2 + p * 8) * u), AF.LOOP ? 0 : at, seen);
   }
 }
@@ -191,6 +199,7 @@ AF.env('bamboo', {
   fx: { init(st, { env }) { calmWater(env); } },
 
   theme(th) { Object.assign(th, { g0: mixHex(th.g0, '#5e8a48', 0.55), g1: mixHex(th.g1, '#3a6436', 0.55), grass: mixHex(th.grass, '#7aa85a', 0.5) }); },
+  /* rain here is soft and green, not grey: a jade mist, and the hills gone blue-green */
   after(th, mood, nightTime) {
     if (!th.rain) return;
     const dusk = mood.time === 'dusk';
@@ -201,10 +210,11 @@ AF.env('bamboo', {
     Object.assign(th, nightTime
       ? { far: '#30504a', near: '#28463c', haze: '#3a5a52', g0: '#2e4c34', g1: '#203826', grass: '#3e5e40', tint: '#14302a', tintAmt: 0.16 }
       : { far: dusk ? '#647470' : '#9cb8b6', near: dusk ? '#506656' : '#78a28e', haze: dusk ? '#909690' : '#c6d8d4', tint: '#3e5a48', tintAmt: 0.12 });  // (further is paler and bluer: atmospheric perspective)
+    // dark, still water, so the lanterns floating on it are the brightest thing in the scene
     th.water = nightTime ? '#142e30' : dusk ? '#23403c' : '#2a5048';
     th.clouds = { n: 5, top: nightTime ? '#2a4042' : '#c4d2c8', bot: nightTime ? '#1c3032' : '#9eb2a8', a: 235, y0: 0, dy: 0.12, speed: 0.8 };
     th.deck = { n: 3, top: nightTime ? '#20343a' : '#b0c2b6', bot: nightTime ? '#162828' : '#8ea49a', a: 245 };
-    th.rain = 170; th.splashes = 30;  // steady, not a downpour (as shipped)
+    th.rain = 170; th.splashes = 30;  // steady, not a downpour
   },
   prepare(env) {
     const night = env.mood.time === 'night';
@@ -217,12 +227,15 @@ AF.env('bamboo', {
   tree: {
     width: ({ h, t }) => t.stage >= 1 ? character(t, h).w : 0,
     body: c => (c.t.stage >= 1 ? clump(c) : null),
+    /* canes keep a lit side and a shaded side and pale rings at the joints, in whatever
+     * palette the pixel is in (its tones by the kind of culm) - so a cane that is being
+     * forgotten goes yellow too */
     pixel(col, { x, y, pal, c }) {
       const k = c.cane && c.cane[y * c.W + x];
       if (!k) return col;
       const T = CANE_TONES[c.caneShade || 0];
-      if (k === 3) return pal[T[2]];
-      if (k === 1 && c.cane[(y + 1) * c.W + x] === 3) return pal[T[4]];
+      if (k === 3) return pal[T[2]];                                   // a joint
+      if (k === 1 && c.cane[(y + 1) * c.W + x] === 3) return pal[T[4]];  // the sheen just above it
       return k === 1 ? pal[T[0]] : k === 4 ? pal[T[3]] : pal[T[1]];
     },
   },
@@ -240,22 +253,27 @@ AF.env('bamboo', {
     }
   },
 
+  /* a stone lantern, lit, beside a few of the nearer clumps */
   treeBase(env, g, p) {
     const t = p.it;
     if (t.stage < 2 || t.fromFront > 4 || t.seed % 6 !== 0) return;
     const x = Math.round(p.x + (t.seed % 2 ? 4 : -7)), y = Math.round(p.y), stone = '#8a9088', dark = '#5a605a';
     g.fillStyle = 'rgba(255,200,120,.16)'; g.fillRect(x - 2, y - 7, 7, 7);
-    px(g, dark, x, y - 1, 3, 1); px(g, stone, x + 1, y - 3, 1, 2);
-    px(g, stone, x, y - 5, 3, 2); px(g, LAMP, x + 1, y - 5, 1, 1);
-    px(g, dark, x - 1, y - 6, 5, 1); px(g, stone, x + 1, y - 7, 1, 1);
+    px(g, dark, x, y - 1, 3, 1); px(g, stone, x + 1, y - 3, 1, 2);          // foot and post
+    px(g, stone, x, y - 5, 3, 2); px(g, LAMP, x + 1, y - 5, 1, 1);          // the lit firebox
+    px(g, dark, x - 1, y - 6, 5, 1); px(g, stone, x + 1, y - 7, 1, 1);     // the cap
   },
 
+  /* the floating lanterns: a slow procession downstream, each with its light running
+   * down into the water beneath it. On a lake they cross in two lanes; on a river they
+   * come down the channel toward you, growing as they come. */
   frame(g, env, t) {
     if (!env.theme.frozen) {
       if (env.river) riverLanterns(g, env, t);
       else if (env.water) {
         const L = env.water, { W, u } = env, R = rng(505), n = 13, v = 0.4 * u;
         for (let k = 0; k < n; k++) {
+          // two lanes: small lanterns far out, bigger ones close to this bank
           const near = k % 2 === 0, lw = near ? Math.max(4, Math.round(3.6 * u)) : 3;
           const lane = near ? 0.55 + R() * 0.3 : 0.05 + R() * 0.25, y = Math.round(L.y0 + 2 + lane * Math.max(1, L.lh - 4));
           const x = Math.round(((k / n) * (W + 12) + R() * 10 + (AF.LOOP ? t * AF.u.drift(v * (near ? 1 : 0.7), W + 12) : t * v * (near ? 1 : 0.7))) % (W + 12)) - 6;

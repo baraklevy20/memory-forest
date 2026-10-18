@@ -186,10 +186,22 @@ mw = types.SimpleNamespace(
 )
 browser = Browser()
 tooltips: list = []
-hooks = types.SimpleNamespace(**{name: [] for name in (
+class _Hook(list):
+    """A hook as Anki's: remove() lets a callback that isn't there pass, and `in` isn't there
+    (Anki's hooks aren't iterable: `callback in hook` raises TypeError)."""
+
+    def remove(self, callback) -> None:
+        if list.__contains__(self, callback):
+            list.remove(self, callback)
+
+    def __contains__(self, callback):
+        raise TypeError(f"argument of type '{type(self).__name__}' is not iterable")
+
+
+hooks = types.SimpleNamespace(**{name: _Hook() for name in (
     "deck_browser_will_render_content", "overview_will_render_content", "reviewer_did_answer_card",
     "webview_did_receive_js_message", "webview_did_inject_style_into_page", "deck_browser_will_show_options_menu",
-    "sync_will_start", "sync_did_finish", "collection_did_load", "state_did_change")})
+    "sync_will_start", "sync_did_finish", "collection_did_load", "state_did_change", "theme_did_change")})
 
 
 def _install() -> None:

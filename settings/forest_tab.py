@@ -17,6 +17,7 @@ from aqt.qt import (
     QSpinBox,
     Qt,
     QVBoxLayout,
+    QWidget,
 )
 
 from ..events import DEFAULT_NATURE, NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
@@ -30,19 +31,15 @@ from ..state import (
     shows_on_deck_list,
     shows_on_finished,
 )
-from .palette import color
 from .scenery_picker import crisp
-from .widgets import Choice, Tab, form, group, hint
+from .widgets import Choice, Tab, form, group, hint, picture_button_style
 
 NATURE_ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nature")
 NATURE_ICON = 16  # points: the icons' own pixels, one a point
 NATURE_GAP = 8
-NATURE_STYLE = """
-QPushButton {{ border: 1px solid {line}; border-radius: 7px; padding: 6px 10px; font-size: 13px;
-              background: rgba(128, 128, 128, 0.10); }}
-QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
-QPushButton:checked {{ border: 2px solid {ring}; padding: 5px 9px; background: rgba(128, 128, 128, 0.16); font-weight: bold; }}
-"""
+# what "On finished decks too" covers: both, so it is never greyed out by the Heatmap tab's deck screens
+# (SETTINGS_GUIDELINES.md: one tab's control never changes another's)
+FINISHED_NOTE = "Covers the forest and the heatmap."
 # (one line: SETTINGS_GUIDELINES.md)
 PHONE_NOTE = 'Adds a "Memory Forest" deck with a card showing your forest and heatmap as you sync.'
 ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
@@ -70,7 +67,7 @@ class NatureChoice(Choice):
         b.setCheckable(True)
         b.setCursor(Qt.CursorShape.PointingHandCursor)
         b.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        b.setStyleSheet(NATURE_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS")))
+        b.setStyleSheet(picture_button_style())
         return b
 
 
@@ -87,9 +84,8 @@ def beside(first, *rest, top: bool = False) -> QHBoxLayout:
 
 
 class ForestTab(Tab):
-    def __init__(self, cfg: dict, on_phone, heatmap, phone_was: bool | None = None):
+    def __init__(self, cfg: dict, on_phone, phone_was: bool | None = None):
         super().__init__()
-        self.heatmap = heatmap  # (its deck screens: "On finished decks too" covers them too)
         self.on_phone = on_phone  # makes or takes away the phone's deck (actions.phone_switched)
         self.nature = NatureChoice(nature_level(cfg.get("nature")))
         self.nature_note = hint("")
@@ -123,7 +119,15 @@ class ForestTab(Tab):
         nv.addWidget(self.nature_note)
         where = form()
         where.addRow("Main screen", self.main_forest)
-        where.addRow("Deck screens", beside(self.deck_mode, self.finished, top=True))
+        finished = QWidget()  # (the box with its hint just under it, as heatmap_tab.with_hint has them)
+        fv = QVBoxLayout(finished)
+        fv.setContentsMargins(0, 0, 0, 0)
+        fv.setSpacing(4)
+        fv.addWidget(self.finished)
+        note = hint(FINISHED_NOTE)
+        note.setWordWrap(False)  # (one short line: wrapped, it took the box's width and broke in two)
+        fv.addWidget(note)
+        where.addRow("Deck screens", beside(self.deck_mode, finished, top=True))
         where.addRow("Forest width", self.max_width)
         motion = QVBoxLayout()
         animate = form()
@@ -150,7 +154,7 @@ class ForestTab(Tab):
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"nature": (self.nature_group.title, "Nature"), "main_forest": (self.main_forest, "Main screen"),
-                "deck_forest_mode": (self.deck_mode, "Deck screens"),
+                "deck_forest_mode": (self.deck_mode, "Deck screens"), "finished_decks": (self.finished, "On finished decks too"),
                 "max_width": (self.max_width, "Forest width"),
                 "animations": (self.animations, "Animate the forest"), "planting_tooltip": (self.planting, "The planting message"),
                 "phone": (self.phone, "Your forest on your phone")}
@@ -167,8 +171,6 @@ class ForestTab(Tab):
         level = self.nature.currentData()
         note = NATURE_NOTES.get(level, "")
         self.nature_note.setText(note if calm(level) else f"{note} {NATURE_SWITCH_NOTE}")
-        # (a finished deck's screen shows what the deck screens do, so only while they show something)
-        self.finished.setEnabled(self.deck_mode.currentData() != "off" or self.heatmap.calendar_decks.isChecked())
         self.fit()
 
     def fit(self) -> None:

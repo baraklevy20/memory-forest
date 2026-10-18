@@ -28,7 +28,8 @@ class StoreTests(unittest.TestCase):
     def test_anything_that_is_not_an_object_reads_as_empty(self):
         store.save_json(self.path, {})
         for junk in ("null", "[1, 2]", "not json at all", ""):
-            open(self.path, "w").write(junk)
+            with open(self.path, "w") as f:
+                f.write(junk)
             self.assertEqual(store.load_json(self.path), {})
 
     def test_a_failed_write_leaves_the_old_file_alone(self):

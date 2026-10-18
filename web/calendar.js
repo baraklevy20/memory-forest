@@ -12,9 +12,9 @@
  * Two views, each fitted to the room there is: Timeline (`timeline`: ten months with this
  * month most of the way along, paged back and on with ‹ ›; on the phone, the whole history swiped
  * along) and By year (`by_year`: January to December). payload.py sends data.calendar = { view,
- * start, days, due, time, shadeBy, look, animals, breakDays, browse, marks, forestStart, streakFromStart, weekStart }:
+ * start, days, due, time, shadeBy, look, animals, ponds, browse, marks, forestStart, streakFromStart, weekStart }:
  * the date of the first day counted, the reviews of each day from it to today, the cards due on
- * each day from today on, the day each animal came, the forest's own rule for ponds, whether a
+ * each day from today on, the day each animal came, the forest's own ponds, whether a
  * click opens a day, the days you pinned, the forest's start date (if any), whether the streak
  * restarts there, and the weekday the weeks start on. */
 (function () {
@@ -83,6 +83,8 @@ const PINE_PERCENT = 28;
 // the four shades split your days studied in the last year at these shares (fewest to most):
 // the most only your top tenth, so it marks your exceptional days rather than a whole busy season
 const SHADE_SPLITS = [0.4, 0.7, 0.9], SHADE_SPAN = 365;
+// (Pace's the other way round, its strongest shade the fastest: only your fastest tenth)
+const PACE_SPLITS = [0.1, 0.3, 0.6];
 // the days ahead by their cards due, on a log scale up to the busiest day in the next year (due
 // counts fall away steadily, so a quarter of the days each would light only the next weeks).
 // The days that sit back, faded this far into the page's colour, light or dark: the days ahead
@@ -95,11 +97,11 @@ const MONTHS_SHOWN = 10, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: ten month
 // the phone: the calendar is one long timeline swiped along (no buttons to page with), its pixels
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
-const LABEL_GAP = 6, TIP_GAP = 8;
+const LABEL_GAP = 6, TIP_GAP = 8;  // css px between two month labels, and between a day and its tooltip
 const SPOT_DIM = 0.72;  // the days a hover is not about: this far into the page (a key's shade, a month, a streak)
 const TIP_WAIT = 150;  // ms the first tooltip waits, the pointer just come onto the heatmap
 const SWIPE_PX = 40, SWIPE_QUIET = 250, SWIPE_AGAIN = 1.5;  // a trackpad's sideways swipe: css px to turn a page; ms still that ends it; how much faster than the last step a new swipe starts
-const DAYS_ROOM = 28, NOTE_ROOM = 44, SINCE_ROOM = 150;  // css px: room the weekdays need left of the forest; a streak's length, about  // css px between two month labels, and between a day and its tooltip
+const DAYS_ROOM = 28, NOTE_ROOM = 44, SINCE_ROOM = 150;  // css px: room the weekdays need left of the forest; a streak's length under its bracket, and its "Since" date beside it
 const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
 const TOUCH_PAD = 6, TAP_SLOP = 10;
@@ -148,7 +150,6 @@ function history(cal) {
   // before it, brings the animals from it on, and the ponds, the forest's, are only after it)
   const n = o => o > 0 ? cal.due[o] || 0 : o >= first ? cal.days[o - first] || 0 : 0;
   const fs = cal.forestStart ? (utc(cal.forestStart) - today) / DAY_MS : null;
-  const breakDays = cal.breakDays || 7;
   // the days with no review and nothing due (study_log.load_free_days): a streak passes over
   // them, neither broken nor growing
   const free = new Set();
@@ -158,14 +159,9 @@ function history(cal) {
   const daysOff = new Set((cal.daysOff || []).map(a => -a));
   daysOff.forEach(o => free.add(o));
   const runs = [], pond = new Set();
-  let run = null, gap = null;
+  let run = null;
   for (let o = first; o <= 0; o++) {
     if (n(o)) {
-      // a break of breakDays or more is a pond, as forest_data._breaks has it (counted from the
-      // forest's start)
-      const from = fs !== null ? Math.max(gap, fs) : gap;
-      if (!cal.ponds && gap !== null && o - from >= breakDays) for (let g = from; g < o; g++) pond.add(g);
-      gap = null;
       // (a streak runs on over the forest's start date, your real one, as the caption counts it;
       // unless the Decks tab says to count it from the start date too)
       // (its length is in days studied: `days`)
@@ -173,7 +169,6 @@ function history(cal) {
       if (run && !(cal.streakFromStart && fs !== null && run.from < fs && o >= fs)) { run.to = o; run.days++; } else runs.push(run = { from: o, to: o, days: 1 });
     } else {
       if (!free.has(o)) run = null;
-      if (gap === null && o > first) gap = o;
     }
   }
   // the forest's own ponds (payload: its trees' gaps), the days in them not studied: a deck's
@@ -227,25 +222,29 @@ function history(cal) {
   // (the first just under a minute at the least, 30 s: never 61 s, past days its tooltips call "a minute")
   for (let i = 1, t = byTime.splits; i < t.length; i++) t[i] = Math.max(i === 1 ? 30 : t[i - 1] + 60, snap(t[i]));
   const dueShade = v => Math.min(3, Math.floor(4 * Math.log(v) / Math.log(busiest + 1)));
-  // Daily seconds per answer: retain fractions so quick answers remain distinct.
-  const answerTime = o => {
-    return (cal.answerTime || [])[o - first] ?? null;
-  };
-  // (Pace, the one shading by answer time: its splits from your answers' medians, as the others')
+  // a day's median seconds per answer (payload: to a tenth, as its tooltip writes it), or null
+  // (kept to the tenth here too, so a shade never contradicts the tooltip: "Under 3.3 s")
+  const answerTime = o => { const v = (cal.answerTime || [])[o - first]; return v == null ? null : Math.round(v * 10) / 10; };
+  // (Pace, the one shading by answer time: its splits from your answers' medians, as the others',
+  // in tenths of a second; the fastest its strongest shade)
   const paces = [];
   for (let o = Math.max(first, 1 - SHADE_SPAN); o <= 0; o++) if (n(o) && answerTime(o) !== null) paces.push(answerTime(o));
   paces.sort((a, b) => a - b);
   const paceSplits = [0];
-  for (const share of SHADE_SPLITS) paceSplits.push(Math.max(paceSplits[paceSplits.length - 1] + 0.1,
+  for (const share of PACE_SPLITS) paceSplits.push(Math.max(paceSplits[paceSplits.length - 1] + 0.1,
     paces.length ? Math.ceil(paces[Math.floor(share * (paces.length - 1))] * 10) / 10 : paceSplits.length * 5));
-  const paceLevel = v => paceSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);
+  const paceLevel = v => paceSplits.reduce((at, sp, i) => v >= sp ? i : at, 0);  // 0 the fastest .. 3 the slowest
   paceLevel.splits = paceSplits;
-  const answerModes = { median: { available: paces.length > 0, level: paceLevel } };
-  const by = answerModes[cal.shadeBy]?.available ? cal.shadeBy : cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews';
-  const H = { by, answerTime, answerModes, timed: recentTime.length > 0 };
-  H.shade = o => answerModes[H.by] ? (answerTime(o) === null ? 0 : 3 - answerModes[H.by].level(answerTime(o)))
+  const paced = paces.length > 0;
+  const by = cal.shadeBy === 'median' && paced ? 'median' : cal.shadeBy === 'time' && recentTime.length ? 'time' : 'reviews';
+  const H = { by, answerTime, paced, timed: recentTime.length > 0 };
+  // (a day studied with no answer time yet, read before it: a typical day's shade, the one the
+  // median of your days takes, never Slow's; no swatch in the key lights it)
+  const typical = paced ? 3 - paceLevel(paces[Math.floor(paces.length / 2)]) : 0;
+  H.timeless = o => H.by === 'median' && answerTime(o) === null;
+  H.shade = o => H.by === 'median' ? (answerTime(o) === null ? typical : 3 - paceLevel(answerTime(o)))
     : H.by === 'time' ? byTime(time(o)) : byReviews(n(o));
-  H.splits = () => (answerModes[H.by]?.level || (H.by === 'time' ? byTime : byReviews)).splits;
+  H.splits = () => (H.by === 'median' ? paceLevel : H.by === 'time' ? byTime : byReviews).splits;
   // the animals, each on the day it came (none before the forest began)
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
@@ -518,19 +517,19 @@ function drawAnimal(g, spr, x0, y0, tint, outline) {
 /* the shades a view draws with: the scenery's for days studied, soil for days ahead: a day's
  * tile among them (or null for an empty one), the key's, and the hover's */
 function paletteOf(H, sp, paper) {
-  // the Heatmap tab's look (heatmap_look.page_look): another scenery's own colours (`env`, its file
-  // loaded with today's), and another's tiles (`tile`: "plain", or a scenery that draws its own);
-  // either one missing, the scenery's own
-  const L = H.look || {}, has = e => e === 'natural' || !!AF.ENVS[e];
-  const cs = L.env && has(L.env) ? Object.assign({}, sp, { mood: Object.assign({}, sp.mood, { special: L.env }) }) : sp;
+  // the Heatmap tab's look (heatmap_look.page_look): another scenery's tiles (`tile`: "plain", a
+  // style of its own, or a scenery that draws its own, its file loaded with today's); missing, the
+  // scenery's own
+  const L = H.look || {};
   const drawn = AF.heatmapTiles[L.tile], by = L.tile === 'plain' || drawn ? null : L.tile && AF.ENVS[L.tile] && AF.ENVS[L.tile].calendarTile ? L.tile : sp.mood.special;
-  const dark = paper.dark, S = shades(cs, paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
-  // (a shape with spaces and smooth corners whose style gives a `smoothRadius`, Round: each day a
+  const dark = paper.dark, S = shades(sp, paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
+  // (a shape with spaces and smooth corners whose style gives a `smoothRadius` (its .json, in the look), Round: each day a
   // tile of its own, as round as its shape cut in pixels but its edge drawn at the screen's
   // resolution, antialiased, in Flat's one colour: under sharpen with that radius)
-  const gapless = L.gaps === false, roundTile = !!(drawn && drawn.smoothRadius && L.smooth && !gapless);
-  const flat = AF.heatmapTiles.flat, look = roundTile ? { name: 'flat', draw: flat.draw }
+  const gapless = L.gaps === false, roundTile = !!(drawn && L.smoothRadius && L.smooth && !gapless);
+  const flat = { name: 'flat', draw: AF.heatmapTiles.flat.draw }, look = roundTile ? flat
     : drawn && drawn.draw ? { name: L.tile, draw: drawn.draw } : draw && { name: by, draw };  // (a scenery's own tiles, when it draws them)
+  const shapes = isShape(L.tile) && !roundTile ? L.tile : null;
   // the soil faded into the page, so the days ahead sit behind the days you studied
   const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
   // (on a light page in lightness only, keeping most of its colour: mixed with white, brown went grey-mauve)
@@ -553,12 +552,14 @@ function paletteOf(H, sp, paper) {
     return { pal: S.grass[lv], edge: S.edge[lv], soil: false, v, lv };
   };
   const tile = c => { const t = shadeOf(c); return t && tilesOf(t.pal, t.edge, look, gapless)[t.v]; };
-  // (the key: the four shades of a day studied; the soil and the empty days say what they are; the
-  // hover's ring in today's frame colours, which show on every shade, its inside clear, so the day
-  // and its mark keep their colours)
-  return { tile, shadeOf, gapless, roundTile, shapes: isShape(L.tile) && !roundTile ? L.tile : null, grass: S.grass, edge: S.edge,
+  // (the key: the four shades of a day studied, in Flat's one colour for a shape, as Contours'
+  // bands and Round's days are; the soil and the empty days say what they are; the hover's ring in
+  // today's frame colours, which show on every shade, its inside clear, so the day and its mark
+  // keep their colours)
+  return { tile, shadeOf, gapless, roundTile, shapes, grass: S.grass, edge: S.edge,
     // (for the shapes: the soil's four shades, the empty days' grey as one colour, and the page)
-    tills: [0, 1, 2, 3].map(lv => soil(lv)[0]), blank: blankOn(paper), page: paper.bg, key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], look)[0]), ring: rgb(dark ? P.today : P.todayOnLight), glow: 'transparent' };
+    tills: [0, 1, 2, 3].map(lv => soil(lv)[0]), blank: blankOn(paper), page: paper.bg,
+    key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], shapes ? flat : look)[0]), ring: rgb(dark ? P.today : P.todayOnLight) };
 }
 // a seedling of its own day's kind (pine or broadleaf, and its look)
 function seedlingOf(sp, ms) {
@@ -780,6 +781,20 @@ function sharpen(hi, lo, cells, H, dark, paper, s, F, R, G = 0) {
   }
   g.drawImage(lo, 0, 0);
 }
+/* how many low-res pixels across a view's weeks are: its last week's right edge; By year's every
+ * year as wide as the widest it pages to, so the earlier years shown above it line up with it (a
+ * leap year starting on its weeks' last day needs 54 weeks, the rest 53 at most) */
+function weeksWidth(H, win, lastCol) {
+  if (win.year == null) return 1 + (lastCol + 1) * CELL;
+  if (!H.yearCols) {
+    H.yearCols = 0;
+    for (let y = yearOf(H.today + H.first * DAY_MS); y <= yearOf(H.today + H.ahead * DAY_MS); y++) {
+      const jan1 = Date.UTC(y, 0, 1), days = (Date.UTC(y + 1, 0, 1) - jan1) / DAY_MS;
+      H.yearCols = Math.max(H.yearCols, Math.floor((dow(jan1) + days - 1) / 7) + 1);
+    }
+  }
+  return 1 + Math.max(H.yearCols, lastCol + 1) * CELL;
+}
 function paint(H, win, sp, paper) {
   const dark = paper.dark, band = TOP;
   // the days in weeks, their first day on top; Timeline starts each month in a column of its own (By
@@ -788,7 +803,7 @@ function paint(H, win, sp, paper) {
   const xOf = c => 1 + c.col * CELL, yOf = c => band + c.row * CELL + 1;
   const at = new Map();  // (each day by its column and row, for the pointer)
   for (const c of cells) { c.x = xOf(c); c.y = yOf(c); at.set(c.col * ROWS + c.row, c); }
-  const W = xOf(cells[cells.length - 1]) + CELL, Hh = band + ROWS * CELL + BRACKET;
+  const W = weeksWidth(H, win, cells[cells.length - 1].col), Hh = band + ROWS * CELL + BRACKET;
   const [cv, g] = layer(W, Hh);
   // the animals (and the forest's first seedling) on a layer of their own over it, shown while the
   // pointer is on the heatmap (forest.css): the forest's milestones, which the forest shows already
@@ -904,15 +919,15 @@ function paint(H, win, sp, paper) {
       ag.drawImage(s, c.x + Math.floor((TILE - s.width) / 2), c.y + Math.floor((TILE - s.height) / 2));
     }
   }
-  const radius = pal.roundTile ? AF.heatmapTiles[H.look.tile].smoothRadius : SMOOTH_R;  // (smooth: each tile's corners)
-  const out = { cv, above, W, Hh, cells, at, pane, joined, brackets, band, marks, ring: pal.ring, glow: pal.glow, key: pal.key, smooth, radius };
+  const radius = pal.roundTile ? H.look.smoothRadius : SMOOTH_R;  // (smooth: each tile's corners)
+  const out = { cv, above, W, Hh, cells, at, pane, joined, brackets, band, marks, ring: pal.ring, key: pal.key, smooth, radius };
   if (smooth) {
     // (shown on a canvas of its own at the screen's resolution, drawn again when the scale changes)
     const [hi] = layer(W, Hh);
     hi.dataset.pixels = W;  // (the heatmap's width in its own pixels, for e2e/phone_check)
     let drawnAt = 0;
     const F = pal.gapless ? CELL : TILE_FACE;  // (each tile's face: no gap of its own when the days have none)
-    const grow = pal.roundTile && !pal.gapless ? AF.heatmapTiles[H.look.tile].smoothGrow || 0 : 0;
+    const grow = pal.roundTile && !pal.gapless ? H.look.smoothGrow || 0 : 0;
     out.cv = hi; out.sharpen = s => { if (s !== drawnAt) { drawnAt = s; sharpen(hi, cv, cells, H, dark, paper, s, F, radius, grow); } };
     out.sharpen(dpr());
   }
@@ -924,14 +939,9 @@ function paint(H, win, sp, paper) {
 const widthOf = view => (view === 'by_year' ? 53 : 54) * CELL + 1;
 const dpr = () => window.devicePixelRatio || 1;
 const sharpK = () => Math.min(1, SHARP / dpr());
-/* the scale `W` low-res pixels fill `width` css pixels at: all the width, By year its year and
- * Timeline ten months (countFor), smoothed where that leaves no whole device pixel (lay, sharpK) */
-const scaleFor = (width, W) => width / W;
-/* Timeline shows ten months; fewer, down to MONTHS_MIN, where ten would be too small
- * to stay crisp. */
+// Timeline's months: ten, fewer (down to MONTHS_MIN) only where ten would be too small to stay crisp
 function countFor(view, width) {
   if (view !== 'timeline' || !width) return MONTHS_SHOWN;
-  // Fewer months only where ten would be too small to stay crisp.
   if (width / widthOf(view) >= sharpK()) return MONTHS_SHOWN;
   return Math.max(MONTHS_MIN, Math.floor(MONTHS_SHOWN * width / (widthOf(view) * sharpK())));
 }
@@ -956,13 +966,13 @@ function footHeight(root, H) {
   foot.style.visibility = 'hidden';
   const j = el('af-cal-journal'); j.appendChild(journal.cloneNode(true)); foot.appendChild(j);
   // (the choice shows with two or more ways to shade: Reviews, Time with study time kept, Pace)
-  const ways = ['Reviews'].concat(H.timed ? ['Time'] : [], H.answerModes.median.available ? ['Pace'] : []);
+  const ways = ['Reviews'].concat(H.timed ? ['Time'] : [], H.paced ? ['Pace'] : []);
   if (ways.length >= 2) {
     const by = el('af-cal-by af-cal-shade');
     ways.forEach(w => { const b = document.createElement('button'); b.type = 'button'; b.textContent = w; by.appendChild(b); });
     foot.appendChild(by);
   }
-  const key = el('af-cal-key'), ends = H.answerModes[H.by] ? ['Slow', 'Fast'] : ['Less', 'More'];
+  const key = el('af-cal-key'), ends = H.by === 'median' ? ['Slow', 'Fast'] : ['Less', 'More'];
   const word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
   [word(ends[0])].concat([0, 1, 2, 3].map(() => el('af-cal-swatch', 'canvas')), [word(ends[1])]).forEach(e => key.appendChild(e));
   foot.appendChild(key);
@@ -981,11 +991,11 @@ AF.calendarHeight = function (cal, width, root) {
   if (width > 0) {
     weekStart = cal.weekStart == null ? 1 : cal.weekStart;
     const H = cal.afHistory = history(cal);  // (the whole model: kept for the draw that follows, AF.calendar, which takes it once)
-    const cols = columns(H, windowOf(H, view, 0, null, countFor(view, width)));
-    W = 1 + cols[cols.length - 1][2] * CELL + CELL;
+    const win = windowOf(H, view, 0, null, countFor(view, width)), cols = columns(H, win);
+    W = weeksWidth(H, win, cols[cols.length - 1][2]);
     foot = footHeight(root, H);
   }
-  const k = width > 0 ? scaleFor(width, W) : 1;
+  const k = width > 0 ? width / W : 1;  // (all the width: By year its year, Timeline its months, countFor)
   // (By year's earlier years take no room at first: never shown when drawn, and their switch sits in
   // the band over the months, as the controls on hover do, so both views start at the same height)
   return Math.round(monthsRoom(k) + (TOP + ROWS * CELL + BRACKET) * k + FOOT_GAP + foot);  // (rounded as the page rounds the drawn height)
@@ -1018,18 +1028,18 @@ AF.calendar = function (root, data, env) {
       + (H.current && win.to >= 0 && win.from <= 0 ? `, a ${num(H.current.days)}-day streak` : '');
   };
 
-  // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ ›,
-  // with Today before them only once paged away, so they stay where they are as it comes and
-  // goes) and the key, the last two shown on hover (forest.css)
+  // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ › and
+  // », back to today, after them; on the phone a Today pill alone, once scrolled away) and the key,
+  // the last two shown on hover (forest.css)
   box.innerHTML = '<div class="af-cal-grid"><div class="af-cal-months"></div><div class="af-cal-days"></div><div class="af-cal-hover" hidden></div><div class="af-cal-notes"></div><div class="af-cal-past"></div></div>'
     + '<div class="af-cal-foot"><span class="af-cal-journal"></span><span class="af-cal-acts">'
-    + '<button type="button" class="af-cal-chev af-cal-today" data-go="0">Today</button>'
-    + '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
-    + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
-    + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>'
+    + (swiped ? '<button type="button" class="af-cal-chev af-cal-today" data-go="0">Today</button>'
+      : '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
+      + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
+      + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>')
     + '</span><span class="af-cal-by af-cal-view" role="radiogroup" aria-label="View">'
-    + '<button type="button" role="radio" data-view="timeline" title="A year, with this month most of the way along">Timeline</button>'
-    + '<button type="button" role="radio" data-view="by_year" title="January to December, and your streak\'s earlier years under it">By year</button>'
+    + '<button type="button" role="radio" data-view="timeline" title="Ten months, with this month most of the way along">Timeline</button>'
+    + '<button type="button" role="radio" data-view="by_year" title="January to December, and your streak\'s earlier years above it">By year</button>'
     + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
@@ -1046,8 +1056,7 @@ AF.calendar = function (root, data, env) {
   if (journal) box.querySelector('.af-cal-journal').appendChild(journal);
   box.style.minHeight = '';  // (the room kept for it while the forest was building)
   const grid = box.querySelector('.af-cal-grid'), btn = go => box.querySelector(`[data-go="${go}"]`);
-  // (on the phone only Today, which brings today back into view)
-  if (swiped) { btn(-1).hidden = btn(1).hidden = true; grid.classList.add('af-cal-scroll'); }
+  if (swiped) grid.classList.add('af-cal-scroll');
   box.querySelectorAll('[data-go]').forEach(b => {
     b.addEventListener('click', () => (swiped ? toToday(true) : go(b.dataset.go)));
     // (a click must leave no focus behind, which would keep them in view after the pointer leaves)
@@ -1062,9 +1071,9 @@ AF.calendar = function (root, data, env) {
   // time kept, as the add-on has it, no choice). Not on the months' row: with the view and the
   // arrows there, that corner read as one crowded line of words (2026-10-15)
   const byBox = box.querySelector('.af-cal-shade');
-  // No toggle with only one available mode.
+  // (no choice with only one way to shade)
   byBox.querySelector('[data-by="time"]').hidden = !H.timed;
-  byBox.querySelector('[data-by="median"]').hidden = !H.answerModes.median.available;
+  byBox.querySelector('[data-by="median"]').hidden = !H.paced;
   byBox.hidden = swiped || [...byBox.querySelectorAll('button')].filter(b => !b.hidden).length < 2;
   // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
@@ -1126,10 +1135,10 @@ AF.calendar = function (root, data, env) {
   });
   const months = box.querySelector('.af-cal-months'), days = box.querySelector('.af-cal-days');
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
-  let drawn = null, k = 2, last, pointed = null;  // (pointed: the year the pointer is on, the one in view or an earlier one shown)  // (last: the day the pointer was last on)
+  // (last: the day the pointer was last on; pointed: the year it is on, the one in view or an earlier one shown)
+  let drawn = null, k = 2, last, pointed = null;
   let paper = pageOf(box);
   box.classList.toggle('af-cal-on-light', !paper.dark);  // (a choice's chosen half: a white pill on a light page)
-  // the day under the pointer: lit with the shade that stands out most and ringed in it, lifted a little
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
   // dimmed into the page, on a layer over the weeks
   let spotCv = null;
@@ -1176,6 +1185,7 @@ AF.calendar = function (root, data, env) {
     grid.insertBefore(cv, notes);
     spotCv = cv;
   };
+  // the day under the pointer: ringed in today's frame colour, which shows on every shade
   const ring = c => {
     spot(null);
     if (!c && editing && drawn) c = drawn.cells.find(x => x.o === editing.o) || null;  // (a day being marked keeps it)
@@ -1186,7 +1196,7 @@ AF.calendar = function (root, data, env) {
     hover.style.top = (cv.offsetTop + (c.y - 1) * k) + 'px';
     hover.style.width = hover.style.height = (TILE + 2) * k + 'px';  // (round the whole tile, as today's frame)
     hover.style.borderRadius = drawn.smooth ? (drawn.radius + 1) * k + 'px' : '';
-    hover.style.borderColor = drawn.ring; hover.style.background = drawn.glow;
+    hover.style.borderColor = drawn.ring;
   };
   // the first tooltip after the pointer comes onto the heatmap waits a moment, so crossing it on the
   // way elsewhere flashes none; from one day to the next after that, at once (a tap and the
@@ -1235,8 +1245,6 @@ AF.calendar = function (root, data, env) {
     const focused = box.contains(document.activeElement) ? document.activeElement : null;
     if (!swiped) drawn.cv.tabIndex = 0;  // (the days a tab stop: the keyboard's way along them, below)
     if (hadCv) drawn.cv.focus();
-    const may = can(win);
-    btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
     // what the tiles mean, read off the tiles themselves
     // (Smooth: the face alone, filled, as the days are drawn: no gap row and column for a rim)
     const swatch = cv => {
@@ -1250,7 +1258,7 @@ AF.calendar = function (root, data, env) {
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
-    const ends = H.answerModes[H.by] ? ['Slow', 'Fast'] : ['Less', 'More'];
+    const ends = H.by === 'median' ? ['Slow', 'Fast'] : ['Less', 'More'];
     [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
     viewBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.view === view;
@@ -1261,14 +1269,18 @@ AF.calendar = function (root, data, env) {
       const on = b.dataset.by === H.by;
       b.classList.toggle('af-on', on); b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
     });
-    // (on today's page already: the pill goes, the jump stays where it is, dimmed; it points the
-    // way today lies, » from the past, « from the days ahead)
-    box.querySelectorAll('[data-go="0"]').forEach(b => { b.disabled = !swiped && (view === 'by_year' ? win.year === yearOf(H.today) : page === 0); });
-    const ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : page > 0;
-    box.querySelector('.af-cal-now').textContent = ahead ? '«' : '»';
-    // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
-    // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
-    if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
+    if (!swiped) {
+      const may = can(win);
+      btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
+      // (on today's page already, the jump stays where it is, dimmed; it points the way today
+      // lies, » from the past, « from the days ahead)
+      const now = btn(0), ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : page > 0;
+      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : page === 0;
+      now.textContent = ahead ? '«' : '»';
+      // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
+      // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
+      if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
+    }
     lay();
   }
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
@@ -1302,6 +1314,19 @@ AF.calendar = function (root, data, env) {
   grid.insertBefore(pastBox, grid.firstChild);  // (before the year in view's weeks: they follow it)
   // (false, true: back to the streak worth seeing, or 'all': back to the first review)
   let yearsShown = false, pasts = [], near = null;
+  // each earlier year's weeks as last painted, painted again only when what they show changes: the
+  // shade's choice, the page's colour, a mark in that year (the look and the days come with a new
+  // calendar; a new scale only sharpens them again, layPast)
+  const painted = new Map();
+  const paintPast = (y, win) => {
+    const key = [H.by, paper.dark, paper.bg.join(), [...H.marked].filter(([o]) => o >= win.from && o <= win.to)
+      .map(([o, m]) => `${o}:${m.icon}:${m.name}`).join()].join('|');
+    const was = painted.get(y);
+    if (was && was.key === key) return was.d;
+    const d = Object.assign(paint(H, win, sp, paper), { win });
+    painted.set(y, { key, d });
+    return d;
+  };
   function past() {
     pastBox.textContent = '';
     pasts = [];
@@ -1365,7 +1390,7 @@ AF.calendar = function (root, data, env) {
     near.addEventListener('click', () => set(false));
     grid.appendChild(near);
     for (const y of years.slice().reverse()) {
-      const win = windowOf(H, 'by_year', 0, y), d = Object.assign(paint(H, win, sp, paper), { win }), el = document.createElement('div');
+      const win = windowOf(H, 'by_year', 0, y), d = paintPast(y, win), el = document.createElement('div');
       const [first, second] = studiedLines(win.from, win.to);
       el.className = 'af-cal-past-year';
       el.innerHTML = `<div class="af-cal-past-head"><b>${y}</b><span>${esc(first)}${second ? ` \u00b7 ${esc(second)}` : ''}</span></div>`;
@@ -1405,10 +1430,12 @@ AF.calendar = function (root, data, env) {
       grid.classList.add(drawn.win.from < was ? 'af-cal-from-left' : 'af-cal-from-right');
     }
   }
-  // fitted to the room there is (scaleFor), smaller than its pixels if need be: no scrolling
+  // fitted to the room there is, all its width (By year its year, Timeline its months, countFor),
+  // smaller than its pixels if need be: no scrolling, smoothed where that leaves no whole device
+  // pixel (sharpK)
   function lay() {
     const d = drawn;
-    k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : scaleFor(grid.clientWidth || d.W * 2, d.W);
+    k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : (grid.clientWidth || d.W * 2) / d.W;
     // (the room over the year in view's weeks for its months, under the earlier years if any; and,
     // with them shown, for the controls over the months too)
     grid.style.paddingTop = '0px';
@@ -1469,7 +1496,7 @@ AF.calendar = function (root, data, env) {
       const edge = acts.offsetLeft - LABEL_GAP;
       for (const s of months.children) s.classList.toggle('af-under', low && s.offsetLeft + s.offsetWidth > edge);
     }
-    // Each streak's length, including the current one, centred under its bracket.
+    // each streak's length, the current one's too, centred under its bracket
     notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - NOTE_H / 2 + 'px';
     notes.innerHTML = d.brackets.filter(b => (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4)).map(b => {
       const since = b.live && b.cut && !box.classList.contains('af-cal-years-open') && (b.x1 - b.x0) * k >= SINCE_ROOM + NOTE_ROOM
@@ -1616,7 +1643,7 @@ AF.calendar = function (root, data, env) {
   // "8–12 min", "Under 3 min", "154+ reviews"
   const shadeLine = lv => {
     const s = H.splits(), by = H.by === 'time';
-    if (H.answerModes[H.by]) {
+    if (H.by === 'median') {
       lv = 3 - lv;
       // ("Under 3.2 s per answer", "3.2–4.1 s per answer", "4.1+ s per answer": as the other keys' lines)
       const t = v => v.toFixed(1);
@@ -1645,7 +1672,7 @@ AF.calendar = function (root, data, env) {
     const r = sw.getBoundingClientRect(), b0 = box.getBoundingClientRect();
     tip.style.left = Math.max(0, Math.min(box.clientWidth - tip.offsetWidth, r.left - b0.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
     tip.style.top = (r.top - b0.top - tip.offsetHeight - TIP_GAP) + 'px';  // (above the key, at the heatmap's foot)
-    spot(c => c.o <= 0 && c.n > 0 && H.shade(c.o) === lv, lv);  // (and its days stand out)
+    spot(c => c.o <= 0 && c.n > 0 && !H.timeless(c.o) && H.shade(c.o) === lv, lv);  // (and its days stand out)
   });
   keyEl.addEventListener('mouseleave', unpoint);
   // a streak's bracket, pointed at: its first and last days, and its days lit
@@ -1685,7 +1712,7 @@ AF.calendar = function (root, data, env) {
       : c.o > H.ahead ? 'Too far ahead to count'
       : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
       : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
-      : c.n && H.answerModes[H.by] && H.answerTime(c.o) !== null ? `Median ${H.answerTime(c.o).toFixed(1)} s per answer, ${cards(c.n, 'review')}${c.o === 0 && H.dueToday ? `, ${num(H.dueToday)} still due` : ''}`
+      : c.n && H.by === 'median' && H.answerTime(c.o) !== null ? `Median ${H.answerTime(c.o).toFixed(1)} s per answer, ${cards(c.n, 'review')}${c.o === 0 && H.dueToday ? `, ${num(H.dueToday)} still due` : ''}`
       : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
       : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')

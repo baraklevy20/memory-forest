@@ -24,6 +24,7 @@ def pill() -> QLabel:
 # put on a tab (setTabButton) and cut the name short ("He... NEW"), on either side or as an icon
 TAB_ROOM = "\u2002"  # (en spaces after the name, as wide as the pill)
 TAB_GAP = 6  # px between the name and the pill
+PILL_GAP = 8  # points between a control and the pill after it, in a row made for the pill
 
 
 def tab_text(name: str, pill_width: int, space_width: int) -> str:
@@ -126,6 +127,7 @@ def tag(root: QWidget, widget: QWidget) -> bool:
             stretch = box.stretch(i)
             box.removeWidget(widget)
             row = QHBoxLayout()
+            row.setSpacing(PILL_GAP)  # (its own: a column's, a field and its hint's 4, put it against the text)
             # a group of controls (it has a layout) or a widget that asks for room keeps the column's width
             wide = widget.layout() is not None or widget.sizePolicy().horizontalPolicy() in (
                 QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)

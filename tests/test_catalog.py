@@ -28,7 +28,8 @@ class RegistryFileTests(unittest.TestCase):
         self.assertEqual(keys - files, exempt or set(), f"{kind}: a .json with no .js to draw it")
         self.assertEqual(files - keys, set(), f"{kind}: a .js with no .json to name it")
         for name in files:
-            src = open(os.path.join(self.WEB, kind, name + ".js"), encoding="utf-8").read()
+            with open(os.path.join(self.WEB, kind, name + ".js"), encoding="utf-8") as f:
+                src = f.read()
             self.assertIn(f"{register}('{name}'", src, f"{kind}/{name}.js should register {name!r}")
 
     def test_every_environment_names_its_own_file(self):

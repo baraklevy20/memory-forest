@@ -12,6 +12,7 @@ from aqt.qt import (
     QFormLayout,
     QFrame,
     QGroupBox,
+    QGuiApplication,
     QHBoxLayout,
     QIcon,
     QLabel,
@@ -31,6 +32,27 @@ from aqt.qt import (
 )
 
 from .palette import ERROR, HINT, LINK, chevron, color, radius, readable
+
+# a choice drawn as a picture and a word (Nature's levels, the heatmap's colours and styles): the
+# chosen one ringed as a focused field is in Anki, and in bold where `bold`
+PICTURE_BUTTON_STYLE = """
+QPushButton {{ border: 1px solid {line}; border-radius: 7px; padding: 6px 10px; font-size: 13px;
+              background: rgba(128, 128, 128, 0.10); }}
+QPushButton:hover {{ background: rgba(128, 128, 128, 0.20); }}
+QPushButton:checked {{ border: 2px solid {ring}; padding: 5px 9px; background: rgba(128, 128, 128, 0.16);{weight} }}
+"""
+
+
+def picture_button_style(bold: bool = True) -> str:
+    return PICTURE_BUTTON_STYLE.format(line=color("BORDER_SUBTLE"), ring=color("BORDER_FOCUS"),
+                                       weight=" font-weight: bold;" if bold else "")
+
+
+def pixel_ratio() -> float:
+    """The main screen's device pixels a point."""
+    screen = QGuiApplication.primaryScreen()
+    return screen.devicePixelRatio() if screen else 1.0
+
 
 # room inside a group's frame, and between its title and the frame (the title is a label
 # of its own, because native styles such as macOS's set it flush on the frame)

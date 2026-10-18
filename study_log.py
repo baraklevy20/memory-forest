@@ -94,6 +94,12 @@ def load_rows(db, day_cutoff: int, dids: list | None = None,
                 {d: ms // 1000 for d, ms in day_time.items()})
 
 
+def undone(db, newest: int) -> bool:
+    """Whether `newest`, the newest review read last time, is gone (an undo), though one may have
+    come since."""
+    return bool(newest) and not db.scalar("select exists (select 1 from revlog where id = ?)", newest)
+
+
 class ReviewLog:
     """The review log's totals for one choice of decks and dates - each card's first and
     last review, and each day's count of reviews and the time they took - kept between redraws. Read whole the first
@@ -117,17 +123,13 @@ class ReviewLog:
         _filters' condition on the review log, `since_ms` when the forest begins."""
         key = (day_cutoff, only, since_ms)
         newest = db.scalar("select max(id) from revlog") or 0
-        if key != self.key or newest < self.newest or self._undone(db):
+        if key != self.key or newest < self.newest or undone(db, self.newest):
             self._read_all(db, day_cutoff, only, since_ms, newest)
             self.key = key
         elif newest > self.newest:
             self._add(db, day_cutoff, only, since_ms, newest)
         self.newest = newest
         return self.first_last, self.day_reviews, self.day_time
-
-    def _undone(self, db) -> bool:
-        """Whether the newest review read last time is gone (an undo), though one came since."""
-        return bool(self.newest) and not db.scalar("select exists (select 1 from revlog where id = ?)", self.newest)
 
     def _read_all(self, db, day_cutoff: int, only: str, since_ms: int, newest: int) -> None:
         # up to `newest` only: a review made meanwhile is added next time, not counted twice.
@@ -317,7 +319,8 @@ class AnswerTimes:
     """load_day_answer_time's days for one choice of decks, kept between redraws: read whole the
     first time, and after that only the days the reviews added since fall on (a day's median
     needs all its answers, so those days are read again whole). Read whole again when the day or
-    the choice changes, or the newest review is gone (an undo)."""
+    the choice changes, the cards do (`cards`: payload._cards_changed, as a card moved to another
+    deck takes its answers with it), or the newest review is gone (an undo)."""
 
     def __init__(self):
         self.key = None
@@ -325,11 +328,10 @@ class AnswerTimes:
         self.days: dict = {}
 
     def read(self, db, day_cutoff: int, dids: list | None, excluded: Iterable | None = None,
-             skip: Iterable | None = None) -> dict:
-        key = (day_cutoff, tuple(dids or ()), frozenset(excluded or ()), frozenset(skip or ()))
+             skip: Iterable | None = None, cards=None) -> dict:
+        key = (day_cutoff, tuple(dids or ()), frozenset(excluded or ()), frozenset(skip or ()), cards)
         newest = db.scalar("select max(id) from revlog") or 0
-        undone = bool(self.newest) and not db.scalar("select exists (select 1 from revlog where id = ?)", self.newest)
-        if key != self.key or newest < self.newest or undone:
+        if key != self.key or newest < self.newest or undone(db, self.newest):
             self.days = load_day_answer_time(db, day_cutoff, dids, excluded, skip)
             self.key = key
         elif newest > self.newest:
@@ -463,7 +465,6 @@ def day_answer_times(db, day_cutoff: int, offset: int) -> dict:
         f"and ease > 0 and type in {STUDY_TYPES}", start, end):
         times.setdefault(cid, []).append(elapsed)
     return {cid: median(values) for cid, values in times.items()}
-
 
 
 def day_card_totals(db, day_cutoff: int, offset: int, mode: str) -> dict:

@@ -57,7 +57,7 @@ def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, 
         cutoff = day_cutoff(mw.col)
         values = (study_log.day_answer_times(mw.col.db, cutoff, offset) if answer_mode == "median"
                   else study_log.day_card_totals(mw.col.db, cutoff, offset, answer_mode))
-        title = {"reviews": "Attempts", "time": "Total time", "median": "Answer time"}[answer_mode]
+        title = {"reviews": "Reviews", "time": "Total time", "median": "Answer time"}[answer_mode]
         label = f"{title} ({study_log.day_date(-offset, cutoff).isoformat()})"
     _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did, values, label, answer_mode)
 

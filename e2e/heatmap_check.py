@@ -21,7 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, HERE)
-from phone_check import CHROME, phone_changed
+from phone_check import CHROME, forest_page, phone_changed
 
 import catalog
 
@@ -37,15 +37,13 @@ def calendar() -> dict:
     n = YEARS * 366
     days = [0 if (i % 11 == 3 and i < n - 200) else 15 + (i * 37) % 200 for i in range(n)]
     return {"view": "by_year", "weekStart": 1, "start": (today - dt.timedelta(days=n - 1)).isoformat(), "days": days,
-            "due": [40] + [max(0, 200 - 2 * i) for i in range(1, 120)], "animals": [], "breakDays": 7, "browse": False,
+            "due": [40] + [max(0, 200 - 2 * i) for i in range(1, 120)], "animals": [], "browse": False,
             "answerTime": [1 + i % 12 if count else None for i, count in enumerate(days)],
             "time": [], "shadeBy": "reviews", "marks": [], "width": 85}
 
 
 def page(show_forest=False, deep=False) -> str:
-    raw = open(os.path.join(ROOT, "dev", "payload.js"), encoding="utf-8").read()
-    data = json.loads(raw.split("=", 1)[1].strip().rstrip(";"))
-    data = dict(data, calendar=calendar(), showForest=show_forest, inAnki=True, maxWidth=820, animations=False)
+    data = dict(forest_page(), calendar=calendar(), showForest=show_forest, inAnki=True, maxWidth=820, animations=False)
     behind = []
     if deep:
         import fake_forest
@@ -62,7 +60,8 @@ def page(show_forest=False, deep=False) -> str:
         tree = data["trees"][-1]
         today = dt.date.fromisoformat(tree["date"]) + dt.timedelta(days=tree["ago"])
         data["calendar"]["start"] = (today - dt.timedelta(days=len(data["calendar"]["days"]) - 1)).isoformat()
-    css = open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8").read()
+    with open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8") as f:
+        css = f.read()
     tags = "".join(f'<script src="file://{os.path.join(catalog.WEB, s)}"></script>' for s in catalog.SCRIPTS)
     return f"""<!doctype html><meta charset="utf-8"><style>body {{ margin: 0; padding: 20px; background: #2c2c2c; color: #ddd }}
 {css}</style><div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}

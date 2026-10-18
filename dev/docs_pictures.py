@@ -129,7 +129,7 @@ def mood_of(key: str) -> dict:
 
 def calendar(mood: dict, marks: list, tiles: str | None = None, view: str = "timeline") -> dict:
     look = HL.page_look({"calendar_tiles": tiles} if tiles else {}, mood)
-    return dict(REAL_HISTORY or history(), view=view, weekStart=1, shadeBy="reviews", animals=[], breakDays=7, browse=False,
+    return dict(REAL_HISTORY or history(), view=view, weekStart=1, shadeBy="reviews", animals=[], browse=False,
                 marks=marks, free=[], daysOff=[], streakFromStart=False, look=look)
 
 

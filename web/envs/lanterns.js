@@ -5,9 +5,11 @@
  * A warm plum night with paper lanterns drifting up: a river of them rising from the red
  * moon bridge on the left third towards a big full moon on the right third, more scattered
  * all over the sky, and more floating on the lake, each laying a streak of light on the
- * water. A garland of chochin sags across the top left. By day paper lanterns still rise
- * towards a pale moon. The bridge is drawn larger than the shared moon_bridge landmark,
- * with a third lamp on its apex (moon_bridge_lanterns, below), swapped in by `prepare`.
+ * water. A garland of chochin sags across the top left. By day unlit paper lanterns rise
+ * along the same path and slip behind the sun where they meet it; rain, fog and snow grey
+ * the night sky as they do any other. The bridge is drawn larger than the shared
+ * moon_bridge landmark, with a third lamp on its apex (moon_bridge_lanterns, below), swapped
+ * in by `prepare`.
  * Yellow stays reserved for forgetting. */
 (function () {
 'use strict';
@@ -16,7 +18,7 @@ const { hex, mix, rgb, rng, layer, B4 } = AF.u;
 const H6 = a => a.map(hex);
 const bayer = (x, y) => B4[(y & 3) * 4 + (x & 3)];
 
-const CFG = {"riverSpread": 1.4, "river": 12, "scatter": 24, "lean": 0.45, "water": 8, "drift": 0.5, "dayShare": 0.6, "moon": {"own": true, "x": 0.76, "y": 0.15, "r": 9, "minR": 6, "halo": 9}, "bridge": "moon_bridge_lanterns", "garland": {"spans": [[-0.02, 0.46, 1, -1, 13]], "every": 12}, "eave": null, "boat": null};
+const CFG = {"riverSpread": 1.4, "river": 12, "scatter": 24, "lean": 0.45, "water": 8, "drift": 0.5, "dayShare": 0.6, "moon": {"x": 0.76, "y": 0.15, "r": 9, "minR": 6, "halo": 9}, "bridge": "moon_bridge_lanterns", "garland": {"spans": [[-0.02, 0.46, 1, -1, 13]], "every": 12}};
 
 const ROUNDS = [
   H6(['#1a0c1e', '#3a1634', '#5a2244', '#7a3450', '#a44a5a']),
@@ -32,11 +34,15 @@ const GLOW = hex('#f58a6e'), GLOW_HI = hex('#ffb48a');
 
 const isLit = mood => mood.time === 'night' || mood.time === 'dusk';
 const wetOf = w => w === 'rain' || w === 'storm';
+// the engine's pull of a night sky towards each weather (theme.js). Our own night sky replaces
+// the mixed one, so the weather goes back on top, or rain would fall through a clear plum sky
+const NIGHT_WEATHER = { cloudy: ['#1a2030', 0.6], rain: ['#10151c', 0.5], storm: ['#10151c', 0.65], fog: ['#3a4458', 0.55],
+  snow: ['#26314a', 0.45], deep_winter: ['#1e2432', 0.65], after_rain: ['#b8bcc8', 0.18] };
 
 /* where the top of the forest is: the sky lanterns live above it, where they can be seen */
 const lineOf = env => env.lnLine != null ? env.lnLine : (env.lnLine = Math.round(AF.treeLine(env)));
 
-/* ---------- the moon (CFG.moon.own): a full festival moon on the right third ----------
+/* ---------- the moon (CFG.moon): a full festival moon on the right third ----------
  * Painted into the sky, so the lake mirrors it like everything else. Lifted with the tree
  * line, so a big forest never covers it. */
 const MOONS = {
@@ -49,7 +55,7 @@ const CRATERS = [[0.2, 0.42, 0.11], [-0.52, 0.28, 0.08]];
 function moonAt(env) {
   if (env.lnMoon !== undefined) return env.lnMoon;
   const M = CFG.moon, th = env.theme;
-  if (!M.own || !th.lnMoon) return (env.lnMoon = null);
+  if (!th.lnMoon) return (env.lnMoon = null);
   const { W, H, u } = env, line = lineOf(env), gap = 3 * u, top = 3 * u;
   const r = Math.round(Math.max(M.minR * u, Math.min(M.r * u, (line - top - gap) / 2)));
   const y = Math.round(Math.max(r + top, Math.min(H * M.y, line - r - gap)));
@@ -96,12 +102,17 @@ function paintMoon(env, g) {
   }
 }
 
-/* the moon the lanterns hide behind: our own, or the engine's orb */
+/* the moon the lanterns rise towards: our own, or the engine's orb */
 function moonDisc(env) {
   const m = moonAt(env);
   if (m) return m;
   const o = env.theme.orb;
   return o && o.kind === 'moon' ? { x: env.W * o.x, y: env.H * o.y, r: o.r * env.u } : null;
+}
+/* the disc the lanterns hide behind: the moon, or by day the sun, so none is drawn across it */
+function discOf(env) {
+  const m = moonDisc(env), o = env.theme.orb;
+  return m || (o ? { x: env.W * o.x, y: env.H * o.y, r: o.r * env.u } : null);
 }
 
 /* ---------- the lanterns, in the sky and on the water, placed once per forest ---------- */
@@ -153,7 +164,7 @@ function at(env, l, t) {
     x = W * l.x + Math.sin(t * AF.u.cyc(0.2) + l.f * 9) * 2 * u; y = y0 - k * span;
   }
   if (y <= 2 || y >= hor) return null;
-  const m = moonDisc(env);
+  const m = discOf(env);
   if (m && Math.hypot(x - m.x, y - m.y) < m.r + 4) return null;
   return { x: Math.round(x), y: Math.round(y) };
 }
@@ -234,73 +245,6 @@ function garlandImg(env, lit) {
   return cv;
 }
 
-/* ---------- the eave (CFG.eave): the edge of a tea house roof over the top-left ----------
- * You are sitting under it: a dark curved eave with its rafter ends, and red chochin hung
- * along it on cords of different lengths. */
-function eave(env) {
-  if (env.lnEave) return env.lnEave;
-  const { W, H, u } = env, E = CFG.eave, lit = env.theme.lanternNight;
-  const [cv, g] = layer(W, H);
-  const C = lit ? H6(['#120810', '#24121e', '#3a1e2c', '#5a2e38']) : H6(['#2a1a1c', '#44282a', '#5e3a36', '#7e5244']);
-  const end = Math.round(W * E.reach), depth = E.depth * u;
-  // the lower edge: lowest at the left edge, rising gently and turning up at the tip
-  const edge = x => { const q = x / end; return depth * (1 - 0.35 * q) - Math.pow(Math.max(0, q - 0.82) / 0.18, 2) * depth * 0.45; };
-  for (let x = 0; x <= end; x++) {
-    const e = Math.round(edge(x));
-    for (let y = 0; y <= e; y++) {
-      const fromEdge = e - y;
-      g.fillStyle = rgb(fromEdge === 0 ? C[3] : fromEdge === 1 ? C[2] : fromEdge < 3 * u ? C[1] : C[0]);
-      g.fillRect(x, y, 1, 1);
-    }
-    // rafter ends poking below the edge, regularly spaced
-    if (x % Math.round(4 * u) === 0 && x < end - 3 * u) { g.fillStyle = rgb(C[1]); g.fillRect(x, e + 1, Math.max(1, Math.round(u)), Math.max(1, Math.round(1.5 * u))); }
-  }
-  // the lit underside catches the lanterns' light
-  if (lit) for (let x = 0; x <= end; x++) { const e = Math.round(edge(x)); if ((x & 1) === 0) { g.fillStyle = 'rgba(240,120,90,.35)'; g.fillRect(x, e, 1, 1); } }
-  const lamps = E.lamps.map(([fx, drop]) => {
-    const x = Math.round(end * fx), y0 = Math.round(edge(x)) + 1, d = Math.round(drop * u);
-    g.fillStyle = rgb(C[0]); g.fillRect(x, y0, 1, d);
-    return { x, y: y0 + d, big: true };
-  });
-  return (env.lnEave = { img: cv, lamps });
-}
-
-/* ---------- the boat (CFG.boat): a small boat on the lake, a lantern on its pole ---------- */
-function boat(g, env, t, lit) {
-  const L = env.water; if (!L) return;
-  const { W, u } = env, B = CFG.boat;
-  const x = Math.round(W * B.x), y = Math.round(L.y0 + B.y * L.lh), bob = Math.round(Math.sin(t * AF.u.cyc(0.7)) * 0.6);
-  const hull = lit ? '#1e0e18' : '#4a2a26', hullL = lit ? '#3a1c26' : '#6e4232', fig = lit ? '#140a12' : '#2e1c24';
-  const len = Math.round(16 * u);
-  // its shadow / reflection on the water
-  g.fillStyle = lit ? 'rgba(10,4,12,.35)' : 'rgba(40,30,50,.25)'; g.fillRect(x + 1, y + 3, len - 2, 1);
-  // hull: a shallow crescent, both ends lifted
-  for (let i = 0; i < len; i++) {
-    const q = i / (len - 1), lift = Math.round(Math.pow(Math.abs(q - 0.5) * 2, 3) * 2);
-    g.fillStyle = hull; g.fillRect(x + i, y - lift + bob, 1, 3 - (lift > 1 ? 1 : 0));
-    g.fillStyle = hullL; g.fillRect(x + i, y - lift + bob, 1, 1);
-  }
-  // at night its lantern lays a coral line along the gunwale near the stern
-  if (lit) { g.fillStyle = '#c8604e'; g.fillRect(x + Math.round(len * 0.5), y + bob, len - Math.round(len * 0.5) - 1, 1); }
-  // a figure sitting near the stern, and one at the bow with a hand out over the water
-  const fx = x + Math.round(len * 0.62), by = y + bob;
-  const rim = lit ? '#e07a66' : '#e8dcd0';
-  g.fillStyle = fig; g.fillRect(fx, by - 4, 2, 4); g.fillRect(fx, by - 6, 2, 2);
-  g.fillStyle = rim; g.fillRect(fx + 1, by - 6, 1, 1); g.fillRect(fx + 1, by - 4, 1, 2);
-  const fx2 = x + Math.round(len * 0.25);
-  g.fillStyle = fig; g.fillRect(fx2, by - 3, 2, 3); g.fillRect(fx2, by - 5, 2, 2); g.fillRect(fx2 - 1, by - 2, 1, 1);
-  g.fillStyle = rim; g.fillRect(fx2 + 1, by - 5, 1, 1);
-  // the pole and its lantern at the stern
-  const px = x + len - 2;
-  g.fillStyle = fig; g.fillRect(px, by - 9, 1, 9); g.fillRect(px - 2, by - 9, 2, 1);
-  chochin(g, px - 3, by - 8, lit, false);
-  // its light in the water below
-  if (lit) {
-    g.fillStyle = 'rgba(255,190,110,.45)'; g.fillRect(px - 3, y + 4, 1, 2); g.fillRect(px - 3, y + 7, 1, 1);
-    g.fillStyle = 'rgba(255,150,90,.2)'; g.fillRect(px - 4, y + 6, 3, 1);
-  }
-}
-
 AF.env('lanterns', {
 
   look: (mood, night) => night ? AF.TIMES.plum_night : null,
@@ -320,16 +264,17 @@ AF.env('lanterns', {
       Object.assign(th, { g0: '#2e1a30', g1: '#1c1020', grass: '#44263e', far: '#2e1c3c', near: '#241430', haze: '#4a2a4c',
         tint: '#1d1530', tintAmt: 0.12, water: '#2e1f40', rim: null });
       th.sky = ['#0a081e', '#170f2f', '#2e1846', '#44204e', '#57305b', '#6d395e'];  // (a deeper top, a faint glow low down: a richer sky to frame the lanterns)
-      if (CFG.moon.own) {
-        // a full festival moon on the right third, painted by this environment; the engine's
-        // orb only keeps the glitter on the water under it (gone where the weather hides it)
-        const hidden = wetOf(w) || w === 'deep_winter' || !th.orb;
-        th.lnMoon = !hidden;
-        th.orb = hidden ? null : { kind: 'moon', x: CFG.moon.x, y: CFG.moon.y, r: 0.01, c: '#ffffff', halo: 0, full: true };
-      } else if (th.orb && th.orb.kind === 'moon') {
-        // the shipped moon, a little larger and warmer, kept on the right third
-        Object.assign(th.orb, { x: CFG.moon.x, r: CFG.moon.r, halo: CFG.moon.halo, glow: '#8a4a66' });
+      const wx = NIGHT_WEATHER[w];
+      if (wx) {
+        const grey = (c, k) => AF.u.mixHex(c, wx[0], k);
+        th.sky = th.sky.map(c => grey(c, wx[1]));
+        if (w !== 'after_rain') { th.far = grey(th.far, 0.4); th.near = grey(th.near, 0.4); th.haze = grey(th.haze, 0.5); }
       }
+      // a full festival moon on the right third, painted by this environment; the engine's
+      // orb only keeps the glitter on the water under it (gone where the weather hides it)
+      const hidden = wetOf(w) || w === 'deep_winter' || !th.orb;
+      th.lnMoon = !hidden;
+      th.orb = hidden ? null : { kind: 'moon', x: CFG.moon.x, y: CFG.moon.y, r: 0.01, c: '#ffffff', halo: 0, full: true };
     }
     th.lanternNight = night;
   },
@@ -349,7 +294,7 @@ AF.env('lanterns', {
   },
 
   // the full moon goes into the sky itself, so the lake reflects it
-  sky(env, sg) { if (CFG.moon.own) paintMoon(env, sg); },
+  sky(env, sg) { paintMoon(env, sg); },
 
   fx: {
     init(st, { env }) {
@@ -366,20 +311,14 @@ AF.env('lanterns', {
         if (p) paintLantern(g, p.x, p.y, sizeAt(p.y, env), lit);
       }
     },
-    /* the framing over everything: the garland or the eave */
+    /* the framing over everything: the garland */
     front(g, env, t, st, where) {
       if (where !== 'sky') return;
-      const lit = env.theme.lanternNight;
-      if (CFG.garland) g.drawImage(garlandImg(env, lit), 0, 0);
-      if (CFG.eave) {
-        const E = eave(env);
-        g.drawImage(E.img, 0, 0);
-        for (const l of E.lamps) chochin(g, l.x, l.y, lit, l.big);
-      }
+      if (CFG.garland) g.drawImage(garlandImg(env, env.theme.lanternNight), 0, 0);
     },
   },
 
-  /* on the lake: each sky lantern's streak of light, the floating lanterns and the boat */
+  /* on the lake: each sky lantern's streak of light, and the floating lanterns */
   frame(g, env, t) {
     const L = env.water;
     if (!L) return;
@@ -407,7 +346,6 @@ AF.env('lanterns', {
       if (!lit) { g.fillStyle = '#ffc890'; g.fillRect(x + 1, y + 1 + bob, 1, 1); }
       g.fillStyle = '#b8432c'; g.fillRect(x, y - 1 + bob, 3, 1);
     }
-    if (CFG.boat) boat(g, env, still ? 0 : t, lit);
   },
 });
 })();
@@ -419,14 +357,14 @@ AF.env('lanterns', {
 const AF = window.AnkiForest;
 const { hex, mix, layer } = AF.u;
 
-const B = {"scale": 1.4, "apex": true, "people": false, "from": 0.15, "span": 0.08};
+const B = {"scale": 1.4, "apex": true, "from": 0.15, "span": 0.08};
 const LACQUER = hex('#d8402e'), LACQUER_D = hex('#8a2420'), RAIL = hex('#2a1a18'), LAMP = hex('#ffd27a');
 const onWater = env => env.mood.landscape === 'lake';
 const radius = u => Math.max(12, Math.round(19 * B.scale * u));
 
 function build(env) {
   const th = env.theme, u = env.u, R0 = radius(u), thick = Math.max(2, Math.round(2.5 * B.scale * u));
-  const rail = Math.max(2, Math.round(3 * B.scale * u)), top = B.people ? 8 : 4, W = R0 * 2 + 3, H = R0 + rail + top, cx = W / 2, cy = H;
+  const rail = Math.max(2, Math.round(3 * B.scale * u)), top = 4, W = R0 * 2 + 3, H = R0 + rail + top, cx = W / 2, cy = H;
   const [cv, g] = layer(W, H), img = g.createImageData(W, H), d = img.data;
   const night = th.tint ? hex(th.tint) : null, dim = c => (night ? mix(c, night, th.tintAmt * 0.45) : c);
   const lit = env.mood.time === 'night' || env.mood.time === 'dusk';
@@ -444,25 +382,6 @@ function build(env) {
   const angles = B.apex ? [0.2, Math.PI / 2, Math.PI - 0.2] : [0.2, Math.PI - 0.2];
   const lamps = angles.map(a => ({ x: Math.round(cx - Math.cos(a) * R0), y: Math.round(cy - Math.sin(a) * R0) - rail - 2 }));
   for (const l of lamps) for (let y = 0; y < 3; y++) for (let x = -1; x <= 1; x++) put(l.x + x, l.y + y, y === 0 ? dim(RAIL) : lit ? LAMP : dim(hex('#e8d8b0')));
-  // two people on the deck, a little past the apex, one holding a lantern out. At night
-  // they are dark shapes with a coral rim from the lanterns overhead; by day, yukata
-  if (B.people) {
-    const deckY = a => Math.round(cy - Math.sin(a) * R0) - 1;
-    const FIG = lit ? [[hex('#1a0c16'), hex('#e07a66')], [hex('#1a0c16'), hex('#e07a66')]] : [[hex('#34406e'), hex('#5a6aa0')], [hex('#e8dcd0'), hex('#fff6ee')]];
-    [[Math.PI / 2 + 0.26, 7], [Math.PI / 2 + 0.5, 6]].forEach(([a, h], i) => {
-      const x = Math.round(cx - Math.cos(a) * R0), y = deckY(a), [c, rim] = FIG[i];
-      for (let k = 0; k < h - 2; k++) { put(x, y - k, c); put(x + 1, y - k, c); }
-      put(x, y - h + 1, c); put(x + 1, y - h + 1, c); put(x, y - h + 2, c); put(x + 1, y - h + 2, c);
-      put(x, y - h + 1, rim); put(x + 1, y - h + 1, rim); put(x + 1, y - h + 3, rim);  // hair / shoulder catching the light
-    });
-    const hx = Math.round(cx - Math.cos(Math.PI / 2 + 0.26) * R0) - 1, hy = deckY(Math.PI / 2 + 0.26) - 4, arm = lit ? hex('#1a0c16') : hex('#34406e');
-    put(hx, hy, arm); put(hx - 1, hy - 1, arm);
-    put(hx - 2, hy - 1, LACQUER_D); put(hx - 3, hy - 1, LACQUER_D);
-    put(hx - 2, hy, lit ? hex('#fff0b8') : hex('#fff4e2')); put(hx - 3, hy, lit ? hex('#ffd67a') : hex('#f4e2c4'));
-    put(hx - 2, hy + 1, lit ? hex('#ffd67a') : hex('#f2b088')); put(hx - 3, hy + 1, lit ? hex('#ffce6e') : hex('#f2b088'));
-    put(hx - 2, hy + 2, lit ? hex('#ec783a') : LACQUER); put(hx - 3, hy + 2, lit ? hex('#ec783a') : LACQUER);
-    if (lit) lamps.push({ x: hx - 2, y: hy - 1, small: true });
-  }
   g.putImageData(img, 0, 0);
   const [rv, rg] = layer(W, H), wc = hex(th.water || '#3a4a6a');
   rg.drawImage(cv, 0, 0);
@@ -472,8 +391,8 @@ function build(env) {
   return { img: cv, refl: rv, W, H, lamps, lit };
 }
 
-function glow(g, x, y, u, t, small) {
-  const a = 0.2 + 0.05 * Math.sin(t * AF.u.cyc(2) + x), r = small ? 1 : Math.max(2, Math.round(2 * u));
+function glow(g, x, y, u, t) {
+  const a = 0.2 + 0.05 * Math.sin(t * AF.u.cyc(2) + x), r = Math.max(2, Math.round(2 * u));
   g.fillStyle = `rgba(255,210,122,${a})`; g.fillRect(x - r, y - 1, 2 * r + 1, r + 3);
   g.fillStyle = `rgba(255,210,122,${a * 0.6})`; g.fillRect(x - r - 1, y, 2 * r + 3, r + 1); g.fillRect(x - 1, y - r, 3, 2 * r + 3);
 }
@@ -494,7 +413,7 @@ AF.landmark('moon_bridge_lanterns', {
     const b = env.moonBridge; if (!b) return;
     const u = env.u, L = env.water;
     if (b.fixed) {
-      if (b.lit) for (const l of b.lamps) glow(g, b.fixed.x + l.x, b.fixed.y + l.y, u, t, l.small);
+      if (b.lit) for (const l of b.lamps) glow(g, b.fixed.x + l.x, b.fixed.y + l.y, u, t);
       return;
     }
     if (!L) return;
@@ -507,8 +426,8 @@ AF.landmark('moon_bridge_lanterns', {
     g.globalAlpha = 1;
     g.drawImage(b.img, b.x, top);
     if (b.lit) for (const l of b.lamps) {
-      glow(g, b.x + l.x, top + l.y, u, t, l.small);
-      if (!l.small) { g.fillStyle = 'rgba(255,210,122,.35)'; g.fillRect(b.x + l.x, L.y0 + (b.H - l.y) - 2, 1, 2); }
+      glow(g, b.x + l.x, top + l.y, u, t);
+      g.fillStyle = 'rgba(255,210,122,.35)'; g.fillRect(b.x + l.x, L.y0 + (b.H - l.y) - 2, 1, 2);
     }
   },
 });

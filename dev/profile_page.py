@@ -42,7 +42,7 @@ def calendar(f: dict, n: int, view: str) -> dict:
     return {"view": view, "weekStart": 1, "start": (dt.date.today() - dt.timedelta(days=n - 1)).isoformat(),
             "days": days, "due": [60] + [max(0, 250 - 8 * i) for i in range(1, CAL_AHEAD)],
             "animals": milestones.animal_days(f["visitors"], f["trees"], reviews, 0, True),
-            "breakDays": forest_data.BREAK_DAYS, "forestStart": None, "streakFromStart": False, "marks": [], "browse": False}
+            "forestStart": None, "streakFromStart": False, "marks": [], "browse": False}
 
 
 def page(preset: str, n: int, overrides: dict | None = None) -> str:

@@ -28,7 +28,7 @@ def shipped_envs() -> list:
 class ChoiceTests(unittest.TestCase):
     def test_the_defaults_are_today_s_heatmap(self):
         look = HL.page_look({}, GOLDEN)
-        self.assertEqual((look["colours"], look["env"], look["tile"], look["files"]), (None, None, "flat", []))
+        self.assertEqual((look["colours"], look["tile"], look["files"]), (None, "flat", []))
         self.assertFalse(look["exact"])
         self.assertTrue(look["smooth"] and look["gaps"])  # (Flat's own: smooth corners, spaces)
 
@@ -36,8 +36,8 @@ class ChoiceTests(unittest.TestCase):
         # (another scenery's colours, "scenery:aurora", were cut: the scenery's own instead)
         for bad in ("nonsense", "ready:purple", "scenery:aurora", 7, None, ["x"]):
             self.assertEqual(HL.colours_choice({"calendar_colours": bad}), HL.MATCH)
-        for gone in ("chalk", "plain", "smooth"):  # (Plain and Smooth were cut: Flat)
-            self.assertEqual(HL.tiles_choice({"calendar_tiles": gone}), "flat")
+        for bad in ("chalk", 7, None):  # (a style it doesn't have: the scenery's own)
+            self.assertEqual(HL.tiles_choice({"calendar_tiles": bad}), HL.TILE_FOLLOW)
         self.assertEqual(HL.mine({"calendar_mine": ["#ABCDEF", "red"]}), ["#abcdef", HL.MINE_DEFAULT[1]])
         self.assertEqual(HL.mine({"calendar_mine": "#123456"}), HL.MINE_DEFAULT)
 
@@ -88,7 +88,7 @@ class ChoiceTests(unittest.TestCase):
         if not os.path.exists(HL.edition_presets.__globals__["EDITIONS_FILE"]):
             base = {k: v for k, v in base.items() if not k.startswith("debug")}  # (the public copy: it has no Plus files)
         look = HL.page_look(base, GOLDEN)
-        self.assertEqual((look["colours"], look["env"], look["tile"], look["files"]), (None, None, "flat", []))
+        self.assertEqual((look["colours"], look["tile"], look["files"]), (None, "flat", []))
 
     def test_only_a_ready_ramp_runs_the_other_way_on_a_light_page(self):
         self.assertTrue(HL.page_look({"calendar_colours": "ready:ice"}, GOLDEN)["flipLight"])
@@ -125,9 +125,11 @@ class ChoiceTests(unittest.TestCase):
             self.skipTest("the debug date needs debug")
         chosen = {"calendar_colours": "ready:pumpkin_patch", "calendar_tiles": "pumpkin", "debug": True}
         self.assertEqual(HL.out_of_season(dict(chosen, debug_date="2026-10-28")), {})
-        self.assertEqual(HL.out_of_season(dict(chosen, debug_date="2026-11-02")), {"calendar_colours": "scenery", "calendar_tiles": "flat"})
+        self.assertEqual(HL.out_of_season(dict(chosen, debug_date="2026-11-02")), {"calendar_colours": "scenery", "calendar_tiles": "scenery"})
         self.assertFalse(HL.tile_shown("pumpkin", {"debug": True, "debug_date": "2026-07-01"}))
         self.assertEqual(HL.tile_env({"calendar_tiles": "pumpkin", "debug": True, "debug_date": "2026-07-01"}), "flat")
+        # (the scenery's own, as Scenery is: Lanterns wears Round)
+        self.assertEqual(HL.tile_env({"calendar_tiles": "pumpkin", "debug": True, "debug_date": "2026-07-01"}, "lanterns"), "round")
         self.assertEqual(HL.out_of_season({"calendar_colours": "ready:aurora", "calendar_tiles": "brush"}), {})  # (not seasonal)
 
 
@@ -147,16 +149,12 @@ class TileFileTests(unittest.TestCase):
                 with open(os.path.join(web, rel), encoding="utf-8") as f:
                     self.assertIn(f"AF.heatmapTiles.{key} =", f.read(), key)
 
-    def test_a_style_s_smooth_corners_are_the_same_in_its_script_and_its_file(self):
-        import re
-        for key, spec in HL.TILE_SPECS.items():
-            for name in ("smoothRadius", "smoothGrow"):
-                if name not in spec:
-                    continue
-                with open(os.path.join(ADDON_DIR, "web", "heatmap", f"{key}.js"), encoding="utf-8") as f:
-                    m = re.search(name + r": ([0-9.]+)", f.read())
-                self.assertIsNotNone(m, f"{key}.js has no {name}")
-                self.assertEqual(float(m.group(1)), spec[name], f"{key}: {name}")
+    def test_a_style_s_smooth_corners_go_to_the_page_from_its_file(self):
+        # (round.json holds them alone; calendar.js reads them from the look)
+        look = HL.page_look({"calendar_tiles": "round"}, GOLDEN)
+        spec = HL.TILE_SPECS["round"]
+        self.assertEqual((look["smoothRadius"], look["smoothGrow"]), (spec["smoothRadius"], spec["smoothGrow"]))
+        self.assertNotIn("smoothRadius", HL.page_look({"calendar_tiles": "flat"}, GOLDEN))
 
     def test_a_release_s_tiles_never_come_from_the_drafts(self):
         released = {n[:-5] for n in os.listdir(os.path.join(ADDON_DIR, "web", "heatmap")) if n.endswith(".json")}
