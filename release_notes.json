@@ -2,6 +2,16 @@
   "_comment": "Every version's release notes, newest first: the one place they are written. dev/notes.py makes the AnkiWeb page's What's new from them (npm run notes), dev/release.py the GitHub release's, and the add-on reads them for the About tab and for what an update announces. See release_notes.py for what an item can hold. One short sentence each.",
   "versions": [
     {
+      "version": "1.4.0",
+      "summary": "This update is all about sceneries: Starry night comes to everyone, and Chalkboard arrives in Plus first.",
+      "new": [
+        {
+          "text": "Starry night, after Van Gogh, is now in the free edition.",
+          "needs": "scenery:starry_night"
+        }
+      ]
+    },
+    {
       "version": "1.3.0",
       "summary": "This update is all about seeing your study day by day, in a heatmap under your forest.",
       "new": [
@@ -33,6 +43,10 @@
               "bamboo"
             ]
           }
+        },
+        {
+          "text": "Starry night's sky swirls larger, and the lake now mirrors it.",
+          "needs": "scenery:starry_night"
         },
         "The forest now uses about 45% less CPU on average, and up to 75% less in some sceneries."
       ]

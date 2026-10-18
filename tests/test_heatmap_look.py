@@ -36,7 +36,7 @@ class ChoiceTests(unittest.TestCase):
         # (another scenery's colours, "scenery:aurora", were cut: the scenery's own instead)
         for bad in ("nonsense", "ready:purple", "scenery:aurora", 7, None, ["x"]):
             self.assertEqual(HL.colours_choice({"calendar_colours": bad}), HL.MATCH)
-        for bad in ("chalk", 7, None):  # (a style it doesn't have: the scenery's own)
+        for bad in ("no_such_style", 7, None):  # (a style it doesn't have: the scenery's own)
             self.assertEqual(HL.tiles_choice({"calendar_tiles": bad}), HL.TILE_FOLLOW)
         self.assertEqual(HL.mine({"calendar_mine": ["#ABCDEF", "red"]}), ["#abcdef", HL.MINE_DEFAULT[1]])
         self.assertEqual(HL.mine({"calendar_mine": "#123456"}), HL.MINE_DEFAULT)
@@ -84,11 +84,15 @@ class ChoiceTests(unittest.TestCase):
             self.assertEqual((look["tile"], look["files"]), (plain, []))
 
     def test_plus_sceneries_are_locked_in_the_base_edition(self):
-        base = {"debug": True, "debug_edition": "base", "calendar_tiles": "brush"}
+        base = {"debug": True, "debug_edition": "base"}
         if not os.path.exists(HL.edition_presets.__globals__["EDITIONS_FILE"]):
-            base = {k: v for k, v in base.items() if not k.startswith("debug")}  # (the public copy: it has no Plus files)
-        look = HL.page_look(base, GOLDEN)
-        self.assertEqual((look["colours"], look["tile"], look["files"]), (None, "flat", []))
+            base = {}  # (the public copy: it has no Plus files)
+        locked = [k for k, env in HL.TILE_ENVS.items() if HL.plus_locked(env, base)]
+        if not locked:
+            self.skipTest("no tile style is a Plus scenery's just now")
+        for key in locked:
+            look = HL.page_look({**base, "calendar_tiles": key}, GOLDEN)
+            self.assertEqual((look["colours"], look["tile"], look["files"]), (None, "flat", []), key)
 
     def test_only_a_ready_ramp_runs_the_other_way_on_a_light_page(self):
         self.assertTrue(HL.page_look({"calendar_colours": "ready:ice"}, GOLDEN)["flipLight"])

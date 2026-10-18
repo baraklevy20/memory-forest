@@ -43,6 +43,9 @@ cabin appears at the edge of the woods.
     <td align="center"><img src="docs/animated/bamboo.gif" alt="Rainy bamboo grove, animated"><br><sub>Rainy bamboo grove</sub></td>
     <td align="center"><img src="docs/animated/synthwave.gif" alt="Synthwave, animated"><br><sub>Synthwave</sub></td>
   </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="docs/animated/starry_night.gif" alt="Starry night, animated"><br><sub>Starry night</sub></td>
+  </tr>
 </table>
 
 ### New in Memory Forest Plus
@@ -50,7 +53,7 @@ cabin appears at the edge of the woods.
 <table align="center">
   <tr>
     <td align="center"><img src="docs/animated/cherry_blossom.gif" alt="Cherry blossom, animated"><br><sub>Cherry blossom</sub></td>
-    <td align="center"><img src="docs/animated/starry_night.gif" alt="Starry night, animated"><br><sub>Starry night</sub></td>
+    <td align="center"><img src="docs/animated/chalkboard.gif" alt="Chalkboard, animated"><br><sub>Chalkboard</sub></td>
   </tr>
 </table>
 

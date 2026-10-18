@@ -1,0 +1,12 @@
+{
+  "label": "Starry night",
+  "preset": {
+    "label": "Starry night",
+    "order": 75,
+    "landscape": "lake",
+    "landmark": "none",
+    "weather": "clear",
+    "time": "night",
+    "note": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
+  }
+}

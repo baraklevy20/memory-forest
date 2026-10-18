@@ -1,0 +1,9 @@
+{
+ "order": 6,
+ "label": "Chalk",
+ "tip": "Chalkboard's chalk hatching",
+ "env": "chalkboard",
+ "gaps": true,
+ "smooth": false,
+ "phrase": "Chalk tiles"
+}

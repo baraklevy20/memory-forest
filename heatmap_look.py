@@ -531,12 +531,35 @@ def _ice(pal, _edge, v, T):  # frozen_market.js
     return out
 
 
+CHALK = (0xee, 0xf0, 0xe4)
+
+
+def _chalk(pal, _edge, v, T):  # chalkboard.js
+    n, out = T - 1, {}
+    noise = lambda x, y, s: (hash_str(f"{s},{x},{y}") % 1000) / 1000  # noqa: E731
+    gap = tuple(c * 0.72 for c in pal[0])
+    for y in range(n):
+        for x in range(n):
+            side, corner = x in (0, n - 1) or y in (0, n - 1), x in (0, n - 1) and y in (0, n - 1)
+            if (corner and noise(x, y, 200 + v) < 0.7) or (side and noise(x, y, 210 + v) < 0.12):
+                continue
+            band = (x + y + 1 + v) // 4
+            shift = 1 if noise(band, y >> 1, 220 + v) < 0.4 else 0
+            if (x + y + 1 + v + shift) % 4 < 2:
+                c = (mix(pal[0], gap, 0.5) if noise(x, y, 230 + v) < 0.14
+                     else mix(pal[0], CHALK, 0.2) if noise(x, y, 240 + v) > 0.88 else pal[0])
+            else:
+                c = mix(pal[0], gap, 0.45) if noise(x, y, 250 + v) < 0.2 else gap
+            out[x, y] = c
+    return out
+
+
 def _flat(pal, edge, _v, T):
     return {(x, y): edge if x == T - 1 or y == T - 1 else pal[0] for y in range(T) for x in range(T)}
 
 
 # each environment that draws its tiles in a medium of its own (calendarTile), and how
-DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice}
+DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice, "chalkboard": _chalk}
 
 
 def tile_pixels(drawer: str, shade, v: int = 0) -> dict:
