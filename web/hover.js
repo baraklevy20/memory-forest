@@ -24,8 +24,61 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     if (linkedAgo === ago) return;
     linkedAgo = ago; lifted = null; redraw();
   };
+  // the days selected on the heatmap, as `ago`s (null: none): their trees stand out, the rest of the
+  // forest dimmed under them
+  let litDays = null, litKey = '', litTrees = null;
+  root.afLightTreeDays = agos => {
+    const key = agos ? [...agos].sort((a, b) => a - b).join(',') : '';
+    if (key === litKey) return;
+    litKey = key; litDays = agos ? new Set(agos) : null; litTrees = null; redraw();
+  };
+  // the rest of the forest this far into black: by the scene's own lightness, lightly by day (0.55
+  // turned a golden hour into dusk), more by night (where the lit trees, night-coloured, barely
+  // stood out of it): its land's mean lightness `L` from LIT_DIM_AT[0] up to LIT_DIM_AT[1]
+  const LIT_DIM = [0.45, 0.75], LIT_DIM_AT = [0.4, 0.15];
+  const litDimOf = env => {
+    const [, cg] = AF.u.layer(64, 32);
+    let d;
+    try { cg.drawImage(env.land, 0, 0, 64, 32); d = cg.getImageData(0, 0, 64, 32).data; } catch (e) { return 0.55; }
+    let s = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) { s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; n++; }
+    const t = Math.max(0, Math.min(1, ((n ? s / n / 255 : 0.5) - LIT_DIM_AT[0]) / (LIT_DIM_AT[1] - LIT_DIM_AT[0])));
+    return LIT_DIM[0] + (LIT_DIM[1] - LIT_DIM[0]) * t;
+  };
+  function drawLit(g, env) {
+    if (!litDays || !env) return;
+    // (each tree's own copy, kept until the scene or the stretch changes: sprite() borrows a scratch
+    // canvas), back to front as the forest stands: a nearer tree over a lit one drawn again over
+    // it, dimmed with the rest, so a lit tree stays behind what stands before it
+    if (!litTrees || litTrees.env !== env) {
+      const trees = [], boxes = [], dim = litDimOf(env);
+      for (const p of env.placed) {
+        if (p.it.pond) continue;
+        const lit = litDays.has(p.it.ago);
+        if (!lit && !boxes.length) continue;
+        const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
+        const x = Math.round(p.x - spr.width / 2), y = Math.round(p.y - spr.height + 1), box = [x, y, x + spr.width, y + spr.height];
+        if (!lit && !boxes.some(b => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) continue;
+        const [cv, cg] = AF.u.layer(spr.width, spr.height);
+        cg.drawImage(spr, 0, 0);
+        if (!lit) { cg.globalCompositeOperation = 'source-atop'; cg.fillStyle = `rgba(0,0,0,${dim})`; cg.fillRect(0, 0, cv.width, cv.height); }
+        trees.push({ cv, x, y });
+        if (lit) boxes.push(box);
+      }
+      litTrees = { env, trees, dim };
+    }
+    g.save();
+    g.fillStyle = `rgba(0,0,0,${litTrees.dim})`;
+    g.fillRect(0, 0, env.W, env.H);
+    for (const { cv, x, y } of litTrees.trees) {
+      if (env.flipLight) { g.save(); g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); g.restore(); }
+      else g.drawImage(cv, x, y);
+    }
+    g.restore();
+  }
   function drawMarker(g) {
     const env = current();
+    drawLit(g, env);
     const p = env && linkedAgo !== null && env.placed.find(p => !p.it.pond && p.it.ago === linkedAgo);
     if (p) {
       // sprite() borrows a scratch canvas: keep one outlined copy until the scene changes.
@@ -161,7 +214,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     });
   }
   /* the scene was rebuilt under the pointer (zooming in): what it pointed at is gone */
-  function clear() { linkedAgo = null; lifted = null; hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
+  function clear() { linkedAgo = null; lifted = null; litTrees = null; hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
   return { drawMarker, clear };
 };
 })();

@@ -457,23 +457,43 @@ def day_search(days_ago_from: int, until_days_ago: int | None = None, suspended:
 
 def day_answer_times(db, day_cutoff: int, offset: int) -> dict:
     """Each card's median answer time on the clicked day, in milliseconds, retries included."""
-    start = (day_cutoff + (offset - 1) * DAY_SECS) * 1000
-    end = start + DAY_SECS * 1000
-    times = {}
-    for cid, elapsed in db.all(
-        f"select cid, time from revlog where id >= ? and id < ? "
-        f"and ease > 0 and type in {STUDY_TYPES}", start, end):
-        times.setdefault(cid, []).append(elapsed)
-    return {cid: median(values) for cid, values in times.items()}
+    return days_answer_times(db, day_cutoff, [(offset, offset)])
 
 
 def day_card_totals(db, day_cutoff: int, offset: int, mode: str) -> dict:
     """Attempts or total milliseconds per card on one day, including learning and retries."""
-    start = (day_cutoff + (offset - 1) * DAY_SECS) * 1000
+    return days_card_totals(db, day_cutoff, [(offset, offset)], mode)
+
+
+def _days_where(day_cutoff: int, runs: list) -> tuple:
+    """The revlog ids of the days in `runs` ((first, last) offsets from today, 0 today), as a
+    where clause and its arguments."""
+    args = []
+    for first, last in runs:
+        args += [(day_cutoff + (first - 1) * DAY_SECS) * 1000, (day_cutoff + last * DAY_SECS) * 1000]
+    return "(" + " or ".join(["(id >= ? and id < ?)"] * len(runs)) + ")", args
+
+
+def days_answer_times(db, day_cutoff: int, runs: list) -> dict:
+    """Each card's median answer time over the days in `runs` (days picked on the heatmap), in
+    milliseconds, retries included."""
+    where, args = _days_where(day_cutoff, runs)
+    times = {}
+    for cid, elapsed in db.all(
+        f"select cid, time from revlog where {where} "
+        f"and ease > 0 and type in {STUDY_TYPES}", *args):
+        times.setdefault(cid, []).append(elapsed)
+    return {cid: median(values) for cid, values in times.items()}
+
+
+def days_card_totals(db, day_cutoff: int, runs: list, mode: str) -> dict:
+    """Attempts or total milliseconds per card over the days in `runs` (days picked on the
+    heatmap), including learning and retries."""
+    where, args = _days_where(day_cutoff, runs)
     aggregate = "count()" if mode == "reviews" else "sum(time)"
     return dict(db.all(
-        f"select cid, {aggregate} from revlog where id >= ? and id < ? "
-        f"and ease > 0 and type in {STUDY_TYPES} group by cid", start, start + DAY_SECS * 1000))
+        f"select cid, {aggregate} from revlog where {where} "
+        f"and ease > 0 and type in {STUDY_TYPES} group by cid", *args))
 
 
 def calendar_search(db, offset: int, today: int, due: bool = False) -> list:
@@ -498,6 +518,35 @@ def calendar_search(db, offset: int, today: int, due: bool = False) -> list:
             "select id from cards where queue in (2, 3) and odid != 0 and odue = ? order by id", today + offset)]
         return [f"(prop:due={offset} OR cid:{','.join(map(str, borrowed))})" if borrowed else f"prop:due={offset}"]
     return [f"prop:rated={offset}" if offset else "rated:1"]
+
+
+def calendar_days_search(runs: list) -> list:
+    """Anki search terms for the days picked on the heatmap, `runs` of them as (first, last) days
+    from today (0: today), as calendar_search finds one day: the cards answered on them. A run up
+    to today is one term (`prop:rated>=-N`, answered since); any other is its days one by one
+    (`prop:rated>=-N prop:rated<=-M` would also match a card answered only before and after it)."""
+    terms = []
+    for first, last in runs:
+        if last == 0:
+            terms.append(f"prop:rated>={first}" if first else "rated:1")
+        else:
+            terms += [f"prop:rated={d}" for d in range(first, last + 1)]
+    return [_any_of(terms)] if terms else []
+
+
+OR_FLAT = 64  # terms side by side in one group, at most: see _any_of
+
+
+def _any_of(terms: list) -> str:
+    """`terms` joined by OR, in nested groups of at most OR_FLAT: SQLite reads a flat chain of
+    a thousand as a tree a thousand deep and gives up ("Expression tree is too large (maximum
+    depth 1000)"): three years of days picked, a day dropped in the middle."""
+    if len(terms) == 1:
+        return terms[0]
+    if len(terms) > OR_FLAT:
+        step = -(-len(terms) // OR_FLAT)
+        terms = [_any_of(terms[i:i + step]) for i in range(0, len(terms), step)]
+    return "(" + " OR ".join(terms) + ")"
 
 
 def days_ago(ts_seconds: float, day_cutoff: int) -> int:

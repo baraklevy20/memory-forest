@@ -12,6 +12,7 @@ const { HORIZON, GROUND_BOTTOM } = AF.GEOM;
 AF.mount = function (root, data, opts) {
   const engine = AF.engines.pixel;
   root.afPointTreeDay = null;
+  root.afLightTreeDays = null;
   // the add-on redraws this forest through the panel itself, never through the shared name
   root.afSwap = (d, srcs) => AF.swap(root.id, d, srcs);
   // one listener a forest: the one before goes now (left until the page was next hidden, it

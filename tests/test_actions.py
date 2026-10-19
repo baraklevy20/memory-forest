@@ -94,6 +94,60 @@ class ActionTests(unittest.TestCase):
             totals.assert_not_called()
             self.assertIsNone(opened.call_args.args[2])
 
+    def test_days_picked_open_their_cards_by_date_with_their_totals_over_them(self):
+        with mock.patch.object(actions.study_log, "days_card_totals", return_value={7: 3, 5: 1}) as totals, \
+                mock.patch.object(actions, "_open_browser") as opened:
+            actions.browse_calendar_days([(0, -30)], 10, "time")
+            self.assertEqual(totals.call_args.args[2:], ([(-30, 0)], "time"))
+            terms, did, values, label, mode = opened.call_args.args
+            self.assertEqual((terms, did, values, mode), (["prop:rated>=-30"], 10, {7: 3, 5: 1}, "time"))
+            self.assertRegex(label, r"^Total time \(\d{4}-\d\d-\d\d to \d{4}-\d\d-\d\d\)$")
+            actions.browse_calendar_days([(-3, -3), (-9, -7)])
+            self.assertEqual(totals.call_args.args[2:], ([(-9, -7), (-3, -3)], "reviews"))
+            self.assertIn("(4 days, ", opened.call_args.args[3])
+            self.assertEqual(opened.call_args.args[0], ["(prop:rated=-9 OR prop:rated=-8 OR prop:rated=-7 OR prop:rated=-3)"])
+        # (days ahead open their cards due, each day as a day ahead clicked; days with no answers
+        # and none ahead open nothing)
+        with mock.patch.object(actions.study_log, "days_card_totals", return_value={}) as totals, \
+                mock.patch.object(actions.study_log, "calendar_search", side_effect=lambda db, d, today: [f"prop:due={d}"]), \
+                mock.patch.object(actions, "_open_browser") as opened:
+            actions.browse_calendar_days([(-3, 2), (4, 4)])
+            self.assertEqual(totals.call_args.args[2:], ([(-3, 0)], "reviews"))
+            self.assertEqual(opened.call_args.args[0], ["(prop:due=1 OR prop:due=2 OR prop:due=4)"])
+            opened.reset_mock()
+            actions.browse_calendar_days([(-3, -1)])
+            opened.assert_not_called()
+        with mock.patch.object(actions, "browse_calendar_days") as browse:
+            actions.on_js_message((False, None), f"{addon.state.MODULE}:days:-9_-2,-1_-1:10:median", actions.DeckBrowser())
+            browse.assert_called_once_with([(-9, -2), (-1, -1)], 10, "median")
+
+    def test_days_picked_labels_and_runs_as_the_page_sends_them(self):
+        with mock.patch.object(actions.study_log, "days_answer_times", return_value={7: 1500}) as times, \
+                mock.patch.object(actions.study_log, "days_card_totals") as totals, \
+                mock.patch.object(actions, "_open_browser") as opened:
+            # one day: its date alone; a stretch: from to; days apart: their count first
+            actions.browse_calendar_days([(-4, -4)], None, "median")
+            totals.assert_not_called()
+            self.assertEqual(times.call_args.args[2], [(-4, -4)])
+            self.assertRegex(opened.call_args.args[3], r"^Answer time \(\d{4}-\d\d-\d\d\)$")
+            self.assertEqual(opened.call_args.args[0], ["prop:rated=-4"])
+            actions.browse_calendar_days([(-6, -2)], None, "nonsense")  # (an unknown shade: reviews)
+            self.assertRegex(opened.call_args.args[3], r"^Reviews \(\d{4}-\d\d-\d\d to \d{4}-\d\d-\d\d\)$")
+            actions.browse_calendar_days([(-9, -8), (-2, -2)], None, "time")
+            self.assertRegex(opened.call_args.args[3], r"^Total time \(3 days, \d{4}-\d\d-\d\d to \d{4}-\d\d-\d\d\)$")
+        # (only days ahead: their cards due, no column)
+        with mock.patch.object(actions.study_log, "calendar_search", side_effect=lambda db, d, today: [f"prop:due={d}"]), \
+                mock.patch.object(actions, "_open_browser") as opened:
+            actions.browse_calendar_days([(2, 3)], 10)
+            self.assertEqual(opened.call_args.args, (["(prop:due=2 OR prop:due=3)"], 10))
+        self.assertEqual(actions._days_picked("-400_-380,-20_-5,-3_-3"), [(-400, -380), (-20, -5), (-3, -3)])
+        self.assertEqual(actions._days_picked("-3_2,4_4"), [(-3, 2), (4, 4)])
+        self.assertEqual(actions._days_picked(""), [])
+        # (the message: runs, deck (none on the deck list) and the shade)
+        with mock.patch.object(actions, "browse_calendar_days") as browse:
+            actions.on_js_message((False, None), f"{addon.state.MODULE}:days:-451_-430,-32_-32::reviews", actions.DeckBrowser())
+            browse.assert_called_once_with([(-451, -430), (-32, -32)], None, "reviews")
+
     def test_metric_modes_are_forwarded_from_heatmap_clicks(self):
         for mode in ("reviews", "time", "median"):
             with mock.patch.object(actions, "browse_calendar_day") as browse:

@@ -898,6 +898,11 @@ def old_day():
     try:
         terms = sys.modules[FOREST].study_log.calendar_search(col.db, -OLD_DAY_AGO, sched.today)
         found = tried(" ".join(terms))
+        # (days picked on the heatmap: a stretch round that day, and one from it to today)
+        # (the one to today is every card answered since that day: the same as rated:N+1)
+        picked = {" ".join(t): (tried(" ".join(t)), want if i == 0 else tried(f"rated:{OLD_DAY_AGO + 1}")) for i, t in enumerate((
+            sys.modules[FOREST].study_log.calendar_days_search([(-OLD_DAY_AGO - 1, -OLD_DAY_AGO + 1)]),
+            sys.modules[FOREST].study_log.calendar_days_search([(-OLD_DAY_AGO, 0)])))}
         alts = {f"prop:rated=-{OLD_DAY_AGO}": None, f"rated:{OLD_DAY_AGO + 1}": None, f"cid:{old},{alone}": None}
         for search in alts:
             got = tried(search)
@@ -912,6 +917,10 @@ def old_day():
     if found != want:
         result["problems"].append(f"a click on a day {OLD_DAY_AGO} days back finds {found}, not its cards {want}:"
                                   f" {' '.join(terms)}")
+    result["steps"].append("days picked: " + ", ".join(f"{s[:40]} -> {'their cards' if got == should else got}" for s, (got, should) in picked.items()))
+    for search, (got, should) in picked.items():
+        if got != should or not set(want) <= set(got if isinstance(got, list) else []):
+            result["problems"].append(f"days picked round a day {OLD_DAY_AGO} days back find {got}, not {should}: {search[:80]}")
 
 
 editor_events: dict = {}  # each browser editor's page events, for when it never loads

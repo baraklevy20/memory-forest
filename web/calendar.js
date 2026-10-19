@@ -465,6 +465,23 @@ const restShade = (pal, paper) => { const blank = blankOn(paper); let lv = 0; wh
 /* a 1px ring just inside a tile's face, its four corners left off, as the pixel tiles round theirs */
 function restRing(g, x, y, F) { for (let i = 1; i < F - 1; i++) { g.fillRect(x + i, y, 1, 1); g.fillRect(x + i, y + F - 1, 1, 1); g.fillRect(x, y + i, 1, 1); g.fillRect(x + F - 1, y + i, 1, 1); } }
 function empty(g, x, y, fill = EMPTY, T = TILE) { g.fillStyle = fill; g.fillRect(x, y, T, T); }
+// a drawn tile's face: the box of its pixels, [left, top, right, bottom] in it (Flat's 9 with its
+// edge, a scenery's own tile 8, its gap in its last row and column), measured once a tile
+const FACES = new WeakMap();
+function faceOf(t) {
+  let f = FACES.get(t);
+  if (f) return f;
+  let d;
+  try { d = t.getContext('2d').getImageData(0, 0, t.width, t.height).data; } catch (e) { return [0, 0, t.width, t.height]; }
+  let x0 = t.width, y0 = t.height, x1 = 0, y1 = 0;
+  for (let y = 0; y < t.height; y++) for (let x = 0; x < t.width; x++) {
+    if (!d[(y * t.width + x) * 4 + 3]) continue;
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + 1); y1 = Math.max(y1, y + 1);
+  }
+  f = x1 > x0 ? [x0, y0, x1, y1] : [0, 0, t.width, t.height];
+  FACES.set(t, f);
+  return f;
+}
 /* a tile's texture: two tones in 2x2 clusters and an edge, its four corners left off so it reads
  * soft and round at its size (2026-10-16: bevel, dither, a soft brush and an inset were tried; at
  * 1x only the corners showed). A scenery with a look of its own (Starry night's brushstrokes) draws
@@ -820,6 +837,9 @@ function paint(H, win, sp, paper) {
     const t = pal.shapes ? null : pal.tile(c);
     // (a day before the forest's start date, studied or not, dimmed)
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
+    // (its face, for a selection's lit square and the hover's ring to sit evenly round it)
+    const T = pal.gapless ? CELL : TILE;
+    c.face = smooth ? [0, 0, pal.gapless ? CELL : TILE_FACE, pal.gapless ? CELL : TILE_FACE] : t ? faceOf(t) : [0, 0, T, T];
     if (smooth) c.t = t;  // (drawn by sharpen)
     else if (t) g.drawImage(t, c.x, c.y);
     else if (!c.shade) empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT, pal.gapless ? CELL : TILE);
@@ -1142,10 +1162,17 @@ AF.calendar = function (root, data, env) {
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
   // dimmed into the page, on a layer over the weeks
   let spotCv = null;
-  const spot = (keep, lv) => {
-    if (spotCv) { spotCv.remove(); spotCv = null; }
-    if (!keep || !drawn) return;
-    const d = pointed || drawn;  // (a streak's bracket on an earlier year lights that year's days)
+  // the days selected, as Finder selects files: Cmd-click (Ctrl-click off a Mac) selects or drops one day,
+  // Shift-click every day from the last one clicked (`anchor`) to this one, added to those selected
+  // before it (`base`). `sel`, a Set of offsets: its days stay lit while nothing else is pointed
+  // at, and the forest's trees of those days with them; `selVer` counts its changes. Not kept (2026-10-18)
+  let sel = null, anchor = null, base = null, selVer = 0;
+  let selTip = false;  // (the tooltip holds their summary: placed again whenever the heatmap is laid out anew)
+  let selAt = null, selOn = null;  // (the day selected their summary was last asked from, and its year: it sits under that day's stretch)
+  const inSel = c => !!sel && sel.has(c.o);
+  // a layer over a year's weeks (`d`, the year in view or an earlier one shown) dimming the days
+  // `keep` leaves out (or, where the style has bands, those not in the key's shade `lv`)
+  const dimLayer = (d, keep, lv) => {
     const [cv, g] = layer(d.W, d.Hh);
     g.fillStyle = rgb(paper.bg, SPOT_DIM);
     if (d.joined) {
@@ -1178,12 +1205,45 @@ AF.calendar = function (root, data, env) {
         px[i * 4] = r0; px[i * 4 + 1] = g0; px[i * 4 + 2] = b0; px[i * 4 + 3] = a0;
       }
       g.putImageData(img, 0, 0);
-    } else for (const c of d.cells) if (!keep(c)) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
+    } else {
+      // (every day's square dimmed, then a kept day's face lit again with as much round it on each
+      // side: a pixel where the days have room between them, none where they touch. Dimming the
+      // other days alone left a kept day its gap on the left and top and none on the right and
+      // bottom, 2026-10-19)
+      for (const c of d.cells) g.fillRect(c.x - 1, c.y - 1, CELL, CELL);
+      for (const c of d.cells) {
+        if (!keep(c)) continue;
+        const [x0, y0, x1, y1] = c.face || [0, 0, TILE, TILE], m = CELL > x1 - x0 ? 1 : 0;
+        g.clearRect(c.x + x0 - m, c.y + y0 - m, x1 - x0 + 2 * m, y1 - y0 + 2 * m);
+      }
+    }
     cv.className = 'af-cal-above af-cal-spot';
     Object.assign(cv.style, { left: d.cv.offsetLeft + 'px', top: d.cv.offsetTop + 'px', width: d.cv.style.width,
       height: d.cv.style.height, imageRendering: d.cv.style.imageRendering });
     grid.insertBefore(cv, notes);
-    spotCv = cv;
+    cv.afOn = d;
+    return cv;
+  };
+  // while days are selected, every year shown dims its days not selected (a year with none of them
+  // dims all over, so a selection reads as one, whichever years it spans): a layer a year, kept until
+  // the selection or the year changes, hidden under a hover's own spot on the same year
+  let selCvs = [];
+  const showPickDim = () => {
+    const years = sel && drawn ? [drawn, ...pasts.filter(p => p.cv && p.cv.isConnected)] : [];
+    selCvs = selCvs.filter(x => {
+      const ok = years.includes(x.d) && x.ver === selVer && x.cv.isConnected && x.d.cv.isConnected;
+      if (!ok) x.cv.remove();
+      return ok;
+    });
+    for (const d of years) if (!selCvs.some(x => x.d === d)) selCvs.push({ d, ver: selVer, cv: dimLayer(d, inSel) });
+    for (const x of selCvs) x.cv.style.visibility = spotCv && spotCv.afOn === x.d ? 'hidden' : '';
+  };
+  // a hover's days standing out (a shade in the key, a month, a streak): the others dimmed, on the
+  // year pointed at (a streak's bracket on an earlier year lights that year's days); null: none
+  const spot = (keep, lv) => {
+    if (spotCv) { spotCv.remove(); spotCv = null; }
+    if (keep && drawn) spotCv = dimLayer(pointed || drawn, keep, lv);
+    showPickDim();
   };
   // the day under the pointer: ringed in today's frame colour, which shows on every shade
   const ring = c => {
@@ -1192,9 +1252,12 @@ AF.calendar = function (root, data, env) {
     hover.hidden = !c;
     if (!c) return;
     const cv = (pointed || drawn).cv;
-    hover.style.left = (cv.offsetLeft + (c.x - 1) * k) + 'px';
-    hover.style.top = (cv.offsetTop + (c.y - 1) * k) + 'px';
-    hover.style.width = hover.style.height = (TILE + 2) * k + 'px';  // (round the whole tile, as today's frame)
+    // (round the day's face, a pixel out on every side: Flat's whole tile, as today's frame; a
+    // scenery's own tile its 8 pixels, not its gap)
+    const [x0, y0, x1] = c.face || [0, 0, TILE];
+    hover.style.left = (cv.offsetLeft + (c.x + x0 - 1) * k) + 'px';
+    hover.style.top = (cv.offsetTop + (c.y + y0 - 1) * k) + 'px';
+    hover.style.width = hover.style.height = (x1 - x0 + 2) * k + 'px';
     hover.style.borderRadius = drawn.smooth ? (drawn.radius + 1) * k + 'px' : '';
     hover.style.borderColor = drawn.ring;
   };
@@ -1204,6 +1267,7 @@ AF.calendar = function (root, data, env) {
   let warm = false, waking = 0;
   const reveal = () => {
     tip.hidden = false;
+    selTip = false;
     if (warm || touched || document.activeElement === (drawn && drawn.cv)) { tip.style.visibility = ''; warm = true; return; }
     tip.style.visibility = 'hidden';
     clearTimeout(waking);
@@ -1211,7 +1275,7 @@ AF.calendar = function (root, data, env) {
   };
   const pointTree = c => { if (root.afPointTreeDay) root.afPointTreeDay(c ? -c.o : null); };
   // (the tip shown again straight away, by the key or a streak, must not stay invisible from a day brushed too briefly to wake it)
-  const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; };
+  const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; showSel(); };
   // how far you can page: back to the first day counted, on to the last day ahead counted
   const can = win => ({ back: win.from > H.first, on: win.to < H.ahead });
 
@@ -1282,6 +1346,8 @@ AF.calendar = function (root, data, env) {
       if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
     }
     lay();
+    // (their summary goes with their days: under them on the new page, or away when none is on it)
+    if (sel && (tip.hidden || selTip)) showSel(selTip); else if (sel) spot(null);
   }
   const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
   // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
@@ -1504,6 +1570,16 @@ AF.calendar = function (root, data, env) {
       return `<span class="af-cal-note${b.live ? ' af-cal-current' : ''}" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days${since}</span>`;
     }).join('');
     if (swiped) { away(); clip(); }
+    if (selTip && !tip.hidden) placeSel();  // (the earlier years shown or hidden move the year in view)
+    // (the dimmed days' layers laid on their weeks again: drawn before this, as the days took the
+    // focus back, or the earlier years shown above moving the year in view down, they sat at the
+    // canvas's own size, or where the weeks were)
+    showPickDim();
+    for (const cv of [spotCv, ...selCvs.map(x => x.cv)]) {
+      if (!cv || !cv.afOn) continue;
+      const c = cv.afOn.cv;
+      Object.assign(cv.style, { left: c.offsetLeft + 'px', top: c.offsetTop + 'px', width: c.style.width, height: c.style.height, imageRendering: c.style.imageRendering });
+    }
   }
   // the phone's timeline: opened on today, most of the way across, the days behind it in view
   function toToday(smooth) {
@@ -1614,17 +1690,129 @@ AF.calendar = function (root, data, env) {
     const from = at(y, m), to = at(y, m + 1) - 1;
     const year = m === 0 && from <= 0 ? [`<b>${y}</b>`, ...studiedLines(from, at(y + 1, 0) - 1), ''] : [];
     const lines = [...year, `<b>${MONTH_NAMES[m]} ${y}</b>`, ...(from > 0 ? [] : studiedLines(from, to))];
-    // (its marked days, by date and name, as their tooltips name them)
-    const marked = [...H.marked].filter(([o]) => o >= from && o <= to).sort((p, q) => p[0] - q[0]);
+    return lines.concat(notesOf(from, to, ' later this month')).join('<br>');
+  };
+  // a stretch's marked days, by date and name, as their tooltips name them, and the cards due in
+  // its days ahead (`later`: how a stretch begun before today says so)
+  const notesOf = (from, to, later, has = () => true) => {
+    const lines = [];
+    const marked = [...H.marked].filter(([o]) => o >= from && o <= to && has(o)).sort((p, q) => p[0] - q[0]);
     for (const [o, mk] of marked.slice(0, 4)) lines.push(`<i>${new Date(H.today + o * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}:</i> ${esc(mk.name || markOf(mk).label)}`);
     if (marked.length > 4) lines.push(`<i>and ${marked.length - 4} more marked</i>`);
     let due = 0;
-    for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) due += H.n(o);
-    if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : ' later this month'}`);
+    for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) if (has(o)) due += H.n(o);
+    if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : later}`);
     else if (from > H.ahead) lines.push('Too far ahead to count');
     else if (from > 0) lines.push('Nothing due yet');
-    return lines.join('<br>');
+    return lines;
   };
+  // the days selected, as runs of days in a row: [[from, to], ...], oldest first
+  const runsOf = () => {
+    const runs = [];
+    for (const o of [...sel].sort((a, b) => a - b)) {
+      const r = runs[runs.length - 1];
+      if (r && r[1] === o - 1) r[1] = o; else runs.push([o, o]);
+    }
+    return runs;
+  };
+  // the days selected, in a few words, as a month tells its own: "Mar 12 to Apr 30, 2026" (one stretch)
+  // or "12 days, Mar 3 to Apr 30, 2026" (days apart), the days studied among them, their reviews
+  // and about how many a day, their marks and the cards due on them
+  const selSummary = () => {
+    const runs = runsOf(), from = runs[0][0], to = runs[runs.length - 1][1];
+    const day = o => esc(fmt(H.today + o * DAY_MS)), year = o => yearOf(H.today + o * DAY_MS);
+    // (a year said once; up to today, "to today", as your streak's bracket says it)
+    const first = to !== 0 && year(from) === year(to) ? day(from).replace(/, [0-9]{4}$/, '') : day(from);
+    const span = from === to ? day(from) : `${first} to ${to === 0 ? 'today' : day(to)}`;
+    // (one day selected: that day's own words, as its tooltip has them, not a stretch's "Studied every day")
+    if (sel.size === 1) {
+      const n = H.n(from), what = from < H.first ? 'Before your first review' : from > H.ahead ? 'Too far ahead to count'
+        : from > 0 ? (n ? `${cards(n, 'card')} due` : 'Nothing due yet') : n ? cards(n, 'review') + took(from) : from === 0 ? 'Not studied yet' : 'Not studied';
+      return [`<b>${esc(weekday(H.today + from * DAY_MS))}, ${day(from)}</b>`, what, ...(H.marked.has(from) ? [esc(markLine(H.marked.get(from), from))] : [])].join('<br>');
+    }
+    if (runs.length === 1) return [`<b>${span}</b>`, ...(from > 0 ? [] : studiedLines(from, to)), ...notesOf(from, to, ' after today')].join('<br>');
+    return [`<b>${num(sel.size)} days, ${span}</b>`, ...(from > 0 ? [] : pickedLines()), ...notesOf(from, to, ' after today', o => sel.has(o))].join('<br>');
+  };
+  // studiedLines' words for days selected apart: "Studied 9 of 12 days (75%)", their reviews and
+  // about how many a day; only the days since your first review, up to today
+  const pickedLines = () => {
+    const end = H.n(0) ? 0 : -1, past = [...sel].filter(o => o >= H.first && o <= end);
+    if (!past.length) return [[...sel].some(o => o === 0) ? 'Not studied yet' : 'Before your first review'];
+    let studied = 0, reviews = 0, secs = 0;
+    for (const o of past) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
+    if (!studied) return ['Not studied'];
+    const span = past.length, on = studied < span ? ' studied' : '', avg = cards(Math.round(reviews / studied), 'review');
+    // (the heading counts them: "of them" where these are all of them, not the count again)
+    const of = span === sel.size ? 'them' : `${num(span)} day${span === 1 ? '' : 's'}`;
+    return [studied === span ? `Studied all of ${of === 'them' ? 'them' : `these ${of}`}` : `Studied ${num(studied)} of ${of} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,
+      cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
+      `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
+  };
+  // (the days selected open in the browser where one of them in the past was studied)
+  // (or, ahead, has cards due: those open as a day ahead clicked opens them)
+  const selOpens = () => !!sel && !!cal.browse && [...sel].some(o => o >= H.first && o <= H.ahead && H.n(o) > 0);
+  // the days selected: lit, their trees in the forest; pointed at (`told`), their summary under their
+  // days in view (as a streak's is under its bracket); at rest the lit days alone, so the footer
+  // under them (the journal, the key) stays in view; none selected: all back as it was
+  // (under the year pointed at, the year in view or an earlier one, and under the stretch of them
+  // the pointer is on, `at`, not halfway between the first and the last, over days not selected;
+  // `selAt` and `selOn` keep it for the summary placed again)
+  function showSel(told = false, at = null) {
+    if (root.afLightTreeDays) root.afLightTreeDays(sel && data.showForest !== false ? [...sel].map(o => -o) : null);
+    spot(null);
+    selTip = false;
+    if (!told) { if (sel) tip.hidden = true; return; }
+    if (!sel || !drawn || editing) return;
+    if (at) { selAt = sel.has(at.o) ? at.o : null; selOn = pointed || drawn; }
+    tip.innerHTML = selSummary();
+    tip.hidden = false; tip.style.visibility = '';
+    selTip = true;
+    placeSel();
+  }
+  // their summary under their days in view, centred under them, kept inside the heatmap's sides
+  function placeSel() {
+    const run = selAt !== null && sel.has(selAt) ? runsOf().find(([a, b]) => selAt >= a && selAt <= b) : null;
+    const on = selOn && selOn.cv.isConnected ? selOn : drawn, near = run ? on.cells.filter(x => x.o >= run[0] && x.o <= run[1]) : [];
+    const cells = near.length ? near : on.cells.filter(inSel);
+    if (!cells.length) { tip.hidden = true; selTip = false; return; }
+    const x0 = Math.min(...cells.map(c => c.x)), x1 = Math.max(...cells.map(c => c.x)) + TILE;
+    const left = grid.offsetLeft + on.cv.offsetLeft - grid.scrollLeft, cx = left + (x0 + x1) / 2 * k;
+    tip.style.left = Math.max(0, Math.min(box.clientWidth - tip.offsetWidth, cx - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = grid.offsetTop + on.cv.offsetTop + (on.band + ROWS * CELL + BRACKET) * k + TIP_GAP + 'px';  // (under the lane)
+  }
+  // a day selected: `stretch` (Shift) every day from the anchor to it, else (Cmd) it alone, selected or dropped
+  const pick = (o, stretch) => {
+    if (stretch) {
+      if (anchor === null) { anchor = o; base = new Set(sel || []); }
+      sel = new Set(base);
+      for (let d = Math.min(anchor, o); d <= Math.max(anchor, o); d++) sel.add(d);
+    } else {
+      sel = new Set(sel || []);
+      if (sel.has(o)) sel.delete(o); else sel.add(o);
+      anchor = o; base = new Set(sel);
+    }
+    if (!sel.size) { unpick(); return; }
+    selVer++;
+    last = undefined;
+    const c = (pointed || drawn).cells.find(x => x.o === o) || null;
+    pointTree(null); ring(c);
+    grid.classList.toggle('af-click', selOpens());
+    showSel(sel.has(o), c);
+  };
+  const unpick = () => {
+    if (!sel) return false;
+    sel = null; anchor = null; base = null; selAt = null; selOn = null; selVer++;
+    showSel();
+    if (!editing) { tip.hidden = true; }
+    return true;
+  };
+  // (Esc, or a click anywhere off the heatmap, lets them go; each listener goes with its heatmap)
+  const offSel = e => {
+    if (!box.isConnected) { document.removeEventListener('keydown', offSel, true); document.removeEventListener('mousedown', offSel, true); return; }
+    if (!sel || editing) return;
+    if (e.type === 'keydown' ? e.key === 'Escape' : !box.contains(e.target)) { if (unpick() && e.type === 'keydown') { e.preventDefault(); e.stopPropagation(); } }
+  };
+  if (!swiped) { document.addEventListener('keydown', offSel, true); document.addEventListener('mousedown', offSel, true); }
   const pointMonth = lab => {
     pointTree(null);
     ring(null);
@@ -1664,7 +1852,7 @@ AF.calendar = function (root, data, env) {
     const sw = e.target.classList && e.target.classList.contains('af-cal-swatch') ? e.target : null;
     const lv = sw ? [...keyEl.querySelectorAll('.af-cal-swatch')].indexOf(sw) : -1;
     if (lv < 0 || sw === last) return;
-    last = sw;
+    last = sw; selTip = false;
     pointTree(null);
     ring(null);
     tip.textContent = shadeLine(lv);
@@ -1681,6 +1869,7 @@ AF.calendar = function (root, data, env) {
     // ("Jun 1 to Dec 19, 2025": a year said once)
     const first = !b.live && year(r.from) === year(r.to) ? day(r.from).replace(/, [0-9]{4}$/, '') : day(r.from);
     tip.innerHTML = `<b>${first} to ${b.live ? 'today' : day(r.to)}</b><br>${b.live ? `Your ${num(r.days)}-day streak` : `${num(r.days)} days in a row`}`;
+    selTip = false;
     tip.hidden = false;
     const on = pointed || drawn, left = grid.offsetLeft + on.cv.offsetLeft - grid.scrollLeft, cx = left + (b.x0 + b.x1) / 2 * k;
     tip.style.left = Math.max(0, Math.min(box.clientWidth - tip.offsetWidth, cx - tip.offsetWidth / 2)) + 'px';
@@ -1702,10 +1891,18 @@ AF.calendar = function (root, data, env) {
   };
   // a day's tooltip and ring, for the pointer's day or the keyboard's
   const tell = c => {
+    // (a day selected answers for all of them: their summary, a click opening them all)
+    // (the day itself keeps its ring: the keyboard's day must show where it is, Shift+Enter selecting from it)
+    if (c && sel && inSel(c)) {
+      pointTree(null); ring(c);
+      grid.classList.toggle('af-click', selOpens());
+      showSel(true, c);
+      return;
+    }
     pointTree(c);
     ring(c);
-    grid.classList.toggle('af-click', !!c && opens(c));
-    if (!c) { tip.hidden = true; if (hit && hit.run) streak(hit); return; }
+    grid.classList.toggle('af-click', !!c && (sel ? inSel(c) && selOpens() : opens(c)));
+    if (!c) { tip.hidden = true; if (hit && hit.run) streak(hit); else if (sel) showSel(); return; }
     const off = c.o <= 0 && !c.n && H.free.has(c.o);  // (a day with nothing due)
     const run = c.o <= 0 && (c.n || off) ? H.runOf(c.o) : null;
     const what = c.o < H.first ? (H.hid !== null && c.o < H.hid ? 'Before your forest began' : 'Before your first review')
@@ -1779,19 +1976,24 @@ AF.calendar = function (root, data, env) {
     });
     grid.addEventListener('focusout', e => { if (e.target === drawn.cv) unpoint(); });
     grid.addEventListener('keydown', e => {
-      if (e.target !== drawn.cv || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.target !== drawn.cv || e.altKey || ((e.ctrlKey || e.metaKey) && e.key !== 'Enter')) return;
       const step = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
       if (e.key === 'Escape') { if (!tip.hidden) { e.preventDefault(); e.stopPropagation(); unpoint(); } return; }
-      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ':' + H.by}`); return; }
+      if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c) dayClick(c, e); return; }
       if (e.key === 'Home') { e.preventDefault(); cur = 0; if (!curCell()) go('0'); toCur(); return; }
       if (!step && !pg) return;
       e.preventDefault();
+      // (Shift and an arrow selects as it goes, from the day it set out from: as text and lists are
+      // selected by the keyboard)
+      const stretch = !!step && e.shiftKey;
+      if (stretch && anchor === null) { anchor = cur; base = new Set(sel || []); }
       if (pg) { const along = cur - drawn.win.from; go(pg); cur = drawn.win.from + along; }
       else {
         cur += step;
         const may = can(drawn.win);
         if (cur < drawn.win.from && may.back) go('-1'); else if (cur > drawn.win.to && may.on) go('1');
       }
+      if (stretch) { cur = Math.max(drawn.win.from, Math.min(drawn.win.to, cur)); pick(cur, true); }
       toCur();
     });
   }
@@ -1831,10 +2033,32 @@ AF.calendar = function (root, data, env) {
     swept += dx;
     if (Math.abs(swept) >= SWIPE_PX) { const to = swept > 0 ? '1' : '-1'; swept = null; go(to); }
   }, { passive: false });
+  // a click opens its day in the browser; Shift or Cmd and a click selects days (select), and a click on
+  // one of them then opens them all (on any other day, lets them go)
+  const MAC = /Mac|iPhone|iPad/.test(navigator.platform || '');
+  const toggles = e => (MAC ? e.metaKey : e.ctrlKey);  // (a Mac's Ctrl-click is a right-click: the mark)
+  const dayClick = (c, e) => {
+    // (on the year in view or an earlier one shown: a selection can span years)
+    if ((e.shiftKey || toggles(e)) && !swiped) return pick(c.o, e.shiftKey);
+    if (sel) {
+      if (inSel(c) && selOpens()) {
+        const runs = runsOf().map(([a, b]) => [Math.max(a, H.first), Math.min(b, H.ahead)]).filter(([a, b]) => a <= b);
+        send(`${data.channel}:days:${runs.map(r => r.join('_')).join(',')}:${deck}:${H.by}`);
+      } else if (!inSel(c)) { unpick(); last = undefined; tell(c); anchorAt(c); }
+      return;
+    }
+    anchorAt(c);
+    if (opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ':' + H.by}`);
+  };
+  // (a day clicked, or opened by Enter, is where a Shift-click then selects from, as Finder does
+  // from the file last clicked: one Shift-click selects a stretch)
+  const anchorAt = c => { if (!swiped) { anchor = c.o; base = new Set(); } };
+  // (Shift and a click would select the page's words on its way)
+  grid.addEventListener('mousedown', e => { if (e.shiftKey || toggles(e)) e.preventDefault(); });
   grid.addEventListener('click', e => {
     if (e.detail > 1) return;  // (a double-click opens the day once)
     const c = cellAt(e);
-    if (c && opens(c)) send(`${data.channel}:day:${c.o}:${deck}${dueNow(c) ? ':due' : ':' + H.by}`);
+    if (c) dayClick(c, e);
   });
   // a right-click on a day marks it as important (an exam, say: marks.py) and opens a small editor
   // over it: the icons side by side, its own lit, its name, and × to take the mark away.
@@ -1910,6 +2134,7 @@ AF.calendar = function (root, data, env) {
     if (!c || !data.inAnki || pointed !== drawn) return;
     e.preventDefault();
     if (editing) closePin(true);
+    unpick();  // (a mark is one day's: the days selected go, as a click on another day lets them go, not left dimming the day being marked)
     const before = H.marked.get(c.o);
     editing = { o: c.o, ms: c.ms, before: before ? Object.assign({}, before) : null };
     if (!before) H.marked.set(c.o, { icon: MARK_ORDER[0], name: '' });

@@ -60,6 +60,7 @@ def page(show_forest=False, deep=False) -> str:
         tree = data["trees"][-1]
         today = dt.date.fromisoformat(tree["date"]) + dt.timedelta(days=tree["ago"])
         data["calendar"]["start"] = (today - dt.timedelta(days=len(data["calendar"]["days"]) - 1)).isoformat()
+        data["calendar"]["browse"] = True  # (a stretch picked opens in the browser)
     with open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8") as f:
         css = f.read()
     tags = "".join(f'<script src="file://{os.path.join(catalog.WEB, s)}"></script>' for s in catalog.SCRIPTS)

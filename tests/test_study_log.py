@@ -343,6 +343,49 @@ class DayTimeTests(unittest.TestCase):
         con.execute("insert into revlog values (?, 1, 3, 1, 0)", (ms(1) + 1,))
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None)[1], 2.75)
         self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -1), {1: 2750})
+        # days picked on the heatmap: their answers together, a stretch or days apart; searched by day
+        self.assertEqual(study_log.calendar_days_search([(-5, 0)]), ["prop:rated>=-5"])
+        self.assertEqual(study_log.calendar_days_search([(0, 0)]), ["rated:1"])
+        self.assertEqual(study_log.calendar_days_search([(-9, -8), (-2, 0)]), ["(prop:rated=-9 OR prop:rated=-8 OR prop:rated>=-2)"])
+        # (three years picked, a day left out: nested, no group of more than OR_FLAT, every day once)
+        long = study_log.calendar_days_search([(-1200, -600), (-598, -1)])[0]
+        self.assertEqual(long.count("prop:rated="), 1199)
+        depth = width = 0
+        for part in long.replace("(", " ( ").replace(")", " ) ").split():
+            depth += part == "("
+            depth -= part == ")"
+            width = max(width, depth)
+        self.assertLessEqual(width, 3)
+        self.assertTrue(all(len(g.split(" OR ")) <= study_log.OR_FLAT for g in long.replace("(", ")").split(")")))
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, [(-3, -1)], "reviews"), {1: 6})
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, [(-2, -1)], "reviews"), {1: 2})
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, [(-3, -3), (-1, -1)], "reviews"), {1: 6})
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, [(-3, -3), (-2, -2)], "reviews"), {1: 4})
+        self.assertEqual(study_log.days_answer_times(DB(), CUTOFF, [(-3, -1)]), {1: 12750})
+        # (days apart and their time: the days between left out; a day with none of its answers, none)
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, [(-3, -3), (-1, -1)], "time"), {1: 181500 + 5500})
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, [(-2, -2), (-5, -4)], "time"), {})
+        self.assertEqual(study_log.days_answer_times(DB(), CUTOFF, [(-3, -3), (-1, -1)]), study_log.days_answer_times(DB(), CUTOFF, [(-3, -1)]))
+        self.assertEqual(study_log.days_answer_times(DB(), CUTOFF, [(-2, -2)]), {})
+
+    def test_a_long_pick_s_search_stays_within_sqlite_s_depth(self):
+        """A flat chain of a thousand OR'd terms is a tree a thousand deep, past SQLite's limit:
+        the days picked are nested in groups (calendar_days_search), so three years still search."""
+        import re
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
+        con.execute("create table revlog (id integer, cid integer)")
+        terms = study_log.calendar_days_search([(-1200, -600), (-598, -1)])[0]
+        # (as Anki writes each term: a subquery on the review log)
+        sql = re.sub(r"prop:rated=(-?\d+)", r"(cid in (select cid from revlog where id = \1))", terms).replace(" OR ", " or ")
+        self.assertEqual(con.execute(f"select count() from revlog where {sql}").fetchone(), (0,))
+        flat = " or ".join(["(cid in (select cid from revlog where id = 1))"] * 1199)
+        with self.assertRaises(sqlite3.OperationalError):  # (what the flat chain did)
+            con.execute(f"select count() from revlog where {flat}")
+        # (a stretch up to today stays one term; days ahead are not this search's: actions.browse_calendar_days)
+        self.assertEqual(study_log.calendar_days_search([(-400, 0)]), ["prop:rated>=-400"])
+        self.assertEqual(study_log.calendar_days_search([]), [])
 
     def test_answer_times_kept_read_only_the_days_added_to(self):
         import sqlite3

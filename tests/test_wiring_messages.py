@@ -187,7 +187,7 @@ class MessageFormatsTests(unittest.TestCase):
     """The messages the page's scripts write match what on_js_message reads: each command the
     page sends is one it handles."""
 
-    HANDLED = {"settings", "news", "struck", "strike", "deep", "mark", "unmark", "shade", "view", "typing", "day", "browse"}
+    HANDLED = {"settings", "news", "struck", "strike", "deep", "mark", "unmark", "shade", "view", "typing", "day", "days", "browse"}
 
     def test_every_command_the_page_sends_is_handled(self):
         import re

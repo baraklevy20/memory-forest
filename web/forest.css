@@ -283,8 +283,8 @@
 /* paging: the new stretch slides in from the side you went towards, briefly (calendar.js go) */
 @keyframes af-cal-from-left { from { opacity: 0.25; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
 @keyframes af-cal-from-right { from { opacity: 0.25; transform: translateX(16px); } to { opacity: 1; transform: none; } }
-.af-cal-from-left .af-cal-canvas, .af-cal-from-left .af-cal-months, .af-cal-from-left .af-cal-notes { animation: af-cal-from-left 0.18s ease-out; }
-.af-cal-from-right .af-cal-canvas, .af-cal-from-right .af-cal-months, .af-cal-from-right .af-cal-notes { animation: af-cal-from-right 0.18s ease-out; }
+.af-cal-from-left .af-cal-canvas, .af-cal-from-left .af-cal-months, .af-cal-from-left .af-cal-notes, .af-cal-from-left .af-cal-spot { animation: af-cal-from-left 0.18s ease-out; }
+.af-cal-from-right .af-cal-canvas, .af-cal-from-right .af-cal-months, .af-cal-from-right .af-cal-notes, .af-cal-from-right .af-cal-spot { animation: af-cal-from-right 0.18s ease-out; }
 @media (prefers-reduced-motion: reduce) { .af-cal-from-left *, .af-cal-from-right * { animation: none !important; } }
 .af-cal-canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
 .af-cal-canvas:focus { outline: none; }
@@ -293,7 +293,7 @@
 .af-cal-months span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; }  /* (baseline about 12px down) */
 .af-cal-months .af-cal-year { color: inherit; }
 .af-cal-hover {
-  position: absolute; box-sizing: border-box; pointer-events: none;
+  position: absolute; z-index: 1; box-sizing: border-box; pointer-events: none;  /* (over a selection's dimmed days: under them its right and bottom sides were dimmed) */
   border: 2px solid;  /* its colour: today's frame's, which shows on every shade (calendar.js) */
   transition: left 0.06s ease-out, top 0.06s ease-out;  /* (square, flat and on the grid, as the pixels round it: a soft shadow and a lift blurred it off the tiles) */
 }

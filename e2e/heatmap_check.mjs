@@ -99,9 +99,187 @@ try {
       weeks.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: dayX, clientY: dayY }));
       if (snapshot() === before) failures.push('mouse day did not highlight its tree');
       if (!root.querySelector('.af-cal-tip').textContent.includes('Sep 10, 2026') && tree.it.date === '2026-09-10') failures.push('September 10 pointer selected the wrong date');
+      // a stretch picked with Shift and two clicks: its summary, the rest of the heatmap dimmed, its
+      // trees lit in the forest, a click inside it opening it, Esc letting it go; then days apart
+      const dayAt = n => {
+        weeks.focus();
+        weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+        for (let i = 0; i < n; i++) weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+        const b = ring.getBoundingClientRect();
+        return [b.left + b.width / 2, b.top + b.height / 2];
+      };
+      const first = dayAt(20), second = dayAt(5);
+      weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      weeks.blur();
+      const unpicked = snapshot(), tipEl = root.querySelector('.af-cal-tip');
+      const click = ([x, y], shiftKey) => weeks.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y, shiftKey, detail: 1 }));
+      click(first, true); click(second, true);
+      if (tipEl.hidden || !/ to /.test(tipEl.textContent) || !/Studied/.test(tipEl.textContent)) failures.push(`a stretch picked had no summary: "${tipEl.textContent}"`);
+      if (!root.querySelector('.af-cal-spot')) failures.push('a stretch picked did not dim the other days');
+      if (snapshot() === unpicked) failures.push("a stretch picked did not light its trees");
+      weeks.parentElement.dispatchEvent(new MouseEvent('mouseleave'));  // (the heatmap's own: it does not bubble up from the weeks)
+      if (!tipEl.hidden || !root.querySelector('.af-cal-spot')) failures.push('a stretch picked went, or kept its summary, when the pointer left');
+      const sent = [], was = window.pycmd;
+      window.pycmd = m => { sent.push(m); return false; };
+      click(second, false);
+      window.pycmd = was;
+      if (!sent.some(m => /:days:-20_-5:/.test(m))) failures.push(`a click inside the stretch did not open it: ${sent}`);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      if (root.querySelector('.af-cal-spot') || !tipEl.hidden) failures.push('Esc did not let the stretch go');
+      if (snapshot() !== unpicked) failures.push('letting the stretch go did not restore the forest');
+      // Cmd (Ctrl off a Mac) and a click drops a day from a stretch, and picks one apart from it
+      const cmd = /Mac/.test(navigator.platform) ? { metaKey: true } : { ctrlKey: true };
+      const third = dayAt(12), apart = dayAt(2);
+      weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      weeks.blur();
+      click(first, true); click(second, true);
+      const cmdClick = ([x, y]) => weeks.dispatchEvent(new MouseEvent('click', Object.assign({ bubbles: true, clientX: x, clientY: y, detail: 1 }, cmd)));
+      cmdClick(third); cmdClick(apart);
+      if (!/^16 days, /.test(tipEl.textContent)) failures.push(`Cmd-clicks did not pick days apart: "${tipEl.textContent}"`);
+      sent.length = 0;
+      window.pycmd = m => { sent.push(m); return false; };
+      click(second, false);
+      window.pycmd = was;
+      if (!sent.some(m => /:days:-20_-13,-11_-5,-2_-2:/.test(m))) failures.push(`days picked apart did not open as their runs: ${sent}`);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      if (root.querySelector('.af-cal-spot')) failures.push('Esc did not let the days picked go');
       return failures;
     });
     out.errors.push(...checks);
+    // picking, the rest of it: a plain click setting where Shift picks from, Shift+arrows, one day
+    // read as that day, "to today", the count said once, the summary only while pointing, the dim
+    // kept while picking (paged away, on every year shown) and on its weeks after paging and
+    // redraws, a pick across two years, and what lets a pick go
+    const picking = await p.evaluate(async () => {
+      const root = document.getElementById('p'), failures = [], fail = m => failures.push(m);
+      const weeks = () => root.querySelector('.af-cal-canvas:not(.af-cal-past-weeks)');
+      const ring = root.querySelector('.af-cal-hover'), tipEl = root.querySelector('.af-cal-tip'), grid = weeks().parentElement;
+      ring.style.transition = 'none';
+      const key = (k, extra = {}) => weeks().dispatchEvent(new KeyboardEvent('keydown', Object.assign({ key: k, bubbles: true }, extra)));
+      const esc = () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      const dayAt = n => {
+        weeks().focus(); key('Home');
+        for (let i = 0; i < n; i++) key('ArrowUp');
+        const b = ring.getBoundingClientRect();
+        return [b.left + b.width / 2, b.top + b.height / 2];
+      };
+      const done = () => { key('Escape'); weeks().blur(); grid.dispatchEvent(new MouseEvent('mouseleave')); };
+      const cmd = /Mac/.test(navigator.platform) ? { metaKey: true } : { ctrlKey: true };
+      const click = ([x, y], mods = {}, on = weeks()) => on.dispatchEvent(new MouseEvent('click', Object.assign({ bubbles: true, clientX: x, clientY: y, detail: 1 }, mods)));
+      const move = ([x, y], on = weeks()) => on.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+      const sentBy = f => { const sent = [], was = window.pycmd; window.pycmd = m => { sent.push(m); return false; }; f(); window.pycmd = was; return sent; };
+      const spots = () => [...root.querySelectorAll('.af-cal-spot')].filter(s => s.style.visibility !== 'hidden');
+      // (each dim layer lies on its year's weeks: same place, same size)
+      const layersOn = what => {
+        const cvs = [...root.querySelectorAll('.af-cal-canvas')].map(c => c.getBoundingClientRect());
+        for (const s of spots()) {
+          const r = s.getBoundingClientRect();
+          if (!cvs.some(c => Math.abs(c.left - r.left) < 1.5 && Math.abs(c.top - r.top) < 1.5 && Math.abs(c.width - r.width) < 1.5 && Math.abs(c.height - r.height) < 1.5)) fail(`a dim layer left its weeks ${what}`);
+        }
+      };
+      // (how dimmed the point is: the alpha of the layer over it, 0 for a day lit)
+      const dimAt = ([x, y]) => {
+        const s = spots().find(l => { const r = l.getBoundingClientRect(); return x >= r.left && x < r.right && y >= r.top && y < r.bottom; });
+        if (!s) return -1;
+        const r = s.getBoundingClientRect();
+        return s.getContext('2d').getImageData(Math.floor((x - r.left) / r.width * s.width), Math.floor((y - r.top) / r.height * s.height), 1, 1).data[3];
+      };
+      const [d0, d3, d5, d9, d20] = [0, 3, 5, 9, 20].map(dayAt);
+      done();
+      // a plain click marks where Shift then picks from: one Shift-click picks the stretch
+      const opened = sentBy(() => click(d20));
+      if (!opened.some(m => /:day:-20:/.test(m))) fail(`a plain click did not open its day: ${opened}`);
+      click(d5, { shiftKey: true });
+      if (!/ to /.test(tipEl.textContent) || dimAt(d9) !== 0 || dimAt(d3) <= 0) fail(`a Shift-click after a plain click did not pick the stretch: "${tipEl.textContent}"`);
+      // the summary only while pointing; the dim stays at rest
+      grid.dispatchEvent(new MouseEvent('mouseleave'));
+      if (!tipEl.hidden || !spots().length) fail('at rest the summary stayed, or the dim went');
+      move(d9);
+      if (tipEl.hidden || !/^[A-Z][a-z]{2} \d+ to /.test(tipEl.textContent)) fail(`pointing at a picked day did not give the summary: "${tipEl.textContent}"`);
+      if (ring.hidden) fail('the day pointed at in a pick lost its ring');
+      if (!/Studied every day/.test(tipEl.textContent)) fail(`the stretch's summary: "${tipEl.textContent}"`);
+      // paged away: still dimmed, no summary left behind; back: on its weeks
+      grid.dispatchEvent(new MouseEvent('mouseleave'));
+      root.querySelector('[data-go="-1"]').click();
+      if (!spots().length) fail('paged away from the days picked, the heatmap was not dimmed');
+      if (!tipEl.hidden) fail('paged away, the summary stayed behind');
+      layersOn('after paging back');
+      root.querySelector('[data-go="1"]').click();
+      layersOn('after paging on');
+      if (dimAt(d9) !== 0) fail('paged back, the days picked were not lit');
+      // a redraw with the days focused (the keyboard paging) keeps the layer on its weeks
+      weeks().focus(); key('PageUp'); key('PageDown');
+      layersOn('after PageUp and PageDown');
+      done(); esc();
+      if (spots().length) fail('Esc did not let the stretch go');
+      // Shift and the arrows pick from the keyboard
+      weeks().focus(); key('Home'); key('ArrowUp'); key('ArrowUp');
+      for (let i = 0; i < 4; i++) key('ArrowUp', { shiftKey: true });
+      if (!/ to /.test(tipEl.textContent) || dimAt(d5) !== 0) fail(`Shift+arrows did not pick: "${tipEl.textContent}"`);
+      done(); esc();
+      // one day selected reads as that day; a stretch up to today says so
+      click(d9, cmd);
+      // (its lit square sits evenly round its face: as much on the left as on the right, above as below)
+      {
+        const cv = weeks(), layerCv = spots()[0], r = cv.getBoundingClientRect();
+        const px = Math.floor((d9[0] - r.left) / r.width * cv.width), py = Math.floor((d9[1] - r.top) / r.height * cv.height);
+        const face = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height), lit = layerCv.getContext('2d').getImageData(0, 0, cv.width, cv.height);
+        const drawn = (x, y) => face.data[(y * cv.width + x) * 4 + 3] > 0, clear = (x, y) => lit.data[(y * cv.width + x) * 4 + 3] === 0;
+        const reach = (test, x, y, dx, dy) => { while (test(x + dx, y + dy)) { x += dx; y += dy; } return dx ? x : y; };
+        const f = [reach(drawn, px, py, -1, 0), reach(drawn, px, py, 1, 0), reach(drawn, px, py, 0, -1), reach(drawn, px, py, 0, 1)];
+        const l = [reach(clear, px, py, -1, 0), reach(clear, px, py, 1, 0), reach(clear, px, py, 0, -1), reach(clear, px, py, 0, 1)];
+        if (f[0] - l[0] !== l[1] - f[1] || f[2] - l[2] !== l[3] - f[3]) fail(`a selected day's lit square is lopsided round its face: face ${f}, lit ${l}`);
+      }
+      if (!/^[A-Z][a-z]+day, /.test(tipEl.textContent) || /Studied every day/.test(tipEl.textContent)) fail(`one day picked did not read as that day: "${tipEl.textContent}"`);
+      esc();
+      click(d3, { shiftKey: true }); click(d0, { shiftKey: true });
+      if (!/to today/.test(tipEl.textContent)) fail(`a stretch up to today did not say "to today": "${tipEl.textContent}"`);
+      esc();
+      // days apart: their count said once
+      click(d20, cmd); click(d9, cmd); click(d5, cmd);
+      if (!/^3 days, /.test(tipEl.textContent) || /of 3 days/.test(tipEl.textContent) || !/of them/.test(tipEl.textContent)) fail(`days apart: "${tipEl.textContent}"`);
+      // a click off the heatmap, a click on the forest, a right-click to mark: each lets them go
+      document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      if (spots().length) fail('a click off the heatmap did not let the pick go');
+      click(d20, cmd);
+      root.querySelector('.af-canvas').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      if (spots().length) fail('a click on the forest did not let the pick go');
+      click(d20, cmd); click(d9, cmd);
+      const [mx, my] = d5;
+      weeks().dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: mx, clientY: my }));
+      if (spots().length) fail('a right-click to mark a day did not let the pick go');
+      const name = root.querySelector('.af-cal-pin-name');
+      if (name) name.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      // across two years: an earlier year's day and one in the year in view, both lit, a year with
+      // none picked dimmed all over, the summary counting both, a click sending both
+      const more = root.querySelector('.af-cal-more');
+      if (!more) { fail('no earlier year to pick across'); return failures; }
+      more.click();
+      await new Promise(r => setTimeout(r, 300));
+      const pastCv = [...root.querySelectorAll('.af-cal-past-weeks')].pop();  // (the year before the year in view: all of it after the first review)
+      const pr = pastCv.getBoundingClientRect(), earlier = [pr.left + pr.width * 0.5, pr.top + pr.height * 0.55];
+      const [n0, n9] = [0, 9].map(dayAt);
+      done();
+      click(n9, cmd);
+      if (dimAt(earlier) <= 0) fail('an earlier year with none of the days picked was not dimmed');
+      click(earlier, cmd, pastCv);
+      if (dimAt(earlier) !== 0 || dimAt(n9) !== 0) fail('a pick across two years did not light both days');
+      if (dimAt(n0) <= 0) fail('a day not picked was not dimmed');
+      move(earlier, pastCv);
+      if (!/^2 days, .*\d{4} to /.test(tipEl.textContent)) fail(`the summary across two years did not count both: "${tipEl.textContent}"`);
+      layersOn('with the earlier years shown');
+      const both = sentBy(() => click(earlier, {}, pastCv));
+      const runs = both.map(m => (m.match(/:days:([^:]*):/) || [])[1]).find(Boolean) || '';
+      if (runs.split(',').length !== 2 || !(+runs.split('_')[0] < -365)) fail(`a click on a picked day of an earlier year did not open both: ${both}`);
+      // a Shift-click stretches across the years from the anchor
+      click(n0, { shiftKey: true }, weeks());
+      if (dimAt(n9) !== 0) fail('a Shift-click from an earlier year did not stretch into the year in view');
+      esc();
+      if (spots().length) fail('Esc did not let a pick across years go');
+      more.click();
+      return failures;
+    });
+    out.errors.push(...picking);
     if (!checks.length) out.states['linked hover in a still forest'] = [{ name: 'tree and day', off: '' }];
   }
   if (deep) {

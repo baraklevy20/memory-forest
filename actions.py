@@ -62,6 +62,41 @@ def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, 
     _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did, values, label, answer_mode)
 
 
+def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = "") -> None:
+    """Open the browser on the cards reviewed on the days picked on the heatmap (web/calendar.js:
+    Shift-click a stretch, Cmd/Ctrl-click a day), `runs` of them as (first, last) days from today
+    (0: today), with their reviews, time or median answer time over those days beside them; days
+    ahead open their cards due, as a day ahead clicked does."""
+    picked = sorted((min(a, b), max(a, b)) for a, b in runs)
+    ahead = [d for a, b in picked for d in range(max(a, 1), b + 1)]
+    runs = [(a, min(b, 0)) for a, b in picked if a <= 0]
+    due = [t for d in ahead for t in study_log.calendar_search(mw.col.db, d, mw.col.sched.today)]
+    if not runs:
+        if due:
+            _open_browser([study_log._any_of(due)], did)
+        return
+    cutoff = day_cutoff(mw.col)
+    mode = answer_mode if answer_mode in ("reviews", "time", "median") else "reviews"
+    values = (study_log.days_answer_times(mw.col.db, cutoff, runs) if mode == "median"
+              else study_log.days_card_totals(mw.col.db, cutoff, runs, mode))
+    if not values:
+        if due:
+            _open_browser([study_log._any_of(due)], did)
+        return
+    title = {"reviews": "Reviews", "time": "Total time", "median": "Answer time"}[mode]
+    date = lambda o: study_log.day_date(-o, cutoff).isoformat()
+    days = sum(b - a + 1 for a, b in runs)
+    span = date(runs[0][0]) if days == 1 else f"{date(runs[0][0])} to {date(runs[-1][1])}"
+    label = f"{title} ({span})" if len(runs) == 1 else f"{title} ({days} days, {span})"
+    terms = study_log.calendar_days_search(runs)
+    _open_browser([study_log._any_of(terms + due)] if due else terms, did, values, label, mode)
+
+
+def _days_picked(text: str) -> list:
+    """The days picked on the heatmap, as the page sends them: "-20_-5,-3_-3"."""
+    return [tuple(int(v) for v in part.split("_", 1)) for part in text.split(",") if "_" in part]
+
+
 def _open_browser(terms: list, did: int | None = None, answer_times: dict | None = None, answer_label: str = "", metric: str = "median") -> None:
     """The browser on `terms`, kept to the cards the forest counts: the deck `did` if given, and
     never a deck left out of the forest or the note that carries it to your phone."""
@@ -139,6 +174,9 @@ def on_js_message(handled, message, context):
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked
             browse_calendar_day(int(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None, len(cmd) > 3 and cmd[3] == "due",
                                 cmd[3] if len(cmd) > 3 else "")
+        elif cmd[0] == "days" and len(cmd) > 1:  # days picked on the heatmap, clicked
+            browse_calendar_days(_days_picked(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,
+                                 cmd[3] if len(cmd) > 3 else "")
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,
