@@ -147,6 +147,14 @@ def shows_record(cfg: dict | None = None) -> bool:
     return (cfg if cfg is not None else config()).get("calendar_record", True) not in OFF_VALUES
 
 
+def keeps_earlier_trees(cfg: dict | None = None) -> bool:
+    """Whether the trees from before the start date grow all the same, and only the ponds, Nature
+    and the animals count from it (Decks tab: "Keep the trees from before it"). Off unless
+    switched on: a start date leaves the days before it out."""
+    value = (cfg if cfg is not None else config()).get("keep_earlier_trees", False)
+    return bool(value) and value not in OFF_VALUES
+
+
 def streak_from_start(cfg: dict | None = None) -> bool:
     """Whether the streak starts again at the start date (Heatmap tab: "Count your
     streak from: The start date"); off unless switched on, so a start date leaves your streak whole."""

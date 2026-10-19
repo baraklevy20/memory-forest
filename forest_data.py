@@ -134,6 +134,7 @@ def rebuild(forest: dict, trees: list, review_days: set | None = None, reviews: 
     streak, longest = _streaks(set(days))
     s = forest["stats"]
     out = dict(forest, **make_forest(trees, streak, longest, s["reviews"] if reviews is None else reviews, s["today_reviews"]))
+    out.pop("counted", None)  # (what stands now is all counted: an asteroid's forest grew after the start date)
     if "lit_count" in forest:  # a deck's trees lit in the main forest: count what still stands
         out["lit_count"] = sum(1 for t in trees if not t.get("dim"))
     return out
@@ -176,9 +177,13 @@ def days_off(review_days: set, free: frozenset, per_week: int, since: int | None
     return frozenset(out)
 
 
-def _breaks(review_days: set, oldest: int) -> list:
+def _breaks(review_days: set, oldest: int, counts_from: int | None = None) -> list:
     """(days_ago of the day that ended the break, length) for each stretch of at least
-    BREAK_DAYS days without reviews, oldest first. A break still in progress is ignored."""
+    BREAK_DAYS days without reviews, oldest first. A break still in progress is ignored.
+    With `counts_from` (days ago: the start date, its trees from before it kept) only the days
+    from then on: a break before it is none, and one running over it counts from it."""
+    if counts_from is not None:
+        oldest = min(oldest, counts_from)
     out = []
     gap = 0
     for d in range(oldest, -1, -1):
@@ -214,20 +219,24 @@ def _ponds(trees: list, breaks: list, date_of) -> None:
         tree.update(gap=days, gap_from=date_of(began), gap_to=date_of(ended))
 
 
-def with_ponds(trees: list, review_days: set, date_of) -> list:
+def with_ponds(trees: list, review_days: set, date_of, counts_from: int | None = None) -> list:
     """Copies of `trees` with their ponds marked afresh from `review_days` (see _ponds): a
-    deck's own forest has the main forest's breaks, not the days away from that deck alone."""
+    deck's own forest has the main forest's breaks, not the days away from that deck alone
+    (and from the same day, `counts_from`: see _breaks)."""
     out = [{k: v for k, v in t.items() if k not in POND_KEYS} for t in trees]
     if out:
-        _ponds(out, _breaks(review_days, out[0]["ago"]), date_of)
+        _ponds(out, _breaks(review_days, out[0]["ago"], counts_from), date_of)
     return out
 
 
-def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None = None) -> dict:
+def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None = None,
+                 counts_from: int | None = None) -> dict:
     """Group cards into daily trees and compute everything the renderer shows.
 
     `today` is the scheduler's day number (sched.today); trees are keyed by absolute
-    day number so their seed and position never change.
+    day number so their seed and position never change. With `counts_from` (days ago: a start
+    date whose trees from before it are kept), the ponds are only the breaks from then on, and
+    `counted` holds the stats of the forest grown since, which its animals go by.
     """
     now_ts = now_ts if now_ts is not None else day_cutoff - DAY_SECS / 2
     cohorts: dict = {}
@@ -289,10 +298,15 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
         trees.append(t)
 
     if trees:
-        _ponds(trees, _breaks(rows.review_days, trees[0]["ago"]), lambda d: day_date(d, day_cutoff).isoformat())
+        _ponds(trees, _breaks(rows.review_days, trees[0]["ago"], counts_from), lambda d: day_date(d, day_cutoff).isoformat())
 
     current, longest = _streaks(rows.review_days)
     forest = make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)
+    if counts_from is not None:
+        since = [t for t in trees if t["ago"] <= counts_from]
+        s_current, s_longest = _streaks({d for d in rows.review_days if d <= counts_from})
+        s_reviews = sum(n for d, n in rows.day_reviews.items() if d <= counts_from)
+        forest["counted"] = make_forest(since, s_current, s_longest, s_reviews, rows.today_reviews)["stats"]
     forest["review_days"] = rows.review_days  # for the events; never sent to the page
     forest["day_reviews"] = rows.day_reviews  # (and how many each day, to count again from a strike)
     forest["day_time"] = rows.day_time  # (and how long each day took: the heatmap's, read with the rest)

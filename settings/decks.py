@@ -22,13 +22,14 @@ from aqt.qt import (
 from .. import study_log
 from ..phone_note import phone_cards, phone_decks
 from ..scope import anki_today, day_cutoff
-from ..state import OFF_VALUES, log
+from ..state import OFF_VALUES, keeps_earlier_trees, log
 from .widgets import Tab, date_field, group, grow_window, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole
 DATE_FORMAT = "d MMMM yyyy"
 DECKS_NOTE = "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
-SINCE_NOTE = "Days before this grow no trees. The heatmap still shows them (Heatmap tab)."
+SINCE_NOTE = "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
+KEEP_NOTE = "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
 SINCE_OFF_NOTE = "Your forest starts on your first day of study, {first}."
 SUSPENDED_NOTE = "They keep their tree's size but never hurt its health."
 COUNTING = "Counting your trees…"
@@ -36,6 +37,8 @@ COUNTING = "Counting your trees…"
 UNFOLD_UNDER = 15
 # room between the start date and the suspended cards, now they share a group
 WHAT_COUNTS_GAP = 8
+# how far in the checkbox under the start date sits: under the start date's own label
+KEEP_INDENT = 22
 
 
 def _ids(cfg: dict) -> set:
@@ -101,13 +104,16 @@ class DecksTab(Tab):
         # ticked for the first time, it starts at the beginning of this month, not today,
         # which would leave only a seedling
         self.since.setDate(QDate(since.year, since.month, since.day) if since else QDate(today.year(), today.month(), 1))
+        self.keep_trees = QCheckBox("Keep the trees from before it")
+        self.keep_trees.setChecked(keeps_earlier_trees(cfg))
         self.summary = QLabel(COUNTING)
         deck_box = QVBoxLayout(); deck_box.addWidget(self.decks); deck_box.addWidget(self.summary); deck_box.addWidget(hint(DECKS_NOTE))
         sv = QVBoxLayout()
         since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
-        self.since_hint = hint(SINCE_NOTE)
+        self.since_hint = hint(self._since_note())
         # (the reviews from before it, and where your streak counts from: the Heatmap tab)
-        sv.addLayout(since_row); sv.addWidget(self.since_hint)
+        keep_row = QHBoxLayout(); keep_row.addSpacing(KEEP_INDENT); keep_row.addWidget(self.keep_trees); keep_row.addStretch(1)
+        sv.addLayout(since_row); sv.addLayout(keep_row); sv.addWidget(self.since_hint)
         sv.addSpacing(WHAT_COUNTS_GAP)
         self.keep_suspended = QCheckBox("Keep suspended cards in their trees")
         self.keep_suspended.setChecked(cfg.get("keep_suspended", True) not in OFF_VALUES)
@@ -209,7 +215,7 @@ class DecksTab(Tab):
         if self.days is None:
             return
         days, counted = self.days, self._counted()
-        since_ago = (self.today - self.since.date().toPyDate()).days if self.since_on.isChecked() else None
+        since_ago = (self.today - self.since.date().toPyDate()).days if self.since_on.isChecked() and not self.keep_trees.isChecked() else None
         suspended = self.keep_suspended.isChecked()
 
         dim = self.decks.palette().color(QPalette.ColorRole.PlaceholderText)
@@ -250,19 +256,24 @@ class DecksTab(Tab):
         """Without a start date, say which day the forest starts on: the first one studied.
         The calendar goes no further back, but never moves a date already chosen."""
         if oldest is None:
-            self.since_hint.setText(SINCE_NOTE)
+            self.since_hint.setText(self._since_note())
             return
         first = self.today - _dt.timedelta(days=oldest)
         chosen = self.since.date().toPyDate()
         self.since.blockSignals(True)
         self.since.setMinimumDate(QDate(*(min(first, chosen) if self.since_on.isChecked() else first).timetuple()[:3]))
         self.since.blockSignals(False)
-        self.since_hint.setText(SINCE_NOTE if self.since_on.isChecked() else
+        self.since_hint.setText(self._since_note() if self.since_on.isChecked() else
                                 SINCE_OFF_NOTE.format(first=f"{first.day} {first:%B %Y}"))
+
+    def _since_note(self) -> str:
+        chosen = self.since.date().toPyDate()  # (the date itself: "this date" read as today)
+        return (KEEP_NOTE if self.keep_trees.isChecked() else SINCE_NOTE).format(date=f"{chosen.day} {chosen:%B %Y}")
 
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"excluded_decks": (self.decks, "Decks in the forest"), "ignore_before": (self.since_on, "Start the forest on a date"),
+                "keep_earlier_trees": (self.keep_trees, "Keep the trees from before the start date"),
                 "keep_suspended": (self.keep_suspended, "Suspended cards")}
 
     def connect(self, changed) -> None:
@@ -276,11 +287,13 @@ class DecksTab(Tab):
             changed()
         self.decks.itemChanged.connect(deck_toggled)
         self.since_on.toggled.connect(changed)
+        self.keep_trees.toggled.connect(changed)
         self.keep_suspended.toggled.connect(changed)
         self.since.dateChanged.connect(changed)
 
     def sync(self) -> None:
         self.since.setEnabled(self.since_on.isChecked())
+        self.keep_trees.setEnabled(self.since_on.isChecked())
         self.recount()
 
     def values(self, cfg: dict) -> dict:
@@ -292,6 +305,7 @@ class DecksTab(Tab):
         return {
             "excluded_decks": sorted(excluded),
             "ignore_before": self.since.date().toString("yyyy-MM-dd") if self.since_on.isChecked() else "",
+            "keep_earlier_trees": self.keep_trees.isChecked(),
             "keep_suspended": self.keep_suspended.isChecked(),
         }
 

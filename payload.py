@@ -12,7 +12,7 @@ from aqt import mw
 from . import events_state, forest_data, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
 from .edition import debug_available, debug_edition
 from .phone_note import phone_cards
-from .scope import anki_today, changes, day_cutoff, deck_ids, excluded_decks, since
+from .scope import anki_today, changes, counts_since, day_cutoff, deck_ids, excluded_decks, since, trees_since
 from .seasons import follow_season, season_returns
 from .seasons import today as scenery_day
 from .state import (
@@ -108,9 +108,10 @@ def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> di
     col = mw.col
     cfg = config() if cfg is None else cfg
     cutoff = day_cutoff(col)
-    excluded, start, suspended, skip = excluded_decks(cfg), since(cfg), keeps_suspended(cfg), phone_cards()
+    excluded, start, suspended, skip = excluded_decks(cfg), trees_since(cfg), keeps_suspended(cfg), phone_cards()
+    counted = counts_since(cfg, cutoff)  # (the trees from before the start date kept: what counts from it)
     changed = changes() if changed is None else changed
-    key = (changed, cutoff, frozenset(excluded), start, suspended, frozenset(skip))
+    key = (changed, cutoff, frozenset(excluded), start, counted, suspended, frozenset(skip))
     cached = _forest_cache.get(did)
     if changed is not None and cached and cached[0] == key:
         return cached[1]
@@ -121,7 +122,7 @@ def _forest(did: int | None = None, cfg: dict | None = None, changed=None) -> di
     if owner != here:
         log_ = study_log.ReviewLog()
     rows = study_log.load_rows(col.db, cutoff, dids, excluded=excluded, since=start, suspended=suspended, skip=skip, log=log_)
-    value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time())
+    value = forest_data.build_forest(rows, cutoff, col.sched.today, time.time(), counted)
     log(f"built {len(value['trees'])} trees{f' for deck {did}' if did else ''} in {(time.perf_counter() - started) * 1000:.0f} ms")
     # the whole collection's, and the last deck screen's: one per deck ever opened adds up.
     # Only a deck's own build lets the one before go: the whole collection's leaves it, so
@@ -206,7 +207,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     today = anki_today()  # (Anki's day: until the rollover hour, still yesterday's anniversaries)
     all_trees = forest["trees"]
     ann_all = milestones.anniversaries(all_trees, today)
-    start = str(cfg.get("ignore_before")) if since(cfg) is not None else None
+    start = str(cfg.get("ignore_before")) if trees_since(cfg) is not None else None  # (its trees' start)
     new_ancient = False if test or (did and not highlight) else _new_ancient_today(forest, today, start)
 
     forest = forest_data.merge_old(forest)  # the oldest trees become one deep-forest band
@@ -354,16 +355,17 @@ def _page_stats(forest: dict, cfg: dict, test: bool, did: int | None, highlight:
         studied = {len(days) - 1 - i for i, n in enumerate(days) if n}
         streak, _longest = forest_data._streaks(studied, frozenset(calendar["daysOff"]))
         return dict(stats, streak=streak, streak_week=streak_week(cfg))
-    begin = since(cfg)
+    begin, kept = since(cfg), trees_since(cfg) is None  # (`kept`: the forest's days are all of them)
     calendar_here = calendar_on("decks" if did else "main", cfg)
-    from_start = begin is not None and (streak_from_start(cfg) or (calendar_here and not shows_record(cfg)))
+    # (with the trees from before it kept, the calendar shows the days before it whatever the Heatmap tab says)
+    from_start = begin is not None and (streak_from_start(cfg) or (calendar_here and not kept and not shows_record(cfg)))
     own = bool(did and highlight and calendar_here)
     cutoff, excluded, skip = day_cutoff(mw.col), excluded_decks(cfg), phone_cards()
     dids = deck_ids(did, excluded) if did and (own or not highlight) else None
     # the forest's own days when they are these (its decks, and from the start date only while
     # the streak counts from there too): read with it, nothing more to read
     forest_days = forest.get("day_reviews")
-    if forest_days is not None and (dids is None) == (did is None or highlight) and (begin is None or from_start):
+    if forest_days is not None and (dids is None) == (did is None or highlight) and from_start != kept:
         days = set(forest_days)
     else:
         days = set(_day_reviews(cutoff, dids, excluded, begin if from_start else None, skip, changed))
@@ -433,14 +435,19 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
         learned = {t["ago"]: t["n"] for t in trees}
         day_reviews = {ago: learned.get(ago, 0) * TEST_REVIEWS_PER_CARD or TEST_DAY_REVIEWS for ago in studied}
     elif dids and highlight:  # the main forest above it: the deck's own days, read on their own
-        day_reviews = _day_reviews(cutoff, dids, excluded, since(cfg), skip, changed)
+        day_reviews = _day_reviews(cutoff, dids, excluded, trees_since(cfg), skip, changed)
     else:  # (the forest's own days, and how long each took, read with it: nothing more to read)
         day_reviews, day_time = forest.get("day_reviews") or {}, forest.get("day_time")
     # with a start date (Ignore before), the reviews from before it too: the calendar shows your
     # whole record as if there were none, but for the animals, the forest's own (web/calendar.js)
-    begin, forest_start, own = since(cfg), None, day_reviews  # (the animals' days stay the forest's own)
+    begin, forest_start, own, animal_trees = since(cfg), None, day_reviews, trees  # (the animals' days stay the forest's own)
     hidden_before = None  # (with that record left out, the start date: the days before it say why they're empty)
-    if begin and not test and shows_record(cfg):
+    counted, counts_from = None if test else counts_since(cfg, cutoff), None
+    if counted is not None:  # the trees from before it kept: every day is the forest's, the animals' from the start date
+        counts_from = study_log.day_date(counted, cutoff).isoformat()
+        own = {a: n for a, n in day_reviews.items() if a <= counted}
+        animal_trees = [t for t in trees if t["ago"] <= counted]
+    elif begin and not test and shows_record(cfg):
         forest_start = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
         day_reviews, day_time = _day_reviews(cutoff, dids, excluded, None, skip, changed), None
     elif begin and not test:
@@ -452,7 +459,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             # Compact planting dates survive the drawing limit, without sending old sprites.
             "planted": [[t["ago"], t["n"]] for t in trees],
-            "animals": milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test)
+            "animals": milestones.animal_days(forest.get("visitors") or [], animal_trees, own, col.sched.today, test)
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)
@@ -464,6 +471,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             "ponds": [[t["gap_from"], t["gap_to"]] for t in trees if t.get("gap") and t.get("gap_from") and t.get("gap_to")],
             "forestStart": forest_start,
             "hiddenBefore": hidden_before,
+            # (the trees from before the start date kept: the day its ponds, animals and a streak counted from it begin)
+            "countsFrom": counts_from,
             "streakFromStart": streak_from_start(cfg),  # (else a streak runs on over the start date)
             "marks": marks.important_days(col),
             # the days' cards since deleted, [days ago, how many, of how many], where a day has any (the whole
@@ -477,7 +486,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
             # a test forest's from its first made-up day, so they show however lately they were chosen
             # (from the days the caption's streak counts: from the start date when it counts from there)
             "daysOff": sorted(_days_off(cfg, cutoff, set(studied), frozenset(), oldest)) if test else sorted(_days_off(
-                cfg, cutoff, {a for a, n in (own if forest_start and streak_from_start(cfg) else day_reviews).items() if n},
+                cfg, cutoff, {a for a, n in (own if (forest_start or counts_from) and streak_from_start(cfg) else day_reviews).items() if n},
                 _free_days(cutoff, dids, excluded, skip, changed))),
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
 

@@ -150,6 +150,9 @@ function history(cal) {
   // before it, brings the animals from it on, and the ponds, the forest's, are only after it)
   const n = o => o > 0 ? cal.due[o] || 0 : o >= first ? cal.days[o - first] || 0 : 0;
   const fs = cal.forestStart ? (utc(cal.forestStart) - today) / DAY_MS : null;
+  // (with the trees from before it kept, `cf`: the start date a streak counted from it begins on;
+  // nothing is dimmed, as the forest has trees from before it)
+  const cf = cal.countsFrom ? (utc(cal.countsFrom) - today) / DAY_MS : fs;
   // the days with no review and nothing due (study_log.load_free_days): a streak passes over
   // them, neither broken nor growing
   const free = new Set();
@@ -166,7 +169,7 @@ function history(cal) {
       // unless the Decks tab says to count it from the start date too)
       // (its length is in days studied: `days`)
       // (from the first day studied on or after it, even when the start date itself was free or a day off)
-      if (run && !(cal.streakFromStart && fs !== null && run.from < fs && o >= fs)) { run.to = o; run.days++; } else runs.push(run = { from: o, to: o, days: 1 });
+      if (run && !(cal.streakFromStart && cf !== null && run.from < cf && o >= cf)) { run.to = o; run.days++; } else runs.push(run = { from: o, to: o, days: 1 });
     } else {
       if (!free.has(o)) run = null;
     }
@@ -180,7 +183,7 @@ function history(cal) {
   let current = end || null;
   for (let o = end ? end.to + 1 : 0; current && o < 0; o++) if (!free.has(o)) current = null;
   // (counted from the start date, a streak that ended before it is none of yours now, as the caption has it)
-  if (current && cal.streakFromStart && fs !== null && current.to < fs) current = null;
+  if (current && cal.streakFromStart && cf !== null && current.to < cf) current = null;
   // the streak a day belongs to (a day with nothing due since the current one's last day, its)
   const runOf = o => runs.find(r => o >= r.from && o <= r.to) || (current && o > current.to && o <= 0 ? current : null);
   // your three longest streaks (of SHOWN_STREAK days or more; the first to reach a length ranks
@@ -249,7 +252,7 @@ function history(cal) {
   const animals = new Map();
   for (const a of cal.animals || []) if (-a.ago >= (fs !== null ? fs : first)) animals.set(-a.ago, (animals.get(-a.ago) || []).concat([a]));
   return Object.assign(H, {
-    today, first, n, fs, free, daysOff, runs, pond, current, runOf, podium, goal, animals,
+    today, first, n, fs, cf, free, daysOff, runs, pond, current, runOf, podium, goal, animals,
     // (with the reviews before the forest's start date left out, Heatmap tab: the day it began)
     hid: cal.hiddenBefore ? (utc(cal.hiddenBefore) - today) / DAY_MS : null,
     // the days you marked, each with its icon and name (an older version's: a bare date)
@@ -1929,7 +1932,8 @@ AF.calendar = function (root, data, env) {
         : `<br>Reach a ${num(SHOWN_STREAK)}-day streak on this day`)
         // (the soonest it can be, with days off a week allowed: if you take none of them)
         + ((data.stats && data.stats.streak_week || 7) < 7 ? ', studying every day until then' : '') : '';
-    const began = H.fs === c.o ? '<br>Your forest began' : H.fs !== null && c.o < H.fs && c.o >= H.first ? '<br><i>Before your forest began</i>' : '';
+    const began = H.fs === c.o ? '<br>Your forest began' : H.fs !== null && c.o < H.fs && c.o >= H.first ? '<br><i>Before your forest began</i>'
+      : H.fs === null && H.cf === c.o ? '<br>Ponds and animals count from here' : '';
     const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
     const marked = H.marked.has(c.o) ? `<br>${esc(markLine(H.marked.get(c.o), c.o))}` : '';
     // (in cards, not reviews: a card reviewed twice that day counts once)

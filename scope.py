@@ -9,7 +9,7 @@ from aqt import mw
 
 from . import study_log
 from .phone_note import phone_cards, phone_decks
-from .state import config
+from .state import config, keeps_earlier_trees
 
 
 def excluded_decks(cfg: dict | None = None) -> set:
@@ -68,6 +68,19 @@ def since(cfg: dict) -> int | None:
         return None
     cutoff = day_cutoff(mw.col)
     return study_log.day_start(min(date, anki_today(cutoff)), cutoff)
+
+
+def trees_since(cfg: dict) -> int | None:
+    """When the forest's trees begin, as a timestamp, or None: the start date, unless the trees
+    from before it are kept (then only the breaks, Nature and the animals go by it: since)."""
+    return None if keeps_earlier_trees(cfg) else since(cfg)
+
+
+def counts_since(cfg: dict, cutoff: int) -> int | None:
+    """The start date as days ago, while the trees from before it are kept: the day the forest's
+    ponds and animals count from. None otherwise (the forest itself begins there, or has no start)."""
+    begin = since(cfg) if keeps_earlier_trees(cfg) else None
+    return None if begin is None else study_log.days_ago(begin, cutoff)
 
 
 def deck_ids(did: int, excluded: set) -> list:

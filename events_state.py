@@ -10,7 +10,7 @@ from aqt import mw
 
 from . import events, forest_data, milestones, study_log
 from .phone_note import phone_cards, phone_decks
-from .scope import day_cutoff, deck_ids, excluded_decks, since
+from .scope import counts_since, day_cutoff, deck_ids, excluded_decks, since
 from .state import _profile, load_state, remembered, save_state, settings_open
 
 # The profiles a sync has finished for this session, and whether one is under way. Until
@@ -179,7 +179,8 @@ def _animals(forest: dict, struck: int | None, did: int | None = None, start: st
     """The forest with every animal that has come to it, remembered per profile for each
     forest there has been (the whole of it, and the one that grew since each asteroid -
     `struck`, the day it began again - the same for each deck's own forest, `did`, and all of
-    them again for each start date, `start`: a forest begun later earns its own): once
+    them again for each start date, `start`: a forest begun later earns its own, and one that
+    keeps the trees from before it earns them as that forest would, from its `counted` stats): once
     come, an animal stays, and is new on the day it came. The first look at a forest
     remembers the animals it already has without announcing them all at once - so changing
     the Nature setting back and forth announces nothing - and nothing the settings dialog
@@ -196,11 +197,12 @@ def _animals(forest: dict, struck: int | None, did: int | None = None, start: st
     known = every.get(key)
     first = known is None
     known = {k: v for k, v in (known or {}).items() if v is None or type(v) is int}
-    arrived = milestones.arrivals(forest["stats"], known, None if first or settings_open() else today)
+    stats = forest.get("counted") or forest["stats"]
+    arrived = milestones.arrivals(stats, known, None if first or settings_open() else today)
     if not settings_open() and arrived != every.get(key):
         state["animals"] = dict(every, **{key: arrived})
         save_state(state)
-    return dict(forest, visitors=milestones.visitors(forest["stats"], arrived, today))
+    return dict(forest, visitors=milestones.visitors(stats, arrived, today))
 
 
 def _held(days: set) -> frozenset:
@@ -270,7 +272,8 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
         nature_days = _nature_days(cfg, forest, changed, own=did is not None)
         if did is not None:  # as on the main forest: coasting is reviewing anywhere, a break is from every deck
             reviewing = nature_days
-            forest = dict(forest, trees=forest_data.with_ponds(forest["trees"], _pond_days(cfg, changed), ago_date))
+            forest = dict(forest, trees=forest_data.with_ponds(forest["trees"], _pond_days(cfg, changed), ago_date,
+                                                               counts_since(cfg, day_cutoff(mw.col))))
         struck = None
         live = not settings_open()  # (what the settings dialog previews is not remembered as shown)
         if level == "merciless":

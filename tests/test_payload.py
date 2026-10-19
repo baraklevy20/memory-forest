@@ -316,6 +316,34 @@ class PayloadTests(unittest.TestCase):
         self.assertNotIn("ancient", p["journal"])
         self.assertNotIn("new_ancient", p["events"])
 
+    def test_kept_trees_from_before_the_start_date_bring_no_ponds_of_their_own(self):
+        cards = [(1, 10, 40), (2, 10, 30), (3, 10, 5), (4, 10, 0)]  # away 9 days, then 24
+        reset(cards)
+        self.assertEqual([(t["ago"], t.get("gap")) for t in payload.payload()["trees"] if t.get("gap")], [(30, 33)])  # (one spell away: one pond)
+        reset(cards, {"ignore_before": "2026-09-09", "keep_earlier_trees": True})  # 10 days ago
+        p = payload.payload()
+        self.assertEqual(p["stats"]["trees"], 4)  # every tree stays
+        self.assertEqual(p["stats"]["ponds"], 0)  # the break before it is none, the one over it only 5 days
+        self.assertEqual(p["calendar"]["ponds"], [])
+        self.assertIsNone(p["calendar"]["forestStart"])  # nothing before it is dimmed: it has trees
+        self.assertEqual(p["calendar"]["countsFrom"], "2026-09-09")
+        self.assertEqual(len(p["calendar"]["days"]), 41)  # the heatmap from the first tree
+        reset(cards, {"ignore_before": "2026-09-01", "keep_earlier_trees": True})  # 18 days ago: 13 days away from it
+        p = payload.payload()
+        self.assertEqual([t["ago"] for t in p["trees"] if t.get("gap")], [5])
+        self.assertEqual(p["trees"][2]["gap"], 13)
+        reset(cards, {"ignore_before": "", "keep_earlier_trees": True})  # without a start date it changes nothing
+        self.assertEqual(payload.payload()["stats"]["ponds"], 1)
+
+    def test_kept_trees_count_the_animals_from_the_start_date(self):
+        cards = [(i, 10, 120 - i) for i in range(1, 61)] + [(100, 10, 0)]  # 60 trees long ago, and today's
+        reset(cards)
+        self.assertIn("rabbit", [v["key"] for v in payload.payload()["visitors"]])
+        reset(cards, {"ignore_before": "2026-09-01", "keep_earlier_trees": True})
+        p = payload.payload()
+        self.assertEqual(p["stats"]["trees"], 61)
+        self.assertNotIn("rabbit", [v["key"] for v in p["visitors"]])  # 50 trees grown since: not yet
+
     def test_a_hand_edited_width_stays_in_range(self):
         reset(CARDS, {"max_width": "wide"})
         self.assertEqual(payload.payload()["maxWidth"], addon.state.MAX_WIDTH_DEFAULT)

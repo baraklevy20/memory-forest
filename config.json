@@ -30,6 +30,7 @@
     "nature": "peaceful",
     "excluded_decks": [],
     "ignore_before": "",
+    "keep_earlier_trees": false,
     "keep_suspended": true,
     "max_width": 800,
     "debug": false,
