@@ -1,13 +1,18 @@
-"""Draw the README's heatmap pictures, docs/heatmap.png and docs/heatmap_sceneries.png, from this
-copy's scripts in headless Chrome. Uses made-up history unless --collection is supplied.
+"""Draw the README's heatmap and layout pictures, docs/heatmap.png, docs/heatmap_sceneries.png and
+docs/layout.png, from this copy's scripts in headless Chrome. Uses made-up history unless
+--collection is supplied.
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
+    python3 dev/docs_pictures.py --only layout
     python3 dev/docs_pictures.py --collection /path/to/collection.anki2
 
 heatmap.png: the forest by the lake with its heatmap under it, visible streak labels,
 the current streak's silver trophy, its next goal's flag, and an upcoming exam note.
 heatmap_sceneries.png: one heatmap in five sceneries, each beside its picker picture, with
-its current trophy and flag and no other streak markers. Needs Chrome, and node with the dev packages.
+its current trophy and flag and no other streak markers.
+layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it on the right and the
+heatmap under both (Layout: Forest beside), arranged by the add-on's own web/core.js AF.arrange, at
+twice the pixels (a Retina screen). Needs Chrome, and node with the dev packages.
 """
 
 from __future__ import annotations
@@ -133,8 +138,7 @@ def calendar(mood: dict, marks: list, tiles: str | None = None, view: str = "tim
                 marks=marks, free=[], daysOff=[], streakFromStart=False, look=look)
 
 
-def page(mood: dict, data: dict, width: int, extra_css: str = "") -> str:
-    css = open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8").read()
+def script_tags(mood: dict, data: dict) -> str:
     files = [os.path.join(catalog.WEB, s) for s in catalog.SCRIPTS]
     files += [os.path.join(catalog.WEB, f) for f in catalog.scenery_files(mood)]
     files += [os.path.join(catalog.WEB, f) for f in data["calendar"]["look"].get("files", [])]
@@ -148,6 +152,12 @@ def page(mood: dict, data: dict, width: int, extra_css: str = "") -> str:
             tags += f"<script>{script}</script>"
         else:
             tags += f'<script src="file://{f}"></script>'
+    return tags
+
+
+def page(mood: dict, data: dict, width: int, extra_css: str = "") -> str:
+    css = open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8").read()
+    tags = script_tags(mood, data)
     return f"""<!doctype html><meta charset="utf-8"><style>body {{ margin: 0; padding: 0; background: {PAGE_BG}; color: {PAGE_FG};
 --fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} .af-cal-tip {{ display: none !important }} .af-cal .af-cal-above {{ opacity: 1 }} {extra_css}</style>
 <div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}
@@ -165,6 +175,69 @@ def forest_data(mood: dict) -> dict:
                 mood=mood, animations=False, inAnki=True, maxWidth=756)
 
 
+# the layout picture: a made-up deck list (name, indent, new, learn, due), the window's width in css
+# px and its Forest width (the side column's)
+# (long enough to stand about 80% of the forest's height beside it)
+DECKS = (("Japanese", 0, 25, 7, 177), ("Kana", 1, 0, 0, 12), ("Kanji", 1, 10, 4, 63), ("Vocabulary", 1, 10, 2, 51),
+         ("Grammar", 1, 5, 1, 14), ("Particles", 1, 0, 0, 6), ("Reading", 1, 0, 0, 11), ("Listening", 1, 0, 0, 8),
+         ("Writing", 1, 0, 0, 12))
+LAYOUT_WINDOW, LAYOUT_FOREST = 1440, 800
+# its forest, as (first, last, every) in days ago: a tree only on the days new cards were learned,
+# every few days lately (so the trees in front are grown, as in a real forest: a tree every day
+# made a front row of saplings), more often a year and more back (old and ancient), and a break
+# between (a pond)
+LAYOUT_DAYS = ((1, 79, 7), (95, 330, 3), (430, 600, 2))
+LAYOUT_STREAK = 146
+# its caption's journal line (an animal of the forest's own) and its heatmap's view, as in the add-on
+LAYOUT_JOURNAL = "A family of squirrels wandered in: you knew 10,000 cards well."
+LAYOUT_VIEW = "by_year"
+# where Anki's own stylesheets are, to look as it does (without them, plain stand-ins)
+AQT_WEB = os.path.expanduser("~/Library/Application Support/AnkiProgramFiles/.venv/lib/python3.13/site-packages/_aqt/data/web")
+
+
+def layout_forest() -> dict:
+    """The layout picture's forest: a couple of years of made-up days (LAYOUT_DAYS), so some trees
+    are old and ancient as in a real one, with the animals its numbers bring."""
+    r = random.Random(SEED)
+    ages = [ago for a, b, every in LAYOUT_DAYS for ago in range(a, b + 1, every)]
+    trees, prev = [], None
+    for ago in sorted(ages, reverse=True):
+        t = fake_forest.tree(r, fake_forest.FAKE_TODAY - ago, ago)
+        if prev is not None and prev - ago > fake_forest.BREAK_DAYS:
+            t["gap"] = prev - ago - 1
+        prev = ago
+        trees.append(t)
+    forest = fake_forest.make_forest(trees, LAYOUT_STREAK, LAYOUT_STREAK, len(trees) * fake_forest.FAKE_REVIEWS_PER_TREE, 186)
+    stats = forest["stats"]
+    stats["mature_cards"] = max(stats["mature_cards"], fake_forest.SQUIRREL_MATURE)
+    return {"trees": forest["trees"], "stats": stats, "forestSeed": forest["forest_seed"], "visitors": fake_forest.visitors(stats)}
+
+
+def layout_page(mood: dict, data: dict) -> str:
+    """Anki's deck list as aqt/deckbrowser.py builds it (<center><table>decks</table><br>stats</center>),
+    on its dark page in its card style (body.fancy), the panel first among the stats as panel.py puts it."""
+    rows = "<tr><th colspan=5 align=start>Deck</th><th class=count>New</th><th class=count>Learn</th><th class=count>Due</th><th class=optscol></th></tr>"
+    for i, (name, level, new, learn, due) in enumerate(DECKS):
+        num = lambda n, cls: f"<td align=end>{f'<span class={cls}>{n}</span>' if n else ''}</td>"
+        fold = "<a class=collapse>-</a>" if level == 0 and i == 0 else ""
+        rows += (f"<tr class='deck' id='{i + 1}'><td class=decktd colspan=5>{'&nbsp;' * 6 * level}<span class=collapse>{fold}</span>"
+                 f'<a class="deck" href=#>{name}</a></td>{num(new, "new-count")}{num(learn, "learn-count")}{num(due, "review-count")}'
+                 "<td align=center class=opts></td></tr>")
+    css = "".join(open(os.path.join(AQT_WEB, "css", f), encoding="utf-8").read() for f in ("webview.css", "deckbrowser.css")
+                  if os.path.exists(os.path.join(AQT_WEB, "css", f)))
+    forest_css = open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8").read()
+    return f"""<!doctype html><html class="night-mode"><head><meta charset="utf-8"><style>{css}</style>
+<style>body {{ margin: 0; padding: 28px 0 24px; background: {PAGE_BG}; color: {PAGE_FG}; font: 14px -apple-system, system-ui, sans-serif;
+--fg: {PAGE_FG}; --fg-subtle: #999 }} td, th {{ padding: 4px 8px }} .new-count {{ color: #6ca3f4 }} .learn-count {{ color: #e57373 }}
+.review-count {{ color: #63c463 }} {forest_css}</style></head>
+<body class="nightMode night_mode fancy isMac"><center>
+<table cellspacing=0 cellpadding=3>{rows}<tr class='top-level-drag-row'><td colspan='6'>&nbsp;</td></tr></table>
+<br>
+<div class="af-panel" id="p"></div><div id="studiedToday"><span>Studied 186 cards in 24 minutes today (7.7s/card)</span></div>
+</center><script>window.pycmd = () => false;</script>{script_tags(mood, data)}
+<script>AnkiForest.mount(document.getElementById('p'), {json.dumps(data)});</script></body></html>"""
+
+
 SHOOT = r"""
 import puppeteer from '%(puppeteer)s';
 const jobs = %(jobs)s;
@@ -172,7 +245,7 @@ const b = await puppeteer.launch({ executablePath: %(chrome)s, headless: 'new', 
 const p = await b.newPage();
 p.on('pageerror', e => console.log('ERR', e.message));
 for (const j of jobs) {
-  await p.setViewport({ width: j.width, height: 1000, deviceScaleFactor: 1 });
+  await p.setViewport({ width: j.width, height: 1000, deviceScaleFactor: j.scale || 1 });
   await p.goto('file://' + j.page);
   await p.waitForSelector('.af-cal-canvas', { timeout: 15000 });
   await new Promise(r => setTimeout(r, 1500));
@@ -239,12 +312,30 @@ def sceneries_picture(shots: dict, out: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--collection", help="Use your own review history and forest (read-only)")
+    parser.add_argument("--only", choices=("heatmap", "layout"), help="Draw only the heatmap pictures, or only the layout one")
     args = parser.parse_args()
     if args.collection:
         collection_data(args.collection)
     lake = mood_of("golden_lake")
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
+        if args.only != "heatmap":
+            # the layout: Chalkboard beside the deck list, the heatmap under both, the page shot whole
+            # with its margins, down to Anki's studied-today line
+            board = mood_of("chalkboard")
+            # (with --collection, your own forest and the animals its numbers bring; the decks stay made up)
+            trees = layout_forest() if REAL_DATA is None else {"visitors": fake_forest.visitors(REAL_DATA["stats"])}
+            lay = dict(forest_data(board), **trees, calendar=calendar(board, [], view=LAYOUT_VIEW), showForest=True, maxWidth=LAYOUT_FOREST,
+                       journal=LAYOUT_JOURNAL, sceneName=presets.by_key()["chalkboard"].label,
+                       layout={"forest": "right", "heatmap": "below", "first": "forest"})
+            path = os.path.join(tmp, "layout.html")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(layout_page(board, lay))
+            jobs.append({"page": path, "width": LAYOUT_WINDOW, "scale": 2, "shoot": "body", "out": os.path.join(DOCS, "layout.png")})
+        if args.only == "layout":
+            shoot(jobs)
+            print("docs/layout.png")
+            return
         # the big picture: the forest and its heatmap, with the streak labels unobstructed
         note = {"day": (dt.date.today() + dt.timedelta(days=18)).isoformat(), "icon": "exam", "name": "Exam"}
         big = dict(forest_data(lake), calendar=calendar(lake, [note]), showForest=True)
@@ -267,7 +358,7 @@ def main() -> None:
                          "pad": 0 if tiles == "contours" else 2, "out": shots[key]})
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
-    print("docs/heatmap.png, docs/heatmap_sceneries.png")
+    print("docs/heatmap.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png"))
 
 
 if __name__ == "__main__":

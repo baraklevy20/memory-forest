@@ -39,10 +39,10 @@ class OnigiriContent:
     stats = ""
 
 
-def tile_html() -> tuple[list, str]:
+def tile_html(config: dict | None = None) -> tuple[list, str]:
     """(the gallery's entries for this add-on, as "<module>.<name>"; the HTML of the one it offers)"""
     import fake_anki
-    fake_anki.reset(cards=CARDS)
+    fake_anki.reset(cards=CARDS, config=config)
     ours = [cb for cb in list.__iter__(fake_anki.hooks.deck_browser_will_render_content)
             if cb.__module__.split(".")[0] == fake_anki.PACKAGE]
     names = [f"{cb.__module__}.{cb.__name__}" for cb in ours]
@@ -78,8 +78,22 @@ def main() -> int:
     if opts.if_changed and not phone_changed(ONIGIRI_FILES):
         print("onigiri check skipped: no files it goes through changed")
         return 0
-    names, html = tile_html()
     fails = []
+    # (as it ships, and with a layout beside the deck list, which the tile keeps stacked: Onigiri's
+    # grid places it, web/core.js AF.arrange)
+    for config in (None, {"layout": "both_side", "layout_side": "left"}):
+        fails += check(config)
+    for f in fails:
+        print("FAIL", f)
+    print("onigiri check: " + ("ok" if not fails else f"{len(fails)} failed"))
+    return 1 if fails else 0
+
+
+def check(config: dict | None) -> list:
+    """What is wrong with the tile, made with `config` over the defaults."""
+    names, html = tile_html(config)
+    fails = []
+    where = f" (with {config})" if config else ""
     if len(names) != 1 or not names[0].endswith(".panel.on_deck_browser"):
         # (one: each is a widget there; and that name: a tile placed by it stays)
         fails.append(f"Onigiri's gallery should list one Memory Forest, panel.on_deck_browser: it lists {names}")
@@ -93,8 +107,7 @@ def main() -> int:
             run = subprocess.run(["node", os.path.join(HERE, "onigiri_check.mjs"), path, CHROME],
                                  capture_output=True, text=True, cwd=ROOT, timeout=120)
         if not run.stdout.strip().startswith("{"):
-            print(run.stdout + run.stderr)
-            return 1
+            return [f"the page didn't run{where}: {run.stdout + run.stderr}"]
         got = json.loads(run.stdout)
         for what in ("forest", "heatmap"):
             box = got[what]
@@ -104,11 +117,10 @@ def main() -> int:
                 fails.append(f"the {what} drew nothing ({box['colours']} colours on its canvas)")
             elif not box["inTile"]:
                 fails.append(f"the {what} lies outside the tile: {box['rect']} in {got['tile']}")
+        if got["forest"] and got["heatmap"] and got["heatmap"]["rect"][1] < got["forest"]["rect"][3]:
+            fails.append(f"the heatmap should stand under the forest: {got['heatmap']['rect']}, the forest {got['forest']['rect']}")
         fails += [f"error: {e}" for e in got["errors"]]
-    for f in fails:
-        print("FAIL", f)
-    print("onigiri check: " + ("ok" if not fails else f"{len(fails)} failed"))
-    return 1 if fails else 0
+    return [f + where for f in fails]
 
 
 if __name__ == "__main__":

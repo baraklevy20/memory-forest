@@ -56,11 +56,13 @@ AF.caption = function (root, data) {
 };
 /* caption hints use the forest's own tooltip (Anki's webview doesn't show title tooltips) */
 AF.captionTips = function (root) {
-  const capTip = document.createElement('div'); capTip.className = 'af-tip af-cap-tip'; capTip.hidden = true; root.append(capTip);
+  // (in the forest's own box: placed apart from the heatmap, the panel has no box of its own)
+  const host = root.querySelector('.af-forest') || root;
+  const capTip = document.createElement('div'); capTip.className = 'af-tip af-cap-tip'; capTip.hidden = true; host.append(capTip);
   // on a touch screen a tap opens an item's tooltip, and a second tap on it acts (see AF.watchHint)
   let touched = false, armed = null;
   const place = el => {
-    const pr = root.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const pr = host.getBoundingClientRect(), r = el.getBoundingClientRect();
     const left = Math.min(Math.max(0, r.left - pr.left + r.width / 2 - capTip.offsetWidth / 2), pr.width - capTip.offsetWidth);
     capTip.style.left = left + 'px'; capTip.style.top = (r.top - pr.top - capTip.offsetHeight - TIP_MARGIN) + 'px';
   };

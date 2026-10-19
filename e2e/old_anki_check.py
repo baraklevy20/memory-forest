@@ -1,7 +1,8 @@
 """The add-on that `old_anki.py --check` installs beside Memory Forest: once the profile is
 open it fills the collection with a few months of made-up reviews, so the forest is built
 the way it is for everyone (from the study history, not the debug test forest, which a
-built add-on does not ship), measures the cog in the real deck list, turns zooming on with
+built add-on does not ship), measures the cog in the real deck list, puts the forest beside it in a wide window and under it in
+a narrow one (Layout), turns zooming on with
 real mouse clicks, picks a tree, steps a day, walks about and back out, opens the settings
 and paints every tab of them and the scenery picker, picks another scenery and checks the
 forest was built again, looks at a deck's own screen and at a finished deck's page (Anki's
@@ -289,7 +290,86 @@ def first_look(got, raw):
         result["problems"].append("the big learning day's tree drew no flowers")
     else:
         result["steps"].append(f"flowers on {got['big']} big day(s)")
-    QTimer.singleShot(0, visit)
+    QTimer.singleShot(0, beside)
+
+
+# where the deck table, the forest and the heatmap stand on the deck list (each [left, top, right,
+# bottom]), whether the page was arranged round it (core.js AF.arrange) and fell narrow, and how much
+# of each canvas is painted
+LAYOUT_AT = """(() => {
+  const rect = el => el ? (r => [r.left, r.top, r.right, r.bottom].map(Math.round))(el.getBoundingClientRect()) : null;
+  const painted = c => { if (!c || !c.width || !c.height) return 0; let n = 0;
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i]) n++;
+    return Math.round(100 * n / (c.width * c.height)); };
+  const forest = document.querySelector('.af-canvas'), heat = document.querySelector('.af-cal-canvas');
+  return JSON.stringify({ table: rect(document.querySelector('center > table')), forest: rect(forest), heatmap: rect(heat),
+    arranged: document.body.classList.contains('af-lay'), narrow: document.body.classList.contains('af-lay-narrow'),
+    forestPainted: painted(forest), heatmapPainted: painted(heat), width: window.innerWidth });
+})()"""
+BESIDE_WIDE, BESIDE_NARROW = (1500, 950), (760, 950)  # the main window: room beside the list, and none
+RESIZE_MS = 1500  # for the page to lay out again and the forest to be built at its new width
+
+
+def beside():
+    """The forest beside the deck list (Forest tab, Layout: Forest beside), set in the config as the
+    settings write it: in a wide window it stands right of the deck table, the heatmap under the list,
+    both painted; in a narrow one it falls under the list. Then the layout and the window go back as
+    they were, and the steps after go on as before."""
+    note("step: layout beside the deck list")
+    web, state = mw.deckBrowser.web, {"cfg": config(), "size": (mw.width(), mw.height())}
+
+    def layout_at(then):
+        web.evalWithCallback(LAYOUT_AT, lambda raw: then(json.loads(raw or "{}")))
+
+    def wide(got):
+        shot("deck-list-beside")
+        t, f, h = got.get("table"), got.get("forest"), got.get("heatmap")
+        if not (t and f and h):
+            result["problems"].append(f"Forest beside: something is missing on the deck list: {got}")
+        elif not got.get("arranged") or got.get("narrow"):
+            result["problems"].append(f"Forest beside: the deck list was not laid out beside it in a {got.get('width')} px window: {got}")
+        elif not (f[0] >= t[2] and f[1] < t[3] and h[1] >= t[3]):
+            result["problems"].append(f"Forest beside: the forest should stand right of the deck table, the heatmap under it: {got}")
+        elif not (got.get("forestPainted") and got.get("heatmapPainted")):
+            result["problems"].append(f"Forest beside: a canvas is blank: {got}")
+        else:
+            result["steps"].append(f"forest beside the deck list ({got['width']} px)")
+        mw.resize(*BESIDE_NARROW)
+        QTimer.singleShot(RESIZE_MS, lambda: layout_at(narrow))
+
+    def narrow(got):
+        shot("deck-list-beside-narrow")
+        t, f, h = got.get("table"), got.get("forest"), got.get("heatmap")
+        if not (t and f and h) or not got.get("narrow") or not (f[1] >= t[3] and h[1] >= f[3]):
+            result["problems"].append(f"Forest beside: in a narrow window it should fall under the list: {got}")
+        elif max(f[2], h[2]) > got["width"] + 1:
+            result["problems"].append(f"Forest beside, narrow: it reaches past the window's edge: {got}")
+        elif not (got.get("forestPainted") and got.get("heatmapPainted")):
+            result["problems"].append(f"Forest beside, narrow: a canvas is blank: {got}")
+        else:
+            result["steps"].append(f"under the list in a narrow window ({got['width']} px)")
+        mw.addonManager.writeConfig(FOREST, state["cfg"])
+        mw.resize(*state["size"])
+        web.eval(MARK)
+        mw.deckBrowser.refresh()
+        measure(back, old_ok=False)
+
+    def back(got, _raw):
+        if not got.get("built") or got.get("old") or not got.get("painted"):
+            result["problems"].append(f"the forest was not drawn again after the layout went back: {got}")
+        QTimer.singleShot(0, visit)
+
+    try:
+        mw.addonManager.writeConfig(FOREST, dict(state["cfg"], layout="forest_side", layout_side="right"))
+        mw.resize(*BESIDE_WIDE)
+        web.eval(MARK)
+        mw.deckBrowser.refresh()
+    except Exception:
+        result["errors"].append(f"layout beside the deck list:\n{traceback.format_exc()}")
+        QTimer.singleShot(0, visit)
+        return
+    measure(lambda got, raw: QTimer.singleShot(RESIZE_MS, lambda: layout_at(wide)), old_ok=False)
 
 
 def mouse(web, kind, x: float, y: float, button, held) -> None:

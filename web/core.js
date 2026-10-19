@@ -26,8 +26,10 @@ AF.mount = function (root, data, opts) {
     root.afEnv = root.afVisits = null;
     // its settings cog stays, so the settings are still a click away
     root.innerHTML = cogHtml(data);
+    root.classList.remove('af-cal-first');
     hookCog(root, data);
     root.style.maxWidth = data.maxWidth + 'px';
+    AF.arrange(root, data);
     AF.calendar(root, data, null);
     return;
   }
@@ -40,9 +42,11 @@ AF.mount = function (root, data, opts) {
   root.afToken = token;
   const current = () => root.afToken === token;
   // (the settings cog on the forest's top right corner, the zoom button beside it: no row of its own)
-  root.innerHTML = '<div class="af-scene' + (data.inAnki ? ' af-has-cog' : '') + '">' + cogHtml(data)
+  // (the forest and its caption in a box of their own, which the deck list's layout can place apart
+  // from the heatmap: AF.arrange)
+  root.innerHTML = '<div class="af-forest"><div class="af-scene' + (data.inAnki ? ' af-has-cog' : '') + '">' + cogHtml(data)
     + '<canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
-    + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div>';
+    + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div></div>';
   const sceneEl = root.querySelector('.af-scene'), canvas = root.querySelector('canvas'), tip = root.querySelector('.af-tip');
   root.style.maxWidth = data.maxWidth + 'px';
   AF.caption(root, data);
@@ -50,11 +54,17 @@ AF.mount = function (root, data, opts) {
   // the study calendar's room, kept from the start: drawn once the forest is, it would
   // otherwise push the page down a moment after it appears (the caption first: its journal
   // ends up in the calendar's footer, and a long one wraps there)
+  // (the heatmap first, Layout's Heatmap first: then the forest and its caption under it, the
+  // journal staying the panel's last line, in the caption)
+  const calFirst = !!(data.calendar && data.layout && data.layout.first === 'heatmap');
+  root.classList.toggle('af-cal-first', calFirst);
   if (data.calendar) {
-    const cal = document.createElement('div'); cal.className = 'af-cal'; root.append(cal);
+    const cal = document.createElement('div'); cal.className = 'af-cal';
+    if (calFirst) root.prepend(cal); else root.append(cal);
+    AF.arrange(root, data);  // (placed before its room is measured: a side column is narrower)
     cal.style.width = AF.calendarWidth(data.calendar);  // (its own width, which sets its scale: measured at the panel's it kept too much)
     cal.style.minHeight = AF.calendarHeight(data.calendar, cal.clientWidth, root) + 'px';
-  }
+  } else AF.arrange(root, data);
   hookCog(root, data);
 
   // the whole forest's layout, and the one being drawn: it, or a visit's close-up (web/visit.js)
@@ -230,6 +240,71 @@ AF.mount = function (root, data, opts) {
   // swap, where the old forest was just cleared and waiting would show an empty panel
   if (opts && opts.now) { lastW = sceneEl.clientWidth; start(); return; }
   requestAnimationFrame(() => idle(() => { lastW = sceneEl.clientWidth; start(); }, { timeout: IDLE_TIMEOUT_MS }));
+};
+
+/* Where the forest and the heatmap sit round Anki's deck list (data.layout: each one's place,
+ * "below" | "left" | "right"; payload.py, state.layout).
+ * Anki's deck list is <center><table>decks</table><br>stats</center>, the panel first among the
+ * stats (panel.py); it is left as Anki made it: our stylesheet makes its <center> a wrapping row
+ * (forest.css, body.af-lay) and orders each of our parts round the deck table. Two parts in one
+ * place stand as one box, the panel; apart, the panel steps aside (display: contents) and each is a
+ * box of its own. Their widths are the ones they have stacked: the forest's the Forest width
+ * (data.maxWidth), the heatmap 85% of what stands above or below it (AF.calendarWidth) - of the
+ * forest, or under the list of the whole row, the list and its side column - and, beside the list
+ * alone, 85% of the Forest width, its width under the forest. A side column takes the room the
+ * window has up to its width, and under its least (SIDE_MIN, HEAT_MIN) falls under the list
+ * (af-lay-narrow), checked again on each resize of the window. Anywhere else (a deck's screen, the
+ * finished-deck page, Onigiri's tile, the phone) the panel stays as it is. */
+// css px between the list and a side column; the least a column with the forest, and a heatmap of its own, may shrink to (about half a year of it); the room kept at the window's edges (the panel's own padding)
+const SIDE_GAP = 32, SIDE_MIN = 360, HEAT_MIN = 480, EDGE = 12;
+const SLOTS = /\s*af-(slot-\w+|apart)\b/g;
+AF.arrange = function (root, data) {
+  const L = data.layout, center = root.parentElement;
+  const parts = [root, root.querySelector('.af-forest'), root.querySelector('.af-cal')];
+  parts.forEach(el => { if (el) { el.className = el.className.replace(SLOTS, ''); el.style.removeProperty('--af-row'); } });
+  if (root.afFit) { window.removeEventListener('resize', root.afFit); root.afFit = null; }
+  const forest = data.showForest !== false, cal = !!data.calendar;
+  const places = L ? [forest && L.forest, cal && L.heatmap].filter(Boolean) : [];
+  const sides = places.filter(p => p === 'left' || p === 'right');
+  const table = center && center.tagName === 'CENTER' && center.querySelector(':scope > table');
+  if (!sides.length || !table) {
+    if (root.afArranged) { document.body.classList.remove('af-lay', 'af-lay-narrow'); root.afArranged = false; }
+    return;
+  }
+  root.afArranged = true;
+  document.body.classList.add('af-lay');
+  const put = (el, place) => el.classList.add('af-slot-' + place);
+  const apart = forest && cal && L.forest !== L.heatmap;
+  if (apart) { root.classList.add('af-apart'); put(parts[1], L.forest); put(parts[2], L.heatmap); } else put(root, places[0]);
+  const cols = new Set(sides).size, share = cal ? parseFloat(AF.calendarWidth(data.calendar)) / 100 : 1;
+  // (a side column's width and its least: the heatmap's alone is its width under the forest; the
+  // panel's, or the forest's, the Forest width)
+  const heatAlone = apart && L.heatmap !== 'below';
+  const most = heatAlone ? share * data.maxWidth : data.maxWidth;
+  const least = Math.min(most, heatAlone || !forest ? HEAT_MIN : SIDE_MIN);
+  const size = (el, w) => el.style.setProperty('--af-row', Math.floor(w) + 'px');
+  const fit = () => {
+    const room = center.clientWidth - 2 * EDGE;
+    const col = Math.min(most, Math.floor((room - table.offsetWidth) / cols - SIDE_GAP));
+    const narrow = col < least;
+    document.body.classList.toggle('af-lay-narrow', narrow);
+    center.style.setProperty('--af-col', Math.max(col, 0) + 'px');
+    // (under the list: the forest no wider than its own width, the heatmap 85% of what stands above
+    // it - the row of the list and its side column, or, all under the list, the forest)
+    const row = narrow ? room : table.offsetWidth + cols * (SIDE_GAP + col);
+    const forestW = Math.min(row, data.maxWidth);
+    if (!apart) size(root, forestW);
+    else {
+      size(parts[1], forestW);
+      size(parts[2], share * (narrow && forest ? forestW : Math.min(row, room)));
+    }
+  };
+  fit();
+  // (again as the window is resized: the list's room is the window's. Not a ResizeObserver on the
+  // row, whose size the switch itself changes: Chromium 77 stopped on "ResizeObserver loop limit
+  // exceeded" as the window crossed the breakpoint)
+  root.afFit = fit;
+  window.addEventListener('resize', fit);
 };
 
 /* Whether a scene has anything fast in it - rain, falling petals, a strike - that wants the

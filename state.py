@@ -18,6 +18,17 @@ MODULE = mw.addonManager.addonFromModule(__name__)
 # The numbers a config can hold, however it was edited; the settings dialog offers the same ranges.
 MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX = 800, 400, 2000
 TEST_TREES_DEFAULT, TEST_TREES_MAX = 150, 5000
+# where the forest and the heatmap sit round the deck list (Forest tab, Layout): each preset's
+# places for (the forest, the heatmap), "side" being Layout's Side, and which comes first where both
+# stand together. Under the list, forest first, is how it has always been.
+LAYOUTS = {
+    "under": ("below", "below", "forest"),
+    "forest_side": ("side", "below", "forest"),
+    "both_side": ("side", "side", "forest"),
+    "heatmap_side": ("below", "side", "forest"),
+    "heatmap_first": ("below", "below", "heatmap"),
+}
+LAYOUT_DEFAULT, LAYOUT_SIDES = "under", ("right", "left")
 # a hand-edited "false" (or 0) turns a switch off too
 OFF_VALUES = (False, "false", "False", 0, "0")
 
@@ -198,6 +209,30 @@ def calendar_on(screen: str, cfg: dict | None = None) -> bool:
     """Whether the study calendar shows on the main screen (`screen` "main") or the deck
     screens ("decks"). It does unless switched off."""
     return (cfg if cfg is not None else config()).get(CALENDAR_SCREENS[screen], True) not in OFF_VALUES
+
+
+def layout_key(cfg: dict | None = None) -> str:
+    """The Layout preset chosen (LAYOUTS), or the default for anything else a hand edit left."""
+    key = (cfg if cfg is not None else config()).get("layout", LAYOUT_DEFAULT)
+    return key if isinstance(key, str) and key in LAYOUTS else LAYOUT_DEFAULT
+
+
+def layout_side(cfg: dict | None = None) -> str:
+    """The side a Layout's side column stands on: right (the default) or left."""
+    side = (cfg if cfg is not None else config()).get("layout_side", "right")
+    return side if side in LAYOUT_SIDES else "right"
+
+
+def layout(cfg: dict | None = None, deck_screen: bool = False) -> dict:
+    """Where the page puts the forest and the heatmap (web/core.js AF.arrange): each one's place
+    round the deck list ("below", "left" or "right"), which comes first where they stand together,
+    (their widths come from the Forest width: web/core.js). A deck's screen, the finished-deck page, Onigiri's tile and
+    the phone keep them stacked under what they have (only the order is the chosen one there), so a
+    deck screen is sent no places beside it."""
+    cfg = cfg if cfg is not None else config()
+    forest, heatmap, first = LAYOUTS[layout_key(cfg)]
+    forest, heatmap = ("below" if deck_screen or p == "below" else layout_side(cfg) for p in (forest, heatmap))
+    return {"forest": forest, "heatmap": heatmap, "first": first}
 
 
 def shows_on_deck_list(cfg: dict | None = None) -> bool:

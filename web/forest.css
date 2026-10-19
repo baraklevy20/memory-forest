@@ -175,6 +175,14 @@
    Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
 /* Centered under the forest; calendar.js sets the width (85% by default). */
 .af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
+/* the heatmap first (Layout's Heatmap first): 12px under its footer, which is the key's row alone,
+   empty but on hover (the journal stays in the caption under the forest): about 37px from its
+   streaks' lane to the forest at rest. Its top 20px are room for the view switch and ‹ › » over the
+   months' row (calendar.js ACTS_ROOM), which would otherwise stand over the panel's top edge, on the
+   deck list: the panel comes up by as much. The phone has no controls there. */
+.af-cal-first > .af-cal { margin: 0 auto 12px; padding-top: 20px; }
+.af-panel.af-cal-first { margin-top: 8px; }
+.af-cal-first > .af-cal-swiped { padding-top: 0; }
 /* the foot of the panel: the forest's journal, and a small key at the right (as GitHub's graph has it) */
 .af-cal-foot { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-top: 7px; }  /* (7px under the trophies' lane: calendar.js FOOT_GAP) */
 .af-cal-journal { font-style: italic; margin-right: 16px; flex: 1 1 auto; min-width: 0; }  /* (it wraps; the key never does) */
@@ -341,3 +349,26 @@
 .af-cal:hover .af-cal-above, .af-cal:focus-within .af-cal-above, .af-cal-swiped .af-cal-above { opacity: 1; }
 .af-cal-above.af-cal-spot { opacity: 1; transition: none; }  /* (the dimmed days round a hover's own: calendar.js spot) */
 @media (prefers-reduced-motion: reduce) { .af-cal-above { transition: none; } }
+
+/* where the forest and the heatmap sit round the deck list (core.js AF.arrange): Anki's <center> as
+   a wrapping row, the deck table in it, each of our parts ordered round it; everything else (Anki's
+   studied-today line, other add-ons' panels) a full row of its own under them, as before. Margins,
+   not gap, and no min() or max(): Chromium 77 (Anki 2.1.45-2.1.49) has neither */
+body.af-lay > center { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+body.af-lay > center > * { order: 6; flex: 0 0 100%; }
+body.af-lay > center > table { order: 2; flex: 0 1 auto; }
+body.af-lay > center > br { display: none; }
+body.af-lay > center > .af-panel.af-apart { display: contents; }
+.af-forest { position: relative; }
+body.af-lay .af-slot-below { order: 4; flex: 0 0 100%; }
+/* a side column: the width core.js AF.arrange worked out for it (its own, or the room left) */
+body.af-lay .af-slot-left, body.af-lay .af-slot-right { flex: 0 0 var(--af-col); min-width: 0; box-sizing: border-box; padding: 0; }
+body.af-lay .af-slot-left { order: 1; margin: 4px 32px 0 0; }
+body.af-lay .af-slot-right { order: 3; margin: 4px 0 0 32px; }
+/* placed apart, under the list: a line of its own, as wide as core.js makes it (its margins take
+   the rest of the line; a max-width would let it fit beside the list), and never held wider by the
+   canvas drawn for a wider window (min-width: 0: a flex item's own is its content's) */
+body.af-lay .af-apart > .af-slot-below { flex: 0 0 var(--af-row); min-width: 0; box-sizing: border-box; margin: 28px calc((100% - var(--af-row)) / 2) 0; }
+body.af-lay .af-apart > .af-cal { width: auto !important; }  /* (calendar.js sets its share of the panel's width) */
+/* a narrow window: the side columns fall under the list, in the order they stand (forest first) */
+body.af-lay.af-lay-narrow .af-slot-left, body.af-lay.af-lay-narrow .af-slot-right { order: 4; flex: 0 0 var(--af-row); min-width: 0; margin: 28px calc((100% - var(--af-row)) / 2) 0; }

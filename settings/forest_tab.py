@@ -42,6 +42,7 @@ from ..state import (
     shows_on_deck_list,
     shows_on_finished,
 )
+from .layout_picker import LayoutControls
 from .palette import color
 from .scenery_picker import NAME_FONT, NAME_PAD, RING, TILE_RADIUS
 from .widgets import Choice, Tab, form, group, hint
@@ -282,6 +283,10 @@ class ForestTab(Tab):
         nv.addWidget(self.nature)
         nv.addWidget(self.nature_note)
         where = form()
+        # where the forest and the heatmap sit round the deck list: first, the row people look for
+        # here (layout_picker.py)
+        self.layout_pick = LayoutControls(cfg)
+        where.addRow("Layout", self.layout_pick.box)
         where.addRow("Main screen", self.main_forest)
         finished = QWidget()  # (the box with its hint just under it, as heatmap_tab.with_hint has them)
         fv = QVBoxLayout(finished)
@@ -319,7 +324,7 @@ class ForestTab(Tab):
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"nature": (self.nature_group.title, "Nature"), "main_forest": (self.main_forest, "Main screen"),
                 "deck_forest_mode": (self.deck_mode, "Deck screens"), "finished_decks": (self.finished, "On finished decks too"),
-                "max_width": (self.max_width, "Forest width"),
+                "max_width": (self.max_width, "Forest width"), "layout": (self.layout_pick.choice, "Layout"),
                 "animations": (self.animations, "Animate the forest"), "planting_tooltip": (self.planting, "The planting message"),
                 "phone": (self.phone, "Your forest on your phone")}
 
@@ -327,6 +332,7 @@ class ForestTab(Tab):
         for choice in (self.animations, self.main_forest, self.deck_mode):
             choice.on_change(changed)
         self.max_width.valueChanged.connect(changed)
+        self.layout_pick.on_change(changed)
         for box in (self.planting, self.phone, self.finished):
             box.toggled.connect(changed)
         self.nature.on_change(changed)
@@ -368,4 +374,5 @@ class ForestTab(Tab):
             "deck_forest_mode": self.deck_mode.currentData(),
             "finished_decks": self.finished.isChecked(),
             "max_width": self.max_width.value(),
+            **self.layout_pick.values(),
         }

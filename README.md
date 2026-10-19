@@ -100,6 +100,12 @@ Hover for details; click a day to open its cards.
 
 <p align="center"><img src="docs/heatmap_sceneries.png" alt="The same heatmap in five sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, blue contours in Aurora night, and violet to pink scanlines in Synthwave"></p>
 
+## Beside your deck list
+
+<p align="center"><img src="docs/layout.png" alt="A Japanese deck list on the left, a chalkboard forest beside it on the right, and the study heatmap under both"></p>
+
+Choose where the forest and the heatmap sit on the Forest tab of the settings.
+
 ## On your phone
 
 <p align="center"><img src="docs/phone.gif" alt="The forest filling a phone screen, turned sideways, animated"></p>

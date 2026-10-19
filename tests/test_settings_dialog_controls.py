@@ -255,6 +255,37 @@ class ForestTabTests(QtCase):
         f.finished.click()
         done_saves(self, d, {"main_forest": False, "deck_forest_mode": "own", "finished_decks": False})
 
+    def test_the_layout_picture_and_side(self):
+        d = self.open_dialog()
+        lay = d.forest.layout_pick
+        self.assertEqual(lay.choice.currentData(), "under")
+        self.assertFalse(lay.side.isEnabled())  # (nothing beside the list)
+        lay.choice.buttons["forest_side"].click()
+        Q.settle()
+        self.assertTrue(lay.side.isEnabled())
+        lay.side.buttons["left"].click()
+        done_saves(self, d, {"layout": "forest_side", "layout_side": "left"})
+
+    def test_the_layout_pictures_are_one_even_row_and_follow_the_side(self):
+        d = self.open_dialog()
+        lay = d.forest.layout_pick
+        widths = {b.width() for b in lay.choice.buttons.values()}
+        self.assertEqual(len(widths), 1)
+        right = lay.choice.pictures["forest_side"].pixmap().toImage()
+        lay.choice.buttons["forest_side"].click()
+        lay.side.buttons["left"].click()
+        Q.settle()
+        left = lay.choice.pictures["forest_side"].pixmap().toImage()
+        self.assertEqual(left, right.mirrored(True, False))  # (the side column on the other side)
+
+    def test_cancel_puts_the_layout_back(self):
+        d = self.open_dialog()
+        d.forest.layout_pick.choice.buttons["both_side"].click()
+        Q.let_save()
+        self.assertEqual(Q.current()["layout"], "both_side")  # (the deck list behind is the preview)
+        self.cancel(d)
+        self.assertEqual(Q.current()["layout"], "under")
+
     def test_the_forest_width(self):
         d = self.open_dialog()
         d.forest.max_width.setValue(1000)

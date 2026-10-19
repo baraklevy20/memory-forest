@@ -122,6 +122,15 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(cal["animals"], [])  # the lit-up main forest's animals are not the deck's
         self.assertIsNotNone(payload.payload(10)["calendar"])  # beside a deck's own forest too
 
+    def test_the_deck_list_gets_the_layout_and_a_deck_screen_keeps_them_stacked(self):
+        reset(CARDS, {"layout": "both_side", "layout_side": "left"})
+        self.assertEqual(payload.payload()["layout"], {"forest": "left", "heatmap": "left", "first": "forest"})
+        self.assertEqual(payload.payload(20, highlight=True)["layout"], {"forest": "below", "heatmap": "below", "first": "forest"})
+        reset(CARDS, {"layout": "heatmap_first"})
+        self.assertEqual(payload.payload(10)["layout"]["first"], "heatmap")  # (a deck screen keeps the order)
+        reset(CARDS)
+        self.assertEqual(payload.payload()["layout"], {"forest": "below", "heatmap": "below", "first": "forest"})
+
     def test_the_calendar_follows_its_settings(self):
         reset(CARDS, {"calendar": "by_year"})
         self.assertEqual(payload.payload()["calendar"]["view"], "by_year")

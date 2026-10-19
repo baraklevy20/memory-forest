@@ -982,7 +982,8 @@ AF.calendarWidth = cal => (cal.width == null ? 85 : Math.max(50, Math.min(100, c
  * kept for the calendar holds it and the page keeps still */
 function footHeight(root, H) {
   // (the journal: in the caption until the footer is built, then in it; measured again from the footer by e2e/render_heatmap.py)
-  const box = root && root.querySelector('.af-cal'), journal = root && root.querySelector('.af-journal');
+  // (not with the heatmap first, nor placed apart from the forest: the journal stays in the forest's caption)
+  const box = root && root.querySelector('.af-cal'), journal = root && !journalStays(root) && root.querySelector('.af-journal');
   if (!box || !journal || !journal.textContent) return FOOT_H;
   const el = (cls, tag) => { const e = document.createElement(tag || 'span'); e.className = cls; return e; };
   const foot = el('af-cal-foot', 'div');
@@ -1004,6 +1005,10 @@ function footHeight(root, H) {
   foot.remove();
   return Math.max(FOOT_H, h);
 }
+/* whether the forest's journal stays in its caption rather than coming down into the heatmap's
+ * footer: with the heatmap first (the caption under the forest is the panel's last line), or the two
+ * placed apart round the deck list (core.js AF.arrange) */
+const journalStays = root => root.classList.contains('af-cal-first') || root.classList.contains('af-apart');
 /* how tall the calendar will be at this width, for the room kept for it until it is drawn (root:
  * the panel, for the journal that will wrap in its footer) */
 AF.calendarHeight = function (cal, width, root) {
@@ -1075,7 +1080,9 @@ AF.calendar = function (root, data, env) {
   if (swiped) box.classList.add('af-cal-swiped');
   // the forest's journal comes down to the foot of the panel: a forest's caption with the
   // calendar under it would read as the calendar's
-  const journal = root.querySelector('.af-caption .af-journal');
+  // (unless it stays in the caption: journalStays)
+  const stays = journalStays(root);
+  const journal = stays ? null : root.querySelector('.af-caption .af-journal');
   if (journal) box.querySelector('.af-cal-journal').appendChild(journal);
   box.style.minHeight = '';  // (the room kept for it while the forest was building)
   const grid = box.querySelector('.af-cal-grid'), btn = go => box.querySelector(`[data-go="${go}"]`);
@@ -1557,7 +1564,8 @@ AF.calendar = function (root, data, env) {
       acts.classList.remove('af-acts-low');
       acts.style.top = months.offsetTop - ACTS_ROOM + 'px';
       if (near) near.style.top = months.offsetTop - ACTS_ROOM + 'px';
-      const a = acts.getBoundingClientRect(), cap = root.querySelector('.af-caption');
+      // (the caption reaches them only from just above: not under the heatmap, nor beside it)
+      const a = acts.getBoundingClientRect(), cap = stays ? null : root.querySelector('.af-caption');
       const words = cap ? [...cap.children].map(el => el.getBoundingClientRect()).filter(r => r.width && r.bottom > a.top - 30) : [];
       const low = words.some(r => r.right > a.left - LABEL_GAP && r.bottom > a.top - 4);
       acts.classList.toggle('af-acts-low', low);
@@ -1617,14 +1625,20 @@ AF.calendar = function (root, data, env) {
     grid.addEventListener('touchend', () => { from = null; });
   }
   // a new width: Timeline's months counted again (draw), or the same ones laid out again
-  let lastW = grid.clientWidth;
-  const ro = window.ResizeObserver ? new ResizeObserver(() => {
+  // (laid out just after the observer's turn, never in it: drawn there, the heatmap's new height came
+  // back to the observers as one more change, and Chromium reported "ResizeObserver loop limit
+  // exceeded" (77) or "loop completed with undelivered notifications" as the window was resized.
+  // A timer, not a frame: Anki's offscreen check has none)
+  let lastW = grid.clientWidth, relay = 0;
+  const relaid = () => {
+    relay = 0;
     if (!box.isConnected) { stop(); return; }
     if (grid.clientWidth === lastW) return;
     lastW = grid.clientWidth;
     if (!swiped && countFor(view, lastW) !== drawn.count) draw(); else lay();
     if (editing) placePin();  // (a mark's editor, open, stays by its day)
-  }) : null;
+  };
+  const ro = window.ResizeObserver ? new ResizeObserver(() => { if (!relay) relay = setTimeout(relaid, 0); }) : null;
   if (ro) ro.observe(grid);
   // Anki switched between light and dark: the page's colour is read again and the days painted
   // for it (their shades, the animals' outlines, today's frame). Anki marks the switch on the
@@ -1646,6 +1660,7 @@ AF.calendar = function (root, data, env) {
   function stop() {
     if (mo) mo.disconnect();
     if (ro) ro.disconnect();
+    clearTimeout(relay);
     if (scheme && scheme.removeListener) scheme.removeListener(rethink);
     if (root.afCalStop === stop) root.afCalStop = null;
   }

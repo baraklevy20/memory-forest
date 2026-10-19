@@ -32,6 +32,7 @@ from .state import (
     config,
     forget_remembered,
     keeps_suspended,
+    layout,
     load_state,
     log,
     remembered,
@@ -245,6 +246,9 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "tooltips": True,
         "zoom": zoom,
         "maxWidth": clamp_int(cfg.get("max_width"), MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX),
+        # where the forest and the heatmap sit round the deck list (web/core.js AF.arrange); a
+        # deck's screen keeps them stacked, in the chosen order
+        "layout": layout(cfg, deck_screen=bool(did)),
         "credit": mood.get("source") == "real",
         "weatherError": weather_error,
         "environmentName": scene.ENVIRONMENTS[mood["environment"]],

@@ -42,6 +42,32 @@ class SwitchTests(unittest.TestCase):
             for off in OFF:
                 self.assertFalse(read({key: off}), (key, off))
 
+    def test_the_layout_is_under_the_list_unless_chosen(self):
+        state = addon.state
+        self.assertEqual(state.layout({}), {"forest": "below", "heatmap": "below", "first": "forest"})
+        for key, (forest, heatmap, first) in state.LAYOUTS.items():
+            for side in ("right", "left"):
+                got = state.layout({"layout": key, "layout_side": side})
+                self.assertEqual(got, {"forest": side if forest == "side" else "below", "heatmap": side if heatmap == "side" else "below",
+                                       "first": first}, (key, side))
+
+    def test_a_deck_screen_keeps_them_stacked_in_the_chosen_order(self):
+        state = addon.state
+        for key, (_f, _h, first) in state.LAYOUTS.items():
+            got = state.layout({"layout": key, "layout_side": "left"}, deck_screen=True)
+            self.assertEqual((got["forest"], got["heatmap"], got["first"]), ("below", "below", first), key)
+
+    def test_a_hand_edited_layout_falls_back_to_the_defaults(self):
+        state = addon.state
+        for bad in ("nonsense", None, 3, ["under"]):
+            self.assertEqual(state.layout_key({"layout": bad}), "under", bad)
+        self.assertEqual(state.layout_side({"layout_side": "top"}), "right")
+
+    def test_the_shipped_config_holds_the_layouts_defaults(self):
+        with open(os.path.join(os.path.dirname(addon.__file__), "config.json"), encoding="utf-8") as f:
+            cfg = json.load(f)
+        self.assertEqual((cfg["layout"], cfg["layout_side"]), (addon.state.LAYOUT_DEFAULT, "right"))
+
     def test_the_heatmap_shows_on_each_screen_unless_switched_off_there(self):
         self.assertTrue(state.calendar_on("main", {}) and state.calendar_on("decks", {}))
         self.assertFalse(state.calendar_on("main", {"calendar_main": "0"}))

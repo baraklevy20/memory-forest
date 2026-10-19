@@ -9,6 +9,8 @@
     "animations": true,
     "planting_tooltip": true,
     "main_forest": true,
+    "layout": "under",
+    "layout_side": "right",
     "deck_forest_mode": "highlight",
     "calendar": "timeline",
     "calendar_main": true,
