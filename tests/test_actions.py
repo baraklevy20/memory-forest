@@ -33,8 +33,7 @@ class ActionTests(unittest.TestCase):
         with mock.patch.object(mw, "findChildren", create=True, return_value=[shortcut]):
             addon.panel.hold_shortcuts(True)
         shortcut.setEnabled.assert_called_with(False)
-        for hook in (hooks.deck_browser_will_render_content, hooks.overview_will_render_content, hooks.state_did_change):
-            self.assertIn(addon.panel.release_shortcuts, list(hook))
+        self.assertIn(addon.panel.release_shortcuts, list(hooks.state_did_change))  # (and the render hooks call it)
         addon.panel.release_shortcuts("deckBrowser", "review")  # (as state_did_change calls it)
         shortcut.setEnabled.assert_called_with(True)
 

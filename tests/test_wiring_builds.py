@@ -228,7 +228,7 @@ class BuiltAddonLoadsTests(unittest.TestCase):
     def test_it_goes_on_anki_s_hooks_as_this_folder_does(self):
         for _edition, module, _folder in self.each():
             on = [cb for cb in list.__iter__(hooks.deck_browser_will_render_content) if cb.__module__.startswith(module)]
-            self.assertEqual([cb.__name__ for cb in on], ["release_shortcuts", "on_deck_browser"])
+            self.assertEqual([cb.__name__ for cb in on], ["on_deck_browser"])  # (one: Onigiri shows each as a widget)
             self.assertIn(module, mw.addonManager.config_actions)
 
     def test_debug_on_by_hand_changes_nothing_in_a_release(self):

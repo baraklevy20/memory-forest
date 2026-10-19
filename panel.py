@@ -87,6 +87,10 @@ def _panel_html(did: int | None = None, highlight: bool = False, show_forest: bo
 
 
 def on_deck_browser(deck_browser, content) -> None:
+    """The panel under the deck list. The add-on's only callback on this hook, and its name is
+    kept: Onigiri, which draws the deck list as a grid of widgets, lists each callback there as a
+    widget named after the add-on and keeps a placed one by its module and name."""
+    release_shortcuts()  # (first: a mark being named is gone with the page, whatever fails below)
     shows = _main_panel()
     if shows is None:  # both switched off: only the deck screens have one
         return
@@ -102,6 +106,7 @@ def on_overview(overview, content) -> None:
     """A forest on a deck's own screen: grown from that deck and its subdecks, or the main
     forest with that deck's trees lit (the Deck screens setting), and the deck's own study
     calendar under it (or on its own)."""
+    release_shortcuts()  # (first, as on_deck_browser)
     try:
         shows = _deck_panel(mw.col.decks.current())
         if shows is None:

@@ -25,9 +25,10 @@ from .planting import on_answer
 mw.addonManager.setWebExports(__name__, r"web/.*\.(js|css)")
 
 news.started()  # (before the first forest saves anything)
-gui_hooks.deck_browser_will_render_content.append(release_shortcuts)  # (a mark being named is gone with the page)
-gui_hooks.overview_will_render_content.append(release_shortcuts)
-gui_hooks.state_did_change.append(release_shortcuts)
+gui_hooks.state_did_change.append(release_shortcuts)  # (a mark being named is gone with the page)
+# one callback each on the render hooks, never two: Onigiri lists every deck list callback as a
+# widget named after the add-on and offers the first, so a second one is a blank Memory Forest
+# tile there (1.3.0). The panel's own callbacks let go of the held shortcuts first (panel.py)
 gui_hooks.deck_browser_will_render_content.append(on_deck_browser)
 gui_hooks.overview_will_render_content.append(on_overview)
 # a finished deck's congratulations page: the panel added once it has loaded

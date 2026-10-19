@@ -64,8 +64,8 @@ jobs:
       - run: pip install PyQt6==6.11.0
       - run: python3 -m unittest discover -s tests -p 'test_settings_dialog*.py' -v
 
-  # the render checks, and the phone, heatmap and page checks (e2e/phone_check.py, e2e/heatmap_check.py,
-  # e2e/page_check.py),
+  # the render checks, and the phone, heatmap, page and Onigiri checks (e2e/phone_check.py,
+  # e2e/heatmap_check.py, e2e/page_check.py, e2e/onigiri_check.py),
   # which drive the runner's Chrome through node: `npm test` runs those only when their files
   # changed, which a fresh checkout cannot tell, so here they always run
   render:
@@ -85,6 +85,7 @@ jobs:
       - run: npm run test:phone
       - run: npm run test:heatmap
       - run: npm run test:page
+      - run: npm run test:onigiri
 
   # the Ankis a release is checked in, the oldest supported to the newest: e2e/old_anki.py's
   # RELEASE_ANKIS, read here so the two never part

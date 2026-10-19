@@ -4,6 +4,7 @@ hooks behave as Anki's do (append, remove, called; never iterable)."""
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import types
@@ -77,8 +78,8 @@ class RegistrationTests(unittest.TestCase):
 
     def test_every_hook_has_exactly_the_add_ons_callbacks_in_order(self):
         expected = {
-            "deck_browser_will_render_content": [panel.release_shortcuts, panel.on_deck_browser],
-            "overview_will_render_content": [panel.release_shortcuts, panel.on_overview],
+            "deck_browser_will_render_content": [panel.on_deck_browser],
+            "overview_will_render_content": [panel.on_overview],
             "state_did_change": [panel.release_shortcuts],
             "webview_did_inject_style_into_page": [panel.on_page_loaded],
             "reviewer_did_answer_card": [planting.on_answer],
@@ -96,9 +97,37 @@ class RegistrationTests(unittest.TestCase):
         for name, callbacks in expected.items():
             self.assertEqual(ours(getattr(hooks, name)), callbacks, name)
 
-    def test_the_release_shortcuts_go_first_so_a_failing_panel_cannot_keep_them_held(self):
+    def test_a_failing_panel_still_lets_go_of_the_held_shortcuts(self):
+        reset(CARDS)
+        mw.col.models = NoModels()
+        content = types.SimpleNamespace(tree="", stats="", table="")
         for hook in (hooks.deck_browser_will_render_content, hooks.overview_will_render_content):
-            self.assertIs(ours(hook)[0], panel.release_shortcuts)
+            with self.subTest(hook=hook), mock.patch.object(panel, "release_shortcuts") as release, \
+                    mock.patch.object(panel, "payload", side_effect=RuntimeError("no forest")), \
+                    mock.patch.object(panel, "log"):
+                hook(object(), content)
+                release.assert_called_once_with()
+
+    def test_onigiri_finds_one_memory_forest_widget_and_it_draws_the_panel(self):
+        # Onigiri (AnkiWeb 1011095603) lists every deck list callback as a widget named after
+        # the add-on, keeps a placed one as "<module>.<name>", offers only the first of an add-on's
+        # in its gallery, and hands it an object with nothing but `stats` (1.3.0's blank tile)
+        reset(CARDS)
+        mw.col.models = NoModels()
+        on = ours(hooks.deck_browser_will_render_content)
+        self.assertEqual([f"{cb.__module__}.{cb.__name__}" for cb in on], [f"{PACKAGE}.panel.on_deck_browser"])
+
+        class OnigiriContent:
+            stats = ""
+        content = OnigiriContent()
+        on[0](object(), content)
+        self.assertIn(f'id="{panel.ROOT}"', content.stats)
+        # and the tile holds both: the forest and the heatmap under it (e2e/onigiri_check.py draws them)
+        data = re.search(rf'<script type="application/json" id="{panel.ROOT}-data">(.*?)</script>', content.stats, re.S)
+        data = json.loads(data.group(1))
+        self.assertTrue(data["showForest"])
+        self.assertTrue(data["trees"])
+        self.assertTrue(data["calendar"] and data["calendar"]["days"])
 
     def test_the_config_button_opens_the_settings_and_an_edited_config_redraws(self):
         self.assertIs(mw.addonManager.config_actions[PACKAGE], actions.open_settings)
