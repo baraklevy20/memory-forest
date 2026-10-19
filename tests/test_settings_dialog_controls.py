@@ -167,6 +167,86 @@ class ForestTabTests(QtCase):
         self.assertNotEqual(d.forest.nature_note.text(), note)
         done_saves(self, d, {"nature": "merciless"})
 
+    def test_each_nature_level_has_its_picture_at_the_tiles_size(self):
+        tab = addon.s_forest_tab
+        for level in tab.NATURE_LABELS:
+            movie = Q.QtGui.QMovie(tab.os.path.join(tab.NATURE_ICONS, f"{level}.gif"))
+            self.assertTrue(movie.isValid(), level)
+            self.assertGreater(movie.frameCount(), 1, level)
+            movie.jumpToFrame(0)
+            self.assertEqual((movie.currentPixmap().width(), movie.currentPixmap().height()), (tab.NATURE_GIF_W, tab.NATURE_GIF_H), level)
+            self.assertIn(level, tab.NATURE_STILL_MS)
+
+    def playing(self, d) -> list:
+        return [k for k, t in d.forest.nature.buttons.items() if t.playing()]
+
+    def test_the_chosen_nature_tile_plays_and_the_others_hold_still(self):
+        d = self.open_dialog({"nature": "wild"})
+        self.tab(d, "Forest")
+        tiles = d.forest.nature.buttons
+        self.assertEqual(self.playing(d), ["wild"])
+        self.assertTrue(all(not t.still.isNull() for t in tiles.values()))
+        tiles["merciless"].click()
+        Q.settle()
+        self.assertEqual(self.playing(d), ["merciless"])
+        self.assertEqual([k for k, t in tiles.items() if t.isChecked()], ["merciless"])  # (never two chosen)
+        tiles["merciless"].click()  # (the chosen one again: still chosen)
+        Q.settle()
+        self.assertEqual(d.forest.nature.currentData(), "merciless")
+        d.forest.animations.buttons["off"].click()
+        Q.settle()
+        self.assertEqual(self.playing(d), [])
+        self.tab(d, "Scenery")  # (on another tab it never plays)
+        d.forest.animations.buttons["on"].click()
+        Q.settle()
+        self.assertEqual(self.playing(d), [])
+        self.tab(d, "Forest")
+        self.assertEqual(self.playing(d), ["merciless"])
+        done_saves(self, d, {"nature": "merciless"})
+
+    def test_nature_tiles_hold_still_with_ankis_reduce_motion_on_follow_system(self):
+        Q.mw.pm.reduce_motion = lambda: True
+        self.addCleanup(lambda: Q.mw.pm.__dict__.pop("reduce_motion", None))
+        d = self.open_dialog({"animations": "system"})
+        self.tab(d, "Forest")
+        self.assertEqual(self.playing(d), [])
+
+    def test_nature_tiles_are_one_tab_stop_with_the_arrow_keys_between_them(self):
+        d = self.open_dialog({"nature": "peaceful"})
+        self.tab(d, "Forest")
+        tiles = d.forest.nature.buttons
+        stops = [k for k, t in tiles.items() if t.focusPolicy() == Qt.FocusPolicy.StrongFocus]
+        self.assertEqual(stops, ["peaceful"])
+        self.press(tiles["peaceful"], Qt.Key.Key_Right)
+        Q.settle()
+        self.assertEqual(d.forest.nature.currentData(), "wild")
+        self.assertEqual([k for k, t in tiles.items() if t.focusPolicy() == Qt.FocusPolicy.StrongFocus], ["wild"])
+        self.press(tiles["wild"], Qt.Key.Key_Right)
+        self.press(tiles["merciless"], Qt.Key.Key_Right)  # (the last: stays)
+        Q.settle()
+        self.assertEqual(d.forest.nature.currentData(), "merciless")
+        self.press(tiles["merciless"], Qt.Key.Key_Left)
+        Q.settle()
+        self.assertEqual(d.forest.nature.currentData(), "wild")
+        self.assertEqual(self.playing(d), ["wild"])
+        done_saves(self, d, {"nature": "wild"})
+
+    def test_enter_on_a_nature_tile_picks_it_and_not_done(self):
+        d = self.open_dialog({"nature": "peaceful"})
+        self.tab(d, "Forest")
+        tile = d.forest.nature.buttons["merciless"]
+        self.press(tile, Qt.Key.Key_Return)
+        Q.settle()
+        self.assertTrue(d.isVisible())
+        self.assertEqual(d.forest.nature.currentData(), "merciless")
+
+    def test_nature_news_points_at_the_tiles_group(self):
+        d = self.open_dialog()
+        widget, name = d.forest.news_targets()["nature"]
+        self.assertEqual(name, "Nature")
+        self.assertIs(widget, d.forest.nature_group.title)
+        self.assertTrue(d.forest.nature_group.isAncestorOf(d.forest.nature))
+
     def test_where_the_forest_shows(self):
         d = self.open_dialog()
         f = d.forest

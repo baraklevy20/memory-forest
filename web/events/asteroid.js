@@ -88,8 +88,8 @@ function crater(g, cx, cy, lost, age, env) {
 /* ---------- tooltips ---------- */
 const fmt = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 // (how to watch the latest one again is for the pointer to say: a click, or a tap and a button)
-const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}`;
-const doomText = () => 'An asteroid strikes when Anki\'s day ends, unless you review before then.';
+const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}<br>On Peaceful or Wild the trees stand again`;
+const doomText = () => 'An asteroid strikes when Anki\'s day ends, unless you review before then. If it strikes, a new forest grows from its crater.';
 const fmtShort = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
 /* ---------- the strike: a meteor shower, then the forest blown apart ---------- */
@@ -262,7 +262,7 @@ AF.events.add('asteroid', {
     const items = [], s = data.strike;
     if (s && s.news) {
       const again = animate && replayable(s);
-      items.push([`Asteroid struck ${fmtShort(s.date)}`, `${s.lost} ${s.lost === 1 ? words.one : words.many} lost.`
+      items.push([`Asteroid struck ${fmtShort(s.date)}`, `${s.lost} ${s.lost === 1 ? words.one : words.many} lost after a day without reviews; a new forest grows from here.`
         + (again ? ' Its crater can play it again too.' : animate ? '' : data.animations === 'system'
           ? ' Your system asks for less motion: set Animate the forest to On to watch it.'
           : ' Turn on animations in the forest settings to watch it.'),

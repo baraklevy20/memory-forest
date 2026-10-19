@@ -51,6 +51,19 @@ SECONDS, FPS = 5, 15
 # the clock starts here (ms), past the moment a scene first draws, so nothing is mid-appearance
 START_MS = 20000
 CHROME_TIMEOUT_SECS = 300
+# the clock is ours: animation frames and timers wait in a queue until pump(ms) runs them at a
+# time we choose, and performance.now() says that time too (the loop sleeps between frames on a
+# timer, so timers have to keep our time as well). Errors are kept in window.ERRS.
+CLOCK_JS = ("let NOW_MS = 0, TID = 0; const Q = [], T = [];"
+            "window.requestAnimationFrame = cb => { Q.push(cb); return Q.length; };"
+            "window.setTimeout = (cb, ms) => { T.push({ id: ++TID, at: NOW_MS + (+ms || 0), cb }); return TID; };"
+            "window.clearTimeout = id => { const i = T.findIndex(t => t.id === id); if (i >= 0) T.splice(i, 1); };"
+            "window.requestIdleCallback = cb => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 50 }), 0);"
+            "performance.now = () => NOW_MS; window.ERRS = [];"
+            "window.onerror = (m, f, l, c, e) => { window.ERRS.push(String((e && e.stack) || m)); };"
+            "function pump(ms) { NOW_MS = ms;"
+            " for (let due; (due = T.filter(t => t.at <= ms)).length;) due.forEach(t => { T.splice(T.indexOf(t), 1); t.cb(); });"
+            " const run = Q.splice(0); run.forEach(cb => cb(ms)); }")
 
 
 def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None) -> str:
@@ -68,19 +81,7 @@ def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None)
     # frame timer never skips one
     step, first = (1000 / FPS, 0) if loop else (1000 / FPS + 0.5, 1)
     return (f"<!doctype html><meta charset=utf-8><style>body{{margin:0}}.af-panel{{width:{PANEL_PX}px;margin:0;padding:0}}</style>"
-            # the clock is ours: animation frames and timers wait in a queue until pump() runs
-            # them at a time we choose, and performance.now() says that time too (the loop sleeps
-            # between frames on a timer, so timers have to keep our time as well)
-            "<script>let NOW_MS = 0, TID = 0; const Q = [], T = [];"
-            "window.requestAnimationFrame = cb => { Q.push(cb); return Q.length; };"
-            "window.setTimeout = (cb, ms) => { T.push({ id: ++TID, at: NOW_MS + (+ms || 0), cb }); return TID; };"
-            "window.clearTimeout = id => { const i = T.findIndex(t => t.id === id); if (i >= 0) T.splice(i, 1); };"
-            "window.requestIdleCallback = cb => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 50 }), 0);"
-            "performance.now = () => NOW_MS; window.ERRS = [];"
-            "window.onerror = (m, f, l, c, e) => { window.ERRS.push(String((e && e.stack) || m)); };"
-            "function pump(ms) { NOW_MS = ms;"
-            " for (let due; (due = T.filter(t => t.at <= ms)).length;) due.forEach(t => { T.splice(T.indexOf(t), 1); t.cb(); });"
-            " const run = Q.splice(0); run.forEach(cb => cb(ms)); }</script>"
+            f"<script>{CLOCK_JS}</script>"  # (the clock is ours: CLOCK_JS)
             "<div class='af-panel' id=p></div><pre id=o></pre>"
             f"<script>{scripts()}</script><script>window.D = {json.dumps(data)};</script>"
             f"<script>NOW_MS = {START_MS};"

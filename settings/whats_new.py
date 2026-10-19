@@ -5,7 +5,7 @@ is tagged in its own text: point at one to mark a whole group of controls."""
 
 from __future__ import annotations
 
-from aqt.qt import QBoxLayout, QEvent, QFormLayout, QHBoxLayout, QLabel, QLayout, QObject, QSizePolicy, Qt, QWidget
+from aqt.qt import QBoxLayout, QCheckBox, QEvent, QFormLayout, QHBoxLayout, QLabel, QLayout, QObject, QSizePolicy, Qt, QWidget
 
 NEW_TAG = "NEW"
 NEW_STYLE = "color: white; background: #2f8f52; border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: bold;"
@@ -79,10 +79,16 @@ def _holds(item, widget: QWidget) -> bool:
 
 
 def _form_label(root: QWidget, widget: QWidget) -> QLabel | None:
-    """The label of the form row the widget is in (its field, or part of it), if it is in one."""
+    """The label of the form row the widget is in (its field, or part of it), if it is in one -
+    unless it is a check box, with words of its own, that shares the field with another control
+    (the planting message beside Animate the forest): that row's label names the other one."""
+    own_words = isinstance(widget, QCheckBox)
     for form in root.findChildren(QFormLayout):
         for row in range(form.rowCount()):
-            if _holds(form.itemAt(row, QFormLayout.ItemRole.FieldRole), widget):
+            field = form.itemAt(row, QFormLayout.ItemRole.FieldRole)
+            if _holds(field, widget):
+                if own_words and field.widget() is not widget:
+                    return None
                 label = form.itemAt(row, QFormLayout.ItemRole.LabelRole)
                 if label is not None and isinstance(label.widget(), QLabel):
                     return label.widget()

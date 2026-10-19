@@ -3,7 +3,7 @@
 The Nature setting decides what missing days costs. Peaceful: nothing (a week away leaves a
 pond). Wild: a day without reviews and smoke rises, a warning; from the second day in a row
 a fire takes hold, a little more of the forest each day, and it burns until you have studied for a week again. Merciless:
-a single day without reviews and an asteroid wipes out the forest. Nothing of it is
+a single day without reviews and an asteroid strikes; a new forest grows from its crater. Nothing of it is
 remembered: it is all read from the days you studied, so changing the setting changes it
 back and forth.
 
@@ -31,14 +31,14 @@ DEFAULT_NATURE = "peaceful"
 # what each level means, for the settings dialog (what it costs, by name; the rest each
 # level brings only as a hint: it is for the forest to show)
 NATURE_NOTES = {
-    "peaceful": "Missing days costs nothing, and the forest never scolds you.",
-    "wild": "Miss two days of reviews in a row and smoke rises; miss a third and a fire spreads "
-            "until seven days of study put it out. Bad habits leave marks too.",
-    "merciless": "Miss a single day of reviews and an asteroid wipes out the forest. "
-                 "Bad habits leave marks too.",
+    "peaceful": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest.",
+    "wild": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days "
+            "of study put it out. Bad habits leave marks too.",
+    "merciless": "Miss a day of reviews: an asteroid strikes when Anki's day ends, and a new forest grows from "
+                 "its crater. It waits in the sky until you review. Bad habits leave marks too.",
 }
-# said once, on the Nature dropdown, rather than under every level
-NATURE_SWITCH_NOTE = "Switch back any time and the forest is as it was."
+# said once, on its own line under Wild's and Merciless's, rather than in each of them
+NATURE_SWITCH_NOTE = "Switch back any time and every tree is there again."
 
 
 def nature_level(value) -> str:
