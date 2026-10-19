@@ -436,9 +436,10 @@ function shades(env, paper, look) {
   // (the Heatmap tab's "Busier days: Darker": a dark page's shades the other way round, a pale tint
   // for a quiet day down to a clear dim colour for a busy one, still well clear of a missed day's grey)
   if (dark && look && look.darker) steps.reverse();
-  const tone = dark ? 0.07 : 0.16, rim = dark ? 0.22 : 0.3;
-  return { grass: steps.map(c => [c, mix(c, DARK, tone)]), edge: steps.map(c => mix(c, DARK, rim)) };
+  return { grass: steps.map(c => toned(c, dark)[0]), edge: steps.map(c => toned(c, dark)[1]) };
 }
+// a shade's two tones and its edge: the colour, a little darker, and darker still
+const toned = (c, dark) => [[c, mix(c, DARK, dark ? 0.07 : 0.16)], mix(c, DARK, dark ? 0.22 : 0.3)];
 
 /* the scene the calendar is drawn for: the forest's own (`env`, its theme and the look its
  * environment gave the animals), or with no forest showing, one made from the data alone */
@@ -572,11 +573,21 @@ function paletteOf(H, sp, paper) {
     return { pal: S.grass[lv], edge: S.edge[lv], soil: false, v, lv };
   };
   const tile = c => { const t = shadeOf(c); return t && tilesOf(t.pal, t.edge, look, gapless)[t.v]; };
+  // (an empty day in a scenery's own tiles: the empty grey's flat square, the same tile over it at
+  // half strength, its tone and edge darkened as a shade's are, so the weeks read as one medium and
+  // each day keeps its square: at full strength, hatching's dropped pixels broke it up, and a ring
+  // would read as a rest day's, 2026-10-19; Flat's are its plain squares)
+  const blankPal = toned(blankOn(paper), dark), BLANK_TEXTURE = 0.5;
+  const blankLook = look && { name: look.name + '|blank', draw: (g, p, e, v, T) => {
+    g.fillStyle = rgb(p[0]); g.fillRect(0, 0, T - 1, T - 1);
+    g.globalAlpha = BLANK_TEXTURE; look.draw(g, p, e, v, T); g.globalAlpha = 1;
+  } };
+  const blankTile = c => look && look.name !== 'flat' ? tilesOf(blankPal[0], blankPal[1], blankLook, gapless)[hashStr(iso(c.ms)) % TILE_VARIANTS] : null;
   // (the key: the four shades of a day studied, in Flat's one colour for a shape, as Contours'
   // bands and Round's days are; the soil and the empty days say what they are; the hover's ring in
   // today's frame colours, which show on every shade, its inside clear, so the day and its mark
   // keep their colours)
-  return { tile, shadeOf, gapless, roundTile, shapes, grass: S.grass, edge: S.edge,
+  return { tile, blankTile, shadeOf, gapless, roundTile, shapes, grass: S.grass, edge: S.edge,
     // (for the shapes: the soil's four shades, the empty days' grey as one colour, and the page)
     tills: [0, 1, 2, 3].map(lv => soil(lv)[0]), blank: blankOn(paper), page: paper.bg,
     key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], shapes ? flat : look)[0]), ring: rgb(dark ? P.today : P.todayOnLight) };
@@ -837,7 +848,7 @@ function paint(H, win, sp, paper) {
     // (a style that draws the empty days too, as Contours does, gets them as shades of their own)
     const style = pal.shapes && AF.heatmapTiles[pal.shapes];
     if (style) c.shade = pal.shadeOf(c) || (!style.fields || style.fields.indexOf('blank') >= 0 ? { blank: true } : null);
-    const t = pal.shapes ? null : pal.tile(c);
+    const t = pal.shapes ? null : pal.tile(c) || pal.blankTile(c);
     // (a day before the forest's start date, studied or not, dimmed)
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
     // (its face, for a selection's lit square and the hover's ring to sit evenly round it)
