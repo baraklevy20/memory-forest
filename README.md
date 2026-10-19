@@ -98,7 +98,7 @@ Hover for details; click a day to open its cards.
 - **Week start**: Monday, Sunday, Saturday or your system's setting.
 - **Your look**: customize its colours and style in the Heatmap tab.
 
-<p align="center"><img src="docs/heatmap_sceneries.png" alt="The same heatmap in four sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, and violet to pink scanlines in Synthwave"></p>
+<p align="center"><img src="docs/heatmap_sceneries.png" alt="The same heatmap in five sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, blue contours in Aurora night, and violet to pink scanlines in Synthwave"></p>
 
 ## On your phone
 

@@ -6,7 +6,7 @@ copy's scripts in headless Chrome. Uses made-up history unless --collection is s
 
 heatmap.png: the forest by the lake with its heatmap under it, visible streak labels,
 the current streak's silver trophy, its next goal's flag, and an upcoming exam note.
-heatmap_sceneries.png: one heatmap in four sceneries, each beside its picker picture, with
+heatmap_sceneries.png: one heatmap in five sceneries, each beside its picker picture, with
 its current trophy and flag and no other streak markers. Needs Chrome, and node with the dev packages.
 """
 
@@ -52,12 +52,12 @@ STREAKS = ((0, 139), (150, 209), (230, 409))
 SCATTER = 0.35  # (the share of the days studied outside a streak)
 SEED = 20261016
 # each row: its scenery, the tile style (None: the scenery's own) and the view, all Timeline so the
-# rows line up and show the same days, cropped to eight months, May to December (2026-10-17). A
-# fifth row showing Contours (Aurora, By year) was tried and dropped: a whole year shifted and
-# squeezed against the others, Timeline chopped the shape at the month gaps, and a wider By year made
-# a taller row.
+# rows line up and show the same days, cropped to eight months, May to December (2026-10-17). Aurora
+# shows Contours here only, in Timeline like the rest (2026-10-19), not its own tiles: By year shifted
+# and squeezed a whole year against the others, and a wider By year made a taller row.
+# (Aurora's blue apart from Starry night's)
 ROWS = (("golden_lake", None, "timeline"), ("starry_night", None, "timeline"), ("lanterns", None, "timeline"),
-        ("synthwave", None, "timeline"))
+        ("aurora", "contours", "timeline"), ("synthwave", None, "timeline"))
 SCENERIES = tuple(key for key, _tiles, _view in ROWS)
 
 
@@ -178,13 +178,13 @@ for (const j of jobs) {
   await new Promise(r => setTimeout(r, 1500));
   const el = await p.$(j.shoot);
   if (j.fromMonth !== undefined) {
-    const clip = await el.evaluate((e, month) => {
+    const clip = await el.evaluate((e, month, pad) => {
       const r = e.getBoundingClientRect();
       const start = e.querySelector(`.af-cal-months span[data-m="${month}"]`);
       if (!start) throw new Error('Comparison start month is outside the timeline');
-      const x = Math.max(r.left, Math.floor(start.getBoundingClientRect().left) - 2);
+      const x = Math.max(r.left, Math.floor(start.getBoundingClientRect().left) - pad);
       return { x, y: r.top, width: r.right - x, height: r.height };
-    }, j.fromMonth);
+    }, j.fromMonth, j.pad === undefined ? 2 : j.pad);
     await p.screenshot({ path: j.out, clip });
   } else {
     await el.screenshot({ path: j.out });
@@ -262,7 +262,9 @@ def main() -> None:
                 f.write(page(mood, data, 756, ".af-cal .af-cal-above { opacity: 1 } .af-cal-foot, .af-cal-notes { display: none }"))
             shots[key] = os.path.join(tmp, f"{key}.png")
             # (from May's label, eight months; By year's January: the weekday labels left out)
-            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": 0 if view == "by_year" else 4, "out": shots[key]})
+            # (Contours outlines the month before right up to the cut: none of it shown)
+            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": 0 if view == "by_year" else 4,
+                         "pad": 0 if tiles == "contours" else 2, "out": shots[key]})
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
     print("docs/heatmap.png, docs/heatmap_sceneries.png")
