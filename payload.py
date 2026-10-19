@@ -505,7 +505,7 @@ def _scene_name(cfg: dict, today: _dt.date) -> dict:
     if key == presets.FOREST_PRESETS[0].key:
         return {}
     if key == "daily":
-        pick = presets.of_the_day(today)
+        pick = presets.of_the_day(today, leave_out=presets.left_out(cfg))
         return {"sceneName": pick.label, "sceneTip": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."}
     if key == presets.CUSTOM:
         name = scene.ENVIRONMENTS.get(cfg.get("environment"), "")

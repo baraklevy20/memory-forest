@@ -149,8 +149,8 @@ class ShippedSeasonTests(unittest.TestCase):
 
     def test_surprise_me_takes_every_other_scenery_in_turn(self):
         turn = [p for p in presets.FOREST_PRESETS if p.key != presets.DAILY and not p.season]
-        day = D(2026, 10, 20)
-        for _round in range(3):
+        day = D(2027, 1, 3)  # (two rounds clear of any holiday's week: one takes turns in its week, test_presets)
+        for _round in range(2):
             picks = [presets.of_the_day(day + dt.timedelta(days=i)) for i in range(len(turn))]
             self.assertEqual(sorted(p.key for p in picks), sorted(p.key for p in turn))
             day += dt.timedelta(days=len(turn))

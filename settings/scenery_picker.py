@@ -15,6 +15,7 @@ from aqt.qt import (
     QAbstractButton,
     QColor,
     QEasingCurve,
+    QEvent,
     QFont,
     QFontMetrics,
     QGridLayout,
@@ -85,6 +86,7 @@ LIFT, LIFT_MS = 3, 140  # how far a tile rises under the pointer, and how quickl
 NAME_FONT, NAME_PAD = 14, 9  # the name on the picture, and its room from the picture's edges
 SHADE_H, SHADE_ALPHA = 0.55, 170  # the shade under the name: its share of the picture's height, and how dark at the foot
 BADGE = 20  # the tick's circle, across
+UNTICKED_VEIL = 170  # how far an unticked tile (one of many) fades toward the window, of 255
 PILL_FONT, PILL_INSET, PILL_PAD_X, PILL_PAD_Y, PILL_SPACING = 11, 6, 7, 3, 1.5
 PILL_GROUND = (0, 0, 0, 170)  # RGBA
 SECTION_STYLE = "font-size: 12px; font-weight: bold;"
@@ -121,15 +123,20 @@ def moving(key: str) -> str | None:
     return path if os.path.exists(path) else None
 
 
-def mosaic() -> QPixmap:
-    """Surprise me daily's picture: four sceneries it takes turns with, a quarter each."""
+def mosaic(leave_out=()) -> QPixmap:
+    """Surprise me daily's picture: four sceneries it takes turns with, a quarter each - none
+    it leaves out (the next it has in their place, and the same again when it has fewer)."""
     dpr = max(1, round(pixel_ratio()))
     out = QPixmap(PICTURE_W * dpr, PICTURE_H * dpr)
     out.fill(QColor(0, 0, 0, 0))
     p = QPainter(out)
     p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
     w, h = PICTURE_W * dpr // 2, PICTURE_H * dpr // 2
-    shown = [k for k in DAILY_MOSAIC if k in presets.by_key()]
+    known = presets.by_key()
+    turns = [p.key for p in presets.surprise_turns(None) if p.key not in leave_out]
+    shown = [k for k in DAILY_MOSAIC if k in known and k not in leave_out]
+    shown += [k for k in turns if k not in shown and os.path.exists(os.path.join(PICTURES, f"{k}.png"))]
+    shown = (shown * 4)[:4] if shown else list(DAILY_MOSAIC)
     for i, key in enumerate(shown[:4]):
         raw = QPixmap(os.path.join(PICTURES, f"{key}.png"))
         if not raw.isNull():
@@ -217,6 +224,10 @@ class _Tile(QAbstractButton):
         self.tag = tag  # a holiday's "Until ..." label, in the top left corner
         self.new = False  # NEW in that corner instead (a holiday's scenery is never announced)
         self.improved = False  # IMPROVED there, if not new
+        # one of many ticked (Surprise me daily's sceneries) rather than the one chosen: a click
+        # ticks or unticks it, and `keep()` says when it must stay ticked (the last one)
+        self.many = False
+        self.keep = None
         self.movie = None
         self.playing = False  # whether it moves while it can be seen
         if gif:
@@ -240,7 +251,11 @@ class _Tile(QAbstractButton):
 
     def nextCheckState(self) -> None:
         """A click (or Space or Enter) chooses a tile, and never unchooses one: clicking the chosen
-        tile again leaves it chosen, as there is always a scenery."""
+        tile again leaves it chosen, as there is always a scenery. One of many ticks and unticks,
+        all but the last ticked one."""
+        if self.many:
+            self.setChecked(not self.isChecked() or bool(self.keep and self.keep()))
+            return
         self.setChecked(True)
 
     def animate(self, on: bool) -> None:
@@ -295,6 +310,43 @@ class _Tile(QAbstractButton):
             return
         super().keyPressEvent(event)
 
+    def _paint_tick_box(self, p: QPainter, frame: QRectF, path: QPainterPath, ring: QColor) -> None:
+        """One of many: ticked, the picture as it is with the tick in its corner; unticked, the
+        picture faded toward the window and an empty circle where the tick goes."""
+        badge = QRectF(frame.right() - BADGE - 6, frame.top() + 6, BADGE, BADGE)
+        if not self.isChecked():
+            # (the theme's ground, not the palette's window: the panel's is see-through)
+            veil = QColor(color("CANVAS_ELEVATED"))
+            veil.setAlpha(UNTICKED_VEIL)
+            p.fillPath(path, veil)
+            pen = QPen(QColor("white"))
+            pen.setWidthF(2)
+            p.setPen(pen)
+            p.setBrush(QColor(0, 0, 0, 90))
+            p.drawEllipse(badge.adjusted(1, 1, -1, -1))
+        if self.hasFocus():
+            pen = QPen(self.palette().color(QPalette.ColorRole.Mid))
+            pen.setWidthF(1.5)
+            p.setPen(pen)
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawRoundedRect(frame.adjusted(-0.75, -0.75, 0.75, 0.75), TILE_RADIUS + 0.75, TILE_RADIUS + 0.75)
+        if self.isChecked():
+            self._paint_tick(p, badge, ring)
+
+    def _paint_tick(self, p: QPainter, badge: QRectF, ring: QColor) -> None:
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(ring)
+        p.drawEllipse(badge)
+        tick = QPen(QColor("white"))
+        tick.setWidthF(2)
+        tick.setCapStyle(Qt.PenCapStyle.RoundCap)
+        tick.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        p.setPen(tick)
+        x, y, w = badge.left(), badge.top(), BADGE
+        # a QPolygonF, not a list: Anki 2.1.50's PyQt 6.2 takes no list here
+        p.drawPolyline(QPolygonF([QPointF(x + w * 0.28, y + w * 0.52), QPointF(x + w * 0.44, y + w * 0.67),
+                                  QPointF(x + w * 0.72, y + w * 0.36)]))
+
     def paintEvent(self, _event) -> None:
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -331,6 +383,10 @@ class _Tile(QAbstractButton):
         if self.locked:
             pill(p, PLUS_TAG, QColor(*PLUS_INK), frame.right() - PILL_INSET, frame.top() + PILL_INSET, True)
         ring = QColor(color("BORDER_FOCUS"))
+        if self.many:
+            self._paint_tick_box(p, frame, path, ring)
+            p.end()
+            return
         if self.isChecked() or self.hasFocus():
             pen = QPen(ring if self.isChecked() else self.palette().color(QPalette.ColorRole.Mid))
             pen.setWidthF(RING if self.isChecked() else 1.5)
@@ -339,19 +395,7 @@ class _Tile(QAbstractButton):
             edge = RING / 2 if self.isChecked() else 0.75
             p.drawRoundedRect(frame.adjusted(-edge, -edge, edge, edge), TILE_RADIUS + edge, TILE_RADIUS + edge)
         if self.isChecked():
-            badge = QRectF(frame.right() - BADGE - 6, frame.top() + 6, BADGE, BADGE)
-            p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(ring)
-            p.drawEllipse(badge)
-            tick = QPen(QColor("white"))
-            tick.setWidthF(2)
-            tick.setCapStyle(Qt.PenCapStyle.RoundCap)
-            tick.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
-            p.setPen(tick)
-            x, y, w = badge.left(), badge.top(), BADGE
-            # a QPolygonF, not a list: Anki 2.1.50's PyQt 6.2 takes no list here
-            p.drawPolyline(QPolygonF([QPointF(x + w * 0.28, y + w * 0.52), QPointF(x + w * 0.44, y + w * 0.67),
-                                      QPointF(x + w * 0.72, y + w * 0.36)]))
+            self._paint_tick(p, QRectF(frame.right() - BADGE - 6, frame.top() + 6, BADGE, BADGE), ring)
         p.end()
 
 
@@ -359,12 +403,15 @@ class SceneryPicker(QWidget):
     """The panel of tiles on the Scenery tab: every scenery to choose from on the day, in
     sections - one in its holiday week first, then Plus's own (in Plus), then the rest in the
     catalogue's order, Surprise me daily leading them, and the Plus ones this copy lacks last.
-    `on_pick(key)` is called with the scenery clicked."""
+    `on_pick(key)` is called with the scenery clicked. With `many`, its tiles are ticked and
+    unticked instead, any number of them but never none (Surprise me daily's sceneries)."""
 
-    def __init__(self, on_pick, animate: bool):
+    def __init__(self, on_pick, animate: bool, many: bool = False):
         super().__init__()
         self.on_pick = on_pick
         self.animated = animate
+        self.many = many
+        self.left_out = set()  # what Surprise me daily leaves out: its tile shows none of them
         self.current = None
         self.new_keys = set()  # sceneries that wear NEW (see _Tile.new)
         self.improved_keys = set()  # and those that wear IMPROVED
@@ -430,10 +477,30 @@ class SceneryPicker(QWidget):
 
     def set_current(self, key: str) -> None:
         self.current = key
-        for t in self.tiles:
-            if not t.locked:
-                t.setChecked(t.preset.key == key)
+        if not self.many:
+            for t in self.tiles:
+                if not t.locked:
+                    t.setChecked(t.preset.key == key)
         self._show_line()
+
+    def set_ticked(self, keys) -> None:
+        """With `many`: tick these, untick the rest."""
+        for t in self.tiles:
+            t.setChecked(t.preset.key in keys)
+
+    def ticked(self) -> list:
+        return [t.preset.key for t in self.tiles if t.isChecked()]
+
+    def set_left_out(self, keys) -> None:
+        """Surprise me daily's tile shows four of the sceneries it takes turns with, after these are left out."""
+        keys = set(keys)
+        if keys == self.left_out:
+            return
+        self.left_out = keys
+        for t in self.tiles:
+            if t.preset.key == presets.DAILY:
+                t.pix = mosaic(keys)
+                t.update()
 
     def animate(self, on: bool) -> None:
         self.animated = on
@@ -448,7 +515,7 @@ class SceneryPicker(QWidget):
         own_plus = [p for p in chosen if not p.season and p.key in plus]
         rest = [p for p in chosen if not p.season and p.key not in plus]
         rest.sort(key=lambda p: p.key != presets.DAILY)  # (a stable sort: the catalogue's order stays)
-        locked = plus_only(set(keys))
+        locked = [] if self.many else plus_only(set(keys))
         self.tiles = []
         self.sections = []
         body = QWidget()
@@ -462,8 +529,12 @@ class SceneryPicker(QWidget):
             tiles = []
             for p in members:
                 daily = p.key == presets.DAILY
-                tile = _Tile(p, mosaic() if daily else picture(p.key), None if daily else moving(p.key),
+                tile = _Tile(p, mosaic(self.left_out) if daily else picture(p.key), None if daily else moving(p.key),
                              f"Until {last_day(p, day)}" if p.season else "")
+                tile.many = self.many
+                tile.keep = lambda: len(self.ticked()) <= 1
+                if self.many:
+                    tile.installEventFilter(self)
                 tile.new = not tile.locked and p.key in self.new_keys
                 tile.improved = not tile.locked and p.key in self.improved_keys
                 if tile.locked:
@@ -497,6 +568,30 @@ class SceneryPicker(QWidget):
         self._layout()
         for t in self.tiles:
             t.animate(self.animated)
+        if self.many and self.tiles:
+            self._tab_stop(self.tiles[0])
+
+    def _tab_stop(self, tile) -> None:
+        """With `many`, the tiles are one Tab stop, the one last in focus, as widgets.JoinedChoice
+        is: the arrow keys go from tile to tile, and Space ticks or unticks the one in focus."""
+        for t in self.tiles:
+            t.setFocusPolicy(Qt.FocusPolicy.StrongFocus if t is tile else Qt.FocusPolicy.ClickFocus)
+
+    def eventFilter(self, obj, event):
+        if not (self.many and isinstance(obj, _Tile)):
+            return False
+        if event.type() == QEvent.Type.FocusIn:
+            self._tab_stop(obj)
+        elif event.type() == QEvent.Type.KeyPress and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down):
+            shown = [t for t in self.tiles if t.isVisible()]
+            if obj in shown:
+                at = shown.index(obj) + (1 if event.key() in (Qt.Key.Key_Right, Qt.Key.Key_Down) else -1)
+                if 0 <= at < len(shown):
+                    self._tab_stop(shown[at])
+                    shown[at].setFocus(Qt.FocusReason.TabFocusReason)
+                    self.scroll.ensureWidgetVisible(shown[at])
+            return True
+        return False
 
     def _pick(self, key: str) -> None:
         self.invite = None
@@ -556,7 +651,9 @@ class SceneryPicker(QWidget):
         """The line under the tiles, only while there is something to say: the way to the Plus
         scenery last clicked, else, on Custom, what that is. (Not on hover: the line coming and
         going would move everything under it as the pointer crosses the tiles.)"""
-        if self.invite is not None:
+        if self.many:
+            text = ""
+        elif self.invite is not None:
             text = PLUS_LINE.format(label=html.escape(self.invite.label), url=PATREON)
         elif self.current not in presets.by_key():
             text = html.escape(CUSTOM_NOTE)

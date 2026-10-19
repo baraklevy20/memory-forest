@@ -4,6 +4,7 @@
     "time_of_day": "golden_hour",
     "landscape": "lake",
     "landmark": "none",
+    "surprise_left_out": [],
     "city": "",
     "animations": true,
     "planting_tooltip": true,

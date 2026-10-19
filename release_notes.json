@@ -11,7 +11,8 @@
         {
           "text": "Select days on the heatmap with Shift-click or Ctrl-click (Cmd-click on a Mac): their trees light up in your forest, and a click opens all their cards."
         },
-        "A start date can now keep your trees from before it, with ponds, Nature and animals counting from the date (Decks tab)."
+        "A start date can now keep your trees from before it, with ponds, Nature and animals counting from the date (Decks tab).",
+        "Surprise me daily can now leave out the sceneries you'd rather not see (Scenery tab)."
       ],
       "improved": [
         "Nature's settings now show what each level does to a forest, in a short moving picture beside it."

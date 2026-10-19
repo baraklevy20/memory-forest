@@ -14,11 +14,15 @@ from ..state import animation_mode
 from .customize import Customize
 from .patreon import banner
 from .scenery_picker import SceneryPicker
+from .surprise_page import SurprisePage
 from .widgets import Link, Tab, error_style, group, hint, resize_with, set_options, set_quietly
 
 CITY_NOTE = "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
 CITY_MIN_W = 120  # points: the city field takes the rest of the real-sky row, but never less
 SEARCH_W = 240  # points: the search, on the group title's row
+LINK_GAP = 24  # points between the links under the tiles
+TILES, CUSTOMIZE, SURPRISE = 0, 1, 2  # the stack's pages
+SURPRISE_LINK = "Surprise me daily's sceneries ({}) ›"
 
 
 def preset_options(day, chosen: str | None, edition: str = "") -> list:
@@ -53,6 +57,12 @@ class SceneryTab(Tab):
         self.city_status.setStyleSheet(error_style())
         self.custom = Customize(cfg, lambda: self.show_customize(False))
         self.customize = Link("", lambda: self.show_customize(True))
+        # Surprise me daily's sceneries, beside the way to Customize while it is the one chosen
+        self._changed = None  # the dialog's, once connected
+        self.surprise = SurprisePage(cfg, lambda: self.show_page(TILES), self._surprise_changed, animation_mode(cfg) != "off")
+        self.surprise_link = Link("", lambda: self.show_page(SURPRISE))
+        self.surprise.offer(self.scenery_choices(), day)
+        self.picker.set_left_out(self.surprise.left_out)
         self.picker.search.setFixedWidth(SEARCH_W)
         # the tiles with the way to Customize under them, or Customize in their place: one
         # page or the other, the stack as tall as the one in view (the dialog resizes to it, as
@@ -61,10 +71,16 @@ class SceneryTab(Tab):
         tv = QVBoxLayout(tiles)
         tv.setContentsMargins(0, 0, 0, 0)
         tv.addWidget(self.picker)
-        tv.addWidget(self.customize)
+        links = QHBoxLayout()
+        links.setSpacing(LINK_GAP)
+        links.addWidget(self.customize)
+        links.addWidget(self.surprise_link)
+        links.addStretch(1)
+        tv.addLayout(links)
         self.stack = QStackedWidget()
         self.stack.addWidget(tiles)
         self.stack.addWidget(self.custom)
+        self.stack.addWidget(self.surprise)
         self._size_to_page()
         # the scenery's picker (the group's title names it, the search beside it) and its sky,
         # the city after the real sky's box on its row, greyed out while the weather isn't live.
@@ -83,17 +99,34 @@ class SceneryTab(Tab):
         v.addStretch(1)
 
     def show_customize(self, on: bool) -> None:
-        """Customize in the tiles' place, or the tiles back (the search only with them), the
-        window as much shorter or taller as the page is."""
-        if on == self.customizing():
+        self.show_page(CUSTOMIZE if on else TILES)
+
+    def show_page(self, page: int) -> None:
+        """Customize or Surprise me daily's sceneries in the tiles' place, or the tiles back (the
+        search only with them), the window as much shorter or taller as the page is."""
+        was = self.stack.currentIndex()
+        if page == was:
             return
 
         def turn() -> None:
-            self.stack.setCurrentIndex(1 if on else 0)
+            self.stack.setCurrentIndex(page)
             self._size_to_page()
-            self.picker.allow_search(not on)
+            self.picker.allow_search(page == TILES)
         resize_with(self, turn)
-        (self.custom.back if on else self.customize).setFocus()
+        {CUSTOMIZE: self.custom.back, SURPRISE: self.surprise.back}.get(
+            page, self.customize if was == CUSTOMIZE else self.surprise_link).setFocus()
+
+    def _surprise_changed(self) -> None:
+        self.picker.set_left_out(self.surprise.left_out)
+        self._surprise_line()
+        if self._changed:
+            self._changed()
+
+    def _surprise_line(self) -> None:
+        """The way to Surprise me daily's sceneries: only while it is the scenery chosen (its
+        maintainer's call, 2026-10-19: a greyed link to it read as clutter under every other scenery)."""
+        self.surprise_link.setText(SURPRISE_LINK.format(self.surprise.summary()))
+        self.surprise_link.setVisible(self.preset.currentData() == presets.DAILY)
 
     def _size_to_page(self) -> None:
         """Only the page in view counts towards the stack's height (a stack goes by its tallest
@@ -105,7 +138,7 @@ class SceneryTab(Tab):
         self.stack.updateGeometry()
 
     def customizing(self) -> bool:
-        return self.stack.currentIndex() == 1
+        return self.stack.currentIndex() == CUSTOMIZE
 
     def offer(self, day, look: dict, edition: str = "") -> None:
         """The presets there are on `day` (a seasonal one comes out on its first day), in
@@ -113,6 +146,7 @@ class SceneryTab(Tab):
         set_options(self.preset, preset_options(day, presets.match(look), edition))
         self.picker.set_choices(self.scenery_choices(), presets.match(look), day)
         self.custom.offer(day)
+        self.surprise.offer(self.scenery_choices(), day)
 
     def _picked(self, key: str) -> None:
         """A tile clicked: chosen as choosing it from a list would (the dialog fills in the rest).
@@ -138,6 +172,7 @@ class SceneryTab(Tab):
             self.show_customize(True)
 
     def connect(self, changed) -> None:
+        self._changed = changed
         self.city.editingFinished.connect(changed)
         self.custom.connect(changed)
 
@@ -161,7 +196,10 @@ class SceneryTab(Tab):
         self.city_status.setVisible(bool(problem))
         self.custom.sync()
         self.customize.setText(f"Customize {self.custom.name()} ›")
+        self._surprise_line()
+        if key != presets.DAILY and self.stack.currentIndex() == SURPRISE:
+            self.show_page(TILES)  # (Surprise me daily no longer chosen: its page has nothing to say)
         self.fit()
 
     def values(self) -> dict:
-        return {"city": self.city.text().strip(), **self.custom.values()}
+        return {"city": self.city.text().strip(), **self.custom.values(), **self.surprise.values()}

@@ -101,7 +101,7 @@ def choose_mood(cfg: dict, now: _dt.datetime, real: dict | None = None, place: d
     Weather and time can also be `auto`: the real sky for your city (the preset's own
     weather without one) and your own clock. A missing setting is the default preset's."""
     date = now.date()
-    today, base = presets_mod.of_the_day(date), presets_mod.FOREST_PRESETS[0]
+    today, base = presets_mod.of_the_day(date, leave_out=presets_mod.left_out(cfg)), presets_mod.FOREST_PRESETS[0]
 
     def setting(key: str, attr: str) -> str:
         value = cfg.get(key) or getattr(base, attr)

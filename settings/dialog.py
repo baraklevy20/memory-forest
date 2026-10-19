@@ -46,7 +46,7 @@ OUTSIDE_KEYS = ("calendar_shade", "calendar")
 RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
-RESTORE_NOTE = ("Resets: the scenery and Customize, Nature (to {nature}), your city, where the forest and the "
+RESTORE_NOTE = ("Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the "
                 "heatmap show (finished decks too), the heatmap's view, week start, what its shades go by, its colours (Busier days too) and style, animation and the "
                 "planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your "
                 "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
@@ -214,6 +214,7 @@ class SettingsDialog(QDialog):
         rows = max(ROWS_FEWEST, ROWS_SHOWN - halves / 2)
         need = self.minimumSizeHint().height() - round((ROWS_SHOWN - rows) * ROW_H)
         self.scenery.picker.set_rows(rows)
+        self.scenery.surprise.picker.set_rows(rows)  # (Surprise me daily's sceneries, in the tiles' place)
         # Qt takes a turn or two of the event loop to lower the dialog's minimum; until then it
         # won't get shorter
         self._shrink_to(need, SHRINK_TRIES)
@@ -328,7 +329,7 @@ class SettingsDialog(QDialog):
         if key == presets.CUSTOM:  # (your own mix: the heatmap matches its environment's scenery)
             env = self.custom.look().get("environment")
             key = next((p.key for p in presets.FOREST_PRESETS if p.environment == env), presets.FOREST_PRESETS[0].key)
-        self.heatmap.set_scenery(key, dict(self._current(), **self.debug.values()))
+        self.heatmap.set_scenery(key, dict(self._current(), **self.scenery.values(), **self.debug.values()))
         self.heatmap.sync()
         self.decks.sync()
         self.debug.sync()

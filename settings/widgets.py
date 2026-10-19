@@ -208,7 +208,14 @@ class Link(QLabel):
         self.on_click = on_click
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.setStyleSheet(f"QLabel {{ color: {readable(LINK)}; }} QLabel:focus, QLabel:hover {{ text-decoration: underline; }}")
+        # (greyed out while what it opens has nothing to say: the hint's grey, no underline)
+        self.setStyleSheet(f"QLabel {{ color: {readable(LINK)}; }} QLabel:focus, QLabel:hover {{ text-decoration: underline; }}"
+                           f" QLabel:disabled {{ color: {readable(HINT)}; text-decoration: none; }}")
+
+    def changeEvent(self, event) -> None:
+        if event.type() == QEvent.Type.EnabledChange:
+            self.setCursor(Qt.CursorShape.PointingHandCursor if self.isEnabled() else Qt.CursorShape.ArrowCursor)
+        super().changeEvent(event)
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:

@@ -737,3 +737,111 @@ class WhatsNewTests(QtCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+DAILY = dict.fromkeys(("environment", "landscape", "landmark", "weather", "time_of_day"), "daily")
+
+
+class SurpriseTests(QtCase):
+    """Surprise me daily's sceneries: a page in the tiles' place, each scenery it takes turns
+    with ticked, or unticked to leave it out."""
+
+    def open_page(self, config=None):
+        d = self.open_dialog(dict(DAILY, **(config or {})))
+        d.scenery.surprise_link.on_click()
+        Q.settle()
+        return d, d.scenery.surprise
+
+    @staticmethod
+    def surprise_tile(page, key):
+        return next(t for t in page.picker.tiles if t.preset.key == key)
+
+    def test_the_link_shows_only_while_surprise_me_is_chosen(self):
+        d = self.open_dialog()
+        link = d.scenery.surprise_link
+        self.assertFalse(link.isVisible())
+        tile(d, "daily").click()
+        Q.settle()
+        self.assertTrue(link.isVisible())
+        self.assertTrue(link.isEnabled())
+
+    def test_unticking_a_scenery_leaves_it_out_and_the_link_counts_it(self):
+        d, page = self.open_page()
+        sc = d.scenery
+        self.assertEqual(sc.stack.currentIndex(), 2)
+        self.assertFalse(sc.picker.search.isVisible())
+        every = len(page.offered)
+        self.assertIn(f"(all {every})", sc.surprise_link.text())
+        self.assertNotIn("daily", page.offered)
+        self.assertFalse(any(addon.presets.by_key()[k].season for k in page.offered))
+        self.surprise_tile(page, "synthwave").click()
+        Q.let_save()
+        self.assertEqual(saved(), dict(DAILY, surprise_left_out=["synthwave"]))
+        self.assertIn(f"({every - 1} of {every})", sc.surprise_link.text())
+        self.assertEqual(page.note.text(), addon.settings.surprise_page.NOTE)
+        self.surprise_tile(page, "synthwave").click()  # (ticked again)
+        Q.settle()
+        done_saves(self, d, DAILY)
+
+    def test_the_last_ticked_scenery_stays_ticked(self):
+        _d, page = self.open_page()
+        for t in page.picker.tiles:
+            t.click()
+        Q.settle()
+        self.assertEqual(page.picker.ticked(), [page.picker.tiles[-1].preset.key])
+        self.assertEqual(page.note.text(), addon.s_surprise_page.ONE_LEFT)
+        page.picker.tiles[-1].click()
+        Q.settle()
+        self.assertEqual(len(page.picker.ticked()), 1)
+
+    def test_the_tiles_are_one_tab_stop_with_arrows_between_them_and_space_ticks(self):
+        from PyQt6.QtTest import QTest
+        d, page = self.open_page()
+        tiles = page.picker.tiles
+        stops = [t for t in tiles if t.focusPolicy() == Qt.FocusPolicy.StrongFocus]
+        self.assertEqual(stops, [tiles[0]])
+        tiles[0].setFocus()  # (offscreen the window is never active: focusWidget() says where the focus is)
+        self.press(tiles[0], Qt.Key.Key_Right)
+        self.assertIs(d.focusWidget(), tiles[1])
+        self.assertEqual([t for t in tiles if t.focusPolicy() == Qt.FocusPolicy.StrongFocus], [tiles[1]])
+        self.press(tiles[1], Qt.Key.Key_Left)
+        self.assertIs(d.focusWidget(), tiles[0])
+        QTest.keyClick(tiles[0], Qt.Key.Key_Space)
+        Q.settle()
+        self.assertFalse(tiles[0].isChecked())
+        self.assertIn(tiles[0].preset.key, page.left_out)
+
+    def test_back_goes_to_the_tiles(self):
+        d, page = self.open_page()
+        page.back.on_click()
+        Q.settle()
+        self.assertEqual(d.scenery.stack.currentIndex(), 0)
+        self.assertTrue(d.scenery.picker.isVisible())
+
+    def test_cancel_puts_the_list_back(self):
+        d, page = self.open_page({"surprise_left_out": ["aurora"]})
+        self.assertFalse(self.surprise_tile(page, "aurora").isChecked())
+        self.surprise_tile(page, "synthwave").click()
+        self.surprise_tile(page, "aurora").click()
+        Q.let_save()
+        self.assertEqual(saved()["surprise_left_out"], ["synthwave"])
+        self.cancel(d)
+        self.assertEqual(saved(), dict(DAILY, surprise_left_out=["aurora"]))
+
+    def test_one_left_out_that_this_copy_lacks_is_kept(self):
+        d, page = self.open_page({"surprise_left_out": ["not_here"]})
+        self.surprise_tile(page, "synthwave").click()
+        done_saves(self, d, dict(DAILY, surprise_left_out=["not_here", "synthwave"]))
+
+    def test_restore_defaults_resets_it(self):
+        from PyQt6.QtWidgets import QDialogButtonBox, QMessageBox
+        d = self.open_dialog(dict(DAILY, surprise_left_out=["synthwave"]))
+
+        def choose(box):
+            self.assertIn("Surprise me daily's sceneries", box.informativeText())
+            next(b for b in box.buttons() if box.buttonRole(b) == QMessageBox.ButtonRole.AcceptRole).click()
+        Q.answer_modal(choose)
+        self.button(d, QDialogButtonBox.StandardButton.RestoreDefaults).click()
+        Q.settle()
+        self.assertEqual(saved(), {})
+        self.assertEqual(self.dialog.scenery.surprise.left_out, set())

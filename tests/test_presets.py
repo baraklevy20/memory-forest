@@ -150,8 +150,20 @@ class SeasonTests(unittest.TestCase):
     def test_surprise_me_never_repeats_a_day_round_its_week(self):
         days = [D(2026, 10, 1) + datetime.timedelta(days=n) for n in range(60)]
         picks = [presets.of_the_day(day, CATALOGUE) for day in days]
-        self.assertNotIn(HARVEST, picks)
         self.assertTrue(all(a is not b for a, b in zip(picks, picks[1:])))
+        # it takes turns in its week, and only then
+        self.assertEqual({day for day, p in zip(days, picks) if p is HARVEST} - set(days[23:31]), set())
+        self.assertIn(HARVEST, picks)
+        # and the same, left out
+        self.assertNotIn(HARVEST, [presets.of_the_day(day, CATALOGUE, {"harvest_week"}) for day in days])
+
+    def test_surprise_me_leaves_out_what_it_is_told(self):
+        days = [D(2026, 9, 1) + datetime.timedelta(days=n) for n in range(30)]
+        self.assertEqual({presets.of_the_day(day, CATALOGUE, {"other"}) for day in days}, {PLAIN})
+        # every one left out (by hand, or by a copy lacking the ones kept): they all take turns again
+        self.assertEqual({presets.of_the_day(day, CATALOGUE, {"plain", "other"}) for day in days}, {PLAIN, OTHER})
+        self.assertEqual(presets.left_out({"surprise_left_out": ["other", 3]}), {"other"})
+        self.assertEqual(presets.left_out({"surprise_left_out": "other"}), set())
 
     def test_surprise_me_never_picks_it_early(self):
         for n in range(60):
