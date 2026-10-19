@@ -15,7 +15,7 @@ import os
 
 from . import catalog, presets
 from .edition import debug_available, debug_edition, edition_presets
-from .seasons import today
+from .seasons import offer_day, today
 from .state import save_config
 
 # ---- the choices, as the config keeps them ----
@@ -231,14 +231,15 @@ def smooth(cfg: dict, here: str = "") -> bool:
 
 def tile_shown(key: str, cfg: dict) -> bool:
     """Whether a tile style is offered just now: not a Plus one this copy lacks, a seasonal
-    scenery's only in its week (today's, or the debug date's), and one still in the works (a
+    scenery's only in its week (today's, or the debug date's; any while debugging with no date, as
+    its scenery is: seasons.offer_day), and one still in the works (a
     draft's) not while the Debug tab pretends this is the base or Plus edition, which has none."""
     if key in TILE_ENVS and plus_locked(TILE_ENVS[key], cfg):
         return False
     if TILE_SPECS.get(key, {}).get("draft") and debug_edition(cfg):
         return False
     spec = presets.by_key().get(TILE_SEASONS.get(key, ""))
-    return spec is None or presets.unlocked(spec, today(cfg))
+    return spec is None or presets.unlocked(spec, offer_day(cfg))
 
 
 def tile_env(cfg: dict, here: str = "") -> str:

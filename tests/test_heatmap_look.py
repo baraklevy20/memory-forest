@@ -136,6 +136,14 @@ class ChoiceTests(unittest.TestCase):
         self.assertEqual(HL.tile_env({"calendar_tiles": "pumpkin", "debug": True, "debug_date": "2026-07-01"}, "lanterns"), "round")
         self.assertEqual(HL.out_of_season({"calendar_colours": "ready:aurora", "calendar_tiles": "brush"}), {})  # (not seasonal)
 
+    def test_debugging_with_no_date_a_holiday_scenery_wears_its_own_tiles(self):
+        # (its scenery is offered then whatever the day, seasons.offer_day: its pumpkins come with it,
+        # not Flat outside its week)
+        if not addon.edition.debug_available({"debug": True}):
+            self.skipTest("the debug date needs debug")
+        self.assertEqual(HL.tile_env({"debug": True}, "pumpkin_patch"), "pumpkin_patch")
+        self.assertEqual(HL.tile_env({"debug": True, "debug_date": "2026-07-01"}, "pumpkin_patch"), "flat")
+
 
 class TileFileTests(unittest.TestCase):
     def test_each_tile_style_s_files_say_what_the_tab_needs(self):

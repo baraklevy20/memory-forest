@@ -100,7 +100,7 @@ Hover for details; click a day to open its cards.
 
 <p align="center"><img src="docs/heatmap_sceneries.png" alt="The same heatmap in five sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, blue contours in Aurora night, and violet to pink scanlines in Synthwave"></p>
 
-## Beside your deck list
+## Layout
 
 <p align="center"><img src="docs/layout.png" alt="A Japanese deck list on the left, a chalkboard forest beside it on the right, and the study heatmap under both"></p>
 
