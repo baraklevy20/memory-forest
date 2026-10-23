@@ -10,8 +10,8 @@ heatmap.png: the forest by the lake with its heatmap under it, visible streak la
 the current streak's silver trophy, its next goal's flag, and an upcoming exam note.
 heatmap_sceneries.png: one heatmap in five sceneries, each beside its picker picture, with
 its current trophy and flag and no other streak markers.
-layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard and the
-heatmap beside it on the right (Layout: Beside it), arranged by the add-on's own web/core.js AF.arrange, at
+layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it
+on the right and the heatmap Full width under them (Layout: One beside), arranged by the add-on's own web/core.js AF.arrange, at
 twice the pixels (a Retina screen). Needs Chrome, and node with the dev packages.
 """
 
@@ -320,14 +320,14 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
         if args.only != "heatmap":
-            # the layout: Chalkboard and its heatmap beside the deck list (Beside it), the page shot whole
+            # the layout: Chalkboard beside the deck list and its heatmap Full width under it (One beside), the page shot whole
             # with its margins, down to Anki's studied-today line
             board = mood_of("chalkboard")
             # (with --collection, your own forest and the animals its numbers bring; the decks stay made up)
             trees = layout_forest() if REAL_DATA is None else {"visitors": fake_forest.visitors(REAL_DATA["stats"])}
-            lay = dict(forest_data(board), **trees, calendar=calendar(board, [], view=LAYOUT_VIEW), showForest=True, maxWidth=LAYOUT_FOREST,
+            lay = dict(forest_data(board), **trees, calendar=dict(calendar(board, [], view=LAYOUT_VIEW), size={"width": "full", "fill": "more"}), showForest=True, maxWidth=LAYOUT_FOREST,
                        journal=LAYOUT_JOURNAL, sceneName=presets.by_key()["chalkboard"].label,
-                       layout={"forest": "right", "heatmap": "right", "first": "forest"})
+                       layout={"forest": "right", "heatmap": "below", "first": "forest"})
             path = os.path.join(tmp, "layout.html")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(layout_page(board, lay))

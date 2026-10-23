@@ -102,7 +102,7 @@ Hover for details; click a day to open its cards.
 
 ## Layout
 
-<p align="center"><img src="docs/layout.png" alt="A Japanese deck list on the left, with a chalkboard forest and its study heatmap beside it on the right"></p>
+<p align="center"><img src="docs/layout.png" alt="A Japanese deck list with a chalkboard forest beside it on the right, and the study heatmap across the full width below"></p>
 
 Choose where the forest and the heatmap sit on the Forest tab of the settings.
 
