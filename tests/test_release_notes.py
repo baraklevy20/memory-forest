@@ -86,7 +86,7 @@ class MadeFromItTests(unittest.TestCase):
         self.assertFalse(release_notes.has(entry, {"scenery": {"x"}, "edition": {"plus"}}))
         self.assertTrue(release_notes.has(entry, {"scenery": None, "edition": None}))  # (this copy, every edition's lines)
         if notes.editions.available():  # (the public repo has no editions.json, nor any Plus to build)
-            self.assertNotIn("Starry night, after Van Gogh, is now in the free edition.",
+            self.assertNotIn("Starry night is now in the free edition.",
                              [release_notes.item(e)["text"] for e in notes.versions("plus")[0]["new"]])
 
     def test_a_need_with_no_key_wants_any_of_its_kind(self):

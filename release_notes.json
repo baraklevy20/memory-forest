@@ -5,26 +5,26 @@
       "version": "1.4.0",
       "new": [
         {
-          "text": "Starry night, after Van Gogh, is now in the free edition.",
+          "text": "Starry night is now in the free edition.",
           "needs": "scenery:starry_night edition:base"
         },
-        "Put the forest and the heatmap beside your deck list or above it, and choose which comes first (Forest tab, Layout).",
-        "A Streak view on the heatmap shows your whole streak at once, beside Timeline and By year.",
+        "Put the forest and heatmap beside or above your deck list (Forest tab).",
+        "A Streak view shows your whole streak at once.",
         {
-          "text": "Select days on the heatmap with Shift-click or Ctrl-click (Cmd-click on a Mac): their trees light up in your forest, and a click opens all their cards."
+          "text": "Select heatmap days with Shift-click or Ctrl/Cmd-click to light up their trees."
         },
-        "Two new heatmap tile styles, Rime and Canes, and every scenery's own tiles now in one dropdown (Heatmap tab, Style).",
-        "Surprise me daily can now leave out the sceneries you'd rather not see (Scenery tab).",
-        "A start date can now keep your trees from before it, with ponds, Nature and animals counting from the date (Decks tab)."
+        "Two new heatmap tile styles: Rime and Canes.",
+        "Surprise me daily can skip sceneries you'd rather not see.",
+        "A start date can now keep your earlier trees (Decks tab)."
       ],
       "improved": [
-        "The sceneries got a polish: lakes catch the low sun and the cabin's window, rain rings the water, fog drifts as soft mist, and more.",
-        "The heatmap now follows the forest's time of day, and you can set its width (Heatmap tab).",
-        "Nature's settings now show what each level does to a forest, in a short moving picture beside it.",
-        "Empty days on the heatmap now wear the scenery's own tile style too, faintly."
+        "Every scenery got a polish: sunlit lakes, rain on the water, drifting mist and more.",
+        "The heatmap follows the time of day, and its width can be set.",
+        "Nature's levels now show what they do, in a short animation.",
+        "Empty heatmap days now match the scenery's tiles."
       ],
       "fixed": [
-        "Memory Forest no longer shows as a blank widget in Onigiri."
+        "Fixed a blank widget in Onigiri."
       ],
       "plus": [
         "Chalkboard",
