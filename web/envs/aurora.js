@@ -159,6 +159,9 @@ AF.env('aurora', {
     if (!night && mood.time === 'day') th.sky = ['#4a80c4', '#6290cc', '#7ea4d4', '#9cb9de', '#bccfe6', '#d6e2ee'];
     if (th.clouds) th.clouds.n = 0;  // nothing drifting across the lights
   },
+  // the study calendar takes its moonlit snow ghosts' blue (its most colourful crown); by day, from
+  // the spruces' green to the polar sky (calendar.js hourOf)
+  calendarDay: ['#2f6e58', '#4a80c4'],
   pals: { round: GHOST, pine: SPRUCE, bark: BARK, leaf: hex('#23604c'), leafL: hex('#7af0b4'), stem: hex('#4a4652') },
 
   tree: {

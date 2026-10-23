@@ -919,6 +919,7 @@ function calendarTile(g, pal, edge, v, T) {
 
 AF.env('pumpkin_patch', {
   calendar: ['#5e4a8e', '#ef8a2a'],  // the study calendar from the dusk's purple to pumpkin orange
+  calendarDay: '#ff8e3c',  // and by day, the dusk gone, all pumpkin orange (calendar.js hourOf)
   calendarTile,
   dressVisitor: witchHat,
   busy: true,  // the bats, the witch crossing the moon, the laughing pumpkins

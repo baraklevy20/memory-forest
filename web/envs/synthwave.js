@@ -96,6 +96,8 @@ function palmLayer(env) {
 
 const DEF = {
   calendar: ['#2e2a7a', '#ff4fa3'],  // the study calendar from the night's indigo to the neon's hot pink
+  // at the other hours, from the same indigo to that hour's grid neon (GRIDS near; calendar.js hourOf)
+  calendarHours: { dawn: ['#2e2a7a', '#ffa0c8'], day: ['#2e2a7a', '#ff9ad8'], golden_hour: ['#2e2a7a', '#ff8a3a'], night: ['#2e2a7a', '#35e0ff'] },
   // `base` replaces the forest's own palette wholesale: trees, sick leaves and bark
   pals: Object.assign({ base: SYNTH, round: SYNTH.round, pine: SYNTH.pine, bark: SYNTH.bark },
     { leaf: hex('#ff4fa3'), leafL: hex('#ff9fd0'), stem: hex('#c0307a') }),

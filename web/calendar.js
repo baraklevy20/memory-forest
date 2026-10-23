@@ -406,6 +406,64 @@ function readable(c) {
   const ch = t => { t = (t + 1) % 1; return 255 * (t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p); };
   return [ch(h + 1 / 3), ch(h), ch(h - 1 / 3)];
 }
+/* The heatmap's colours follow the forest's hour (mood.time: the clock, the city's sun or a fixed
+ * hour, whichever the forest follows), as its trees do. A scenery's colours are made for its own hour
+ * (`mood.home`, its preset's, from scene.py):
+ * - a day scenery (its own hour dawn, day or golden hour) keeps them while the sun is up, as its
+ *   trees do; after dark they cool with them: their hue turns towards its night tint (its night
+ *   sky's blue), a little at dusk and more at night (HOUR_TURN, hourTurn). One whose trees take no
+ *   tint at night (Chalkboard's chalk) keeps its colours at every hour, as they do
+ * - a night scenery (its own hour dusk or night: Aurora, Lanterns, Synthwave...) keeps them after
+ *   dark, when its lights are lit; by day it wears its day colours (`calendarDay`, from its daytime
+ *   palette: chosen like `calendar`, a hue turned from night colours went muddy), and at dawn and
+ *   golden hour the two meet halfway (DAY_SHARE, dayBlend). One with no day colours keeps its own.
+ * - a scenery that names colours for each hour (`calendarHours`, Synthwave's grid neon) wears them at
+ *   those hours, and its own `calendar` at the rest.
+ * Each colour keeps the lightness the shades give it, so the steps stay as far apart at every hour
+ * (HEATMAP_COLOURS.md; dev/heatmap_shades.py checks every hour). Colours chosen on the Heatmap tab
+ * stay as chosen. */
+const HOUR_TURN = { dusk: 0.1, night: 0.35 }, AFTER_DARK = ['dusk', 'night'];
+const DAY_SHARE = { dawn: 0.5, day: 1, golden_hour: 0.5 };
+function hourTurn(c, hour) {
+  const k = oklab(c), t = oklab(hex(hour.tint)), C = Math.hypot(k[1], k[2]);
+  const h = Math.atan2(k[2], k[1]), to = Math.atan2(t[2], t[1]);
+  const turned = h + Math.atan2(Math.sin(to - h), Math.cos(to - h)) * hour.turn;  // (the short way round)
+  let C2 = C;
+  while (C2 > 0.01 && !fits(k[0], C2 * Math.cos(turned), C2 * Math.sin(turned))) C2 *= 0.95;
+  return fromOklab(k[0], C2 * Math.cos(turned), C2 * Math.sin(turned));
+}
+/* `t` of the way from colour `a` to `b` by hue (the short way round) and colourfulness, not straight
+ * through OKLab: a night blue to a day green went grey halfway (each shade's lightness is set after) */
+function dayBlend(a, b, t) {
+  if (t >= 1) return b;
+  const p = oklab(a), q = oklab(b), hp = Math.atan2(p[2], p[1]), hq = Math.atan2(q[2], q[1]);
+  const h = hp + Math.atan2(Math.sin(hq - hp), Math.cos(hq - hp)) * t;
+  const L = p[0] + (q[0] - p[0]) * t;
+  let C = Math.hypot(p[1], p[2]) + (Math.hypot(q[1], q[2]) - Math.hypot(p[1], p[2])) * t;
+  while (C > 0.01 && !fits(L, C * Math.cos(h), C * Math.sin(h))) C *= 0.95;
+  return fromOklab(L, C * Math.cos(h), C * Math.sin(h));
+}
+/* what the mood's hour does to a scenery's colours (above): { tint, turn } after dark for a day
+ * scenery, { to, share } towards the colours it names for the other half of the day, or null where
+ * its own colours stand. A mood with no `home` (sent before it was) takes a scenery with day
+ * colours as a night one. */
+function hourOf(mood) {
+  const spec = AF.ENVS[mood.special] || {}, home = mood.home || (spec.calendarDay ? 'night' : 'day');
+  if (spec.calendarHours) {
+    const to = spec.calendarHours[mood.time];
+    return to ? { to, share: 1 } : null;
+  }
+  if (AFTER_DARK.includes(home)) {
+    const share = DAY_SHARE[mood.time];
+    return share && spec.calendarDay ? { to: spec.calendarDay, share } : null;
+  }
+  const turn = HOUR_TURN[mood.time];
+  if (!turn) return null;
+  try {
+    const th = AF.theme(Object.assign({}, mood, { time: 'night', weather: 'clear' }), {}, []);
+    return th.tint ? { turn, tint: th.tint } : null;
+  } catch { return null; }
+}
 /* The page the calendar sits on: its colour (the first background behind `el` with any, AF.u.pageBg;
  * on a phone's transparent card, the app's own, AF.u.appBg) and whether it is dark (Anki's dark mode). */
 function pageOf(el) {
@@ -425,8 +483,11 @@ function shades(env, paper, look) {
   // (heatmap_look.py) come in the same way, as one colour or two (`look.colours`)
   const dark = paper.dark, chosen = look && look.colours, exact = !!(look && look.exact && chosen);
   const chroma = c => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]), own = chosen || AF.envOf(env).calendar;
-  const keys = Array.isArray(own) ? [0, 1, 2, 3].map(i => readable(blend(hex(own[0]), hex(own[1]), i / 3)))
+  const keysOf = own => Array.isArray(own) ? [0, 1, 2, 3].map(i => readable(blend(hex(own[0]), hex(own[1]), i / 3)))
     : Array(4).fill(readable(own ? hex(own) : AF.foliage(env).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a)));
+  // (the scenery's colours follow the forest's hour, hourOf; colours chosen on the Heatmap tab stay as chosen)
+  const plain = keysOf(own), hour = !chosen && env.hour;
+  const keys = !hour ? plain : hour.to ? keysOf(hour.to).map((c, i) => dayBlend(plain[i], c, hour.share)) : plain.map(c => hourTurn(c, hour));
   // (about evenly far apart; on a dark page the top one only a little towards white, so a busy
   // day never outshines the forest)
   // (on a light page each shade at its own lightness, in even steps from a clear light colour to a
@@ -461,9 +522,10 @@ function sceneOf(data, env) {
     const spec = AF.envOf(env);
     try { if (spec.prepare) spec.prepare(env); } catch { /* only its look for the animals is wanted */ }
   }
-  // the scenery's trees in plain light (no hour's tint, haze or rim): the same at any hour
+  // the scenery's trees in plain light (no hour's tint, haze or rim), and what the hour does to its
+  // colours (hourOf)
   return { theme: Object.assign({}, env.theme, { tint: null, tintAmt: 0, hzStep: 0, rim: null }), mood: env.mood, u: 1,
-    layout: null, data: env.data, visitorTint: env.visitorTint };
+    layout: null, data: env.data, visitorTint: env.visitorTint, hour: hourOf(env.mood) };
 }
 function spriteOf(t, h, env) {
   try { return AF.pixel.sprite(t, h, 0, env); }
@@ -749,7 +811,7 @@ function markPalOf(sp, look) {
   // (the heatmap's own shades, so the mark stands out from the colours the Heatmap tab chose
   // too, not only the scenery's: a red that stood out from green sat on Flame's reds)
   const L0 = look && look.colours ? { colours: look.colours, exact: !!look.exact } : null;
-  const key = sp.mood.special + '|' + JSON.stringify(L0);
+  const key = sp.mood.special + '|' + JSON.stringify(L0) + '|' + JSON.stringify(sp.hour || null);
   if (!markPals.has(key)) {
     const sim = (c, m) => { if (!m) return c; const l = c.map(lin); return m.map(r => unlin(r[0] * l[0] + r[1] * l[1] + r[2] * l[2])); };
     const dist = (a, b) => { const p = oklab(a), q = oklab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };

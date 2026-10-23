@@ -121,3 +121,20 @@ class SceneTests(unittest.TestCase):
     def test_moon_phase(self):
         self.assertAlmostEqual(scene.moon_phase(dt.datetime(2000, 1, 6, 18, 14, tzinfo=dt.timezone.utc)), 0, places=3)
         self.assertAlmostEqual(scene.moon_phase(dt.datetime(2000, 1, 21, 9, 0, tzinfo=dt.timezone.utc)), 0.5, delta=0.02)
+
+
+class HomeHourTests(unittest.TestCase):
+    """The scenery's own hour goes with the mood, so the heatmap's colours follow the forest's hour
+    away from it (calendar.js hourOf), on the phone too: the clock's hour, or a fixed one."""
+
+    def test_each_scenerys_own_hour(self):
+        now = dt.datetime(2026, 9, 19, 23, 0)
+        self.assertEqual(scene.choose_mood({"environment": "natural", "time_of_day": "auto"}, now)["home"], "golden_hour")
+        self.assertEqual(scene.choose_mood({"environment": "aurora", "time_of_day": "auto"}, now)["home"], "night")
+
+    def test_the_hour_the_heatmap_follows_is_the_forests(self):
+        noon = dt.datetime(2026, 9, 19, 12, 0)
+        clock = scene.choose_mood({"environment": "aurora", "time_of_day": "auto"}, noon)
+        fixed = scene.choose_mood({"environment": "aurora", "time_of_day": "dusk"}, noon)
+        self.assertEqual((clock["time"], clock["home"], clock["clock"]), ("day", "night", True))
+        self.assertEqual((fixed["time"], fixed["home"], fixed["clock"]), ("dusk", "night", False))

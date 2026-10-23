@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { load, SCRIPTS, calendar } from './load.mjs';
 
 const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'pastYears', 'yearsFor', 'reachOf', 'lasted', 'markLine',
-  'countFor', 'widthOf', 'shades', 'exactSteps', 'oklab', 'restShade', 'blankOn', 'cellOf', 'utc', 'MARK_ICONS', 'MARK_ORDER',
+  'countFor', 'widthOf', 'shades', 'hourOf', 'exactSteps', 'oklab', 'restShade', 'blankOn', 'cellOf', 'utc', 'MARK_ICONS', 'MARK_ORDER',
   'setWeekStart: w => { weekStart = w; }', 'setCell: c => { CELL = c; }'];
 const AF = load(SCRIPTS, { expose: { 'calendar.js': EXPOSE } }).AnkiForest;
 const T = AF.__test;
@@ -299,6 +299,72 @@ test('a mark\'s line: its name, or its icon\'s, and how far off it is', () => {
 });
 
 const L = c => T.oklab(c)[0];
+const PAGES = [{ bg: [44, 44, 44], dark: true }, { bg: [245, 245, 245], dark: false }];
+const hue = k => Math.atan2(k[2], k[1]), chromaOf = k => Math.hypot(k[1], k[2]);
+// a scenery at an hour as the panel draws it: the mood, with its own hour (`home`), and what the hour does (hourOf)
+const atHour = (A, special, home, time, more = {}) => {
+  const mood = Object.assign({ special, time, home, weather: 'clear' }, more);
+  return { theme: {}, u: 1, mood, hour: A.__test.hourOf(mood) };
+};
+const labs = (A, sp, paper, look) => A.__test.shades(sp, paper, look).grass.map(p => A.__test.oklab(p[0]));
+test('after dark a day scenery\'s shades cool with the forest, each keeping its lightness', () => {
+  for (const paper of PAGES) {
+    const day = labs(AF, atHour(AF, 'natural', 'golden_hour', 'day'), paper), night = labs(AF, atHour(AF, 'natural', 'golden_hour', 'night'), paper);
+    const dusk = labs(AF, atHour(AF, 'natural', 'golden_hour', 'dusk'), paper);
+    for (let i = 0; i < 4; i++) {
+      // (its colourfulness as by day, or a little less where the screen can't show a colour that bright)
+      assert.ok(Math.abs(night[i][0] - day[i][0]) < 0.002 && chromaOf(night[i]) <= chromaOf(day[i]) + 0.001 && chromaOf(night[i]) > 0.7 * chromaOf(day[i]), 'same lightness, about as colourful');
+      assert.ok(hue(night[i]) > hue(dusk[i]) && hue(dusk[i]) > hue(day[i]), 'green turning towards the night blue');
+    }
+    // (dawn and golden hour: the trees as by day)
+    assert.deepEqual(plain(labs(AF, atHour(AF, 'natural', 'golden_hour', 'golden_hour'), paper)), plain(day));
+    assert.deepEqual(plain(labs(AF, atHour(AF, 'natural', 'golden_hour', 'dawn'), paper)), plain(day));
+  }
+});
+
+// the night sceneries, with their files (each names its day colours, `calendarDay`)
+const NIGHT = load([...SCRIPTS, 'envs/aurora.js', 'envs/pumpkin_patch.js', 'envs/chalkboard.js'], { expose: { 'calendar.js': ['shades', 'hourOf', 'oklab'] } }).AnkiForest;
+test('a night scenery keeps its colours after dark and wears its day colours by day, halfway at dawn and golden hour', () => {
+  const N = NIGHT, own = (paper, key = 'aurora') => labs(N, { theme: {}, u: 1, mood: { special: key, time: 'night', home: 'night', weather: 'clear' } }, paper);
+  for (const paper of PAGES) {
+    for (const time of ['night', 'dusk']) assert.deepEqual(plain(labs(N, atHour(N, 'aurora', 'night', time), paper)), plain(own(paper)), time);
+    // by day: its day colours, a green into the polar blue, where by night it is all the snow ghosts' slate blue
+    const day = labs(N, atHour(N, 'aurora', 'night', 'day'), paper), night = own(paper), dawn = labs(N, atHour(N, 'aurora', 'night', 'dawn'), paper);
+    const deg = k => (hue(k) * 180 / Math.PI + 360) % 360;
+    assert.ok(deg(day[0]) < 200 && deg(night[0]) > 230, 'the fewest a green by day, a blue by night');
+    for (let i = 0; i < 4; i++) {
+      assert.ok(Math.abs(day[i][0] - night[i][0]) < 0.002, 'each shade at its lightness at every hour');
+      assert.ok(Math.abs(dawn[i][0] - night[i][0]) < 0.002);
+    }
+    // (dawn halfway between, by hue: never through grey)
+    assert.ok(deg(dawn[0]) > deg(day[0]) && deg(dawn[0]) < deg(night[0]) && chromaOf(dawn[0]) > 0.6 * Math.min(chromaOf(day[0]), chromaOf(night[0])));
+    assert.deepEqual(plain(labs(N, atHour(N, 'aurora', 'night', 'golden_hour'), paper)), plain(dawn));
+  }
+  // a scenery at home at dusk (Pumpkin patch) too: its dusk and night colours by night, all orange by day
+  const pk = t => labs(N, atHour(N, 'pumpkin_patch', 'dusk', t), PAGES[0]);
+  assert.deepEqual(plain(pk('night')), plain(own(PAGES[0], 'pumpkin_patch')));
+  assert.ok(pk('day').every(k => Math.abs(hue(k) * 180 / Math.PI - 60) < 25), 'pumpkin orange');
+  // a day scenery whose trees take no tint at night (Chalkboard) keeps its yellow chalk at every hour
+  const ch = t => labs(N, atHour(N, 'chalkboard', 'day', t), PAGES[0]);
+  assert.deepEqual(plain(ch('dusk')), plain(ch('day')));
+  assert.deepEqual(plain(ch('night')), plain(ch('day')));
+  // a mood sent before `home` was: a scenery with day colours is a night one
+  assert.deepEqual(plain(N.__test.hourOf({ special: 'aurora', time: 'night', weather: 'clear' })), null);
+  assert.equal(N.__test.hourOf({ special: 'aurora', time: 'day', weather: 'clear' }).share, 1);
+});
+
+test('the heatmap follows the forest\'s hour, the clock\'s or a fixed one alike; colours chosen on the Heatmap tab stay as chosen', () => {
+  const N = NIGHT;
+  // (the hour is the mood's: a fixed Day on a night scenery is its day, as the forest is)
+  assert.deepEqual(plain(N.__test.hourOf({ special: 'aurora', time: 'day', home: 'night', clock: false, weather: 'clear' })),
+    plain(N.__test.hourOf({ special: 'aurora', time: 'day', home: 'night', clock: true, weather: 'clear' })));
+  assert.equal(N.__test.hourOf({ special: 'aurora', time: 'night', home: 'night', clock: false, weather: 'clear' }), null);
+  for (const [N2, key, home] of [[AF, 'natural', 'golden_hour'], [N, 'aurora', 'night']]) {
+    const mine = t => plain(N2.__test.shades(atHour(N2, key, home, t), PAGES[0], { colours: '#3c8d40' }).grass);
+    assert.deepEqual(mine('night'), mine('day'));
+  }
+});
+
 test('the shades stand out more from the page the busier the day: lighter on a dark page, darker on a light', () => {
   const sp = { mood: { special: 'natural' } }, look = { colours: '#3c8d40' };
   const dark = T.shades(sp, { bg: [44, 44, 44], dark: true }, look).grass.map(p => L(p[0]));

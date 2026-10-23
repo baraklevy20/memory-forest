@@ -389,6 +389,7 @@ function calendarTile(g, pal, edge, v, T) {
 
 AF.env('starry_night', {
   calendar: '#3a5aa8',  // the study calendar in the painting's night blue (its cypresses' green said nothing of it)
+  calendarDay: ['#3c7cc8', '#5aa88c'],  // and by day, from the daylit sky's blue to the trees' green (calendar.js hourOf)
   calendarTile,
   pals: { rounds: ROUNDS, pine: CYPRESS, bark: BARK, leaf: hex('#2f7a68'), leafL: hex('#5aa88c'), stem: hex('#1e5552') },
   flipLight: false,

@@ -1356,6 +1356,7 @@ function calendarTile(g, pal, edge, v, T) {
 
 AF.env('frozen_market', {
   calendar: '#6e92c8',  // the study calendar in the river's ice blue: its trees' green says nothing of the frozen scene
+  calendarDay: ['#2a6a44', '#5c84ba'],  // and by day, from the trees' green on the snow to the ice (calendar.js hourOf)
   calendarTile,
   busy: true,  // the skaters, twirling, and the sleigh
   look: mood => clone(LOOKS[hourOf(mood.time)]),
