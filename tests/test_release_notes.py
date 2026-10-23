@@ -28,7 +28,9 @@ class FileTests(unittest.TestCase):
         versions = release_notes.load()
         self.assertTrue(versions)
         for v in versions:
-            self.assertTrue(set(v) <= {"version", "summary"} | {k for k, _h in release_notes.SECTIONS}, v["version"])
+            # (and "plus": the names of what Plus got more, in the free edition's copy: for_edition)
+            self.assertTrue(set(v) <= {"version", "summary", "plus"} | {k for k, _h in release_notes.SECTIONS}, v["version"])
+            self.assertTrue(all(isinstance(name, str) and name.strip() for name in v.get("plus", [])), v["version"])
             for e in release_notes.items(v):
                 self.assertTrue(e["text"].strip())
 
