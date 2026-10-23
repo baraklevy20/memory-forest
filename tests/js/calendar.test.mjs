@@ -3,7 +3,9 @@
 // weeks they fall in, and the words its tooltips and key use. Made-up calendars only.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { load, SCRIPTS, calendar } from './load.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { load, SCRIPTS, calendar, WEB } from './load.mjs';
 
 const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'pastYears', 'yearsFor', 'reachOf', 'lasted', 'markLine',
   'countFor', 'widthOf', 'shades', 'hourOf', 'exactSteps', 'oklab', 'restShade', 'blankOn', 'cellOf', 'utc', 'MARK_ICONS', 'MARK_ORDER',
@@ -323,7 +325,9 @@ test('after dark a day scenery\'s shades cool with the forest, each keeping its 
 });
 
 // the night sceneries, with their files (each names its day colours, `calendarDay`)
-const NIGHT = load([...SCRIPTS, 'envs/aurora.js', 'envs/pumpkin_patch.js', 'envs/chalkboard.js'], { expose: { 'calendar.js': ['shades', 'hourOf', 'oklab'] } }).AnkiForest;
+// (Chalkboard is Plus only: the public repo has no file of it, so its check runs only where it is)
+const CHALK = fs.existsSync(path.join(WEB, 'envs', 'chalkboard.js'));
+const NIGHT = load([...SCRIPTS, 'envs/aurora.js', 'envs/pumpkin_patch.js', ...(CHALK ? ['envs/chalkboard.js'] : [])], { expose: { 'calendar.js': ['shades', 'hourOf', 'oklab'] } }).AnkiForest;
 test('a night scenery keeps its colours after dark and wears its day colours by day, halfway at dawn and golden hour', () => {
   const N = NIGHT, own = (paper, key = 'aurora') => labs(N, { theme: {}, u: 1, mood: { special: key, time: 'night', home: 'night', weather: 'clear' } }, paper);
   for (const paper of PAGES) {
@@ -345,9 +349,11 @@ test('a night scenery keeps its colours after dark and wears its day colours by 
   assert.deepEqual(plain(pk('night')), plain(own(PAGES[0], 'pumpkin_patch')));
   assert.ok(pk('day').every(k => Math.abs(hue(k) * 180 / Math.PI - 60) < 25), 'pumpkin orange');
   // a day scenery whose trees take no tint at night (Chalkboard) keeps its yellow chalk at every hour
-  const ch = t => labs(N, atHour(N, 'chalkboard', 'day', t), PAGES[0]);
-  assert.deepEqual(plain(ch('dusk')), plain(ch('day')));
-  assert.deepEqual(plain(ch('night')), plain(ch('day')));
+  if (CHALK) {
+    const ch = t => labs(N, atHour(N, 'chalkboard', 'day', t), PAGES[0]);
+    assert.deepEqual(plain(ch('dusk')), plain(ch('day')));
+    assert.deepEqual(plain(ch('night')), plain(ch('day')));
+  }
   // a mood sent before `home` was: a scenery with day colours is a night one
   assert.deepEqual(plain(N.__test.hourOf({ special: 'aurora', time: 'night', weather: 'clear' })), null);
   assert.equal(N.__test.hourOf({ special: 'aurora', time: 'day', weather: 'clear' }).share, 1);

@@ -39,7 +39,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
   const litDimOf = env => {
     const [, cg] = AF.u.layer(64, 32);
     let d;
-    try { cg.drawImage(env.land, 0, 0, 64, 32); d = cg.getImageData(0, 0, 64, 32).data; } catch (e) { return 0.55; }
+    try { cg.drawImage(env.land, 0, 0, 64, 32); d = cg.getImageData(0, 0, 64, 32).data; } catch { return 0.55; }
     let s = 0, n = 0;
     for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) { s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; n++; }
     const t = Math.max(0, Math.min(1, ((n ? s / n / 255 : 0.5) - LIT_DIM_AT[0]) / (LIT_DIM_AT[1] - LIT_DIM_AT[0])));

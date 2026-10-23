@@ -130,7 +130,7 @@ try {
       if (root.querySelector('.af-cal-spot') || !tipEl.hidden) failures.push('Esc did not let the stretch go');
       if (snapshot() !== unpicked) failures.push('letting the stretch go did not restore the forest');
       // Cmd (Ctrl off a Mac) and a click drops a day from a stretch, and picks one apart from it
-      const cmd = /Mac/.test(navigator.platform) ? { metaKey: true } : { ctrlKey: true };
+      const cmd = /Mac/.test(globalThis.navigator.platform) ? { metaKey: true } : { ctrlKey: true };
       const third = dayAt(12), apart = dayAt(2);
       weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       weeks.blur();
@@ -166,7 +166,7 @@ try {
         return [b.left + b.width / 2, b.top + b.height / 2];
       };
       const done = () => { key('Escape'); weeks().blur(); grid.dispatchEvent(new MouseEvent('mouseleave')); };
-      const cmd = /Mac/.test(navigator.platform) ? { metaKey: true } : { ctrlKey: true };
+      const cmd = /Mac/.test(globalThis.navigator.platform) ? { metaKey: true } : { ctrlKey: true };
       const click = ([x, y], mods = {}, on = weeks()) => on.dispatchEvent(new MouseEvent('click', Object.assign({ bubbles: true, clientX: x, clientY: y, detail: 1 }, mods)));
       const move = ([x, y], on = weeks()) => on.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
       const sentBy = f => { const sent = [], was = window.pycmd; window.pycmd = m => { sent.push(m); return false; }; f(); window.pycmd = was; return sent; };

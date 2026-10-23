@@ -84,7 +84,7 @@ def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = 
             _open_browser([study_log._any_of(due)], did)
         return
     title = {"reviews": "Reviews", "time": "Total time", "median": "Answer time"}[mode]
-    date = lambda o: study_log.day_date(-o, cutoff).isoformat()
+    date = lambda o: study_log.day_date(-o, cutoff).isoformat()  # noqa: E731
     days = sum(b - a + 1 for a, b in runs)
     span = date(runs[0][0]) if days == 1 else f"{date(runs[0][0])} to {date(runs[-1][1])}"
     label = f"{title} ({span})" if len(runs) == 1 else f"{title} ({days} days, {span})"

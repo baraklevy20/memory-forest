@@ -550,7 +550,7 @@ function faceOf(t) {
   let f = FACES.get(t);
   if (f) return f;
   let d;
-  try { d = t.getContext('2d').getImageData(0, 0, t.width, t.height).data; } catch (e) { return [0, 0, t.width, t.height]; }
+  try { d = t.getContext('2d').getImageData(0, 0, t.width, t.height).data; } catch { return [0, 0, t.width, t.height]; }
   let x0 = t.width, y0 = t.height, x1 = 0, y1 = 0;
   for (let y = 0; y < t.height; y++) for (let x = 0; x < t.width; x++) {
     if (!d[(y * t.width + x) * 4 + 3]) continue;
@@ -2191,7 +2191,7 @@ AF.calendar = function (root, data, env) {
   }, { passive: false });
   // a click opens its day in the browser; Shift or Cmd and a click selects days (select), and a click on
   // one of them then opens them all (on any other day, lets them go)
-  const MAC = /Mac|iPhone|iPad/.test(navigator.platform || '');
+  const MAC = /Mac|iPhone|iPad/.test(window.navigator.platform || '');
   const toggles = e => (MAC ? e.metaKey : e.ctrlKey);  // (a Mac's Ctrl-click is a right-click: the mark)
   const dayClick = (c, e) => {
     // (on the year in view or an earlier one shown: a selection can span years)

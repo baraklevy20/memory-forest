@@ -218,7 +218,7 @@ def layout_page(mood: dict, data: dict) -> str:
     on its dark page in its card style (body.fancy), the panel first among the stats as panel.py puts it."""
     rows = "<tr><th colspan=5 align=start>Deck</th><th class=count>New</th><th class=count>Learn</th><th class=count>Due</th><th class=optscol></th></tr>"
     for i, (name, level, new, learn, due) in enumerate(DECKS):
-        num = lambda n, cls: f"<td align=end>{f'<span class={cls}>{n}</span>' if n else ''}</td>"
+        num = lambda n, cls: f"<td align=end>{f'<span class={cls}>{n}</span>' if n else ''}</td>"  # noqa: E731
         fold = "<a class=collapse>-</a>" if level == 0 and i == 0 else ""
         rows += (f"<tr class='deck' id='{i + 1}'><td class=decktd colspan=5>{'&nbsp;' * 6 * level}<span class=collapse>{fold}</span>"
                  f'<a class="deck" href=#>{name}</a></td>{num(new, "new-count")}{num(learn, "learn-count")}{num(due, "review-count")}'
