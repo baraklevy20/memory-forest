@@ -494,8 +494,33 @@ class HeatmapTabTests(QtCase):
         Q.settle()
         self.assertEqual(lc.tile_choice.currentData(), "round")
         self.assertTrue(lc.tile_buttons["round"].isChecked())
-        self.assertFalse(lc.tile_buttons["scenery"].isChecked())
+        self.assertFalse(lc.tile_pick.isChecked())
         done_saves(self, d, {"calendar_tiles": "round"})
+
+    def test_the_tiles_scenery_button_lists_the_sceneries_own_tiles_and_a_pick_chooses_them(self):
+        menus = self.fake_menu(pick="Brush")
+        d = self.open_dialog()
+        lc = d.heatmap.look
+        lc.tile_buttons["flat"].click()
+        lc.tile_pick.click()
+        Q.settle()
+        self.assertEqual(len(menus), 1)
+        self.assertEqual(menus[0][0], "Current scenery")
+        self.assertIn("Brush", menus[0])
+        self.assertNotIn("Flat", menus[0])  # (the basic styles are buttons of their own)
+        self.assertNotIn("Pumpkins", menus[0])  # (a seasonal scenery's only in its week)
+        self.assertEqual(lc.tile_choice.currentData(), "brush")
+        self.assertTrue(lc.tile_pick.isChecked())
+        self.assertFalse(lc.tile_buttons["flat"].isChecked())
+        self.assertEqual(lc.tile_pick.text(), "Brush \u25be")
+        done_saves(self, d, {"calendar_tiles": "brush"})
+
+    def test_a_saved_scenerys_tiles_show_on_the_tiles_scenery_button(self):
+        d = self.open_dialog({"calendar_tiles": "scanlines"})
+        lc = d.heatmap.look
+        self.assertEqual(lc.tile_choice.currentData(), "scanlines")
+        self.assertEqual(lc.tile_pick.text(), "Scanlines \u25be")
+        done_saves(self, d, {"calendar_tiles": "scanlines"})
 
     def test_the_scenery_button_lists_every_scenerys_colours_and_a_pick_chooses_them(self):
         menus = self.fake_menu(pick="Aurora night")
@@ -544,8 +569,8 @@ class HeatmapTabTests(QtCase):
         d = self.open_dialog()
         self.tab(d, "Heatmap")
         lc = d.heatmap.look
-        lc.tile_buttons["scenery"].setFocus()
-        self.press(lc.tile_buttons["scenery"], Qt.Key.Key_Right)
+        lc.tile_pick.setFocus()
+        self.press(lc.tile_pick, Qt.Key.Key_Right)
         self.assertEqual(lc.tile_choice.currentData(), "flat")
         done_saves(self, d, {"calendar_tiles": "flat"})
 
@@ -583,9 +608,9 @@ class HeatmapTabTests(QtCase):
         d = self.open_dialog({"calendar_tiles": "pumpkin"})
         lc = d.heatmap.look
         self.tab(d, "Heatmap")
-        self.assertFalse(lc.tile_buttons["pumpkin"].isVisible())
+        self.assertNotIn("pumpkin", [k for k, _n in lc._tile_choices()])
         self.assertEqual(lc.tile_choice.currentData(), "scenery")
-        self.assertTrue(lc.tile_buttons["scenery"].isChecked())
+        self.assertTrue(lc.tile_pick.isChecked())
         done_saves(self, d, {})
 
     def test_a_seasonal_tile_style_in_its_week_is_offered_and_kept(self):
@@ -593,8 +618,9 @@ class HeatmapTabTests(QtCase):
         d = self.open_dialog(cfg)
         lc = d.heatmap.look
         self.tab(d, "Heatmap")
-        self.assertTrue(lc.tile_buttons["pumpkin"].isVisible())
+        self.assertIn("pumpkin", [k for k, _n in lc._tile_choices()])
         self.assertEqual(lc.tile_choice.currentData(), "pumpkin")
+        self.assertEqual(lc.tile_pick.text(), "Pumpkins \u25be")
         done_saves(self, d, {"debug_date": "2026-10-28", "calendar_tiles": "pumpkin"})
 
     def test_a_seasonal_tile_style_falls_back_to_scenery_when_the_debug_date_leaves_its_week(self):

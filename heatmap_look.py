@@ -59,6 +59,10 @@ TILES = tuple(TILE_SPECS)
 TILE_DEFAULT = "flat"  # (Scenery's on a scenery with none of its own)
 TILE_FOLLOW = "scenery"  # (the default, and what a style that can't be had falls back to: the scenery's own style, changing with it; web/heatmap/scenery.json)
 SHAPES = tuple(k for k, v in TILE_SPECS.items() if v.get("shape"))
+# the Heatmap tab's two kinds of style: a scenery's own tiles (its medium: in the Scenery dropdown)
+# and the basic ones beside it (Flat, Round, Contours)
+SCENERY_TILES = tuple(k for k, v in TILE_SPECS.items() if v.get("env"))
+BASIC_TILES = tuple(k for k in TILES if k != TILE_FOLLOW and k not in SCENERY_TILES)
 TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
 # the sceneries that wear a style anyone can pick as their own (its file's "sceneries": Round on Lanterns)
 TILE_WORN = {env: k for k, v in TILE_SPECS.items() for env in v.get("sceneries", ())}

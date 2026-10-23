@@ -50,6 +50,10 @@ SCENERY_READY_TIP = "{name}'s colours, on any scenery"
 PICK_LABEL = "{name} \u25be"
 PICK_TIP = "Your current scenery's colours, or another scenery's, which stay when you change scenery"
 FOLLOW_NAME = "Current scenery"  # (plain words: "This scenery's own" read as complex, 2026-10-16)
+# the sceneries' own tiles as one dropdown too, as the colours are (2026-10-23: a button each made one
+# long row, and grows with every scenery that draws its own): the current scenery's (they follow it),
+# or any scenery's that can be had just now; the basic styles beside it
+TILE_PICK_TIP = "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
 BUSIER_LABEL = "Busier days"
 # the ready ramps' tooltips: what they run from and to (each scenery's says whose it is)
 READY_TIPS = {"olive": "Review Heatmap's Olive: deep olive green to pale yellow-green",
@@ -289,9 +293,10 @@ class PickButton(QPushButton):
     `choices()` gives the list, (key, name); `icons()` each key's picture, drawn only as the list
     opens (every scenery's strip was painted again at each change of the tab)."""
 
-    def __init__(self, choices, icons, tip: str):
+    def __init__(self, choices, icons, tip: str, follow: str = HL.MATCH):
         super().__init__(PICK_LABEL.format(name=SCENERY_LABEL))
-        self.choices, self.icons, self.key, self.picked = choices, icons, HL.MATCH, None
+        # (`follow`: the key that follows the scenery, named "Scenery" on the button)
+        self.choices, self.icons, self.follow, self.key, self.picked = choices, icons, follow, follow, None
         self.setIconSize(QSize(ICON_W, ICON_H))
         self.setAutoDefault(False)
         self.setCheckable(True)
@@ -312,7 +317,7 @@ class PickButton(QPushButton):
     def set_key(self, key) -> None:
         """(its strip is drawn with the others': LookControls.refresh)"""
         self.key = key
-        name = SCENERY_LABEL if key == HL.MATCH else next((n for k, n in self.choices() if k == key), key)
+        name = SCENERY_LABEL if key == self.follow else next((n for k, n in self.choices() if k == key), key)
         self.setText(PICK_LABEL.format(name=name))
 
     def _open(self) -> None:
@@ -456,16 +461,22 @@ class LookControls(QObject):
         tiles_row = QGridLayout()
         tiles_row.setContentsMargins(0, 0, 0, 0)
         tiles_row.setSpacing(BUTTON_GAP)
+        # (the sceneries' own tiles: the current scenery's, or any scenery's, from one dropdown: _tile_choices)
+        self.tile_pick = PickButton(self._tile_choices, self._tile_icons, TILE_PICK_TIP, follow=HL.TILE_FOLLOW)
+        self.tile_pick.setIconSize(QSize(PAIR_W, PAIR_H))
+        self.tile_pick.picked = lambda: self._tile_clicked(self.tile_pick.key)
+        self.tile_choice.add(HL.TILE_FOLLOW, self.tile_pick)
+        # then the basic styles, a button each
         self.tile_buttons = {}
-        for key in HL.TILES:
+        for key in HL.BASIC_TILES:
             b = option_button(TILE_LABELS[key], TILE_TIPS[key])
             b.setIconSize(QSize(PAIR_W, PAIR_H))  # (a quiet day's tile and a busy day's: _pair)
             self.tile_buttons[key] = b
             self.tile_choice.add(key, b)
         self.tiles_grid = tiles_row
         self.tile_choice.set_quietly(HL.tiles_choice(cfg))
-        for key, b in self.tile_buttons.items():
-            b.clicked.connect(lambda _c=False, k=key: self._tile_clicked(k))
+        # (a style chosen, by a click, the arrow keys or the dropdown: its own corners and spaces back)
+        self.tile_choice.buttonToggled.connect(lambda _b, on: on and self._tile_clicked(self.tile_choice.currentData()))
         # each style's smooth corners and spaces between the days are its own (heatmap_look.TILE_STYLE);
         # while debugging, two switches can change them, and picking a style puts them back to its own
         # (set by _seed_switches once the scenery in view is known: what each goes by is the style
@@ -503,7 +514,7 @@ class LookControls(QObject):
         self.debug_switches = HL.debug_available(cfg)
         self.source.buttonToggled.connect(lambda _b, on: on and self._announce())
         self.busier.on_change(self._announce)
-        # (a tile style announces from its click, _tile_clicked, once its switches are its own)
+        # (a tile style announces once its switches are its own: _tile_clicked)
         self.source.set_quietly(HL.colours_choice(cfg))
         self._drawn = None  # (what the pictures were last drawn for)
         self._laid = None  # (the buttons last laid out: set_scenery)
@@ -564,20 +575,22 @@ class LookControls(QObject):
         # in its week; a choice no longer offered shows the default)
         colours = list(self.ready)
         tiles = [k for k in self.tile_buttons if HL.tile_shown(k, edition_cfg)]
+        own_tiles = [k for k, _name in self._tile_choices()]
         # (laid out again only when the buttons shown change: this runs on every change in any tab)
         if self._laid != (colours, tiles):
             self._laid = (colours, tiles)
             self._place(self.ready_grid, [self.scenery] + [self.ready[k] for k in colours], [self.ready[k] for k in self.ready if k not in colours])
             # (the styles in one row: a few, each a short word and a small sample)
-            self._place(self.tiles_grid, [self.tile_buttons[k] for k in tiles], [self.tile_buttons[k] for k in self.tile_buttons if k not in tiles],
-                        columns=len(tiles))
+            self._place(self.tiles_grid, [self.tile_pick] + [self.tile_buttons[k] for k in tiles], [self.tile_buttons[k] for k in self.tile_buttons if k not in tiles],
+                        columns=len(tiles) + 1)
             # (even columns: each grid's buttons as wide as its widest, and Yours as the colours')
             self._even([self.scenery, *(self.ready[k] for k in colours), self.yours])
         source = self.source.currentData()
         offered = [*colours, *(k[len(HL.READY_PREFIX):] for k, _n in self._scenery_choices() if k != HL.MATCH)]
         if source is None or (source.startswith(HL.READY_PREFIX) and source[len(HL.READY_PREFIX):] not in offered):
             self.source.set_quietly(HL.MATCH)
-        if self.tile_choice.currentData() not in tiles:
+        if self.tile_choice.currentData() not in tiles + own_tiles:
+            self.tile_pick.set_key(HL.TILE_FOLLOW)
             self.tile_choice.set_quietly(HL.TILE_FOLLOW)
         self._seed_switches(edition_cfg)
         self.refresh()
@@ -613,6 +626,23 @@ class LookControls(QObject):
         drawn = HL.tile_env(cfg, here_env)
         drawn = drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT
         return {key: QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=key), here_env), drawn)) for key, _name in self._scenery_choices()}
+
+    def _tile_choices(self) -> list:
+        """The tiles dropdown's list: the current scenery's (they follow it), then each scenery's own
+        tiles that can be had just now (HL.tile_shown): (key, name), each named as its file names it."""
+        return [(HL.TILE_FOLLOW, FOLLOW_NAME)] + [(k, TILE_LABELS[k]) for k in HL.SCENERY_TILES if HL.tile_shown(k, self.edition_cfg)]
+
+    def _tile_icons(self) -> dict:
+        """Each of the tiles dropdown's choices as a picture: the four shades two by two, in its tiles
+        and the colours chosen (key -> QIcon)."""
+        here_env = presets.by_key()[self.here].environment
+        cfg = dict(self.edition_cfg, **self._values_now())
+        look = HL.preview_look(cfg, here_env)
+        icons = {}
+        for key, _name in self._tile_choices():
+            drawn = HL.tile_env(dict(cfg, calendar_tiles=key), here_env)
+            icons[key] = QIcon(quad(look, drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT))
+        return icons
 
     def _values_now(self) -> dict:
         return {"calendar_mine": list(self.mine), "calendar_mine_two": self.blend.isChecked(),
@@ -701,3 +731,4 @@ class LookControls(QObject):
         look = HL.preview_look(cfg, here_env)
         for key, b in self.tile_buttons.items():  # (each as its style draws it: its own spaces and corners)
             b.setIcon(QIcon(tile_sample(look, key, cfg, here_env)))
+        self.tile_pick.setIcon(QIcon(tile_sample(look, self.tile_pick.key, cfg, here_env)))

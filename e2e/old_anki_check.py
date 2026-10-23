@@ -842,6 +842,14 @@ def canaries() -> None:
     for, and taken back out. One that goes missing is a problem: the check would pass with it."""
     before = len(result["errors"])
 
+    def wait_for(what: str, most_ms: int = 8000) -> None:
+        # (until that canary is caught, or long enough that it never will be: a fixed second was
+        # too short for a page's message on CI's slow machine, 2.1.45, 2026-10-23)
+        for _ in range(most_ms // 200):
+            if any(CANARY in e and what in e for e in result["errors"][before:]):
+                return
+            pump(200)
+
     def slot():
         raise RuntimeError(f"{CANARY}: a Qt slot")
     QTimer.singleShot(0, slot)
@@ -854,14 +862,14 @@ def canaries() -> None:
     gui_hooks.webview_did_receive_js_message.append(on_message)
     try:
         mw.deckBrowser.web.eval("pycmd('memory-forest-check:canary')")
-        pump(1000)
+        wait_for("a hook Anki calls")
     finally:
         gui_hooks.webview_did_receive_js_message.remove(on_message)
 
     def answered(_value):
         raise RuntimeError(f"{CANARY}: a page's answer to evalWithCallback")
     mw.deckBrowser.web.evalWithCallback("1", answered)
-    pump(1000)
+    wait_for("evalWithCallback")
     try:
         raise RuntimeError(f"{CANARY}: printed to stderr")
     except RuntimeError:
