@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { load, SCRIPTS, calendar, WEB } from './load.mjs';
 
-const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'pastYears', 'yearsFor', 'reachOf', 'lasted', 'markLine',
+const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'streakRows', 'reachOf', 'lasted', 'markLine',
   'countFor', 'widthOf', 'shades', 'hourOf', 'exactSteps', 'oklab', 'restShade', 'blankOn', 'cellOf', 'utc', 'MARK_ICONS', 'MARK_ORDER',
   'setWeekStart: w => { weekStart = w; }', 'setCell: c => { CELL = c; }'];
 const AF = load(SCRIPTS, { expose: { 'calendar.js': EXPOSE } }).AnkiForest;
@@ -256,22 +256,27 @@ test('a tile style\'s own gap sets the cell', () => {
   assert.equal(T.cellOf({ look: { gap: 1.5 } }), 10);
 });
 
-test('earlier years: back to the current streak\'s start, or a long one just broken; else every year', () => {
-  // a streak since mid 2024
+test('Streak view: rows of whole weeks back to the streak worth seeing, paged back as many at a time', () => {
+  const W = 53, rows = (h, back) => plain(T.streakRows(h, W, back));
+  // a streak since mid 2024 (TODAY a Sunday: this week ends today)
   const since = off('2024-06-01'), days = Array(-since + 1).fill(4);
-  let h = T.history(calendar(TODAY, [...Array(800).fill(2), 0, ...days]));
-  assert.deepEqual(plain(T.pastYears(h, 2026, false)), [2025, 2024]);
-  assert.deepEqual(plain(T.pastYears(h, 2026, true)).slice(-1), [new Date(today + h.first * DAY).getUTCFullYear()]);
-  assert.deepEqual(plain(T.yearsFor(h, 2026, false)), []);
-  assert.deepEqual(plain(T.yearsFor(h, 2026, true)), [2025, 2024]);
+  let h = T.history(calendar(TODAY, [...Array(400).fill(2), 0, ...Array(100).fill(0), ...days]));
+  const open = rows(h, 0);
+  assert.equal(open.length, 3);
+  assert.equal(open[2].to, 8 * 7);  // (eight weeks ahead)
+  assert.ok(open.every((x, i) => x.to - x.from + 1 === W * 7 && x.cols === W && (!i || x.from === open[i - 1].to + 1)), 'one strip, no gaps');
+  assert.ok(open[0].from <= since && open[0].from > since - W * 7, 'the top row holds the streak\'s first day');
+  // ‹: the stretch just before, as many rows, until the first review
+  const back = rows(h, 1);
+  assert.equal(back[back.length - 1].to, open[0].from - 1);
+  assert.ok(back.length <= 3 && back[0].from <= h.first + W * 7);
   // a long streak broken lately, then a short one: back to the long one
   h = T.history(calendar(TODAY, [...Array(500).fill(2), 0, ...Array(400).fill(3), 0, 0, ...Array(10).fill(3)]));
-  assert.equal(T.reachOf(h), h.runs[h.runs.length - 2].from);
-  // a streak of this year alone, the long one broken months ago: nothing short of every year to offer
-  h = T.history(calendar(TODAY, [...Array(800).fill(2), ...Array(60).fill(0), ...Array(20).fill(3)]));
-  assert.deepEqual(plain(T.pastYears(h, 2026, false)), []);
-  assert.deepEqual(plain(T.yearsFor(h, 2026, true)), plain(T.pastYears(h, 2026, true)));
-  assert.ok(T.pastYears(h, 2026, true).length >= 2);
+  assert.equal(T.reachOf(h), h.runs[h.runs.length - 2]);
+  assert.ok(rows(h, 0)[0].from <= h.runs[h.runs.length - 2].from);
+  // no study at all: one row, today's
+  h = T.history(calendar(TODAY, [0]));
+  assert.equal(rows(h, 0).length, 1);
 });
 
 test('Timeline shows as many months as its width holds at its days\' own size', () => {

@@ -172,14 +172,14 @@ test('caption: trees, the deep forest, ancient trees and the streak, each with i
   assert.match(html, />1,500 in the deep forest</);
   assert.match(html, /data-cmd="forest:browse:2800::1600"/);
   assert.match(html, />4 ancient</);
-  // the streak's click is the page's own (By year in the heatmap), not a message
+  // the streak's click is the page's own (Streak view in the heatmap), not a message
   assert.match(html, /<span class="af-info af-click" data-tip="[^"]*" data-act="\d+">37-day streak</);
   const act = root.afCaptionActs[+html.match(/data-act="(\d+)"/)[1]];
   let asked = null;
-  assert.equal(act({ afCalByYear: q => { asked = q; return true; } }), true);
+  assert.equal(act({ afCalStreak: q => { asked = q; return true; } }), true);
   assert.equal(asked, undefined);
-  assert.match(act.hint({ afCalByYear: () => true }), /Click to see it year by year/);
-  assert.equal(act.hint({ afCalByYear: () => false }), '');
+  assert.match(act.hint({ afCalStreak: () => true }), /Click to see all of it/);
+  assert.equal(act.hint({ afCalStreak: () => false }), '');
   assert.equal(act.hint({}), '');
   // the weather only when live
   assert.doesNotMatch(html, /Weather/);

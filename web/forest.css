@@ -214,14 +214,9 @@
 .af-cal-by button:focus:not(:focus-visible) { outline: none; }
 /* (in the footer: Reviews | Time, then the key, both shown on hover) */
 .af-cal-foot > .af-cal-shade { margin: 0 12px 0 auto; }  /* (on the row's baseline, as the key: centred, it sank below the key once the journal wrapped) */
-/* By year's earlier years: their switch in a row over the heatmap, the years shown under it, oldest
- * first, the year in view last (calendar.js past); the page keeps the year in view still itself */
+/* Streak view's rows: oldest first, the last one the heatmap's own weeks (calendar.js past); the
+ * page keeps the last row still itself */
 .af-cal { overflow-anchor: none; }
-.af-cal-pastbar { display: flex; align-items: center; height: 22px; }  /* (BAR_H) */
-.af-cal-pastbar .af-cal-more { margin: 0 0 0 -5px !important; }
-.af-cal-pastbar .af-cal-more-all { margin-left: 4px !important; }
-.af-cal-grid > .af-cal-more-near { position: absolute; left: 0; margin: 0 0 0 -5px !important; z-index: 1; }  /* (Hide over the year in view's months, where Show was: calendar.js past) */
-/* The years shown: Hide on the controls' row too (calendar.js past). */
 .af-cal-foot > .af-cal-shade + .af-cal-key { margin-left: 0; }
 /* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar.js; on
    the phone Today alone, in the footer): plain, small, and with the key only there while the
@@ -234,12 +229,11 @@
 /* a month's label under them (only when they are back on the row) makes way while they show */
 .af-cal-months .af-under { transition: opacity 0.2s; }
 .af-cal:hover .af-cal-months .af-under, .af-cal:focus-within .af-cal-months .af-under { opacity: 0; }
-.af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade, .af-cal-pastbar, .af-cal-more-near { opacity: 0; transition: opacity 0.2s; }
+.af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade { opacity: 0; transition: opacity 0.2s; }
 .af-cal:hover .af-cal-acts, .af-cal:hover .af-cal-key, .af-cal:focus-within .af-cal-acts, .af-cal:focus-within .af-cal-key,
 .af-cal:hover .af-cal-foot > .af-cal-shade, .af-cal:focus-within .af-cal-foot > .af-cal-shade,
-.af-cal:hover .af-cal-pastbar, .af-cal:focus-within .af-cal-pastbar, .af-cal:hover .af-cal-more-near, .af-cal:focus-within .af-cal-more-near,
 .af-cal-swiped .af-cal-acts, .af-cal-swiped .af-cal-key { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade, .af-cal-pastbar, .af-cal-more-near { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade { transition: none; } }
 .af-cal-chev {
   position: relative; box-sizing: border-box; height: 18px; min-width: 24px; margin: 0 0 0 2px !important; padding: 0 4px !important;
   border: 0 !important; border-radius: 4px !important; background: transparent !important; color: inherit !important; box-shadow: none !important;
@@ -261,26 +255,13 @@
    (dimmed on today's page); the phone keeps its Today pill (which scrolls to today) */
 .af-cal-now { font-size: 14px; }
 .af-cal-grid { position: relative; padding-top: 16px; padding-bottom: 0; }
-/* By year's earlier years (calendar.js past): one switch over the heatmap shows or hides them all
-   ("Show 2 earlier years"), above the year in view, each a whole year with a line of words over it.
-   Plain, small, as the arrows are, and shown on hover as they are */
+/* Streak view's earlier rows (calendar.js past): above the last one, each with its months over it */
 /* (.af-cal-past is not positioned: its years are placed, and point, by the heatmap's own offsets, as the year in view is) */
-.af-cal-more {
-  display: inline-flex; align-items: center; box-sizing: border-box; height: 18px; margin: 4px 0 0 -5px !important; padding: 0 6px 0 4px !important;
-  border: 0 !important; border-radius: 4px !important; background: transparent !important; color: inherit !important; box-shadow: none !important;
-  font: inherit; font-size: 11px; line-height: 18px; cursor: pointer;
-}
-.af-cal-more:hover { background: rgba(128, 128, 128, 0.18) !important; color: var(--fg, inherit) !important; }
-.af-cal-more:focus { outline: 2px solid currentColor; outline-offset: 1px; }
-.af-cal-more:focus:not(:focus-visible) { outline: none; }
-.af-cal-more-chev { display: inline-block; width: 12px; margin-right: 3px; font-size: 10px; text-align: center; }
-.af-cal-past-year { margin-top: 8px; }
-.af-cal-past-head { height: 18px; font-size: 11px; line-height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.af-cal-past-head b { margin-right: 8px; font-weight: 600; color: var(--fg, inherit); }  /* (a margin, not flex gap: Chromium 77 has none) */
-/* (shown: they come down into place, briefly; never with the forest kept still, nor reduced motion) */
-@keyframes af-cal-past-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
-.af-cal-past-in .af-cal-past-year { animation: af-cal-past-in 0.2s ease-out; }
-@media (prefers-reduced-motion: reduce) { .af-cal-past-in .af-cal-past-year { animation: none; } }  /* (its top, calendar.js monthsRoom: the first row 8px under the months' baseline at any zoom) */
+.af-cal-past-year { margin-top: 8px; }  /* (and the head's 18px: calendar.js PAST_GAP, PAST_HEAD) */
+.af-cal-past-year:first-child { margin-top: 0; }  /* (the first at the top: ‹ › stand in the gap over it, as over the months) */
+/* (each row's months over its weeks, as the months' row over the last one: calendar.js label) */
+.af-cal-past-head { position: relative; height: 18px; }
+.af-cal-past-head span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; cursor: default; }
 /* on the phone: one long timeline, swiped along (calendar.js SWIPED_K) */
 .af-cal-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .af-cal-scroll::-webkit-scrollbar { display: none; }  /* (swiped, never dragged by a bar) */

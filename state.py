@@ -139,7 +139,7 @@ def keeps_suspended(cfg: dict | None = None) -> bool:
 
 # the study calendar (web/calendar.js): its view, and the screens it shows on, each its own setting
 # (with or without the forest above it)
-CALENDAR_VIEWS = ("timeline", "by_year")
+CALENDAR_VIEWS = ("timeline", "by_year", "streak")
 CALENDAR_SCREENS = {"main": "calendar_main", "decks": "calendar_decks"}
 CALENDAR_SHADES = ("reviews", "time", "median")
 
@@ -152,7 +152,8 @@ def calendar_shade(cfg: dict | None = None) -> str:
 
 def calendar_view(cfg: dict | None = None) -> str:
     """The study calendar's view: Timeline ("timeline": a year with this month most of the way
-    along) or By year ("by_year": January to December)."""
+    along), By year ("by_year": January to December) or Streak ("streak": every year of your
+    streak, the arrows stepping to the streaks before it)."""
     value = (cfg if cfg is not None else config()).get("calendar", "timeline")
     return value if value in CALENDAR_VIEWS else "timeline"
 

@@ -26,9 +26,9 @@ AF.caption = function (root, data) {
     + (canBrowse() && !data.testForest ? ' Click to see their cards.' : ''),
     data.testForest ? '' : `${data.channel}:browse:${data.merged.from_ago}:${deckFor(data)}:${data.merged.to_ago}`]);
   if (s.ancient) items.push([`${s.ancient} ancient`, `${cap(words.many)} whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not.`]);
-  // (a click shows it year by year in the heatmap under the forest, while it is on Timeline)
-  const byYear = r => r.afCalByYear && r.afCalByYear();
-  byYear.hint = r => (r.afCalByYear && r.afCalByYear(true) ? '<br><span class="af-hint">Click to see it year by year</span>' : '');
+  // (a click shows all of it in the heatmap under the forest: its Streak view, on today's streak)
+  const byYear = r => r.afCalStreak && r.afCalStreak();
+  byYear.hint = r => (r.afCalStreak && r.afCalStreak(true) ? '<br><span class="af-hint">Click to see all of it</span>' : '');
   // (a streak of 6 or 5 days a week: a week's first missed days pass too, payload._days_off)
   const week = s.streak_week || 7, rest = week === 6 ? 'a day off in a week doesn\'t' : 'two days off in a week don\'t';
   if (s.streak) items.push([`${s.streak}-day streak`, "Days you studied, in a row. A day with nothing due doesn't break it"

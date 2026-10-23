@@ -9,9 +9,10 @@
  * bracket under it, with the trophies and the goal ahead in a lane below. A click on a day opens
  * its cards in Anki's browser (actions.browse_calendar_day); a right-click pins it (marks.py).
  *
- * Two views, each fitted to the room there is: Timeline (`timeline`: ten months with this
+ * Three views, each fitted to the room there is: Timeline (`timeline`: ten months with this
  * month most of the way along, paged back and on with ‹ ›; on the phone, the whole history swiped
- * along) and By year (`by_year`: January to December). payload.py sends data.calendar = { view,
+ * along), By year (`by_year`: January to December) and Streak (`streak`: all of your streak, its
+ * weeks in rows, paged back and on with ‹ ›, streakRows). payload.py sends data.calendar = { view,
  * start, days, due, time, shadeBy, look, animals, ponds, browse, marks, forestStart, streakFromStart, weekStart }:
  * the date of the first day counted, the reviews of each day from it to today, the cards due on
  * each day from today on, the day each animal came, the forest's own ponds, whether a
@@ -279,48 +280,60 @@ function history(cal) {
   });
 }
 
-/* By year's earlier years, shown all at once under the year in view by its "earlier years" switch:
- * back to the one the streaks worth seeing began in - the current one, and the last one before it of
- * SHOWN_STREAK days or more while it is longer than the current one and broke at most BROKE_LATELY
- * days before it began (a long streak just broken, then three days: the broken one is what people
- * look for; one passed since, or broken months ago, not) - and with neither before the year in
- * view, every year; `all`: every year, back to your first review ("Show all years", under them).
- * Never before your first review; newest first */
-const BROKE_LATELY = 30;
+/* Streak view: one continuous strip of weeks, as By year draws them (no space between months),
+ * wrapped into rows of `W` weeks each (weeksPerRow), oldest at the top. It opens on your streak: rows
+ * ending ROWS_AHEAD weeks after this one, back to the one that holds the first day of the streak
+ * worth seeing - the current one, and the last one before it of SHOWN_STREAK days or more while it
+ * is longer than the current one and broke at most BROKE_LATELY days before it began (a long streak
+ * just broken, then three days: the broken one is what people look for; one passed since, or broken
+ * months ago, not); with neither, your latest streak. ‹ › page back and on as Timeline's do, as
+ * many rows at a time as it opened with (`back`: how many times back) */
+const BROKE_LATELY = 30, ROWS_AHEAD = 8;
 function reachOf(H) {
   const now = H.current ? H.current.days : 0, began = H.current ? H.current.from : 1;
   const long = H.runs.filter(r => r !== H.current && r.days >= SHOWN_STREAK && r.days > now && began - r.to <= BROKE_LATELY)
     .sort((a, b) => b.to - a.to)[0];
-  const starts = [H.current, long].filter(Boolean).map(r => r.from);
-  return starts.length ? Math.min(...starts) : 0;  // (none: nothing short of every year to offer)
+  return long || H.current || H.runs[H.runs.length - 1] || null;  // (none: no study yet)
 }
-function pastYears(H, shown, all) {
-  const lo = Math.max(yearOf(H.today + H.first * DAY_MS), yearOf(H.today + (all ? H.first : reachOf(H)) * DAY_MS)), out = [];
-  for (let y = shown - 1; y >= lo; y--) out.push(y);
-  return out;
+// rows of whole weeks ending `end` (a week's last day), oldest first, back to the one holding `start`
+// (never before your first review's), each `cols` weeks wide
+function rowsOf(H, end, start, W) {
+  const out = [];
+  for (let to = end; ; to -= W * 7) {
+    const from = to - W * 7 + 1;
+    out.unshift({ from, to, cols: W });
+    if (from <= start || from <= H.first) return out;
+  }
 }
-// the earlier years shown for a state (false, true or 'all'): true reaches the streak worth seeing,
-// or, where that began in the year in view, every year (nothing short of them to offer)
-function yearsFor(H, shown, state) {
-  if (!state) return [];
-  const streak = pastYears(H, shown, false);
-  return state === 'all' || !streak.length ? pastYears(H, shown, true) : streak;
+function streakRows(H, W, back) {
+  const lead = reachOf(H), end = 6 - dow(H.today) + ROWS_AHEAD * 7;
+  const open = rowsOf(H, end, lead ? lead.from : 0, W), n = open.length;
+  return back ? rowsOf(H, end - back * n * W * 7, -Infinity, W).slice(-n) : open;
 }
-// css px: with the earlier years shown, the room over the year in view's months for the controls
-// shown on hover (and the switch by them), which closed sit in the band over the months
+// the weeks a row holds at this width (css px): a year's at least; with More months as many as fit at
+// the days' own size (DAY_K), with Bigger days a year's, stretched
+const weeksPerRow = width => (BIGGER || !width ? 53 : Math.max(53, Math.floor((width / DAY_K - 1) / CELL)));
+// css px: an earlier row's month labels over its weeks, and the space between two rows (forest.css
+// .af-cal-past-head's height, .af-cal-past-year's margin), for the room kept for Streak view
+const PAST_HEAD = 18, PAST_GAP = 8;
 const NOTE_H = 11;  // css px: a streak's note line (forest.css .af-cal-note), centred on the brackets' lane
 const ACTS_ROOM = 20;  // (and forest.css's `.af-cal-grid > .af-cal-acts { top: -20px }`, before the row is laid out)
 
+// the views (state.CALENDAR_VIEWS): Timeline, By year, and Streak, whose year in view is drawn as By
+// year's is, with the earlier years of its frame above it
+const VIEWS = ['timeline', 'by_year', 'streak'];
+const viewOf = v => (VIEWS.includes(v) ? v : 'timeline');
+const yearly = v => v === 'by_year' || v === 'streak';
 /* the days a view shows, [from, to] as offsets: Timeline's `count` months (ten, fewer when
  * narrow), `page` months back (negative) or on; the phone's whole
- * history, swiped along; or By year's January to December */
+ * history, swiped along; or a year's January to December (By year's, Streak view's) */
 function windowOf(H, view, page, year, count) {
   if (view === 'swiped') {  // the phone's: from the first month counted to a few months ahead, swiped along
     const f = new Date(H.today + H.first * DAY_MS), t = new Date(H.today);
     return { from: (Date.UTC(f.getUTCFullYear(), f.getUTCMonth(), 1) - H.today) / DAY_MS,
       to: (Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + SWIPED_AHEAD + 1, 1) - H.today) / DAY_MS - 1, apart: true };
   }
-  if (view === 'by_year') {
+  if (yearly(view)) {
     const y = year || yearOf(H.today);
     return { from: (Date.UTC(y, 0, 1) - H.today) / DAY_MS, to: (Date.UTC(y, 11, 31) - H.today) / DAY_MS, year: y };
   }
@@ -890,6 +903,7 @@ function sharpen(hi, lo, cells, H, dark, paper, s, F, R, G = 0) {
  * year as wide as the widest it pages to, so the earlier years shown above it line up with it (a
  * leap year starting on its weeks' last day needs 54 weeks, the rest 53 at most) */
 function weeksWidth(H, win, lastCol) {
+  if (win.cols) return 1 + Math.max(win.cols, lastCol + 1) * CELL;  // (Streak view's rows: all as wide)
   if (win.year == null) return 1 + (lastCol + 1) * CELL;
   if (!H.yearCols) {
     H.yearCols = 0;
@@ -1044,7 +1058,7 @@ function paint(H, win, sp, paper) {
 
 // a year's weeks, about as wide as they come: By year's, or Timeline's months apart (its
 // months' own weeks, and the odd empty column)
-const widthOf = view => (view === 'by_year' ? 53 : 54) * CELL + 1;
+const widthOf = view => (yearly(view) ? 53 : 54) * CELL + 1;
 const dpr = () => window.devicePixelRatio || 1;
 const sharpK = () => Math.min(1, SHARP / dpr());
 // Timeline's months: as many as its width holds at its days' size (More months), or ten, fewer (down
@@ -1076,7 +1090,7 @@ AF.calendarWant = (cal, forestW) => {
 AF.calendarFull = cal => !ruleOf(cal) && sizeOf(cal).width === 'full';
 const naturalYear = cal => Math.round((53 * cellOf(cal) + 1) * DAY_K);
 // (By year at its days' natural size: only the Debug tab's "natural" rule; otherwise it fits its year to the width)
-const yearCapped = (cal, view) => ruleOf(cal) === 'natural' && (view || cal.view) === 'by_year';
+const yearCapped = (cal, view) => ruleOf(cal) === 'natural' && yearly(view || cal.view);
 /* its width in a place `area` css px across (a row or a column of its own: core.js AF.arrange) */
 AF.calendarWidthIn = (cal, forestW, area, view) => {
   const want = AF.calendarWant(cal, forestW);
@@ -1147,20 +1161,22 @@ const journalStays = root => root.classList.contains('af-cal-first') || root.cla
  * the panel, for the journal that will wrap in its footer) */
 AF.calendarHeight = function (cal, width, root) {
   CELL = cellOf(cal); BIGGER = biggerOf(cal);
-  const view = cal.view === 'by_year' ? 'by_year' : 'timeline';
+  const view = viewOf(cal.view);
   // (the scale is the width's: the view's exact weeks, as it will lay them out)
-  let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN, foot = FOOT_H;
+  let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN, foot = FOOT_H, earlier = 0;
   if (width > 0) {
     weekStart = cal.weekStart == null ? 1 : cal.weekStart;
     const H = cal.afHistory = history(cal);  // (the whole model: kept for the draw that follows, AF.calendar, which takes it once)
-    const win = windowOf(H, view, 0, null, countFor(view, width)), cols = columns(H, win);
+    let win = windowOf(H, view, 0, null, countFor(view, width));
+    // (Streak view opens on today's frame: its last row, and the rows above it)
+    if (view === 'streak') { const rows = streakRows(H, weeksPerRow(width), 0); win = rows.pop(); earlier = rows.length; }
+    const cols = columns(H, win);
     W = weeksWidth(H, win, cols[cols.length - 1][2]);
     foot = footHeight(root, H);
   }
   const k = width > 0 ? width / W : 1;  // (all the width: By year its year, Timeline its months, countFor)
-  // (By year's earlier years take no room at first: never shown when drawn, and their switch sits in
-  // the band over the months, as the controls on hover do, so both views start at the same height)
-  return Math.round(monthsRoom(k) + (TOP + ROWS * CELL + BRACKET) * k + FOOT_GAP + foot);  // (rounded as the page rounds the drawn height)
+  const weeks = (TOP + ROWS * CELL + BRACKET) * k;
+  return Math.round(monthsRoom(k) + weeks + earlier * (PAST_HEAD + weeks) + Math.max(0, earlier - 1) * PAST_GAP + FOOT_GAP + foot);  // (rounded as the page rounds the drawn height)
 };
 
 AF.calendar = function (root, data, env) {
@@ -1176,11 +1192,13 @@ AF.calendar = function (root, data, env) {
   delete cal.afHistory;
   const treesByDay = new Map((data.trees || []).map(t => [-t.ago, t]));
   for (const [ago, n] of cal.planted || []) if (!treesByDay.has(-ago)) treesByDay.set(-ago, { ago, n });
-  let view = cal.view === 'by_year' ? 'by_year' : 'timeline';  // (the switch on the heatmap changes it)
+  let view = viewOf(cal.view);  // (the switch on the heatmap changes it)
   root.afCalView = view;  // (the one in view, for its row's width: core.js AF.arrange)
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
   let page = 0, year = null;  // Timeline's stretch, in months from today's (0), By year's year
+  let back = 0;  // Streak view's stretch, in pages back from your streak (0)
+  let rows = [];  // (its rows above the one drawn as the heatmap's own weeks, oldest first)
   // what a screen reader says for the picture: the year in a sentence, its streak
   // (the stretch in view, paged to or not: "Study heatmap, Feb 2025 to Jan 2026: 203 days studied")
   const described = win => {
@@ -1202,7 +1220,8 @@ AF.calendar = function (root, data, env) {
       + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>')
     + '</span><span class="af-cal-by af-cal-view" role="radiogroup" aria-label="View">'
     + '<button type="button" role="radio" data-view="timeline" title="Ten months, with this month most of the way along">Timeline</button>'
-    + '<button type="button" role="radio" data-view="by_year" title="January to December, and your streak\'s earlier years above it">By year</button>'
+    + '<button type="button" role="radio" data-view="by_year" title="January to December">By year</button>'
+    + '<button type="button" role="radio" data-view="streak" title="Your streak, every year of it; the arrows go to the streaks before it">Streak</button>'
     + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
     + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
     + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
@@ -1240,7 +1259,7 @@ AF.calendar = function (root, data, env) {
   byBox.querySelector('[data-by="time"]').hidden = !H.timed;
   byBox.querySelector('[data-by="median"]').hidden = !H.paced;
   byBox.hidden = swiped || [...byBox.querySelectorAll('button')].filter(b => !b.hidden).length < 2;
-  // Timeline | By year, just left of it: the view as the Heatmap tab sets it, changed here for good
+  // Timeline | By year | Streak, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
   const viewBox = box.querySelector('.af-cal-view');
   viewBox.hidden = swiped;
@@ -1251,33 +1270,26 @@ AF.calendar = function (root, data, env) {
       const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
       if (!step) return;
       e.preventDefault();
-      const to = viewBox.querySelector(`[data-view="${b.dataset.view === 'timeline' ? 'by_year' : 'timeline'}"]`);
+      const to = viewBox.querySelector(`[data-view="${VIEWS[(VIEWS.indexOf(b.dataset.view) + step + VIEWS.length) % VIEWS.length]}"]`);
       to.focus(); to.click();
     });
     b.addEventListener('click', () => {
       if (view === b.dataset.view) return;
-      view = b.dataset.view; page = 0; year = null;
-      yearsShown = false;  // (By year comes back as it opens: the year in view alone)
+      view = b.dataset.view; page = 0; year = null; back = 0;
       send(`${data.channel}:view:${view}`);
       unpoint();
       draw();
     });
   });
-  // the caption's streak, clicked: By year, as the switch would (`ask`: whether it would do anything)
-  root.afCalByYear = ask => {
-    if (swiped || view === 'by_year') return false;
+  // the caption's streak, clicked: Streak view, as the switch would (`ask`: whether it would do
+  // anything), on your streak; the last weeks kept where they were on screen, the rows above them
+  root.afCalStreak = ask => {
+    if (swiped || (view === 'streak' && !back)) return false;
     if (ask) return true;
-    // (and its earlier years shown, so the whole streak is there; the year in view kept where the
-    // Timeline's weeks were on screen, the years above it)
     const was = drawn.cv.getBoundingClientRect().top;
-    viewBox.querySelector('[data-view="by_year"]').click();
-    if (pastYears(H, yearOf(H.today)).length) {
-      yearsShown = true;
-      past();
-      lay();
-      const moved = drawn.cv.getBoundingClientRect().top - was;
-      if (moved) window.scrollBy(0, moved);
-    }
+    if (view === 'streak') go('0'); else viewBox.querySelector('[data-view="streak"]').click();
+    const moved = drawn.cv.getBoundingClientRect().top - was;
+    if (moved) window.scrollBy(0, moved);
     return true;
   };
   byBox.querySelectorAll('button').forEach(b => {
@@ -1421,8 +1433,9 @@ AF.calendar = function (root, data, env) {
   const pointTree = c => { if (root.afPointTreeDay) root.afPointTreeDay(c ? -c.o : null); };
   // (the tip shown again straight away, by the key or a streak, must not stay invisible from a day brushed too briefly to wake it)
   const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; showSel(); };
-  // how far you can page: back to the first day counted, on to the last day ahead counted
-  const can = win => ({ back: win.from > H.first, on: win.to < H.ahead });
+  // how far you can page: back to the first day counted, on to the last day ahead counted (Streak
+  // view: back while its top row starts after your first review, on to your streak)
+  const can = win => (view === 'streak' ? { back: (rows.length ? rows[0] : win).from > H.first, on: back > 0 } : { back: win.from > H.first, on: win.to < H.ahead });
 
   function draw() {
     const hadCv = !!drawn && document.activeElement === drawn.cv;  // (the keyboard on the days: kept there)
@@ -1432,7 +1445,16 @@ AF.calendar = function (root, data, env) {
     const count = swiped ? MONTHS_SHOWN : countFor(view, grid.clientWidth);
     // (paged away, a narrower or wider heatmap keeps the month you were looking at last in view)
     if (drawn && page && drawn.count !== count) page += drawn.count - count - Math.round(drawn.count * TODAY_AT) + Math.round(count * TODAY_AT);
-    const win = windowOf(H, swiped ? 'swiped' : view, page, year, count), d = paint(H, win, sp, paper);
+    let win;
+    if (!swiped && view === 'streak') {
+      const W = weeksPerRow(grid.clientWidth);
+      rows = streakRows(H, W, back);
+      win = rows.pop();
+    } else {
+      rows = [];
+      win = windowOf(H, swiped ? 'swiped' : view, page, year, count);
+    }
+    const d = paint(H, win, sp, paper);
     drawn = Object.assign(d, { win, count });
     last = undefined;
     // (a page's slide is for paging alone: go starts it again after this; any other drawing, a day
@@ -1485,8 +1507,8 @@ AF.calendar = function (root, data, env) {
       btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
       // (on today's page already, the jump stays where it is, dimmed; it points the way today
       // lies, » from the past, « from the days ahead)
-      const now = btn(0), ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : page > 0;
-      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : page === 0;
+      const now = btn(0), ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : view === 'timeline' && page > 0;
+      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : view === 'streak' ? !back : page === 0;
       now.textContent = ahead ? '«' : '»';
       // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
       // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
@@ -1518,95 +1540,34 @@ AF.calendar = function (root, data, env) {
       cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
       `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
   };
-  // By year's earlier years, all shown or all hidden by one switch over the heatmap ("Show 2 earlier
-  // years"), each a whole year with its line of words over it, as the year in view is drawn: above
-  // it, oldest at the top, so the picture reads down to now as a calendar does; showing or hiding
-  // them keeps the year in view where it was on screen (the page scrolled by what came or went above
-  // it). Not kept: By year always opens on the year in view alone (kept, it reopened on 2015)
+  // Streak view's earlier rows: those above the last one (drawn as the heatmap's own weeks), each
+  // with its months over it, oldest at the top, so the picture reads down to now as a calendar does
   const pastBox = box.querySelector('.af-cal-past');
   grid.insertBefore(pastBox, grid.firstChild);  // (before the year in view's weeks: they follow it)
-  // (false, true: back to the streak worth seeing, or 'all': back to the first review)
-  let yearsShown = false, pasts = [], near = null;
-  // each earlier year's weeks as last painted, painted again only when what they show changes: the
-  // shade's choice, the page's colour, a mark in that year (the look and the days come with a new
+  let pasts = [];
+  // each earlier row's weeks as last painted, painted again only when what they show changes: the
+  // shade's choice, the page's colour, a mark in that row (the look and the days come with a new
   // calendar; a new scale only sharpens them again, layPast)
   const painted = new Map();
-  const paintPast = (y, win) => {
+  const paintPast = (id, win) => {
     const key = [H.by, paper.dark, paper.bg.join(), [...H.marked].filter(([o]) => o >= win.from && o <= win.to)
       .map(([o, m]) => `${o}:${m.icon}:${m.name}`).join()].join('|');
-    const was = painted.get(y);
+    const was = painted.get(id);
     if (was && was.key === key) return was.d;
     const d = Object.assign(paint(H, win, sp, paper), { win });
-    painted.set(y, { key, d });
+    painted.set(id, { key, d });
     return d;
   };
   function past() {
     pastBox.textContent = '';
     pasts = [];
-    if (near) { near.remove(); near = null; }
-    box.classList.remove('af-cal-years-open');
-    const y0 = drawn.win.year, every = swiped || view !== 'by_year' ? [] : pastYears(H, y0, true);
-    if (!every.length) return;
-    // (the switch reaches the streak worth seeing; with none before the year in view, every year)
-    const streak = pastYears(H, y0, false), years = yearsFor(H, y0, yearsShown), reach = streak.length ? streak : every;
-    const n = reach.length, toAll = !streak.length;
-    const name = yearsShown ? (years.length === 1 ? `Hide ${years[0]}` : 'Hide the earlier years')
-      : n === 1 ? `Show ${reach[0]}` : toAll ? `Show all years, back to ${reach[n - 1]}` : `Show ${n} earlier years`;
-    const bar = document.createElement('div'), more = document.createElement('button');
-    bar.className = 'af-cal-pastbar';
-    more.type = 'button'; more.className = 'af-cal-more';
-    more.setAttribute('aria-expanded', !!yearsShown);
-    more.title = yearsShown ? (years.length === 1 ? `Hide ${years[0]}` : `Hide ${years[years.length - 1]} to ${years[0]}`)
-      : n === 1 ? `Show ${reach[0]}` : `Show the earlier years, back to ${reach[n - 1]}`;
-    more.innerHTML = `<span class="af-cal-more-chev" aria-hidden="true">${yearsShown ? '\u25be' : '\u25b4'}</span>${esc(name)}`;
-    const set = state => {
-      const was = drawn.cv.getBoundingClientRect().top;
-      yearsShown = state;
-      unpoint();
-      past();
-      lay();
-      // (what came or went is above the year in view: the page follows, so it stays put on screen)
-      const moved = drawn.cv.getBoundingClientRect().top - was;
-      if (moved) window.scrollBy(0, moved);
-      if (state && animates(data)) pastBox.classList.add('af-cal-past-in');
-    };
-    more.addEventListener('mousedown', e => e.preventDefault());
-    more.addEventListener('click', () => set(yearsShown ? false : toAll ? 'all' : true));
-    pastBox.classList.remove('af-cal-past-in');
-    // (closed: the switch alone, in the band over the months on the left, taking no room; shown: in
-    // a row over the earliest year, and Hide again where Show was: placed in lay)
-    if (!yearsShown) {
-      near = more;
-      near.classList.add('af-cal-more-near');
-      grid.appendChild(near);
-      return;
-    }
-    bar.appendChild(more);
-    pastBox.appendChild(bar);
-    // (back to the first review, one more click: the years before the streak worth seeing)
-    const rest = yearsShown ? every.slice(years.length) : [];
-    if (rest.length) {
-      const all = document.createElement('button');
-      all.type = 'button'; all.className = 'af-cal-more af-cal-more-all';
-      all.title = rest.length === 1 ? `Show ${rest[0]} too` : `Show ${rest[rest.length - 1]} to ${rest[0]} too, back to your first review`;
-      all.innerHTML = `<span class="af-cal-more-chev" aria-hidden="true">\u25b4</span>${rest.length === 1 ? `Show ${rest[0]}` : `Show all years, back to ${rest[rest.length - 1]}`}`;
-      all.addEventListener('mousedown', e => e.preventDefault());
-      all.addEventListener('click', () => set('all'));
-      bar.appendChild(all);
-    }
-    // (shown: one picture down to the year in view, the "Since" under it gone, the years above
-    // saying it; and Hide also where Show was, so it is found where it was pressed)
-    box.classList.add('af-cal-years-open');
-    near = more.cloneNode(true);
-    near.classList.add('af-cal-more-near');
-    near.addEventListener('mousedown', e => e.preventDefault());
-    near.addEventListener('click', () => set(false));
-    grid.appendChild(near);
-    for (const y of years.slice().reverse()) {
-      const win = windowOf(H, 'by_year', 0, y), d = paintPast(y, win), el = document.createElement('div');
-      const [first, second] = studiedLines(win.from, win.to);
+    // (shown: one picture down to the last row, the "Since" under it gone, the rows above saying it)
+    box.classList.toggle('af-cal-years-open', rows.length > 0);
+    for (const win of rows) {
+      const d = paintPast(`${win.from}:${win.cols}`, win), el = document.createElement('div');
       el.className = 'af-cal-past-year';
-      el.innerHTML = `<div class="af-cal-past-head"><b>${y}</b><span>${esc(first)}${second ? ` \u00b7 ${esc(second)}` : ''}</span></div>`;
+      el.innerHTML = '<div class="af-cal-past-head"></div>';  // (its months' labels: laid out with the weeks, layPast)
+      d.head = el.firstChild;
       d.cv.className = 'af-cal-canvas af-cal-past-weeks';
       d.cv.setAttribute('role', 'img');
       d.cv.setAttribute('aria-label', described(win));
@@ -1617,8 +1578,32 @@ AF.calendar = function (root, data, env) {
       pasts.push(d);
     }
   }
+  // a row's months' labels, each over its first week: January is its year alone, every other month
+  // its name, and in Streak view a row's first label its year too ("Jun 2024"); where two would
+  // touch (a narrow calendar), the one with a year stays and the other goes
+  function label(into, d) {
+    let html = '', lastM = -1;
+    for (const c of d.cells) {
+      const day = new Date(c.ms);
+      if (day.getUTCDate() > 7 || day.getUTCMonth() === lastM || c.x * k > d.W * k - LABEL_END) continue;
+      lastM = day.getUTCMonth();
+      const text = lastM === 0 ? String(day.getUTCFullYear()) : MONTHS[lastM] + (view === 'streak' && !html ? ` ${day.getUTCFullYear()}` : '');
+      html += `<span${text !== MONTHS[lastM] ? ' class="af-cal-year"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
+    }
+    into.innerHTML = html;
+    let prev = null;
+    for (const s of into.children) {
+      if (prev && s.offsetLeft < prev.offsetLeft + prev.offsetWidth + LABEL_GAP) {
+        const drop = prev.classList.contains('af-cal-year') && !s.classList.contains('af-cal-year') ? s : prev;
+        drop.hidden = true;
+        if (drop === s) continue;
+      }
+      prev = s;
+    }
+  }
   function layPast() {
     for (const d of pasts) {
+      label(d.head, d);
       d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
       d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
       d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';
@@ -1627,11 +1612,12 @@ AF.calendar = function (root, data, env) {
   }
   function go(where) {
     const was = drawn.win.from;
-    if (where === '0') { page = 0; year = null; }
+    if (where === '0') { page = 0; year = null; back = 0; }
     else {
       const may = can(drawn.win);
       if (where === '-1' ? !may.back : !may.on) return;  // (a click on a button just disabled)
-      if (view === 'by_year') year = (year || yearOf(H.today)) + +where;
+      if (view === 'streak') back -= +where;
+      else if (view === 'by_year') year = (year || yearOf(H.today)) + +where;
       else page += +where * drawn.count;
     }
     unpoint();
@@ -1649,10 +1635,9 @@ AF.calendar = function (root, data, env) {
   function lay() {
     const d = drawn;
     k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : (grid.clientWidth || d.W * 2) / d.W;
-    // (the room over the year in view's weeks for its months, under the earlier years if any; and,
-    // with them shown, for the controls over the months too)
+    // (the room over the year in view's weeks for its months, under the earlier years if any)
     grid.style.paddingTop = '0px';
-    pastBox.style.paddingBottom = monthsRoom(k) + (box.classList.contains('af-cal-years-open') ? ACTS_ROOM : 0) + 'px';
+    pastBox.style.paddingBottom = monthsRoom(k) + 'px';
     d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
     layPast();
     // (the layer placed once the earlier years above are laid out: their size moves the year in
@@ -1666,16 +1651,7 @@ AF.calendar = function (root, data, env) {
     });
     d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
     if (d.sharpen) d.sharpen(k * dpr());
-    let html = '', lastM = -1;
-    for (const c of d.cells) {
-      const day = new Date(c.ms);
-      if (day.getUTCDate() > 7 || day.getUTCMonth() === lastM || c.x * k > d.W * k - LABEL_END) continue;
-      lastM = day.getUTCMonth();
-      // January is its year alone, every other month its name
-      const text = lastM === 0 ? String(day.getUTCFullYear()) : MONTHS[lastM];
-      html += `<span${text !== MONTHS[lastM] ? ' class="af-cal-year"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
-    }
-    months.innerHTML = html;
+    label(months, d);
     months.style.top = d.cv.offsetTop - monthsRoom(k) + 'px';
     // the weekdays of the second, fourth and sixth rows, beside the weeks (shown with the key, on hover)
     // (not where they would hang off the page: they stand just outside the forest's edge)
@@ -1684,31 +1660,21 @@ AF.calendar = function (root, data, env) {
       days.innerHTML = [1, 3, 5].map(r => `<span style="top:${top + (d.band + r * CELL + TILE / 2) * k}px">${WEEKDAYS[(weekStart + r) % 7]}</span>`).join('');
       days.hidden = box.getBoundingClientRect().left < DAYS_ROOM;
     }
-    // where two would touch (a narrow calendar), the one with a year stays and the other goes
-    let prev = null;
-    for (const s of months.children) {
-      if (prev && s.offsetLeft < prev.offsetLeft + prev.offsetWidth + LABEL_GAP) {
-        const drop = prev.classList.contains('af-cal-year') && !s.classList.contains('af-cal-year') ? s : prev;
-        drop.hidden = true;
-        if (drop === s) continue;
-      }
-      prev = s;
-    }
-    // ‹ Today › stand over the months' row, in the gap above it, unless the forest's caption's last
-    // line reaches them there: then they go down onto the row, and a label under them makes way
-    // while they show (forest.css)
+    // ‹ Today › stand over the months' row, in the gap above it (with earlier years shown, over the
+    // first of them), unless the forest's caption's last line reaches them there: then they go down
+    // onto that row, and a label under them makes way while they show (forest.css)
     if (!swiped) {
+      const row = pasts.length ? pastBox.firstChild.offsetTop : months.offsetTop;
       acts.classList.remove('af-acts-low');
-      acts.style.top = months.offsetTop - ACTS_ROOM + 'px';
-      if (near) near.style.top = months.offsetTop - ACTS_ROOM + 'px';
+      acts.style.top = row - ACTS_ROOM + 'px';
       // (the caption reaches them only from just above: not under the heatmap, nor beside it)
       const a = acts.getBoundingClientRect(), cap = stays ? null : root.querySelector('.af-caption');
       const words = cap ? [...cap.children].map(el => el.getBoundingClientRect()).filter(r => r.width && r.bottom > a.top - 30) : [];
       const low = words.some(r => r.right > a.left - LABEL_GAP && r.bottom > a.top - 4);
       acts.classList.toggle('af-acts-low', low);
-      if (low) acts.style.top = months.offsetTop + 'px';
+      if (low) acts.style.top = row + 'px';
       const edge = acts.offsetLeft - LABEL_GAP;
-      for (const s of months.children) s.classList.toggle('af-under', low && s.offsetLeft + s.offsetWidth > edge);
+      for (const s of months.children) s.classList.toggle('af-under', low && !pasts.length && s.offsetLeft + s.offsetWidth > edge);
     }
     // each streak's length, the current one's too, centred under its bracket
     notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - NOTE_H / 2 + 'px';

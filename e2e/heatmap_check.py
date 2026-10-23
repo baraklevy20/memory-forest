@@ -25,17 +25,17 @@ from phone_check import CHROME, forest_page, phone_changed
 
 import catalog
 
-YEARS = 3  # (of made-up history: two earlier years to show)
+YEARS = 3  # (of made-up history: two earlier years for Streak view to show)
 # the files the heatmap's layers go through: a change to one runs this
 HEATMAP_FILES = ("web/calendar.js", "web/hover.js", "web/core.js", "web/engines/pixel/ground.js", "web/visit.js", "web/forest.css", "web/util.js", "payload.py", "e2e/heatmap_check.py", "e2e/heatmap_check.mjs")
 
 
 def calendar() -> dict:
-    """YEARS years of days, most studied, a long streak running to today, so each year has its
-    animals' and the streak's marks; By year."""
+    """YEARS years of days, most studied, a streak of about two years running to today, so each year
+    has its animals' and the streak's marks, and Streak view opens on all three; By year."""
     today = dt.date.today()
     n = YEARS * 366
-    days = [0 if (i % 11 == 3 and i < n - 200) else 15 + (i * 37) % 200 for i in range(n)]
+    days = [0 if (i % 11 == 3 and i < n - 700) else 15 + (i * 37) % 200 for i in range(n)]
     return {"view": "by_year", "weekStart": 1, "start": (today - dt.timedelta(days=n - 1)).isoformat(), "days": days,
             "due": [40] + [max(0, 200 - 2 * i) for i in range(1, 120)], "animals": [], "browse": False,
             "answerTime": [1 + i % 12 if count else None for i, count in enumerate(days)],
@@ -104,7 +104,7 @@ def main() -> int:
                 failed += 1
                 print(f"FAIL {state}, {y['name']}: its hover layer is {y['off']} from its weeks")
         if all(not y["off"] for y in years) and years:
-            print(f"ok   {state}: {len(years)} year(s), each layer on its weeks")
+            print(f"ok   {state}: {len(years)} row(s) of weeks, each layer on its own")
     for e in got.get("errors", []):
         print("FAIL page error:", e)
         failed += 1

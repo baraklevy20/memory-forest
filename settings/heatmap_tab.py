@@ -2,7 +2,7 @@
 change most: whose colours its days take and its style (heatmap_look.py, chosen by eye:
 settings/heatmap_look.py); then the screens it shows on and the day its weeks start on; under
 Streak, how many days a week it counts; under Start date, the reviews from before the forest's start
-date and where your streak counts from. Its view (Timeline | By year) is the switch on the heatmap.
+date and where your streak counts from. Its view (Timeline | By year | Streak) is the switch on the heatmap.
 Without a start date (Decks tab) the earlier reviews and the streak's start change nothing, so they
 are never greyed out for it: a hint says so. What the shades go by is the toggle on the heatmap
 itself, not repeated here."""
@@ -37,7 +37,7 @@ FILL_OPTIONS = [("more", "More months"), ("bigger", "Bigger days")]
 FILL_TIPS = {"more": "Every day the same size: a wider heatmap shows more months",
              "bigger": "Ten months, with bigger days to fill the width"}
 # (Fill it with is the Timeline's: never greyed out, as the view is switched on the heatmap itself)
-FILL_NOTE = "By year always fits its year to the width."
+FILL_NOTE = "By year and Streak always fit a year to the width."
 # the day its weeks start on
 WEEK_OPTIONS = [("system", "Auto"), ("monday", "Mon"), ("sunday", "Sun"), ("saturday", "Sat")]
 WEEK_TIPS = {"system": "Your system's first day of the week", "monday": "Monday", "sunday": "Sunday", "saturday": "Saturday"}

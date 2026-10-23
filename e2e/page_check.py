@@ -131,6 +131,9 @@ def pages() -> dict:
         "fresh": desk(calendar_only(days=calendar()["days"][:-1] + [0], due=[40] + calendar()["due"][1:])),
         "sunday": desk(calendar_only(weekStart=0)),
         "old": desk(calendar_only(first=dt.date(2011, 6, 1), view="by_year")),
+        # (a streak of 900 days to today: Streak view's rows)
+        "long": desk(calendar_only(first=TODAY - dt.timedelta(days=899), days=[40 + i % 90 for i in range(900)], view="streak",
+                                   free=[], daysOff=[], ponds=[], time=[], answerTime=[])),
         "light": desk(calendar_only(), bg="#f5f5f5"),
         "forest": desk(with_forest(False)),
         "live": desk(with_forest(True)),

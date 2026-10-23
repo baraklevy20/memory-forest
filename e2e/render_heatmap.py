@@ -11,9 +11,10 @@ SCENE_TREES = 200  # (as render_check's: the forest drawn above the heatmap)
 HEATMAP_TODAY = dt.date(2026, 9, 19)
 
 
-def heatmap_calendar(view: str, years) -> dict:
+def heatmap_calendar(view: str, back: int = 0) -> dict:
     """A study history from 2018: patchy years, a long streak from Jun 2024 to today, a pond, a
-    mark, the cards due ahead. Fixed, so a scene draws the same every run."""
+    mark, the cards due ahead. Fixed, so a scene draws the same every run. `back`: Streak view's
+    frames stepped back with ‹ once it has drawn."""
     start = dt.date(2018, 3, 1)
     n = (HEATMAP_TODAY - start).days + 1
     days, time_ = [], []
@@ -23,7 +24,7 @@ def heatmap_calendar(view: str, years) -> dict:
         reviews = 20 + (i * 37) % 180 if on else 0
         days.append(reviews)
         time_.append(reviews * (5 + i % 6) if reviews else 0)
-    return {"view": view, "shadeBy": "reviews", "_open": years, "weekStart": 1, "start": start.isoformat(),
+    return {"view": view, "shadeBy": "reviews", "_back": back, "weekStart": 1, "start": start.isoformat(),
             "days": days, "time": time_, "due": [40] + [30 + i % 25 for i in range(1, 200)], "animals": [],
             # (the forest's own ponds, as payload sends them: on a deck's screen, the main forest's
             # breaks, which can cover days this deck was studied on)
@@ -32,15 +33,16 @@ def heatmap_calendar(view: str, years) -> dict:
 
 
 def heatmap_scenes() -> list:
-    """Timeline and By year (its earlier years hidden, shown, all), dark; the two views light."""
+    """Timeline, By year and Streak view (today's streak, from 2024, and the frames before it), dark;
+    the three views light."""
     out = []
-    for view, years in (("timeline", False), ("by_year", False), ("by_year", True), ("by_year", "all")):
-        tag = view if view == "timeline" else f"by_year-{ {False: 'closed', True: 'open', 'all': 'all'}[years] }"
-        out.append((f"heatmap-{tag}", {"heatmap": heatmap_calendar(view, years), "page": "dark"}, SCENE_TREES))
-    for view in ("timeline", "by_year"):
-        out.append((f"heatmap-{view}-light", {"heatmap": heatmap_calendar(view, False), "page": "light"}, SCENE_TREES))
+    for view, back in (("timeline", 0), ("by_year", 0), ("streak", 0), ("streak", 1), ("streak", 2)):
+        tag = f"{view}-back{back}" if back else view
+        out.append((f"heatmap-{tag}", {"heatmap": heatmap_calendar(view, back), "page": "dark"}, SCENE_TREES))
+    for view in ("timeline", "by_year", "streak"):
+        out.append((f"heatmap-{view}-light", {"heatmap": heatmap_calendar(view), "page": "light"}, SCENE_TREES))
     # a journal long enough to wrap in the footer: the room kept for the calendar must hold both lines
-    long = dict(heatmap_calendar("timeline", False), _journal="One of your trees became ancient today. Watch for a shooting star tonight, over the lake.")
+    long = dict(heatmap_calendar("timeline"), _journal="One of your trees became ancient today. Watch for a shooting star tonight, over the lake.")
     out.append(("heatmap-timeline-long-journal", {"heatmap": long, "page": "dark"}, SCENE_TREES))
     return out
 
@@ -64,16 +66,15 @@ async function probes(r) {
   const kept = AnkiForest.calendarHeight(window.D.calendar, box.clientWidth, box.parentNode);
   const took = box.getBoundingClientRect().height;
   if (Math.abs(kept - took) > 1) r.errors.push(`heatmap: ${Math.round(took)}px drawn in ${kept}px kept (the panel jumps)`);
-  // By year's earlier years, shown by their switch (never at first); then Timeline and back, which
-  // must come back to the year in view alone, and shown again for the probes below
-  const open = window.D.calendar._open, click = sel => { const b = document.querySelector(sel); if (b) b.click(); return !!b; };
-  if (open) {
-    if (!click('.af-cal-more-near')) r.errors.push('heatmap: no switch for the earlier years');
-    if (open === 'all' && !click('.af-cal-more-all')) r.errors.push('heatmap: no "Show all years"');
-    if (!document.querySelector('.af-cal-past-year')) r.errors.push('heatmap: the earlier years did not show');
-    click('[data-view="timeline"]'); click('[data-view="by_year"]');
-    if (document.querySelector('.af-cal-past-year')) r.errors.push('heatmap: back from Timeline, By year kept its earlier years');
-    click('.af-cal-more-near'); if (open === 'all') click('.af-cal-more-all');
+  // Streak view: its earlier years from the first (today's streak began years ago), then the frames
+  // before it, stepped back with ‹
+  if (window.D.calendar.view === 'streak') {
+    if (!document.querySelector('.af-cal-past-year')) r.errors.push('heatmap: Streak view showed no earlier years');
+    for (let i = 0; i < (window.D.calendar._back || 0); i++) {
+      const b = document.querySelector('[data-go="-1"]');
+      if (!b || b.disabled) { r.errors.push('heatmap: no earlier streak to step back to'); break; }
+      b.click();
+    }
   }
   const cv = document.querySelector('.af-cal-grid > canvas.af-cal-canvas'), c = into(cv);
   // a day: the first spot along the middle row whose tooltip names a day
@@ -93,7 +94,8 @@ async function probes(r) {
   const n = document.querySelector('.af-cal-notes'), lc = into(cv), nr = n.getBoundingClientRect(), mid = (nr.top + nr.bottom) / 2;
   let lane = '';
   for (let x = lc.left; x < lc.right && !lane; x += 2) { move(cv, x, mid); await sleep(5); if (/longest|on this day/.test(say())) lane = say(); }
-  if (!lane) r.errors.push('heatmap: neither a trophy nor the goal showed its tooltip');
+  // (the frames before today's: the history's patchy years, with no streak long enough for a trophy)
+  if (!lane && !window.D.calendar._back) r.errors.push('heatmap: neither a trophy nor the goal showed its tooltip');
   if (lost) r.errors.push(`heatmap: ${lost} pointer moves found nothing under them (the probe, not the heatmap)`);
   r.tips = { day, lane };
   // the picture: every heatmap canvas, and where its rows sit

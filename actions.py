@@ -167,7 +167,7 @@ def on_js_message(handled, message, context):
             marks.unmark(mw.col, cmd[1])
         elif cmd[0] == "shade" and len(cmd) > 1 and cmd[1] in CALENDAR_SHADES:  # the toggle beside the key: Reviews, Time, or Pace
             save_config(dict(config(), calendar_shade=cmd[1]))  # (the heatmap has drawn it already: no redraw)
-        elif cmd[0] == "view" and len(cmd) > 1 and cmd[1] in CALENDAR_VIEWS:  # Timeline | By year, on the heatmap
+        elif cmd[0] == "view" and len(cmd) > 1 and cmd[1] in CALENDAR_VIEWS:  # Timeline | By year | Streak, on the heatmap
             save_config(dict(config(), calendar=cmd[1]))  # (drawn already; the Heatmap tab's View follows it)
         elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait
             hold_shortcuts(cmd[1:] == ["1"])

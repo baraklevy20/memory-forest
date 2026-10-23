@@ -14,7 +14,8 @@
         "A start date can now keep your trees from before it, with ponds, Nature and animals counting from the date (Decks tab).",
         "Surprise me daily can now leave out the sceneries you'd rather not see (Scenery tab).",
         "Put the forest and the heatmap beside your deck list or above it, and choose which comes first (Forest tab, Layout).",
-        "Two new heatmap tile styles, Rime and Canes, and every scenery's own tiles now in one dropdown (Heatmap tab, Style)."
+        "Two new heatmap tile styles, Rime and Canes, and every scenery's own tiles now in one dropdown (Heatmap tab, Style).",
+        "A Streak view on the heatmap shows your whole streak at once, beside Timeline and By year."
       ],
       "improved": [
         "Nature's settings now show what each level does to a forest, in a short moving picture beside it.",

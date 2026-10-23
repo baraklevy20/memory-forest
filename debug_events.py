@@ -20,6 +20,41 @@ DEBUG_BIG_EVERY, DEBUG_BIG_BEAT = 9, 0.7
 # the usual day's reviews a made-up review hell is measured against, when there is none to go by
 DEBUG_USUAL = 50
 DEBUG_CLEARS_MAX = 10 ** 6
+# made-up study histories for the test forest's heatmap, to try its Streak view on (Debug tab,
+# Heatmap): each its runs of days studied, [oldest, newest] as days ago, and a sprinkle of single
+# days and short runs (`scatter`: from, to, how many) between them; "current streak" days long
+# (DEBUG_STREAK_MAX at most) makes today's run that long instead, the day before it missed
+DEBUG_STREAKS = {
+    "long": {"label": "One streak of three years", "runs": [(1100, 0)], "scatter": (1900, 1110, 60)},
+    "several": {"label": "Long streaks over the years", "runs": [(2400, 2100), (1500, 1410), (1100, 650), (199, 0)],
+                "scatter": (2090, 205, 70)},
+    "apart": {"label": "Streaks years apart", "runs": [(2300, 2180), (59, 0)], "scatter": (2600, 2310, 25)},
+    "broken": {"label": "A long one just broken", "runs": [(430, 8), (3, 0)], "scatter": (900, 440, 40)},
+    "none": {"label": "No streak today", "runs": [(60, 12)], "scatter": (800, 70, 50)},
+    "short": {"label": "Short streaks only", "runs": [(4, 0)], "scatter": (1200, 6, 140)},
+}
+DEBUG_STREAK_MAX = 5000
+
+
+def made_up_days(cfg: dict) -> set | None:
+    """The days studied (as days ago) of the Debug tab's made-up history, or None for the test
+    forest's own: the same each time for the same choice."""
+    pick = DEBUG_STREAKS.get(cfg.get("debug_streaks") or "")
+    if not pick:
+        return None
+    days = set()
+    for older, newer in pick["runs"]:
+        days |= set(range(newer, older + 1))
+    lo, hi, n = pick["scatter"]
+    r = random.Random(f"{fake_forest.FAKE_SEED}-{cfg.get('debug_streaks')}")
+    for _ in range(n):  # (a day, or a few in a row)
+        start = r.randint(hi, lo)
+        days |= set(range(start, start + r.choice((1, 1, 2, 3, 5, 9))))
+    length = clamp_int(cfg.get("debug_streak_days"), 0, 0, DEBUG_STREAK_MAX)
+    if length:
+        days = {d for d in days if d > length} | set(range(length))
+        days.discard(length)
+    return days
 
 
 def new_timeline_run() -> None:
@@ -105,6 +140,10 @@ def apply(forest: dict, extras: dict, cfg: dict) -> tuple:
     steps = events.timeline_steps(cfg.get("debug_timeline"))
     if steps and forest.get("test"):
         forest = _timeline(forest, cfg, steps, extras)
+    days = made_up_days(cfg) if forest.get("test") else None
+    if days is not None:  # (the heatmap's made-up history, and the caption's streak with it)
+        streak, longest = forest_data._streaks(days)
+        forest = dict(forest, review_days=days, stats=dict(forest["stats"], streak=streak, longest_streak=longest))
     trees = [dict(t) for t in forest["trees"]]
     hell = clamp_int(cfg.get("debug_backlog"), 0, 0, DEBUG_BACKLOG_MAX) / DEBUG_BACKLOG_MAX
     clears = clamp_int(cfg.get("debug_backlog_cleared"), 0, 0, DEBUG_CLEARS_MAX)  # how many times "Clear the backlog" was clicked

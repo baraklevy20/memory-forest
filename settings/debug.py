@@ -9,7 +9,7 @@ import datetime as _dt
 from aqt.qt import QCheckBox, QComboBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
 
 from .. import news
-from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
+from ..debug_events import DEBUG_BACKLOG_MAX, DEBUG_STREAK_MAX, DEBUG_STREAKS, new_timeline_run
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
 from ..seasons import forget_seasons
@@ -41,6 +41,9 @@ NEWS_NOTE = ("What an update announces (release_notes.json): a note on the deck 
              "exactly as someone updating from the version before sees it; a fresh install sees none. A note also goes by itself after 3 days: move the date above to see that. Show it as new "
              "puts one note on the forest now: a real one, or a made-up one whose button opens any setting, "
              "tagged NEW.")
+STREAKS_NOTE = ("A made-up history of days studied on the test forest's heatmap, and its caption's streak, "
+                "to try the Streak view and its arrows on. The current streak, if set, replaces today's run "
+                "with one that long. Needs the test forest.")
 EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plus": "Memory Forest Plus"}
 # what the label calls each kind of day, and what happens (once, and more than once)
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
@@ -139,6 +142,14 @@ class DebugTab(QWidget):
         for key in DEBUG_CALENDAR_SIZES:
             self.size_rule.addItem(SIZE_RULE_LABELS[key], key)
         self.size_rule.setCurrentIndex(max(0, self.size_rule.findData(debug_calendar_size(cfg))))
+        # a made-up study history on the test forest's heatmap, to try Streak view on
+        self.streaks = QComboBox()
+        self.streaks.addItem("The test forest's own", "")
+        for key, pick in DEBUG_STREAKS.items():
+            self.streaks.addItem(pick["label"], key)
+        self.streaks.setCurrentIndex(max(0, self.streaks.findData(cfg.get("debug_streaks") or "")))
+        self.streak_days = spin("debug_streak_days", DEBUG_STREAK_MAX, " days")
+        self.streak_days.setSpecialValueText("As the history has it")
         self.edition = QComboBox()
         for key in ("",) + DEBUG_EDITIONS:
             self.edition.addItem(EDITION_LABELS[key], key)
@@ -182,7 +193,10 @@ class DebugTab(QWidget):
         dv.addWidget(group("Edition", etv))
         hf = QFormLayout()
         hf.addRow("Heatmap size rule", self.size_rule)
-        dv.addWidget(group("Heatmap", hf))
+        hf.addRow("Study history", self.streaks)
+        hf.addRow("Current streak", self.streak_days)
+        hv = QVBoxLayout(); hv.addLayout(hf); hv.addWidget(hint(STREAKS_NOTE))
+        dv.addWidget(group("Heatmap", hv))
         dv.addWidget(group("What's new", ntv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
@@ -258,6 +272,8 @@ class DebugTab(QWidget):
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
         self.size_rule.currentIndexChanged.connect(changed)
+        self.streaks.currentIndexChanged.connect(changed)
+        self.streak_days.valueChanged.connect(changed)
         for box in (self.trees_box, self.backlog):
             box.valueChanged.connect(changed)
 
@@ -270,7 +286,7 @@ class DebugTab(QWidget):
             return f"{n} day{'s' if n != 1 else ''} {DAY_KINDS[kind]}"
         self.timeline_label.setText(" → ".join(said(kind, n) for kind, n in self.timeline)
                                     or "No days passed yet (needs the test forest)")
-        for w in self.timeline_steps + self.happen:
+        for w in self.timeline_steps + self.happen + [self.streaks, self.streak_days]:
             w.setEnabled(on)
         waiting = news.unseen(dict(config(), debug_edition=self.edition.currentData() or ""))
         self.news_label.setText("Still to show: " + ", ".join(f"{e['id']} ({e['kind']})" for e in waiting) if waiting
@@ -300,4 +316,6 @@ class DebugTab(QWidget):
             "debug_big_days": self.big.isChecked(),
             "debug_date": self._date().isoformat() if self._date() else "",
             "debug_edition": self.edition.currentData() or "",
+            "debug_streaks": self.streaks.currentData() or "",
+            "debug_streak_days": self.streak_days.value(),
         }

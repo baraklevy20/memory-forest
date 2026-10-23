@@ -37,7 +37,7 @@ SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to meas
 # phone switch, which lives in the collection, it never touches)
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_earlier_trees", "keep_suspended", "calendar_record", "streak_from_start",
              "streak_week", "streak_week_since")
-# set on the heatmap itself (its Reviews | Time toggle, its Timeline | By year switch), maybe while
+# set on the heatmap itself (its Reviews | Time toggle, its Timeline | By year | Streak switch), maybe while
 # the dialog is open: saved as it is now, never as the dialog found it, and Cancel leaves it be (the
 # view had a row here too until 2026-10-16: the switch on the heatmap is where it is changed)
 OUTSIDE_KEYS = ("calendar_shade", "calendar")

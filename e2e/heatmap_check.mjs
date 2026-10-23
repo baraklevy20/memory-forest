@@ -38,11 +38,11 @@ try {
     return failures;
   });
   out.errors.push(...layoutChecks);
-  // each year's weeks and its layer: the year in view's (in the grid), and each earlier one's
+  // each row's weeks and its layer: the one in view's (in the grid), and each of Streak view's earlier ones
   const look = () => p.evaluate(() => {
     const pairs = [...document.querySelectorAll('.af-cal-canvas')].map(cv => {
       const above = cv.parentElement.querySelector(':scope > .af-cal-above:not(.af-cal-spot)');
-      const name = cv.classList.contains('af-cal-past-weeks') ? cv.parentElement.querySelector('b').textContent : 'the year in view';
+      const name = cv.classList.contains('af-cal-past-weeks') ? `the row from ${cv.getAttribute('aria-label').match(/, (\w{3} \d{4}) to/)[1]}` : 'the weeks in view';
       if (!above) return { name, off: 'missing' };
       const a = cv.getBoundingClientRect(), b = above.getBoundingClientRect();
       const d = [b.left - a.left, b.top - a.top, b.width - a.width, b.height - a.height].map(v => Math.round(v));
@@ -50,15 +50,12 @@ try {
     });
     return pairs;
   });
-  out.states['earlier years hidden'] = await look();
-  const more = await p.$('.af-cal-more');
-  if (!more) out.errors.push('no switch to show the earlier years');
-  else {
-    await more.click(); await wait(500);
-    out.states['earlier years shown'] = await look();
-    await (await p.$('.af-cal-more')).click(); await wait(500);
-    out.states['hidden again'] = await look();
-  }
+  out.states['by year'] = await look();
+  await (await p.$('[data-view="streak"]')).click(); await wait(500);
+  out.states['streak view'] = await look();
+  if (out.states['streak view'].length < 2) out.errors.push(`Streak view showed ${out.states['streak view'].length} row(s), not the streak's rows`);
+  await (await p.$('[data-view="by_year"]')).click(); await wait(500);
+  out.states['by year again'] = await look();
   if (forest) {
     await p.goto('file://' + forest);
     await p.waitForSelector('.af-cal-canvas');
@@ -254,14 +251,14 @@ try {
       if (name) name.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       // across two years: an earlier year's day and one in the year in view, both lit, a year with
       // none picked dimmed all over, the summary counting both, a click sending both
-      const more = root.querySelector('.af-cal-more');
-      if (!more) { fail('no earlier year to pick across'); return failures; }
-      more.click();
+      root.querySelector('[data-view="streak"]').click();
       await new Promise(r => setTimeout(r, 300));
-      const pastCv = [...root.querySelectorAll('.af-cal-past-weeks')].pop();  // (the year before the year in view: all of it after the first review)
-      const pr = pastCv.getBoundingClientRect(), earlier = [pr.left + pr.width * 0.5, pr.top + pr.height * 0.55];
+      if (!root.querySelector('.af-cal-past-weeks')) { fail('no earlier year to pick across'); return failures; }
       const [n0, n9] = [0, 9].map(dayAt);
       done();
+      // (measured once the days' focus has scrolled the page: Streak view's years are taller than the window)
+      const pastCv = [...root.querySelectorAll('.af-cal-past-weeks')].pop();  // (the year before the year in view: all of it after the first review)
+      const pr = pastCv.getBoundingClientRect(), earlier = [pr.left + pr.width * 0.5, pr.top + pr.height * 0.55];
       click(n9, cmd);
       if (dimAt(earlier) <= 0) fail('an earlier year with none of the days picked was not dimmed');
       click(earlier, cmd, pastCv);
@@ -278,7 +275,7 @@ try {
       if (dimAt(n9) !== 0) fail('a Shift-click from an earlier year did not stretch into the year in view');
       esc();
       if (spots().length) fail('Esc did not let a pick across years go');
-      more.click();
+      root.querySelector('[data-view="by_year"]').click();
       return failures;
     });
     out.errors.push(...picking);

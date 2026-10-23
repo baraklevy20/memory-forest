@@ -61,6 +61,21 @@ class DebugEventTests(unittest.TestCase):
         reset(PLANTED, {"debug": True, "debug_big_days": True})
         self.assertTrue(any(t.get("big") for t in payload.payload()["trees"]))
 
+    def test_made_up_streaks_on_the_test_forest(self):
+        """The Debug tab's study history: the heatmap's days and the caption's streak, the current
+        streak as long as asked; only on the test forest."""
+        reset(PLANTED, {"debug": True, "test_forest": True, "test_trees": 40, "debug_streaks": "several"})
+        p = payload.payload()
+        days = p["calendar"]["days"]
+        self.assertEqual(p["stats"]["streak"], 200)
+        self.assertGreater(len(days), 2400)
+        self.assertTrue(all(days[-200:]) and not days[-201])
+        self.assertEqual(p["stats"]["longest_streak"], 451)
+        reset(PLANTED, {"debug": True, "test_forest": True, "test_trees": 40, "debug_streaks": "several", "debug_streak_days": 30})
+        self.assertEqual(payload.payload()["stats"]["streak"], 30)
+        reset(PLANTED, {"debug": True, "test_forest": False, "debug_streaks": "several"})
+        self.assertLess(len(payload.payload()["calendar"]["days"]), 2400)
+
     @staticmethod
     def passed(nature, *steps):
         reset(PLANTED, {"debug": True, "nature": nature, "test_forest": True, "test_trees": 40, "debug_timeline": [list(s) for s in steps]})

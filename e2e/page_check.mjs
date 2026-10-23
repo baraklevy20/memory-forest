@@ -126,7 +126,7 @@ check('heatmap: By year pages by year, and its switch tells Anki', async b => {
   eq(f, await p.evaluate(() => [T.btn(1).disabled, T.btn(0).textContent]), [true, '«'], 'no further than the days ahead');
   // ← → on the view's radio buttons switch it, as radio buttons do
   await p.focus('.af-cal-view [data-view="by_year"]');
-  await p.keyboard.press('ArrowRight');
+  await p.keyboard.press('ArrowLeft');
   eq(f, await p.evaluate(() => [T.sent(), document.activeElement.dataset.view]), [['forest:view:timeline'], 'timeline'], 'the arrow key\'s view');
   has(f, await p.evaluate(() => T.label()), ['Mar 2026 to Dec 2026'], 'back on Timeline, on today');
   return [p, f];
@@ -317,38 +317,55 @@ check('heatmap: a right-click marks a day; Enter keeps it, Esc puts it back, × 
   return [p, f];
 });
 
-check('heatmap: By year\'s earlier years, shown and hidden, keep their paint until what they show changes', async b => {
+check('heatmap: Streak view opens on the streak, and pages back and on through time as many rows at a time', async b => {
   const p = await open(b, 'calendar'); await ready(p); const f = [];
+  await p.evaluate(() => T.box().querySelector('[data-view="streak"]').click());
+  eq(f, await p.evaluate(() => T.sent()), ['forest:view:streak'], 'the view sent');
+  // (the stretch shown: its rows' first and last months, read off each row's weeks, oldest first)
+  const frame = () => p.evaluate(() => [...document.querySelectorAll('.af-cal-past-weeks'), T.weeks()].map(c => c.getAttribute('aria-label').match(/, (\w{3} \d{4}) to (\w{3} \d{4})/).slice(1)));
+  const now = await frame();
+  eq(f, now.length, 1, 'the 43-day streak, in one row');
+  eq(f, await p.evaluate(() => [T.btn(1).disabled, T.btn(0).disabled, T.btn(-1).disabled]), [true, true, false], 'nothing later than today');
+  const at = m => Date.parse(`1 ${m}`);
+  const seen = [now[0][0]];
+  for (let i = 0; i < 10 && !(await p.evaluate(() => T.btn(-1).disabled)); i++) {
+    await p.evaluate(() => T.btn(-1).click());
+    seen.push((await frame())[0][0]);
+  }
+  // (a row a page: each a year and a bit before the last)
+  if (seen.length < 3 || seen.some((m, i) => i && !(at(seen[i - 1]) - at(m) > 300 * 86400000 && at(seen[i - 1]) - at(m) < 400 * 86400000))) f.push(`pages not a row each: ${JSON.stringify(seen)}`);
+  has(f, seen[seen.length - 1] || '', [/^\w{3} 202[23]$/], 'back to the first review');
+  await p.evaluate(() => T.btn(1).click());
+  eq(f, (await frame())[0][0], seen[seen.length - 2], '› a page on');
+  await p.evaluate(() => T.btn(0).click());
+  eq(f, await frame(), now, '» back to the streak');
   await p.evaluate(() => T.box().querySelector('[data-view="by_year"]').click());
-  const more = () => p.evaluate(() => { const m = document.querySelector('.af-cal-more'); return [m.textContent, m.getAttribute('aria-expanded')]; });
-  eq(f, await more(), ['▴Show all years, back to 2023', 'false'], 'the switch, closed');
-  const years = () => p.evaluate(() => [...document.querySelectorAll('.af-cal-past-year b')].map(e => e.textContent));
-  await p.evaluate(() => document.querySelector('.af-cal-more').click());
-  eq(f, await years(), ['2023', '2024', '2025'], 'the earlier years, oldest on top');
-  eq(f, (await more())[1], 'true', 'the switch, open');
-  has(f, await p.evaluate(() => document.querySelector('.af-cal-past-head span').textContent), [/^Studied \d+ of \d+ days since Mar 15 \(\d+%\) · [\d,]+ reviews in .+$/], '2023\'s line (from the first review)');
+  eq(f, await p.evaluate(() => document.querySelectorAll('.af-cal-past-year').length), 0, 'By year: the year alone');
+  return [p, f];
+});
+
+check('heatmap: Streak view\'s rows: as wide as each other, their months over them, their paint kept until what they show changes', async b => {
+  const p = await open(b, 'long'); await ready(p); const f = [];
+  const rows = () => p.evaluate(() => [...document.querySelectorAll('.af-cal-past-weeks'), T.weeks()].map(c => c.width));
+  const w = await rows();
+  if (w.length !== 3 || new Set(w).size !== 1) f.push(`rows: ${JSON.stringify(w)}`);
+  has(f, await p.evaluate(() => [...document.querySelectorAll('.af-cal-past-head span:not([hidden])')].map(s => s.textContent).join(' ')), [/^\w{3} 20\d\d /], 'the top row\'s first month says its year');
   await p.evaluate(() => { window.__first = [...document.querySelectorAll('.af-cal-past-weeks')]; });
   const same = () => p.evaluate(() => { const now = [...document.querySelectorAll('.af-cal-past-weeks')]; return now.length === window.__first.length && now.every((c, i) => c === window.__first[i]); });
-  await p.evaluate(() => document.querySelector('.af-cal-more').click());
-  eq(f, await years(), [], 'hidden again');
-  await p.evaluate(() => document.querySelector('.af-cal-more').click());
-  eq(f, await same(), true, 'shown again: the same paint');
-  await p.evaluate(() => T.box().querySelector('[data-by="time"]').click());
-  if (await same()) f.push('a new shade kept the old paint');
-  await p.evaluate(() => { window.__first = [...document.querySelectorAll('.af-cal-past-weeks')]; document.querySelector('.af-cal-more').click(); });
-  // (a new page colour, read as Anki's theme switch: painted again)
+  const away = () => p.evaluate(() => { T.box().querySelector('[data-view="by_year"]').click(); T.box().querySelector('[data-view="streak"]').click(); });
+  await away();
+  eq(f, await same(), true, 'back on Streak: the same paint');
   await p.evaluate(() => { document.body.style.background = 'rgb(245, 245, 245)'; });
   await wait(700);
-  await p.evaluate(() => document.querySelector('.af-cal-more').click());
+  await away();
   if (await same()) f.push('a new page colour kept the old paint');
-  eq(f, (await years()).length, 3, 'the years still there after the theme switch');
-  // an earlier year's day has its tooltip too, and is not marked from there
-  const at = await p.evaluate(() => { const cv = document.querySelector('.af-cal-past-weeks'); return T.at(cv, 1 + 20 * 10 + 4.5, 3 + 2 * 10 + 5.5); });
-  await p.mouse.move(at[0], at[1]);
+  // an earlier row's day has its tooltip too, and is not marked from there
+  const pt = await p.evaluate(() => { const cv = document.querySelector('.af-cal-past-weeks'); return T.at(cv, 1 + 45 * 10 + 4.5, 3 + 2 * 10 + 5.5); });  // (late in the row: its start is before the first review)
+  await p.mouse.move(pt[0], pt[1]);
   await wait(250);
-  has(f, await p.evaluate(() => T.tip()), [/2023/], 'a day in 2023');
-  await p.mouse.click(at[0], at[1], { button: 'right' });
-  eq(f, await p.evaluate(() => document.querySelector('.af-cal-pin').hidden), true, 'no editor on an earlier year');
+  has(f, await p.evaluate(() => T.tip()), [/\d{4}/, /reviews/], 'a day on the top row');
+  await p.mouse.click(pt[0], pt[1], { button: 'right' });
+  eq(f, await p.evaluate(() => document.querySelector('.af-cal-pin').hidden), true, 'no editor on an earlier row');
   return [p, f];
 });
 
@@ -386,10 +403,13 @@ check('heatmap: weeks from Sunday where the setting says', async b => {
 
 check('heatmap: By year\'s years all as wide as the widest (2012, a leap year from a Sunday: 54 weeks)', async b => {
   const p = await open(b, 'old'); await ready(p); const f = [];
-  await p.evaluate(() => document.querySelector('.af-cal-more').click());
-  const all = await p.evaluate(() => document.querySelector('.af-cal-more-all'));
-  if (all) await p.evaluate(() => document.querySelector('.af-cal-more-all').click());
-  const widths = await p.evaluate(() => [...document.querySelectorAll('.af-cal-canvas')].map(c => [c.closest('.af-cal-past-year') ? c.closest('.af-cal-past-year').querySelector('b').textContent : 'now', c.width]));
+  // (By year's years, paged back to the first review)
+  const shown = () => p.evaluate(() => [T.label().match(/(\d{4}) to/)[1], T.weeks().width]);
+  const widths = [await shown()];
+  for (let i = 0; i < 20 && !(await p.evaluate(() => T.btn(-1).disabled)); i++) {
+    await p.evaluate(() => T.btn(-1).click());
+    widths.push(await shown());
+  }
   if (!widths.some(w => w[0] === '2012')) f.push(`2012 not shown: ${widths.map(w => w[0])}`);
   const odd = widths.filter(w => w[1] !== 1 + 54 * 10);
   if (odd.length) f.push(`years not 54 weeks wide: ${JSON.stringify(odd)}`);
@@ -429,7 +449,7 @@ check('forest: the cog opens the settings; its dot and the note say what\'s new,
   return [p, f];
 });
 
-check('forest: the caption\'s tooltips; its streak, clicked, shows the heatmap year by year', async b => {
+check('forest: the caption\'s tooltips; its streak, clicked, shows the heatmap\'s Streak view', async b => {
   const p = await open(b, 'forest'); await forestReady(p); const f = [];
   const items = await p.evaluate(() => [...document.querySelectorAll('.af-caption .af-info')].map(e => e.textContent));
   if (!items.includes('150 trees') || !items.some(t => /-day streak$/.test(t))) f.push(`the caption: ${JSON.stringify(items)}`);
@@ -437,14 +457,18 @@ check('forest: the caption\'s tooltips; its streak, clicked, shows the heatmap y
   has(f, await p.evaluate(() => { const t = document.querySelector('.af-cap-tip'); return t.hidden ? '' : t.textContent; }), ['One tree for each day you learned new cards'], 'the trees\' tooltip');
   const streak = await p.evaluateHandle(() => [...document.querySelectorAll('.af-caption .af-info')].find(e => /-day streak$/.test(e.textContent)));
   await streak.hover();
-  has(f, await p.evaluate(() => document.querySelector('.af-cap-tip').textContent), ['Days you studied, in a row', 'Click to see it year by year'], 'the streak\'s tooltip');
+  has(f, await p.evaluate(() => document.querySelector('.af-cap-tip').textContent), ['Days you studied, in a row', 'Click to see all of it'], 'the streak\'s tooltip');
   await streak.click();
   // (this streak began this year: no earlier years to show with it)
-  eq(f, await p.evaluate(() => [T.sent(), T.box().querySelector('[data-view="by_year"]').classList.contains('af-on'), T.box().classList.contains('af-cal-years-open')]),
-    [['forest:view:by_year'], true, false], 'By year');
+  eq(f, await p.evaluate(() => [T.sent(), T.box().querySelector('[data-view="streak"]').classList.contains('af-on'), T.box().classList.contains('af-cal-years-open')]),
+    [['forest:view:streak'], true, false], 'Streak view');
   await p.mouse.move(2, 2);
   await streak.hover();
-  has(f, await p.evaluate(() => document.querySelector('.af-cap-tip').textContent), [{ test: s => !s.includes('year by year') }], 'no click hint once By year');
+  has(f, await p.evaluate(() => document.querySelector('.af-cap-tip').textContent), [{ test: s => !s.includes('see all of it') }], 'no click hint once on it');
+  // stepped back to an earlier streak, a click brings today's back
+  await p.evaluate(() => T.btn(-1).click());
+  await streak.click();
+  eq(f, await p.evaluate(() => T.btn(0).disabled), true, 'back on today\'s streak');
   return [p, f];
 });
 
