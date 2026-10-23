@@ -145,6 +145,34 @@ def _pair(pm: QPixmap, gaps: bool = True) -> QPixmap:
     return out
 
 
+# the shade a menu's tile is drawn in, by the page: the darker of the two middle ones (the second on a
+# dark page, the third on a light one, whose shades run darker), its scenery's colour at its fullest
+# and dark enough that a light mark shows (the busiest, a dark page's palest, washed Starry night out
+# and hid Misty valley's rime and the ice's shine, 2026-10-23)
+MENU_SHADE = {True: 1, False: 2}
+
+
+def menu_tile(look: dict, key: str, cfg: dict, here_env: str) -> QPixmap:
+    """The tile style `key` as one day's tile (MENU_SHADE, by the page) at two points a pixel, as
+    tile_sample draws it, in a square the size of a menu's pictures (QUAD)."""
+    key = HL.tile_style(dict(cfg, calendar_tiles=key), here_env)
+    gaps, smooth = HL.TILE_STYLE[key]
+    spec = HL.TILE_SPECS[key]
+    drawer = "flat" if smooth and spec.get("smoothRadius") else HL.tile_env(dict(cfg, calendar_tiles=key), here_env)
+    corners = (spec.get("smoothRadius", SMOOTH_R), spec.get("smoothGrow", 0)) if smooth and gaps else None
+    pm = strip(look, drawer, sample=True, gaps=gaps, smooth=corners)
+    shade = MENU_SHADE[page_bg()[1]]
+    dpr = pm.devicePixelRatio()
+    out = QPixmap(int(QUAD * dpr), int(QUAD * dpr))
+    out.setDevicePixelRatio(dpr)
+    out.fill(QColor(0, 0, 0, 0))
+    w, at = 2 * HL.TILE, (QUAD - 2 * HL.TILE) / 2
+    p = QPainter(out)
+    p.drawPixmap(QRectF(at, at, w, w), pm, QRectF(shade * 2 * (HL.TILE + STRIP_GAP) * dpr, 0, w * dpr, w * dpr))
+    p.end()
+    return out
+
+
 def _smoothed(pm: QPixmap, shades, scale: int, radius: float, grow: float) -> QPixmap:
     """`pm`'s tiles as the heatmap's smooth corners draw them: each face (all but the tile's edge row
     and column) a rounded square, antialiased, filled with its shade and its texture inside."""
@@ -322,7 +350,7 @@ class PickButton(QPushButton):
 
     def _open(self) -> None:
         menu = QMenu(self)
-        menu.setStyleSheet(f"QMenu {{ icon-size: {QUAD}px; }}")  # (each one's four tiles at their own size)
+        menu.setStyleSheet(f"QMenu {{ icon-size: {QUAD}px; }}")  # (each picture at its own size: square)
         icons = self.icons()
         for i, (key, name) in enumerate(self.choices()):
             if i == 1:
@@ -629,19 +657,25 @@ class LookControls(QObject):
 
     def _tile_choices(self) -> list:
         """The tiles dropdown's list: the current scenery's (they follow it), then each scenery's own
-        tiles that can be had just now (HL.tile_shown): (key, name), each named as its file names it."""
-        return [(HL.TILE_FOLLOW, FOLLOW_NAME)] + [(k, TILE_LABELS[k]) for k in HL.SCENERY_TILES if HL.tile_shown(k, self.edition_cfg)]
+        tiles that can be had just now (HL.tile_shown): (key, name), each named after its scenery as the
+        scenery picker names it, as the colours' dropdown is (a style's own name, Rime or Brush, didn't
+        say whose it was: 2026-10-23)."""
+        names = {p.environment: p.label for p in presets.FOREST_PRESETS}
+        return [(HL.TILE_FOLLOW, FOLLOW_NAME)] + [(k, names.get(HL.TILE_ENVS[k], TILE_LABELS[k])) for k in HL.SCENERY_TILES
+                                                 if HL.tile_shown(k, self.edition_cfg)]
 
     def _tile_icons(self) -> dict:
-        """Each of the tiles dropdown's choices as a picture: the four shades two by two, in its tiles
-        and the colours chosen (key -> QIcon)."""
+        """Each of the tiles dropdown's choices as a picture: a busy day's tile at two points a pixel, as
+        the Style buttons draw theirs, in its own scenery's colours (the current scenery's for Current
+        scenery), so each reads as its scenery's at a glance (key -> QIcon). (In the colours chosen, at a
+        point a pixel and four shades two by two, Brush, Scanlines and Rime looked alike, 2026-10-23; a
+        menu's pictures are square, so the buttons' two tiles side by side ran into the names on a Mac.)"""
         here_env = presets.by_key()[self.here].environment
-        cfg = dict(self.edition_cfg, **self._values_now())
-        look = HL.preview_look(cfg, here_env)
+        cfg = dict(self.edition_cfg, **self._values_now(), calendar_colours=HL.MATCH)
         icons = {}
         for key, _name in self._tile_choices():
-            drawn = HL.tile_env(dict(cfg, calendar_tiles=key), here_env)
-            icons[key] = QIcon(quad(look, drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT))
+            env = HL.TILE_ENVS.get(key, here_env)
+            icons[key] = QIcon(menu_tile(HL.preview_look(dict(cfg, calendar_tiles=key), env), key, cfg, env))
         return icons
 
     def _values_now(self) -> dict:

@@ -498,7 +498,7 @@ class HeatmapTabTests(QtCase):
         done_saves(self, d, {"calendar_tiles": "round"})
 
     def test_the_tiles_scenery_button_lists_the_sceneries_own_tiles_and_a_pick_chooses_them(self):
-        menus = self.fake_menu(pick="Brush")
+        menus = self.fake_menu(pick="Starry night")
         d = self.open_dialog()
         lc = d.heatmap.look
         lc.tile_buttons["flat"].click()
@@ -506,20 +506,20 @@ class HeatmapTabTests(QtCase):
         Q.settle()
         self.assertEqual(len(menus), 1)
         self.assertEqual(menus[0][0], "Current scenery")
-        self.assertIn("Brush", menus[0])
+        self.assertIn("Starry night", menus[0])  # (named after its scenery, as the colours are)
         self.assertNotIn("Flat", menus[0])  # (the basic styles are buttons of their own)
-        self.assertNotIn("Pumpkins", menus[0])  # (a seasonal scenery's only in its week)
+        self.assertNotIn("Witch across the moon", menus[0])  # (a seasonal scenery's only in its week)
         self.assertEqual(lc.tile_choice.currentData(), "brush")
         self.assertTrue(lc.tile_pick.isChecked())
         self.assertFalse(lc.tile_buttons["flat"].isChecked())
-        self.assertEqual(lc.tile_pick.text(), "Brush \u25be")
+        self.assertEqual(lc.tile_pick.text(), "Starry night \u25be")
         done_saves(self, d, {"calendar_tiles": "brush"})
 
     def test_a_saved_scenerys_tiles_show_on_the_tiles_scenery_button(self):
         d = self.open_dialog({"calendar_tiles": "scanlines"})
         lc = d.heatmap.look
         self.assertEqual(lc.tile_choice.currentData(), "scanlines")
-        self.assertEqual(lc.tile_pick.text(), "Scanlines \u25be")
+        self.assertEqual(lc.tile_pick.text(), "Synthwave \u25be")
         done_saves(self, d, {"calendar_tiles": "scanlines"})
 
     def test_the_scenery_button_lists_every_scenerys_colours_and_a_pick_chooses_them(self):
@@ -620,7 +620,7 @@ class HeatmapTabTests(QtCase):
         self.tab(d, "Heatmap")
         self.assertIn("pumpkin", [k for k, _n in lc._tile_choices()])
         self.assertEqual(lc.tile_choice.currentData(), "pumpkin")
-        self.assertEqual(lc.tile_pick.text(), "Pumpkins \u25be")
+        self.assertEqual(lc.tile_pick.text(), "Witch across the moon \u25be")
         done_saves(self, d, {"debug_date": "2026-10-28", "calendar_tiles": "pumpkin"})
 
     def test_a_seasonal_tile_style_falls_back_to_scenery_when_the_debug_date_leaves_its_week(self):
