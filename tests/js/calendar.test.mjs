@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { load, SCRIPTS, calendar, WEB } from './load.mjs';
 
-const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'streakRows', 'reachOf', 'lasted', 'markLine',
+const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'streakRows', 'pageBefore', 'reachOf', 'lasted', 'markLine',
   'countFor', 'widthOf', 'shades', 'hourOf', 'exactSteps', 'oklab', 'restShade', 'blankOn', 'cellOf', 'utc', 'MARK_ICONS', 'MARK_ORDER',
   'setWeekStart: w => { weekStart = w; }', 'setCell: c => { CELL = c; }'];
 const AF = load(SCRIPTS, { expose: { 'calendar.js': EXPOSE } }).AnkiForest;
@@ -257,26 +257,44 @@ test('a tile style\'s own gap sets the cell', () => {
 });
 
 test('Streak view: rows of whole weeks back to the streak worth seeing, paged back as many at a time', () => {
-  const W = 53, rows = (h, back) => plain(T.streakRows(h, W, back));
+  const W = 53, rows = (h, end = null) => plain(T.streakRows(h, W, end));
   // a streak since mid 2024 (TODAY a Sunday: this week ends today)
   const since = off('2024-06-01'), days = Array(-since + 1).fill(4);
   let h = T.history(calendar(TODAY, [...Array(400).fill(2), 0, ...Array(100).fill(0), ...days]));
-  const open = rows(h, 0);
+  const open = rows(h);
   assert.equal(open.length, 3);
   assert.equal(open[2].to, 8 * 7);  // (eight weeks ahead)
   assert.ok(open.every((x, i) => x.to - x.from + 1 === W * 7 && x.cols === W && (!i || x.from === open[i - 1].to + 1)), 'one strip, no gaps');
   assert.ok(open[0].from <= since && open[0].from > since - W * 7, 'the top row holds the streak\'s first day');
   // ‹: the stretch just before, as many rows, until the first review
-  const back = rows(h, 1);
-  assert.equal(back[back.length - 1].to, open[0].from - 1);
+  const end = T.pageBefore(h, W, 3, open[0].from), back = rows(h, end);
+  assert.equal(back[back.length - 1].to, end);
   assert.ok(back.length <= 3 && back[0].from <= h.first + W * 7);
   // a long streak broken lately, then a short one: back to the long one
   h = T.history(calendar(TODAY, [...Array(500).fill(2), 0, ...Array(400).fill(3), 0, 0, ...Array(10).fill(3)]));
   assert.equal(T.reachOf(h), h.runs[h.runs.length - 2]);
-  assert.ok(rows(h, 0)[0].from <= h.runs[h.runs.length - 2].from);
+  assert.ok(rows(h)[0].from <= h.runs[h.runs.length - 2].from);
   // no study at all: one row, today's
   h = T.history(calendar(TODAY, [0]));
-  assert.equal(rows(h, 0).length, 1);
+  assert.equal(rows(h).length, 1);
+});
+
+test('Streak view: a page that would cut a streak with a bracket at its top starts on that streak\'s first week', () => {
+  const W = 53, top = off('2026-01-05');  // (a Monday: a page's first day)
+  const page = end => [end - W * 7 + 1, end];
+  // studied from Sep 1, 2024 for 102 days (to Dec 11), then nothing until a week ago
+  const at = iso => -off(iso), n = at('2024-01-01') + 1;
+  const studied = d => (d <= at('2024-09-01') && d > at('2024-09-01') - 102) || d < 7;
+  let h = T.history(calendar(TODAY, Array.from({ length: n }, (_, i) => (studied(n - 1 - i) ? 5 : 0))));
+  const r = h.runs.find(x => x.days === 102);
+  // a year back from Jan 2026 starts Dec 30, 2024: clear of the streak, nothing to move
+  assert.equal(T.pageBefore(h, W, 1, top), top - 1);
+  // a year back from Nov 2025 would start in Nov 2024, inside it: the page starts on its first week instead
+  const t2 = off('2025-11-03'), [from] = page(T.pageBefore(h, W, 1, t2));
+  assert.ok(from <= r.from && from > r.from - 7, `starts on the streak's week: ${from}, ${r.from}`);
+  // a streak of under 30 days is left cut
+  h = T.history(calendar(TODAY, Array.from({ length: n }, (_, i) => { const d = n - 1 - i; return (d <= at('2024-11-20') && d > at('2024-11-20') - 20) || d < 7 ? 5 : 0; })));
+  assert.equal(T.pageBefore(h, W, 1, t2), t2 - 1);
 });
 
 test('Timeline shows as many months as its width holds at its days\' own size', () => {

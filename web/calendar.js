@@ -287,7 +287,9 @@ function history(cal) {
  * is longer than the current one and broke at most BROKE_LATELY days before it began (a long streak
  * just broken, then three days: the broken one is what people look for; one passed since, or broken
  * months ago, not); with neither, your latest streak. ‹ › page back and on as Timeline's do, as
- * many rows at a time as it opened with (`back`: how many times back) */
+ * many rows at a time as it opened with (`end`: the last day of the stretch paged to, or null for
+ * your streak's), but a page that would cut a streak with a bracket of its own at its top starts on
+ * that streak's first week instead, the whole streak in view (pageBefore) */
 const BROKE_LATELY = 30, ROWS_AHEAD = 8;
 function reachOf(H) {
   const now = H.current ? H.current.days : 0, began = H.current ? H.current.from : 1;
@@ -305,10 +307,19 @@ function rowsOf(H, end, start, W) {
     if (from <= start || from <= H.first) return out;
   }
 }
-function streakRows(H, W, back) {
-  const lead = reachOf(H), end = 6 - dow(H.today) + ROWS_AHEAD * 7;
-  const open = rowsOf(H, end, lead ? lead.from : 0, W), n = open.length;
-  return back ? rowsOf(H, end - back * n * W * 7, -Infinity, W).slice(-n) : open;
+function streakRows(H, W, end) {
+  const lead = reachOf(H), open = rowsOf(H, 6 - dow(H.today) + ROWS_AHEAD * 7, lead ? lead.from : 0, W);
+  return end == null ? open : rowsOf(H, end, -Infinity, W).slice(-open.length);
+}
+// the end of the page before the one starting `top` (a week's first day), `n` rows of W weeks: the
+// day before it, or earlier, so that a streak of SHOWN_STREAK days or more its top would cut starts
+// it (from that streak's first week; one longer than a page stays cut)
+function pageBefore(H, W, n, top) {
+  const end = top - 1, from = end - n * W * 7 + 1;
+  const cut = H.runs.find(r => r.days >= SHOWN_STREAK && r.from < from && r.to >= from);
+  if (!cut) return end;
+  const shift = from - (cut.from - dow(H.today + cut.from * DAY_MS));
+  return shift < n * W * 7 ? end - shift : end;
 }
 // the weeks a row holds at this width (css px): a year's at least; with More months as many as fit at
 // the days' own size (DAY_K), with Bigger days a year's, stretched
@@ -1169,7 +1180,7 @@ AF.calendarHeight = function (cal, width, root) {
     const H = cal.afHistory = history(cal);  // (the whole model: kept for the draw that follows, AF.calendar, which takes it once)
     let win = windowOf(H, view, 0, null, countFor(view, width));
     // (Streak view opens on today's frame: its last row, and the rows above it)
-    if (view === 'streak') { const rows = streakRows(H, weeksPerRow(width), 0); win = rows.pop(); earlier = rows.length; }
+    if (view === 'streak') { const rows = streakRows(H, weeksPerRow(width), null); win = rows.pop(); earlier = rows.length; }
     const cols = columns(H, win);
     W = weeksWidth(H, win, cols[cols.length - 1][2]);
     foot = footHeight(root, H);
@@ -1197,7 +1208,7 @@ AF.calendar = function (root, data, env) {
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
   let page = 0, year = null;  // Timeline's stretch, in months from today's (0), By year's year
-  let back = 0;  // Streak view's stretch, in pages back from your streak (0)
+  let pages = [];  // Streak view's pages back from your streak: each one's last day, the latest last (› goes back the way it came)
   let rows = [];  // (its rows above the one drawn as the heatmap's own weeks, oldest first)
   // what a screen reader says for the picture: the year in a sentence, its streak
   // (the stretch in view, paged to or not: "Study heatmap, Feb 2025 to Jan 2026: 203 days studied")
@@ -1275,7 +1286,7 @@ AF.calendar = function (root, data, env) {
     });
     b.addEventListener('click', () => {
       if (view === b.dataset.view) return;
-      view = b.dataset.view; page = 0; year = null; back = 0;
+      view = b.dataset.view; page = 0; year = null; pages = [];
       send(`${data.channel}:view:${view}`);
       unpoint();
       draw();
@@ -1284,7 +1295,7 @@ AF.calendar = function (root, data, env) {
   // the caption's streak, clicked: Streak view, as the switch would (`ask`: whether it would do
   // anything), on your streak; the last weeks kept where they were on screen, the rows above them
   root.afCalStreak = ask => {
-    if (swiped || (view === 'streak' && !back)) return false;
+    if (swiped || (view === 'streak' && !pages.length)) return false;
     if (ask) return true;
     const was = drawn.cv.getBoundingClientRect().top;
     if (view === 'streak') go('0'); else viewBox.querySelector('[data-view="streak"]').click();
@@ -1435,7 +1446,7 @@ AF.calendar = function (root, data, env) {
   const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; showSel(); };
   // how far you can page: back to the first day counted, on to the last day ahead counted (Streak
   // view: back while its top row starts after your first review, on to your streak)
-  const can = win => (view === 'streak' ? { back: (rows.length ? rows[0] : win).from > H.first, on: back > 0 } : { back: win.from > H.first, on: win.to < H.ahead });
+  const can = win => (view === 'streak' ? { back: (rows.length ? rows[0] : win).from > H.first, on: pages.length > 0 } : { back: win.from > H.first, on: win.to < H.ahead });
 
   function draw() {
     const hadCv = !!drawn && document.activeElement === drawn.cv;  // (the keyboard on the days: kept there)
@@ -1448,7 +1459,7 @@ AF.calendar = function (root, data, env) {
     let win;
     if (!swiped && view === 'streak') {
       const W = weeksPerRow(grid.clientWidth);
-      rows = streakRows(H, W, back);
+      rows = streakRows(H, W, pages.length ? pages[pages.length - 1] : null);
       win = rows.pop();
     } else {
       rows = [];
@@ -1508,7 +1519,7 @@ AF.calendar = function (root, data, env) {
       // (on today's page already, the jump stays where it is, dimmed; it points the way today
       // lies, » from the past, « from the days ahead)
       const now = btn(0), ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : view === 'timeline' && page > 0;
-      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : view === 'streak' ? !back : page === 0;
+      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : view === 'streak' ? !pages.length : page === 0;
       now.textContent = ahead ? '«' : '»';
       // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
       // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
@@ -1612,11 +1623,14 @@ AF.calendar = function (root, data, env) {
   }
   function go(where) {
     const was = drawn.win.from;
-    if (where === '0') { page = 0; year = null; back = 0; }
+    if (where === '0') { page = 0; year = null; pages = []; }
     else {
       const may = can(drawn.win);
       if (where === '-1' ? !may.back : !may.on) return;  // (a click on a button just disabled)
-      if (view === 'streak') back -= +where;
+      if (view === 'streak') {
+        if (where === '1') pages.pop();
+        else pages.push(pageBefore(H, drawn.win.cols, rows.length + 1, (rows.length ? rows[0] : drawn.win).from));
+      }
       else if (view === 'by_year') year = (year || yearOf(H.today)) + +where;
       else page += +where * drawn.count;
     }
