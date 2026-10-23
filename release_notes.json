@@ -16,7 +16,8 @@
         "Put the forest and the heatmap beside your deck list or above it, and choose which comes first (Forest tab, Layout)."
       ],
       "improved": [
-        "Nature's settings now show what each level does to a forest, in a short moving picture beside it."
+        "Nature's settings now show what each level does to a forest, in a short moving picture beside it.",
+        "The heatmap now follows the forest's time of day, and you can set its width (Heatmap tab)."
       ]
     },
     {
