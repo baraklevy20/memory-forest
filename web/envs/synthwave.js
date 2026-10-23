@@ -94,6 +94,35 @@ function palmLayer(env) {
   return cv;
 }
 
+/* the sun's light lying on the floor of the grid, under it: dithered, fading towards you and
+ * to the sides, in the sun's lower colour. Drawn once a scene. */
+function floorGlow(env, top) {
+  const s = env.theme.synthSun, at = env.synthSunAt; if (!s || !at) return null;
+  const { W, H } = env, [cv, g] = AF.u.layer(W, H), B4 = AF.u.B4, rx = at.r * 2, depth = (H - top) * 0.75;
+  g.fillStyle = rgb(hex(s.c2), 0.55);
+  for (let y = top + 1; y < top + depth; y++) for (let x = Math.floor(W / 2 - rx); x <= W / 2 + rx; x++) {
+    const k = (1 - (y - top) / depth) * (1 - Math.abs(x + 0.5 - W / 2) / rx);
+    if (k > 0 && B4[(y % 4) * 4 + (x % 4)] < k * 15) g.fillRect(x, y, 1, 1);
+  }
+  return cv;
+}
+
+/* after rain: five neon bands, pink outside to violet inside, dithered so the sky shows through,
+ * on the right third, over the open sky the small palm leaves (the big palm holds the left);
+ * its legs run straight down to the horizon, so the hills and the trees drawn over them always
+ * hide its feet (stopped at the treeline, it floated over a small forest's lower trees) */
+const BOW = H6(['#ff4f9a', '#ff9a4a', '#ffe070', '#35e0ff', '#9a6aff']);
+function neonBow(env, g, line) {
+  const { W, H, u } = env, cx = W * 0.75, cy = line + 8 * u, ry = cy - H * 0.08, rx = Math.min(ry * 1.05, W * 0.15);
+  const band = Math.max(1, Math.round(1.5 * u));
+  const foot = Math.min(H, Math.max(env.hor, line + 2));
+  for (let y = Math.max(0, Math.floor(cy - ry - 1)); y < foot; y++) for (let x = Math.floor(cx - rx - 2); x <= cx + rx + 2; x++) {
+    const q = Math.hypot((x + 0.5 - cx) / rx, Math.min(0, y + 0.5 - cy) / ry) * ry, k = Math.floor((ry - q) / band);
+    if (k < 0 || k >= BOW.length) continue;
+    g.fillStyle = rgb(BOW[k], (x + y) % 2 ? 0.38 : 0.7); g.fillRect(x, y, 1, 1);
+  }
+}
+
 const DEF = {
   calendar: ['#2e2a7a', '#ff4fa3'],  // the study calendar from the night's indigo to the neon's hot pink
   // at the other hours, from the same indigo to that hour's grid neon (GRIDS near; calendar.js hourOf)
@@ -132,10 +161,13 @@ const DEF = {
              c: dim ? '#c89a5a' : late ? '#9ad8ff' : evening ? '#ffb45c' : '#ffd35c',
              c2: dim ? '#a0406a' : late ? '#6a3ad8' : evening ? '#ff3a6a' : '#ff4f9a' },
       far: '#2a0b4a', farLine: '#35e0ff', near: '#1c0736', nearLine: '#ff4fd8', g0: '#14032c', g1: '#0a0118', grass: '#1d0640', haze: '#3a1060', hzStep: 0.1, tint: null, tintAmt: 0, rim: null, shadow: 0, water: '#3a1a6a' });
-    if (th.clouds) th.clouds = { n: th.rain ? 6 : 3, top: late ? '#2e0d4a' : '#5a1a78', bot: late ? '#1a0630' : '#3a0d5a', a: 230 };
+    // (lit from below by the low sun: a hot underside, as in a synthwave sunset; greyer in the wet)
+    if (th.clouds) th.clouds = { n: th.rain ? 6 : 3, top: late ? '#2a0c48' : '#4e1672', bot: dim ? (late ? '#2a1450' : '#6a2070') : late ? '#5a3cb4' : '#c8408a', a: 230 };
     if (late) th.stars = Math.max(th.stars || 0, 70);
+    else if (mood.time === 'dusk' && !dim && !th.deck) th.stars = Math.max(th.stars || 0, 24);  // the first stars
     if (th.deck) th.deck = { n: 3, top: '#4a1466', bot: '#2e0a4a', a: 245 };
-    if (th.fog) th.fog = '#4a1a6a';
+    if (th.fog) th.fog = late ? '#3a1e72' : '#6a2a86';  // a glowing haze, the neon's violet
+    th.synthBow = mood.weather === 'after_rain' && !late;  // a rainbow of its own, in the neon (sky)
     th.rainbow = false;
     th.grid = GRIDS[mood.time] || GRIDS.dusk;
     // dawn, day and golden hour each get a look of their own; bad weather greys it down
@@ -157,6 +189,7 @@ const DEF = {
   sky(env, g) {
     const s = env.theme.synthSun; if (!s) return;
     const { W, H, u } = env, line = AF.treeLine(env);
+    if (env.theme.synthBow) neonBow(env, g, line);
     const r = Math.round(s.r * u), cx = Math.round(W * 0.5), home = Math.round(H * s.y);
     // keep at least the top 60% of the disc above the trees, and never leave the frame
     const cy = Math.max(r - Math.round(3 * u), Math.min(home, Math.round(line - r * 0.25)));
@@ -175,8 +208,16 @@ const DEF = {
     env.synthSunAt = { x: cx, y: cy, r };
   },
 
+  /* the stars keep off the sun's disc and its halo (at night they showed through its bands) */
+  fx: {
+    init(st, { env }) {
+      const s = env.synthSunAt;
+      if (s) st.stars = st.stars.filter(p => Math.hypot(p.x + 0.5 - s.x, p.y + 0.5 - s.y) > s.r + 5 * env.u);
+    },
+  },
+
   prepare(env) {
-    env.fxColors = { bird: '#ff4fd8', rain: 'rgba(53,224,255,.45)', rainFar: 'rgba(53,224,255,.25)', splash: 'rgba(255,79,216,.85)' };
+    env.fxColors = { flyCore: '214,250,255', flyGlow: '53,224,255', bird: '#ff4fd8', rain: 'rgba(53,224,255,.45)', rainFar: 'rgba(53,224,255,.25)', splash: 'rgba(255,79,216,.85)' };
     env.visitorTint = '#35e0ff';
     // water and the grid are the same idea here, so a lake keeps its own room and the
     // grid only takes over when there is no water to reflect the sun in
@@ -203,7 +244,17 @@ const DEF = {
       }
     } else {
       const grid = env.theme.grid;
+      // a sea in front keeps its water: the floor runs over the land, to the sand (env.landEnds,
+      // where the landscape's dry land ends on each row)
+      const sea = env.landEnds;
+      if (sea) {
+        g.save(); g.beginPath(); g.moveTo(0, top);
+        for (let y = top; y < H; y++) { const x = sea[y] ?? W; g.lineTo(x, y); g.lineTo(x, y + 1); }
+        g.lineTo(0, H); g.closePath(); g.clip();
+      }
       g.fillStyle = grid.floor; g.fillRect(0, top, W, H - top);
+      if (env._floorGlow === undefined) env._floorGlow = floorGlow(env, top);
+      if (env._floorGlow) g.drawImage(env._floorGlow, 0, 0);
       g.fillStyle = grid.far; pxLine(g, 0, top, W, top);
       let last = top;
       for (let k = 0; k < 7; k++) {
@@ -213,16 +264,17 @@ const DEF = {
       }
       g.fillStyle = grid.near;
       for (let k = -10; k <= 10; k++) pxLine(g, W / 2 + k * W / 40, top, W / 2 + k * W / 9, H);
+      if (sea) g.restore();
     }
     if (!env._palms) env._palms = palmLayer(env);
     g.drawImage(env._palms, 0, 0);
   },
 };
 /* the study calendar's tiles in scanlines, every other row darker as on an old monitor */
-const SCANLINE = [18, 10, 40];
 DEF.calendarTile = (g, pal, edge, v, T) => {
   const n = T - 1;  // (the last row and column: the gap between tiles)
-  for (let y = 0; y < n; y++) { g.fillStyle = rgb(y % 2 ? mix(pal[0], SCANLINE, 0.28) : pal[0]); g.fillRect(0, y, n, 1); }
+  // (the dark rows a shade of the tile's own colour: towards one shared indigo, the shades met in the middle)
+  for (let y = 0; y < n; y++) { g.fillStyle = rgb(y % 2 ? mix(pal[0], [0, 0, 0], 0.2) : pal[0]); g.fillRect(0, y, n, 1); }
 };
 
 AF.env('synthwave', DEF);

@@ -1,0 +1,9 @@
+{
+ "order": 6,
+ "label": "Canes",
+ "tip": "Bamboo grove's canes, two to a day",
+ "env": "bamboo",
+ "gaps": true,
+ "smooth": false,
+ "phrase": "Bamboo cane tiles"
+}

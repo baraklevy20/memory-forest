@@ -4,7 +4,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { rng, hex, mix, layer, pxLine, B4 } = AF.u;
+const { rng, hex, mix, layer, pxLine } = AF.u;
 const part = AF.fx.part;
 
 // seconds: lightning and a gust of wind each get one roll of the dice per window
@@ -21,7 +21,8 @@ const BIG_FLAKE_CHANCE = 0.22, DEEP_BIG_FLAKE_CHANCE = 0.4;
 const CLOUD_TOP = 0.04, CLOUD_DEPTH = 0.22;
 // wind-blown leaves on a gust, fog banks drifting through, raindrops ringing on still water
 const WIND_LEAVES = 26, FOG_BANKS = 5, RINGS = 24;
-const FOG_BANK_STRENGTH = 0.24, FOG_BANK_ALPHA = 110;
+// a fog bank's opacity at its middle (out of 255), fading to nothing at its edge
+const FOG_BANK_ALPHA = 46;
 
 /* An environment drawn as a picture (env.stillWeather) holds its weather still:
  * rain is laid on as streaks once, splashes and rings are caught mid-splash, snow, glints and fog
@@ -56,12 +57,13 @@ function pxCloud(R, w, h, topC, botC, alpha, sparkle) {
   g.putImageData(img, 0, 0); return cv;
 }
 
-function fogBank(w, h, col, strength) {
+/* a soft oval of mist: every pixel in it, thinning out to its edge (dithered at a low strength it
+ * came out as a grid of dots, one in four, that read as a pattern laid over the trees) */
+function fogBank(w, h, col) {
   const [cv, g] = layer(w, h), im = g.createImageData(w, h), c = hex(col);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const q = ((x - w / 2) / (w / 2)) ** 2 + ((y - h / 2) / (h / 2)) ** 2; if (q > 1) continue;
-    if ((1 - q) * strength * 16 < B4[(y % 4) * 4 + x % 4] + 0.5) continue;
-    const i = (y * w + x) * 4; im.data[i] = c[0]; im.data[i + 1] = c[1]; im.data[i + 2] = c[2]; im.data[i + 3] = FOG_BANK_ALPHA;
+    const q = ((x + 0.5 - w / 2) / (w / 2)) ** 2 + ((y + 0.5 - h / 2) / (h / 2)) ** 2; if (q >= 1) continue;
+    const i = (y * w + x) * 4; im.data[i] = c[0]; im.data[i + 1] = c[1]; im.data[i + 2] = c[2]; im.data[i + 3] = Math.round(FOG_BANK_ALPHA * (1 - q) ** 1.5);
   }
   g.putImageData(im, 0, 0); return cv;
 }
@@ -219,7 +221,9 @@ part('rings', {
     for (const [i, r] of st.rings.entries()) {
       // (held still: each caught at a ring of its own size)
       const q = env.stillWeather ? (1 + i % 3) / 7 : ((t + r.ph) % AF.u.per(r.per)) / AF.u.per(r.per); if (q > 0.5) continue;
-      const rad = 1 + Math.round(q * 6); g.fillStyle = `rgba(230,240,250,${0.7 * (1 - q * 2)})`;
+      // (bigger towards you: far rings on a lake were as big as the near ones)
+      const near = Math.max(0, Math.min(1, (r.y - env.hor) / (env.H - env.hor)));
+      const rad = Math.max(1, Math.round((1 + q * 6) * (0.5 + 0.8 * near))); g.fillStyle = `rgba(230,240,250,${0.7 * (1 - q * 2)})`;
       g.fillRect(r.x - rad, r.y, 1, 1); g.fillRect(r.x + rad, r.y, 1, 1); g.fillRect(r.x - (rad >> 1), r.y - 1, rad, 1); g.fillRect(r.x - (rad >> 1), r.y + 1, rad, 1);
     }
   },
@@ -229,7 +233,7 @@ part('fogBanks', {
   init(st, { th, A, W, H, u }) {
     if (th.fog) for (let k = 0; k < FOG_BANKS; k++) {
       const w = Math.round((70 + A() * 60) * u), h = Math.round((10 + A() * 6) * u);
-      st.banks.push({ cv: fogBank(w, h, th.fog, FOG_BANK_STRENGTH), x: A() * W, y: Math.round(H * (0.5 + A() * 0.3)), v: (1 + A()) * u });
+      st.banks.push({ cv: fogBank(w, h, th.fog), x: A() * W, y: Math.round(H * (0.5 + A() * 0.3)), v: (1 + A()) * u });
     }
   },
   front(g, env, t, st) {

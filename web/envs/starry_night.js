@@ -61,7 +61,10 @@ function field(env) {
   // (a big swirl never slides up off the top of the picture: it keeps most of itself in view)
   const vort = CFG.vort.map(v => ({ x: v.x * W, y: Math.max(sy(v.y), v.R * u * kv * CFG.vClamp), R: v.R * u * kv, rot: v.rot, arms: v.arms, s: v.s, eye: v.eye || 0 }));
   const stars = CFG.stars
-    .map(([x, y, s]) => ({ x: x * W, y: sy(y), R: (6 + 3 * s) * u * ks, rot: 1, s, star: true }));
+    .map(([x, y, s]) => ({ x: x * W, y: sy(y), R: (6 + 3 * s) * u * ks, rot: 1, s, star: true }))
+    // (a low star stays whole above the hills, its outer ring a little clear of them)
+    .map(st => { const rc = (0.9 + st.s * 0.9) * u * ks, outer = rc + (3.2 + st.s * 1.6) * CFG.halo * u * ks, hill = env.ridges ? env.ridges.far(Math.round(st.x)) : hor;
+      return Object.assign(st, { y: Math.min(st.y, hill - outer - u) }); });
   const orb = { x: CFG.orb[0] * W, y: sy(CFG.orb[1]), r: CFG.orb[2] * u * ks };
   return { vort, stars, orb, ks, k, all: vort.concat(stars, [{ x: orb.x, y: orb.y, R: orb.r * 2.4, rot: -1, s: 0.8 }]), band: x => sy(CFG.band[0]) + Math.sin(x / W * TAU * 1.1 + 0.8) * CFG.band[1] * u * k, hor };
 }
@@ -171,6 +174,7 @@ function paintSky(env, g) {
   env.piOrb = { x: o.x, y: o.y, r, night };
   env.piField = F;
   env.piShimmer = shimmer;
+  if (th.piClouds) paintClouds(env, g, F, ramp, gold, night);
 }
 
 /* ---------- the sky in the lake, and paint gliding along the swirls ---------- */
@@ -222,6 +226,27 @@ function shimBuffer(env, S) {
 /* an opaque 'rgba(r,g,b,1)' as one pixel of a Uint32Array over ImageData (bytes r, g, b, a) */
 const packed = c => { const [r, g, b] = c.match(/\d+/g).map(Number); return ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0; };
 
+/* cloudy: long banks of cloud laid on in near-level strokes over the swirls, their tops catching
+ * the moon (or sun); the swirls' shimmer stays under them */
+const CLOUDS = [[0.0, 0.08, 0.34, 7], [0.44, 0.21, 0.34, 6], [0.6, 0.05, 0.4, 6], [0.12, 0.27, 0.3, 5.5]];
+function paintClouds(env, g, F, ramp, gold, night) {
+  const { W, u } = env, R = rng(2207), grey = hex(env.theme.piGrey), mask = new Uint8Array(W * env.hor);
+  const body = [mix(ramp[1], grey, 0.6), mix(ramp[2], grey, 0.6), mix(ramp[3], grey, 0.55)], rim = mix(night ? gold[0] : ramp[6], ramp[5], 0.3);
+  for (const [cx, cy, cw, ch] of CLOUDS) {
+    const x0 = cx * W, x1 = (cx + cw) * W, yc = Math.max(ch * u * 1.2, cy * env.H * F.k), hh = ch * u;
+    for (let n = 0; n < (x1 - x0) * hh * 1.5; n++) {
+      const x = x0 + R() * (x1 - x0), q = (x - x0) / (x1 - x0), lump = Math.sin(q * Math.PI) * (0.75 + 0.25 * Math.sin(q * 9 + cx * 7));
+      const dy = (R() * 2 - 1) * hh * lump, y = yc + dy * (dy < 0 ? 1.15 : 0.6); if (Math.abs(dy) > hh * lump) continue;
+      const top = dy < -hh * lump * 0.55, c = top && R() < 0.6 ? rim : body[dy < -hh * lump * 0.2 ? 2 : dy < hh * lump * 0.3 ? 1 : 0];
+      const px = dashPx(x, y, (R() - 0.5) * 0.25, 3 + R() * 4);
+      g.fillStyle = rgb(c);
+      for (let i = 0; i < px.length; i += 2) { const X = px[i], Y = px[i + 1]; if (X < 0 || X >= W || Y < 0 || Y >= env.hor) continue; g.fillRect(X, Y, 1, 1); mask[Y * W + X] = 1; }
+    }
+  }
+  // the swirls' lit strokes under a cloud no longer shimmer through it
+  env.piShimmer = env.piShimmer.filter(s => { let hid = 0; for (let i = 0; i < s.px.length; i += 2) { const X = s.px[i], Y = s.px[i + 1]; if (X >= 0 && X < W && Y >= 0 && Y < env.hor && mask[Y * W + X]) hid++; } return hid * 2 < s.px.length / 2; });
+}
+
 /* ---------- the land: hills in strokes, a village asleep on them ---------- */
 
 const strokeOf = (x, y) => {
@@ -247,15 +272,17 @@ function backdrop(env, g) {
   // the village: little houses on the near hill, and the church with its needle spire
   const R = rng(1853), wall = mix(near, [0, 0, 0], 0.35), roof = mix(near, [0, 0, 0], 0.55), lit = look.windows && !th.fog ? hex(look.windows) : null;
   const x0 = Math.round(W * 0.28), x1 = Math.round(W * 0.66), church = Math.round(W * 0.47);
+  // (in snow the roofs are white with it, a little blue in the night)
+  const snowRoof = mix(hex(look.orb === 'moon' ? '#b8c8e4' : '#eef2f8'), near, 0.15);
   for (let x = x0; x < x1; x += Math.round((3 + R() * 3) * u)) {
     const w = Math.round((2.5 + R() * 2.5) * u), h = Math.round((1.8 + R() * 1.8) * u), b = rd.near(x + (w >> 1)) + Math.round(u);
     g.fillStyle = rgb(wall); g.fillRect(x, b - h, w, h);
-    g.fillStyle = rgb(roof);
+    g.fillStyle = rgb(th.snow ? snowRoof : roof);
     for (let k = 0; k <= Math.ceil(w / 2); k++) g.fillRect(x + k, b - h - Math.min(k, w - k) * 0.6 | 0, 1, Math.max(1, (Math.min(k, w - k) * 0.6) | 0));
     if (lit && R() < 0.7) { g.fillStyle = rgb(lit); g.fillRect(x + 1 + Math.floor(R() * Math.max(1, w - 2)), b - h + 1 + Math.floor(R() * Math.max(1, h - 2)), 1, 1); }
   }
   const cb = rd.near(church) + Math.round(u), cw = Math.round(3 * u), sh = Math.round(14 * u);
-  g.fillStyle = rgb(roof); g.fillRect(church - cw, cb - Math.round(4 * u), cw * 3, Math.round(4 * u));
+  g.fillStyle = rgb(th.snow ? snowRoof : roof); g.fillRect(church - cw, cb - Math.round(4 * u), cw * 3, Math.round(4 * u)); g.fillStyle = rgb(roof);
   for (let k = 0; k < sh; k++) { const hw = Math.max(0, Math.round((cw / 2) * (k / sh))); g.fillRect(church - hw, cb - Math.round(4 * u) - sh + k, hw * 2 + 1, 1); }
   if (lit) { g.fillStyle = rgb(lit); g.fillRect(church, cb - Math.round(2 * u), 1, 1); }
 }
@@ -414,8 +441,13 @@ AF.env('starry_night', {
     th.tintAmt = (look.tintAmt || 0) + (th.rain ? 0.12 : 0);
     if (th.fog) { th.fog = dimHex(mixHex(look.base[4], '#c8d0dc', 0.5)); th.haze = th.fog; th.fogAmt = 0.14; }
     th.orb = null; th.stars = 0; th.rainbow = false;
+    // snow lies on the hills too: their strokes paler
+    if (th.snow) { th.far = mixHex(th.far, night ? '#a8b8d8' : '#dfe6f2', 0.4); th.near = mixHex(th.near, night ? '#a8b8d8' : '#dfe6f2', 0.12); }
+    // the fireflies glow in the painting's gold (the engine's are a yellow-green)
+    th.flyCore = '255,236,160'; th.flyGlow = '244,196,80';
     // a cloudy sky keeps the engine's clouds and deck drifting over the paint
-    if (w !== 'cloudy') { th.clouds = null; th.deck = null; }
+    // a cloudy sky is painted with clouds of its own (paintClouds), not the engine's flat ones
+    th.clouds = null; th.deck = null; th.piClouds = w === 'cloudy';
   },
 
   tree: {
@@ -459,7 +491,7 @@ AF.env('starry_night', {
     // the moon and the stars in the water: stacks of wavering gold strokes
     if (L && !L.river && !env.theme.frozen && env.piOrb) {
       const col = (a, k) => `rgba(244,212,80,${a * k})`, dimK = env.theme.piDim ? 0.5 : 1;
-      const lights = [{ x: env.piOrb.x, w: env.piOrb.r * 1.3, a: 0.8 }].concat((env.piStars || []).filter(s => s.s >= 1.2).map(s => ({ x: s.x, w: s.r * 1.4, a: 0.55 })));
+      const lights = [{ x: env.piOrb.x, w: env.piOrb.r * 1.3, a: 0.8 }].concat((env.piStars || []).filter(s => s.s >= 0.95).map(s => ({ x: s.x, w: s.r * 1.4, a: s.s >= 1.2 ? 0.55 : 0.32 })));
       for (const l of lights) for (let j = 1; j < L.lh; j += 2) {
         const wob = Math.round(Math.sin(t * 1.1 + j * 0.8 + l.x) * 1.5), hw = Math.round(l.w * (0.6 + j / L.lh * 0.6));
         if (Math.sin(t * 0.9 + j * 1.7 + l.x) < -0.3) continue;

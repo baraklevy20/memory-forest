@@ -498,12 +498,9 @@ def _brush(pal, _edge, v, T):  # starry_night.js
     return out
 
 
-SCANLINE = (18, 10, 40)
-
-
 def _scanlines(pal, _edge, _v, T):  # synthwave.js
     n = T - 1
-    return {(x, y): mix(pal[0], SCANLINE, 0.28) if y % 2 else pal[0] for y in range(n) for x in range(n)}
+    return {(x, y): mix(pal[0], (0, 0, 0), 0.2) if y % 2 else pal[0] for y in range(n) for x in range(n)}
 
 
 RIB_LIGHT = (255, 250, 235)
@@ -555,12 +552,48 @@ def _chalk(pal, _edge, v, T):  # chalkboard.js
     return out
 
 
+BAMBOO_JOINTS = ((2, 5), (4, 1), (1, 5), (5, 3))
+
+
+def _canes(pal, _edge, v, T):  # bamboo.js
+    n, s, out = T - 1, pal[0], {}
+    scaled = lambda c, k: tuple(max(0, min(255, q * k)) for q in c)  # noqa: E731
+    joints = BAMBOO_JOINTS[v % 4]
+    for y in range(n):
+        for x in range(n):
+            if x in (0, n - 1) and y in (0, n - 1):
+                continue
+            cx, j = x & 3, joints[0 if x < 4 else 1]
+            c = scaled(s, 1.14) if cx == 0 else scaled(s, 0.78) if cx == 3 else scaled(s, 0.84) if cx == 2 else s
+            if y == j:
+                c = scaled(s, 0.7)
+            elif y == j - 1 and cx < 3:
+                c = scaled(s, 1.2)
+            out[x, y] = c
+    return out
+
+
+RIME = (236, 248, 246)
+
+
+def _rime(pal, _edge, v, T):  # misty_valley.js
+    n, out = T - 1, {}
+    for y in range(n):
+        for x in range(n):
+            if x in (0, n - 1) and y in (0, n - 1):
+                continue
+            frost = (0.25 if (x + v) % 3 == 2 else 0.62) if y == 0 else 0.32 if y == 1 and (x + v) % 4 == 1 else 0
+            out[x, y] = mix(pal[0], RIME, frost) if frost else pal[0]
+    return out
+
+
 def _flat(pal, edge, _v, T):
     return {(x, y): edge if x == T - 1 or y == T - 1 else pal[0] for y in range(T) for x in range(T)}
 
 
 # each environment that draws its tiles in a medium of its own (calendarTile), and how
-DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice, "chalkboard": _chalk}
+DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice, "chalkboard": _chalk,
+           "misty_valley": _rime, "bamboo": _canes}
 
 
 def tile_pixels(drawer: str, shade, v: int = 0) -> dict:

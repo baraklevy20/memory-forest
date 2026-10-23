@@ -30,7 +30,7 @@ const SICK = [null,
   H6(['#2a2010', '#6e5418', '#c09a2c', '#e8c840', '#fae276']),
   H6(['#2a2010', '#7a5a1a', '#c09030', '#e6be48', '#f8dc76']),
   H6(['#241a0e', '#5e4418', '#9a7a2a', '#c8a23c', '#e8c860'])];
-const GLOW = hex('#f58a6e'), GLOW_HI = hex('#ffb48a');
+const GLOW = hex('#f58a6e'), GLOW_HI = hex('#ffb48a'), SUN_RIM = hex('#f2b2b0');
 
 const isLit = mood => mood.time === 'night' || mood.time === 'dusk';
 const wetOf = w => w === 'rain' || w === 'storm';
@@ -241,8 +241,25 @@ function garlandImg(env, lit) {
   g.fillStyle = lit ? '#1a0c14' : '#3a2428';
   for (const [x, y] of G.cord) g.fillRect(x, y, 1, 1);
   for (const l of G.lamps) chochin(g, l.x, l.y, lit, l.big);
+  if (env.theme.snow) { g.fillStyle = lit ? '#b8bed2' : '#f2f4f8'; for (const l of G.lamps) { g.fillRect(l.x - 1, l.y - 1, 3, 1); g.fillRect(l.x - 2, l.y, 1, 1); } }
   env.lnGarlandImg = { lit, cv };
   return cv;
+}
+
+/* after dusk the reflection is laid back: each row smoothed over five pixels and pulled a third of the way
+ * to the water's own colour, so the mirrored crowns' rim lights stop sparkling all over it */
+function calmLake(env) {
+  const L = env.water; if (!L || L.lnCalm || !env.theme.lanternNight) return;
+  L.lnCalm = true;
+  const [cv, g] = layer(L.rf.width, L.rf.height); g.drawImage(L.rf, 0, 0);
+  const img = g.getImageData(0, 0, cv.width, cv.height), d = img.data, s = new Uint8ClampedArray(d), Wd = cv.width, wc = hex(env.theme.water || '#2e1f40');
+  for (let y = 0; y < cv.height; y++) for (let x = 0; x < Wd; x++) {
+    const i = (y * Wd + x) * 4, c = [0, 0, 0]; let n = 0;
+    for (let xx = Math.max(0, x - 2); xx <= Math.min(Wd - 1, x + 2); xx++, n++) for (let k = 0; k < 3; k++) c[k] += s[(y * Wd + xx) * 4 + k];
+    const m = mix(c.map(v => v / n), wc, 0.33);
+    d[i] = m[0]; d[i + 1] = m[1]; d[i + 2] = m[2];
+  }
+  g.putImageData(img, 0, 0); L.rf = cv;
 }
 
 AF.env('lanterns', {
@@ -264,7 +281,10 @@ AF.env('lanterns', {
       Object.assign(th, { g0: '#2e1a30', g1: '#1c1020', grass: '#44263e', far: '#2e1c3c', near: '#241430', haze: '#4a2a4c',
         tint: '#1d1530', tintAmt: 0.12, water: '#2e1f40', rim: null });
       th.sky = ['#0a081e', '#170f2f', '#2e1846', '#44204e', '#57305b', '#6d395e'];  // (a deeper top, a faint glow low down: a richer sky to frame the lanterns)
+      // (at dusk the engine's clouds are still lit pale pink: here the sky is already the plum night)
+      if (mood.time === 'dusk' && th.clouds) th.clouds = Object.assign({}, th.clouds, { top: '#6a4a6e', bot: '#43304e' });
       const wx = NIGHT_WEATHER[w];
+      if (w === 'fog' && mood.time === 'dusk') th.fog = '#4e5468';  // (the engine's night fog: at dusk it gave the day's white)
       if (wx) {
         const grey = (c, k) => AF.u.mixHex(c, wx[0], k);
         th.sky = th.sky.map(c => grey(c, wx[1]));
@@ -276,6 +296,8 @@ AF.env('lanterns', {
       th.lnMoon = !hidden;
       th.orb = hidden ? null : { kind: 'moon', x: CFG.moon.x, y: CFG.moon.y, r: 0.01, c: '#ffffff', halo: 0, full: true };
     }
+    // (by day a soft moss green under the plum crowns: the engine's bright lawn green fought them)
+    if (!night && !th.snow) { const m = (c, to, k) => AF.u.mixHex(c, to, k); th.g0 = m(th.g0, '#7a8a5a', 0.5); th.g1 = m(th.g1, '#56663e', 0.5); th.grass = m(th.grass, '#8a9a62', 0.5); }
     th.lanternNight = night;
   },
 
@@ -290,6 +312,7 @@ AF.env('lanterns', {
     // the lanterns overhead catch the top of every crown
     pixel(col, { x, y, tn, pal, c }) {
       if (tn < 2 || c.inside(x, y - 1) || pal === SICK[c.t.health]) return col;
+      if (!c.th.lanternNight) return tn >= 3 ? (c.inside(x, y - 2) ? mix(col, SUN_RIM, 0.55) : SUN_RIM) : mix(col, SUN_RIM, 0.35);  // (by day: the sun, pale rose)
       return tn >= 3 ? (c.inside(x, y - 2) ? GLOW : GLOW_HI) : mix(col, GLOW, 0.5);
     },
   },
@@ -299,6 +322,7 @@ AF.env('lanterns', {
 
   fx: {
     init(st, { env }) {
+      calmLake(env);
       const m = moonAt(env);
       if (m) st.stars = st.stars.filter(s => Math.hypot(s.x - m.x, s.y - m.y) > m.r + 4 * env.u);
     },
@@ -340,7 +364,10 @@ AF.env('lanterns', {
       const x = Math.round(((W * w.fx + drift) % span + span) % span - 5);
       const y = Math.round(L.y0 + 3 + w.fy * (bot - L.y0 - 8));
       const bob = Math.round(Math.sin(t * AF.u.cyc(0.8) + w.ph) * 0.6);
-      if (lit) { g.fillStyle = 'rgba(255,170,90,.28)'; g.fillRect(x, y + 3, 3, 3); g.fillRect(x + 1, y + 6, 1, 2); }
+      if (lit) {
+        g.fillStyle = 'rgba(255,170,90,.28)'; g.fillRect(x - 1, y + 3, 5, 2);
+        for (let j = 0; j < 12 && y + 5 + j < bot; j++) if (j % 3 !== 2) { g.fillStyle = `rgba(255,186,104,${(0.75 * (1 - j / 12)).toFixed(3)})`; g.fillRect(x + (j & 1) - (j > 3 ? 1 : 0), y + 5 + j, j > 3 ? 3 : 2, 1); }
+      }
       else { g.fillStyle = 'rgba(200,70,56,.22)'; g.fillRect(x, y + 3, 3, 2); }
       g.fillStyle = lit ? '#6a2a22' : '#5a2a22'; g.fillRect(x - 1, y + 2 + bob, 5, 1);
       g.fillStyle = lit ? '#ffd67a' : '#fff0dc'; g.fillRect(x, y + bob, 3, 2);

@@ -15,7 +15,7 @@ const H6 = a => a.map(hex);
 // snow ghosts: crowns buried in snow, dark branches showing only in the deepest shade
 const GHOST = H6(['#141d2c', '#3e5272', '#627a9c', '#8ca2c0', '#bccce0']);
 const SPRUCE = H6(['#07161a', '#143430', '#1f4e44', '#2f6e58', '#58b48a']);
-const NEEDLES = hex('#1d3a34');
+const NEEDLES = hex('#1d3a34'), GREEN_LIGHT = hex('#7af0b4');
 const SNOW = hex('#dce8f4'), SNOW_SHADE = hex('#9fb4cc');  // moonlit snow lying on the branches
 // yellowing, kept yellow-ochre in every tone: the forest's own goes olive and brown in
 // the dark tones, which disappears against a night palette
@@ -45,13 +45,15 @@ function spruce(c) {
  * As the far treeline climbs, the range grows with it, so the highest peak always stands
  * RANGE_CLEAR above the trees (up to RANGE_TOP from the top of the sky); the peaks
  * spread a little less than they rise, so a big range stays as steep as a small one. */
+// the snow lit by a low sun: rose at dawn and dusk, warm at golden hour (lit face, shaded face)
+const ALPEN = { dawn: ['#fff0f2', '#d0c6e0'], golden_hour: ['#fff2dc', '#d8c8d4'], dusk: ['#f0d2dc', '#9090b8'] };
 const MAIN_PEAK = 46, RANGE_CLEAR = 30, RANGE_TOP = 0.1, RANGE_SPREAD = 0.7;
 function range(env, g) {
   const { W, H, hor, u } = env, R = rng(52), night = dark(env.mood);
   const S = Math.min((hor - H * RANGE_TOP) / (MAIN_PEAK * u), Math.max(1, (hor - AF.treeLine(env) + RANGE_CLEAR * u) / (MAIN_PEAK * u)));
   const SW = 1 + (S - 1) * RANGE_SPREAD;
   const rock = night ? ['#3a4e6c', '#1e2c44'] : ['#7a8ca4', '#56687e'];
-  const snow = night ? ['#d8e8ee', '#8ea2c0'] : ['#ffffff', '#c4d2e4'];
+  const snow = ALPEN[env.mood.time] || (night ? ['#d4ece6', '#88a6be'] : ['#ffffff', '#c4d2e4']);
   // a handful of peaks of very different sizes, one of them clearly the highest, each
   // with its own steep and gentle side
   const peaks = [], n = Math.max(4, Math.round(W / (55 * u)));
@@ -156,12 +158,25 @@ AF.env('aurora', {
     // (by day a deeper polar blue: under the plain day sky the snowy forest, the snow and the sky
     // sat within 0.05 of each other in lightness, so the forest had nothing to stand against;
     // dawn and golden hour keep their own warm skies)
+    // (dusk: the night's sky with the day's last light still low behind the range)
+    if (mood.time === 'dusk') th.sky = ['#01050b', '#040e19', '#0a1726', '#1c2236', '#3a2a44', '#5a3448'];
     if (!night && mood.time === 'day') th.sky = ['#4a80c4', '#6290cc', '#7ea4d4', '#9cb9de', '#bccfe6', '#d6e2ee'];
     if (th.clouds) th.clouds.n = 0;  // nothing drifting across the lights
   },
-  // the study calendar takes its moonlit snow ghosts' blue (its most colourful crown); by day, from
+  // the study calendar after dark runs from the polar blue to the curtains' green; by day, from
   // the spruces' green to the polar sky (calendar.js hourOf)
+  calendar: ['#4a80c4', '#58b48a'],
   calendarDay: ['#2f6e58', '#4a80c4'],
+  /* the last word, once the weather and the moon are settled */
+  after(th) {
+    // (the moon's glow is drawn soft, in skyPixel, rather than the engine's checker ring)
+    if (th.orb && th.orb.kind === 'moon' && th.orb.halo) { th.auroraMoon = th.orb; th.orb.halo = 0; }
+  },
+  skyPixel(c, x, y, { W, H, u, th, B4 }, layer) {
+    const o = th.auroraMoon; if (!o || layer !== 'over') return null;
+    const d = Math.hypot(x + 0.5 - W * o.x, y + 0.5 - H * o.y) - o.r * u; if (d < 0 || d > 4 * u) return null;
+    return B4[(y % 4) * 4 + (x % 4)] < (d < 2 * u ? 8 : 3) ? AF.u.mix(c, hex(o.glow || o.c), d < 2 * u ? 0.38 : 0.3) : null;
+  },
   pals: { round: GHOST, pine: SPRUCE, bark: BARK, leaf: hex('#23604c'), leafL: hex('#7af0b4'), stem: hex('#4a4652') },
 
   tree: {
@@ -171,6 +186,8 @@ AF.env('aurora', {
     pixel(col, { x, y, tn, pal, c }) {
       if (pal !== GHOST && pal !== SPRUCE) return col;  // yellowing shows as it is
       if (pal === GHOST) {
+        // (at night the top of the snow catches the aurora's green, faintly)
+        if (tn === 4 && c.th.aurora && dark(c.env.mood) && !c.inside(x, y - 1)) return AF.u.mix(col, GREEN_LIGHT, 0.3);
         // a snow ghost: dark needles only peek out of the shaded side
         if (tn >= 1 && tn <= 2 && hashStr(x + ',' + y + ',' + c.t.seed) % 4 === 0) return NEEDLES;
         return col;
@@ -266,6 +283,9 @@ AF.env('aurora', {
       }
     } });
     blit(B, g, L.y0);
+    // a broken rim of ice along the shore, catching the light
+    if (!env._ice) { const R = rng(77); env._ice = []; for (let x = 0; x < W; x++) { const r = R(); if (r < 0.5) env._ice.push([x, 0, r < 0.12]); if (r < 0.08) env._ice.push([x, 1, false]); } }
+    for (const [x, dy, hi] of env._ice) { g.fillStyle = hi ? 'rgba(236,246,255,.85)' : 'rgba(190,214,236,.45)'; g.fillRect(x, L.y0 + dy, 1, 1); }
   },
 });
 })();

@@ -1,0 +1,9 @@
+{
+ "order": 6,
+ "label": "Rime",
+ "tip": "Misty valley's frost along the top of each tile",
+ "env": "misty_valley",
+ "gaps": true,
+ "smooth": true,
+ "phrase": "Rimed tiles"
+}

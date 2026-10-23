@@ -217,9 +217,15 @@ function frontWay(env, baseY) {
   const cw = VISITORS.cabin.frames[0][0].length, ch = VISITORS.cabin.frames[0].length;
   const ponds = env.placed.filter(p => p.it.pond && p.it.first).map(p => AF.pondBox(env, p)).filter(b => b.y1 > baseY - FRONT_TALLEST);
   const pondAt = x0 => ponds.some(b => x0 + cw + FRONT_CLEAR > b.x0 && x0 - FRONT_CLEAR < b.x1 && baseY > b.y0 && baseY - ch < b.y1);
-  const takenAt = x0 => pondAt(x0) || inClear(env, x0, x0 + cw);
+  // (and off a landscape's water across the front)
+  const land = AF.landOf(env), wetAt = x0 => !!(land.wet && land.wet(env, x0 - FRONT_CLEAR, x0 + cw + FRONT_CLEAR, baseY));
+  const takenAt = x0 => pondAt(x0) || inClear(env, x0, x0 + cw) || wetAt(x0);
   const left = Math.round(env.W * CABIN_X), right = env.W - left - cw;
-  return (env.frontWay = { ponds, cabinX: takenAt(left) && !takenAt(right) ? right : left });
+  let cabinX = takenAt(left) && !takenAt(right) ? right : left;
+  // both corners taken (a clearing on the left, water on the right): the nearest free spot inward
+  // from the left, never on the water
+  if (takenAt(cabinX)) for (let x = left; x <= right; x++) if (!takenAt(x)) { cabinX = x; break; }
+  return (env.frontWay = { ponds, cabinX });
 }
 
 /* the rest stand at the edge of the forest; the cabin sits front-left after a year (or front-right) */

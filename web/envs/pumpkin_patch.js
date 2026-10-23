@@ -37,10 +37,14 @@ const HOUR_P = {
   day: { rounds: [H6(['#1a0e18', '#2e1a28', '#442636', '#5c3446', '#7a4658']), H6(['#1c0e14', '#321a22', '#4a2630', '#62343e', '#824852'])],
          pine: H6(['#0e1218', '#1a2028', '#26303a', '#34424e', '#4a5c68']),
          bark: { l: hex('#4a3036'), m: hex('#2e1c22'), d: hex('#160c10') }, rim: null, rim2: null },
+  golden: { rounds: [H6(['#140a14', '#261422', '#3a1e2e', '#52283a', '#6e3a48']), H6(['#160a10', '#2a141c', '#401e28', '#582a34', '#763c44'])],
+         pine: H6(['#0a0c12', '#141a22', '#1e2630', '#2a3644', '#3e4c5c']),
+         bark: { l: hex('#462a2c'), m: hex('#2a1a1e'), d: hex('#140a0e') }, rim: hex('#ffa45c'), rim2: hex('#c0583e') },
 };
 const MINE = new Set();
 for (const k in HOUR_P) { HOUR_P[k].rounds.forEach(p => MINE.add(p)); MINE.add(HOUR_P[k].pine); }
 const hourOf = th => th.pkHour || 'dusk';
+const byDay = th => th.pkHour === 'day' || th.pkHour === 'golden';  // the pumpkins unlit, in daylight colours
 
 /* ---------- the hours ---------- */
 const LOOKS = {
@@ -57,6 +61,9 @@ const LOOKS = {
          far: '#8a7896', near: '#6a5a78', farLine: '#a894aa', nearLine: '#7e6a88', g0: '#6a4a4a', g1: '#3e2a2e', grass: '#7a4e4a', haze: '#b4a0b4', hzStep: 0.11,
          water: '#8a8aac', clouds: { n: 4, top: '#f4e6e0', bot: '#bca8b8', a: 235 }, birdC: '#2a1e28' },
 };
+LOOKS.golden = { sky: ['#5a68a0', '#8a7eb0', '#be8ca8', '#e6a48e', '#f6bc7c', '#ffd49a'],
+  far: '#8a5a7c', near: '#6a4468', farLine: '#b07c8c', nearLine: '#7e5a78', g0: '#6e4440', g1: '#40262a', grass: '#7e4a40', haze: '#c8949c', hzStep: 0.1,
+  water: '#9a84a8', clouds: { n: 3, top: '#ffe2c4', bot: '#d4a0a4', a: 235 }, birdC: '#2a1820' };
 const clone = o => JSON.parse(JSON.stringify(o));
 const MAX_FLIES = 6;  // a few warm fireflies at most, so they never crowd the jack-o'-lanterns
 
@@ -70,6 +77,7 @@ const MOONS = {
   night: { face: ['#fffaec', '#fbeccc', '#ecd4ac', '#cca88a'], sea: '#dcc4a4', seaD: '#c0a08a', glow: '#8a5a8a', glow2: '#4a2a5a', cloud: '#120a20', cloudL: '#5a3a6a' },
   dawn: { face: ['#fff4f4', '#f8e2e8', '#e8c8d8', '#cca8c0'], sea: '#dcbcd0', seaD: '#c4a0b8', glow: '#f0a8b0', glow2: '#b87896', cloud: '#5a3a64', cloudL: '#f4b0a8' },
   day: { sun: true, face: ['#fffcf0', '#fff4da', '#fde6c0', '#f6d6aa'], glow: '#fff2d8', glow2: '#f4dcc4', cloud: null, cloudL: null },  // by day a hazy autumn sun, not a moon
+  golden: { sun: true, face: ['#fff4dc', '#ffe0a4', '#ffc472', '#f8a456'], glow: '#ffc27e', glow2: '#f0905e', cloud: '#7a3a52', cloudL: '#ffc890' },  // a low gold sun, wisps across it
 };
 /* The moon is rising: its foot is still behind a far ridge that runs the width of the sky,
  * the ridge standing just above the forest (and rising with it). */
@@ -354,6 +362,7 @@ const SKINS = {
 };
 const GREENS = { stem: '#5e6a26', stemD: '#343a14', cut: '#b4a868', leaf: '#4e7a2a', leafD: '#2c4816', vine: '#6a7a2e' };
 const DAY_TONE = hex('#8a7494');
+const LEAF_RUST = hex('#a8442a'), LEAF_WINE = hex('#6a1e30');  // fallen leaves on the meadow
 const dayHex = c => { const m = mix(hex(c), DAY_TONE, 0.14); return rgb(m); };
 const EVE_TONE = hex('#2a0818');
 /* by day a touch of the lilac afternoon; after it, the skin sinks into the dusk so a lit face
@@ -477,6 +486,17 @@ function jack(g, q, day, mouth, bright) {
  * a broom with bound bristles, and her cat riding behind her, eyes glowing. */
 const EVERY = 36, CROSS = 16, OVER_MOON_AT = 12.3;  // she is over the moon at this moment (and in a still forest)
 const WW = 40;  // the sprite's width
+// her top edges off the moon, catching its light, per hour (by day she needs none)
+const WITCH_EDGE = { dusk: '#8a3248', night: '#4c3a70', dawn: '#6e4a70', day: null };
+/* the pixels of a frame with nothing above them: where the moonlight catches her */
+function witchEdge(s, frame) {
+  const on = new Set(), out = [];
+  for (let r = 0; r < WITCH.length; r++) for (let i = 0; i < WITCH[r].length; i++) {
+    const ch = WITCH[r][i]; if (ch === '#' || ch === 'e') on.add(r * 64 + i); else if (ch === 'A') on.add((r - frame) * 64 + i - frame);
+  }
+  for (const k of on) { const r = Math.floor(k / 64), i = k - r * 64; if (!on.has(k - 64) && on.has(k + 64) && WITCH[r] && WITCH[r][i] !== 'e') out.push([i * s, r * s]); }  // (not the broom's one-pixel handle)
+  return out;
+}
 const WITCH_OFF = 35;  // sprite pixels: how far off the sky she starts and ends
 // '#' her, the broom and the cat; 'A' the cape, which flaps a pixel up and down; 'e' the cat's eye
 const WITCH = [
@@ -579,7 +599,7 @@ function patch(env) {
   for (let i = loose.length; i--;) if (!dry(loose[i])) loose.splice(i, 1);  // none in the water
   for (const p of (env.placed || []).slice().reverse()) {
     const t = p.it;
-    if (t.pond || t.fromFront > 7 || t.stage < 1 || hashN('pk', t.seed) > 0.3) continue;
+    if (t.pond || t.fromFront > 7 || t.stage < 1 || hashN('pk', t.seed) > (t.fromFront <= 1 ? 0.62 : 0.3)) continue;
     const h = Math.max(3, Math.round(AF.STAGE_H[t.stage] * u * p.s)), pine = t.kind === 1 && t.stage >= 2;
     const sw = TREE.width({ t, h, pine });
     const near = t.fromFront <= 2, side = (t.seed & 2) ? 1 : -1, x = Math.round(p.x), y = Math.round(p.y);
@@ -619,7 +639,7 @@ function pools(env, lg) {
 /* a pumpkin goes into the land; a laugher also keeps what lay under it and what it looked
  * like, so its frames can be built once the land is finished (see laughFrames) */
 function place(env, lg, q) {
-  const day = env.theme.pkHour === 'day';
+  const day = byDay(env.theme);
   if (!q.laugh) return jack(lg, q, day, true, false);  // a laugh that never stops
   const { W, H } = env, fr = q.w * 0.9 + 2, fry = q.h * 0.45 + 2;
   const x0 = Math.max(0, Math.floor(Math.min(q.x - (q.w >> 1) - 5, q.x - fr))), x1 = Math.min(W, Math.ceil(Math.max(q.x + (q.w >> 1) + 6, q.x + fr + 1)));
@@ -656,7 +676,7 @@ function laughFrames(env, q) {
   }
   if (hid > q.w * q.h * 0.36 * 0.3) return false;  // its face half hidden behind something: it stays a still grin
   og.putImageData(occ, 0, 0);
-  const day = env.theme.pkHour === 'day';
+  const day = byDay(env.theme);
   const frame = (mouth, bob, flare) => {
     if (!q.lit) flare = 0;  // an unlit (daytime) laugher has no candle to flare
     const [cv, g] = layer(box.w, box.h);
@@ -719,6 +739,7 @@ const HILL_COLS = {
   night: { hill: '#0e0818', hillL: '#1a1028', ink: '#040208', rim: '#e8b88a', rim2: '#7a4a6a', grass: '#20142e' },
   dawn: { hill: '#2a1a32', hillL: '#3c2644', ink: '#120a14', rim: '#ffa8a0', rim2: '#a8607a', grass: '#46304e' },
   day: { hill: '#5e4e6c', hillL: '#6e5c7a', ink: '#2a1e2a', rim: null, rim2: null, grass: '#6e5e7a' },
+  golden: { hill: '#4a2c44', hillL: '#5e3a52', ink: '#1c0e16', rim: '#ffa45c', rim2: '#c0583e', grass: '#583a4e' },
 };
 // the dead tree, a small black counterweight out at the edge: its seed, picked from a sheet of
 // seeds (wide, gnarled, crooked), and its size
@@ -726,9 +747,9 @@ const TREE_SEED = 57, TREE_SCALE = 0.66;
 
 /* the dead tree: a crooked trunk flaring into roots, twisting up into a few gnarled limbs
  * that fork and end in hooked twigs; one crow sits on the long low limb */
-function treeMask(u, seed) {
+function treeMask(u, seed, scale = TREE_SCALE) {
   const px = new Map(), R = rng(seed);
-  const S = Math.max(1, u) * TREE_SCALE;
+  const S = Math.max(1, u) * scale;
   const put = (x, y, w) => { x = Math.round(x); y = Math.round(y); const k = y * 1000 + x; px.set(k, Math.max(px.get(k) || 0, w)); };
   const tips = [];
   // a gnarled bough: it wanders and kinks, thins as it goes, forks at its end, and its last
@@ -784,7 +805,13 @@ function treeMask(u, seed) {
 }
 
 function drawTree(env, lg, x0, y0) {
-  const { u } = env, C = HILL_COLS[hourOf(env.theme)], M = treeMask(u, TREE_SEED);
+  const { u } = env, C = HILL_COLS[hourOf(env.theme)];
+  // a big forest lifts the knoll toward the top of the picture: the tree is drawn smaller rather
+  // than lose its crown off the top (its highest twig at least 2 pixels down)
+  const topOf = m => { let t = 0; for (const k of m.px.keys()) t = Math.min(t, Math.round(k / 1000)); return t; };
+  let M = treeMask(u, TREE_SEED);
+  const t0 = topOf(M);
+  if (y0 + t0 < 2) M = treeMask(u, TREE_SEED, Math.max(0.42, TREE_SCALE * (y0 - 2) / -t0));
   const ink = hex(C.ink), rim = C.rim && hex(C.rim), rim2 = C.rim2 && hex(C.rim2);
   const has = (x, y) => M.px.has(y * 1000 + x);
   for (const [k, w] of M.px) {
@@ -925,22 +952,48 @@ AF.env('pumpkin_patch', {
   busy: true,  // the bats, the witch crossing the moon, the laughing pumpkins
   /* an orange dusk; the other hours keep the same scene in their own light */
   look(mood) {
-    const k = mood.time === 'night' ? 'night' : mood.time === 'dawn' ? 'dawn' : mood.time === 'day' || mood.time === 'golden_hour' ? 'day' : 'dusk';
+    const k = mood.time === 'night' ? 'night' : mood.time === 'dawn' ? 'dawn' : mood.time === 'day' ? 'day' : mood.time === 'golden_hour' ? 'golden' : 'dusk';
     return Object.assign(clone(LOOKS[k]), { pkHour: k, orb: null, tint: null, tintAmt: 0, rim: null, shadow: 0, warmFlies: true });
   },
   after(th) {
     th.orb = null;  // the moon is painted into the sky, lifted clear of the trees
     th.rim = null; th.shadow = 0;
-    th.pkLit = th.pkHour !== 'day';
+    th.pkLit = !byDay(th);
     th.flies = Math.min(th.flies || 0, MAX_FLIES);
-    if (th.pkHour !== 'day' && th.clouds && th.clouds.n <= 3) th.clouds = null;  // its own streaks, painted into the sky
+    if (!byDay(th) && th.clouds && th.clouds.n <= 3) th.clouds = null;  // its own streaks, painted into the sky
     th.rainbow = false;
+    // fog in the hour's own light, not the engine's cold white
+    const FOGT = { dusk: ['#b87888', 0.5], dawn: ['#d8a8b8', 0.4], day: ['#c8b8d0', 0.35] }[th.pkHour];
+    if (th.fog && FOGT) {
+      const [c, k] = FOGT, { mixHex } = AF.u;
+      th.fog = mixHex(th.fog, c, k); th.haze = mixHex(th.haze, c, k);
+      th.sky = th.sky.map(s => mixHex(s, c, k * 0.45));
+      th.far = mixHex(th.far, c, k * 0.4); th.near = mixHex(th.near, c, k * 0.3);
+    }
+    // rain clouds in the evening's own plum, not the engine's slate
+    const CL = { dusk: ['#7a4a64', '#2c1428'], dawn: ['#8a6a88', '#3e2a44'], night: ['#2e2440', '#100a18'] }[th.pkHour];
+    if (th.rain && CL) {
+      const { mixHex } = AF.u;
+      if (th.clouds) th.clouds = Object.assign({}, th.clouds, { top: mixHex(th.clouds.top, CL[0], 0.6), bot: mixHex(th.clouds.bot, CL[1], 0.6) });
+      if (th.deck) th.deck = Object.assign({}, th.deck, { top: mixHex(th.deck.top, CL[0], 0.55), bot: mixHex(th.deck.bot, CL[1], 0.55) });
+    }
   },
   // warm orange fireflies, to go with the candlelight
   prepare(env) { env.fxColors = { flyCore: '255,196,120', flyGlow: '255,120,60' }; },
   pals: { rounds: HOUR_P.dusk.rounds, roundAt: th => HOUR_P[hourOf(th)].rounds[0], pine: HOUR_P.dusk.pine, bark: HOUR_P.dusk.bark,
     leaf: hex('#2c1020'), leafL: hex('#4a1a30'), stem: hex('#2a1018') },
   tree: TREE,
+  /* the meadow floor: darker hollows, dithered, and fallen leaves in rust and wine (never yellow:
+   * that is a forgetting tree's) */
+  groundPixel(c, x, y, env) {
+    const n = Math.sin(x * 0.09 + y * 0.31) + Math.sin(x * 0.027 - y * 0.19 + 1.1) + 0.6 * Math.sin((x + y * 2) * 0.06);
+    let h = Math.imul(x * 374761393 + y * 668265263 | 0, 1274126177); h = ((h ^ (h >>> 15)) >>> 0) / 4294967296;  // (a well-mixed hash: hashN's strings streak in columns here)
+    const k = env.theme.pkHour === 'day' || env.theme.pkHour === 'golden' ? 0.6 : 0.46;
+    if (h < 0.02) return mix(c, LEAF_RUST, k);
+    if (h < 0.034) return mix(c, LEAF_WINE, k);
+    if (n > 1.3 && bayer(x, y) < 6) return mix(c, [0, 0, 0], 0.16);
+    return c;
+  },
   sky(env, g) { afterglow(env, g); env.pkMoon = paintMoon(env, g); paintRidge(env, g, env.pkMoon); },
   ground(env, lg) { pools(env, lg); plantLoose(env, lg); },
   /* jack-o'-lanterns at the feet of the nearer trees */
@@ -981,7 +1034,14 @@ AF.env('pumpkin_patch', {
       const x = Math.round(-WITCH_OFF * s + p * span - WW / 2 * s), y = Math.round(m.y - m.r * 0.3 - 19 * s - (p - pm) * (p - pm) * 290 * s + Math.round(Math.sin(tt * 2.2)) * s);  // she swoops low across the moon and climbs away out of the sky at both ends, never through the dead tree
       // her two frames are drawn once, then only stamped
       if (!env.pkWitch) env.pkWitch = [0, 1].map(f => { const [cv, cg] = layer(WW * s, WITCH.length * s); drawWitch(cg, 0, 0, s, f, ink, th.pkHour === 'day' ? '#b8c860' : '#e8f070'); return cv; });
-      g.drawImage(env.pkWitch[env.still ? 0 : (Math.floor(tt * 4) & 1)], x, y);
+      const fr = env.still ? 0 : (Math.floor(tt * 4) & 1);
+      g.drawImage(env.pkWitch[fr], x, y);
+      const ec = WITCH_EDGE[th.pkHour];
+      if (ec) {
+        if (!env.pkEdge) env.pkEdge = [0, 1].map(f => witchEdge(s, f));
+        g.fillStyle = ec;
+        for (const [dx, dy] of env.pkEdge[fr]) if (Math.hypot(x + dx + 0.5 - m.x, y + dy + 0.5 - m.y) > m.r + 1) g.fillRect(x + dx, y + dy, s, s);
+      }
     }
   },
 });

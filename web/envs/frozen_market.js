@@ -733,6 +733,7 @@ function paintTown(env, T) {
   const hazeC = mix(hex(th.sky[th.sky.length - 1]), hex(th.sky[th.sky.length - 2]), 0.3);
   const empty = (x, y) => { const m = get(x, y); return !m || m === M.IRON; };
   const holes = [];
+  const obStall = i => plan.OB[i] === plan.out.SB;  // a stall's own counter, out on the ice
   for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
     const i = y * VW + x, m = G[i]; if (!m) continue;
     if (m === M.HOLE || (m === M.GL && on && P[i] < 8)) { holes.push(i); continue; }
@@ -780,9 +781,9 @@ function paintTown(env, T) {
       case M.STAR: c = p ? hex('#ffffff') : hex(on ? '#dce8ff' : '#c8d0dc'); break;
       case M.WOOD: c = p === 2 ? C.woodL : p === 1 ? ((x + (y >> 1)) % 3 === 0 ? C.woodS : C.wood) : ((x & 1) ? C.wood : C.woodS); break;
       case M.AWN: c = p === 2 ? C.awnG : p === 1 ? C.awnR : C.awnW; if (on && get(x, y + 1) !== M.AWN) c = mix(c, LIT.core, 0.25); break;
-      case M.SLIT: { const deep = y > 0 && get(x, y - 1) !== M.SLIT; c = on ? (deep ? LIT.deep : dither(x, y) < 8 ? LIT.core : LIT.edge) : C.slitOff; break; }
+      case M.SLIT: { const deep = y > 0 && get(x, y - 1) !== M.SLIT; c = on ? (deep ? LIT.deep : dither(x, y) < 8 ? LIT.core : LIT.edge) : P[i] === 0 && obStall(i) && x > VW * 0.6 ? (deep ? mix(C.slitOff, LIT.deep, 0.5) : mix(C.slitOff, LIT.edge, dither(x, y) < 8 ? 0.62 : 0.5)) : C.slitOff; break; }
       case M.GOODS: c = p === 3 ? hex(on ? '#4a8a5a' : '#2a4a34') : p === 2 ? hex(on ? '#a8502c' : '#6a3a28') : p === 1 ? (on ? hex('#c83040') : C.goods) : (on ? hex('#6a3424') : C.goods); break;
-      case M.BULB: c = on ? (p === 1 ? hex('#fff0b8') : ((x >> 1) & 1 ? hex('#ffe08a') : hex('#ffb870'))) : mix(C.iron, C.snow, 0.3); break;
+      case M.BULB: c = on ? (p === 1 ? hex('#fff0b8') : ((x >> 1) & 1 ? hex('#ffe08a') : hex('#ffb870'))) : (x >> 1) & 1 ? hex('#fff2c8') : hex('#ffd8a0'); break;  // (lit by day too, as a market's are)
       case M.SIGN: c = [hex('#c02838'), hex('#1e5a3a'), hex('#2a3e7a'), hex('#6a2a4a')][p]; if (!on) c = mix(c, C.timber, 0.3); break;
       case M.QUAY: {
         if (p === 2) { c = dither(x, y) < 11 ? C.snow : C.snowS; break; }
@@ -996,6 +997,8 @@ const MOONS = {
   dawn: { x: 0.08, y: 0.18, r: 6, c: '#f4e6ea', lo: '#d0bcc8', glow: null, stars: 6 },
   day: null,
 };
+// golden hour: the sun going down behind the roofs on the right, half hidden by them
+const GOLDEN_SUN = { x: 0.82, y: 0.3, r: 9, c: '#ffe4a8', lo: '#f6b070', glow: '#f4a070', stars: 0, sets: true };
 function paintSky(env, g) {
   const th = env.theme, { W, H, u } = env, T = town(env), hr = th.xh;
   const img = g.getImageData(0, 0, W, H), d = img.data;
@@ -1003,15 +1006,15 @@ function paintSky(env, g) {
   const set = (x, y, c) => { if (x < 0 || y < 0 || x >= W || y >= H) return; const i = (y * W + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; };
   // the market's glow rising off the roofs: warm dithered steps, strongest over the square
   if (hr !== 'day') {
-    const gc = hex(hr === 'dusk' ? '#e88c78' : hr === 'night' ? '#5a3a5a' : '#f0b8a8'), reach = (hr === 'night' ? 30 : 26) * u;
-    const sq = W * 0.6;
+    const gc = hex(th.xg ? '#f6b47c' : hr === 'dusk' ? '#e88c78' : hr === 'night' ? '#5a3a5a' : '#f0b8a8'), reach = (hr === 'night' ? 30 : 26) * u;
+    const sq = th.xg ? W * 0.78 : W * 0.6;
     for (let y = Math.max(0, Math.round(T.base - reach - 30 * u)); y < Math.min(H, T.base + 2); y++) for (let x = 0; x < W; x++) {
       const up = (T.base - y) / reach, over = Math.exp(-(((x - sq) / (W * 0.45)) ** 2)) * 0.6 + 0.4;
       const kk = Math.max(0, 1 - up) * over;
       if (kk * 16 > dither(x, y) + 0.5) set(x, y, mix(get(x, y), gc, hr === 'night' ? 0.45 : 0.32));
     }
   }
-  const MN = MOONS[hr] && !th.rain && !th.snow && !th.fog && !th.deck ? MOONS[hr] : null;
+  const MN = th.xg ? (!th.rain && !th.snow && !th.fog && !th.deck ? GOLDEN_SUN : null) : MOONS[hr] && !th.rain && !th.snow && !th.fog && !th.deck ? MOONS[hr] : null;
   const R = rng(2412);
   if (MN) {
     // stars, clear of the moon and fading toward the glow
@@ -1029,7 +1032,7 @@ function paintSky(env, g) {
     // a big forest lifts the town: the moon shrinks a little rather than sink behind the roofs
     const room = roofs - 7 * u;
     if (2 * r > room) r = Math.max(4.5 * u, room / 2);
-    const my = Math.round(Math.max(r + 2 * u, Math.min(H * MN.y, roofs - r - 5 * u)));
+    const my = MN.sets ? Math.round(roofs + r * 0.05) : Math.round(Math.max(r + 2 * u, Math.min(H * MN.y, roofs - r - 5 * u)));
     env.marketMoon = { x: mx, y: my, r };
     if (MN.glow) for (let y = Math.round(my - r - gr); y <= my + r + gr; y++) for (let x = Math.round(mx - r - gr); x <= mx + r + gr; x++) {
       const dd = Math.hypot(x + 0.5 - mx, y + 0.5 - my) - r; if (dd < 0 || dd > gr) continue;
@@ -1040,7 +1043,7 @@ function paintSky(env, g) {
     for (let y = Math.floor(my - r); y <= my + r; y++) for (let x = Math.floor(mx - r); x <= mx + r; x++) {
       const nx = (x + 0.5 - mx) / r, ny = (y + 0.5 - my) / r, q = nx * nx + ny * ny; if (q > 1) continue;
       let c = face;
-      const maria = [[-0.3, -0.2, 0.3], [0.2, 0.25, 0.26], [0.3, -0.35, 0.16]];
+      const maria = MN.sets ? [] : [[-0.3, -0.2, 0.3], [0.2, 0.25, 0.26], [0.3, -0.35, 0.16]];
       for (const [ax, ay, ar] of maria) if (((nx - ax) ** 2 + (ny - ay) ** 2) < ar * ar) c = mix(face, lo, 0.6);
       if (nx + ny > 0.8 && dither(x, y) < (nx + ny - 0.8) * 16) c = mix(c, lo, 0.7);
       if (q > 0.8 && hr === 'dusk' && ny > 0) c = mix(c, hex('#e8a098'), 0.4);
@@ -1359,8 +1362,9 @@ AF.env('frozen_market', {
   calendarDay: ['#2a6a44', '#5c84ba'],  // and by day, from the trees' green on the snow to the ice (calendar.js hourOf)
   calendarTile,
   busy: true,  // the skaters, twirling, and the sleigh
+  deepBands: 2,  // the far forest stops short of the ice, so the market stays on the river
   look: mood => clone(LOOKS[hourOf(mood.time)]),
-  theme(th, mood) { th.xh = hourOf(mood.time); },
+  theme(th, mood) { th.xh = hourOf(mood.time); th.xg = mood.time === 'golden_hour'; },
   after(th) {
     th.orb = null;           // the moon is painted with the sky, clear of the town
     th.stars = 0;            // and so are the stars
@@ -1373,6 +1377,7 @@ AF.env('frozen_market', {
     if (th.snow && SNOW_SKY[th.xh]) th.sky = SNOW_SKY[th.xh].slice();
     if (th.snow && th.xh === 'dusk') th.clouds = { n: 3, top: '#7a7298', bot: '#5a5680', a: 235 };
     if (th.snow && th.xh === 'dawn') th.clouds = { n: 3, top: '#e8dce4', bot: '#b8aac4', a: 235 };
+    if (th.xg && !th.rain && !th.fog && !th.deck) th.sky = (th.snow ? ['#5a6894', '#8884a8', '#b4949e', '#d8a89c', '#e8bea6', '#f0d0b4'] : ['#56649a', '#8a82ae', '#bc90a4', '#e8a690', '#f8c08e', '#ffd8a4']);
     if (th.snow && th.xh !== 'day') { th.g0 = th.xh === 'night' ? '#5c6c94' : '#9a98c4'; th.g1 = th.xh === 'night' ? '#36446a' : '#6a6a9a'; th.grass = th.xh === 'night' ? '#7c8cb4' : '#bab8dc'; }
   },
   pals: {
@@ -1522,6 +1527,12 @@ AF.env('frozen_market', {
         path.rect(x, y, 1, 1);
       }
       for (const [col, path] of by) { g.fillStyle = col; g.fill(path); }
+      // in fog, the fog lies over them as it does over the town round them (their holes only)
+      const fog = env.theme.fog;
+      if (fog) {
+        if (!T.fogHoles) { T.fogHoles = new window.Path2D(); for (const i of T.paint.holes) T.fogHoles.rect(i % T.VW, T.y0 + Math.floor(i / T.VW), 1, 1); }
+        g.fillStyle = rgb(hex(fog), env.theme.xh === 'night' ? 0.6 : 0.7); g.fill(T.fogHoles);
+      }
     },
     front(g, env, t, st, layer) {
       if (layer === 'air') {
@@ -1552,6 +1563,33 @@ AF.env('frozen_market', {
       if (layer !== 'sky') return;
       const T = townMask(env); if (!T || !T.mask) return;
       const M2 = T.mask, W = env.W, u = env.u;
+      // in fog, the town's warm lights still glow through it, softened, where the town shows (a pixel of
+      // the land on the line from the town's own colour toward the fog's: veiled, not hidden by a tree)
+      if (env.theme.fog && lampsOn(env.theme) && T.live) {
+        if (!st.fogGlow) {
+          const pl = T.paint.plan, VWt = pl.VW, fc = hex(env.theme.fog), gl = st.fogGlow = [new window.Path2D(), new window.Path2D()];
+          const land = env.land.getContext('2d').getImageData(0, T.y0, W, pl.VH).data, town = T.paint.cv.getContext('2d').getImageData(0, 0, VWt, pl.VH).data;
+          const seen = (x, y) => {
+            if (x < 0 || x >= VWt || x >= W || y < 0 || y >= pl.VH) return false;
+            const j = (y * W + x) * 4, q = (y * VWt + x) * 4; if (!town[q + 3]) return false;
+            let kk = null;
+            for (let c = 0; c < 3; c++) {
+              const den = fc[c] - town[q + c], got = land[j + c] - town[q + c];
+              if (Math.abs(den) < 14) { if (Math.abs(got) > 10) return false; continue; }
+              const k = got / den; if (k < -0.06 || k > 1.06) return false;
+              if (kk == null) kk = k; else if (Math.abs(k - kk) > 0.14) return false;
+            }
+            return true;
+          };
+          for (let y = 0; y < pl.VH; y++) for (let x = 0; x < VWt; x++) {
+            const m = pl.G[y * VWt + x]; if (!SHINES.has(m) || m === M.HOLE || m === M.GL || m === M.STAR || !seen(x, y)) continue;
+            gl[0].rect(x, y + T.y0, 1, 1);
+            for (const [dx, dy] of [[1, 0], [-1, 0], [0, -1]]) if (dither(x + dx, y + dy) < 6 && pl.G[(y + dy) * VWt + x + dx] !== m && seen(x + dx, y + dy)) gl[1].rect(x + dx, y + dy + T.y0, 1, 1);
+          }
+        }
+        g.fillStyle = 'rgba(255,190,120,.5)'; g.fill(st.fogGlow[0]);
+        g.fillStyle = 'rgba(255,200,140,.22)'; g.fill(st.fogGlow[1]);
+      }
       // Santa's sleigh crossing the sky every few minutes, a trail of sparkles behind; only on open sky
       if (st.sleigh) {
         const dur = SLEIGH_SECS, pAt = (W + 8 + SLEIGH_W / 2 - W * SLEIGH_AT) / (W + 80);
@@ -1576,7 +1614,7 @@ AF.env('frozen_market', {
         const s = p.s, a = ((t * (s.steam ? 0.2 : 0.09)) + p.ph) % 1;
         const rise = (s.steam ? 10 : 15) * u;
         const x = s.x + Math.sin(a * 4 + p.sw) * (s.steam ? 1 : 1.4) * a * 2 + a * a * (s.steam ? 2 : 9) * u, y = s.y - a * rise;
-        const r = (s.steam ? 0.7 + a * 1.4 : 0.9 + a * 2.4) * u, dens = (1 - a) * (1 - a) * (s.steam ? 14 : 15);
+        const r = (s.steam ? 0.7 + a * 1.4 : 1.2 + a * 2.8) * u, dens = (1 - a) * (1 - a) * (s.steam ? 14 : 21);
         const puff = new window.Path2D();  // one fill a puff, in the same order as before
         for (let Y = Math.floor(y - r); Y <= y + r; Y++) for (let X = Math.floor(x - r); X <= x + r; X++) {
           if (X < 0 || X >= W || Y < 0 || Y >= M2.h || !M2.a[Y * W + X]) continue;
@@ -1620,7 +1658,7 @@ AF.env('frozen_market', {
         for (const f of st.folk) {
           const span = f.bridge ? o.bridge.tx + 2 : W2 + 8, yB = f.bridge ? yBr : yQ;
           let x = f.x + f.v * t; x = ((x % span) + span) % span - (f.bridge ? 2 : 4);
-          const X = Math.round(x), h = f.kid ? 3 : f.tall, step = f.v ? Math.floor(t * 4 + f.ph) & 1 : 0;
+          const X = Math.round(x), h = f.kid ? 3 : f.tall, step = f.v ? Math.floor(Math.abs(f.v * t) / 1.5 + f.ph) & 1 : 0;  // (a step from the ground covered)
           const px = (col, dx, dy) => { const xx = X + dx, yy = yB - dy; if (xx < 0 || xx >= W2 || yy < 0 || yy >= M2.h) return; const i = yy * W2 + xx; if (M2.a[i] !== 2 || (!f.bridge && M2.ob[i] && M2.ob[i] > yB)) return; g.fillStyle = col; g.fillRect(xx, yy, 1, 1); };
           // legs, coat, a woolly hat, a face
           px(f.coat, step ? 0 : 1, 0); if (!f.kid) px(f.coat, step ? 1 : 0, 0);

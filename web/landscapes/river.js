@@ -66,6 +66,8 @@ const bayer = (x, y) => (B4[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
 const css = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a.toFixed(3)})`;
 // how dark the hour is, from the sky at the horizon: 0 by day, up to 0.8 at night
 const dimOf = th => { const s = th.sky; return clamp(1.05 - lum(hex(s[s.length - 1])) / 255 * 1.25, 0, 0.8); };
+// the sun low over the trees: dawn, golden hour and dusk
+const lowSun = env => !!(env.theme.orb && env.theme.orb.kind === 'sun' && /^(dawn|golden_hour|dusk)$/.test(env.mood.time || ''));
 
 AF.landscape('river', {
   busy: env => !env.theme.frozen,  // the flecks on the water pass the near bank at up to ~17 px a second (none on ice)
@@ -176,12 +178,16 @@ AF.landscape('river', {
       for (let i = x; i < x + len; i++) if (i >= 0 && i < W && S.vis[y * W + i]) g.fillRect(i, y, 1, 1);
     }
     const o = env.theme.orb; if (!o) return;
-    const ox = W * o.x, G = rng(Math.floor(t * 3));
-    g.fillStyle = css(S.glint, 0.55);
+    // the glitter lies on the water nearest the sun or moon on each row, fading with how far
+    // the channel winds from under it (a low sun's warmer and reaches further)
+    const ox = W * o.x, G = rng(Math.floor(t * 3)), low = lowSun(env), reach = W * (low ? 0.4 : 0.25);
+    const glint = low ? mix(S.glint, [255, 196, 120], 0.45) : S.glint;
     for (let y = hor + 4; y < H; y++) {
-      const spread = (3 + chan(env, y).p * 14) * u;
-      if (G() < 0.55) {
-        const x = Math.round(ox - spread + G() * spread * 2), len = G() < 0.3 ? 2 : 1;
+      const c = chan(env, y), near = clamp(ox, c.cx - c.hw, c.cx + c.hw), k = 1 - Math.abs(ox - near) / reach;
+      const spread = (3 + c.p * 14) * u;
+      for (let m = low ? 2 : 1; m > 0; m--) if (k > 0 && G() < (low ? 0.8 : 0.55) * Math.min(1, k * 1.5)) {
+        g.fillStyle = css(glint, (low ? 0.8 : 0.6) * Math.min(1, 0.35 + k));
+        const x = Math.round(near - spread + G() * spread * 2), len = G() < 0.3 ? 2 + (low && c.p > 0.5 ? 1 : 0) : 1;
         for (let i = x; i < x + len; i++) if (i >= 0 && i < W && S.vis[y * W + i]) g.fillRect(i, y, 1, 1);
       }
     }

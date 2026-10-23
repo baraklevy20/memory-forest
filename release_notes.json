@@ -13,11 +13,13 @@
         },
         "A start date can now keep your trees from before it, with ponds, Nature and animals counting from the date (Decks tab).",
         "Surprise me daily can now leave out the sceneries you'd rather not see (Scenery tab).",
-        "Put the forest and the heatmap beside your deck list or above it, and choose which comes first (Forest tab, Layout)."
+        "Put the forest and the heatmap beside your deck list or above it, and choose which comes first (Forest tab, Layout).",
+        "Two new heatmap tile styles: Rime, after Misty valley's frost, and Canes, after the bamboo grove."
       ],
       "improved": [
         "Nature's settings now show what each level does to a forest, in a short moving picture beside it.",
-        "The heatmap now follows the forest's time of day, and you can set its width (Heatmap tab)."
+        "The heatmap now follows the forest's time of day, and you can set its width (Heatmap tab).",
+        "The sceneries got a polish: lakes catch the low sun and the cabin's window, rain rings the water, fog drifts as soft mist, and more."
       ]
     },
     {

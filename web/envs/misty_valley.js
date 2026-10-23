@@ -17,7 +17,9 @@ const ROUNDS = [H6(['#16283a', '#23405a', '#316068', '#468478', '#72a898']),
   H6(['#182a40', '#26405e', '#345c7a', '#4a7e96', '#7aa6b8'])];
 const PINE = H6(['#122236', '#1c3448', '#284c5c', '#3a6a72', '#62948e']);
 const MINE = new Set(ROUNDS.concat([PINE]));
-const FROST = hex('#e6f4f2'), FROST_D = hex('#b8d8d8');
+const FROST0 = hex('#e6f4f2'), FROST_D0 = hex('#b8d8d8');
+// the rime catching the hour's light (the day's is the white above)
+const FROSTS = { dawn: H6(['#f8e2dc', '#d8c4cc']), golden_hour: H6(['#f8ecd0', '#d8ccb4']), dusk: H6(['#e8d8ec', '#bcb0cc']), night: H6(['#e2eafc', '#aebcdc']) };
 
 /* The beams: a fan of rays from the sun, lit wherever the ray pattern beats the Bayer
  * threshold, so they come out as dithered pixel light rather than a smooth wash. Built
@@ -56,7 +58,55 @@ function beams(env, phase) {
   return cv;
 }
 
+/* ---------- the peak ----------
+ * The scene's snow-capped peak, its own (stood in for the shared `peak` through env.landmarkKey,
+ * see AF.markOf): placed as that one is, so the ground's random numbers stay the same. */
+AF.landmark('misty_peak', {
+  slot: 'back',
+  place: (env, R) => env.W * (0.55 + R() * 0.25),
+  draw(env, lg, px) {
+    // lifted with the tree line as the forest grows, so its cap and shoulders always show
+    const th = env.theme, { W, H, u, hor } = env, py = Math.round(Math.max(H * 0.1, Math.min(hor - 44 * u, AF.treeLine(env) - 30 * u)));
+    const cap = hex(AF.u.mixHex('#f4f7fb', th.haze, 0.15));
+    const body = hex(AF.u.mixHex(th.far, th.sky[th.sky.length - 1], 0.25));
+    // the far side in shadow, away from the light: cooler, a step darker, taking the sky's own blue
+    const sunLeft = !th.orb || th.orb.x * W < px, shadeOf = (c, k) => AF.u.mix(AF.u.mix(c, hex(th.sky[1]), k), [20, 26, 44], k * 0.35);
+    const capS = shadeOf(cap, 0.3), bodyS = shadeOf(body, 0.22);
+    const paint = (c, x, y) => { lg.fillStyle = AF.u.rgb(c); lg.fillRect(x, y, 1, 1); };
+    for (let x = 0; x < W; x++) {
+      const yTop = Math.round(py + Math.abs(x - px) * 0.62 + (Math.abs(x - px) < 3 * u ? 1.2 * u : 0));
+      if (yTop >= hor) continue;
+      const lit = (sunLeft ? x <= px : x >= px) !== (Math.abs(x - px) <= 1 && (x + yTop) % 2 === 0);  // (a dithered seam down the ridge)
+      const snowTo = py + 14 * u - Math.sin(x * 0.9) * 1.5 * u;
+      for (let y = yTop; y < hor; y++) {
+        const snow = y < snowTo;
+        let c = snow ? (lit ? cap : capS) : (lit ? body : bodyS);
+        if (lit && snow && y === yTop && Math.abs(x - px) > 1) c = AF.u.mix(c, [255, 255, 255], 0.35);  // the lit ridge, in the snow
+        paint(c, x, y);
+      }
+    }
+  },
+});
+
+/* the study calendar's tiles rimed like the crowns: a broken line of frost along the top edge and
+ * a few crystals of it below, on the shade's own face, its corners left off as the plain tiles' are */
+const RIME = [236, 248, 246];
+function calendarTile(g, pal, edge, v, T) {
+  const n = T - 1;  // (the last row and column: the gap between tiles)
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    if ((x === 0 || x === n - 1) && (y === 0 || y === n - 1)) continue;
+    const frost = y === 0 ? ((x + v) % 3 === 2 ? 0.25 : 0.62) : y === 1 && (x + v) % 4 === 1 ? 0.32 : 0;
+    g.fillStyle = AF.u.rgb(frost ? AF.u.mix(pal[0], RIME, frost) : pal[0]);
+    g.fillRect(x, y, 1, 1);
+  }
+}
+
 AF.env('misty_valley', {
+  // (its own peak, above)
+  calendarTile,
+  deepBands: 3,  // the oldest forest stays low enough to leave the peak and the sun their sky
+  prepare(env) { if (env.mood.landmark === 'peak') env.landmarkKey = 'misty_peak'; },
+
 
   pals: { rounds: ROUNDS, pine: PINE, bark: { l: hex('#6a6a70'), m: hex('#4a4c56'), d: hex('#2e3040') },
     leaf: hex('#6aa0a0'), leafL: hex('#c8e8e4'), stem: hex('#4a7a7a') },
@@ -66,6 +116,7 @@ AF.env('misty_valley', {
   tree: {
     pixel(col, { x, y, tn, pal, c }) {
       if (!MINE.has(pal) || tn === 0) return col;
+      const [FROST, FROST_D] = (c.th.mvHour && FROSTS[c.th.mvHour]) || [FROST0, FROST_D0];
       if (!c.inside(x, y - 1)) return tn >= 2 ? FROST : FROST_D;
       if (!c.inside(x, y - 2) && tn >= 2 && (x + y) & 1) return FROST_D;
       if (tn === 4 && (x * 3 + y) % 7 === 0) return FROST_D;
@@ -74,6 +125,7 @@ AF.env('misty_valley', {
   },
 
   after(th, mood) {
+    th.mvHour = th.snow ? null : mood.time;  // (whose light the rime catches; snow keeps it white)
     // by day and by night a richer sky behind the mist: a deeper top, a warmer (by night, a faintly
     // lit) band low down, so the sun's rays and the peaks have more to stand against. Only with
     // the sun or moon out: under an overcast, rain or storm sky there is nothing to light it
@@ -88,11 +140,15 @@ AF.env('misty_valley', {
       if (th.orb) { th.orb.c = '#fff4d8'; th.orb.soft = false; th.orb.r = 9; }
     }
     if (th.fog) {  // a light morning mist: enough to layer the valley, not to hide the trees
-      th.fog = AF.u.mixHex(th.fog, '#c4d0da', 0.7); th.haze = AF.u.mixHex(th.haze, '#bcc8d4', 0.6);
+      const FOG = { night: ['#3a4670', '#33405f'], dusk: ['#a898b8', '#9a8cae'], dawn: ['#e0ccd0', '#d4c4cc'], golden_hour: ['#e6d2bc', '#d8c8b6'] }[mood.time] || ['#c4d0da', '#bcc8d4'];
+      th.fog = AF.u.mixHex(th.fog, FOG[0], 0.7); th.haze = AF.u.mixHex(th.haze, FOG[1], 0.6);
       th.fogAmt = 0.12; th.hzStep = Math.min(th.hzStep, 0.11);
     }
+    // the sun on the left third by day, so the light and the peak balance across the view
+    if (th.orb && th.orb.kind === 'sun' && (mood.time === 'day' || mood.time === 'golden_hour')) th.orb.x = 0.24;
     th.glints = Math.max(th.glints || 0, th.rain || th.snow ? 0 : 18);  // dew catching the light
     th.beams = !!th.orb && !th.rain;
+    if (th.rain && th.clouds) { th.clouds.top = AF.u.mixHex(th.clouds.top, '#8c9ab8', 0.45); th.clouds.bot = AF.u.mixHex(th.clouds.bot, '#4a5674', 0.45); }
   },
 
   frame(g, env, t) {
