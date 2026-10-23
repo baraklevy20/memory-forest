@@ -32,7 +32,6 @@ from .state import (
     calendar_width,
     clamp_int,
     config,
-    debug_calendar_size,
     forget_remembered,
     keeps_suspended,
     layout,
@@ -501,9 +500,8 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
 def _with_look(cal: dict | None, cfg: dict, mood: dict) -> dict | None:
     """The calendar with the Heatmap tab's colours and tiles (heatmap_look.page_look): the
     scenery's own unless chosen, whichever scenery is on."""
-    # (its width and what fills it, Heatmap tab; while debug is on, the Debug tab's rule may stand in)
-    size = {"width": calendar_width(cfg), "fill": calendar_fill(cfg),
-            "rule": debug_calendar_size(cfg) if debug_available(cfg) else "setting"}
+    # (its width and what fills it, Heatmap tab)
+    size = {"width": calendar_width(cfg), "fill": calendar_fill(cfg)}
     return None if cal is None else dict(cal, look=heatmap_look.page_look(cfg, mood), size=size)
 
 

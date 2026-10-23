@@ -95,18 +95,16 @@ const TILE_VARIANTS = 4;
 const TILE_FACE = TILE - 1;  // a tile's face: all but its last row and column (a plain tile's edge, a scenery's own tile's gap)
 const DAY_MS = 86400000;
 const MONTHS_SHOWN = 10, MONTHS_MIN = 3, MONTHS_MOST = 24, TODAY_AT = 0.7;  // Timeline: ten months at its own size, more or fewer as its room holds; this month this far along
-// the heatmap's size (Heatmap tab: Width and Fill it with; cal.size {width, fill, rule}), 2026-10-20.
+// the heatmap's size (Heatmap tab: Width and Fill it with; cal.size {width, fill}), 2026-10-20.
 // Width: fixed (FIXED_W), following the forest (85% of it, the default), or full (85% of the room
 // its place has), never wider than that room, and in its middle; By year always fits its year to it. Fill it with, for
 // Timeline: More months (the default): a day DAY_K times its pixels everywhere (about 12 css px, ten
 // months 676 px across), as many months as its width holds; or Bigger days: ten months, or the year, stretched over the width (fewer months only where ten would
-// be too small to stay crisp). While debug is on, the Debug tab's "Heatmap size rule" (cal.size.rule)
-// may stand in for both, to try other rules out
-const DAY_K = 1.25, SIDE_MONTHS = 12, SHARE = 0.85, FLAT_W = 680, FIXED_W = 680;
+// be too small to stay crisp)
+const DAY_K = 1.25, SHARE = 0.85, FIXED_W = 680;
 let BIGGER = false;  // (Bigger days: set with CELL, from the calendar being drawn or measured)
 const sizeOf = cal => (cal && cal.size) || {};
-const ruleOf = cal => { const r = sizeOf(cal).rule; return r && r !== 'setting' ? r : null; };
-const biggerOf = cal => { const r = ruleOf(cal); return r ? r !== 'natural' : sizeOf(cal).fill === 'bigger'; };
+const biggerOf = cal => sizeOf(cal).fill === 'bigger';
 // the phone: the calendar is one long timeline swiped along (no buttons to page with), its pixels
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
@@ -288,7 +286,7 @@ function history(cal) {
  * just broken, then three days: the broken one is what people look for; one passed since, or broken
  * months ago, not); with neither, your latest streak. ‹ › page back and on as Timeline's do, as
  * many rows at a time as it opened with (`end`: the last day of the stretch paged to, or null for
- * your streak's), but a page that would cut a streak with a bracket of its own at its top starts on
+ * your streak's; `ahead`: pages on from your streak, into the days ahead), but a page that would cut a streak with a bracket of its own at its top starts on
  * that streak's first week instead, the whole streak in view (pageBefore) */
 const BROKE_LATELY = 30, ROWS_AHEAD = 8;
 function reachOf(H) {
@@ -307,9 +305,10 @@ function rowsOf(H, end, start, W) {
     if (from <= start || from <= H.first) return out;
   }
 }
-function streakRows(H, W, end) {
-  const lead = reachOf(H), open = rowsOf(H, 6 - dow(H.today) + ROWS_AHEAD * 7, lead ? lead.from : 0, W);
-  return end == null ? open : rowsOf(H, end, -Infinity, W).slice(-open.length);
+function streakRows(H, W, end, ahead = 0) {
+  const lead = reachOf(H), open = rowsOf(H, 6 - dow(H.today) + ROWS_AHEAD * 7, lead ? lead.from : 0, W), n = open.length;
+  if (ahead) end = open[n - 1].to + ahead * n * W * 7;  // (› from your streak: pages on into the days ahead)
+  return end == null ? open : rowsOf(H, end, -Infinity, W).slice(-n);
 }
 // the end of the page before the one starting `top` (a week's first day), `n` rows of W weeks: the
 // day before it, or earlier, so that a streak of SHOWN_STREAK days or more its top would cut starts
@@ -1087,40 +1086,26 @@ AF.calendarScaleFor = height => Math.max(SWIPED_K, Math.floor(height * dpr() / (
 /* the room over the canvas for the months' labels: the first row ROW_UNDER under the row's top,
  * at any zoom (the canvas's own TOP grows with it) */
 const monthsRoom = k => Math.round(ROW_UNDER - (TOP + 1) * k);
-/* the width it asks for, given the Forest width: "85%" of the room where it stands, "forest" (85% of
- * the forest: of its panel stacked with it, of the Forest width standing apart), "area" (all of the
- * room: a debug rule's), or css px */
-const deckListWidth = () => { const t = document.querySelector('center > table'); return t ? t.offsetWidth : 0; };
-AF.calendarWant = (cal, forestW) => {
-  const r = ruleOf(cal);
-  if (r) return { fit_forest: forestW, share: '85%', forest85: Math.round(SHARE * forestW), flat: FLAT_W, table: deckListWidth() || 'area' }[r] || 'area';
+/* the width it asks for: "85%" of the room where it stands, "forest" (85% of the forest: of its panel
+ * stacked with it, of the Forest width standing apart), or css px */
+AF.calendarWant = cal => {
   const w = sizeOf(cal).width;
   return w === 'full' ? '85%' : w === 'fixed' ? FIXED_W : 'forest';
 };
 // (Full width stacked under the list: the panel takes all the window's room for it, core.js AF.panelWidth)
-AF.calendarFull = cal => !ruleOf(cal) && sizeOf(cal).width === 'full';
-const naturalYear = cal => Math.round((53 * cellOf(cal) + 1) * DAY_K);
-// (By year at its days' natural size: only the Debug tab's "natural" rule; otherwise it fits its year to the width)
-const yearCapped = (cal, view) => ruleOf(cal) === 'natural' && yearly(view || cal.view);
+AF.calendarFull = cal => sizeOf(cal).width === 'full';
 /* its width in a place `area` css px across (a row or a column of its own: core.js AF.arrange) */
-AF.calendarWidthIn = (cal, forestW, area, view) => {
-  const want = AF.calendarWant(cal, forestW);
-  let w = typeof want === 'number' ? Math.min(want, area) : want === '85%' ? SHARE * area
-    : want === 'forest' ? Math.min(area, SHARE * forestW) : area;
-  if (yearCapped(cal, view)) w = Math.min(w, naturalYear(cal));
-  return Math.floor(w);
+AF.calendarWidthIn = (cal, forestW, area) => {
+  const want = AF.calendarWant(cal);
+  return Math.floor(typeof want === 'number' ? Math.min(want, area) : want === '85%' ? SHARE * area : Math.min(area, SHARE * forestW));
 };
 /* a column of its own beside the list: the most it takes, and its share of the room there (85% for
- * Full width, of all the room beside the list; else all of it, up to its most). By the old rules, a
- * year of its days (natural) or the Forest width */
-AF.calendarMost = (cal, forestW, view) => {
-  const want = AF.calendarWant(cal, forestW), r = ruleOf(cal);
-  let most = typeof want === 'number' ? want : want === '85%' ? Infinity : want === 'forest' ? SHARE * forestW
-    : r === 'natural' ? Math.round((54 * cellOf(cal) + 1) * DAY_K * SIDE_MONTHS / MONTHS_SHOWN) : forestW;
-  if (yearCapped(cal, view)) most = Math.min(most, naturalYear(cal));
-  return Math.floor(most);
+ * Full width, of all the room beside the list; else all of it, up to its most) */
+AF.calendarMost = (cal, forestW) => {
+  const want = AF.calendarWant(cal);
+  return Math.floor(typeof want === 'number' ? want : want === '85%' ? Infinity : SHARE * forestW);
 };
-AF.calendarColumnShare = (cal, forestW) => (AF.calendarWant(cal, forestW) === '85%' ? SHARE : 1);
+AF.calendarColumnShare = cal => (AF.calendarWant(cal) === '85%' ? SHARE : 1);
 /* stacked in the panel with the forest (or alone in it): its width on its box, set before its room is
  * measured (core.js) and again as it is drawn (`view`, the one in view), the panel as wide as it asks
  * (core.js AF.panelWidth), in its middle. Placed apart, its row or column sets its width
@@ -1131,9 +1116,9 @@ AF.calendarFit = (box, cal, view, forestW, inAnki) => {
     box.style.width = box.style.maxWidth = '';
     return;
   }
-  const want = AF.calendarWant(cal, forestW), year = yearCapped(cal, view), px = typeof want === 'number' ? want : 0;
-  box.style.width = want === '85%' || want === 'forest' ? '85%' : px ? px + 'px' : '100%';
-  box.style.maxWidth = year ? Math.min(px || Infinity, naturalYear(cal)) + 'px' : '100%';
+  const want = AF.calendarWant(cal);
+  box.style.width = typeof want === 'number' ? want + 'px' : '85%';
+  box.style.maxWidth = '100%';
 };
 /* how tall the footer will be: its row (FOOT_H), unless the forest's journal, which comes down into
  * it beside the shade's choice and the key, is long enough to wrap there. Measured on a stand-in
@@ -1209,6 +1194,7 @@ AF.calendar = function (root, data, env) {
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
   let page = 0, year = null;  // Timeline's stretch, in months from today's (0), By year's year
   let pages = [];  // Streak view's pages back from your streak: each one's last day, the latest last (› goes back the way it came)
+  let ahead = 0;  // (and pages on from it, into the days ahead, as far as cards fall due)
   let rows = [];  // (its rows above the one drawn as the heatmap's own weeks, oldest first)
   // what a screen reader says for the picture: the year in a sentence, its streak
   // (the stretch in view, paged to or not: "Study heatmap, Feb 2025 to Jan 2026: 203 days studied")
@@ -1286,7 +1272,7 @@ AF.calendar = function (root, data, env) {
     });
     b.addEventListener('click', () => {
       if (view === b.dataset.view) return;
-      view = b.dataset.view; page = 0; year = null; pages = [];
+      view = b.dataset.view; page = 0; year = null; pages = []; ahead = 0;
       send(`${data.channel}:view:${view}`);
       unpoint();
       draw();
@@ -1295,7 +1281,7 @@ AF.calendar = function (root, data, env) {
   // the caption's streak, clicked: Streak view, as the switch would (`ask`: whether it would do
   // anything), on your streak; the last weeks kept where they were on screen, the rows above them
   root.afCalStreak = ask => {
-    if (swiped || (view === 'streak' && !pages.length)) return false;
+    if (swiped || (view === 'streak' && !pages.length && !ahead)) return false;
     if (ask) return true;
     const was = drawn.cv.getBoundingClientRect().top;
     if (view === 'streak') go('0'); else viewBox.querySelector('[data-view="streak"]').click();
@@ -1445,8 +1431,9 @@ AF.calendar = function (root, data, env) {
   // (the tip shown again straight away, by the key or a streak, must not stay invisible from a day brushed too briefly to wake it)
   const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; showSel(); };
   // how far you can page: back to the first day counted, on to the last day ahead counted (Streak
-  // view: back while its top row starts after your first review, on to your streak)
-  const can = win => (view === 'streak' ? { back: (rows.length ? rows[0] : win).from > H.first, on: pages.length > 0 } : { back: win.from > H.first, on: win.to < H.ahead });
+  // view: back while its top row starts after your first review, on as far as the days ahead go)
+  const can = win => (view === 'streak' ? { back: ahead > 0 || (rows.length ? rows[0] : win).from > H.first, on: pages.length > 0 || win.to < H.ahead }
+    : { back: win.from > H.first, on: win.to < H.ahead });
 
   function draw() {
     const hadCv = !!drawn && document.activeElement === drawn.cv;  // (the keyboard on the days: kept there)
@@ -1459,7 +1446,7 @@ AF.calendar = function (root, data, env) {
     let win;
     if (!swiped && view === 'streak') {
       const W = weeksPerRow(grid.clientWidth);
-      rows = streakRows(H, W, pages.length ? pages[pages.length - 1] : null);
+      rows = streakRows(H, W, pages.length ? pages[pages.length - 1] : null, ahead);
       win = rows.pop();
     } else {
       rows = [];
@@ -1518,9 +1505,9 @@ AF.calendar = function (root, data, env) {
       btn(-1).disabled = !may.back; btn(1).disabled = !may.on;
       // (on today's page already, the jump stays where it is, dimmed; it points the way today
       // lies, » from the past, « from the days ahead)
-      const now = btn(0), ahead = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : view === 'timeline' && page > 0;
-      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : view === 'streak' ? !pages.length : page === 0;
-      now.textContent = ahead ? '«' : '»';
+      const now = btn(0), later = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : view === 'streak' ? ahead > 0 : page > 0;
+      now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : view === 'streak' ? !pages.length && !ahead : page === 0;
+      now.textContent = later ? '«' : '»';
       // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
       // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
       if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
@@ -1623,12 +1610,13 @@ AF.calendar = function (root, data, env) {
   }
   function go(where) {
     const was = drawn.win.from;
-    if (where === '0') { page = 0; year = null; pages = []; }
+    if (where === '0') { page = 0; year = null; pages = []; ahead = 0; }
     else {
       const may = can(drawn.win);
       if (where === '-1' ? !may.back : !may.on) return;  // (a click on a button just disabled)
       if (view === 'streak') {
-        if (where === '1') pages.pop();
+        if (where === '1') { if (pages.length) pages.pop(); else ahead++; }
+        else if (ahead) ahead--;
         else pages.push(pageBefore(H, drawn.win.cols, rows.length + 1, (rows.length ? rows[0] : drawn.win).from));
       }
       else if (view === 'by_year') year = (year || yearOf(H.today)) + +where;

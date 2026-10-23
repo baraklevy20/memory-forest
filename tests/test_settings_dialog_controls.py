@@ -724,8 +724,8 @@ class DebugTabTests(QtCase):
         g.test.click()
         g.trees_box.setValue(300)
         g.big.click()
-        g.size_rule.setCurrentIndex(g.size_rule.findData("flat"))
-        done_saves(self, d, {"test_forest": True, "test_trees": 300, "debug_big_days": True, "debug_calendar_size": "flat"})
+        g.streaks.setCurrentIndex(g.streaks.findData("apart"))
+        done_saves(self, d, {"test_forest": True, "test_trees": 300, "debug_big_days": True, "debug_streaks": "apart"})
 
     def test_without_debug_its_settings_are_kept_for_next_time(self):
         cfg = {"test_forest": True, "test_trees": 300, "debug_date": "2026-12-20"}

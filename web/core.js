@@ -251,7 +251,7 @@ const PANEL_PAD = 24;
  * .af-heat-wider) */
 AF.panelWidth = (root, data) => {
   const pad = data.inAnki ? PANEL_PAD : 0;
-  const want = data.inAnki && data.calendar ? AF.calendarWant(data.calendar, data.maxWidth) : 0;
+  const want = data.inAnki && data.calendar ? AF.calendarWant(data.calendar) : 0;
   const full = data.inAnki && data.calendar && AF.calendarFull(data.calendar);
   const wider = full || (typeof want === 'number' && want > data.maxWidth);
   root.style.maxWidth = full ? 'none' : Math.max(data.maxWidth, wider ? want : 0) + pad + 'px';
@@ -303,11 +303,11 @@ AF.arrange = function (root, data) {
   const fit = () => {
     // (a side column's width and its least: the heatmap's alone the width it asks for, or all the
     // room there is (calendar.js AF.calendarMost); the panel's, or the forest's, the Forest width)
-    const most = heatSide ? AF.calendarMost(data.calendar, data.maxWidth, root.afCalView) : data.maxWidth;
+    const most = heatSide ? AF.calendarMost(data.calendar, data.maxWidth) : data.maxWidth;
     const least = Math.min(most, heatSide || !forest ? HEAT_MIN : Math.max(SIDE_MIN, SIDE_SHARE * data.maxWidth));
     const room = center.clientWidth - 2 * EDGE;
     // (Full width beside the list alone: 85% of the room there, AF.calendarColumnShare)
-    const share = heatSide ? AF.calendarColumnShare(data.calendar, data.maxWidth) : 1;
+    const share = heatSide ? AF.calendarColumnShare(data.calendar) : 1;
     const col = cols ? Math.min(most, Math.floor(share * ((room - table.offsetWidth) / cols - SIDE_GAP))) : 0;
     const narrow = cols ? col < least : false;
     document.body.classList.toggle('af-lay-narrow', narrow);
@@ -322,7 +322,7 @@ AF.arrange = function (root, data) {
       // never more than the row (calendar.js AF.calendarWidthIn), in the row's middle as everything
       // on the page is (forest.css .af-slot-below, .af-slot-above))
       const lone = heatSide && !narrow;
-      size(parts[2], lone ? col : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room), root.afCalView));
+      size(parts[2], lone ? col : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room)));
     }
   };
   // a side column that fits the window stays in view while a longer deck list scrolls by (forest.css

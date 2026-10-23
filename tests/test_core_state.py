@@ -83,18 +83,11 @@ class SwitchTests(unittest.TestCase):
         self.assertEqual(state.calendar_fill({"calendar_fill": "bigger"}), "bigger")
         self.assertEqual(state.calendar_fill({"calendar_fill": "huge"}), "more")
 
-    def test_the_debug_heatmap_size_rule_follows_the_setting_unless_chosen(self):
-        state = addon.state
-        self.assertEqual(state.debug_calendar_size({}), "setting")
-        for rule in state.DEBUG_CALENDAR_SIZES:
-            self.assertEqual(state.debug_calendar_size({"debug_calendar_size": rule}), rule)
-        self.assertEqual(state.debug_calendar_size({"debug_calendar_size": "huge"}), "setting")
-
     def test_the_shipped_config_holds_the_layouts_defaults(self):
         with open(os.path.join(os.path.dirname(addon.__file__), "config.json"), encoding="utf-8") as f:
             cfg = json.load(f)
-        self.assertEqual((cfg["layout"], cfg["layout_side"], cfg["layout_first"], cfg["calendar_width"], cfg["calendar_fill"],
-                          cfg["debug_calendar_size"]), (addon.state.LAYOUT_DEFAULT, "right", "forest", "forest", "more", "setting"))
+        self.assertEqual((cfg["layout"], cfg["layout_side"], cfg["layout_first"], cfg["calendar_width"], cfg["calendar_fill"]),
+                         (addon.state.LAYOUT_DEFAULT, "right", "forest", "forest", "more"))
 
     def test_the_heatmap_shows_on_each_screen_unless_switched_off_there(self):
         self.assertTrue(state.calendar_on("main", {}) and state.calendar_on("decks", {}))

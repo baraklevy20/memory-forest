@@ -325,7 +325,14 @@ check('heatmap: Streak view opens on the streak, and pages back and on through t
   const frame = () => p.evaluate(() => [...document.querySelectorAll('.af-cal-past-weeks'), T.weeks()].map(c => c.getAttribute('aria-label').match(/, (\w{3} \d{4}) to (\w{3} \d{4})/).slice(1)));
   const now = await frame();
   eq(f, now.length, 1, 'the 43-day streak, in one row');
-  eq(f, await p.evaluate(() => [T.btn(1).disabled, T.btn(0).disabled, T.btn(-1).disabled]), [true, true, false], 'nothing later than today');
+  eq(f, await p.evaluate(() => [T.btn(1).disabled, T.btn(0).disabled, T.btn(-1).disabled]), [false, true, false], 'on into the days ahead, back in time');
+  // › into the days ahead, « (or ‹) back to the streak
+  await p.evaluate(() => T.btn(1).click());
+  const later = await frame();
+  if (!(Date.parse(`1 ${later[0][0]}`) > Date.parse(`1 ${now[0][0]}`))) f.push(`› did not page on: ${JSON.stringify(later)}`);
+  eq(f, await p.evaluate(() => [T.btn(0).textContent, T.btn(0).disabled]), ['«', false], '« back from the days ahead');
+  await p.evaluate(() => T.btn(-1).click());
+  eq(f, await frame(), now, '‹ back to the streak');
   const at = m => Date.parse(`1 ${m}`);
   const seen = [now[0][0]];
   for (let i = 0; i < 10 && !(await p.evaluate(() => T.btn(-1).disabled)); i++) {

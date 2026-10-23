@@ -13,7 +13,7 @@ from ..debug_events import DEBUG_BACKLOG_MAX, DEBUG_STREAK_MAX, DEBUG_STREAKS, n
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
 from ..seasons import forget_seasons
-from ..state import DEBUG_CALENDAR_SIZES, TEST_TREES_DEFAULT, TEST_TREES_MAX, config, debug_calendar_size
+from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
 from .decks import DATE_FORMAT
 from .widgets import date_field, group, hint
 
@@ -49,19 +49,6 @@ EDITION_LABELS = {"": "This copy (every scenery)", "base": "Memory Forest", "plu
 # what the label calls each kind of day, and what happens (once, and more than once)
 DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
 HAPPENINGS = {"leech": ("a card turns leech", "{n} cards turn leech"), "cure": ("a leech cured", "{n} leeches cured")}
-
-
-# the Heatmap size rules to try (state.DEBUG_CALENDAR_SIZES)
-SIZE_RULE_LABELS = {
-    "setting": "Setting (Width and Fill it with)",
-    "natural": "Natural day size",
-    "fit": "Stretch to fit (fill the area)",
-    "fit_forest": "Fit the forest (stretch, no wider than the Forest width)",
-    "share": "85% of what's above or below (the old way)",
-    "forest85": "85% of the Forest width",
-    "flat": "Flat 680 px",
-    "table": "Deck list's width",
-}
 
 
 class DebugTab(QWidget):
@@ -139,10 +126,6 @@ class DebugTab(QWidget):
         self.news_show.clicked.connect(self._show_news)
         # the edition this copy pretends to be (edition.debug_edition)
         # the heatmap's size by another rule than the Heatmap tab's, to try them out (web/calendar.js AF.calendarWant)
-        self.size_rule = QComboBox()
-        for key in DEBUG_CALENDAR_SIZES:
-            self.size_rule.addItem(SIZE_RULE_LABELS[key], key)
-        self.size_rule.setCurrentIndex(max(0, self.size_rule.findData(debug_calendar_size(cfg))))
         # a made-up study history on the test forest's heatmap, to try Streak view on
         self.streaks = QComboBox()
         self.streaks.addItem("The test forest's own", "")
@@ -193,7 +176,6 @@ class DebugTab(QWidget):
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
         hf = QFormLayout()
-        hf.addRow("Heatmap size rule", self.size_rule)
         hf.addRow("Study history", self.streaks)
         hf.addRow("Current streak", self.streak_days)
         hv = QVBoxLayout(); hv.addLayout(hf); hv.addWidget(hint(STREAKS_NOTE))
@@ -272,7 +254,6 @@ class DebugTab(QWidget):
             box.toggled.connect(changed)
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
-        self.size_rule.currentIndexChanged.connect(changed)
         self.streaks.currentIndexChanged.connect(changed)
         self.streak_days.valueChanged.connect(changed)
         for box in (self.trees_box, self.backlog):
@@ -308,7 +289,6 @@ class DebugTab(QWidget):
     def values(self) -> dict:
         return {
             "test_forest": self.test.isChecked(),
-            "debug_calendar_size": self.size_rule.currentData(),
             "test_trees": self.trees_box.value(),
             "debug_timeline": [list(step) for step in self.timeline],
             "debug_backlog": self.backlog.value(),

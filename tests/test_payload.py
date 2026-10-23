@@ -21,12 +21,9 @@ class PayloadTests(unittest.TestCase):
         cal = payload._with_look({}, {"debug": True}, mood)
         self.assertIn("look", cal)
         self.assertNotIn("width", cal)  # (its days' own size: web/calendar.js DAY_K)
-        self.assertEqual(cal["size"], {"width": "forest", "fill": "more", "rule": "setting"})
-        cfg = {"calendar_width": "full", "calendar_fill": "bigger", "debug_calendar_size": "flat"}
-        with mock.patch.object(payload, "debug_available", return_value=False):  # (the debug rule only while debug is on)
-            self.assertEqual(payload._with_look({}, cfg, mood)["size"], {"width": "full", "fill": "bigger", "rule": "setting"})
-        with mock.patch.object(payload, "debug_available", return_value=True):
-            self.assertEqual(payload._with_look({}, cfg, mood)["size"]["rule"], "flat")
+        self.assertEqual(cal["size"], {"width": "forest", "fill": "more"})
+        cfg = {"calendar_width": "full", "calendar_fill": "bigger"}
+        self.assertEqual(payload._with_look({}, cfg, mood)["size"], {"width": "full", "fill": "bigger"})
         self.assertIsNone(payload._with_look(None, {}, mood))
 
     def test_the_whole_collection_grows_one_tree_a_day(self):

@@ -37,9 +37,6 @@ LAYOUT_DEFAULT, LAYOUT_SIDES, LAYOUT_FIRST = "under", ("right", "left"), ("fores
 # width holds) or bigger days (ten months, or the year, stretched over its width)
 CALENDAR_WIDTHS = ("fixed", "forest", "full")
 CALENDAR_FILLS = ("more", "bigger")
-# (debug only) the Debug tab's Heatmap size rule, standing in for both while debug is on: "setting"
-# (the default) follows them; the rest are rules tried in a study (web/calendar.js AF.calendarWant)
-DEBUG_CALENDAR_SIZES = ("setting", "natural", "fit", "fit_forest", "share", "forest85", "flat", "table")
 # a hand-edited "false" (or 0) turns a switch off too
 OFF_VALUES = (False, "false", "False", 0, "0")
 
@@ -268,13 +265,6 @@ def calendar_fill(cfg: dict | None = None) -> str:
     """What fills the heatmap's width: more days (the default) or bigger days."""
     fill = (cfg if cfg is not None else config()).get("calendar_fill", "more")
     return fill if fill in CALENDAR_FILLS else "more"
-
-
-def debug_calendar_size(cfg: dict | None = None) -> str:
-    """(debug) The Debug tab's Heatmap size rule: "setting" (follow Width and Fill it with) unless
-    another is chosen. Only asked while debug is on (payload.py)."""
-    rule = (cfg if cfg is not None else config()).get("debug_calendar_size", "setting")
-    return rule if rule in DEBUG_CALENDAR_SIZES else "setting"
 
 
 def shows_on_deck_list(cfg: dict | None = None) -> bool:
