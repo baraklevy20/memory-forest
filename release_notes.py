@@ -8,7 +8,12 @@ lists, from 1.3.0 on), and its lists: "new", "improved", "fixed" (each under its
 "notes" (no heading)}. An item is its line, or {"text": its line, and maybe:
   "needs": what an edition must have to hear of it, each word "<kind>:<key>" (one of the
            kind, e.g. "scenery:aurora") or "<kind>" (any of it) - an edition without it
-           never lists it (the public page is the base edition's);
+           never lists it (the public page is the base edition's); "edition:<name>" keeps it to
+           that edition alone, e.g. "edition:base" for news of the free edition only;
+  "plus": its name in the line that closes the version's notes in an edition without it, "Also
+          new in Memory Forest Plus: Chalkboard and a new seaside landscape." (for_edition keeps those
+          names as the version's "plus"; the AnkiWeb page leaves the line out, its own "New in
+          Memory Forest Plus" pictures saying it);
   "announce": {"id", "kind": "note" (a card on the forest, once: "title", "text", and maybe a
               button, "action", that opens the settings where "opens" says, and "settings":
               the settings that wear NEW for two weeks, by the tabs' news_targets keys) or "dot" (the
@@ -48,7 +53,7 @@ def item(entry) -> dict:
 
 def has(entry, have: dict) -> bool:
     """Whether an edition has what the item needs. `have`: kind -> the keys of it the edition
-    has (None: every one there is), e.g. {"scenery": its preset keys}."""
+    has (None: every one there is), e.g. {"scenery": its preset keys, "edition": {"base"}}."""
     for need in (item(entry).get("needs") or "").split():
         kind, _, key = need.partition(":")
         got = have.get(kind, set())
@@ -58,18 +63,33 @@ def has(entry, have: dict) -> bool:
 
 
 def for_edition(versions: list, have: dict) -> list:
-    """The notes as an edition sees them: without the items it lacks (an emptied list goes)."""
+    """The notes as an edition sees them: without the items it lacks (an emptied list goes), the
+    names of those Plus has kept as the version's "plus" (with any it had already)."""
     out = []
     for v in versions:
         kept = {"version": v["version"]}
         if v.get("summary"):
             kept["summary"] = v["summary"]
+        plus = list(v.get("plus", []))
         for key, _head in SECTIONS:
             items = [e for e in v.get(key, []) if has(e, have)]
+            plus += [item(e)["plus"] for e in v.get(key, []) if not has(e, have) and item(e).get("plus")]
             if items:
                 kept[key] = items
+        if plus:
+            kept["plus"] = list(dict.fromkeys(plus))
         out.append(kept)
     return out
+
+
+def plus_line(version: dict) -> str:
+    """The line that closes a version's notes where Plus got more: "Also new in Memory Forest
+    Plus: Chalkboard and a new seaside landscape." ("" where it got nothing more)."""
+    names = version.get("plus") or []
+    if not names:
+        return ""
+    said = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+    return f"Also new in Memory Forest Plus: {said}."
 
 
 def items(version: dict, sections=tuple(k for k, _h in SECTIONS)) -> list:
@@ -78,7 +98,8 @@ def items(version: dict, sections=tuple(k for k, _h in SECTIONS)) -> list:
 
 
 def to_html(versions: list) -> str:
-    """The AnkiWeb page's What's new, between HTML_START and HTML_END."""
+    """The AnkiWeb page's What's new, between HTML_START and HTML_END (without the Plus line:
+    the page's own "New in Memory Forest Plus" pictures say it)."""
     out = []
     for v in versions:
         out.append(f"<i>{v['version']}</i>")
@@ -119,4 +140,6 @@ def to_markdown(versions: list, version: str) -> str | None:
             if head:
                 lines += ([""] if lines else []) + [f"### {head}", ""]
             lines += ["- " + _markdown(item(e)["text"]) for e in v[key]]
+    if plus_line(v):
+        lines += ([""] if lines else []) + [_markdown(plus_line(v))]
     return "\n".join(lines) + "\n"

@@ -323,6 +323,7 @@ class SettingsDialog(QDialog):
         Customize, and the Debug tab's date and edition decide what is offered."""
         day = self._day()
         self.scenery.offer(day, self.custom.look(), debug_edition(dict(self._current(), **self.debug.values())))
+        self.about.show_news(dict(self._current(), **self.debug.values()))  # (the About tab's What's new, for that edition too)
         self.scenery.sync()
         self.forest.sync()
         key = self.scenery.preset.currentData()

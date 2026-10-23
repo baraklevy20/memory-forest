@@ -83,6 +83,20 @@ class OpeningTests(QtCase):
         self.assertLessEqual(offered, addon.edition.edition_presets("plus"))
         self.assertEqual([t for t in d.scenery.picker.tiles if t.locked], [])
 
+    @needs_editions
+    def test_the_debug_tabs_edition_changes_whats_new_at_once(self):
+        d = self.open_dialog({"debug": True, "debug_edition": "plus"})
+        def news():
+            return d.about.news.body.text()
+        self.assertIn("Chalkboard, the forest", news())
+        self.assertNotIn("Also new in Memory Forest Plus", news())
+        self.assertNotIn("is now in the free edition", news())  # (news of the free edition alone)
+        d.debug.edition.setCurrentIndex(d.debug.edition.findData("base"))
+        self.assertNotIn("Chalkboard, the forest", news())
+        self.assertIn("Also new in Memory Forest Plus: Chalkboard and a new seaside landscape.", news())
+        self.assertIn("is now in the free edition", news())
+        self.cancel(d)
+
     def test_every_tab_shows(self):
         for cfg in ({}, {"debug": True}):
             with self.subTest(debug=bool(cfg)):

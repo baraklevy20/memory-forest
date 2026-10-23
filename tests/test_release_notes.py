@@ -63,6 +63,30 @@ class MadeFromItTests(unittest.TestCase):
         self.assertEqual(base[0]["new"], ["A new thing."])
         self.assertEqual(release_notes.for_edition(VERSIONS, {"scenery": None})[0]["new"], VERSIONS[0]["new"])
 
+    def test_an_edition_without_plus_items_names_them_in_a_closing_line(self):
+        versions = [{"version": "5.0.0", "new": ["Free.", {"text": "A Plus scenery.", "needs": "scenery:x", "plus": "X"},
+                                                   {"text": "Another.", "needs": "scenery:y", "plus": "the Y landscape"},
+                                                   {"text": "Unnamed.", "needs": "scenery:z"}]}]
+        base = release_notes.for_edition(versions, {"scenery": {"other"}})
+        self.assertEqual((base[0]["new"], base[0]["plus"]), (["Free."], ["X", "the Y landscape"]))
+        self.assertEqual(release_notes.plus_line(base[0]), "Also new in Memory Forest Plus: X and the Y landscape.")
+        self.assertTrue(release_notes.to_markdown(base, "5.0.0").endswith("- Free.\n\nAlso new in Memory Forest Plus: X and the Y landscape.\n"))
+        self.assertNotIn("Plus", release_notes.to_html(base))  # (the AnkiWeb page's own pictures say it)
+        # (the base copy's file, filtered again by the add-on, keeps its names)
+        self.assertEqual(release_notes.for_edition(base, {"scenery": {"other"}})[0]["plus"], ["X", "the Y landscape"])
+        everything = release_notes.for_edition(versions, {"scenery": None})
+        self.assertNotIn("plus", everything[0])
+        self.assertEqual(release_notes.plus_line(everything[0]), "")
+
+    def test_a_line_for_one_edition_alone(self):
+        entry = {"text": "Now free.", "needs": "scenery:x edition:base"}
+        self.assertTrue(release_notes.has(entry, {"scenery": {"x"}, "edition": {"base"}}))
+        self.assertFalse(release_notes.has(entry, {"scenery": {"x"}, "edition": {"plus"}}))
+        self.assertTrue(release_notes.has(entry, {"scenery": None, "edition": None}))  # (this copy, every edition's lines)
+        if notes.editions.available():  # (the public repo has no editions.json, nor any Plus to build)
+            self.assertNotIn("Starry night, after Van Gogh, is now in the free edition.",
+                             [release_notes.item(e)["text"] for e in notes.versions("plus")[0]["new"]])
+
     def test_a_need_with_no_key_wants_any_of_its_kind(self):
         entry = {"text": "x", "needs": "gizmos"}
         self.assertFalse(release_notes.has(entry, {}))

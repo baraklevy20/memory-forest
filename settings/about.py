@@ -204,17 +204,24 @@ class _Filler(QScrollArea):
         return QSize(super().minimumSizeHint().width(), NEWS_MIN_H)
 
 
+def news_html(cfg: dict) -> str:
+    """What's new for the edition `cfg` has (or the Debug tab pretends it is): its versions'
+    lines under New, Improved and Fixed, and the line naming what Plus got more, in italics."""
+    parts = []
+    for version, summary, sections in news.about(cfg)[:NEWS_VERSIONS]:
+        lines = [f"<b>{version}</b>"] + ([f"<br>{html.escape(summary)}"] if summary else [])
+        for head, items in sections:
+            lines.append(f"<br><br><b>{head}</b>" + "".join(f"<br>• {html.escape(line)}" for line in items) if head
+                         else "".join(f"<br><br><i>{html.escape(line)}</i>" for line in items))
+        parts.append("".join(lines))
+    return "<br><br>".join(parts)
+
+
 def whats_new() -> QWidget:
     """What's new, for the few who read: what this edition has, newest first (news.py), under
     New, Improved and Fixed. It fills the room the other tabs leave this one and scrolls past
-    it, so a long release never makes the dialog taller."""
-    parts = []
-    for version, summary, sections in news.about(config())[:NEWS_VERSIONS]:
-        lines = [f"<b>{version}</b>"] + ([f"<br>{html.escape(summary)}"] if summary else [])
-        for head, items in sections:
-            lines.append(f"<br><br><b>{head}</b>" + "".join(f"<br>• {html.escape(line)}" for line in items))
-        parts.append("".join(lines))
-    body = text("<br><br>".join(parts))
+    it, so a long release never makes the dialog taller. Its text: `.body` (AboutTab.show_news)."""
+    body = text(news_html(config()))
     body.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (a short release sits at the top, not mid-box)
     scroll = _Filler()
     scroll.setWidget(body)
@@ -224,7 +231,9 @@ def whats_new() -> QWidget:
     scroll.setStyleSheet(GOAT_SCROLL_STYLE)
     lay = QVBoxLayout()
     lay.addWidget(scroll)
-    return group("What's new", lay)
+    box = group("What's new", lay)
+    box.body = body
+    return box
 
 
 class AboutTab(QWidget):
@@ -236,7 +245,14 @@ class AboutTab(QWidget):
         av = QVBoxLayout(self)
         av.setSpacing(12)
         av.addWidget(header(plus))
-        av.addWidget(whats_new(), 1)  # (it takes the room to spare)
+        self.news = whats_new()
+        av.addWidget(self.news, 1)  # (it takes the room to spare)
         av.addWidget(group("How it works", how))
         av.addWidget(thanks(goats(), plus))
         av.addWidget(text(CREDITS, small_style()))
+
+    def show_news(self, cfg: dict) -> None:
+        """What's new again, for the edition the Debug tab's choice makes this copy, at once."""
+        fresh = news_html(cfg)
+        if fresh != self.news.body.text():
+            self.news.body.setText(fresh)

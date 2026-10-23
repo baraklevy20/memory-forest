@@ -28,9 +28,9 @@ def view(edition: str | None) -> dict:
     """What an edition has, as release_notes.has takes it; where there is no editions.json
     (the public repo), everything here is the edition."""
     if not edition or edition not in editions.available():
-        return {"scenery": None}
+        return {"scenery": None, "landscape": None, "edition": None}
     shipped = editions.scenery(edition)
-    return {"scenery": shipped["presets"]}
+    return {"scenery": shipped["presets"], "landscape": shipped["landscapes"], "edition": {edition}}
 
 
 def versions(edition: str | None = PUBLIC) -> list:

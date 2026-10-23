@@ -17,7 +17,7 @@ from __future__ import annotations
 import datetime as _dt
 import os
 
-from . import presets, release_notes, state
+from . import catalog, presets, release_notes, state
 from .edition import debug_available, debug_edition, edition_presets
 from .state import USER_FILES, log
 from .store import load_json, save_json
@@ -43,10 +43,18 @@ def _versions() -> list:
 
 
 def view(cfg: dict) -> dict:
-    """What this copy has (or the edition the Debug tab pretends it is), as release_notes.has takes it."""
+    """What this copy has (or the edition the Debug tab pretends it is), as release_notes.has takes
+    it: its sceneries, its landscapes (those its sceneries use, as an edition ships them,
+    dev/editions.py), and the edition it pretends to be."""
     here = set(presets.by_key())
-    ships = edition_presets(debug_edition(cfg))
-    return {"scenery": here if ships is None else here & ships}
+    pretend = debug_edition(cfg)
+    ships = edition_presets(pretend)
+    scenery = here if ships is None else here & ships
+    lands = set(catalog.entries("landscapes"))
+    if ships is not None:
+        lands &= {p.landscape for p in presets.FOREST_PRESETS if p.key in scenery}
+    # (a release's own copy of the notes holds only its edition's lines already: dev/notes.py edition_json)
+    return {"scenery": scenery, "landscape": lands, "edition": {pretend} if pretend else None}
 
 
 def _items(cfg: dict | None = None) -> list:
@@ -282,13 +290,14 @@ def opens(news_id: str) -> str:
 
 def about(cfg: dict) -> list:
     """(version, its summary or "", [(heading, [lines])]) for the About tab, newest first: what
-    each version is about, and its New, Improved and Fixed lines this edition has, under their
-    headings."""
+    each version is about, its New, Improved and Fixed lines this edition has, under their
+    headings, and the line naming what Plus got more, under none ("")."""
     out = []
     for v in release_notes.for_edition(_versions(), view(cfg)):
         sections = [(head, [e["text"] for e in release_notes.items(v, (key,))])
                     for key, head in release_notes.SECTIONS if head]
-        sections = [(head, lines) for head, lines in sections if lines]
+        # (and, where Plus got more, the line that names it, under no heading)
+        sections = [(head, lines) for head, lines in sections if lines] + [("", [release_notes.plus_line(v)])] * bool(release_notes.plus_line(v))
         if sections:
             out.append((v["version"], v.get("summary", ""), sections))
     return out

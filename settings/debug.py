@@ -33,7 +33,8 @@ DATE_NOTE = ("The scenery is chosen for this date: the seasonal presets, Surpris
              "a holiday's week brings your own scenery back. Your own forest's days are not moved. "
              "A holiday changes the scenery once a year; Replay the seasons lets it happen again.")
 EDITION_NOTE = ("Which edition this copy acts as: the sceneries offered, the Plus ones the picker shows "
-                "locked, and the Patreon banner and About tab (those two on reopening the settings). "
+                "locked, the About tab's What's new, and the Patreon banner and the rest of the About tab (those on "
+                "reopening the settings). "
                 "The forest on screen keeps whatever scenery is chosen.")
 NEWS_NOTE = ("What an update announces (release_notes.json): a note on the deck list's forest for a new "
              "feature, and a dot on the cog (NEW on its tile) for a new scenery, each only where the edition "

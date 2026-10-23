@@ -20,7 +20,7 @@ NOTE = {"text": "A feature.", "announce": {"id": "a_feature", "kind": "note", "t
 SCENERY = {"text": "Bamboo comes to every edition.", "needs": "scenery:bamboo", "announce": {"id": "new_bamboo", "kind": "dot"}}
 SETTINGS = {"text": "Clearer settings.", "announce": {"id": "new_settings", "kind": "dot"}}
 IMPROVED_SCENERIES = {"text": "Bamboo and Cherry blossom are repainted.", "announce": {"id": "repainted", "kind": "improved", "sceneries": ["bamboo", "cherry_blossom"]}}
-PLUS_SCENERY = {"text": "Cherry blossom.", "needs": "scenery:cherry_blossom", "announce": {"id": "new_cherry", "kind": "dot"}}
+PLUS_SCENERY = {"text": "Cherry blossom.", "needs": "scenery:cherry_blossom", "plus": "Cherry blossom", "announce": {"id": "new_cherry", "kind": "dot"}}
 
 
 def updated():
@@ -288,7 +288,7 @@ class AboutTests(unittest.TestCase):
     def test_only_what_the_edition_has(self):
         editions_here(self)
         with notes("Something new.", PLUS_SCENERY), debug_tools():
-            self.assertEqual(news.about(DEBUG_BASE), [("9.0.0", "", [("New", ["Something new."])])])
+            self.assertEqual(news.about(DEBUG_BASE), [("9.0.0", "", [("New", ["Something new."]), ("", ["Also new in Memory Forest Plus: Cherry blossom."])])])
             self.assertEqual(news.about(DEBUG_PLUS), [("9.0.0", "", [("New", ["Something new.", "Cherry blossom."])])])
 
     def test_the_real_notes_read(self):

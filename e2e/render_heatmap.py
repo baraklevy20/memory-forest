@@ -14,7 +14,7 @@ HEATMAP_TODAY = dt.date(2026, 9, 19)
 def heatmap_calendar(view: str, back: int = 0) -> dict:
     """A study history from 2018: patchy years, a long streak from Jun 2024 to today, a pond, a
     mark, the cards due ahead. Fixed, so a scene draws the same every run. `back`: Streak view's
-    frames stepped back with ‹ once it has drawn."""
+    frames stepped back with the Earlier arrow once it has drawn."""
     start = dt.date(2018, 3, 1)
     n = (HEATMAP_TODAY - start).days + 1
     days, time_ = [], []
