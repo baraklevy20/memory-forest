@@ -272,13 +272,15 @@ test('earlier years: back to the current streak\'s start, or a long one just bro
   assert.ok(T.pastYears(h, 2026, true).length >= 2);
 });
 
-test('Timeline shows fewer months only where ten would be too small to stay crisp', () => {
-  const full = T.widthOf('timeline');
-  assert.equal(T.countFor('timeline', full), 10);
+test('Timeline shows as many months as its width holds at its days\' own size', () => {
+  const ten = T.widthOf('timeline') * 1.25;  // (ten months at DAY_K: about 680 px)
+  assert.equal(T.countFor('timeline', ten), 10);
   assert.equal(T.countFor('timeline', 0), 10);
   assert.equal(T.countFor('by_year', 50), 10);
-  assert.equal(T.countFor('timeline', Math.floor(full / 2)), 4);
+  assert.equal(T.countFor('timeline', ten / 2), 5);
+  assert.equal(T.countFor('timeline', ten * 1.6), 16);
   assert.equal(T.countFor('timeline', 20), 3);
+  assert.equal(T.countFor('timeline', ten * 5), 24);
 });
 
 test('a stretch of time in words', () => {
@@ -329,10 +331,30 @@ test('a rest day\'s ring is the faintest shade far enough from the empty grey to
 });
 
 test('the calendar\'s width and the phone\'s scale', () => {
-  assert.equal(AF.calendarWidth({}), '85%');
-  assert.equal(AF.calendarWidth({ width: 30 }), '50%');
-  assert.equal(AF.calendarWidth({ width: 140 }), '100%');
-  assert.equal(AF.calendarWidth({ width: 70 }), '70%');
+  // (Width: 680 px, 85% of the Forest width, or 85% of the room, never more than the room; By year
+  // fits its year to it)
+  const size = (width, fill, rule) => ({ view: 'timeline', size: { width, fill, rule } });
+  assert.equal(AF.calendarWidthIn(size('forest', 'more'), 800, 1300), 680);
+  assert.equal(AF.calendarWidthIn(size('forest', 'more'), 800, 500), 500);
+  assert.equal(AF.calendarWidthIn(size('full', 'more'), 800, 1300), 1105);
+  assert.equal(AF.calendarWidthIn(size('fixed', 'bigger'), 800, 1300), 680);
+  assert.equal(AF.calendarWidthIn(size('fixed', 'bigger'), 800, 600), 600);
+  assert.equal(AF.calendarWidthIn(size('full', 'more'), 800, 1300, 'by_year'), 1105);
+  assert.equal(AF.calendarWidthIn(size('fixed', 'more'), 800, 1300, 'by_year'), 680);
+  assert.equal(AF.calendarWidthIn(size('full', 'more', 'natural'), 800, 1300, 'by_year'), Math.round(531 * 1.25));  // (the debug natural rule)
+  assert.equal(AF.calendarWidthIn(size('full', 'bigger'), 800, 1300, 'by_year'), 1105);
+  assert.equal(AF.calendarMost(size('forest', 'more'), 800), 680);  // (beside the list alone)
+  assert.equal(AF.calendarMost(size('full', 'more'), 800), Infinity);
+  assert.equal(AF.calendarColumnShare(size('full', 'more'), 800), 0.85);  // (85% of the room beside the list)
+  assert.equal(AF.calendarColumnShare(size('forest', 'more'), 800), 1);
+  // (the Debug tab's rules stand in for the setting)
+  assert.equal(AF.calendarWidthIn(size('full', 'more', 'flat'), 800, 1300), 680);
+  assert.equal(AF.calendarWidthIn(size('full', 'more', 'forest85'), 800, 1300), 680);
+  assert.equal(AF.calendarWidthIn(size('full', 'more', 'share'), 800, 1000), 850);
+  assert.equal(AF.calendarWidthIn(size('full', 'more', 'fit_forest'), 800, 1300), 800);
+  assert.equal(AF.calendarWidthIn(size('forest', 'more', 'fit'), 800, 1300), 1300);
+  assert.equal(AF.calendarMost(size('forest', 'more', 'natural'), 800), Math.round(541 * 1.25 * 1.2));
+  assert.equal(AF.calendarWant(size('forest', 'more', 'setting'), 800), 'forest');
   assert.equal(AF.calendarScaleFor(10), 1.4);  // (never under 1.4 css px a pixel)
   assert.equal(AF.calendarScaleFor(3 + 7 * 10 + 15), 1.4);
   assert.equal(AF.calendarScaleFor((3 + 7 * 10 + 15) * 3), 3);

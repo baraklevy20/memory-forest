@@ -81,7 +81,7 @@ def main() -> int:
     fails = []
     # (as it ships, and with a layout beside the deck list, which the tile keeps stacked: Onigiri's
     # grid places it, web/core.js AF.arrange)
-    for config in (None, {"layout": "both_side", "layout_side": "left"}):
+    for config in (None, {"layout": "beside", "layout_side": "left"}):
         fails += check(config)
     for f in fails:
         print("FAIL", f)

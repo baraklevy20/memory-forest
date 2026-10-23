@@ -18,17 +18,28 @@ MODULE = mw.addonManager.addonFromModule(__name__)
 # The numbers a config can hold, however it was edited; the settings dialog offers the same ranges.
 MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX = 800, 400, 2000
 TEST_TREES_DEFAULT, TEST_TREES_MAX = 150, 5000
-# where the forest and the heatmap sit round the deck list (Forest tab, Layout): each preset's
-# places for (the forest, the heatmap), "side" being Layout's Side, and which comes first where both
-# stand together. Under the list, forest first, is how it has always been.
+# where the forest and the heatmap sit round the deck list (Forest tab, Layout): both under it (as it
+# has always been), both beside it (on Layout's Side), one beside it and the other under it, or one
+# above it and the other under it. First (layout_first, the forest unless chosen) is the one that gets
+# the place: beside the list or above it; and their order wherever they stand together (under or
+# beside the list, a deck's screen, a window too narrow to put them beside it). Each layout's places
+# for (the first, the other), "side" being Side.
 LAYOUTS = {
-    "under": ("below", "below", "forest"),
-    "forest_side": ("side", "below", "forest"),
-    "both_side": ("side", "side", "forest"),
-    "heatmap_side": ("below", "side", "forest"),
-    "heatmap_first": ("below", "below", "heatmap"),
+    "under": ("below", "below"),
+    "beside": ("side", "side"),
+    "one_beside": ("side", "below"),
+    "above": ("above", "below"),
 }
-LAYOUT_DEFAULT, LAYOUT_SIDES = "under", ("right", "left")
+LAYOUT_DEFAULT, LAYOUT_SIDES, LAYOUT_FIRST = "under", ("right", "left"), ("forest", "heatmap")
+# the heatmap's size (Heatmap tab, Layout: Width and Fill it with). Width: fixed (680 px, 85% of the
+# default Forest width), the forest's (the default), or full (all the room its place has); never wider
+# than its room. Fill it with: more days (its days one size, Timeline showing as many months as its
+# width holds) or bigger days (ten months, or the year, stretched over its width)
+CALENDAR_WIDTHS = ("fixed", "forest", "full")
+CALENDAR_FILLS = ("more", "bigger")
+# (debug only) the Debug tab's Heatmap size rule, standing in for both while debug is on: "setting"
+# (the default) follows them; the rest are rules tried in a study (web/calendar.js AF.calendarWant)
+DEBUG_CALENDAR_SIZES = ("setting", "natural", "fit", "fit_forest", "share", "forest85", "flat", "table")
 # a hand-edited "false" (or 0) turns a switch off too
 OFF_VALUES = (False, "false", "False", 0, "0")
 
@@ -212,27 +223,57 @@ def calendar_on(screen: str, cfg: dict | None = None) -> bool:
 
 
 def layout_key(cfg: dict | None = None) -> str:
-    """The Layout preset chosen (LAYOUTS), or the default for anything else a hand edit left."""
+    """The Layout chosen (LAYOUTS), or the default for anything else a hand edit left."""
     key = (cfg if cfg is not None else config()).get("layout", LAYOUT_DEFAULT)
     return key if isinstance(key, str) and key in LAYOUTS else LAYOUT_DEFAULT
 
 
 def layout_side(cfg: dict | None = None) -> str:
-    """The side a Layout's side column stands on: right (the default) or left."""
+    """The side Beside's column stands on: right (the default) or left."""
     side = (cfg if cfg is not None else config()).get("layout_side", "right")
     return side if side in LAYOUT_SIDES else "right"
 
 
+def layout_first(cfg: dict | None = None) -> str:
+    """Layout's First: the forest (the default) or the heatmap, first where the two stand together,
+    and the one over the deck list with Above the list."""
+    first = (cfg if cfg is not None else config()).get("layout_first", "forest")
+    return first if first in LAYOUT_FIRST else "forest"
+
+
 def layout(cfg: dict | None = None, deck_screen: bool = False) -> dict:
     """Where the page puts the forest and the heatmap (web/core.js AF.arrange): each one's place
-    round the deck list ("below", "left" or "right"), which comes first where they stand together,
-    (their widths come from the Forest width: web/core.js). A deck's screen, the finished-deck page, Onigiri's tile and
-    the phone keep them stacked under what they have (only the order is the chosen one there), so a
-    deck screen is sent no places beside it."""
+    round the deck list ("below", "above", "left" or "right"), the First's from the layout's first
+    place, and which comes first where they stand together. Their widths come from the Forest width
+    and the Heatmap tab's Width (web/core.js). A deck's screen, the finished-deck page, Onigiri's tile
+    and the phone keep them stacked under what they have, in the First order, so a deck screen is sent
+    no other place."""
     cfg = cfg if cfg is not None else config()
-    forest, heatmap, first = LAYOUTS[layout_key(cfg)]
-    forest, heatmap = ("below" if deck_screen or p == "below" else layout_side(cfg) for p in (forest, heatmap))
+    first = layout_first(cfg)
+    if deck_screen:
+        return {"forest": "below", "heatmap": "below", "first": first}
+    places = [layout_side(cfg) if p == "side" else p for p in LAYOUTS[layout_key(cfg)]]
+    forest, heatmap = places if first == "forest" else places[::-1]
     return {"forest": forest, "heatmap": heatmap, "first": first}
+
+
+def calendar_width(cfg: dict | None = None) -> str:
+    """The heatmap's Width: fixed, forest (the default) or full."""
+    width = (cfg if cfg is not None else config()).get("calendar_width", "forest")
+    return width if width in CALENDAR_WIDTHS else "forest"
+
+
+def calendar_fill(cfg: dict | None = None) -> str:
+    """What fills the heatmap's width: more days (the default) or bigger days."""
+    fill = (cfg if cfg is not None else config()).get("calendar_fill", "more")
+    return fill if fill in CALENDAR_FILLS else "more"
+
+
+def debug_calendar_size(cfg: dict | None = None) -> str:
+    """(debug) The Debug tab's Heatmap size rule: "setting" (follow Width and Fill it with) unless
+    another is chosen. Only asked while debug is on (payload.py)."""
+    rule = (cfg if cfg is not None else config()).get("debug_calendar_size", "setting")
+    return rule if rule in DEBUG_CALENDAR_SIZES else "setting"
 
 
 def shows_on_deck_list(cfg: dict | None = None) -> bool:

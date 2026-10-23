@@ -9,13 +9,15 @@ itself, not repeated here."""
 
 from __future__ import annotations
 
-from aqt.qt import QCheckBox, QVBoxLayout, QWidget
+from aqt.qt import QCheckBox, QLabel, QVBoxLayout, QWidget
 
 from ..payload import week_start_day
 from ..scope import anki_today
 from ..state import (
     STREAK_WEEKS,
+    calendar_fill,
     calendar_on,
+    calendar_width,
     shows_record,
     streak_from_start,
     streak_week,
@@ -26,6 +28,16 @@ from .forest_tab import beside
 from .heatmap_look import LookControls
 from .widgets import Choice, JoinedChoice, Tab, form, group, hint
 
+# its width (state.CALENDAR_WIDTHS) and what fills it (state.CALENDAR_FILLS)
+WIDTH_OPTIONS = [("fixed", "Fixed"), ("forest", "Follow the forest"), ("full", "Full width")]
+WIDTH_TIPS = {"fixed": "680 px, or less where there is less room",
+              "forest": "85% of the forest's width",
+              "full": "85% of the room it has: the row under or over the deck list, or its column beside it"}
+FILL_OPTIONS = [("more", "More months"), ("bigger", "Bigger days")]
+FILL_TIPS = {"more": "Every day the same size: a wider heatmap shows more months",
+             "bigger": "Ten months, with bigger days to fill the width"}
+# (Fill it with is the Timeline's: never greyed out, as the view is switched on the heatmap itself)
+FILL_NOTE = "By year always fits its year to the width."
 # the day its weeks start on
 WEEK_OPTIONS = [("system", "Auto"), ("monday", "Mon"), ("sunday", "Sun"), ("saturday", "Sat")]
 WEEK_TIPS = {"system": "Your system's first day of the week", "monday": "Monday", "sunday": "Sunday", "saturday": "Saturday"}
@@ -81,6 +93,9 @@ class HeatmapTab(Tab):
         self.calendar_decks = QCheckBox("Deck screens")
         self.calendar_decks.setChecked(calendar_on("decks", cfg))
         self.week = WeekChoice(week_start(cfg))
+        self.heat_width = JoinedChoice(WIDTH_OPTIONS, calendar_width(cfg), "forest", WIDTH_TIPS)
+        self.fill = JoinedChoice(FILL_OPTIONS, calendar_fill(cfg), "more", FILL_TIPS)
+        self.fill_label = QLabel("Fill it with")
         # the reviews from before the forest's start date, in the heatmap all the same
         self.record = QCheckBox("Show the reviews from before your forest's start date")
         self.record.setChecked(shows_record(cfg))
@@ -97,6 +112,15 @@ class HeatmapTab(Tab):
         # the streak counts, rest days and the start date's say in it)
         layout = self.layout_form = form()
         layout.addRow("Show on", beside(self.calendar_main, self.calendar_decks))
+        # (Width with what fills it on one row: two parts of one size, each a word or two)
+        self.width_row = beside(self.heat_width, self.fill_label, self.fill)
+        width_box = self.width_box = QWidget()  # (the row with its hint just under it: with_hint, for a row of two)
+        wv = QVBoxLayout(width_box)
+        wv.setContentsMargins(0, 0, 0, 0)
+        wv.setSpacing(HINT_GAP)
+        wv.addLayout(self.width_row)
+        wv.addWidget(hint(FILL_NOTE))
+        layout.addRow("Width", width_box)
         layout.addRow("Week starts on", self.week)
         layout.addRow(self.record)
         streak = self.start_form = form()
@@ -132,10 +156,11 @@ class HeatmapTab(Tab):
                 "streak_from_start": (self.streak_from, "Your streak counts from"),
                 "streak_week": (self.streak_week, "Your streak counts"),
                 "calendar_colours": (self.colours_group.title, "Heatmap colours"),
-                "calendar_tiles": (self.tiles_group.title, "Heatmap style")}
+                "calendar_tiles": (self.tiles_group.title, "Heatmap style"),
+                "calendar_width": (self.heat_width, "Width"), "calendar_fill": (self.fill, "Fill it with")}
 
     def connect(self, changed) -> None:
-        for choice in (self.week, self.streak_from, self.streak_week):
+        for choice in (self.week, self.heat_width, self.fill, self.streak_from, self.streak_week):
             choice.on_change(changed)
         for box in (self.calendar_main, self.calendar_decks, self.record):
             box.toggled.connect(changed)
@@ -150,9 +175,12 @@ class HeatmapTab(Tab):
         # (how it shows only matters while it shows somewhere)
         on = self.calendar_main.isChecked() or self.calendar_decks.isChecked()
         self.week.setEnabled(on); self.record.setEnabled(on)
-        label = self.layout_form.labelForField(self.week)  # (its label greys out with it)
-        if label is not None:
-            label.setEnabled(on)
+        for w in (self.heat_width, self.fill_label, self.fill):
+            w.setEnabled(on)
+        for field in (self.width_box, self.week):
+            label = self.layout_form.labelForField(field)  # (its label greys out with it)
+            if label is not None:
+                label.setEnabled(on)
         # (a heatmap that leaves out the reviews before the start date counts the streak from it
         # too: shown as such while it can't be changed, and back to your own pick after)
         # (with the heatmap shown nowhere the box is greyed, and the streak counts as your pick:
@@ -175,6 +203,8 @@ class HeatmapTab(Tab):
     def values(self) -> dict:
         return {
             "calendar_week_start": self.week.currentData(),
+            "calendar_width": self.heat_width.currentData(),
+            "calendar_fill": self.fill.currentData(),
             "calendar_main": self.calendar_main.isChecked(),
             "calendar_decks": self.calendar_decks.isChecked(),
             "calendar_record": self.record.isChecked(),

@@ -13,7 +13,7 @@ from ..debug_events import DEBUG_BACKLOG_MAX, new_timeline_run
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
 from ..seasons import forget_seasons
-from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, clamp_int, config
+from ..state import DEBUG_CALENDAR_SIZES, TEST_TREES_DEFAULT, TEST_TREES_MAX, config, debug_calendar_size
 from .decks import DATE_FORMAT
 from .widgets import date_field, group, hint
 
@@ -47,6 +47,19 @@ DAY_KINDS = {"study": "studying", "review": "reviewing only", "away": "away"}
 HAPPENINGS = {"leech": ("a card turns leech", "{n} cards turn leech"), "cure": ("a leech cured", "{n} leeches cured")}
 
 
+# the Heatmap size rules to try (state.DEBUG_CALENDAR_SIZES)
+SIZE_RULE_LABELS = {
+    "setting": "Setting (Width and Fill it with)",
+    "natural": "Natural day size",
+    "fit": "Stretch to fit (fill the area)",
+    "fit_forest": "Fit the forest (stretch, no wider than the Forest width)",
+    "share": "85% of what's above or below (the old way)",
+    "forest85": "85% of the Forest width",
+    "flat": "Flat 680 px",
+    "table": "Deck list's width",
+}
+
+
 class DebugTab(QWidget):
     def __init__(self, cfg: dict):
         super().__init__()
@@ -59,8 +72,6 @@ class DebugTab(QWidget):
         except (TypeError, ValueError):
             n = TEST_TREES_DEFAULT
         self.trees.setValue(n); self.trees_box.setValue(n)
-        self.heatmap_width = QSpinBox(); self.heatmap_width.setRange(50, 100); self.heatmap_width.setSuffix("% of forest width")
-        self.heatmap_width.setValue(clamp_int(cfg.get("debug_heatmap_width"), 85, 50, 100))
         self.trees.valueChanged.connect(self.trees_box.setValue); self.trees_box.valueChanged.connect(self.trees.setValue)
 
         # and a switch for each study event, to see them without waiting for them
@@ -123,6 +134,11 @@ class DebugTab(QWidget):
         self.news_show = QPushButton("Show it as new")
         self.news_show.clicked.connect(self._show_news)
         # the edition this copy pretends to be (edition.debug_edition)
+        # the heatmap's size by another rule than the Heatmap tab's, to try them out (web/calendar.js AF.calendarWant)
+        self.size_rule = QComboBox()
+        for key in DEBUG_CALENDAR_SIZES:
+            self.size_rule.addItem(SIZE_RULE_LABELS[key], key)
+        self.size_rule.setCurrentIndex(max(0, self.size_rule.findData(debug_calendar_size(cfg))))
         self.edition = QComboBox()
         for key in ("",) + DEBUG_EDITIONS:
             self.edition.addItem(EDITION_LABELS[key], key)
@@ -164,9 +180,9 @@ class DebugTab(QWidget):
         ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addLayout(pr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
-        heatmap = QFormLayout()
-        heatmap.addRow("Width", self.heatmap_width)
-        dv.addWidget(group("Heatmap", heatmap))
+        hf = QFormLayout()
+        hf.addRow("Heatmap size rule", self.size_rule)
+        dv.addWidget(group("Heatmap", hf))
         dv.addWidget(group("What's new", ntv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))
@@ -241,7 +257,8 @@ class DebugTab(QWidget):
             box.toggled.connect(changed)
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
-        for box in (self.trees_box, self.backlog, self.heatmap_width):
+        self.size_rule.currentIndexChanged.connect(changed)
+        for box in (self.trees_box, self.backlog):
             box.valueChanged.connect(changed)
 
     def sync(self) -> None:
@@ -274,13 +291,13 @@ class DebugTab(QWidget):
     def values(self) -> dict:
         return {
             "test_forest": self.test.isChecked(),
+            "debug_calendar_size": self.size_rule.currentData(),
             "test_trees": self.trees_box.value(),
             "debug_timeline": [list(step) for step in self.timeline],
             "debug_backlog": self.backlog.value(),
             "debug_backlog_cleared": self.clears,
             "debug_backlog_was": self.was,
             "debug_big_days": self.big.isChecked(),
-            "debug_heatmap_width": self.heatmap_width.value(),
             "debug_date": self._date().isoformat() if self._date() else "",
             "debug_edition": self.edition.currentData() or "",
         }

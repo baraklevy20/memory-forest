@@ -260,31 +260,63 @@ class ForestTabTests(QtCase):
         lay = d.forest.layout_pick
         self.assertEqual(lay.choice.currentData(), "under")
         self.assertFalse(lay.side.isEnabled())  # (nothing beside the list)
-        lay.choice.buttons["forest_side"].click()
+        lay.choice.buttons["above"].click()
         Q.settle()
-        self.assertTrue(lay.side.isEnabled())
+        self.assertFalse(lay.side.isEnabled())
+        lay.choice.buttons["under"].click()
+        Q.settle()
+        self.assertFalse(lay.side.isEnabled())
+        for key in ("beside", "one_beside"):
+            lay.choice.buttons[key].click()
+            Q.settle()
+            self.assertTrue(lay.side.isEnabled(), key)
         lay.side.buttons["left"].click()
-        done_saves(self, d, {"layout": "forest_side", "layout_side": "left"})
+        self.assertTrue(lay.order.isEnabled())  # (a deck's screen stacks them whatever the layout)
+        lay.order.buttons["heatmap"].click()
+        done_saves(self, d, {"layout": "one_beside", "layout_side": "left", "layout_first": "heatmap"})
 
-    def test_the_layout_pictures_are_one_even_row_and_follow_the_side(self):
+    def test_the_layout_pictures_are_one_even_row_and_follow_the_side_and_on_top(self):
         d = self.open_dialog()
         lay = d.forest.layout_pick
         widths = {b.width() for b in lay.choice.buttons.values()}
         self.assertEqual(len(widths), 1)
-        right = lay.choice.pictures["forest_side"].pixmap().toImage()
-        lay.choice.buttons["forest_side"].click()
+        right = lay.choice.pictures["beside"].pixmap().toImage()
+        lay.choice.buttons["beside"].click()
         lay.side.buttons["left"].click()
         Q.settle()
-        left = lay.choice.pictures["forest_side"].pixmap().toImage()
-        self.assertEqual(left, right.mirrored(True, False))  # (the side column on the other side)
+        left = lay.choice.pictures["beside"].pixmap().toImage()
+        self.assertEqual(left, right.mirrored(True, False))  # (Beside's column on the other side)
+        above, one = (lay.choice.pictures[k].pixmap().toImage() for k in ("above", "one_beside"))
+        lay.order.buttons["heatmap"].click()
+        Q.settle()
+        self.assertNotEqual(lay.choice.pictures["above"].pixmap().toImage(), above)  # (the heatmap over the list now)
+        self.assertNotEqual(lay.choice.pictures["one_beside"].pixmap().toImage(), one)  # (the heatmap beside it now)
 
     def test_cancel_puts_the_layout_back(self):
         d = self.open_dialog()
-        d.forest.layout_pick.choice.buttons["both_side"].click()
+        d.forest.layout_pick.choice.buttons["beside"].click()
         Q.let_save()
-        self.assertEqual(Q.current()["layout"], "both_side")  # (the deck list behind is the preview)
+        self.assertEqual(Q.current()["layout"], "beside")  # (the deck list behind is the preview)
         self.cancel(d)
         self.assertEqual(Q.current()["layout"], "under")
+
+    def test_the_heatmap_width_and_what_fills_it(self):
+        d = self.open_dialog()
+        self.tab(d, "Heatmap")
+        h = d.heatmap
+        self.assertEqual((h.heat_width.currentData(), h.fill.currentData()), ("forest", "more"))
+        h.heat_width.buttons["full"].click()
+        h.fill.buttons["bigger"].click()
+        done_saves(self, d, {"calendar_width": "full", "calendar_fill": "bigger"})
+
+    def test_the_heatmap_width_greys_out_with_the_heatmap(self):
+        d = self.open_dialog({"calendar_width": "fixed"})
+        h = d.heatmap
+        self.assertEqual(h.heat_width.currentData(), "fixed")
+        h.calendar_main.setChecked(False)
+        h.calendar_decks.setChecked(False)
+        Q.settle()
+        self.assertFalse(h.heat_width.isEnabled() or h.fill.isEnabled())
 
     def test_the_forest_width(self):
         d = self.open_dialog()
@@ -666,8 +698,8 @@ class DebugTabTests(QtCase):
         g.test.click()
         g.trees_box.setValue(300)
         g.big.click()
-        g.heatmap_width.setValue(70)
-        done_saves(self, d, {"test_forest": True, "test_trees": 300, "debug_big_days": True, "debug_heatmap_width": 70})
+        g.size_rule.setCurrentIndex(g.size_rule.findData("flat"))
+        done_saves(self, d, {"test_forest": True, "test_trees": 300, "debug_big_days": True, "debug_calendar_size": "flat"})
 
     def test_without_debug_its_settings_are_kept_for_next_time(self):
         cfg = {"test_forest": True, "test_trees": 300, "debug_date": "2026-12-20"}

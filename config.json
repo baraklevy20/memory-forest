@@ -11,11 +11,14 @@
     "main_forest": true,
     "layout": "under",
     "layout_side": "right",
+    "layout_first": "forest",
     "deck_forest_mode": "highlight",
     "calendar": "timeline",
     "calendar_main": true,
     "calendar_decks": true,
     "calendar_week_start": "system",
+    "calendar_width": "forest",
+    "calendar_fill": "more",
     "calendar_shade": "reviews",
     "calendar_colours": "scenery",
     "calendar_mine": [
@@ -45,8 +48,8 @@
     "debug_backlog_was": 0,
     "debug_big_days": false,
     "debug_gaps": null,
-    "debug_heatmap_width": 85,
     "debug_smooth": null,
+    "debug_calendar_size": "setting",
     "debug_date": "",
     "debug_edition": ""
 }

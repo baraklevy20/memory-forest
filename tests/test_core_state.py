@@ -45,28 +45,56 @@ class SwitchTests(unittest.TestCase):
     def test_the_layout_is_under_the_list_unless_chosen(self):
         state = addon.state
         self.assertEqual(state.layout({}), {"forest": "below", "heatmap": "below", "first": "forest"})
-        for key, (forest, heatmap, first) in state.LAYOUTS.items():
-            for side in ("right", "left"):
-                got = state.layout({"layout": key, "layout_side": side})
-                self.assertEqual(got, {"forest": side if forest == "side" else "below", "heatmap": side if heatmap == "side" else "below",
-                                       "first": first}, (key, side))
+        for side in state.LAYOUT_SIDES:
+            for first in state.LAYOUT_FIRST:
+                cfg = {"layout_side": side, "layout_first": first}
+                got = {key: state.layout(dict(cfg, layout=key)) for key in state.LAYOUTS}
+                self.assertEqual(got["under"], {"forest": "below", "heatmap": "below", "first": first})
+                self.assertEqual(got["beside"], {"forest": side, "heatmap": side, "first": first})
+                other = "heatmap" if first == "forest" else "forest"
+                self.assertEqual(got["one_beside"], {first: side, other: "below", "first": first})
 
-    def test_a_deck_screen_keeps_them_stacked_in_the_chosen_order(self):
+    def test_above_the_list_puts_the_first_over_it_and_the_other_under_it(self):
         state = addon.state
-        for key, (_f, _h, first) in state.LAYOUTS.items():
-            got = state.layout({"layout": key, "layout_side": "left"}, deck_screen=True)
-            self.assertEqual((got["forest"], got["heatmap"], got["first"]), ("below", "below", first), key)
+        self.assertEqual(state.layout({"layout": "above", "layout_side": "left"}), {"forest": "above", "heatmap": "below", "first": "forest"})
+        self.assertEqual(state.layout({"layout": "above", "layout_first": "heatmap"}), {"forest": "below", "heatmap": "above", "first": "heatmap"})
+
+    def test_a_deck_screen_keeps_them_stacked_in_the_first_order(self):
+        state = addon.state
+        for key in state.LAYOUTS:
+            for first in state.LAYOUT_FIRST:
+                got = state.layout({"layout": key, "layout_side": "left", "layout_first": first}, deck_screen=True)
+                self.assertEqual(got, {"forest": "below", "heatmap": "below", "first": first}, key)
 
     def test_a_hand_edited_layout_falls_back_to_the_defaults(self):
         state = addon.state
-        for bad in ("nonsense", None, 3, ["under"]):
+        for bad in ("nonsense", None, 3, ["under"], "both_side"):
             self.assertEqual(state.layout_key({"layout": bad}), "under", bad)
         self.assertEqual(state.layout_side({"layout_side": "top"}), "right")
+        self.assertEqual(state.layout_first({"layout_first": "middle"}), "forest")
+
+    def test_the_heatmap_is_the_forests_width_with_more_days_unless_chosen(self):
+        state = addon.state
+        self.assertEqual((state.calendar_width({}), state.calendar_fill({})), ("forest", "more"))
+        for value in state.CALENDAR_WIDTHS:
+            self.assertEqual(state.calendar_width({"calendar_width": value}), value)
+        for bad in ("wide", 900, -1, None, True):
+            self.assertEqual(state.calendar_width({"calendar_width": bad}), "forest", bad)
+        self.assertEqual(state.calendar_fill({"calendar_fill": "bigger"}), "bigger")
+        self.assertEqual(state.calendar_fill({"calendar_fill": "huge"}), "more")
+
+    def test_the_debug_heatmap_size_rule_follows_the_setting_unless_chosen(self):
+        state = addon.state
+        self.assertEqual(state.debug_calendar_size({}), "setting")
+        for rule in state.DEBUG_CALENDAR_SIZES:
+            self.assertEqual(state.debug_calendar_size({"debug_calendar_size": rule}), rule)
+        self.assertEqual(state.debug_calendar_size({"debug_calendar_size": "huge"}), "setting")
 
     def test_the_shipped_config_holds_the_layouts_defaults(self):
         with open(os.path.join(os.path.dirname(addon.__file__), "config.json"), encoding="utf-8") as f:
             cfg = json.load(f)
-        self.assertEqual((cfg["layout"], cfg["layout_side"]), (addon.state.LAYOUT_DEFAULT, "right"))
+        self.assertEqual((cfg["layout"], cfg["layout_side"], cfg["layout_first"], cfg["calendar_width"], cfg["calendar_fill"],
+                          cfg["debug_calendar_size"]), (addon.state.LAYOUT_DEFAULT, "right", "forest", "forest", "more", "setting"))
 
     def test_the_heatmap_shows_on_each_screen_unless_switched_off_there(self):
         self.assertTrue(state.calendar_on("main", {}) and state.calendar_on("decks", {}))

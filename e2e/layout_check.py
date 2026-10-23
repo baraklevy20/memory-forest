@@ -1,14 +1,16 @@
-"""The deck list's layouts (Forest tab, Layout): the forest and the heatmap stand where each preset
-puts them round Anki's deck list, beside it in a wide window and under it in a narrow one, and both
-draw. Run: python3 e2e/layout_check.py (npm run test:layout); `npm test` runs it with --if-changed:
+"""The deck list's layouts (Forest tab, Layout): the forest and the heatmap stand where each layout
+puts them round Anki's deck list - under it, both or one of them beside it in a wide window and under
+it in a narrow one, or the First above it and the other under it - in the First order, and both draw,
+as wide as they should be at each Heatmap width and Fill it with, in Timeline and By year. Run: python3 e2e/layout_check.py (npm run test:layout); `npm test` runs it with --if-changed:
 only when the files it goes through changed.
 
-For each preset (state.LAYOUTS), on each side, it runs this copy's panel.on_deck_browser on the
+For each layout (state.LAYOUTS), First and, beside the list, each side, and each layout at each
+Heatmap width and fill in each view, it runs this copy's panel.on_deck_browser on the
 tests' stand-in Anki (tests/fake_anki.py) with that layout, puts the HTML in a page built as Anki
 builds its deck list (aqt/deckbrowser.py: <center><table>decks</table><br>stats</center>, with a
 stand-in for Anki's "Studied today" line), opens it in headless Chrome (e2e/layout_check.mjs) at a
 wide and a narrow width, and checks where the deck table, the forest and the heatmap stand, how wide
-they are (the forest its Forest width, the heatmap 85% of what stands above or below it), that
+they are (the forest its Forest width, the heatmap as wide as what stands above or below it), that
 nothing reaches past the window, and that both canvases drew, with no error, not even as the window is
 then resized across the breakpoint and back (a ResizeObserver's loop). `--shots DIR` saves a
 picture of each page too. Needs Chrome, and node with the dev packages (npm install)."""
@@ -34,7 +36,8 @@ LAYOUT_FILES = ("panel.py", "payload.py", "state.py", "web/core.js", "web/captio
                 "web/forest.css", "e2e/layout_check.py", "e2e/layout_check.mjs")
 WIDE, NARROW = 1400, 720  # css px: a window with room beside the list, and one without
 CARDS = [(i, 10, i % 90) for i in range(1, 400)]  # (a forest, and three months of heatmap)
-FOREST_W, SHARE = 800, 0.85  # the Forest width (config.json's max_width) and the heatmap's share of what it stands with
+FOREST_W = 800  # the Forest width (config.json's max_width)
+FIXED_W = 680  # the heatmap's Fixed width (calendar.js FIXED_W); Follow the forest and Full width are 85% of the forest and of the room
 # Anki's deck list, in its own markup (a header, decks, the drag row), with made-up decks
 DECKS = [("Default", 0), ("German", 0), ("Verbs", 1), ("Vocabulary", 1), ("Japanese", 0), ("Kanji", 1), ("Geography", 0)]
 # where Anki's own stylesheets are, to look as it does when they are at hand (never needed)
@@ -78,25 +81,34 @@ def page(stats: str, dark: bool) -> str:
 </center></body></html>"""
 
 
-def layouts() -> dict:
-    """This copy's presets (state.LAYOUTS), loaded on the stand-in Anki."""
+def state():
+    """This copy's state.py, loaded on the stand-in Anki."""
     import fake_anki
-    return import_module(f"{fake_anki.PACKAGE}.state").LAYOUTS
+    return import_module(f"{fake_anki.PACKAGE}.state")
 
 
 def cases() -> list:
-    """(name, config, layout key, side)"""
-    out = []
-    for key, (forest, heatmap, _first) in layouts().items():
-        sides = ("right", "left") if "side" in (forest, heatmap) else ("right",)
-        out += [(f"{key}_{side}", {"layout": key, "layout_side": side}, key, side) for side in sides]
+    """(name, config): each layout with each First and, beside the list, each Side, as it ships (the
+    heatmap the forest's width, more days, Timeline); and each layout (forest first, on the right) at
+    each Width (fixed, the forest's, full), filled with more days or bigger days, in
+    Timeline and By year (One beside with the heatmap beside the list in By year, the forest in Timeline)."""
+    out, st = [], state()
+    for key, places in st.LAYOUTS.items():
+        sides = ("right", "left") if "side" in places else ("right",)
+        out += [(f"{key}_{side}_{first}", {"layout": key, "layout_side": side, "layout_first": first})
+                for side in sides for first in st.LAYOUT_FIRST]
+        out += [(f"{key}_{width}_{fill}_{view}", {"layout": key, "calendar_width": width, "calendar_fill": fill, "calendar": view,
+                                                      "layout_first": "heatmap" if key == "one_beside" and view == "by_year" else "forest"})
+                for width in st.CALENDAR_WIDTHS for fill in st.CALENDAR_FILLS for view in ("timeline", "by_year")
+                if (width, fill, view) != ("forest", "more", "timeline")]
     return out
 
 
-def expect(key: str, side: str, wide: bool, got: dict) -> list:
+def expect(cfg: dict, wide: bool, got: dict) -> list:
     """What is wrong with where they stand (got: each box's [left, top, right, bottom])."""
     t, f, h, win = got["table"], got["forest"], got["heatmap"], got["window"]
-    fails, LAYOUTS = [], layouts()
+    fails, lay = [], state().layout(cfg)
+    side, first_ = lay["forest"] if lay["forest"] in ("left", "right") else lay["heatmap"], lay["first"]
 
     def beside(b):
         return b[0] >= t[2] + 8 if side == "right" else b[2] <= t[0] - 8
@@ -104,58 +116,76 @@ def expect(key: str, side: str, wide: bool, got: dict) -> list:
     def under(b, above):
         return b[1] >= above[3] - 1
 
-    places = dict(zip(("forest", "heatmap"), LAYOUTS[key][:2]))
-    if wide:
-        for what, box in (("forest", f), ("heatmap", h)):
-            if places[what] == "side" and not beside(box):
+    # (in a narrow window a side column falls under the list)
+    places = {what: "below" if lay[what] in ("left", "right") and not wide else lay[what] for what in ("forest", "heatmap")}
+    for what, box in (("forest", f), ("heatmap", h)):
+        if places[what] in ("left", "right"):
+            if not beside(box):
                 fails.append(f"the {what} should stand {side} of the deck list: {box}, the list {t}")
             # (the side column's first starts level with the list; the second stands under it)
-            top = places["forest"] != places["heatmap"] or what == LAYOUTS[key][2]
-            if places[what] == "side" and top and box[1] > t[1] + 40:
+            if (what == first_ or places["forest"] != places["heatmap"]) and box[1] > t[1] + 40:
                 fails.append(f"the {what} should start level with the deck list: {box}, the list {t}")
-            if places[what] == "below" and not under(box, t):
-                fails.append(f"the {what} should be under the deck list: {box}, the list {t}")
-    else:
-        for what, box in (("forest", f), ("heatmap", h)):
-            if not under(box, t):
-                fails.append(f"in a narrow window the {what} should fall under the list: {box}, the list {t}")
-    if places["forest"] == places["heatmap"] or not wide:
-        first, second = (h, f) if LAYOUTS[key][2] == "heatmap" else (f, h)
+        if places[what] == "below" and not under(box, t):
+            fails.append(f"the {what} should be under the deck list: {box}, the list {t}")
+        if places[what] == "above" and not under(t, box):
+            fails.append(f"the {what} should be over the deck list: {box}, the list {t}")
+    if places["forest"] == places["heatmap"]:
+        first, second = (h, f) if first_ == "heatmap" else (f, h)
         if not under(second, first):
-            fails.append(f"the two should stand one above the other, {LAYOUTS[key][2]} first: forest {f}, heatmap {h}")
-    if wide and places["forest"] == "below" and places["heatmap"] == "below" and got["arranged"]:
-        fails.append("a stacked layout should leave Anki's deck list as it is (body.af-lay)")
+            fails.append(f"the two should stand one above the other, {first_} first: forest {f}, heatmap {h}")
+    if lay["forest"] == lay["heatmap"] == "below" and got["arranged"]:
+        fails.append("under the list should leave Anki's deck list as it is (body.af-lay)")
     for what, box in (("forest", f), ("heatmap", h), ("table", t)):
         if box[2] > win + 1 or box[0] < -1:
             fails.append(f"the {what} reaches past the window ({win} px): {box}")
-    fails += widths(places, wide, got)
+    fails += widths(places, cfg, got)
     if got["studied"][1] < max(f[3], h[3], t[3]) - 1:
         fails.append(f"Anki's studied-today line should stay under everything: {got['studied']}")
     return fails
 
 
-def widths(places: dict, wide: bool, got: dict) -> list:
+def widths(places: dict, cfg: dict, got: dict) -> list:
     """What is wrong with their widths: the forest its Forest width, or the room it has; the heatmap
-    85% of what stands above or below it (the forest, or under the list the row of the list and its
-    side column), and beside the list alone, 85% of the Forest width."""
+    its Width (680 px, 85% of the forest, or 85% of the room its place has) - stacked, the forest's
+    panel (under the list, Full width's is the window's room); apart, the row under or over the list,
+    or its column beside it - in both views."""
     t, s, c, win = got["table"], got["scene"], got["cal"], got["window"]
     forest, heat = s[2] - s[0], c[2] - c[0]
+    width = cfg.get("calendar_width", "forest")  # (By year fits its year to it, as Timeline does)
     fails = []
 
     def near(have, want, what):
         if abs(have - want) > 3:
             fails.append(f"the {what} should be {round(want)} px wide: it is {have}")
-    if wide and places["forest"] == "side" or not wide or places["forest"] == places["heatmap"]:
-        # (stacked under the list as ever, inside the panel's 12 px padding)
-        most = FOREST_W - 24 if wide and places["forest"] == places["heatmap"] == "below" else FOREST_W
-        near(forest, min(most, win - 24 - (t[2] - t[0]) - 32 if wide and places["forest"] == "side" else win - 24), "forest")
-    if not wide or places["forest"] == places["heatmap"]:
-        near(heat, SHARE * forest, "heatmap (85% of the forest's)")
-    elif places["heatmap"] == "side":
-        near(heat, SHARE * FOREST_W, "heatmap beside the list (85% of the Forest width)")
-    elif places["forest"] == "side":
-        row = max(t[2], s[2]) - min(t[0], s[0])
-        near(heat, SHARE * row, "heatmap under the list (85% of the list and the forest beside it)")
+    room, column = win - 24, win - 24 - (t[2] - t[0]) - 32  # (the window's room, and the room beside the list)
+    near(forest, min(FOREST_W, column if places["forest"] in ("left", "right") else room), "forest")
+
+    def asked(area, stacked=False):  # (in the room `area`: Follow the forest 85% of the forest (of the panel, stacked), Full width 85% of the room)
+        if width == "full":
+            return 0.85 * area
+        return min(area, FIXED_W if width == "fixed" else 0.85 * (area if stacked else FOREST_W))
+    lay = state().layout(cfg)
+    stacked = lay["forest"] == lay["heatmap"]
+    if stacked:  # (stacked in the panel: under the list, Full width's panel is the window's room)
+        panel = room if width == "full" and places["forest"] == "below" and not got["arranged"] else forest
+        area, want = panel, asked(panel, stacked=True)
+    elif places["heatmap"] in ("left", "right"):  # (its own column beside the list: 85% of its room for Full width)
+        want = 0.85 * column if width == "full" else min(column, FIXED_W if width == "fixed" else 0.85 * FOREST_W)
+        area = want
+    else:  # (its own row, under or over the list)
+        row = places["forest"] in ("left", "right")
+        area = max(t[2], s[2]) - min(t[0], s[0]) if row else room
+        want = asked(area)
+    near(heat, want, "heatmap")
+    # (alone in a row under or over the list, the heatmap or the forest: in the row's middle, as
+    # everything on the page is; stacked in the panel and narrower than it: in its middle too)
+    row_mid = (min(t[0], s[0]) + max(t[2], s[2])) / 2 if places["forest"] in ("left", "right") else win / 2
+    if not stacked:
+        for what, box in (("heatmap", c), ("forest", s)):
+            if places[what] in ("below", "above") and abs((box[0] + box[2]) / 2 - row_mid) > 1:
+                fails.append(f"the {what} alone in a row should stand in its middle ({row_mid}): {box}")
+    elif heat < area - 3 and abs((c[0] + c[2]) / 2 - (s[0] + s[2]) / 2) > 1:
+        fails.append(f"a heatmap narrower than its panel should stand in the middle, under the forest: {c}, the forest {s}")
     return fails
 
 
@@ -171,11 +201,11 @@ def main() -> int:
     fails = []
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
-        for name, cfg, key, side in cases():
+        for name, cfg in cases():
             path = os.path.join(tmp, name + ".html")
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write(page(panel_html(cfg), opts.dark))
-            jobs += [{"name": name, "key": key, "side": side, "wide": w == WIDE, "width": w, "other": NARROW if w == WIDE else WIDE, "html": path,
+            jobs += [{"name": name, "cfg": cfg, "wide": w == WIDE, "width": w, "other": NARROW if w == WIDE else WIDE, "html": path,
                       "shot": os.path.join(os.path.abspath(opts.shots), f"{name}_{w}.png") if opts.shots else None} for w in (WIDE, NARROW)]
         if opts.shots:
             os.makedirs(opts.shots, exist_ok=True)
@@ -195,7 +225,7 @@ def main() -> int:
         for what in ("forestColours", "heatmapColours"):
             if got[what] < 8:
                 fails.append(f"{where}: the {what[:-7]} drew nothing ({got[what]} colours)")
-        fails += [f"{where}: {f}" for f in expect(job["key"], job["side"], job["wide"], got)]
+        fails += [f"{where}: {f}" for f in expect(job["cfg"], job["wide"], got)]
         fails += [f"{where}: error: {e}" for e in got["errors"]]
     for f in fails:
         print("FAIL", f)

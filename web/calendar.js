@@ -93,7 +93,19 @@ const FADE = 0.5;
 const TILE_VARIANTS = 4;
 const TILE_FACE = TILE - 1;  // a tile's face: all but its last row and column (a plain tile's edge, a scenery's own tile's gap)
 const DAY_MS = 86400000;
-const MONTHS_SHOWN = 10, MONTHS_MIN = 3, TODAY_AT = 0.7;  // Timeline: ten months, fewer when narrow; this month this far along
+const MONTHS_SHOWN = 10, MONTHS_MIN = 3, MONTHS_MOST = 24, TODAY_AT = 0.7;  // Timeline: ten months at its own size, more or fewer as its room holds; this month this far along
+// the heatmap's size (Heatmap tab: Width and Fill it with; cal.size {width, fill, rule}), 2026-10-20.
+// Width: fixed (FIXED_W), following the forest (85% of it, the default), or full (85% of the room
+// its place has), never wider than that room, and in its middle; By year always fits its year to it. Fill it with, for
+// Timeline: More months (the default): a day DAY_K times its pixels everywhere (about 12 css px, ten
+// months 676 px across), as many months as its width holds; or Bigger days: ten months, or the year, stretched over the width (fewer months only where ten would
+// be too small to stay crisp). While debug is on, the Debug tab's "Heatmap size rule" (cal.size.rule)
+// may stand in for both, to try other rules out
+const DAY_K = 1.25, SIDE_MONTHS = 12, SHARE = 0.85, FLAT_W = 680, FIXED_W = 680;
+let BIGGER = false;  // (Bigger days: set with CELL, from the calendar being drawn or measured)
+const sizeOf = cal => (cal && cal.size) || {};
+const ruleOf = cal => { const r = sizeOf(cal).rule; return r && r !== 'setting' ? r : null; };
+const biggerOf = cal => { const r = ruleOf(cal); return r ? r !== 'natural' : sizeOf(cal).fill === 'bigger'; };
 // the phone: the calendar is one long timeline swiped along (no buttons to page with), its pixels
 // this many css pixels each, running this many months past this one
 const SWIPED_K = 1.4, SWIPED_AHEAD = 5, SWIPED_TODAY_AT = 0.75;  // (and opened with today this far across)
@@ -973,20 +985,69 @@ function paint(H, win, sp, paper) {
 const widthOf = view => (view === 'by_year' ? 53 : 54) * CELL + 1;
 const dpr = () => window.devicePixelRatio || 1;
 const sharpK = () => Math.min(1, SHARP / dpr());
-// Timeline's months: ten, fewer (down to MONTHS_MIN) only where ten would be too small to stay crisp
+// Timeline's months: as many as its width holds at its days' size (More months), or ten, fewer (down
+// to MONTHS_MIN) only where ten would be too small to stay crisp (Bigger days)
 function countFor(view, width) {
   if (view !== 'timeline' || !width) return MONTHS_SHOWN;
-  if (width / widthOf(view) >= sharpK()) return MONTHS_SHOWN;
-  return Math.max(MONTHS_MIN, Math.floor(MONTHS_SHOWN * width / (widthOf(view) * sharpK())));
+  if (BIGGER) {
+    if (width / widthOf(view) >= sharpK()) return MONTHS_SHOWN;
+    return Math.max(MONTHS_MIN, Math.floor(MONTHS_SHOWN * width / (widthOf(view) * sharpK())));
+  }
+  return Math.max(MONTHS_MIN, Math.min(MONTHS_MOST, Math.round(MONTHS_SHOWN * width / (widthOf(view) * DAY_K))));
 }
 // the phone's timeline scale for weeks this tall (css px): whole pixels, from SWIPED_K up
 AF.calendarScaleFor = height => Math.max(SWIPED_K, Math.floor(height * dpr() / (TOP + ROWS * CELL + BRACKET)) / dpr());
 /* the room over the canvas for the months' labels: the first row ROW_UNDER under the row's top,
  * at any zoom (the canvas's own TOP grows with it) */
 const monthsRoom = k => Math.round(ROW_UNDER - (TOP + 1) * k);
-/* the calendar's width, a share of the panel's (payload.py: 85%, a debug setting's otherwise), set on
- * its box before its room is measured (core.js) and again when it is drawn */
-AF.calendarWidth = cal => (cal.width == null ? 85 : Math.max(50, Math.min(100, cal.width))) + '%';
+/* the width it asks for, given the Forest width: "85%" of the room where it stands, "forest" (85% of
+ * the forest: of its panel stacked with it, of the Forest width standing apart), "area" (all of the
+ * room: a debug rule's), or css px */
+const deckListWidth = () => { const t = document.querySelector('center > table'); return t ? t.offsetWidth : 0; };
+AF.calendarWant = (cal, forestW) => {
+  const r = ruleOf(cal);
+  if (r) return { fit_forest: forestW, share: '85%', forest85: Math.round(SHARE * forestW), flat: FLAT_W, table: deckListWidth() || 'area' }[r] || 'area';
+  const w = sizeOf(cal).width;
+  return w === 'full' ? '85%' : w === 'fixed' ? FIXED_W : 'forest';
+};
+// (Full width stacked under the list: the panel takes all the window's room for it, core.js AF.panelWidth)
+AF.calendarFull = cal => !ruleOf(cal) && sizeOf(cal).width === 'full';
+const naturalYear = cal => Math.round((53 * cellOf(cal) + 1) * DAY_K);
+// (By year at its days' natural size: only the Debug tab's "natural" rule; otherwise it fits its year to the width)
+const yearCapped = (cal, view) => ruleOf(cal) === 'natural' && (view || cal.view) === 'by_year';
+/* its width in a place `area` css px across (a row or a column of its own: core.js AF.arrange) */
+AF.calendarWidthIn = (cal, forestW, area, view) => {
+  const want = AF.calendarWant(cal, forestW);
+  let w = typeof want === 'number' ? Math.min(want, area) : want === '85%' ? SHARE * area
+    : want === 'forest' ? Math.min(area, SHARE * forestW) : area;
+  if (yearCapped(cal, view)) w = Math.min(w, naturalYear(cal));
+  return Math.floor(w);
+};
+/* a column of its own beside the list: the most it takes, and its share of the room there (85% for
+ * Full width, of all the room beside the list; else all of it, up to its most). By the old rules, a
+ * year of its days (natural) or the Forest width */
+AF.calendarMost = (cal, forestW, view) => {
+  const want = AF.calendarWant(cal, forestW), r = ruleOf(cal);
+  let most = typeof want === 'number' ? want : want === '85%' ? Infinity : want === 'forest' ? SHARE * forestW
+    : r === 'natural' ? Math.round((54 * cellOf(cal) + 1) * DAY_K * SIDE_MONTHS / MONTHS_SHOWN) : forestW;
+  if (yearCapped(cal, view)) most = Math.min(most, naturalYear(cal));
+  return Math.floor(most);
+};
+AF.calendarColumnShare = (cal, forestW) => (AF.calendarWant(cal, forestW) === '85%' ? SHARE : 1);
+/* stacked in the panel with the forest (or alone in it): its width on its box, set before its room is
+ * measured (core.js) and again as it is drawn (`view`, the one in view), the panel as wide as it asks
+ * (core.js AF.panelWidth), in its middle. Placed apart, its row or column sets its width
+ * (core.js AF.arrange). The phone's swiped timeline takes all its width */
+AF.calendarFit = (box, cal, view, forestW, inAnki) => {
+  const apart = box.parentElement && box.parentElement.classList.contains('af-apart');
+  if (apart || !inAnki) {
+    box.style.width = box.style.maxWidth = '';
+    return;
+  }
+  const want = AF.calendarWant(cal, forestW), year = yearCapped(cal, view), px = typeof want === 'number' ? want : 0;
+  box.style.width = want === '85%' || want === 'forest' ? '85%' : px ? px + 'px' : '100%';
+  box.style.maxWidth = year ? Math.min(px || Infinity, naturalYear(cal)) + 'px' : '100%';
+};
 /* how tall the footer will be: its row (FOOT_H), unless the forest's journal, which comes down into
  * it beside the shade's choice and the key, is long enough to wrap there. Measured on a stand-in
  * footer in the calendar's box (the real one is built only once the forest is drawn), so the room
@@ -1023,7 +1084,7 @@ const journalStays = root => root.classList.contains('af-cal-first') || root.cla
 /* how tall the calendar will be at this width, for the room kept for it until it is drawn (root:
  * the panel, for the journal that will wrap in its footer) */
 AF.calendarHeight = function (cal, width, root) {
-  CELL = cellOf(cal);
+  CELL = cellOf(cal); BIGGER = biggerOf(cal);
   const view = cal.view === 'by_year' ? 'by_year' : 'timeline';
   // (the scale is the width's: the view's exact weeks, as it will lay them out)
   let W = widthOf(view) * countFor(view, width) / MONTHS_SHOWN, foot = FOOT_H;
@@ -1047,13 +1108,14 @@ AF.calendar = function (root, data, env) {
   if (root.afCalStop) root.afCalStop();
   let box = root.querySelector('.af-cal');
   if (!box) { box = document.createElement('div'); box.className = 'af-cal'; root.append(box); }
-  box.style.width = AF.calendarWidth(cal);
-  weekStart = cal.weekStart == null ? 1 : cal.weekStart; CELL = cellOf(cal);
+  weekStart = cal.weekStart == null ? 1 : cal.weekStart; CELL = cellOf(cal); BIGGER = biggerOf(cal);
+  AF.calendarFit(box, cal, null, data.maxWidth, data.inAnki);
   const H = cal.afHistory || history(cal), sp = sceneOf(data, env);  // (built already while measuring the room, AF.calendarHeight)
   delete cal.afHistory;
   const treesByDay = new Map((data.trees || []).map(t => [-t.ago, t]));
   for (const [ago, n] of cal.planted || []) if (!treesByDay.has(-ago)) treesByDay.set(-ago, { ago, n });
   let view = cal.view === 'by_year' ? 'by_year' : 'timeline';  // (the switch on the heatmap changes it)
+  root.afCalView = view;  // (the one in view, for its row's width: core.js AF.arrange)
   const deck = data.deckId && !data.testForest ? data.deckId : '';
   const swiped = !data.inAnki;  // on the phone: swiped along rather than paged
   let page = 0, year = null;  // Timeline's stretch, in months from today's (0), By year's year
@@ -1303,6 +1365,8 @@ AF.calendar = function (root, data, env) {
   function draw() {
     const hadCv = !!drawn && document.activeElement === drawn.cv;  // (the keyboard on the days: kept there)
     const old = drawn && drawn.cv;
+    // (More days' By year is narrower than Timeline: the switch changes its width, or its row's)
+    if (!swiped) { root.afCalView = view; if (root.classList.contains('af-apart') && root.afFit) root.afFit(); else AF.calendarFit(box, cal, view, data.maxWidth, data.inAnki); }
     const count = swiped ? MONTHS_SHOWN : countFor(view, grid.clientWidth);
     // (paged away, a narrower or wider heatmap keeps the month you were looking at last in view)
     if (drawn && page && drawn.count !== count) page += drawn.count - count - Math.round(drawn.count * TODAY_AT) + Math.round(count * TODAY_AT);

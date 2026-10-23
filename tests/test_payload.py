@@ -16,14 +16,17 @@ CARDS = [(1, 10, 5), (2, 11, 5), (3, 20, 3), (4, 30, 3, 10)]
 
 
 class PayloadTests(unittest.TestCase):
-    def test_heatmap_width_is_adjustable_only_in_debug(self):
+    def test_the_heatmap_takes_the_look_and_no_width_of_its_own(self):
         mood = {"special": "natural"}
+        cal = payload._with_look({}, {"debug": True}, mood)
+        self.assertIn("look", cal)
+        self.assertNotIn("width", cal)  # (its days' own size: web/calendar.js DAY_K)
+        self.assertEqual(cal["size"], {"width": "forest", "fill": "more", "rule": "setting"})
+        cfg = {"calendar_width": "full", "calendar_fill": "bigger", "debug_calendar_size": "flat"}
+        with mock.patch.object(payload, "debug_available", return_value=False):  # (the debug rule only while debug is on)
+            self.assertEqual(payload._with_look({}, cfg, mood)["size"], {"width": "full", "fill": "bigger", "rule": "setting"})
         with mock.patch.object(payload, "debug_available", return_value=True):
-            for value, expected in [(None, 85), (70, 70), (0, 50), (200, 100), ("invalid", 85)]:
-                cfg = {"debug": True, "debug_heatmap_width": value}
-                self.assertEqual(payload._with_look({}, cfg, mood)["width"], expected)
-        with mock.patch.object(payload, "debug_available", return_value=False):
-            self.assertEqual(payload._with_look({}, {"debug_heatmap_width": 70}, mood)["width"], 85)
+            self.assertEqual(payload._with_look({}, cfg, mood)["size"]["rule"], "flat")
         self.assertIsNone(payload._with_look(None, {}, mood))
 
     def test_the_whole_collection_grows_one_tree_a_day(self):
@@ -123,11 +126,12 @@ class PayloadTests(unittest.TestCase):
         self.assertIsNotNone(payload.payload(10)["calendar"])  # beside a deck's own forest too
 
     def test_the_deck_list_gets_the_layout_and_a_deck_screen_keeps_them_stacked(self):
-        reset(CARDS, {"layout": "both_side", "layout_side": "left"})
+        reset(CARDS, {"layout": "beside", "layout_side": "left"})
         self.assertEqual(payload.payload()["layout"], {"forest": "left", "heatmap": "left", "first": "forest"})
         self.assertEqual(payload.payload(20, highlight=True)["layout"], {"forest": "below", "heatmap": "below", "first": "forest"})
-        reset(CARDS, {"layout": "heatmap_first"})
-        self.assertEqual(payload.payload(10)["layout"]["first"], "heatmap")  # (a deck screen keeps the order)
+        reset(CARDS, {"layout": "above", "layout_first": "heatmap"})
+        self.assertEqual(payload.payload()["layout"], {"forest": "below", "heatmap": "above", "first": "heatmap"})
+        self.assertEqual(payload.payload(10)["layout"], {"forest": "below", "heatmap": "below", "first": "heatmap"})  # (a deck screen keeps the order)
         reset(CARDS)
         self.assertEqual(payload.payload()["layout"], {"forest": "below", "heatmap": "below", "first": "forest"})
 

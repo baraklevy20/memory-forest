@@ -312,9 +312,9 @@ RESIZE_MS = 1500  # for the page to lay out again and the forest to be built at 
 
 
 def beside():
-    """The forest beside the deck list (Forest tab, Layout: Forest beside), set in the config as the
-    settings write it: in a wide window it stands right of the deck table, the heatmap under the list,
-    both painted; in a narrow one it falls under the list. Then the layout and the window go back as
+    """The forest and the heatmap beside the deck list (Forest tab, Layout: Beside it), set in the
+    config as the settings write it: in a wide window they stand right of the deck table, the heatmap
+    under the forest, both painted; in a narrow one they fall under the list. Then the layout and the window go back as
     they were, and the steps after go on as before."""
     note("step: layout beside the deck list")
     web, state = mw.deckBrowser.web, {"cfg": config(), "size": (mw.width(), mw.height())}
@@ -326,15 +326,15 @@ def beside():
         shot("deck-list-beside")
         t, f, h = got.get("table"), got.get("forest"), got.get("heatmap")
         if not (t and f and h):
-            result["problems"].append(f"Forest beside: something is missing on the deck list: {got}")
+            result["problems"].append(f"Beside it: something is missing on the deck list: {got}")
         elif not got.get("arranged") or got.get("narrow"):
-            result["problems"].append(f"Forest beside: the deck list was not laid out beside it in a {got.get('width')} px window: {got}")
-        elif not (f[0] >= t[2] and f[1] < t[3] and h[1] >= t[3]):
-            result["problems"].append(f"Forest beside: the forest should stand right of the deck table, the heatmap under it: {got}")
+            result["problems"].append(f"Beside it: the deck list was not laid out beside it in a {got.get('width')} px window: {got}")
+        elif not (f[0] >= t[2] and f[1] < t[3] and h[0] >= t[2] and h[1] >= f[3]):
+            result["problems"].append(f"Beside it: the forest should stand right of the deck table, the heatmap under it in the same column: {got}")
         elif not (got.get("forestPainted") and got.get("heatmapPainted")):
-            result["problems"].append(f"Forest beside: a canvas is blank: {got}")
+            result["problems"].append(f"Beside it: a canvas is blank: {got}")
         else:
-            result["steps"].append(f"forest beside the deck list ({got['width']} px)")
+            result["steps"].append(f"the forest and the heatmap beside the deck list ({got['width']} px)")
         mw.resize(*BESIDE_NARROW)
         QTimer.singleShot(RESIZE_MS, lambda: layout_at(narrow))
 
@@ -342,11 +342,11 @@ def beside():
         shot("deck-list-beside-narrow")
         t, f, h = got.get("table"), got.get("forest"), got.get("heatmap")
         if not (t and f and h) or not got.get("narrow") or not (f[1] >= t[3] and h[1] >= f[3]):
-            result["problems"].append(f"Forest beside: in a narrow window it should fall under the list: {got}")
+            result["problems"].append(f"Beside it: in a narrow window it should fall under the list: {got}")
         elif max(f[2], h[2]) > got["width"] + 1:
-            result["problems"].append(f"Forest beside, narrow: it reaches past the window's edge: {got}")
+            result["problems"].append(f"Beside it, narrow: it reaches past the window's edge: {got}")
         elif not (got.get("forestPainted") and got.get("heatmapPainted")):
-            result["problems"].append(f"Forest beside, narrow: a canvas is blank: {got}")
+            result["problems"].append(f"Beside it, narrow: a canvas is blank: {got}")
         else:
             result["steps"].append(f"under the list in a narrow window ({got['width']} px)")
         mw.addonManager.writeConfig(FOREST, state["cfg"])
@@ -361,7 +361,7 @@ def beside():
         QTimer.singleShot(0, visit)
 
     try:
-        mw.addonManager.writeConfig(FOREST, dict(state["cfg"], layout="forest_side", layout_side="right"))
+        mw.addonManager.writeConfig(FOREST, dict(state["cfg"], layout="beside", layout_side="right"))
         mw.resize(*BESIDE_WIDE)
         web.eval(MARK)
         mw.deckBrowser.refresh()

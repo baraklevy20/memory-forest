@@ -173,7 +173,7 @@
 
 /* the study calendar under the forest (web/calendar.js). Margins rather than gap throughout:
    Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
-/* Centered under the forest; calendar.js sets the width (85% by default). */
+/* Its Width (calendar.js AF.calendarFit), in the middle of where it stands */
 .af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
 /* the heatmap first (Layout's Heatmap first): 12px under its footer, which is the key's row alone,
    empty but on hover (the journal stays in the caption under the forest): about 37px from its
@@ -370,5 +370,21 @@ body.af-lay .af-slot-right { order: 3; margin: 4px 0 0 32px; }
    canvas drawn for a wider window (min-width: 0: a flex item's own is its content's) */
 body.af-lay .af-apart > .af-slot-below { flex: 0 0 var(--af-row); min-width: 0; box-sizing: border-box; margin: 28px calc((100% - var(--af-row)) / 2) 0; }
 body.af-lay .af-apart > .af-cal { width: auto !important; }  /* (calendar.js sets its share of the panel's width) */
+/* Above the list: the one on top a row of its own over the deck list, 28px over it as the one under
+   it is under it; the heatmap keeps 20px at its top for the controls over its months (as the heatmap
+   first in the panel does: .af-cal-first) */
+body.af-lay .af-apart > .af-slot-above { order: 0; flex: 0 0 var(--af-row); min-width: 0; box-sizing: border-box; margin: 0 calc((100% - var(--af-row)) / 2) 28px; }
+body.af-lay .af-apart > .af-cal.af-slot-above { padding-top: 20px; }
 /* a narrow window: the side columns fall under the list, in the order they stand (forest first) */
 body.af-lay.af-lay-narrow .af-slot-left, body.af-lay.af-lay-narrow .af-slot-right { order: 4; flex: 0 0 var(--af-row); min-width: 0; margin: 28px calc((100% - var(--af-row)) / 2) 0; }
+/* an Anki set to a right-to-left language (<html dir="rtl">): the row keeps Side's right and left as
+   they look. A flex row runs from the right there, so the forest set on the right stood on the left,
+   its 32px margin on the far side, touching the list; the list and Anki's line keep their own direction */
+[dir=rtl] body.af-lay > center { direction: ltr; }
+[dir=rtl] body.af-lay > center > :not(.af-panel) { direction: rtl; }
+/* a side column shorter than the window, beside a longer deck list: it stays in view as the list
+   scrolls (core.js AF.arrange, af-lay-sticky), 12px from the window's top */
+body.af-lay.af-lay-sticky:not(.af-lay-narrow) .af-slot-left, body.af-lay.af-lay-sticky:not(.af-lay-narrow) .af-slot-right { position: sticky; top: 12px; }
+/* a heatmap wider than the forest stacked with it (Heatmap width): the panel as wide as the heatmap,
+   the forest its own width in the middle (core.js AF.panelWidth) */
+.af-heat-wider:not(.af-apart) > .af-forest { max-width: var(--af-forest-w); margin-left: auto; margin-right: auto; }
