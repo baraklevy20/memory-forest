@@ -123,21 +123,26 @@ def moving(key: str) -> str | None:
     return path if os.path.exists(path) else None
 
 
-def mosaic(leave_out=()) -> QPixmap:
-    """Surprise me daily's picture: four sceneries it takes turns with, a quarter each - none
-    it leaves out (the next it has in their place, and the same again when it has fewer)."""
+def mosaic_keys(leave_out=(), day=None) -> list:
+    """The four sceneries Surprise me daily's picture shows on `day`: ones it takes turns with -
+    none it leaves out (the next it has in their place, and the same again when it has fewer),
+    and no holiday's out of its week."""
+    known = presets.by_key()
+    turns = [p.key for p in presets.surprise_turns(day) if p.key not in leave_out]
+    shown = [k for k in DAILY_MOSAIC if k in known and k not in leave_out]
+    shown += [k for k in turns if k not in shown and os.path.exists(os.path.join(PICTURES, f"{k}.png"))]
+    return (shown * 4)[:4] if shown else list(DAILY_MOSAIC)
+
+
+def mosaic(leave_out=(), day=None) -> QPixmap:
+    """Surprise me daily's picture: the four of `mosaic_keys`, a quarter each."""
     dpr = max(1, round(pixel_ratio()))
     out = QPixmap(PICTURE_W * dpr, PICTURE_H * dpr)
     out.fill(QColor(0, 0, 0, 0))
     p = QPainter(out)
     p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
     w, h = PICTURE_W * dpr // 2, PICTURE_H * dpr // 2
-    known = presets.by_key()
-    turns = [p.key for p in presets.surprise_turns(None) if p.key not in leave_out]
-    shown = [k for k in DAILY_MOSAIC if k in known and k not in leave_out]
-    shown += [k for k in turns if k not in shown and os.path.exists(os.path.join(PICTURES, f"{k}.png"))]
-    shown = (shown * 4)[:4] if shown else list(DAILY_MOSAIC)
-    for i, key in enumerate(shown[:4]):
+    for i, key in enumerate(mosaic_keys(leave_out, day)):
         raw = QPixmap(os.path.join(PICTURES, f"{key}.png"))
         if not raw.isNull():
             p.drawPixmap(QRect((i % 2) * w, (i // 2) * h, w, h), raw)
@@ -499,7 +504,7 @@ class SceneryPicker(QWidget):
         self.left_out = keys
         for t in self.tiles:
             if t.preset.key == presets.DAILY:
-                t.pix = mosaic(keys)
+                t.pix = mosaic(keys, self.shown_for[1] if self.shown_for else None)
                 t.update()
 
     def animate(self, on: bool) -> None:
@@ -529,7 +534,7 @@ class SceneryPicker(QWidget):
             tiles = []
             for p in members:
                 daily = p.key == presets.DAILY
-                tile = _Tile(p, mosaic(self.left_out) if daily else picture(p.key), None if daily else moving(p.key),
+                tile = _Tile(p, mosaic(self.left_out, day) if daily else picture(p.key), None if daily else moving(p.key),
                              f"Until {last_day(p, day)}" if p.season else "")
                 tile.many = self.many
                 tile.keep = lambda: len(self.ticked()) <= 1

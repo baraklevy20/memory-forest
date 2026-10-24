@@ -249,6 +249,11 @@ const PANEL_PAD = 24;
 /* (and wider when the heatmap asks to be, stacked under the list or on a deck's screen: Full width,
  * or Fixed wider than the Forest width; the forest then keeps its width in the middle, forest.css
  * .af-heat-wider) */
+/* (the panel's width under the list, its padding left out, in a row `room` css px across) */
+const panelWant = (data, room) => {
+  const want = data.calendar ? AF.calendarWant(data.calendar) : 0;
+  return data.calendar && AF.calendarFull(data.calendar) ? room : Math.max(data.maxWidth, typeof want === 'number' ? want : 0);
+};
 AF.panelWidth = (root, data) => {
   const pad = data.inAnki ? PANEL_PAD : 0;
   const want = data.inAnki && data.calendar ? AF.calendarWant(data.calendar) : 0;
@@ -269,7 +274,7 @@ AF.panelWidth = (root, data) => {
  * Width (85% of the forest by default, 85% of the room its place has, or 680 px: calendar.js
  * AF.calendarWant) in the room it has: stacked, the panel; apart, the row under or over the list (the
  * list and its side column, or the window's whole room) or its column beside the list. Narrower than
- * that room, it starts on its left edge. A side column takes the
+ * that room, it stands in its middle. A side column takes the
  * room the window has up to its width, and under its least (SIDE_MIN, SIDE_SHARE, HEAT_MIN) falls
  * under the list (af-lay-narrow), checked again on each resize of the window. Anywhere else (a deck's screen, the
  * finished-deck page, Onigiri's tile, the phone) the panel stays as it is. */
@@ -315,7 +320,9 @@ AF.arrange = function (root, data) {
     // (the row under or over the list: the list and its side column, or all the window's room)
     const row = narrow || !cols ? room : table.offsetWidth + cols * (SIDE_GAP + col);
     const forestW = Math.min(row, data.maxWidth);
-    if (!apart) size(root, forestW);
+    // (the panel in a row, over the list or fallen under it: as wide as it is under the list, wider
+    // than the forest for a heatmap that asks to be, AF.panelWidth; in a column, the column's width)
+    if (!apart) size(root, cols && !narrow ? forestW : Math.min(row, panelWant(data, row)));
     else {
       size(parts[1], forestW);
       // (the heatmap: its column beside the list, or in the row it stands in the width it asks for,

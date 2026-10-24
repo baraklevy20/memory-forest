@@ -13,7 +13,7 @@
         {
           "text": "Select heatmap days with Shift-click or Ctrl/Cmd-click to light up their trees."
         },
-        "Two new heatmap tile styles: Rime and Canes.",
+        "Misty mountain valley and Rainy bamboo grove now have their own heatmap tiles.",
         "Surprise me daily can skip sceneries you'd rather not see.",
         "A start date can now keep your earlier trees (Decks tab)."
       ],
@@ -63,10 +63,6 @@
               "bamboo"
             ]
           }
-        },
-        {
-          "text": "Starry night's sky swirls larger, and the lake now mirrors it.",
-          "needs": "scenery:starry_night"
         },
         "The forest now uses about 45% less CPU on average, and up to 75% less in some sceneries."
       ]

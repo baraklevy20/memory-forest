@@ -14,7 +14,7 @@ from unittest import mock
 
 import fake_anki
 from fake_anki import addon, mw, reset
-from helpers import CUTOFF, TODAY, ms
+from helpers import CUTOFF, TODAY, ms, out_of_season
 
 phone = importlib.import_module(f"{fake_anki.PACKAGE}.phone")
 study_log = importlib.import_module(f"{fake_anki.PACKAGE}.study_log")
@@ -475,7 +475,8 @@ class EditionTests(unittest.TestCase):
         col = Col()
         self.addCleanup(shutil.rmtree, col.media.folder, True)
         self.install("memory_forest_plus", "memory_forest_plus", "Memory Forest Plus")
-        with mock.patch.object(phone.mw, "col", col), mock.patch.object(phone, "config", lambda: {}):
+        # (out of a holiday's week, whose scenery would be saved into the config)
+        with mock.patch.object(phone.mw, "col", col), mock.patch.object(phone, "config", lambda: {}), out_of_season():
             phone.switch(True)  # the note is the switch, the same for both editions...
             self.assertTrue(addon.phone_note.phone_on(col))
             phone.publish()  # ... but only Plus writes the forest into it

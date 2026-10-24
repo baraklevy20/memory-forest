@@ -47,8 +47,8 @@ RESTORE_TITLE = "Restore defaults"
 RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
 RESTORE_QUESTION = "Put the settings back to their defaults?"
 RESTORE_NOTE = ("Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the "
-                "heatmap show (finished decks too) and their layout, the heatmap's view, week start, what its shades go by, its colours (Busier days too) and style, animation and the "
-                "planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your "
+                "heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, "
+                "what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your "
                 "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
                 "Cancel still puts back the settings you had before.")
 # the tab the dialog was left on, for the next time it opens while Anki is: kept in memory
@@ -331,6 +331,7 @@ class SettingsDialog(QDialog):
             env = self.custom.look().get("environment")
             key = next((p.key for p in presets.FOREST_PRESETS if p.environment == env), presets.FOREST_PRESETS[0].key)
         self.heatmap.set_scenery(key, dict(self._current(), **self.scenery.values(), **self.debug.values()))
+        self.heatmap.trees_kept(self.decks.since_on.isChecked() and self.decks.keep_trees.isChecked())
         self.heatmap.sync()
         self.decks.sync()
         self.debug.sync()

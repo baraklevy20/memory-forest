@@ -92,24 +92,63 @@ READY_LABELS = {"olive": "Olive", "lime": "Lime", "ice": "Ice", "magenta": "Mage
 # until the ready colours are chosen (2026-10-16); a Plus one this copy lacks isn't offered. Named
 # by its preset's label, as the scenery picker names it (presets.by_key()[key].label)
 SCENERY_READY = ("golden_lake", "misty_valley", "cherry_blossom", "starry_night", "aurora", "lanterns", "bamboo",
-                 "synthwave", "pumpkin_patch", "frozen_market")
+                 "synthwave", "chalkboard", "pumpkin_patch", "frozen_market")
 
 # each scenery's own colour(s) as calendar.js finds them (its `calendar`, or its most colourful
 # crown colour): for the settings' pictures, and for another scenery's colours on the heatmap
 # (page_look); a scenery's own the heatmap reads from the scenery itself. Written by
 # dev/heatmap_keys.py (npm run heatmap-keys) when a scenery is added or recoloured.
 KEYS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings", "heatmap_keys.json")
+# and what the forest's hour does to them (calendar.js hourOf), by the same script: each scenery's
+# day colours (`day`, its calendarDay), its colours for each hour (`hours`, its calendarHours) and
+# its night sky's tint (`tint`), each only where it has one
+HOURS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings", "heatmap_hours.json")
+
+
+def _read_json(path: str) -> dict:
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 @functools.lru_cache(maxsize=None)
 def own_keys() -> dict:
     """KEYS_FILE, read once (it changes only with a new build)."""
-    try:
-        with open(KEYS_FILE, encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
+    return _read_json(KEYS_FILE)
+
+
+@functools.lru_cache(maxsize=None)
+def own_hours() -> dict:
+    """HOURS_FILE, read once."""
+    return _read_json(HOURS_FILE)
+
+
+# what the forest's hour does to a scenery's own colours (calendar.js hourOf, HOUR_TURN and
+# DAY_SHARE: keep the two in step): a day scenery's turn towards its night tint after dark; a night
+# scenery's meet its day colours by day, halfway at dawn and golden hour
+HOUR_TURN = {"dusk": 0.1, "night": 0.35}
+AFTER_DARK = ("dusk", "night")
+DAY_SHARE = {"dawn": 0.5, "day": 1, "golden_hour": 0.5}
+
+
+def hour_of(env: str, time: str) -> dict | None:
+    """What the hour `time` (the forest's: mood.time) does to the environment's own colours, as
+    calendar.js hourOf has it: {"to", "share"} towards the colours it names for that hour or for the
+    day, {"turn", "tint"} after dark for a day scenery, or None where its own colours stand. The
+    scenery's own hour is its preset's (mood.home, scene.choose_mood)."""
+    spec = own_hours().get(env) or {}
+    home = next((p.time for p in presets.FOREST_PRESETS if p.environment == env), "day")
+    if spec.get("hours"):
+        to = spec["hours"].get(time)
+        return {"to": to, "share": 1} if to else None
+    if home in AFTER_DARK:
+        share = DAY_SHARE.get(time)
+        return {"to": spec["day"], "share": share} if share and spec.get("day") else None
+    turn = HOUR_TURN.get(time)
+    return {"turn": turn, "tint": spec["tint"]} if turn and spec.get("tint") else None
 
 
 def _hex_ok(value) -> bool:
@@ -283,12 +322,15 @@ def page_look(cfg: dict, mood: dict) -> dict:
             "smooth": smooth(cfg, here), "gap": tile_gap(cfg, here), **corners}
 
 
-def preview_look(cfg: dict, here_env: str) -> dict:
+def preview_look(cfg: dict, here_env: str, time: str = "") -> dict:
     """What the settings' pictures draw for the choice in `cfg` while the scenery's environment is
-    `here_env`: page_look's, its `colours` always filled in (a scenery's own read from KEYS_FILE)."""
+    `here_env`: page_look's, its `colours` always filled in (a scenery's own read from KEYS_FILE),
+    and a scenery's own at the forest's hour `time` (`hour`: hour_of), as the heatmap wears them
+    just now; colours chosen (yours, a ready ramp, another scenery's) stay as chosen, as there."""
     look = page_look(cfg, {"special": here_env})
     if look["colours"] is None:
         look["colours"] = scenery_own(here_env)
+        look["hour"] = hour_of(here_env, time) if time else None
     return look
 
 
@@ -416,13 +458,52 @@ def exact_steps(colours, bg, dark: bool) -> list:
     return [at(i, f) for i in range(3)] + [b]
 
 
-def shades(colours, bg, dark: bool, exact: bool = False, flip_light: bool = False, darker: bool = False) -> list:
+def _keys_of(colours) -> list:
+    """A colour, or two for a ramp, as the four shades' key colours (calendar.js keysOf)."""
+    if isinstance(colours, (list, tuple)):
+        return [readable(blend(hexc(colours[0]), hexc(colours[1]), i / 3)) for i in range(4)]
+    return [readable(hexc(colours))] * 4
+
+
+def hour_turn(c, hour: dict) -> tuple:
+    """A colour's hue turned `hour["turn"]` of the way towards the night tint, the short way round,
+    its lightness kept (calendar.js hourTurn)."""
+    k, t = oklab(c), oklab(hexc(hour["tint"]))
+    h, to = math.atan2(k[2], k[1]), math.atan2(t[2], t[1])
+    turned = h + math.atan2(math.sin(to - h), math.cos(to - h)) * hour["turn"]
+    C = math.hypot(k[1], k[2])
+    while C > 0.01 and not fits(k[0], C * math.cos(turned), C * math.sin(turned)):
+        C *= 0.95
+    return from_oklab(k[0], C * math.cos(turned), C * math.sin(turned))
+
+
+def day_blend(a, b, t: float) -> tuple:
+    """`t` of the way from colour `a` to `b` by hue (the short way round) and colourfulness
+    (calendar.js dayBlend)."""
+    if t >= 1:
+        return b
+    p, q = oklab(a), oklab(b)
+    hp, hq = math.atan2(p[2], p[1]), math.atan2(q[2], q[1])
+    h = hp + math.atan2(math.sin(hq - hp), math.cos(hq - hp)) * t
+    L = p[0] + (q[0] - p[0]) * t
+    C = math.hypot(p[1], p[2]) + (math.hypot(q[1], q[2]) - math.hypot(p[1], p[2])) * t
+    while C > 0.01 and not fits(L, C * math.cos(h), C * math.sin(h)):
+        C *= 0.95
+    return from_oklab(L, C * math.cos(h), C * math.sin(h))
+
+
+def shades(colours, bg, dark: bool, exact: bool = False, flip_light: bool = False, darker: bool = False,
+           hour: dict | None = None) -> list:
     """The four shades of a day studied, fewest reviews to most, each (its colour, its darker
     tone, its edge), for `colours` (one, or two for a ramp) on a page of colour `bg` (calendar.js
     shades). `exact`: colours you picked (exact_steps); `flip_light`: a ready ramp the other way
-    round on a light page, its deep colour the busiest; `darker`: a dark page's run the other way (busier)."""
+    round on a light page, its deep colour the busiest; `darker`: a dark page's run the other way (busier);
+    `hour`: what the forest's hour does to a scenery's own colours (hour_of)."""
     pair = isinstance(colours, (list, tuple))
-    keys = [readable(blend(hexc(colours[0]), hexc(colours[1]), i / 3)) for i in range(4)] if pair else [readable(hexc(colours))] * 4
+    keys = _keys_of(colours)
+    if hour and not exact:
+        keys = ([day_blend(keys[i], c, hour["share"]) for i, c in enumerate(_keys_of(hour["to"]))] if hour.get("to")
+                else [hour_turn(c, hour) for c in keys])
     steps = []
     for i, L in enumerate(DARK_STEPS if dark else LIGHT_STEPS):
         k = oklab(keys[i])

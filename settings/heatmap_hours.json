@@ -1,0 +1,64 @@
+{
+ "natural": {
+  "tint": "#141d3c"
+ },
+ "bamboo": {
+  "tint": "#141d3c"
+ },
+ "lanterns": {
+  "day": "#a44a5a",
+  "tint": "#1d1530"
+ },
+ "synthwave": {
+  "hours": {
+   "dawn": [
+    "#2e2a7a",
+    "#ffa0c8"
+   ],
+   "day": [
+    "#2e2a7a",
+    "#ff9ad8"
+   ],
+   "golden_hour": [
+    "#2e2a7a",
+    "#ff8a3a"
+   ],
+   "night": [
+    "#2e2a7a",
+    "#35e0ff"
+   ]
+  }
+ },
+ "aurora": {
+  "day": [
+   "#2f6e58",
+   "#4a80c4"
+  ],
+  "tint": "#0a1a2a"
+ },
+ "misty_valley": {
+  "tint": "#141d3c"
+ },
+ "starry_night": {
+  "day": [
+   "#3c7cc8",
+   "#5aa88c"
+  ],
+  "tint": "#0a1440"
+ },
+ "pumpkin_patch": {
+  "day": [
+   "#4e7a2a",
+   "#ff8e3c"
+  ]
+ },
+ "frozen_market": {
+  "day": [
+   "#2a6a44",
+   "#5c84ba"
+  ]
+ },
+ "cherry_blossom": {
+  "tint": "#141a3c"
+ }
+}

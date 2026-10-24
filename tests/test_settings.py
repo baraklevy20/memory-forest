@@ -68,6 +68,7 @@ class RestoreDefaultsTests(unittest.TestCase):
         self.assertIn("Peaceful", note)
         for kept in ("decks you left out", "start date", "suspended", "phone"):
             self.assertIn(kept, note)
+        self.assertIn("its width and what fills it", note.split("Keeps:")[0])  # (the Heatmap tab's Width and Fill it with: reset)
 
     def test_what_it_says_it_keeps_is_what_it_keeps(self):
         self.assertEqual(set(dialog.DATA_KEYS), {"excluded_decks", "ignore_before", "keep_earlier_trees", "keep_suspended", "calendar_record",

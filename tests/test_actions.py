@@ -118,7 +118,7 @@ class ActionTests(unittest.TestCase):
             opened.assert_not_called()
         with mock.patch.object(actions, "browse_calendar_days") as browse:
             actions.on_js_message((False, None), f"{addon.state.MODULE}:days:-9_-2,-1_-1:10:median", actions.DeckBrowser())
-            browse.assert_called_once_with([(-9, -2), (-1, -1)], 10, "median")
+            browse.assert_called_once_with([(-9, -2), (-1, -1)], 10, "median", False)
 
     def test_days_picked_labels_and_runs_as_the_page_sends_them(self):
         with mock.patch.object(actions.study_log, "days_answer_times", return_value={7: 1500}) as times, \
@@ -145,7 +145,29 @@ class ActionTests(unittest.TestCase):
         # (the message: runs, deck (none on the deck list) and the shade)
         with mock.patch.object(actions, "browse_calendar_days") as browse:
             actions.on_js_message((False, None), f"{addon.state.MODULE}:days:-451_-430,-32_-32::reviews", actions.DeckBrowser())
-            browse.assert_called_once_with([(-451, -430), (-32, -32)], None, "reviews")
+            browse.assert_called_once_with([(-451, -430), (-32, -32)], None, "reviews", False)
+            browse.reset_mock()
+            actions.on_js_message((False, None), f"{addon.state.MODULE}:days:-3_0::reviews:due", actions.DeckBrowser())
+            browse.assert_called_once_with([(-3, 0)], None, "reviews", True)
+
+    def test_days_picked_with_today_before_it_is_studied_open_its_cards_due_too(self):
+        """A click on today, unstudied, opens its cards due: a selection holding it does the same."""
+        def search(db, d, today, due=False):
+            return ["is:due", "-is:suspended", "-is:buried"] if due else [f"prop:due={d}"]
+        with mock.patch.object(actions.study_log, "calendar_search", side_effect=search), \
+                mock.patch.object(actions.study_log, "days_card_totals", return_value={7: 3}), \
+                mock.patch.object(actions, "_open_browser") as opened:
+            actions.browse_calendar_days([(-3, 0)], None, "reviews", True)
+            self.assertEqual(opened.call_args.args[0], ["(prop:rated>=-3 OR (is:due -is:suspended -is:buried))"])
+            # (today alone, nothing answered yet: its cards due, no column)
+            with mock.patch.object(actions.study_log, "days_card_totals", return_value={}):
+                actions.browse_calendar_days([(0, 0)], 10, "reviews", True)
+            self.assertEqual(opened.call_args.args, (["(is:due -is:suspended -is:buried)"], 10))
+            # (and with today studied, or not in the selection, nothing due today joins in)
+            actions.browse_calendar_days([(-3, 0)], None, "reviews")
+            self.assertEqual(opened.call_args.args[0], ["prop:rated>=-3"])
+            actions.browse_calendar_days([(-5, -2)], None, "reviews", True)
+            self.assertEqual(opened.call_args.args[0], ["(prop:rated=-5 OR prop:rated=-4 OR prop:rated=-3 OR prop:rated=-2)"])
 
     def test_metric_modes_are_forwarded_from_heatmap_clicks(self):
         for mode in ("reviews", "time", "median"):

@@ -62,15 +62,18 @@ def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, 
     _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did, values, label, answer_mode)
 
 
-def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = "") -> None:
+def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = "", due_today: bool = False) -> None:
     """Open the browser on the cards reviewed on the days picked on the heatmap (web/calendar.js:
     Shift-click a stretch, Cmd/Ctrl-click a day), `runs` of them as (first, last) days from today
     (0: today), with their reviews, time or median answer time over those days beside them; days
-    ahead open their cards due, as a day ahead clicked does."""
+    ahead open their cards due, as a day ahead clicked does, and so does today with `due_today`
+    (picked before you have studied: the cards its tile counts, as today clicked opens them)."""
     picked = sorted((min(a, b), max(a, b)) for a, b in runs)
     ahead = [d for a, b in picked for d in range(max(a, 1), b + 1)]
     runs = [(a, min(b, 0)) for a, b in picked if a <= 0]
     due = [t for d in ahead for t in study_log.calendar_search(mw.col.db, d, mw.col.sched.today)]
+    if due_today and any(a <= 0 <= b for a, b in picked):  # (its terms together: due, not suspended, not buried)
+        due.insert(0, "(" + " ".join(study_log.calendar_search(mw.col.db, 0, mw.col.sched.today, True)) + ")")
     if not runs:
         if due:
             _open_browser([study_log._any_of(due)], did)
@@ -176,7 +179,7 @@ def on_js_message(handled, message, context):
                                 cmd[3] if len(cmd) > 3 else "")
         elif cmd[0] == "days" and len(cmd) > 1:  # days picked on the heatmap, clicked
             browse_calendar_days(_days_picked(cmd[1]), int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,
-                                 cmd[3] if len(cmd) > 3 else "")
+                                 cmd[3] if len(cmd) > 3 else "", len(cmd) > 4 and cmd[4] == "due")
         elif cmd[0] == "browse":
             browse_day(int(cmd[1]),
                        int(cmd[2]) if len(cmd) > 2 and cmd[2] else None,

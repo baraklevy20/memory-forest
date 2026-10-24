@@ -420,6 +420,23 @@ class HeatmapTabTests(QtCase):
         h.streak_from.buttons[True].click()
         done_saves(self, d, {"streak_from_start": True})
 
+    def test_with_the_earlier_trees_kept_the_streak_stays_your_pick(self):
+        # (the heatmap shows the days before the start date all the same: payload._calendar)
+        d = self.open_dialog({"ignore_before": "2026-09-01", "keep_earlier_trees": True, "calendar_record": False})
+        h = d.heatmap
+        Q.settle()
+        self.assertTrue(h.streak_from.isEnabled())
+        self.assertFalse(h.streak_from.currentData())
+        d.decks.keep_trees.click()  # (the trees before it gone: the start date decides it again)
+        Q.settle()
+        self.assertFalse(h.streak_from.isEnabled())
+        self.assertTrue(h.streak_from.currentData())
+        d.decks.keep_trees.click()
+        Q.settle()
+        self.assertTrue(h.streak_from.isEnabled())
+        self.assertFalse(h.streak_from.currentData())
+        done_saves(self, d, {"ignore_before": "2026-09-01", "keep_earlier_trees": True, "calendar_record": False})
+
     def test_days_off_count_from_the_day_they_are_chosen(self):
         d = self.open_dialog()
         d.heatmap.streak_week.buttons[5].click()
@@ -706,6 +723,19 @@ class DecksTabTests(QtCase):
         self.assertIn("2 earlier ones left out", dk.summary.text())
         done_saves(self, d, {"ignore_before": start.isoformat()})
 
+    def test_the_start_date_s_hint_follows_it_without_the_tree_counts(self):
+        d = self.open_dialog()
+        Q.settle()
+        dk = d.decks
+        dk.days = None  # (the collection couldn't be read: no counts, recount does nothing)
+        dk.since_on.click()
+        Q.settle()
+        self.assertIn("grow no trees", dk.since_hint.text())
+        dk.keep_trees.click()
+        Q.settle()
+        self.assertIn("Your trees from before it stay", dk.since_hint.text())
+        self.cancel(d)
+
     def test_the_start_date_goes_no_later_than_today(self):
         d = self.open_dialog()
         today = addon.scope.anki_today()
@@ -934,3 +964,24 @@ class SurpriseTests(QtCase):
         Q.settle()
         self.assertEqual(saved(), {})
         self.assertEqual(self.dialog.scenery.surprise.left_out, set())
+
+    def test_with_every_one_offered_left_out_all_show_ticked(self):
+        # as the forest has it: a holiday kept alone and gone with its week, or only Plus's
+        # kept in the base edition, and every one takes turns
+        every = [k for k in addon.presets.by_key() if k != "daily"]
+        d, page = self.open_page({"surprise_left_out": every})
+        self.assertTrue(page.offered)
+        self.assertEqual(sorted(page.picker.ticked()), sorted(page.offered))
+        self.assertIn(f"(all {len(page.offered)})", d.scenery.surprise_link.text())
+        self.surprise_tile(page, "synthwave").click()  # unticking one leaves out that one alone
+        Q.let_save()
+        self.assertEqual([k for k in saved()["surprise_left_out"] if k in page.offered], ["synthwave"])
+
+    def test_the_mosaic_shows_no_holiday_out_of_its_week(self):
+        # (all but one left out, bar the holidays, so the next ones take the others' place)
+        sp, specs = addon.settings.scenery_picker, addon.presets.by_key()
+        leave_out = {k for k, p in specs.items() if not p.season and k != "golden_lake"}
+        for n in range(366):
+            day = datetime.date(2026, 9, 1) + datetime.timedelta(days=n)
+            shown = sp.mosaic_keys(leave_out, day)
+            self.assertEqual([k for k in shown if not addon.presets.unlocked(specs[k], day)], [], day)

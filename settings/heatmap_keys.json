@@ -9,7 +9,10 @@
   "#2e2a7a",
   "#ff4fa3"
  ],
- "aurora": "#627a9c",
+ "aurora": [
+  "#4a80c4",
+  "#58b48a"
+ ],
  "misty_valley": "#468478",
  "starry_night": "#3a5aa8",
  "pumpkin_patch": [

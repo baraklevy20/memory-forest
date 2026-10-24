@@ -126,33 +126,42 @@ def left_out(cfg: dict) -> set:
     return {k for k in keys if isinstance(k, str)} if isinstance(keys, list) else set()
 
 
-# how many days back of_the_day starts its run of turns, so a day is never yesterday's again
-TURN_RUN_DAYS = 7
-
-
 def _turns(date, presets, leave_out) -> list:
     every = surprise_turns(date, presets)
     return [p for p in every if p.key not in leave_out] or every
+
+
+def _season_changes(date, presets) -> list:
+    """The days up to `date` on which a seasonal preset comes or goes: its week's first day,
+    and the day after its last, each year from the one it arrives."""
+    days = set()
+    for p in presets:
+        if p.season:
+            first, starts, ends = p.season
+            for year in range(first.year, date.year + 1):
+                days.add(_dt.date(year, *starts))
+                days.add(_dt.date(year, *ends) + _dt.timedelta(days=1))
+    return sorted(d for d in days if d <= date)
 
 
 def of_the_day(date, presets=FOREST_PRESETS, leave_out=()) -> Preset:
     """Today's preset for Surprise me daily: they take turns, one a day, so a new one
     comes every day and each comes round again after as many days as there are. A seasonal
     preset takes turns in its week. Its coming and going changes how many there are, which
-    could give a day yesterday's preset again: that day takes the next one in turn instead
-    (the days are followed from TURN_RUN_DAYS back, so every day comes out the same). Those in
-    `leave_out` take no turn; with every one left out (a config edited by hand, or a copy
-    without the ones kept), they all take turns again, as there is always a scenery."""
-    before = None
-    for back in range(TURN_RUN_DAYS, -1, -1):
-        day = date - _dt.timedelta(days=back)
-        turn = _turns(day, presets, leave_out)
-        i = day.toordinal() % len(turn)
-        pick = turn[i]
-        if pick is before and len(turn) > 1:
-            pick = turn[(i + 1) % len(turn)]
-        before = pick
-    return before
+    could give a day yesterday's preset again: from that day on they take turns one further
+    along, until the next change (the changes are followed from the first, so every day comes
+    out the same, and the turns go back to their own place whenever that gives no repeat).
+    Those in `leave_out` take no turn; with every one left out (a config edited by hand, or a
+    copy without the ones kept), they all take turns again, as there is always a scenery."""
+    shift = 0
+    for day in _season_changes(date, presets):
+        before, turn = _turns(day - _dt.timedelta(days=1), presets, leave_out), _turns(day, presets, leave_out)
+        if turn == before:  # (one left out: nothing changes)
+            continue
+        yesterday = before[(day.toordinal() - 1 + shift) % len(before)]
+        shift = 1 if turn[day.toordinal() % len(turn)] == yesterday and len(turn) > 1 else 0
+    turn = _turns(date, presets, leave_out)
+    return turn[(date.toordinal() + shift) % len(turn)]
 
 
 def in_season(date, presets=FOREST_PRESETS) -> Preset | None:

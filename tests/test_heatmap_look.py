@@ -185,6 +185,66 @@ class SceneryColourTests(unittest.TestCase):
         for env in shipped_envs():
             self.assertIn(env, keys, f"{env} has no colour in settings/heatmap_keys.json: npm run heatmap-keys")
 
+    def test_the_listed_colours_are_the_sceneries_own(self):
+        # (a scenery recoloured since the files were written draws the Heatmap tab's pictures wrong)
+        import re
+        for env in shipped_envs():
+            path = os.path.join(ADDON_DIR, "web", "envs", f"{env}.js")
+            if not os.path.exists(path):
+                continue
+            with open(path, encoding="utf-8") as f:
+                js = f.read()
+            for name, listed in (("calendar", HL.own_keys().get(env)), ("calendarDay", (HL.own_hours().get(env) or {}).get("day"))):
+                found = re.search(rf"^\s*{name}: (\[[^\]]*\]|'#[0-9a-fA-F]{{6}}'),", js, re.M)
+                if found:
+                    self.assertEqual(listed, json.loads(found.group(1).replace("'", '"')),
+                                     f"{env}'s {name} has changed: npm run heatmap-keys")
+
+
+    def test_chalkboard_s_colours_are_offered_where_chalkboard_is(self):
+        for edition, env in (("plus", "chalkboard"), ("base", None)):
+            pretend = {"debug": True, "debug_edition": edition}
+            if addon.edition.debug_available(pretend) and HL.debug_edition(pretend):
+                self.assertEqual(HL.scenery_ready_env("chalkboard", pretend), env, edition)
+
+
+class HourTests(unittest.TestCase):
+    """The Heatmap tab's pictures wear a scenery's colours at the forest's hour, as calendar.js
+    hourOf does (a check against calendar.js itself matched every shipped scenery at every hour)."""
+
+    def test_the_hour_s_numbers_are_calendar_js_s(self):
+        with open(os.path.join(ADDON_DIR, "web", "calendar.js"), encoding="utf-8") as f:
+            js = f.read()
+        self.assertIn("HOUR_TURN = { dusk: 0.1, night: 0.35 }, AFTER_DARK = ['dusk', 'night']", js)
+        self.assertIn("DAY_SHARE = { dawn: 0.5, day: 1, golden_hour: 0.5 }", js)
+        self.assertEqual(HL.HOUR_TURN, {"dusk": 0.1, "night": 0.35})
+        self.assertEqual(HL.DAY_SHARE, {"dawn": 0.5, "day": 1, "golden_hour": 0.5})
+
+    def test_a_day_scenery_keeps_its_colours_while_the_sun_is_up_and_cools_after_dark(self):
+        for time in ("dawn", "day", "golden_hour"):
+            self.assertIsNone(HL.hour_of("natural", time))
+        self.assertEqual(HL.hour_of("natural", "night")["turn"], 0.35)
+        self.assertEqual(HL.hour_of("natural", "dusk")["turn"], 0.1)
+
+    def test_a_night_scenery_wears_its_day_colours_by_day(self):
+        day = HL.own_hours()["aurora"]["day"]
+        self.assertEqual(HL.hour_of("aurora", "day"), {"to": day, "share": 1})
+        self.assertEqual(HL.hour_of("aurora", "golden_hour"), {"to": day, "share": 0.5})
+        self.assertIsNone(HL.hour_of("aurora", "night"))
+
+    def test_synthwave_wears_each_hour_s_own(self):
+        self.assertEqual(HL.hour_of("synthwave", "day")["to"], HL.own_hours()["synthwave"]["hours"]["day"])
+        self.assertIsNone(HL.hour_of("synthwave", "dusk"))  # (its own colours at the rest)
+
+    def test_the_scenery_s_own_colours_follow_the_hour_and_chosen_ones_stay(self):
+        dark = (HL.PAGES["dark"], True)
+        plain = HL.shades(HL.scenery_own("aurora"), *dark)
+        look = HL.preview_look({}, "aurora", "day")
+        self.assertNotEqual(HL.shades(look["colours"], *dark, hour=look["hour"]), plain)
+        self.assertIsNone(HL.preview_look({}, "aurora", "night")["hour"])
+        self.assertNotIn("hour", HL.preview_look({"calendar_colours": "ready:aurora"}, "natural", "day"))
+        self.assertNotIn("hour", HL.preview_look({"calendar_colours": "ready:flame"}, "aurora", "day"))
+
 
 class ShadeTests(unittest.TestCase):
     DARK, LIGHT = HL.PAGES["dark"], HL.PAGES["light"]

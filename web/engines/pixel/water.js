@@ -8,6 +8,8 @@ const { rng, hex, mix, mixHex, layer } = AF.u;
 const GLITTER_CHANCE = 0.7;
 // the middle of the cabin's lit window, from its left edge (visitors.js draws it there)
 const CABIN_WINDOW_X = 8;
+// the furthest the ripple shifts a row of the reflection, in pixels (drawWater: under 2 px of sway, rounded)
+const RIPPLE_MAX = 2;
 // what the weather leaves of the sun or moon on the water
 const VEIL = { cloudy: 0.35, fog: 0.3, snow: 0.5 };
 
@@ -27,9 +29,16 @@ function orbShows(env) {
 AF.drawWater = function (g, env, t) {
   const L = env.water; if (!L) return;
   const W = env.W, still = env.theme.frozen;
-  for (let j = 0; j < L.lh; j++) { const off = still ? 0 : Math.round(Math.sin(t * AF.u.cyc(0.9) + j * 0.7) * (j < 3 ? 0 : 1 + j / L.lh)); g.drawImage(L.rf, 0, j, W, 1, off, L.y0 + j, W, 1);
-    // (the part shifted off one edge comes back in at the other, so no ground shows at the edges)
-    if (off) g.drawImage(L.rf, 0, j, W, 1, off - Math.sign(off) * W, L.y0 + j, W, 1); }
+  // (the part shifted off one edge comes back in at the other, so no ground shows at the edges:
+  // the reflection is copied once with RIPPLE_MAX columns of each edge wrapped round onto the
+  // other, so a shifted row is still one copy. Copied from the reflection as it is first drawn,
+  // after any environment has laid its own surface on it, at build.)
+  if (!L.wrap || L.wrap.of !== L.rf) {
+    const w = L.rf.width, [cv, wg] = layer(w + 2 * RIPPLE_MAX, L.rf.height);
+    wg.drawImage(L.rf, RIPPLE_MAX, 0); wg.drawImage(L.rf, RIPPLE_MAX - w, 0); wg.drawImage(L.rf, RIPPLE_MAX + w, 0);
+    L.wrap = { of: L.rf, cv };
+  }
+  for (let j = 0; j < L.lh; j++) { const off = still ? 0 : Math.round(Math.sin(t * AF.u.cyc(0.9) + j * 0.7) * (j < 3 ? 0 : 1 + j / L.lh)); g.drawImage(L.wrap.cv, RIPPLE_MAX - off, j, W, 1, 0, L.y0 + j, W, 1); }
   const o = env.theme.orb;
   if (o && !still) {
     const ox = Math.round(W * o.x), R = rng(Math.floor(t * 2));

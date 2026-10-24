@@ -92,6 +92,14 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual((data["trees"], data["journal"]), (PAGE["trees"], PAGE["journal"]))
         self.assertEqual((data["inAnki"], data["script"], data["v"]), (False, "_memory_forest-abc.js", phone_data.VERSION))
 
+    def test_the_phone_is_sent_only_the_layout_s_first(self):
+        # (it stacks the two in that order: where they sit round the deck list is the computer's alone)
+        page = dict(PAGE, layout={"forest": "left", "heatmap": "below", "first": "heatmap"})
+        data = phone_data.phone_payload(page, {}, NOW, "x.js")
+        self.assertEqual(data["layout"], {"first": "heatmap"})
+        moved = phone_data.phone_payload(dict(page, layout={"forest": "above", "heatmap": "above", "first": "heatmap"}), {}, NOW, "x.js")
+        self.assertTrue(phone_data.same_forest(phone_data.encode(data), moved))
+
     def test_a_strike_only_plays_on_the_phone_when_asked(self):
         # the desktop plays it and says it has been seen; the phone can't, so it only replays
         self.assertEqual(self.payload()["strike"], {"fresh": False})

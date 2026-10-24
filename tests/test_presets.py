@@ -157,6 +157,32 @@ class SeasonTests(unittest.TestCase):
         # and the same, left out
         self.assertNotIn(HARVEST, [presets.of_the_day(day, CATALOGUE, {"harvest_week"}) for day in days])
 
+    def test_surprise_me_never_repeats_a_day_in_years_of_seasons(self):
+        # the turn one further along after a season's change is kept until the next one: once
+        # it was forgotten a week on, and that day was the day before's again
+        def repeats(catalogue, leave_out, days):
+            picks = [presets.of_the_day(day, catalogue, leave_out) for day in days]
+            return [day for day, a, b in zip(days[1:], picks, picks[1:])
+                    if a == b and len(presets._turns(day, catalogue, leave_out)) > 1]
+
+        days = [D(2026, 9, 1) + datetime.timedelta(days=n) for n in range(4 * 365)]
+        try:
+            with open(os.path.join(os.path.dirname(presets.__file__), "editions.json"), encoding="utf-8") as f:
+                eds = json.load(f)
+            editions = {name: eds[name]["envs"] for name in ("base", "plus")}
+        except OSError:  # the public copy is one edition: every scenery here
+            editions = {"every": [p.environment for p in presets.FOREST_PRESETS]}
+        for name, envs in editions.items():
+            catalogue = tuple(p for p in presets.FOREST_PRESETS if p.environment in envs or p.key == presets.DAILY)
+            keys = [p.key for p in catalogue if p.key != presets.DAILY]
+            for leave_out in [(), *[{k} for k in keys], set(keys[::2]), set(keys[1::3])]:
+                with self.subTest(edition=name, left_out=sorted(leave_out)):
+                    self.assertEqual(repeats(catalogue, set(leave_out), days), [])
+        # and the made-up catalogue, its season with only one other left
+        days = [D(2026, 1, 1) + datetime.timedelta(days=n) for n in range(5 * 365)]
+        for leave_out in ((), {"plain"}, {"other"}):
+            self.assertEqual(repeats(CATALOGUE, set(leave_out), days), [])
+
     def test_surprise_me_leaves_out_what_it_is_told(self):
         days = [D(2026, 9, 1) + datetime.timedelta(days=n) for n in range(30)]
         self.assertEqual({presets.of_the_day(day, CATALOGUE, {"other"}) for day in days}, {PLAIN})

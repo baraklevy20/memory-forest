@@ -467,11 +467,12 @@ def day_card_totals(db, day_cutoff: int, offset: int, mode: str) -> dict:
 
 def _days_where(day_cutoff: int, runs: list) -> tuple:
     """The revlog ids of the days in `runs` ((first, last) offsets from today, 0 today), as a
-    where clause and its arguments."""
+    where clause and its arguments: nested as _any_of nests a search, so a thousand days picked
+    apart stay within SQLite's depth (Anki 2.1.50: "Expression tree is too large")."""
     args = []
     for first, last in runs:
         args += [(day_cutoff + (first - 1) * DAY_SECS) * 1000, (day_cutoff + last * DAY_SECS) * 1000]
-    return "(" + " or ".join(["(id >= ? and id < ?)"] * len(runs)) + ")", args
+    return _any_of(["(id >= ? and id < ?)"] * len(runs), " or "), args
 
 
 def days_answer_times(db, day_cutoff: int, runs: list) -> dict:
@@ -537,16 +538,17 @@ def calendar_days_search(runs: list) -> list:
 OR_FLAT = 64  # terms side by side in one group, at most: see _any_of
 
 
-def _any_of(terms: list) -> str:
+def _any_of(terms: list, joint: str = " OR ") -> str:
     """`terms` joined by OR, in nested groups of at most OR_FLAT: SQLite reads a flat chain of
     a thousand as a tree a thousand deep and gives up ("Expression tree is too large (maximum
-    depth 1000)"): three years of days picked, a day dropped in the middle."""
+    depth 1000)"): three years of days picked, a day dropped in the middle. (`joint`: SQL's own
+    " or ", for _days_where.)"""
     if len(terms) == 1:
         return terms[0]
     if len(terms) > OR_FLAT:
         step = -(-len(terms) // OR_FLAT)
-        terms = [_any_of(terms[i:i + step]) for i in range(0, len(terms), step)]
-    return "(" + " OR ".join(terms) + ")"
+        terms = [_any_of(terms[i:i + step], joint) for i in range(0, len(terms), step)]
+    return "(" + joint.join(terms) + ")"
 
 
 def days_ago(ts_seconds: float, day_cutoff: int) -> int:

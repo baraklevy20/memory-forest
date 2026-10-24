@@ -144,6 +144,8 @@ function span(b, x, y0, y1, c) {
     d[i + 3] = oa * 255;
   }
 }
+// the rim of ice along the lake's shore: the pieces catching the light, and the rest
+const ICE_HI = [236, 246, 255, 0.85], ICE_LO = [190, 214, 236, 0.45];
 /* 'r,g,b' and an alpha, as [r, g, b, a] */
 const rgba = (rgb, a) => rgb.split(',').map(Number).concat(a);
 
@@ -282,10 +284,11 @@ AF.env('aurora', {
         if (r1 > r0) span(B, x + wob, r0 - L.y0, r1 - L.y0, dim(c));
       }
     } });
-    blit(B, g, L.y0);
-    // a broken rim of ice along the shore, catching the light
+    // a broken rim of ice along the shore, catching the light, over the curtains' reflection
+    // (in the buffer too: as canvas pixels it was a couple of hundred fills a frame)
     if (!env._ice) { const R = rng(77); env._ice = []; for (let x = 0; x < W; x++) { const r = R(); if (r < 0.5) env._ice.push([x, 0, r < 0.12]); if (r < 0.08) env._ice.push([x, 1, false]); } }
-    for (const [x, dy, hi] of env._ice) { g.fillStyle = hi ? 'rgba(236,246,255,.85)' : 'rgba(190,214,236,.45)'; g.fillRect(x, L.y0 + dy, 1, 1); }
+    for (const [x, dy, hi] of env._ice) span(B, x, dy, dy + 1, hi ? ICE_HI : ICE_LO);
+    blit(B, g, L.y0);
   },
 });
 })();

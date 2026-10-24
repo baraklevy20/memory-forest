@@ -123,6 +123,10 @@ def phone_payload(page: dict, cfg: dict, now: _dt.datetime, script: str, real: d
     # click through to on the phone
     if data.get("calendar"):
         data["calendar"] = dict(data["calendar"], browse=False)
+    # the layout's First alone: the phone stacks the two in that order, with no deck list to place
+    # them round (web/core.js AF.arrange), so a layout changed on the computer uploads nothing
+    if isinstance(data.get("layout"), dict):
+        data["layout"] = {"first": data["layout"].get("first", "forest")}
     data.update(
         v=VERSION,
         script=script,

@@ -4,6 +4,8 @@ heatmap's key. The heatmap behind the dialog is the preview."""
 
 from __future__ import annotations
 
+import datetime as _dt
+
 from aqt.qt import (
     QButtonGroup,
     QCheckBox,
@@ -31,7 +33,8 @@ from aqt.qt import (
 from aqt.theme import theme_manager
 
 from .. import heatmap_look as HL
-from .. import presets
+from .. import presets, scene
+from ..live_weather import for_config
 from ..seasons import today
 from .widgets import JoinedChoice, form, hint, picture_button_style, pixel_ratio
 
@@ -80,6 +83,16 @@ def page_bg() -> tuple:
     return HL.PAGES["dark" if getattr(theme_manager, "night_mode", False) else "light"], getattr(theme_manager, "night_mode", False)
 
 
+def forest_hour(cfg: dict) -> str:
+    """The forest's hour just now (mood.time: the clock, the city's sun or a fixed hour), as
+    payload.py finds it for the scenery's day, so the pictures wear the colours the heatmap does."""
+    real, place, _error = for_config(cfg)
+    try:
+        return scene.choose_mood(cfg, _dt.datetime.combine(today(cfg), _dt.datetime.now().time()), real, place)["time"]
+    except Exception:  # (a hand-edited config it can't read: the scenery's colours as they are)
+        return ""
+
+
 def _pixmap(pixels: dict, w: int, h: int, scale: int = 1) -> QPixmap:
     """Pixels ((x, y) -> colour) as a picture, each pixel `scale` points, crisp on the screen."""
     img = QImage(w, h, QImage.Format.Format_ARGB32)
@@ -106,7 +119,8 @@ def strip(look: dict, drawer: str = HL.TILE_DEFAULT, sample: bool = False, page:
     with smooth corners (`smooth`: (radius, grow) in the heatmap's pixels), each tile's face a
     rounded square drawn smooth, as the heatmap draws it."""
     bg, dark = page or page_bg()
-    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False))
+    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False),
+                       look.get("hour"))
     scale = 2 if sample else 1
     pm = _pixmap(_strip_pixels(shades, drawer, dark, gaps), ICON_W, ICON_H, scale)
     return _smoothed(pm, shades, scale, *smooth) if smooth else pm
@@ -281,7 +295,8 @@ def quad(look: dict, drawer: str = HL.TILE_DEFAULT) -> QPixmap:
     """The four shades of `look` as tiles two by two, quietest top left, busiest bottom right: a
     strip for a square place (the scenery picker's list)."""
     bg, dark = page_bg()
-    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False))
+    shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False),
+                       look.get("hour"))
     pixels = {}
     for i, shade in enumerate(shades):
         for (x, y), c in HL.tile_pixels(drawer, shade, i).items():
@@ -431,6 +446,7 @@ class LookControls(QObject):
         self.cfg = cfg
         self.here = "golden_lake"  # the scenery chosen on the Scenery tab (the dialog says: set_scenery)
         self.edition_cfg = cfg
+        self.hour = ""  # the forest's hour (forest_hour), which the scenery's own colours follow
         self.mine = HL.mine(cfg)
         self.changed = None
         self.source = OneOf(self)
@@ -593,6 +609,7 @@ class LookControls(QObject):
             spec = presets.of_the_day(today(edition_cfg), leave_out=presets.left_out(edition_cfg))
         self.here = spec.key if spec else self.here
         self.edition_cfg = edition_cfg
+        self.hour = forest_hour(edition_cfg)
         # (the debug switches: not while the Debug tab pretends this is a release; set once they
         # have a parent, or they would flash up as windows of their own)
         if self.debug_switches:
@@ -653,7 +670,7 @@ class LookControls(QObject):
         cfg = dict(self.edition_cfg, **self._values_now())
         drawn = HL.tile_env(cfg, here_env)
         drawn = drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT
-        return {key: QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=key), here_env), drawn)) for key, _name in self._scenery_choices()}
+        return {key: QIcon(quad(HL.preview_look(dict(cfg, calendar_colours=key), here_env, self.hour), drawn)) for key, _name in self._scenery_choices()}
 
     def _tile_choices(self) -> list:
         """The tiles dropdown's list: the current scenery's (they follow it), then each scenery's own
@@ -675,7 +692,7 @@ class LookControls(QObject):
         icons = {}
         for key, _name in self._tile_choices():
             env = HL.TILE_ENVS.get(key, here_env)
-            icons[key] = QIcon(menu_tile(HL.preview_look(dict(cfg, calendar_tiles=key), env), key, cfg, env))
+            icons[key] = QIcon(menu_tile(HL.preview_look(dict(cfg, calendar_tiles=key), env, self.hour), key, cfg, env))
         return icons
 
     def _values_now(self) -> dict:
@@ -743,7 +760,7 @@ class LookControls(QObject):
         self.faint.setText(FAINT_NOTE.format(pages=" or ".join(PAGE_NAMES[p] for p in faint)) if faint else "")
         if self.faint.parent() is not None:
             self.faint.setVisible(bool(faint))
-        state = (self.here, repr(sorted(self.values().items())), HL.debug_edition(self.edition_cfg), page_bg())
+        state = (self.here, self.hour, repr(sorted(self.values().items())), HL.debug_edition(self.edition_cfg), page_bg())
         if state == self._drawn:
             return
         self._drawn = state
@@ -752,7 +769,7 @@ class LookControls(QObject):
         # (each in the tiles chosen, as the heatmap's key draws them; a joined shape's as Flat's)
         drawn = HL.tile_env(cfg, here_env)
         drawn = drawn if drawn in HL.DRAWERS else HL.TILE_DEFAULT
-        self.scenery.setIcon(QIcon(strip(HL.preview_look(dict(cfg, calendar_colours=self.scenery.key), here_env), drawn)))
+        self.scenery.setIcon(QIcon(strip(HL.preview_look(dict(cfg, calendar_colours=self.scenery.key), here_env, self.hour), drawn)))
         for key, b in self.ready.items():
             look = HL.preview_look(dict(cfg, calendar_colours=HL.READY_PREFIX + key), here_env)
             b.setIcon(QIcon(strip(look, drawn)))
@@ -762,7 +779,7 @@ class LookControls(QObject):
             icon.addPixmap(swatch(c), QIcon.Mode.Disabled)  # (unblended, the second keeps its colour, its button greyed)
             b.setIcon(icon)
         self.second.setEnabled(self.blend.isChecked())
-        look = HL.preview_look(cfg, here_env)
+        look = HL.preview_look(cfg, here_env, self.hour)
         for key, b in self.tile_buttons.items():  # (each as its style draws it: its own spaces and corners)
             b.setIcon(QIcon(tile_sample(look, key, cfg, here_env)))
         self.tile_pick.setIcon(QIcon(tile_sample(look, self.tile_pick.key, cfg, here_env)))

@@ -59,7 +59,7 @@ class SurprisePage(QWidget):
         """Tick boxes for the sceneries it can take turns with among those `offered` on `day`."""
         self.offered = turn_keys(offered)
         self.picker.set_choices(self.offered, None, day)
-        self.picker.set_ticked([k for k in self.offered if k not in self.left_out])
+        self.picker.set_ticked(self._kept())
         self._count()
 
     def _ticked(self, _key: str) -> None:
@@ -68,8 +68,14 @@ class SurprisePage(QWidget):
         self._count()
         self.on_change()
 
+    def _kept(self) -> list:
+        """The ones offered it takes turns with: with every one left out (the holiday kept alone
+        gone with its week, or only Plus's kept in the base edition), all of them, as the forest
+        has them (`presets.of_the_day`). The ones left out stay so until a box is ticked."""
+        return [k for k in self.offered if k not in self.left_out] or list(self.offered)
+
     def kept(self) -> int:
-        return sum(k not in self.left_out for k in self.offered)
+        return len(self._kept())
 
     def summary(self) -> str:
         """How many it takes turns with: "all 12", or "9 of 12"."""

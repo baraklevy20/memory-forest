@@ -356,8 +356,15 @@ body.af-lay .af-apart > .af-cal { width: auto !important; }  /* (calendar.js set
    first in the panel does: .af-cal-first) */
 body.af-lay .af-apart > .af-slot-above { order: 0; flex: 0 0 var(--af-row); min-width: 0; box-sizing: border-box; margin: 0 calc((100% - var(--af-row)) / 2) 28px; }
 body.af-lay .af-apart > .af-cal.af-slot-above { padding-top: 20px; }
-/* a narrow window: the side columns fall under the list, in the order they stand (forest first) */
+/* (the one part this screen shows, the other switched off: the panel itself over the list, as wide
+   as core.js makes it, its padding inside that) */
+body.af-lay > center > .af-panel.af-slot-above { order: 0; flex: 0 0 var(--af-row); min-width: 0; padding: 0; margin: 0 calc((100% - var(--af-row)) / 2) 28px; }
+/* a narrow window: the side columns fall under the list, in the order they stand (forest first), as
+   wide as they are under it (core.js AF.arrange); the panel with the heatmap first keeps the 8px over
+   its heatmap's 20px band that it has under the list (.af-panel.af-cal-first), its months 28px under
+   the list as the forest's top is (a heatmap apart has no band there: .af-slot-left's padding) */
 body.af-lay.af-lay-narrow .af-slot-left, body.af-lay.af-lay-narrow .af-slot-right { order: 4; flex: 0 0 var(--af-row); min-width: 0; margin: 28px calc((100% - var(--af-row)) / 2) 0; }
+body.af-lay.af-lay-narrow .af-cal-first.af-slot-left, body.af-lay.af-lay-narrow .af-cal-first.af-slot-right { margin-top: 8px; }
 /* an Anki set to a right-to-left language (<html dir="rtl">): the row keeps Side's right and left as
    they look. A flex row runs from the right there, so the forest set on the right stood on the left,
    its 32px margin on the far side, touching the list; the list and Anki's line keep their own direction */

@@ -834,7 +834,7 @@ function drawTree(env, lg, x0, y0) {
     if (rim && (i + 1 >= CROW[r].length || CROW[r][i + 1] === '.') && r < 4) c = mix(ink, rim, 0.3);
     lg.fillStyle = rgb(c); lg.fillRect(bx + i - 3, by + r - 5, 1, 1);
   }
-  if (hourOf(env.theme) !== 'day') { lg.fillStyle = '#ffb040'; lg.fillRect(bx + 1, by - 4, 1, 1); }  // its eye catching the light
+  if (!byDay(env.theme)) { lg.fillStyle = '#ffb040'; lg.fillRect(bx + 1, by - 4, 1, 1); }  // its eye catching the light
 }
 
 
@@ -875,7 +875,7 @@ function paintRidge(env, g, m) {
     if (h < 0.18) { g.fillStyle = rgb(mix(body, [0, 0, 0], 0.15)); g.fillRect(x, y0 - 1, 1, 1); if (h < 0.04) g.fillRect(x, y0 - 2, 1, 1); }
   }
   // the far-off farms: a little house with a lit window, or a patch of tiny glowing pumpkins
-  const lit = hour !== 'day', dark = rgb(mix(body, [0, 0, 0], 0.3));
+  const lit = !byDay(th), dark = rgb(mix(body, [0, 0, 0], 0.3));
   for (const [fx, kind] of FARMS) {
     const x = Math.round(W * fx), y = yAt(x) + Math.round(1 * u);
     if (Math.abs(x - m.x) < m.r + 3 * u) continue;
@@ -1033,7 +1033,7 @@ AF.env('pumpkin_patch', {
       const p = k / CROSS;
       const x = Math.round(-WITCH_OFF * s + p * span - WW / 2 * s), y = Math.round(m.y - m.r * 0.3 - 19 * s - (p - pm) * (p - pm) * 290 * s + Math.round(Math.sin(tt * 2.2)) * s);  // she swoops low across the moon and climbs away out of the sky at both ends, never through the dead tree
       // her two frames are drawn once, then only stamped
-      if (!env.pkWitch) env.pkWitch = [0, 1].map(f => { const [cv, cg] = layer(WW * s, WITCH.length * s); drawWitch(cg, 0, 0, s, f, ink, th.pkHour === 'day' ? '#b8c860' : '#e8f070'); return cv; });
+      if (!env.pkWitch) env.pkWitch = [0, 1].map(f => { const [cv, cg] = layer(WW * s, WITCH.length * s); drawWitch(cg, 0, 0, s, f, ink, byDay(th) ? '#b8c860' : '#e8f070'); return cv; });
       const fr = env.still ? 0 : (Math.floor(tt * 4) & 1);
       g.drawImage(env.pkWitch[fr], x, y);
       const ec = WITCH_EDGE[th.pkHour];

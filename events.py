@@ -34,8 +34,8 @@ NATURE_NOTES = {
     "peaceful": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest.",
     "wild": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days "
             "of study put it out. Bad habits leave marks too.",
-    "merciless": "Miss a day of reviews: an asteroid strikes when Anki's day ends, and a new forest grows from "
-                 "its crater. It waits in the sky until you review. Bad habits leave marks too.",
+    "merciless": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you "
+                 "review. A new forest grows from its crater. Bad habits leave marks too.",
 }
 # said once, on its own line under Wild's and Merciless's, rather than in each of them
 NATURE_SWITCH_NOTE = "Switch back any time and every tree is there again."

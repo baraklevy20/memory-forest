@@ -257,10 +257,10 @@ test('a tile style\'s own gap sets the cell', () => {
 });
 
 test('Streak view: rows of whole weeks back to the streak worth seeing, paged back as many at a time', () => {
-  const W = 53, rows = (h, end = null) => plain(T.streakRows(h, W, end));
-  // a streak since mid 2024 (TODAY a Sunday: this week ends today)
+  const W = 53, rows = (h, page = null) => plain(T.streakRows(h, W, page));
+  // a streak since mid 2024 (TODAY a Sunday: this week ends today), cards due for years ahead
   const since = off('2024-06-01'), days = Array(-since + 1).fill(4);
-  let h = T.history(calendar(TODAY, [...Array(400).fill(2), 0, ...Array(100).fill(0), ...days]));
+  let h = T.history(calendar(TODAY, [...Array(400).fill(2), 0, ...Array(100).fill(0), ...days], { due: Array(3000).fill(1) }));
   const open = rows(h);
   assert.equal(open.length, 3);
   assert.equal(open[2].to, 8 * 7);  // (eight weeks ahead)
@@ -268,12 +268,18 @@ test('Streak view: rows of whole weeks back to the streak worth seeing, paged ba
   assert.ok(open[0].from <= since && open[0].from > since - W * 7, 'the top row holds the streak\'s first day');
   // ‹: the stretch just before, as many rows, until the first review
   const end = T.pageBefore(h, W, 3, open[0].from), back = rows(h, end);
-  assert.equal(back[back.length - 1].to, end);
+  assert.equal(back[back.length - 1].to, open[0].from - 1);
   assert.ok(back.length <= 3 && back[0].from <= h.first + W * 7);
   // › from the streak: as many rows on, into the days ahead
   const on = plain(T.streakRows(h, W, null, 1));
   assert.equal(on.length, 3);
   assert.equal(on[0].from, open[2].to + 1);
+  // (but no further than the row with the last day due: cards due for 200 days, one row on)
+  h = T.history(calendar(TODAY, [...Array(400).fill(2), 0, ...Array(100).fill(0), ...days], { due: Array(201).fill(1) }));
+  const capped = plain(T.streakRows(h, W, null, 1));
+  assert.equal(capped.length, 3);
+  assert.equal(capped[2].to, open[2].to + W * 7);
+  assert.ok(capped[2].from <= h.ahead && capped[2].to >= h.ahead, 'its last row holds the last day due');
   // a long streak broken lately, then a short one: back to the long one
   h = T.history(calendar(TODAY, [...Array(500).fill(2), 0, ...Array(400).fill(3), 0, 0, ...Array(10).fill(3)]));
   assert.equal(T.reachOf(h), h.runs[h.runs.length - 2]);
@@ -292,13 +298,36 @@ test('Streak view: a page that would cut a streak with a bracket at its top star
   let h = T.history(calendar(TODAY, Array.from({ length: n }, (_, i) => (studied(n - 1 - i) ? 5 : 0))));
   const r = h.runs.find(x => x.days === 102);
   // a year back from Jan 2026 starts Dec 30, 2024: clear of the streak, nothing to move
-  assert.equal(T.pageBefore(h, W, 1, top), top - 1);
-  // a year back from Nov 2025 would start in Nov 2024, inside it: the page starts on its first week instead
-  const t2 = off('2025-11-03'), [from] = page(T.pageBefore(h, W, 1, t2));
-  assert.ok(from <= r.from && from > r.from - 7, `starts on the streak's week: ${from}, ${r.from}`);
+  assert.deepEqual(plain(T.pageBefore(h, W, 1, top)), { end: top - 1, from: page(top - 1)[0] });
+  // a year back from Nov 2025 would start in Nov 2024, inside it: the page reaches up to its first
+  // week instead, still ending the day before (no day between left off every page)
+  const t2 = off('2025-11-03'), p2 = T.pageBefore(h, W, 1, t2);
+  assert.equal(p2.end, t2 - 1);
+  assert.ok(p2.from <= r.from && p2.from > r.from - 7, `reaches the streak's week: ${p2.from}, ${r.from}`);
+  const drawn = plain(T.streakRows(h, W, p2));
+  assert.equal(drawn[drawn.length - 1].to, t2 - 1);
+  assert.ok(drawn[0].from <= r.from, 'the whole streak in view');
   // a streak of under 30 days is left cut
   h = T.history(calendar(TODAY, Array.from({ length: n }, (_, i) => { const d = n - 1 - i; return (d <= at('2024-11-20') && d > at('2024-11-20') - 20) || d < 7 ? 5 : 0; })));
-  assert.equal(T.pageBefore(h, W, 1, t2), t2 - 1);
+  assert.deepEqual(plain(T.pageBefore(h, W, 1, t2)), { end: t2 - 1, from: page(t2 - 1)[0] });
+});
+
+test('Streak view: paging back from your streak to your first review leaves no day off every page', () => {
+  // six years of 100-day streaks, five days missed between them, each page's top cutting one
+  const W = 53, n = 6 * 365, days = Array.from({ length: n }, (_, i) => ((n - 1 - i) % 105 < 100 ? 3 : 0));
+  const h = T.history(calendar(TODAY, days));
+  const seen = new Set(), add = rs => { for (const r of rs) for (let o = r.from; o <= r.to; o++) seen.add(o); };
+  let rs = plain(T.streakRows(h, W, null)), turned = 0;
+  const per = rs.length;
+  add(rs);
+  while (rs[0].from > h.first && turned++ < 50) {
+    rs = plain(T.streakRows(h, W, T.pageBefore(h, W, per, rs[0].from)));
+    add(rs);
+  }
+  const missing = [];
+  for (let o = h.first; o <= 0; o++) if (!seen.has(o)) missing.push(o);
+  assert.deepEqual(missing, [], 'every day on some page, the studied days between pages too');
+  assert.ok(turned > 1 && turned < 50);
 });
 
 test('Timeline shows as many months as its width holds at its days\' own size', () => {

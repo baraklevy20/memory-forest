@@ -383,6 +383,22 @@ class DayTimeTests(unittest.TestCase):
         flat = " or ".join(["(cid in (select cid from revlog where id = 1))"] * 1199)
         with self.assertRaises(sqlite3.OperationalError):  # (what the flat chain did)
             con.execute(f"select count() from revlog where {flat}")
+        # (and the review log's own query over them: a thousand days picked apart, nested too)
+        con.execute("create table cards (id integer)")
+        con.execute("alter table revlog add column ease integer")
+        con.execute("alter table revlog add column type integer")
+        con.execute("alter table revlog add column time integer")
+        con.execute("insert into revlog values (?, 1, 3, 1, 4000)", (ms(4),))
+        con.execute("insert into revlog values (?, 1, 3, 1, 6000)", (ms(5),))  # (a day between two picked)
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+        apart = [(-2 * i, -2 * i) for i in range(1, 1001)]
+        self.assertEqual(study_log.days_card_totals(DB(), CUTOFF, apart, "reviews"), {1: 1})
+        self.assertEqual(study_log.days_answer_times(DB(), CUTOFF, apart), {1: 4000})
+        flat = "(" + " or ".join(["(id >= ? and id < ?)"] * 1000) + ")"
+        with self.assertRaises(sqlite3.OperationalError):  # (what the flat chain did)
+            con.execute(f"select count() from revlog where {flat}", study_log._days_where(CUTOFF, apart)[1])
         # (a stretch up to today stays one term; days ahead are not this search's: actions.browse_calendar_days)
         self.assertEqual(study_log.calendar_days_search([(-400, 0)]), ["prop:rated>=-400"])
         self.assertEqual(study_log.calendar_days_search([]), [])

@@ -1,9 +1,11 @@
 // node e2e/layout_check.mjs <jobs.json> <chrome>: the deck-list pages of e2e/layout_check.py, in
 // headless Chrome, one after another. Prints JSON, a result for each job: the window's width, each
 // box's [left, top, right, bottom] (the deck table, the forest's and the heatmap's canvases, the
-// forest's scene and the heatmap's box, for their widths, Anki's studied-today line), how many colours each canvas holds, whether the page was arranged
+// forest's scene and the heatmap's box, for their widths, the band over the heatmap's months (its padding), Anki's studied-today line), how many colours each canvas holds, whether the page was arranged
 // (body.af-lay), and its errors, a ResizeObserver's loop among them, as the window is then resized
-// across the breakpoint and back; or { missing } where the forest and the heatmap never showed.
+// across the breakpoint and back; or { missing } where the forest and the heatmap never showed. A job
+// with `forest` or `heatmap` false (that one switched off on the deck list) waits for the other alone,
+// and gives null for the boxes and colours of the one switched off.
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 
@@ -27,7 +29,8 @@ try {
     p.on('requestfailed', r => errors.push(`not loaded: ${r.url()}`));
     await p.goto('file://' + job.html);
     try {
-      await p.waitForFunction(() => document.querySelector('.af-canvas') && document.querySelector('.af-cal-canvas'), { timeout: LOAD_MS });
+      await p.waitForFunction((f, h) => (!f || document.querySelector('.af-canvas')) && (!h || document.querySelector('.af-cal-canvas')),
+        { timeout: LOAD_MS }, job.forest !== false, job.heatmap !== false);
     } catch {
       out.push({ missing: 'the forest and the heatmap never both showed', errors });
       await p.close();
@@ -35,8 +38,9 @@ try {
     }
     await wait(SETTLE_MS);
     const got = await p.evaluate(() => {
-      const rect = el => { const r = el.getBoundingClientRect(); return [r.left, r.top + window.scrollY, r.right, r.bottom + window.scrollY].map(Math.round); };
+      const rect = el => { if (!el) return null; const r = el.getBoundingClientRect(); return [r.left, r.top + window.scrollY, r.right, r.bottom + window.scrollY].map(Math.round); };
       const colours = cv => {
+        if (!cv) return null;
         const seen = new Set(), px = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
         for (let i = 0; i < px.length && seen.size < 64; i += 4) if (px[i + 3]) seen.add((px[i] << 16) | (px[i + 1] << 8) | px[i + 2]);
         return seen.size;
@@ -44,7 +48,8 @@ try {
       const forest = document.querySelector('.af-canvas'), heat = document.querySelector('.af-cal-canvas');
       return {
         window: document.documentElement.clientWidth, table: rect(document.querySelector('center > table')),
-        forest: rect(forest), heatmap: rect(heat), scene: rect(document.querySelector('.af-scene')), cal: rect(document.querySelector('.af-cal')), studied: rect(document.getElementById('studiedToday')),
+        forest: rect(forest), heatmap: rect(heat), scene: rect(document.querySelector('.af-scene')), cal: rect(document.querySelector('.af-cal')),
+        calPad: document.querySelector('.af-cal') ? parseFloat(getComputedStyle(document.querySelector('.af-cal')).paddingTop) : null, studied: rect(document.getElementById('studiedToday')),
         forestColours: colours(forest), heatmapColours: colours(heat), arranged: document.body.classList.contains('af-lay')
       };
     });

@@ -7,6 +7,11 @@ on the scenery tiles, Taken as, the tile samples); the heatmap itself reads the 
 
 Run it after adding a scenery to an edition, or after changing its trees' or its calendar's
 colours; the tests fail while a shipped scenery has no colour here. Needs Chrome.
+
+It writes settings/heatmap_hours.json too: what the forest's hour does to each scenery's colours
+(calendar.js hourOf), so the Heatmap tab's pictures follow the hour as the heatmap does: its day
+colours (`calendarDay`), its colours for each hour (`calendarHours`) and its night tint (the
+night sky's, which a day scenery's colours turn towards after dark), each only where it has one.
 """
 
 from __future__ import annotations
@@ -31,6 +36,7 @@ import presets
 import scene
 
 OUT = os.path.join(ADDON, "settings", "heatmap_keys.json")
+HOURS_OUT = os.path.join(ADDON, "settings", "heatmap_hours.json")
 NOON = _dt.datetime(2026, 6, 1, 12, 0)  # (the scene in plain light: calendar.js takes the hour's tint off anyway)
 
 SCRIPT = r"""
@@ -68,15 +74,24 @@ def main() -> None:
     scripts += [os.path.join(catalog.WEB, "envs", f"{e}.js") for e in envs if e != "natural"]
     tags = "".join(f'<script src="file://{s}"></script>' for s in scripts)
     probe = """<script>
-const AF = window.AnkiForest, MOODS = MOODS_JSON, out = {};
+const AF = window.AnkiForest, MOODS = MOODS_JSON, out = {}, hours = {};
 const hx = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
 const chroma = c => Math.max(...c) - Math.min(...c);
 for (const [env, mood] of Object.entries(MOODS)) {
   const sp = { mood, theme: Object.assign({}, AF.theme(mood, {}, []), { tint: null, tintAmt: 0 }), data: {} };
   const own = AF.envOf(sp).calendar;
   out[env] = own || hx(AF.foliage(sp).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a));
+  // (what the hour does to them, as calendar.js hourOf finds it: the night tint as it asks for it)
+  const spec = AF.envOf(sp), at = {};
+  if (spec.calendarDay) at.day = spec.calendarDay;
+  if (spec.calendarHours) at.hours = spec.calendarHours;
+  try {
+    const tint = AF.theme(Object.assign({}, mood, { time: 'night', weather: 'clear' }), {}, []).tint;
+    if (tint) at.tint = tint;
+  } catch { /* no night tint: its colours stay as they are after dark */ }
+  if (Object.keys(at).length) hours[env] = at;
 }
-window.__keys = out;
+window.__keys = { keys: out, hours };
 </script>""".replace("MOODS_JSON", json.dumps(moods))
     with tempfile.TemporaryDirectory() as tmp:
         page = os.path.join(tmp, "keys.html")
@@ -86,11 +101,13 @@ window.__keys = out;
         with open(mjs, "w", encoding="utf-8") as f:
             f.write(SCRIPT % {"puppeteer": os.path.join(ADDON, "node_modules", "puppeteer-core", "lib", "esm", "puppeteer", "puppeteer-core.js"),
                               "chrome": json.dumps(render_page.CHROME), "page": page})
-        keys = json.loads(subprocess.run(["node", mjs], check=True, capture_output=True, text=True).stdout)
-    with open(OUT, "w", encoding="utf-8") as f:
-        json.dump(keys, f, indent=1)
-        f.write("\n")
-    print(f"{len(keys)} sceneries: {OUT}")
+        found = json.loads(subprocess.run(["node", mjs], check=True, capture_output=True, text=True).stdout)
+    keys = found["keys"]
+    for path, data in ((OUT, keys), (HOURS_OUT, found["hours"])):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=1)
+            f.write("\n")
+    print(f"{len(keys)} sceneries: {OUT}, {HOURS_OUT}")
 
 
 if __name__ == "__main__":

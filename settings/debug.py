@@ -124,8 +124,6 @@ class DebugTab(QWidget):
         self.news_pick = QComboBox()
         self.news_show = QPushButton("Show it as new")
         self.news_show.clicked.connect(self._show_news)
-        # the edition this copy pretends to be (edition.debug_edition)
-        # the heatmap's size by another rule than the Heatmap tab's, to try them out (web/calendar.js AF.calendarWant)
         # a made-up study history on the test forest's heatmap, to try Streak view on
         self.streaks = QComboBox()
         self.streaks.addItem("The test forest's own", "")
@@ -134,6 +132,7 @@ class DebugTab(QWidget):
         self.streaks.setCurrentIndex(max(0, self.streaks.findData(cfg.get("debug_streaks") or "")))
         self.streak_days = spin("debug_streak_days", DEBUG_STREAK_MAX, " days")
         self.streak_days.setSpecialValueText("As the history has it")
+        # the edition this copy pretends to be (edition.debug_edition)
         self.edition = QComboBox()
         for key in ("",) + DEBUG_EDITIONS:
             self.edition.addItem(EDITION_LABELS[key], key)

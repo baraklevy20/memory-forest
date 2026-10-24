@@ -102,6 +102,7 @@ class HeatmapTab(Tab):
         self.streak_from = Choice(STREAK_FROM_OPTIONS, streak_from_start(cfg), False)
         self._streak_pick = self.streak_from.currentData()  # (what it goes back to once the reviews before show again)
         self._streak_free = True  # (whether it is yours to choose just now: sync)
+        self._trees_kept = False  # (the Decks tab's "Keep the trees from before it", ticked: trees_kept)
         # days off: counted from the day they are chosen (the dialog keeps that day as it finds it)
         self.streak_week = Choice(STREAK_WEEK_OPTIONS, streak_week(cfg), 7)
         self.week_was = (self.streak_week.currentData(), streak_week_since(cfg))
@@ -171,6 +172,12 @@ class HeatmapTab(Tab):
         Match the scenery shows its picture, and the Plus sceneries are locked as the picker's are."""
         self.look.set_scenery(key, edition_cfg)
 
+    def trees_kept(self, kept: bool) -> None:
+        """Whether the Decks tab keeps the trees from before the start date: the heatmap then shows
+        the days before it whatever the box here says (they are the forest's own, payload._calendar),
+        so leaving them out never decides where your streak counts from."""
+        self._trees_kept = kept
+
     def sync(self) -> None:
         # (how it shows only matters while it shows somewhere)
         on = self.calendar_main.isChecked() or self.calendar_decks.isChecked()
@@ -184,8 +191,9 @@ class HeatmapTab(Tab):
         # (a heatmap that leaves out the reviews before the start date counts the streak from it
         # too: shown as such while it can't be changed, and back to your own pick after)
         # (with the heatmap shown nowhere the box is greyed, and the streak counts as your pick:
-        # payload._page_stats goes by the start date's record only where a heatmap shows)
-        record = self.record.isChecked() or not on
+        # payload._page_stats goes by the start date's record only where a heatmap shows; and so
+        # with the trees from before it kept, the days before it shown all the same)
+        record = self.record.isChecked() or not on or self._trees_kept
         if record and not self.streak_from.isEnabled():
             self.streak_from.set_quietly(self._streak_pick)
         elif not record and self.streak_from.isEnabled():

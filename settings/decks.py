@@ -111,6 +111,7 @@ class DecksTab(Tab):
         sv = QVBoxLayout()
         since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
         self.since_hint = hint(self._since_note())
+        self._first = None  # (the first day studied, once the counts are in: _show_first_day)
         # (the reviews from before it, and where your streak counts from: the Heatmap tab)
         keep_row = QHBoxLayout(); keep_row.addSpacing(KEEP_INDENT); keep_row.addWidget(self.keep_trees); keep_row.addStretch(1)
         sv.addLayout(since_row); sv.addLayout(keep_row); sv.addWidget(self.since_hint)
@@ -255,16 +256,25 @@ class DecksTab(Tab):
     def _show_first_day(self, oldest: int | None) -> None:
         """Without a start date, say which day the forest starts on: the first one studied.
         The calendar goes no further back, but never moves a date already chosen."""
-        if oldest is None:
-            self.since_hint.setText(self._since_note())
-            return
-        first = self.today - _dt.timedelta(days=oldest)
-        chosen = self.since.date().toPyDate()
-        self.since.blockSignals(True)
-        self.since.setMinimumDate(QDate(*(min(first, chosen) if self.since_on.isChecked() else first).timetuple()[:3]))
-        self.since.blockSignals(False)
-        self.since_hint.setText(self._since_note() if self.since_on.isChecked() else
-                                SINCE_OFF_NOTE.format(first=f"{first.day} {first:%B %Y}"))
+        self._first = None if oldest is None else self.today - _dt.timedelta(days=oldest)
+        if self._first is not None:
+            first, chosen = self._first, self.since.date().toPyDate()
+            self.since.blockSignals(True)
+            self.since.setMinimumDate(QDate(*(min(first, chosen) if self.since_on.isChecked() else first).timetuple()[:3]))
+            self.since.blockSignals(False)
+        self._show_hint()
+
+    def _show_hint(self) -> None:
+        """The start date's hint as the tab stands now: the date chosen and whether the trees from
+        before it stay, or without one the first day studied. On every change, not only with the
+        counts (recount): without them (the collection unread) it went stale; and with no start date
+        and no counts to name the first day, none."""
+        first = self._first
+        text = (self._since_note() if self.since_on.isChecked() else
+                SINCE_OFF_NOTE.format(first=f"{first.day} {first:%B %Y}") if first is not None else "")
+        self.since_hint.setText(text)
+        if self.since_hint.parent() is not None:  # (shown before it has a parent, it flashes up as a window)
+            self.since_hint.setVisible(bool(text))
 
     def _since_note(self) -> str:
         chosen = self.since.date().toPyDate()  # (the date itself: "this date" read as today)
@@ -295,6 +305,7 @@ class DecksTab(Tab):
         self.since.setEnabled(self.since_on.isChecked())
         self.keep_trees.setEnabled(self.since_on.isChecked())
         self.recount()
+        self._show_hint()  # (recount shows it too, but only once the counts are in)
 
     def values(self, cfg: dict) -> dict:
         """What this tab saves, over `cfg`, the config as it is now."""
