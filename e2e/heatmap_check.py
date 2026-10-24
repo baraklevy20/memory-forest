@@ -27,7 +27,7 @@ import catalog
 
 YEARS = 3  # (of made-up history: two earlier years for Streak view to show)
 # the files the heatmap's layers go through: a change to one runs this
-HEATMAP_FILES = ("web/calendar.js", "web/hover.js", "web/core.js", "web/engines/pixel/ground.js", "web/visit.js", "web/forest.css", "web/util.js", "payload.py", "e2e/heatmap_check.py", "e2e/heatmap_check.mjs")
+HEATMAP_FILES = ("web/calendar.js", "web/hover.js", "web/core.js", "web/engines/pixel/ground.js", "web/visit.js", "web/forest.css", "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "payload.py", "e2e/heatmap_check.py", "e2e/heatmap_check.mjs")
 
 
 def calendar() -> dict:
@@ -42,8 +42,12 @@ def calendar() -> dict:
             "time": [], "shadeBy": "reviews", "marks": [], "width": 85}
 
 
-def page(show_forest=False, deep=False) -> str:
+def page(show_forest=False, deep=False, rtl=False) -> str:
     data = dict(forest_page(), calendar=calendar(), showForest=show_forest, inAnki=True, maxWidth=820, animations=False)
+    if rtl:
+        # (right to left in English words, so the checks read the same tooltips: the panel's
+        # direction alone, as any right-to-left language's, i18n.page_strings)
+        data["i18n"] = {"lang": "en-XB", "format": "en-US", "dir": "rtl", "plural": "one_other", "strings": {}}
     behind = []
     if deep:
         import fake_forest
@@ -88,7 +92,10 @@ def main() -> int:
         deep = os.path.join(tmp, "deep.html")
         with open(deep, "w", encoding="utf-8") as f:
             f.write(page(True, True))
-        run = subprocess.run(["node", os.path.join(HERE, "heatmap_check.mjs"), html, CHROME, forest, deep],
+        rtl = os.path.join(tmp, "forest-rtl.html")
+        with open(rtl, "w", encoding="utf-8") as f:
+            f.write(page(True, rtl=True))
+        run = subprocess.run(["node", os.path.join(HERE, "heatmap_check.mjs"), html, CHROME, forest, deep, rtl],
                              capture_output=True, text=True, cwd=ROOT, timeout=300)
     if not run.stdout.strip().startswith("{"):
         print(run.stdout + run.stderr)

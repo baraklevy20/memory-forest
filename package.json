@@ -34,7 +34,8 @@
     "thumbs": "python3 dev/thumbnails.py",
     "nature-gifs": "python3 dev/nature_gifs.py",
     "heatmap-keys": "python3 dev/heatmap_keys.py",
-    "docs-pictures": "python3 dev/docs_pictures.py"
+    "docs-pictures": "python3 dev/docs_pictures.py",
+    "strings": "python3 dev/strings.py"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

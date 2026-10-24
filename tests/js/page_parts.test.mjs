@@ -97,37 +97,36 @@ test('tooltips: memory strength in days, months, years', () => {
 });
 
 test('tooltips: a tree\'s lines say what is known, and no more', () => {
-  const AF = page({ pycmd: () => {} }).AnkiForest, words = AF.WORDS;
+  const AF = page({ pycmd: () => {} }).AnkiForest;
   const tree = { date: '2026-10-10', ago: 8, n: 12, stage: 3, remembered: 0.913, strength: 90 };
-  let html = AF.tips.tree(tree, words);
+  let html = AF.tips.tree(tree);
   assert.match(html, /<b>Oct 10, 2026<\/b> · planted 8 days ago/);
   assert.match(html, /12 cards · mature/);
   assert.match(html, /~91% remembered · lasts ~3 months/);
   assert.match(html, /Click to see these cards/);
   // (no forgetting curve behind it: only how it is going)
-  html = AF.tips.tree(Object.assign({}, tree, { measured: false }), words);
+  html = AF.tips.tree(Object.assign({}, tree, { measured: false }));
   assert.match(html, /91% still going well/);
   assert.doesNotMatch(html, /remembered/);
   // every card suspended: nothing to measure
-  html = AF.tips.tree(Object.assign({}, tree, { suspended: 12 }), words);
+  html = AF.tips.tree(Object.assign({}, tree, { suspended: 12 }));
   assert.match(html, /All 12 cards suspended/);
   assert.doesNotMatch(html, /remembered/);
-  assert.match(AF.tips.tree(Object.assign({}, tree, { n: 1, suspended: 1 }), words), /Its card is suspended/);
+  assert.match(AF.tips.tree(Object.assign({}, tree, { n: 1, suspended: 1 })), /Its card is suspended/);
   // today, yesterday; a seedling says no numbers; a leech and a cured one
-  assert.match(AF.tips.tree(Object.assign({}, tree, { ago: 0, stage: 0 }), words), /planted today/);
-  assert.doesNotMatch(AF.tips.tree(Object.assign({}, tree, { ago: 1, stage: 0 }), words), /remembered/);
-  assert.match(AF.tips.tree(Object.assign({}, tree, { ago: 1 }), words), /planted yesterday/);
-  assert.match(AF.tips.tree(Object.assign({}, tree, { leeches: 2 }), words), /2 leeches here/);
-  assert.match(AF.tips.tree(Object.assign({}, tree, { cured: 1 }), words), /A leech here mature again/);
-  assert.match(AF.tips.tree(Object.assign({}, tree, { struggling: 3 }), words), /3 of 12 relearning/);
+  assert.match(AF.tips.tree(Object.assign({}, tree, { ago: 0, stage: 0 })), /planted today/);
+  assert.doesNotMatch(AF.tips.tree(Object.assign({}, tree, { ago: 1, stage: 0 })), /remembered/);
+  assert.match(AF.tips.tree(Object.assign({}, tree, { ago: 1 })), /planted yesterday/);
+  assert.match(AF.tips.tree(Object.assign({}, tree, { leeches: 2 })), /2 leeches here/);
+  assert.match(AF.tips.tree(Object.assign({}, tree, { cured: 1 })), /A leech here mature again/);
+  assert.match(AF.tips.tree(Object.assign({}, tree, { struggling: 3 })), /3 of 12 relearning/);
   // a click that picks it, zoomed in, says so in place of the cards
-  html = AF.tips.tree(tree, words, 'Click to select it');
+  html = AF.tips.tree(tree, 'Click to select it');
   assert.match(html, /Click to select it/);
   assert.doesNotMatch(html, /see these cards/);
   // on the phone (no bridge), no click hint
-  assert.doesNotMatch(page().AnkiForest.tips.tree(tree, words), /Click/);
+  assert.doesNotMatch(page().AnkiForest.tips.tree(tree), /Click/);
   // the date escaped as text
-  assert.doesNotMatch(AF.tips.tree(Object.assign({}, tree, { date: '2026-10-10' }), Object.assign({}, words, { planted: '<i>' })), /<i>/);
 });
 
 test('tooltips: a pond says when the break ran', () => {
@@ -140,12 +139,12 @@ test('tooltips: a pond says when the break ran', () => {
 
 test('tooltips: the deep forest and an animal', () => {
   const AF = page({ pycmd: () => {} }).AnkiForest;
-  const html = AF.tips.deep({ count: 1200, cards: 15000, from_date: '2020-01-02', to_date: '2023-05-06', ancient: 30 }, AF.WORDS);
+  const html = AF.tips.deep({ count: 1200, cards: 15000, from_date: '2020-01-02', to_date: '2023-05-06', ancient: 30 });
   assert.match(html, /The deep forest/);
   assert.match(html, /1,200 older trees · 15,000 cards/);
   assert.match(html, /30 of them ancient/);
-  assert.equal(AF.tips.visitor({ label: 'a deer', why: 'you studied 30 days in a row' }), '<b>A deer</b><br>Moved in when you studied 30 days in a row.');
-  assert.match(AF.tips.visitor({ label: 'a cabin', key: 'cabin', why: 'x' }), /Built when/);
+  assert.equal(AF.tips.visitor({ key: 'deer', name: 'A deer', stayed: 'Moved in when you kept a 30-day streak.' }), '<b>A deer</b><br>Moved in when you kept a 30-day streak.');
+  assert.equal(AF.tips.visitor({ key: 'fox', name: 'A <fox>', stayed: '&' }), '<b>A &lt;fox&gt;</b><br>&amp;');
 });
 
 /* a stand-in for the panel's root, enough for the caption and the news: its parts by selector */
@@ -213,7 +212,8 @@ test('caption: one tree, a test forest, a deck\'s highlight, live weather and it
   assert.match(root.made['.af-meta'].innerHTML, />City not found</);
   root = fakeRoot();
   AF.caption(root, { stats, mood, weatherError: 'timed out' });
-  assert.match(root.made['.af-meta'].innerHTML, /could not be fetched \(timed out\)/);
+  assert.match(root.made['.af-meta'].innerHTML, /could not be fetched, so the scenery keeps its own weather/);
+  assert.doesNotMatch(root.made['.af-meta'].innerHTML, /timed out/);
 });
 
 test('caption: the deep forest is browsed across decks where a deck screen highlights it', () => {

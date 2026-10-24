@@ -59,19 +59,20 @@ function forNow(note, now) {
 /* how long ago the computer sent it: "just now", "3 hours ago", "yesterday", "4 days ago" */
 function ago(iso) {
   const m = Math.round((Date.now() - new Date(iso)) / MINUTE);
-  if (!(m >= 1)) return 'just now';  // (or a computer whose clock runs ahead of the phone's)
-  if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
+  if (!(m >= 1)) return AF.t('phone.just_now');  // (or a computer whose clock runs ahead of the phone's)
+  if (m < 60) return AF.tn('phone.n_minutes_ago', m);
   const h = Math.round(m / 60);
-  if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  if (h < 24) return AF.tn('phone.n_hours_ago', h);
   const d = Math.round(h / 24);
-  return d === 1 ? 'yesterday' : d + ' days ago';
+  return d === 1 ? AF.t('phone.yesterday') : AF.tn('phone.n_days_ago', d, { n: d });
 }
 
 let note;
 try { note = JSON.parse(json.textContent); } catch { note = null; }
 json.remove();  // read once (the template read it first): its text would stay on the page as long as the card
+AF.i18n.use(note && note.i18n);  // (its words in Anki's language, before the first of them: AF.mount says it again)
 if (!note || !Array.isArray(note.days) || !note.days.length) {
-  root.textContent = 'Your forest arrives with the next sync from Anki on your computer.';
+  root.textContent = AF.t('phone.your_forest_arrives_with_the_next');
   return;
 }
 /* Sideways: on a phone held upright the forest is a thin strip across the top, so in full
@@ -105,15 +106,16 @@ const shell = document.createElement('div'), stage = document.createElement('div
 shell.className = 'af-phone-shell';
 stage.className = 'af-phone-stage';
 stamp.className = 'af-phone-note';
+if (AF.i18n.rtl()) { stamp.dir = 'rtl'; stamp.style.textAlign = 'right'; }  // (phone.py's CSS sets it left, as English reads)
 const sentAt = new Date(note.updated || '');
 const stale = Date.now() - sentAt.getTime() > STALE_MS;
-stamp.textContent = (note.updated ? 'Synced ' + ago(note.updated) + '. ' : '')
-  + (stale ? 'Sync Anki on your computer to bring it up to date. ' : '');
+stamp.textContent = (note.updated ? AF.t('phone.synced_when', { when: ago(note.updated) }) + ' ' : '')
+  + (stale ? AF.t('phone.sync_anki_on_your_computer_to') + ' ' : '');
 root.before(shell);
 shell.append(stage);
 stage.append(root, stamp);
 
-function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = 'Memory Forest could not draw your forest here.'; }
+function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = AF.t('phone.memory_forest_could_not_draw_your'); }
 
 function layout() {
   const side = portrait() && (entering || !!document.fullscreenElement), [vw, vh] = screenRoom();
@@ -157,7 +159,7 @@ function layout() {
     placeTurns();
     if (zoomed && root.afVisits) root.afVisits.resume(zoomed);
   }, () => {
-    if (mine === layouts) root.textContent = 'Your forest is on its way: sync once more to fetch its drawing.';
+    if (mine === layouts) root.textContent = AF.t('phone.your_forest_is_on_its_way');
   }).catch(drawFailed);
 }
 let drawn = '', layouts = 0;
@@ -203,8 +205,8 @@ const CLOSE = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" strok
 const label = () => {
   const on = !!document.fullscreenElement;
   full.innerHTML = fullCal.innerHTML = on ? CLOSE : EXPAND;
-  full.setAttribute('aria-label', on ? 'Leave full screen' : 'Forest full screen');
-  fullCal.setAttribute('aria-label', on ? 'Leave full screen' : 'Heatmap full screen');
+  full.setAttribute('aria-label', on ? AF.t('phone.leave_full_screen') : AF.t('phone.forest_full_screen'));
+  fullCal.setAttribute('aria-label', on ? AF.t('phone.leave_full_screen') : AF.t('phone.heatmap_full_screen'));
 };
 label();
 document.addEventListener('fullscreenchange', label);
@@ -241,7 +243,7 @@ function leave() {
   try { window.screen.orientation.unlock(); } catch { /* never locked */ }
   document.exitFullscreen().catch(() => {});
 }
-const NOT_ALLOWED = "Full screen isn't allowed here. ";
+const NOT_ALLOWED = AF.t('phone.full_screen_isnt_allowed_here') + ' ';
 const notAllowed = () => { if (!stamp.textContent.includes(NOT_ALLOWED)) stamp.textContent = NOT_ALLOWED + stamp.textContent; };
 [[full, 'forest'], [fullCal, 'calendar']].forEach(([button, what]) => button.addEventListener('click', e => {
   e.stopPropagation();  // (not a tap on the forest or a day under it)

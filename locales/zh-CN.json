@@ -1,0 +1,3077 @@
+{
+ "actions.answer_time_date": {
+  "text": "答题用时（{date}）",
+  "en": "Answer time ({date})"
+ },
+ "actions.answer_time_days_days_first_to": {
+  "text": {
+   "other": "答题用时（{days} 天，{first}至{last}）"
+  },
+  "en": {
+   "one": "Answer time ({days} day, {first} to {last})",
+   "other": "Answer time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.answer_time_first_to_last": {
+  "text": "答题用时（{first}至{last}）",
+  "en": "Answer time ({first} to {last})"
+ },
+ "actions.back_in_your_forest": {
+  "text": "已回到您的森林。",
+  "en": "Back in your forest."
+ },
+ "actions.bring_back_into_memory_forest": {
+  "text": "重新加入 Memory Forest",
+  "en": "Bring back into Memory Forest"
+ },
+ "actions.leave_out_of_memory_forest": {
+  "text": "从 Memory Forest 中排除",
+  "en": "Leave out of Memory Forest"
+ },
+ "actions.left_out_of_memory_forest_with": {
+  "text": "已随上级牌组从 Memory Forest 中排除",
+  "en": "Left out of Memory Forest with its parent deck"
+ },
+ "actions.left_out_of_your_forest_its": {
+  "text": "已从您的森林中排除。可通过它的 ⚙ 菜单重新加入。",
+  "en": "Left out of your forest. Its ⚙ menu brings it back."
+ },
+ "actions.reviews_date": {
+  "text": "复习（{date}）",
+  "en": "Reviews ({date})"
+ },
+ "actions.reviews_days_days_first_to_last": {
+  "text": {
+   "other": "复习（{days} 天，{first}至{last}）"
+  },
+  "en": {
+   "one": "Reviews ({days} day, {first} to {last})",
+   "other": "Reviews ({days} days, {first} to {last})"
+  }
+ },
+ "actions.reviews_first_to_last": {
+  "text": "复习（{first}至{last}）",
+  "en": "Reviews ({first} to {last})"
+ },
+ "actions.total_time_date": {
+  "text": "总用时（{date}）",
+  "en": "Total time ({date})"
+ },
+ "actions.total_time_days_days_first_to": {
+  "text": {
+   "other": "总用时（{days} 天，{first}至{last}）"
+  },
+  "en": {
+   "one": "Total time ({days} day, {first} to {last})",
+   "other": "Total time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.total_time_first_to_last": {
+  "text": "总用时（{first}至{last}）",
+  "en": "Total time ({first} to {last})"
+ },
+ "answer_column.heading_detail": {
+  "text": "{heading}。{detail}",
+  "en": "{heading}. {detail}"
+ },
+ "answer_column.median_seconds_per_answer_for_the": {
+  "text": "该卡片在所点日期每次回答用时的中位数（秒），包括重答。笔记显示其匹配卡片中最慢一张的中位数。",
+  "en": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median."
+ },
+ "answer_column.number_of_answers_on_the_clicked": {
+  "text": "所点日期的回答次数，包括重答。笔记显示其所有卡片的总和。",
+  "en": "Number of answers on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "answer_column.seconds_s": {
+  "text": "{seconds} 秒",
+  "en": "{seconds} s"
+ },
+ "answer_column.total_seconds_spent_answering_on_the": {
+  "text": "所点日期回答所用的总秒数，包括重答。笔记显示其所有卡片的总和。",
+  "en": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "caption.after_the_rain": {
+  "text": "雨后",
+  "en": "after the rain"
+ },
+ "caption.city_not_found": {
+  "text": "找不到该城市",
+  "en": "City not found"
+ },
+ "caption.clear_sky": {
+  "text": "晴",
+  "en": "clear sky"
+ },
+ "caption.click_to_see_all_of_it": {
+  "text": "点击查看全部",
+  "en": "Click to see all of it"
+ },
+ "caption.click_to_see_their_cards": {
+  "text": "点击查看其中的卡片。",
+  "en": "Click to see their cards."
+ },
+ "caption.cloudy": {
+  "text": "多云",
+  "en": "cloudy"
+ },
+ "caption.days_you_studied_in_a_row": {
+  "text": "连续学习的天数。没有到期卡片的日子不会中断连续学习。",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it."
+ },
+ "caption.days_you_studied_in_a_row_2": {
+  "text": "连续学习的天数。没有到期卡片的日子不会中断连续学习；由于您的连续学习按每周 {week} 天计算，每周休息一天也不会中断。",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, a day off in a week doesn't either."
+ },
+ "caption.days_you_studied_in_a_row_3": {
+  "text": "连续学习的天数。没有到期卡片的日子不会中断连续学习；由于您的连续学习按每周 {week} 天计算，每周休息两天也不会中断。",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, two days off in a week don't either."
+ },
+ "caption.deck_lit_of_n_trees": {
+  "text": {
+   "other": "{deck}：{lit}/{n} 棵树"
+  },
+  "en": {
+   "one": "{deck}: {lit} of {n} tree",
+   "other": "{deck}: {lit} of {n} trees"
+  }
+ },
+ "caption.deep_winter": {
+  "text": "隆冬",
+  "en": "deep winter"
+ },
+ "caption.fog": {
+  "text": "雾",
+  "en": "fog"
+ },
+ "caption.live_weather_from_met_norway_cc": {
+  "text": "实时天气来自 MET Norway（CC BY 4.0）。",
+  "en": "Live weather from MET Norway (CC BY 4.0)."
+ },
+ "caption.live_weather_unavailable": {
+  "text": "实时天气不可用",
+  "en": "Live weather unavailable"
+ },
+ "caption.made_up_trees_from_the_test": {
+  "text": "这些是「测试森林」设置生成的虚构树木。在森林设置中关闭它，即可看到您真实的森林。",
+  "en": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one."
+ },
+ "caption.n_ancient": {
+  "text": {
+   "other": "{n} 棵古树"
+  },
+  "en": {
+   "one": "{n} ancient",
+   "other": "{n} ancient"
+  }
+ },
+ "caption.n_day_streak": {
+  "text": {
+   "other": "连续 {n} 天"
+  },
+  "en": {
+   "one": "{n}-day streak",
+   "other": "{n}-day streak"
+  }
+ },
+ "caption.n_in_the_deep_forest": {
+  "text": {
+   "other": "{n} 棵在森林深处"
+  },
+  "en": {
+   "one": "{n} in the deep forest",
+   "other": "{n} in the deep forest"
+  }
+ },
+ "caption.n_trees": {
+  "text": {
+   "other": "{n} 棵树"
+  },
+  "en": {
+   "one": "{n} tree",
+   "other": "{n} trees"
+  }
+ },
+ "caption.one_tree_for_each_day_you": {
+  "text": "每个学习了新卡片的日子都会种下一棵树。将指针悬停在树上可查看日期，点击可查看它的卡片。",
+  "en": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards."
+ },
+ "caption.openstreetmap_does_not_know_that_city": {
+  "text": "OpenStreetMap 找不到该城市，因此场景保留自己的天气。请在森林设置中检查拼写，或改用英文名称。",
+  "en": "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+ },
+ "caption.rain": {
+  "text": "雨",
+  "en": "rain"
+ },
+ "caption.snow": {
+  "text": "雪",
+  "en": "snow"
+ },
+ "caption.test_forest": {
+  "text": "测试森林",
+  "en": "Test forest"
+ },
+ "caption.the_live_weather_could_not_be": {
+  "text": "无法获取实时天气，场景暂时保留自己的天气。",
+  "en": "The live weather could not be fetched, so the scenery keeps its own weather for now."
+ },
+ "caption.the_scenery_chosen_in_the_forest": {
+  "text": "场景，在森林设置中选择。",
+  "en": "The scenery, chosen in the forest settings."
+ },
+ "caption.thunderstorm": {
+  "text": "雷雨",
+  "en": "thunderstorm"
+ },
+ "caption.trees_holding_cards_from_this_deck": {
+  "text": "含有此牌组卡片的树保持彩色，其余的树会淡去。可在森林设置的「牌组界面」中更改。",
+  "en": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings."
+ },
+ "caption.trees_whose_cards_you_will_likely": {
+  "text": "这些树上的卡片您很可能会记住一年以上：它们的记忆强度中位数至少为 365 天。启用 FSRS 时为记忆稳定期，否则为复习间隔。",
+  "en": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not."
+ },
+ "caption.weather_by_met_norway": {
+  "text": "天气数据由 MET Norway 提供",
+  "en": "weather by MET Norway"
+ },
+ "caption.weather_weather": {
+  "text": "天气：{weather}",
+  "en": "Weather: {weather}"
+ },
+ "caption.weather_weather_in_city": {
+  "text": "天气：{city}，{weather}",
+  "en": "Weather: {weather} in {city}"
+ },
+ "caption.weather_weather_in_city_temp": {
+  "text": "天气：{city}，{weather}，{temp}°",
+  "en": "Weather: {weather} in {city}, {temp}°"
+ },
+ "caption.weather_weather_temp": {
+  "text": "天气：{weather}，{temp}°",
+  "en": "Weather: {weather}, {temp}°"
+ },
+ "caption.your_trees_from_from_to_to": {
+  "text": {
+   "other": "您从{from}到{to}种下的树一起站在远处，共有 {n} 张卡片。逐一绘制它们会让牌组列表变慢。"
+  },
+  "en": {
+   "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
+   "other": "Your trees from {from} to {to} stand together in the distance, holding {n} cards. Drawing every one of them individually would slow the deck list down."
+  }
+ },
+ "date.day_month": {
+  "text": "{month}{day}日",
+  "en": "{day} {month}"
+ },
+ "date.day_month_year": {
+  "text": "{year}年{month}{day}日",
+  "en": "{day} {month} {year}"
+ },
+ "date.month_year": {
+  "text": "{year}年{month}",
+  "en": "{month} {year}"
+ },
+ "env.aurora": {
+  "text": "极光",
+  "en": "Aurora"
+ },
+ "env.bamboo": {
+  "text": "雨中竹林",
+  "en": "Rainy bamboo grove"
+ },
+ "env.frozen_market": {
+  "text": "圣诞市集",
+  "en": "Christmas market"
+ },
+ "env.lanterns": {
+  "text": "天灯",
+  "en": "Lanterns"
+ },
+ "env.misty_valley": {
+  "text": "雾谷",
+  "en": "Misty valley"
+ },
+ "env.natural": {
+  "text": "自然风光",
+  "en": "Natural"
+ },
+ "env.pumpkin_patch": {
+  "text": "南瓜田",
+  "en": "Pumpkin patch"
+ },
+ "env.starry_night": {
+  "text": "星月夜",
+  "en": "Starry night"
+ },
+ "env.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "event.asteroid.a_crater": {
+  "text": "一个陨石坑",
+  "en": "A crater"
+ },
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": {
+  "text": "Anki 的这一天结束时，小行星将会撞击，除非您在此之前复习。若它撞击，新的森林会从陨石坑中长出。",
+  "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
+ "event.asteroid.asteroid_struck_date": {
+  "text": "小行星于{date}撞击",
+  "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tonight": {
+  "text": "小行星：今晚",
+  "en": "Asteroid: tonight"
+ },
+ "event.asteroid.its_crater_can_play_it_again": {
+  "text": "点击它的陨石坑也可以重放。",
+  "en": "Its crater can play it again too."
+ },
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "text": {
+   "other": "一天未复习，失去了 {n} 棵树；新的森林将从这里长出。"
+  },
+  "en": {
+   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "text": {
+   "other": "{date}失去了 {n} 棵树"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}",
+   "other": "{n} trees lost on {date}"
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "text": {
+   "other": "连续学习 {streak} 天后，{date}失去了 {n} 棵树"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}, after a {streak}-day streak",
+   "other": "{n} trees lost on {date}, after a {streak}-day streak"
+  }
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": {
+  "text": "在「平和」或「狂野」下，树木会重新出现",
+  "en": "On Peaceful or Wild the trees stand again"
+ },
+ "event.asteroid.turn_on_animations_in_the_forest": {
+  "text": "在森林设置中开启动画即可观看。",
+  "en": "Turn on animations in the forest settings to watch it."
+ },
+ "event.asteroid.your_system_asks_for_less_motion": {
+  "text": "您的系统要求减少动态效果：将「森林动画」设为「开」即可观看。",
+  "en": "Your system asks for less motion: set Animate the forest to On to watch it."
+ },
+ "event.fire.fire_n_trees": {
+  "text": {
+   "other": "火灾：{n} 棵树"
+  },
+  "en": {
+   "one": "Fire: {n} tree",
+   "other": "Fire: {n} trees"
+  }
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "text": {
+   "other": "再学习 {n} 天即可将火扑灭。"
+  },
+  "en": {
+   "one": "{n} more day of study puts it out.",
+   "other": "{n} more days of study put it out."
+  }
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "text": {
+   "other": "您不在时，{n} 棵树着火了。"
+  },
+  "en": {
+   "one": "{n} tree caught fire while you were away.",
+   "other": "{n} trees caught fire while you were away."
+  }
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "text": {
+   "other": "<b>着火</b>：在您离开期间着火 · 再学习 {n} 天后恢复绿色"
+  },
+  "en": {
+   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
+   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+  }
+ },
+ "event.fire.smoke_is_rising_after_two_days": {
+  "text": "两天没有复习，森林冒起了烟。今天去学习，否则明天森林就会着火。",
+  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
+ },
+ "event.fire.smoke_study_today": {
+  "text": "冒烟：今天要学习",
+  "en": "Smoke: study today"
+ },
+ "event.fire.smoking": {
+  "text": "冒烟",
+  "en": "Smoking"
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "text": {
+   "other": "<b>复习积压</b>：{n} 张复习卡片已逾期。复习完它们，风滚草就会被吹走。"
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "text": {
+   "other": "<b>复习积压</b>：{n} 张复习卡片已逾期，而平常一天只有 {usual} 张。复习完它们，风滚草就会被吹走。"
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "events.a_fire_broke_out_while_you": {
+  "text": {
+   "other": "您不在时森林起火了：{trees} 棵树正在燃烧。学习 {days} 天即可将火扑灭。"
+  },
+  "en": {
+   "one": "A fire broke out while you were away: {trees} tree is burning. Study on {days} days to put it out.",
+   "other": "A fire broke out while you were away: {trees} trees are burning. Study on {days} days to put it out."
+  }
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "text": {
+   "other": "一颗小行星摧毁了您那片有 {trees} 棵树的森林。新的森林将从这里长出。"
+  },
+  "en": {
+   "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
+   "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
+  }
+ },
+ "events.merciless": {
+  "text": "无情",
+  "en": "Merciless"
+ },
+ "events.miss_a_day_nothing_is_lost": {
+  "text": "错过一天：什么都不会失去。离开一周或更久，森林里会留下一个池塘。",
+  "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
+ },
+ "events.miss_a_day_of_reviews_an": {
+  "text": "错过一天复习：一颗小行星会悬在天空中，若您在 Anki 的这一天结束前仍未复习，它就会撞击。新的森林会从陨石坑中长出。坏习惯也会留下痕迹。",
+  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
+ },
+ "events.miss_two_days_in_a_row": {
+  "text": "连续错过两天：冒起烟雾以示警告。错过第三天：大火蔓延，直到学习满七天才会熄灭。坏习惯也会留下痕迹。",
+  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
+ },
+ "events.peaceful": {
+  "text": "平和",
+  "en": "Peaceful"
+ },
+ "events.smoke_is_rising_from_your_forest": {
+  "text": "两天没有复习，您的森林冒起了烟。今天去学习，否则它就会着火。",
+  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.switch_back_any_time_and_every": {
+  "text": "随时切换回来，每一棵树都会重新出现。",
+  "en": "Switch back any time and every tree is there again."
+ },
+ "events.the_last_of_the_fire_is": {
+  "text": "最后的火焰也已熄灭。您的森林又恢复了绿色。",
+  "en": "The last of the fire is out. Your forest is green again."
+ },
+ "events.wild": {
+  "text": "狂野",
+  "en": "Wild"
+ },
+ "events.you_cleared_your_overdue_reviews": {
+  "text": "您已复习完所有逾期卡片。",
+  "en": "You cleared your overdue reviews."
+ },
+ "events.you_cleared_your_overdue_reviews_the": {
+  "text": "您已复习完所有逾期卡片。风滚草被吹走了。",
+  "en": "You cleared your overdue reviews. The tumbleweeds blew away."
+ },
+ "heatmap.a_minute": {
+  "text": "1 分钟",
+  "en": "a minute"
+ },
+ "heatmap.about_n_reviews_a_day": {
+  "text": {
+   "other": "每天约 {n} 次复习"
+  },
+  "en": {
+   "one": "About {n} review a day",
+   "other": "About {n} reviews a day"
+  }
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "text": {
+   "other": "每个学习日约 {n} 次复习"
+  },
+  "en": {
+   "one": "About {n} review a day studied",
+   "other": "About {n} reviews a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "text": {
+   "other": "每个学习日约 {n} 次复习，用时 {time}"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day studied",
+   "other": "About {n} reviews and {time} a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "text": {
+   "other": "每天约 {n} 次复习，用时 {time}"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day",
+   "other": "About {n} reviews and {time} a day"
+  }
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "text": {
+   "other": "它的 {n} 张卡片都已被删除"
+  },
+  "en": {
+   "one": "All {n} of its cards have since been deleted",
+   "other": "All {n} of its cards have since been deleted"
+  }
+ },
+ "heatmap.and_n_more_marked": {
+  "text": {
+   "other": "另有 {n} 个标记"
+  },
+  "en": {
+   "one": "and {n} more marked",
+   "other": "and {n} more marked"
+  }
+ },
+ "heatmap.back_to_today": {
+  "text": "回到今天",
+  "en": "Back to today"
+ },
+ "heatmap.beat_your_longest_streak_n_days": {
+  "text": {
+   "other": "若每天坚持学习，这一天将打破您的最长连续学习纪录（{n} 天）"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day, studying every day until then",
+   "other": "Beat your longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "text": {
+   "other": "这一天将打破您的最长连续学习纪录（{n} 天）"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day",
+   "other": "Beat your longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.before_your_first_review": {
+  "text": "首次复习之前",
+  "en": "Before your first review"
+ },
+ "heatmap.before_your_forest_began": {
+  "text": "森林开始之前",
+  "en": "Before your forest began"
+ },
+ "heatmap.birthday": {
+  "text": "生日",
+  "en": "Birthday"
+ },
+ "heatmap.both_of_its_cards_have_since": {
+  "text": "它的两张卡片都已被删除",
+  "en": "Both of its cards have since been deleted"
+ },
+ "heatmap.by_year": {
+  "text": "按年",
+  "en": "By year"
+ },
+ "heatmap.date_name": {
+  "text": "<i>{date}：</i>{name}",
+  "en": "<i>{date}:</i> {name}"
+ },
+ "heatmap.day_day_of_a_n_day": {
+  "text": {
+   "other": "连续 {n} 天中的第 {day} 天"
+  },
+  "en": {
+   "one": "Day {day} of a {n}-day streak",
+   "other": "Day {day} of a {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "text": {
+   "other": "连续 {n} 天中的第 {day} 天"
+  },
+  "en": {
+   "one": "Day {day} of {n} in a row",
+   "other": "Day {day} of {n} in a row"
+  }
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "text": {
+   "other": "您连续学习 {n} 天中的第 {day} 天"
+  },
+  "en": {
+   "one": "Day {day} of your {n}-day streak",
+   "other": "Day {day} of your {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_your_streak": {
+  "text": "连续学习第 {day} 天",
+  "en": "Day {day} of your streak"
+ },
+ "heatmap.didnt_break_a_n_day_streak": {
+  "text": {
+   "other": "未中断连续 {n} 天的学习"
+  },
+  "en": {
+   "one": "Didn't break a {n}-day streak",
+   "other": "Didn't break a {n}-day streak"
+  }
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "text": {
+   "other": "不会中断您连续 {n} 天的学习"
+  },
+  "en": {
+   "one": "Doesn't break your {n}-day streak",
+   "other": "Doesn't break your {n}-day streak"
+  }
+ },
+ "heatmap.done": {
+  "text": "完成",
+  "en": "Done"
+ },
+ "heatmap.earlier": {
+  "text": "更早",
+  "en": "Earlier"
+ },
+ "heatmap.exam": {
+  "text": "考试",
+  "en": "Exam"
+ },
+ "heatmap.fast": {
+  "text": "快",
+  "en": "Fast"
+ },
+ "heatmap.from_n_reviews": {
+  "text": {
+   "other": "{from}–{n} 次复习"
+  },
+  "en": {
+   "one": "{from}–{n} reviews",
+   "other": "{from}–{n} reviews"
+  }
+ },
+ "heatmap.from_to": {
+  "text": "{from}–{to}",
+  "en": "{from}–{to}"
+ },
+ "heatmap.from_to_min": {
+  "text": "{from}–{to} 分钟",
+  "en": "{from}–{to} min"
+ },
+ "heatmap.from_to_s_per_answer": {
+  "text": "每次回答 {from}–{to} 秒",
+  "en": "{from}–{to} s per answer"
+ },
+ "heatmap.from_to_to": {
+  "text": "{from}至{to}",
+  "en": "{from} to {to}"
+ },
+ "heatmap.from_to_today": {
+  "text": "{from}至今天",
+  "en": "{from} to today"
+ },
+ "heatmap.h_hr_m_min": {
+  "text": "{h} 小时 {m} 分钟",
+  "en": "{h} hr {m} min"
+ },
+ "heatmap.heart": {
+  "text": "爱心",
+  "en": "Heart"
+ },
+ "heatmap.its_card_has_since_been_deleted": {
+  "text": "它的卡片已被删除",
+  "en": "Its card has since been deleted"
+ },
+ "heatmap.january_to_december": {
+  "text": "1月至12月",
+  "en": "January to December"
+ },
+ "heatmap.last_day_of_a_n_day": {
+  "text": {
+   "other": "连续 {n} 天学习的最后一天"
+  },
+  "en": {
+   "one": "Last day of a {n}-day streak",
+   "other": "Last day of a {n}-day streak"
+  }
+ },
+ "heatmap.later": {
+  "text": "更晚",
+  "en": "Later"
+ },
+ "heatmap.less": {
+  "text": "少",
+  "en": "Less"
+ },
+ "heatmap.mark_icon": {
+  "text": "标记图标",
+  "en": "Mark icon"
+ },
+ "heatmap.mark_name": {
+  "text": "标记名称",
+  "en": "Mark name"
+ },
+ "heatmap.median_s_s_per_answer_n": {
+  "text": {
+   "other": "每次回答中位数 {s} 秒，{n} 次复习，{due} 张仍待复习"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review, {due} still due",
+   "other": "Median {s} s per answer, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "text": {
+   "other": "每次回答中位数 {s} 秒，{n} 次复习"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review",
+   "other": "Median {s} s per answer, {n} reviews"
+  }
+ },
+ "heatmap.more": {
+  "text": "多",
+  "en": "More"
+ },
+ "heatmap.n_cards_due": {
+  "text": {
+   "other": "{n} 张卡片到期"
+  },
+  "en": {
+   "one": "{n} card due",
+   "other": "{n} cards due"
+  }
+ },
+ "heatmap.n_cards_due_after_today": {
+  "text": {
+   "other": "{n} 张卡片在今天之后到期"
+  },
+  "en": {
+   "one": "{n} card due after today",
+   "other": "{n} cards due after today"
+  }
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "text": {
+   "other": "{n} 张卡片在本月稍后到期"
+  },
+  "en": {
+   "one": "{n} card due later this month",
+   "other": "{n} cards due later this month"
+  }
+ },
+ "heatmap.n_days": {
+  "text": {
+   "other": "{n} 天"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "heatmap.n_days_from_to_to": {
+  "text": {
+   "other": "{n} 天，{from}至{to}"
+  },
+  "en": {
+   "one": "{n} day, {from} to {to}",
+   "other": "{n} days, {from} to {to}"
+  }
+ },
+ "heatmap.n_days_from_to_today": {
+  "text": {
+   "other": "{n} 天，{from}至今天"
+  },
+  "en": {
+   "one": "{n} day, {from} to today",
+   "other": "{n} days, {from} to today"
+  }
+ },
+ "heatmap.n_days_in_a_row": {
+  "text": {
+   "other": "连续 {n} 天"
+  },
+  "en": {
+   "one": "{n} day in a row",
+   "other": "{n} days in a row"
+  }
+ },
+ "heatmap.n_days_since_date": {
+  "text": {
+   "other": "{n} 天 · 自{date}起"
+  },
+  "en": {
+   "one": "{n} day · Since {date}",
+   "other": "{n} days · Since {date}"
+  }
+ },
+ "heatmap.n_hr": {
+  "text": "{n} 小时",
+  "en": "{n} hr"
+ },
+ "heatmap.n_min": {
+  "text": "{n} 分钟",
+  "en": "{n} min"
+ },
+ "heatmap.n_min_2": {
+  "text": "{n}+ 分钟",
+  "en": "{n}+ min"
+ },
+ "heatmap.n_of_its_of_cards_have": {
+  "text": {
+   "other": "它的 {of} 张卡片中有 {n} 张已被删除"
+  },
+  "en": {
+   "one": "{n} of its {of} cards has since been deleted",
+   "other": "{n} of its {of} cards have since been deleted"
+  }
+ },
+ "heatmap.n_reviews": {
+  "text": {
+   "other": "{n} 次复习"
+  },
+  "en": {
+   "one": "{n} review",
+   "other": "{n} reviews"
+  }
+ },
+ "heatmap.n_reviews_2": {
+  "text": {
+   "other": "{n}+ 次复习"
+  },
+  "en": {
+   "one": "{n}+ reviews",
+   "other": "{n}+ reviews"
+  }
+ },
+ "heatmap.n_reviews_in_time": {
+  "text": {
+   "other": "{n} 次复习，用时 {time}"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "text": {
+   "other": "{n} 次复习，未记录用时"
+  },
+  "en": {
+   "one": "{n} review, no time kept",
+   "other": "{n} reviews, no time kept"
+  }
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "text": {
+   "other": "目前 {n} 次复习，{due} 张仍待复习"
+  },
+  "en": {
+   "one": "{n} review so far, {due} still due",
+   "other": "{n} reviews so far, {due} still due"
+  }
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "text": {
+   "other": "目前 {n} 次复习，用时 {time}，{due} 张仍待复习"
+  },
+  "en": {
+   "one": "{n} review so far in {time}, {due} still due",
+   "other": "{n} reviews so far in {time}, {due} still due"
+  }
+ },
+ "heatmap.name_in_n_days": {
+  "text": {
+   "other": "{n} 天后{name}"
+  },
+  "en": {
+   "one": "{name} in {n} day",
+   "other": "{name} in {n} days"
+  }
+ },
+ "heatmap.name_today": {
+  "text": "今天{name}",
+  "en": "{name} today"
+ },
+ "heatmap.name_tomorrow": {
+  "text": "明天{name}",
+  "en": "{name} tomorrow"
+ },
+ "heatmap.near_date": {
+  "text": "{near}，{date}",
+  "en": "{near}, {date}"
+ },
+ "heatmap.not_studied": {
+  "text": "未学习",
+  "en": "Not studied"
+ },
+ "heatmap.not_studied_a_day_off": {
+  "text": "未学习：休息日",
+  "en": "Not studied: a day off"
+ },
+ "heatmap.not_studied_a_pond_in_your": {
+  "text": "未学习：森林里的一个池塘",
+  "en": "Not studied: a pond in your forest"
+ },
+ "heatmap.not_studied_since_date": {
+  "text": "自{date}起未学习",
+  "en": "Not studied since {date}"
+ },
+ "heatmap.not_studied_so_far": {
+  "text": "目前未学习",
+  "en": "Not studied so far"
+ },
+ "heatmap.not_studied_yet": {
+  "text": "尚未学习",
+  "en": "Not studied yet"
+ },
+ "heatmap.not_studied_yet_n_cards_due": {
+  "text": {
+   "other": "尚未学习，{n} 张卡片到期"
+  },
+  "en": {
+   "one": "Not studied yet, {n} card due",
+   "other": "Not studied yet, {n} cards due"
+  }
+ },
+ "heatmap.nothing_due_today": {
+  "text": "今天没有到期卡片",
+  "en": "Nothing due today"
+ },
+ "heatmap.nothing_due_yet": {
+  "text": "暂无到期卡片",
+  "en": "Nothing due yet"
+ },
+ "heatmap.nothing_was_due": {
+  "text": "当天没有到期卡片",
+  "en": "Nothing was due"
+ },
+ "heatmap.pace": {
+  "text": "速度",
+  "en": "Pace"
+ },
+ "heatmap.pass_your_second_longest_streak_n": {
+  "text": {
+   "other": "若每天坚持学习，这一天将超过您第二长的连续学习（{n} 天）"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your second-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "text": {
+   "other": "这一天将超过您第二长的连续学习（{n} 天）"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day",
+   "other": "Pass your second-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "text": {
+   "other": "若每天坚持学习，这一天将超过您第三长的连续学习（{n} 天）"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your third-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "text": {
+   "other": "这一天将超过您第三长的连续学习（{n} 天）"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day",
+   "other": "Pass your third-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pin": {
+  "text": "图钉",
+  "en": "Pin"
+ },
+ "heatmap.planted_tree_n_new_cards": {
+  "text": {
+   "other": "种下一棵树：{n} 张新卡片"
+  },
+  "en": {
+   "one": "Planted tree: {n} new cards",
+   "other": "Planted tree: {n} new cards"
+  }
+ },
+ "heatmap.ponds_and_animals_count_from_here": {
+  "text": "池塘和动物从这里开始计算",
+  "en": "Ponds and animals count from here"
+ },
+ "heatmap.reach_a_n_day_streak_on": {
+  "text": {
+   "other": "若每天坚持学习，这一天将达到连续 {n} 天"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day, studying every day until then",
+   "other": "Reach a {n}-day streak on this day, studying every day until then"
+  }
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "text": {
+   "other": "这一天将达到连续 {n} 天"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day",
+   "other": "Reach a {n}-day streak on this day"
+  }
+ },
+ "heatmap.remove_the_mark": {
+  "text": "移除标记",
+  "en": "Remove the mark"
+ },
+ "heatmap.reviews": {
+  "text": "复习次数",
+  "en": "Reviews"
+ },
+ "heatmap.s_s_per_answer": {
+  "text": "每次回答 {s}+ 秒",
+  "en": "{s}+ s per answer"
+ },
+ "heatmap.shade_each_day_by_how_long": {
+  "text": "按每天的学习时长着色",
+  "en": "Shade each day by how long you studied"
+ },
+ "heatmap.shade_each_day_by_how_many": {
+  "text": "按每天的复习次数着色",
+  "en": "Shade each day by how many reviews you did"
+ },
+ "heatmap.shade_each_day_by_its_median": {
+  "text": "按每天每次回答用时的中位数着色",
+  "en": "Shade each day by its median seconds per answer"
+ },
+ "heatmap.shade_the_days_by": {
+  "text": "着色依据",
+  "en": "Shade the days by"
+ },
+ "heatmap.sick": {
+  "text": "生病",
+  "en": "Sick"
+ },
+ "heatmap.slow": {
+  "text": "慢",
+  "en": "Slow"
+ },
+ "heatmap.star": {
+  "text": "星星",
+  "en": "Star"
+ },
+ "heatmap.streak": {
+  "text": "连续学习",
+  "en": "Streak"
+ },
+ "heatmap.studied_all_of_them": {
+  "text": "这些天都学习了",
+  "en": "Studied all of them"
+ },
+ "heatmap.studied_all_of_these_n_days": {
+  "text": {
+   "other": "这 {n} 天都学习了"
+  },
+  "en": {
+   "one": "Studied all of these {n} day",
+   "other": "Studied all of these {n} days"
+  }
+ },
+ "heatmap.studied_every_day": {
+  "text": "每天都学习了",
+  "en": "Studied every day"
+ },
+ "heatmap.studied_every_day_since_date": {
+  "text": "自{date}起每天都学习了",
+  "en": "Studied every day since {date}"
+ },
+ "heatmap.studied_every_day_so_far": {
+  "text": "目前每天都学习了",
+  "en": "Studied every day so far"
+ },
+ "heatmap.studied_n_of_them_pct": {
+  "text": {
+   "other": "其中 {n} 天学习了（{pct}%）"
+  },
+  "en": {
+   "one": "Studied {n} of them ({pct}%)",
+   "other": "Studied {n} of them ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "text": {
+   "other": "{n} 天中学习了 {studied} 天（{pct}%）"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day ({pct}%)",
+   "other": "Studied {studied} of {n} days ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "text": {
+   "other": "自{date}起的 {n} 天中学习了 {studied} 天（{pct}%）"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day since {date} ({pct}%)",
+   "other": "Studied {studied} of {n} days since {date} ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "text": {
+   "other": "目前 {n} 天中学习了 {studied} 天（{pct}%）"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day so far ({pct}%)",
+   "other": "Studied {studied} of {n} days so far ({pct}%)"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "text": {
+   "other": "学习热力图，{from}至{to}：学习了 {n} 天，连续 {days} 天"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied, a {days}-day streak",
+   "other": "Study heatmap, {from} to {to}: {n} days studied, a {days}-day streak"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "text": {
+   "other": "学习热力图，{from}至{to}：学习了 {n} 天"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied",
+   "other": "Study heatmap, {from} to {to}: {n} days studied"
+  }
+ },
+ "heatmap.the_months_round_this_one_most": {
+  "text": "本月前后的几个月，大多在本月之前",
+  "en": "The months round this one, most of them before it"
+ },
+ "heatmap.this_day_s_tree_is_part": {
+  "text": "这一天的树已在您的森林深处",
+  "en": "This day’s tree is part of your deep forest"
+ },
+ "heatmap.this_tree_is_outside_your_current": {
+  "text": "这棵树在当前缩放视图之外",
+  "en": "This tree is outside your current zoom view"
+ },
+ "heatmap.time": {
+  "text": "时长",
+  "en": "Time"
+ },
+ "heatmap.time_2": {
+  "text": "{time}+",
+  "en": "{time}+"
+ },
+ "heatmap.time_n_reviews": {
+  "text": {
+   "other": "{time}，{n} 次复习"
+  },
+  "en": {
+   "one": "{time}, {n} review",
+   "other": "{time}, {n} reviews"
+  }
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "text": {
+   "other": "目前用时 {time}，{n} 次复习，{due} 张仍待复习"
+  },
+  "en": {
+   "one": "{time} so far, {n} review, {due} still due",
+   "other": "{time} so far, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.timeline": {
+  "text": "时间线",
+  "en": "Timeline"
+ },
+ "heatmap.today": {
+  "text": "今天",
+  "en": "Today"
+ },
+ "heatmap.too_far_ahead_to_count": {
+  "text": "太远了，无法计算",
+  "en": "Too far ahead to count"
+ },
+ "heatmap.trip": {
+  "text": "旅行",
+  "en": "Trip"
+ },
+ "heatmap.under_a_minute": {
+  "text": "不到 1 分钟",
+  "en": "under a minute"
+ },
+ "heatmap.under_n_reviews": {
+  "text": {
+   "other": "少于 {n} 次复习"
+  },
+  "en": {
+   "one": "Under {n} reviews",
+   "other": "Under {n} reviews"
+  }
+ },
+ "heatmap.under_s_s_per_answer": {
+  "text": "每次回答少于 {s} 秒",
+  "en": "Under {s} s per answer"
+ },
+ "heatmap.under_time": {
+  "text": "少于 {time}",
+  "en": "Under {time}"
+ },
+ "heatmap.view": {
+  "text": "视图",
+  "en": "View"
+ },
+ "heatmap.your_forest_began": {
+  "text": "您的森林从这天开始",
+  "en": "Your forest began"
+ },
+ "heatmap.your_longest_streak": {
+  "text": "最长连续学习",
+  "en": "Your longest streak"
+ },
+ "heatmap.your_longest_streak_n_days": {
+  "text": {
+   "other": "最长连续学习：{n} 天"
+  },
+  "en": {
+   "one": "Your longest streak: {n} day",
+   "other": "Your longest streak: {n} days"
+  }
+ },
+ "heatmap.your_n_day_streak": {
+  "text": {
+   "other": "您的连续学习：{n} 天"
+  },
+  "en": {
+   "one": "Your {n}-day streak",
+   "other": "Your {n}-day streak"
+  }
+ },
+ "heatmap.your_second_longest_streak": {
+  "text": "第二长连续学习",
+  "en": "Your second-longest streak"
+ },
+ "heatmap.your_second_longest_streak_n_days": {
+  "text": {
+   "other": "第二长连续学习：{n} 天"
+  },
+  "en": {
+   "one": "Your second-longest streak: {n} day",
+   "other": "Your second-longest streak: {n} days"
+  }
+ },
+ "heatmap.your_streak_every_year_of_it": {
+  "text": "您的连续学习，逐年显示；箭头可查看之前的连续学习",
+  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+ },
+ "heatmap.your_third_longest_streak": {
+  "text": "第三长连续学习",
+  "en": "Your third-longest streak"
+ },
+ "heatmap.your_third_longest_streak_n_days": {
+  "text": {
+   "other": "第三长连续学习：{n} 天"
+  },
+  "en": {
+   "one": "Your third-longest streak: {n} day",
+   "other": "Your third-longest streak: {n} days"
+  }
+ },
+ "heatmap_look.darker": {
+  "text": "更深",
+  "en": "Darker"
+ },
+ "heatmap_look.flame": {
+  "text": "火焰",
+  "en": "Flame"
+ },
+ "heatmap_look.ice": {
+  "text": "冰蓝",
+  "en": "Ice"
+ },
+ "heatmap_look.lighter": {
+  "text": "更浅",
+  "en": "Lighter"
+ },
+ "heatmap_look.lime": {
+  "text": "青柠",
+  "en": "Lime"
+ },
+ "heatmap_look.magenta": {
+  "text": "洋红",
+  "en": "Magenta"
+ },
+ "heatmap_look.olive": {
+  "text": "橄榄",
+  "en": "Olive"
+ },
+ "heatmap_style.brush": {
+  "text": "笔触",
+  "en": "Brush"
+ },
+ "heatmap_style.brush.tip": {
+  "text": "「星月夜」的笔触",
+  "en": "Starry night's brushstrokes"
+ },
+ "heatmap_style.canes": {
+  "text": "竹竿",
+  "en": "Canes"
+ },
+ "heatmap_style.canes.tip": {
+  "text": "「雨中竹林」的竹竿，每天两根",
+  "en": "Bamboo grove's canes, two to a day"
+ },
+ "heatmap_style.chalk": {
+  "text": "粉笔",
+  "en": "Chalk"
+ },
+ "heatmap_style.chalk.tip": {
+  "text": "「黑板」的粉笔排线",
+  "en": "Chalkboard's chalk hatching"
+ },
+ "heatmap_style.contours": {
+  "text": "等高线",
+  "en": "Contours"
+ },
+ "heatmap_style.contours.tip": {
+  "text": "把学习过的日子连成一片，各色调分成平坦的色带，就像等高线地图",
+  "en": "The days you studied as one shape, its shades in flat bands, like a contour map"
+ },
+ "heatmap_style.flat": {
+  "text": "平铺",
+  "en": "Flat"
+ },
+ "heatmap_style.flat.tip": {
+  "text": "方形色块，每块单一颜色，边角圆润",
+  "en": "Square tiles, each one solid colour, their corners smooth"
+ },
+ "heatmap_style.ice": {
+  "text": "冰块",
+  "en": "Ice blocks"
+ },
+ "heatmap_style.ice.tip": {
+  "text": "「冰河市集」的冰块，仅在其所在的那一周可用",
+  "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.pumpkin": {
+  "text": "南瓜",
+  "en": "Pumpkins"
+ },
+ "heatmap_style.pumpkin.tip": {
+  "text": "「月下女巫」的南瓜纹，仅在其所在的那一周可用",
+  "en": "Witch across the moon's pumpkin ribs, in its week only"
+ },
+ "heatmap_style.rime": {
+  "text": "霜花",
+  "en": "Rime"
+ },
+ "heatmap_style.rime.tip": {
+  "text": "「云雾山谷」的霜，挂在每个色块的上沿",
+  "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.round": {
+  "text": "圆点",
+  "en": "Round"
+ },
+ "heatmap_style.round.tip": {
+  "text": "每天一个小圆点",
+  "en": "Each day a little round tile"
+ },
+ "heatmap_style.scanlines": {
+  "text": "扫描线",
+  "en": "Scanlines"
+ },
+ "heatmap_style.scanlines.tip": {
+  "text": "「Synthwave」的扫描线",
+  "en": "Synthwave's scanlines"
+ },
+ "heatmap_style.scenery": {
+  "text": "场景",
+  "en": "Scenery"
+ },
+ "heatmap_style.scenery.tip": {
+  "text": "使用当前场景自己的色块样式，更换场景时随之改变",
+  "en": "Uses the current scenery's own tile style and updates when you change scenery"
+ },
+ "hover.click_to_select_it": {
+  "text": "点击选中",
+  "en": "Click to select it"
+ },
+ "hover.click_to_watch_it_again": {
+  "text": "点击再看一次",
+  "en": "Click to watch it again"
+ },
+ "hover.tap_again_to_watch_it_again": {
+  "text": "再次轻点即可再看一次",
+  "en": "Tap again to watch it again"
+ },
+ "hover.tap_to_select_it": {
+  "text": "轻点选中",
+  "en": "Tap to select it"
+ },
+ "journal.a_harvest_moon_rises_over_your": {
+  "text": "一轮丰收月升起在您森林的周年纪念日上空。",
+  "en": "A harvest moon rises over your forest's anniversary."
+ },
+ "journal.days_days_in_a_row_the": {
+  "text": {
+   "other": "连续 {days} 天。森林一天也没有错过。"
+  },
+  "en": {
+   "one": "{days} day in a row. The forest has not missed one.",
+   "other": "{days} days in a row. The forest has not missed one."
+  }
+ },
+ "journal.meteors_are_falling_tonight": {
+  "text": "今晚有流星雨。",
+  "en": "Meteors are falling tonight."
+ },
+ "journal.one_of_your_trees_became_ancient": {
+  "text": "今天，您的一棵树成为了古树。",
+  "en": "One of your trees became ancient today."
+ },
+ "journal.one_of_your_trees_became_ancient_2": {
+  "text": "今天，您的一棵树成为了古树。留意天上的流星吧。",
+  "en": "One of your trees became ancient today. Watch for a shooting star."
+ },
+ "journal.study_some_new_cards_and_your": {
+  "text": "学习一些新卡片，您的第一棵树就会在这里扎根。",
+  "en": "Study some new cards and your first tree will take root here."
+ },
+ "journal.the_grass_is_growing_tall_no": {
+  "text": {
+   "other": "草长高了：已经 {n} 周没有新卡片。"
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} week.",
+   "other": "The grass is growing tall: no new cards for {n} weeks."
+  }
+ },
+ "journal.the_grass_is_growing_tall_no_2": {
+  "text": "草长高了：已经一周没有新卡片。",
+  "en": "The grass is growing tall: no new cards for a week."
+ },
+ "journal.the_tree_you_planted_on_date": {
+  "text": {
+   "other": "您在{date}种下的树今天满 {n} 岁了。"
+  },
+  "en": {
+   "one": "The tree you planted on {date} turned {n} year old today.",
+   "other": "The tree you planted on {date} turned {n} years old today."
+  }
+ },
+ "journal.the_tree_you_planted_on_date_2": {
+  "text": "您在{date}种下的树今天满一岁了。",
+  "en": "The tree you planted on {date} turned a year old today."
+ },
+ "journal.your_count_th_tree_planted_today": {
+  "text": {
+   "other": "您的第 {count} 棵树，今天用 {cards} 张新卡片种下。"
+  },
+  "en": {
+   "one": "Your {count}th tree, planted today with {cards} new card.",
+   "other": "Your {count}th tree, planted today with {cards} new cards."
+  }
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "text": {
+   "other": "您的第一棵树，上面有 {cards} 张卡片。"
+  },
+  "en": {
+   "one": "Your first tree. It holds {cards} card.",
+   "other": "Your first tree. It holds {cards} cards."
+  }
+ },
+ "landmark.moon_bridge": {
+  "text": "拱月桥",
+  "en": "Moon bridge"
+ },
+ "landmark.none": {
+  "text": "无",
+  "en": "None"
+ },
+ "landmark.pagoda": {
+  "text": "宝塔",
+  "en": "Pagoda"
+ },
+ "landmark.peak": {
+  "text": "山峰",
+  "en": "Mountain peak"
+ },
+ "landscape.lake": {
+  "text": "静湖",
+  "en": "Still lake"
+ },
+ "landscape.meadow": {
+  "text": "草甸",
+  "en": "Meadow"
+ },
+ "landscape.mountains": {
+  "text": "山谷",
+  "en": "Mountain valley"
+ },
+ "landscape.river": {
+  "text": "河流",
+  "en": "River"
+ },
+ "month.april": {
+  "text": "4月",
+  "en": "April"
+ },
+ "month.august": {
+  "text": "8月",
+  "en": "August"
+ },
+ "month.december": {
+  "text": "12月",
+  "en": "December"
+ },
+ "month.february": {
+  "text": "2月",
+  "en": "February"
+ },
+ "month.january": {
+  "text": "1月",
+  "en": "January"
+ },
+ "month.july": {
+  "text": "7月",
+  "en": "July"
+ },
+ "month.june": {
+  "text": "6月",
+  "en": "June"
+ },
+ "month.march": {
+  "text": "3月",
+  "en": "March"
+ },
+ "month.may": {
+  "text": "5月",
+  "en": "May"
+ },
+ "month.november": {
+  "text": "11月",
+  "en": "November"
+ },
+ "month.october": {
+  "text": "10月",
+  "en": "October"
+ },
+ "month.september": {
+  "text": "9月",
+  "en": "September"
+ },
+ "month_short.apr": {
+  "text": "4月",
+  "en": "Apr"
+ },
+ "month_short.aug": {
+  "text": "8月",
+  "en": "Aug"
+ },
+ "month_short.dec": {
+  "text": "12月",
+  "en": "Dec"
+ },
+ "month_short.feb": {
+  "text": "2月",
+  "en": "Feb"
+ },
+ "month_short.jan": {
+  "text": "1月",
+  "en": "Jan"
+ },
+ "month_short.jul": {
+  "text": "7月",
+  "en": "Jul"
+ },
+ "month_short.jun": {
+  "text": "6月",
+  "en": "Jun"
+ },
+ "month_short.mar": {
+  "text": "3月",
+  "en": "Mar"
+ },
+ "month_short.may": {
+  "text": "5月",
+  "en": "May"
+ },
+ "month_short.nov": {
+  "text": "11月",
+  "en": "Nov"
+ },
+ "month_short.oct": {
+  "text": "10月",
+  "en": "Oct"
+ },
+ "month_short.sep": {
+  "text": "9月",
+  "en": "Sep"
+ },
+ "news.change_scenery_and_settings_new_scenery": {
+  "text": "更改场景和设置（新场景）",
+  "en": "Change scenery and settings (new scenery)"
+ },
+ "news.change_scenery_and_settings_something_new": {
+  "text": "更改场景和设置（有新内容）",
+  "en": "Change scenery and settings (something new)"
+ },
+ "news.got_it": {
+  "text": "知道了",
+  "en": "Got it"
+ },
+ "panel.change_scenery_and_settings": {
+  "text": "更改场景和设置",
+  "en": "Change scenery and settings"
+ },
+ "panel.seasonal_scenery_for_this_week_only": {
+  "text": "季节限定场景，仅限本周。您的场景将于{date}回来。",
+  "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
+ },
+ "panel.seasonal_scenery_here_until_date": {
+  "text": "季节限定场景，持续到{date}。",
+  "en": "Seasonal scenery, here until {date}."
+ },
+ "panel.todays_scenery_from_surprise_me_daily": {
+  "text": "今天的场景，来自「每日惊喜」。明天会换下一个。",
+  "en": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."
+ },
+ "panel.your_own_mix_from_customize_in": {
+  "text": "您自己的搭配，来自森林设置中的「自定义」。",
+  "en": "Your own mix, from Customize in the forest settings."
+ },
+ "panel.your_study_forest": {
+  "text": "您的学习森林",
+  "en": "Your study forest"
+ },
+ "phone.forest_full_screen": {
+  "text": "森林全屏",
+  "en": "Forest full screen"
+ },
+ "phone.full_screen_isnt_allowed_here": {
+  "text": "此处不允许全屏。",
+  "en": "Full screen isn't allowed here."
+ },
+ "phone.heatmap_full_screen": {
+  "text": "热力图全屏",
+  "en": "Heatmap full screen"
+ },
+ "phone.just_now": {
+  "text": "刚刚",
+  "en": "just now"
+ },
+ "phone.leave_full_screen": {
+  "text": "退出全屏",
+  "en": "Leave full screen"
+ },
+ "phone.memory_forest_could_not_draw_your": {
+  "text": "Memory Forest 无法在此处绘制您的森林。",
+  "en": "Memory Forest could not draw your forest here."
+ },
+ "phone.memory_forest_keeps_your_forest_here": {
+  "text": "Memory Forest 将您的森林保存在这里，以便在手机上显示。学习这个牌组即可看到它，看完后不作答直接返回即可。每次同步时，插件都会重写这条笔记。",
+  "en": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync."
+ },
+ "phone.n_days_ago": {
+  "text": {
+   "other": "{n} 天前"
+  },
+  "en": {
+   "one": "{n} day ago",
+   "other": "{n} days ago"
+  }
+ },
+ "phone.n_hours_ago": {
+  "text": {
+   "other": "{n} 小时前"
+  },
+  "en": {
+   "one": "{n} hour ago",
+   "other": "{n} hours ago"
+  }
+ },
+ "phone.n_minutes_ago": {
+  "text": {
+   "other": "{n} 分钟前"
+  },
+  "en": {
+   "one": "{n} minute ago",
+   "other": "{n} minutes ago"
+  }
+ },
+ "phone.sync_anki_on_your_computer_to": {
+  "text": "在电脑上同步 Anki 即可更新。",
+  "en": "Sync Anki on your computer to bring it up to date."
+ },
+ "phone.synced_when": {
+  "text": "上次同步：{when}。",
+  "en": "Synced {when}."
+ },
+ "phone.yesterday": {
+  "text": "昨天",
+  "en": "yesterday"
+ },
+ "phone.your_forest_arrives_with_the_next": {
+  "text": "您的森林将随电脑上 Anki 的下一次同步到来。",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_arrives_with_the_next_sync": {
+  "text": "您的森林将随电脑上 Anki 的下一次同步到来。",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_is_on_its_way": {
+  "text": "您的森林正在路上：再同步一次即可获取它的画面。",
+  "en": "Your forest is on its way: sync once more to fetch its drawing."
+ },
+ "planting.a_new_tree_was_planted_in": {
+  "text": "今天，您的森林里种下了一棵新树。",
+  "en": "A new tree was planted in your forest today."
+ },
+ "preset.aurora": {
+  "text": "极光之夜",
+  "en": "Aurora night"
+ },
+ "preset.aurora.note": {
+  "text": "北极光悬在白雪覆盖的群山之上，在山下的静湖中流动。",
+  "en": "Northern lights over a snowy range, moving in the still lake below."
+ },
+ "preset.bamboo": {
+  "text": "雨中竹林",
+  "en": "Rainy bamboo grove"
+ },
+ "preset.bamboo.note": {
+  "text": "高高的竹子沐浴在柔和的绿色细雨中，雾中隐现一座寺庙，河上漂着盏盏灯笼。",
+  "en": "Tall canes in soft green rain, a temple in the mist, lanterns floating down the river."
+ },
+ "preset.chalkboard": {
+  "text": "黑板",
+  "en": "Chalkboard"
+ },
+ "preset.chalkboard.note": {
+  "text": "用彩色粉笔画在绿色黑板上的森林。",
+  "en": "The forest in coloured chalk on a green blackboard."
+ },
+ "preset.cherry_blossom": {
+  "text": "樱花",
+  "en": "Cherry blossom"
+ },
+ "preset.cherry_blossom.note": {
+  "text": "富士山下赏樱：河畔樱花盛开，头顶挂着纸灯笼，花瓣随风飘落。",
+  "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
+ },
+ "preset.custom": {
+  "text": "自定义",
+  "en": "Custom"
+ },
+ "preset.daily": {
+  "text": "每日惊喜",
+  "en": "Surprise me daily"
+ },
+ "preset.daily.note": {
+  "text": "每天一个不同的场景，依次轮换，每个场景都会轮到。",
+  "en": "A different scenery every day, taking turns so each one comes round in order."
+ },
+ "preset.frozen_market": {
+  "text": "冰河市集",
+  "en": "Frozen river market"
+ },
+ "preset.frozen_market.note": {
+  "text": "冰封河面上的圣诞市集：冰上有摊位和旋转木马，溜冰的人从灯笼映照的桥下滑过。",
+  "en": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge."
+ },
+ "preset.golden_lake": {
+  "text": "湖畔金辉",
+  "en": "Golden hour by the lake"
+ },
+ "preset.golden_lake.note": {
+  "text": "低垂的太阳照在平静的水面上，整片森林被一侧的阳光照亮。",
+  "en": "Low sun across still water, the whole forest lit from one side."
+ },
+ "preset.lanterns": {
+  "text": "天灯之夜",
+  "en": "Lanterns at night"
+ },
+ "preset.lanterns.note": {
+  "text": "纸灯从一座红色的拱月桥冉冉升向满月，倒影则沉向水底。",
+  "en": "Paper lanterns drifting up from a red moon bridge towards a full moon, and their reflections going down."
+ },
+ "preset.misty_valley": {
+  "text": "云雾山谷",
+  "en": "Misty mountain valley"
+ },
+ "preset.misty_valley.note": {
+  "text": "一座雪峰俯瞰着尚未醒来的山谷。",
+  "en": "A snow-capped peak over a valley that has not woken up yet."
+ },
+ "preset.pumpkin_patch": {
+  "text": "月下女巫",
+  "en": "Witch across the moon"
+ },
+ "preset.pumpkin_patch.note": {
+  "text": "女巫和她的猫飞过一轮初升的丰收月，下方是一片咧嘴偷笑的南瓜灯。",
+  "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.starry_night": {
+  "text": "星月夜",
+  "en": "Starry night"
+ },
+ "preset.starry_night.note": {
+  "text": "致敬梵高：笔触旋动的夜空笼罩着沉睡的村庄，柏树在夜空前如暗色火焰般升腾。",
+  "en": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
+ },
+ "preset.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "preset.synthwave.note": {
+  "text": "霓虹网格一直延伸到地平线，条纹太阳立在上面。",
+  "en": "The neon grid running to the horizon, and the banded sun standing on it."
+ },
+ "scene.after_the_rain": {
+  "text": "雨后",
+  "en": "After the rain"
+ },
+ "scene.clear": {
+  "text": "晴",
+  "en": "Clear"
+ },
+ "scene.cloudy": {
+  "text": "多云",
+  "en": "Cloudy"
+ },
+ "scene.dawn": {
+  "text": "黎明",
+  "en": "Dawn"
+ },
+ "scene.day": {
+  "text": "白天",
+  "en": "Day"
+ },
+ "scene.deep_winter": {
+  "text": "隆冬",
+  "en": "Deep winter"
+ },
+ "scene.dusk": {
+  "text": "黄昏",
+  "en": "Dusk"
+ },
+ "scene.fog": {
+  "text": "雾",
+  "en": "Fog"
+ },
+ "scene.golden_hour": {
+  "text": "黄金时刻",
+  "en": "Golden hour"
+ },
+ "scene.night": {
+  "text": "夜晚",
+  "en": "Night"
+ },
+ "scene.rain": {
+  "text": "雨",
+  "en": "Rain"
+ },
+ "scene.snow": {
+  "text": "雪",
+  "en": "Snow"
+ },
+ "scene.thunderstorm": {
+  "text": "雷雨",
+  "en": "Thunderstorm"
+ },
+ "settings.about.all_release_notes": {
+  "text": "所有更新说明",
+  "en": "All release notes"
+ },
+ "settings.about.and_a_special_thank_you_to": {
+  "text": "特别感谢我在 Patreon 上的赞助者：",
+  "en": "And a special thank-you to my Sponsors on Patreon:"
+ },
+ "settings.about.how_it_works": {
+  "text": "使用说明",
+  "en": "How it works"
+ },
+ "settings.about.made_by_barak_levy": {
+  "text": "作者：Barak Levy",
+  "en": "Made by Barak Levy"
+ },
+ "settings.about.memory_forest_grows_thanks_to_everyone": {
+  "text": "Memory Forest 的成长离不开每一位为它评分、分享、提出想法或报告问题的人。谢谢大家！",
+  "en": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!"
+ },
+ "settings.about.mit_licence": {
+  "text": "MIT 许可证",
+  "en": "MIT licence"
+ },
+ "settings.about.new_scenery_arrives_in_memory_forest": {
+  "text": "新场景会先在 Memory Forest Plus 中推出，之后也会加入这个版本。<a href=\"{url}\">在 Patreon 上加入</a>",
+  "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
+ },
+ "settings.about.one_tree_for_every_day_you": {
+  "text": "每个学习新卡片的日子都会种下一棵树。今天的幼苗在最前面，最老的树在最后面。随着这些卡片在记忆中扎根，树会逐渐长大；有些卡片忘记时，树上会出现几片黄叶。只复习的日子不会种树，但能让您的树保持健康。",
+  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+ },
+ "settings.about.places_openstreetmap_contributors": {
+  "text": "地点 © <a href=\"{osm}\">OpenStreetMap 贡献者</a>",
+  "en": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>"
+ },
+ "settings.about.rate_it_on_ankiweb": {
+  "text": "在 AnkiWeb 上评分",
+  "en": "Rate it on AnkiWeb"
+ },
+ "settings.about.report_a_bug_or_share_an": {
+  "text": "报告问题或分享想法",
+  "en": "Report a bug or share an idea"
+ },
+ "settings.about.thank_you": {
+  "text": "致谢",
+  "en": "Thank you"
+ },
+ "settings.about.the_heatmap_under_it_shows_every": {
+  "text": "下方的热力图显示您学习过的每一天：将指针悬停在某天上可查看数据，右键点击可为它添加标记。",
+  "en": "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it."
+ },
+ "settings.about.version_version": {
+  "text": "版本 {version}",
+  "en": "Version {version}"
+ },
+ "settings.about.weather_from_met_norway_cc_by": {
+  "text": "天气来自 <a href=\"{met}\">MET Norway</a>（CC BY 4.0）",
+  "en": "Weather from <a href=\"{met}\">MET Norway</a> (CC BY 4.0)"
+ },
+ "settings.about.whats_new": {
+  "text": "新功能",
+  "en": "What's new"
+ },
+ "settings.about.youre_part_of_this_thank_you": {
+  "text": "这里也有您的一份：感谢您在 <a href=\"{url}\">Patreon</a> 上的支持",
+  "en": "You're part of this: thank you for supporting it on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.customize.change_anything_here_to_make_it": {
+  "text": "在这里更改任何一项，即可创建您自己的搭配。",
+  "en": "Change anything here to make it your own mix."
+ },
+ "settings.customize.customize_scenery": {
+  "text": "自定义「{scenery}」›",
+  "en": "Customize {scenery} ›"
+ },
+ "settings.customize.customize_scenery_2": {
+  "text": "自定义「{scenery}」",
+  "en": "Customize {scenery}"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery": {
+  "text": "以「{scenery}」为基础自定义搭配 ›",
+  "en": "Customize your own mix, from {scenery} ›"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery_2": {
+  "text": "以「{scenery}」为基础自定义搭配",
+  "en": "Customize your own mix, from {scenery}"
+ },
+ "settings.customize.environment": {
+  "text": "环境",
+  "en": "Environment"
+ },
+ "settings.customize.follows_your_clock": {
+  "text": "跟随您的时钟",
+  "en": "Follows your clock"
+ },
+ "settings.customize.landmark": {
+  "text": "地标",
+  "en": "Landmark"
+ },
+ "settings.customize.landscape": {
+  "text": "地貌",
+  "en": "Landscape"
+ },
+ "settings.customize.live_weather": {
+  "text": "实时天气",
+  "en": "Live weather"
+ },
+ "settings.customize.reset_a_row_to_put_the": {
+  "text": "重置某一行即可恢复场景的原有设置。",
+  "en": "Reset a row to put the scenery's own choice back."
+ },
+ "settings.customize.reset_put_back_the_scenerys_own": {
+  "text": "重置：恢复场景的原有设置",
+  "en": "Reset: put back the scenery's own choice"
+ },
+ "settings.customize.sceneries": {
+  "text": "‹ 场景",
+  "en": "‹ Sceneries"
+ },
+ "settings.customize.time_of_day": {
+  "text": "时间",
+  "en": "Time of day"
+ },
+ "settings.customize.weather": {
+  "text": "天气",
+  "en": "Weather"
+ },
+ "settings.decks.counting_your_trees": {
+  "text": "正在清点您的树…",
+  "en": "Counting your trees…"
+ },
+ "settings.decks.date_format": {
+  "text": "yyyy'年'M'月'd'日'",
+  "en": "d MMMM yyyy"
+ },
+ "settings.decks.days_before_date_grow_no_trees": {
+  "text": "{date}之前的日子不会长出树。热力图仍会显示它们（「热力图」选项卡）。",
+  "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
+ },
+ "settings.decks.decks": {
+  "text": "牌组",
+  "en": "Decks"
+ },
+ "settings.decks.keep_suspended_cards_in_their_trees": {
+  "text": "已暂停的卡片保留在树中",
+  "en": "Keep suspended cards in their trees"
+ },
+ "settings.decks.keep_the_trees_from_before_it": {
+  "text": "保留此日期之前的树",
+  "en": "Keep the trees from before it"
+ },
+ "settings.decks.no_trees": {
+  "text": "没有树",
+  "en": "no trees"
+ },
+ "settings.decks.start_the_forest_on": {
+  "text": "森林起始日期",
+  "en": "Start the forest on"
+ },
+ "settings.decks.they_keep_their_trees_size_but": {
+  "text": "它们保留所在树的大小，但不会影响树的健康。",
+  "en": "They keep their tree's size but never hurt its health."
+ },
+ "settings.decks.unticked_decks_grow_no_trees_you": {
+  "text": "未勾选的牌组不会长出树。也可以通过牌组的 ⚙ 菜单设置。",
+  "en": "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
+ },
+ "settings.decks.what_counts": {
+  "text": "计入范围",
+  "en": "What counts"
+ },
+ "settings.decks.your_forest_starts_on_your_first": {
+  "text": "您的森林从您学习的第一天（{first}）开始。",
+  "en": "Your forest starts on your first day of study, {first}."
+ },
+ "settings.decks.your_forest_trees": {
+  "text": "您的森林：<b>{trees}</b>",
+  "en": "Your forest: <b>{trees}</b>"
+ },
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "text": {
+   "other": "您的森林：<b>{trees}</b> &nbsp;（未计入更早的 {n} 棵）"
+  },
+  "en": {
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
+  }
+ },
+ "settings.decks.your_trees_from_before_it_stay": {
+  "text": "此前的树会保留。池塘、自然和动物从{date}开始计算。",
+  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+ },
+ "settings.dialog.about": {
+  "text": "关于",
+  "en": "About"
+ },
+ "settings.dialog.cancel": {
+  "text": "取消",
+  "en": "Cancel"
+ },
+ "settings.dialog.decks": {
+  "text": "牌组",
+  "en": "Decks"
+ },
+ "settings.dialog.done": {
+  "text": "完成",
+  "en": "Done"
+ },
+ "settings.dialog.forest": {
+  "text": "森林",
+  "en": "Forest"
+ },
+ "settings.dialog.heatmap": {
+  "text": "热力图",
+  "en": "Heatmap"
+ },
+ "settings.dialog.put_the_settings_back_to_their": {
+  "text": "将设置恢复为默认值？",
+  "en": "Put the settings back to their defaults?"
+ },
+ "settings.dialog.resets_the_scenery_customize_and_surprise": {
+  "text": "将重置：场景、「自定义」和「每日惊喜」的场景、自然（恢复为{nature}）、您的城市、森林和热力图的显示位置（包括已完成的牌组）及其布局、热力图的视图、宽度和填充方式、每周起始日、着色依据、颜色（包括「繁忙日」）和样式、动画以及种树提示。\n\n将保留：您排除的牌组、起始日期（包括是否保留此前的树，以及热力图和连续学习是否以它为准）、连续学习的每周天数、已暂停的卡片、您标记的日子，以及手机上的森林。\n\n点击「取消」仍会恢复您之前的设置。",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+ },
+ "settings.dialog.restore_defaults": {
+  "text": "恢复默认",
+  "en": "Restore defaults"
+ },
+ "settings.dialog.restore_defaults_2": {
+  "text": "恢复默认…",
+  "en": "Restore defaults…"
+ },
+ "settings.dialog.scenery": {
+  "text": "场景",
+  "en": "Scenery"
+ },
+ "settings.forest.a_forest_of_that_decks_own": {
+  "text": "该牌组自己的森林",
+  "en": "A forest of that deck's own"
+ },
+ "settings.forest.adds_a_memory_forest_deck_with": {
+  "text": "添加一个「Memory Forest」牌组，其中的卡片会在同步时显示您的森林和热力图。",
+  "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
+ },
+ "settings.forest.animate_the_forest": {
+  "text": "森林动画",
+  "en": "Animate the forest"
+ },
+ "settings.forest.covers_the_forest_and_the_heatmap": {
+  "text": "适用于森林和热力图。",
+  "en": "Covers the forest and the heatmap."
+ },
+ "settings.forest.deck_screens": {
+  "text": "牌组界面",
+  "en": "Deck screens"
+ },
+ "settings.forest.follow_system": {
+  "text": "跟随系统",
+  "en": "Follow system"
+ },
+ "settings.forest.forest_width": {
+  "text": "森林宽度",
+  "en": "Forest width"
+ },
+ "settings.forest.layout": {
+  "text": "布局",
+  "en": "Layout"
+ },
+ "settings.forest.main_screen": {
+  "text": "主界面",
+  "en": "Main screen"
+ },
+ "settings.forest.motion_and_messages": {
+  "text": "动画和提示",
+  "en": "Motion and messages"
+ },
+ "settings.forest.nature": {
+  "text": "自然",
+  "en": "Nature"
+ },
+ "settings.forest.no_forest": {
+  "text": "不显示森林",
+  "en": "No forest"
+ },
+ "settings.forest.off": {
+  "text": "关",
+  "en": "Off"
+ },
+ "settings.forest.on": {
+  "text": "开",
+  "en": "On"
+ },
+ "settings.forest.on_finished_decks_too": {
+  "text": "已完成的牌组也显示",
+  "en": "On finished decks too"
+ },
+ "settings.forest.on_your_phone": {
+  "text": "手机上",
+  "en": "On your phone"
+ },
+ "settings.forest.px": {
+  "text": " px",
+  "en": " px"
+ },
+ "settings.forest.show_a_message_when_todays_tree": {
+  "text": "种下今天的树时显示提示",
+  "en": "Show a message when today's tree is planted"
+ },
+ "settings.forest.show_my_forest_on_my_phone": {
+  "text": "在手机上显示我的森林",
+  "en": "Show my forest on my phone"
+ },
+ "settings.forest.where_it_shows": {
+  "text": "显示位置",
+  "en": "Where it shows"
+ },
+ "settings.forest.your_forest": {
+  "text": "您的森林",
+  "en": "Your forest"
+ },
+ "settings.forest.your_forest_that_decks_trees_lit": {
+  "text": "您的森林，突出该牌组的树",
+  "en": "Your forest, that deck's trees lit up"
+ },
+ "settings.heatmap.5_days_a_week": {
+  "text": "每周 5 天",
+  "en": "5 days a week"
+ },
+ "settings.heatmap.680_px_or_less_where_there": {
+  "text": "680 px，空间不足时更窄",
+  "en": "680 px, or less where there is less room"
+ },
+ "settings.heatmap.6_days_a_week": {
+  "text": "每周 6 天",
+  "en": "6 days a week"
+ },
+ "settings.heatmap.85_of_the_forests_width": {
+  "text": "森林宽度的 85%",
+  "en": "85% of the forest's width"
+ },
+ "settings.heatmap.85_of_the_room_it_has": {
+  "text": "可用空间的 85%：牌组列表下方或上方的一行，或旁边的一列",
+  "en": "85% of the room it has: the row under or over the deck list, or its column beside it"
+ },
+ "settings.heatmap.a_day_off_keeps_your_streak": {
+  "text": "休息日不会中断连续学习，但也不会增加天数。",
+  "en": "A day off keeps your streak but doesn't add to it."
+ },
+ "settings.heatmap.auto": {
+  "text": "自动",
+  "en": "Auto"
+ },
+ "settings.heatmap.auto_day": {
+  "text": "{auto}（{day}）",
+  "en": "{auto} ({day})"
+ },
+ "settings.heatmap.bigger_days": {
+  "text": "放大日格",
+  "en": "Bigger days"
+ },
+ "settings.heatmap.by_year_and_streak_always_fit": {
+  "text": "「按年」和「连续学习」视图总是让一年正好占满宽度。",
+  "en": "By year and Streak always fit a year to the width."
+ },
+ "settings.heatmap.colours": {
+  "text": "颜色",
+  "en": "Colours"
+ },
+ "settings.heatmap.deck_screens": {
+  "text": "牌组界面",
+  "en": "Deck screens"
+ },
+ "settings.heatmap.every_day": {
+  "text": "每天",
+  "en": "Every day"
+ },
+ "settings.heatmap.every_day_the_same_size_a": {
+  "text": "每天大小不变：热力图越宽，显示的月份越多",
+  "en": "Every day the same size: a wider heatmap shows more months"
+ },
+ "settings.heatmap.fill_it_with": {
+  "text": "填充方式",
+  "en": "Fill it with"
+ },
+ "settings.heatmap.fixed": {
+  "text": "固定",
+  "en": "Fixed"
+ },
+ "settings.heatmap.follow_the_forest": {
+  "text": "跟随森林",
+  "en": "Follow the forest"
+ },
+ "settings.heatmap.fri": {
+  "text": "周五",
+  "en": "Fri"
+ },
+ "settings.heatmap.friday": {
+  "text": "星期五",
+  "en": "Friday"
+ },
+ "settings.heatmap.full_width": {
+  "text": "全宽",
+  "en": "Full width"
+ },
+ "settings.heatmap.layout": {
+  "text": "布局",
+  "en": "Layout"
+ },
+ "settings.heatmap.main_screen": {
+  "text": "主界面",
+  "en": "Main screen"
+ },
+ "settings.heatmap.mon": {
+  "text": "周一",
+  "en": "Mon"
+ },
+ "settings.heatmap.monday": {
+  "text": "星期一",
+  "en": "Monday"
+ },
+ "settings.heatmap.more_months": {
+  "text": "更多月份",
+  "en": "More months"
+ },
+ "settings.heatmap.sat": {
+  "text": "周六",
+  "en": "Sat"
+ },
+ "settings.heatmap.saturday": {
+  "text": "星期六",
+  "en": "Saturday"
+ },
+ "settings.heatmap.show_on": {
+  "text": "显示于",
+  "en": "Show on"
+ },
+ "settings.heatmap.show_the_reviews_from_before_your": {
+  "text": "显示森林起始日期之前的复习",
+  "en": "Show the reviews from before your forest's start date"
+ },
+ "settings.heatmap.streak": {
+  "text": "连续学习",
+  "en": "Streak"
+ },
+ "settings.heatmap.style": {
+  "text": "样式",
+  "en": "Style"
+ },
+ "settings.heatmap.sun": {
+  "text": "周日",
+  "en": "Sun"
+ },
+ "settings.heatmap.sunday": {
+  "text": "星期日",
+  "en": "Sunday"
+ },
+ "settings.heatmap.ten_months_with_bigger_days_to": {
+  "text": "十个月，放大日格以占满宽度",
+  "en": "Ten months, with bigger days to fill the width"
+ },
+ "settings.heatmap.the_start_date": {
+  "text": "起始日期",
+  "en": "The start date"
+ },
+ "settings.heatmap.thu": {
+  "text": "周四",
+  "en": "Thu"
+ },
+ "settings.heatmap.thursday": {
+  "text": "星期四",
+  "en": "Thursday"
+ },
+ "settings.heatmap.tue": {
+  "text": "周二",
+  "en": "Tue"
+ },
+ "settings.heatmap.tuesday": {
+  "text": "星期二",
+  "en": "Tuesday"
+ },
+ "settings.heatmap.wed": {
+  "text": "周三",
+  "en": "Wed"
+ },
+ "settings.heatmap.wednesday": {
+  "text": "星期三",
+  "en": "Wednesday"
+ },
+ "settings.heatmap.week_starts_on": {
+  "text": "每周起始日",
+  "en": "Week starts on"
+ },
+ "settings.heatmap.width": {
+  "text": "宽度",
+  "en": "Width"
+ },
+ "settings.heatmap.your_first_review": {
+  "text": "首次复习",
+  "en": "Your first review"
+ },
+ "settings.heatmap.your_forests_start_date_is_set": {
+  "text": "森林的起始日期在「牌组」选项卡中设置。",
+  "en": "Your forest's start date is set on the Decks tab."
+ },
+ "settings.heatmap.your_streak_counts": {
+  "text": "连续学习要求",
+  "en": "Your streak counts"
+ },
+ "settings.heatmap.your_streak_counts_from": {
+  "text": "连续学习起算于",
+  "en": "Your streak counts from"
+ },
+ "settings.heatmap.your_systems_first_day_of_the": {
+  "text": "系统设置的每周第一天",
+  "en": "Your system's first day of the week"
+ },
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": {
+  "text": "系统设置的每周第一天：{day}",
+  "en": "Your system's first day of the week: {day}"
+ },
+ "settings.heatmap_look.blend_into": {
+  "text": "渐变到",
+  "en": "Blend into"
+ },
+ "settings.heatmap_look.busier_days": {
+  "text": "繁忙日",
+  "en": "Busier days"
+ },
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": {
+  "text": "在 Anki 的深色模式下，繁忙日也和浅色模式一样颜色更深；按「速度」着色时，则是速度更快的日子颜色更深。",
+  "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
+ },
+ "settings.heatmap_look.colours_you_pick_one_dim_to": {
+  "text": "自选颜色：一种颜色由浅到深，或两种颜色从第一种渐变到第二种",
+  "en": "Colours you pick: one, dim to full, or two, blending from the first to the second"
+ },
+ "settings.heatmap_look.current_scenery": {
+  "text": "当前场景",
+  "en": "Current scenery"
+ },
+ "settings.heatmap_look.custom": {
+  "text": "自定义",
+  "en": "Custom"
+ },
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
+  "text": "在 Anki 的深色模式下，繁忙日颜色更浅；按「速度」着色时，则是速度更快的日子颜色更浅。在浅色模式下，总是更深。",
+  "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
+ },
+ "settings.heatmap_look.lime_green_to_bright_lime": {
+  "text": "青柠：绿色到亮青柠色",
+  "en": "Lime: green to bright lime"
+ },
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
+  "text": "Review Heatmap 的「Flame」：亮红到黄",
+  "en": "Review Heatmap's Flame: bright red to yellow"
+ },
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
+  "text": "Review Heatmap 的「Ice」：深蓝到浅冰蓝",
+  "en": "Review Heatmap's Ice: deep blue to pale ice blue"
+ },
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
+  "text": "Review Heatmap 的「Magenta」：深粉到浅粉",
+  "en": "Review Heatmap's Magenta: deep pink to pale pink"
+ },
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
+  "text": "Review Heatmap 的「Olive」：深橄榄绿到浅黄绿",
+  "en": "Review Heatmap's Olive: deep olive green to pale yellow-green"
+ },
+ "settings.heatmap_look.scenery": {
+  "text": "场景",
+  "en": "Scenery"
+ },
+ "settings.heatmap_look.the_busiest_days_colour": {
+  "text": "最繁忙日的颜色",
+  "en": "The busiest days' colour"
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": {
+  "text": "您为最繁忙日选的颜色在浅色页面上不易看清。热力图仍会按您的选择显示。",
+  "en": "Your busiest colour is hard to see on a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": {
+  "text": "您为最繁忙日选的颜色在深色页面上不易看清。热力图仍会按您的选择显示。",
+  "en": "Your busiest colour is hard to see on a dark page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": {
+  "text": "您为最繁忙日选的颜色在深色或浅色页面上不易看清。热力图仍会按您的选择显示。",
+  "en": "Your busiest colour is hard to see on a dark or a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_days_colour": {
+  "text": "最繁忙日的颜色",
+  "en": "Your busiest days' colour"
+ },
+ "settings.heatmap_look.your_colour": {
+  "text": "您的颜色",
+  "en": "Your colour"
+ },
+ "settings.heatmap_look.your_colour_with_a_blend_the": {
+  "text": "您的颜色（渐变时：最清闲日的颜色）",
+  "en": "Your colour (with a blend: the quietest days')"
+ },
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": {
+  "text": "当前场景的颜色，或另一场景的颜色（更换场景时保持不变）",
+  "en": "Your current scenery's colours, or another scenery's, which stay when you change scenery"
+ },
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
+  "text": "当前场景的色块，或另一场景的色块（更换场景时保持不变）",
+  "en": "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
+ },
+ "settings.layout.above_the_list": {
+  "text": "列表上方",
+  "en": "Above the list"
+ },
+ "settings.layout.beside_it": {
+  "text": "列表旁边",
+  "en": "Beside it"
+ },
+ "settings.layout.beside_the_list_while_the_window": {
+  "text": "窗口空间足够时显示在列表旁边，否则显示在下方。牌组界面中始终显示在下方。",
+  "en": "Beside the list while the window has room, under it otherwise. Deck screens keep them under it."
+ },
+ "settings.layout.first": {
+  "text": "在前",
+  "en": "First"
+ },
+ "settings.layout.forest": {
+  "text": "森林",
+  "en": "Forest"
+ },
+ "settings.layout.heatmap": {
+  "text": "热力图",
+  "en": "Heatmap"
+ },
+ "settings.layout.left": {
+  "text": "左侧",
+  "en": "Left"
+ },
+ "settings.layout.one_beside": {
+  "text": "一个在旁边",
+  "en": "One beside"
+ },
+ "settings.layout.right": {
+  "text": "右侧",
+  "en": "Right"
+ },
+ "settings.layout.side": {
+  "text": "位置",
+  "en": "Side"
+ },
+ "settings.layout.the_first_above_the_deck_list": {
+  "text": "在前的一个在牌组列表上方，另一个在下方",
+  "en": "The first above the deck list, the other under it"
+ },
+ "settings.layout.the_first_beside_the_deck_list": {
+  "text": "在前的一个在牌组列表旁边，另一个在下方",
+  "en": "The first beside the deck list, the other under it"
+ },
+ "settings.layout.the_forest_and_the_heatmap_beside": {
+  "text": "窗口空间足够时，森林和热力图显示在牌组列表旁边",
+  "en": "The forest and the heatmap beside the deck list, while the window has room for them"
+ },
+ "settings.layout.the_forest_and_the_heatmap_under": {
+  "text": "森林和热力图显示在牌组列表下方",
+  "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_one_that_goes_beside_or": {
+  "text": "放在牌组列表旁边或上方的那一个；两者在一起时排在前面。牌组界面也遵循此设置。",
+  "en": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too."
+ },
+ "settings.layout.under_the_list": {
+  "text": "列表下方",
+  "en": "Under the list"
+ },
+ "settings.patreon.enjoying_memory_forest": {
+  "text": "喜欢 Memory Forest 吗？",
+  "en": "Enjoying Memory Forest?"
+ },
+ "settings.patreon.every_plus_scenery_joins_this_version": {
+  "text": "每个 Plus 场景之后都会加入这个版本。",
+  "en": "Every Plus scenery joins this version later on."
+ },
+ "settings.patreon.new_scenery_arrives_here_first_every": {
+  "text": "新场景每月首先在这里推出。",
+  "en": "New scenery arrives here first, every month."
+ },
+ "settings.patreon.support_it_on_patreon_and_get": {
+  "text": "在 Patreon 上支持它，即可在 Memory Forest Plus 中\n抢先获得每个新场景",
+  "en": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
+ },
+ "settings.patreon.thank_you_for_supporting_memory_forest": {
+  "text": "感谢您在 <a href=\"{url}\">Patreon</a> 上支持 Memory Forest",
+  "en": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.picker.improved": {
+  "text": "改进",
+  "en": "IMPROVED"
+ },
+ "settings.picker.label_is_in_memory_forest_plus": {
+  "text": "「{label}」收录于 Memory Forest Plus。<a href=\"{url}\">在 Patreon 上获取</a>",
+  "en": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>"
+ },
+ "settings.picker.new": {
+  "text": "新",
+  "en": "NEW"
+ },
+ "settings.picker.no_scenery_has_that_in_its": {
+  "text": "没有名称包含该内容的场景。",
+  "en": "No scenery has that in its name."
+ },
+ "settings.picker.sceneries": {
+  "text": "场景",
+  "en": "Sceneries"
+ },
+ "settings.picker.search_n_sceneries": {
+  "text": {
+   "other": "搜索 {n} 个场景"
+  },
+  "en": {
+   "one": "Search {n} scenery",
+   "other": "Search {n} sceneries"
+  }
+ },
+ "settings.picker.this_week_only": {
+  "text": "仅限本周",
+  "en": "This week only"
+ },
+ "settings.picker.until_date": {
+  "text": "截至{date}",
+  "en": "Until {date}"
+ },
+ "settings.picker.your_own_mix_made_in_customize": {
+  "text": "您自己的搭配，在「自定义」中创建。选择一个场景即可从它重新开始。",
+  "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
+ },
+ "settings.scenery.couldnt_find_this_city_check_the": {
+  "text": "找不到该城市。请检查拼写，或改用英文名称。",
+  "en": "Couldn't find this city. Check the spelling, or try its English name."
+ },
+ "settings.scenery.couldnt_reach_the_weather_service_trying": {
+  "text": "无法连接天气服务，稍后将重试。",
+  "en": "Couldn't reach the weather service; trying again soon."
+ },
+ "settings.scenery.follow_the_real_weather_and_time": {
+  "text": "跟随真实的天气和时间",
+  "en": "Follow the real weather and time of day"
+ },
+ "settings.scenery.live_weather_from_met_norway_places": {
+  "text": "实时天气来自 MET Norway，地点来自 OpenStreetMap。留空则只跟随您的时钟。",
+  "en": "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
+ },
+ "settings.scenery.scenery": {
+  "text": "场景",
+  "en": "Scenery"
+ },
+ "settings.scenery.your_city_e_g_berlin": {
+  "text": "您的城市，例如北京",
+  "en": "Your city, e.g. Berlin"
+ },
+ "settings.surprise.only_one_ticked_the_same_scenery": {
+  "text": "只勾选了一个：每天都是同一个场景。",
+  "en": "Only one ticked: the same scenery every day."
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": {
+  "text": "「每日惊喜」的场景（全部 {n} 个）›",
+  "en": "Surprise me daily's sceneries (all {n}) ›"
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
+  "text": "「每日惊喜」的场景（{n} 个中的 {kept} 个）›",
+  "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
+ },
+ "settings.surprise.untick_the_ones_youd_rather_not": {
+  "text": "取消勾选您不想看到的场景。",
+  "en": "Untick the ones you'd rather not see."
+ },
+ "tooltip.a_big_learning_day_n_new": {
+  "text": {
+   "other": "<b>学习大日子</b>：{n} 张新卡片，平常是 {usual} 张"
+  },
+  "en": {
+   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
+   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"
+  }
+ },
+ "tooltip.a_leech_here_mature_again_the": {
+  "text": "这里的一张记忆难点卡片已重新熟练：知更鸟会停留一周",
+  "en": "A leech here mature again: the robin stays a week"
+ },
+ "tooltip.a_quiet_pond": {
+  "text": "一个宁静的池塘",
+  "en": "A quiet pond"
+ },
+ "tooltip.all_n_cards_suspended": {
+  "text": {
+   "other": "全部 {n} 张卡片已暂停"
+  },
+  "en": {
+   "one": "All {n} cards suspended",
+   "other": "All {n} cards suspended"
+  }
+ },
+ "tooltip.ancient": {
+  "text": "古树",
+  "en": "ancient"
+ },
+ "tooltip.click_to_see_these_cards": {
+  "text": "点击查看这些卡片",
+  "en": "Click to see these cards"
+ },
+ "tooltip.from_to": {
+  "text": "{from} – {to}",
+  "en": "{from} – {to}"
+ },
+ "tooltip.its_card_is_suspended": {
+  "text": "它的卡片已暂停",
+  "en": "Its card is suspended"
+ },
+ "tooltip.lasts_time": {
+  "text": "约可维持 {time}",
+  "en": "lasts ~{time}"
+ },
+ "tooltip.mature": {
+  "text": "成树",
+  "en": "mature"
+ },
+ "tooltip.n_cards": {
+  "text": {
+   "other": "{n} 张卡片"
+  },
+  "en": {
+   "one": "{n} card",
+   "other": "{n} cards"
+  }
+ },
+ "tooltip.n_days_without_reviews": {
+  "text": {
+   "other": "{n} 天没有复习"
+  },
+  "en": {
+   "one": "{n} day without reviews",
+   "other": "{n} days without reviews"
+  }
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "text": {
+   "other": "{n} 天没有复习，{from}至{to}"
+  },
+  "en": {
+   "one": "{n} day without reviews, from {from} to {to}",
+   "other": "{n} days without reviews, from {from} to {to}"
+  }
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "text": {
+   "other": "{n} 天没有复习，在{month}"
+  },
+  "en": {
+   "one": "{n} day without reviews, in {month}",
+   "other": "{n} days without reviews, in {month}"
+  }
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "text": {
+   "other": "这里的 {n} 张记忆难点卡片已重新熟练：知更鸟会停留一周"
+  },
+  "en": {
+   "one": "{n} leech here mature again: the robin stays a week",
+   "other": "{n} leeches here mature again: the robin stays a week"
+  }
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "text": {
+   "other": "这里有 {n} 张记忆难点卡片：乌鸦会一直停留，直到卡片重新熟练（间隔达到 21 天）"
+  },
+  "en": {
+   "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
+   "other": "{n} leeches here: the crows stay until the cards are mature again (21-day interval)"
+  }
+ },
+ "tooltip.n_months": {
+  "text": {
+   "other": "{n} 个月"
+  },
+  "en": {
+   "one": "{n} month",
+   "other": "{n} months"
+  }
+ },
+ "tooltip.n_of_them_ancient": {
+  "text": {
+   "other": "其中 {n} 棵是古树"
+  },
+  "en": {
+   "one": "{n} of them ancient",
+   "other": "{n} of them ancient"
+  }
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "text": {
+   "other": "{total} 张中有 {n} 张本周在重学或已遗忘"
+  },
+  "en": {
+   "one": "{n} of {total} relearning or lapsed this week",
+   "other": "{n} of {total} relearning or lapsed this week"
+  }
+ },
+ "tooltip.n_of_total_suspended": {
+  "text": {
+   "other": "{total} 张中有 {n} 张已暂停"
+  },
+  "en": {
+   "one": "{n} of {total} suspended",
+   "other": "{n} of {total} suspended"
+  }
+ },
+ "tooltip.n_older_trees": {
+  "text": {
+   "other": "{n} 棵更老的树"
+  },
+  "en": {
+   "one": "{n} older tree",
+   "other": "{n} older trees"
+  }
+ },
+ "tooltip.n_years": {
+  "text": "{n} 年",
+  "en": "{n} years"
+ },
+ "tooltip.old": {
+  "text": "老树",
+  "en": "old"
+ },
+ "tooltip.pct_remembered": {
+  "text": "约记住 {pct}%",
+  "en": "~{pct}% remembered"
+ },
+ "tooltip.pct_still_going_well": {
+  "text": "{pct}% 状态良好",
+  "en": "{pct}% still going well"
+ },
+ "tooltip.planted_n_days_ago": {
+  "text": {
+   "other": "{n} 天前种下"
+  },
+  "en": {
+   "one": "planted {n} day ago",
+   "other": "planted {n} days ago"
+  }
+ },
+ "tooltip.planted_today": {
+  "text": "今天种下",
+  "en": "planted today"
+ },
+ "tooltip.planted_yesterday": {
+  "text": "昨天种下",
+  "en": "planted yesterday"
+ },
+ "tooltip.sapling": {
+  "text": "树苗",
+  "en": "sapling"
+ },
+ "tooltip.seedling": {
+  "text": "幼苗",
+  "en": "seedling"
+ },
+ "tooltip.the_deep_forest": {
+  "text": "森林深处",
+  "en": "The deep forest"
+ },
+ "tooltip.young": {
+  "text": "小树",
+  "en": "young"
+ },
+ "visitor.a_bear": {
+  "text": "一头熊",
+  "en": "A bear"
+ },
+ "visitor.a_bear_came_you_kept_a": {
+  "text": "一头熊来了：您连续学习了两年",
+  "en": "A bear came: you kept a two-year streak"
+ },
+ "visitor.a_bear_wandered_in_you_kept": {
+  "text": "一头熊漫步而来：您连续学习了两年。",
+  "en": "A bear wandered in: you kept a two-year streak."
+ },
+ "visitor.a_cabin": {
+  "text": "一座小屋",
+  "en": "A cabin"
+ },
+ "visitor.a_cabin_came_your_forest_turned": {
+  "text": "一座小屋建成了：您的森林满一岁了",
+  "en": "A cabin came: your forest turned one year old"
+ },
+ "visitor.a_deer": {
+  "text": "一只小鹿",
+  "en": "A deer"
+ },
+ "visitor.a_deer_came_you_kept_a": {
+  "text": "一只小鹿来了：您连续学习了 30 天",
+  "en": "A deer came: you kept a 30-day streak"
+ },
+ "visitor.a_deer_wandered_in_you_kept": {
+  "text": "一只小鹿漫步而来：您连续学习了 30 天。",
+  "en": "A deer wandered in: you kept a 30-day streak."
+ },
+ "visitor.a_family_of_squirrels": {
+  "text": "一家松鼠",
+  "en": "A family of squirrels"
+ },
+ "visitor.a_family_of_squirrels_came_you": {
+  "text": "一家松鼠来了：您已熟练掌握 10,000 张卡片",
+  "en": "A family of squirrels came: you knew 10,000 cards well"
+ },
+ "visitor.a_family_of_squirrels_wandered_in": {
+  "text": "一家松鼠漫步而来：您已熟练掌握 10,000 张卡片。",
+  "en": "A family of squirrels wandered in: you knew 10,000 cards well."
+ },
+ "visitor.a_fox": {
+  "text": "一只狐狸",
+  "en": "A fox"
+ },
+ "visitor.a_fox_came_you_passed_10": {
+  "text": "一只狐狸来了：您的复习已超过 10,000 次",
+  "en": "A fox came: you passed 10,000 reviews"
+ },
+ "visitor.a_fox_wandered_in_you_passed": {
+  "text": "一只狐狸漫步而来：您的复习已超过 10,000 次。",
+  "en": "A fox wandered in: you passed 10,000 reviews."
+ },
+ "visitor.a_heron": {
+  "text": "一只苍鹭",
+  "en": "A heron"
+ },
+ "visitor.a_heron_came_a_pond_formed": {
+  "text": "一只苍鹭来了：您休息过的地方形成了一个池塘",
+  "en": "A heron came: a pond formed where you took a break"
+ },
+ "visitor.a_heron_wandered_in_a_pond": {
+  "text": "一只苍鹭漫步而来：您休息过的地方形成了一个池塘。",
+  "en": "A heron wandered in: a pond formed where you took a break."
+ },
+ "visitor.a_little_cabin_now_stands_at": {
+  "text": "森林边上立起了一座小屋：距您的第一棵树已满一年。",
+  "en": "A little cabin now stands at the edge of your forest: a year since your first tree."
+ },
+ "visitor.a_rabbit": {
+  "text": "一只兔子",
+  "en": "A rabbit"
+ },
+ "visitor.a_rabbit_came_your_forest_reached": {
+  "text": "一只兔子来了：您的森林已有 50 棵树",
+  "en": "A rabbit came: your forest reached 50 trees"
+ },
+ "visitor.a_rabbit_wandered_in_your_forest": {
+  "text": "一只兔子漫步而来：您的森林已有 50 棵树。",
+  "en": "A rabbit wandered in: your forest reached 50 trees."
+ },
+ "visitor.a_stag": {
+  "text": "一头雄鹿",
+  "en": "A stag"
+ },
+ "visitor.a_stag_came_you_kept_a": {
+  "text": "一头雄鹿来了：您连续学习了 100 天",
+  "en": "A stag came: you kept a 100-day streak"
+ },
+ "visitor.a_stag_wandered_in_you_kept": {
+  "text": "一头雄鹿漫步而来：您连续学习了 100 天。",
+  "en": "A stag wandered in: you kept a 100-day streak."
+ },
+ "visitor.an_eagle": {
+  "text": "一只鹰",
+  "en": "An eagle"
+ },
+ "visitor.an_eagle_came_you_knew_25": {
+  "text": "一只鹰来了：您已熟练掌握 25,000 张卡片",
+  "en": "An eagle came: you knew 25,000 cards well"
+ },
+ "visitor.an_eagle_wandered_in_you_knew": {
+  "text": "一只鹰漫步而来：您已熟练掌握 25,000 张卡片。",
+  "en": "An eagle wandered in: you knew 25,000 cards well."
+ },
+ "visitor.an_owl": {
+  "text": "一只猫头鹰",
+  "en": "An owl"
+ },
+ "visitor.an_owl_came_your_first_tree": {
+  "text": "一只猫头鹰来了：您的第一棵树成为了古树",
+  "en": "An owl came: your first tree became ancient"
+ },
+ "visitor.an_owl_wandered_in_your_first": {
+  "text": "一只猫头鹰漫步而来：您的第一棵树成为了古树。",
+  "en": "An owl wandered in: your first tree became ancient."
+ },
+ "visitor.built_when_your_forest_turned_one": {
+  "text": "在您的森林满一岁时建成。",
+  "en": "Built when your forest turned one year old."
+ },
+ "visitor.moved_in_when_a_pond_formed": {
+  "text": "在您休息过的地方形成池塘时搬来。",
+  "en": "Moved in when a pond formed where you took a break."
+ },
+ "visitor.moved_in_when_you_kept_a": {
+  "text": "在您连续学习 30 天时搬来。",
+  "en": "Moved in when you kept a 30-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_2": {
+  "text": "在您连续学习 100 天时搬来。",
+  "en": "Moved in when you kept a 100-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_3": {
+  "text": "在您连续学习两年时搬来。",
+  "en": "Moved in when you kept a two-year streak."
+ },
+ "visitor.moved_in_when_you_knew_10": {
+  "text": "在您熟练掌握 10,000 张卡片时搬来。",
+  "en": "Moved in when you knew 10,000 cards well."
+ },
+ "visitor.moved_in_when_you_knew_25": {
+  "text": "在您熟练掌握 25,000 张卡片时搬来。",
+  "en": "Moved in when you knew 25,000 cards well."
+ },
+ "visitor.moved_in_when_you_passed_10": {
+  "text": "在您的复习超过 10,000 次时搬来。",
+  "en": "Moved in when you passed 10,000 reviews."
+ },
+ "visitor.moved_in_when_your_first_tree": {
+  "text": "在您的第一棵树成为古树时搬来。",
+  "en": "Moved in when your first tree became ancient."
+ },
+ "visitor.moved_in_when_your_forest_reached": {
+  "text": "在您的森林达到 50 棵树时搬来。",
+  "en": "Moved in when your forest reached 50 trees."
+ },
+ "zoom.back_to_the_whole_forest": {
+  "text": "返回整片森林",
+  "en": "Back to the whole forest"
+ },
+ "zoom.next_day": {
+  "text": "后一天",
+  "en": "Next day"
+ },
+ "zoom.pinch_or_double_tap_to_zoom": {
+  "text": "双指缩放或轻点两下来缩放，拖动来四处走走，轻点一棵树来选中它",
+  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
+ },
+ "zoom.planted_date": {
+  "text": "种于{date}",
+  "en": "Planted {date}"
+ },
+ "zoom.previous_day": {
+  "text": "前一天",
+  "en": "Previous day"
+ },
+ "zoom.scroll_or_press_to_zoom_drag": {
+  "text": "滚动或按 ↑ ↓ 缩放，拖动或按 ← → 四处走走，点击一棵树来选中它",
+  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ },
+ "zoom.the_tree_of_the_day_after": {
+  "text": "后一天的树",
+  "en": "The tree of the day after"
+ },
+ "zoom.the_tree_of_the_day_before": {
+  "text": "前一天的树",
+  "en": "The tree of the day before"
+ },
+ "zoom.zoom_in_among_the_trees": {
+  "text": "放大到树林之中",
+  "en": "Zoom in among the trees"
+ }
+}

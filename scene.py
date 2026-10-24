@@ -13,14 +13,19 @@ import hashlib
 try:
     from . import catalog
     from . import presets as presets_mod
+    from .i18n import N_
 except ImportError:  # tests and dev scripts import these files as top-level modules
     import catalog
     import presets as presets_mod
+    from i18n import N_
 
 # The settings dialog and the dev gallery both label weather and time from here.
-WEATHER_LABELS = {"clear": "Clear", "cloudy": "Cloudy", "fog": "Fog", "rain": "Rain", "storm": "Thunderstorm",
-                  "snow": "Snow", "deep_winter": "Deep winter", "after_rain": "After the rain"}
-TIME_LABELS = {"dawn": "Dawn", "day": "Day", "golden_hour": "Golden hour", "dusk": "Dusk", "night": "Night"}
+# (shown with i18n.tx)
+WEATHER_LABELS = {"clear": N_("scene.clear"), "cloudy": N_("scene.cloudy"), "fog": N_("scene.fog"), "rain": N_("scene.rain"),
+                  "storm": N_("scene.thunderstorm"), "snow": N_("scene.snow"), "deep_winter": N_("scene.deep_winter"),
+                  "after_rain": N_("scene.after_the_rain")}
+TIME_LABELS = {"dawn": N_("scene.dawn"), "day": N_("scene.day"), "golden_hour": N_("scene.golden_hour"), "dusk": N_("scene.dusk"),
+               "night": N_("scene.night")}
 WEATHERS = tuple(WEATHER_LABELS)
 TIMES = tuple(TIME_LABELS)
 

@@ -29,12 +29,14 @@ import zipfile
 
 import editions
 import notes
+import strings
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
 DIST = os.path.join(ADDON, "dist")  # where builds go: gitignored
 sys.path.insert(0, ADDON)
 import catalog
+import i18n
 
 # Everything the add-on needs at runtime, and nothing else. The Python is taken as
 # whatever sits beside __init__.py rather than listed by hand: a new module that the
@@ -42,7 +44,7 @@ import catalog
 # machine, after upload.
 INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py"))) + (
     "config.json", "manifest.json", "goats.json", "release_notes.json")
-INCLUDE_DIRS = ("settings", "web")  # walked, so web/envs, web/landscapes and web/landmarks come too
+INCLUDE_DIRS = ("settings", "web", "locales")  # walked, so web/envs, web/landscapes and web/landmarks come too
 # The developer's debug tools: the add-on runs without them (payload.debug_tools and the
 # settings' debug_tab stand in), and a release ships with debug off.
 DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py")
@@ -80,7 +82,7 @@ def files(keep: dict | None = None) -> list:
             if "__pycache__" in root:
                 continue
             for n in sorted(names):
-                if n.startswith("."):
+                if n.startswith(".") or (d == "locales" and not n.endswith(".json")):  # (not a list made for a translator)
                     continue
                 path = os.path.join(root, n)
                 rel = os.path.relpath(path, ADDON)
@@ -202,6 +204,8 @@ def main() -> None:
     # the page's own scripts go as one file (catalog.BUNDLE), in the order they load
     core = {f"web/{rel}" for rel in catalog.SCRIPTS}
     bundled = "\n".join(small[f"web/{rel}"] for rel in catalog.SCRIPTS)
+    names_shipped = {name for _path, name in shipping}
+    cat = i18n.catalog()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr(f"web/{catalog.BUNDLE}", bundled)
         for path, name in shipping:
@@ -214,6 +218,9 @@ def main() -> None:
             elif name == "release_notes.json" and edition:  # without what the edition lacks
                 with open(path, encoding="utf-8") as f:
                     z.writestr(name, notes.edition_json(edition, f.read()))
+            elif name.startswith("locales/"):  # only the words this edition's files use
+                with open(path, encoding="utf-8") as f:
+                    z.writestr(name, strings.edition_file(name, f.read(), cat, names_shipped.__contains__))
             elif name in small:
                 z.writestr(name, small[name])
             elif name.endswith(".py"):

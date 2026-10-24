@@ -51,6 +51,7 @@
     "debug_smooth": null,
     "debug_date": "",
     "debug_edition": "",
+    "debug_language": "",
     "debug_streaks": "",
     "debug_streak_days": 0
 }

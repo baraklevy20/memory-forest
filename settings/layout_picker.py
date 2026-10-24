@@ -22,6 +22,7 @@ from aqt.qt import (
     QWidget,
 )
 
+from ..i18n import N_, t, tx
 from ..state import (
     LAYOUT_DEFAULT,
     LAYOUTS,
@@ -34,21 +35,21 @@ from .widgets import Choice, JoinedChoice, hint, picture_button_style, pixel_rat
 
 # the layouts, in the order shown: under the list as it always was, both beside it, one beside it,
 # one above it
-LAYOUT_OPTIONS = [("under", "Under the list"), ("beside", "Beside it"), ("one_beside", "One beside"),
-                  ("above", "Above the list")]
+LAYOUT_OPTIONS = [("under", N_("settings.layout.under_the_list")), ("beside", N_("settings.layout.beside_it")),
+                  ("one_beside", N_("settings.layout.one_beside")), ("above", N_("settings.layout.above_the_list"))]
 LAYOUT_TIPS = {
-    "under": "The forest and the heatmap under the deck list",
-    "beside": "The forest and the heatmap beside the deck list, while the window has room for them",
-    "one_beside": "The first beside the deck list, the other under it",
-    "above": "The first above the deck list, the other under it",
+    "under": N_("settings.layout.the_forest_and_the_heatmap_under"),
+    "beside": N_("settings.layout.the_forest_and_the_heatmap_beside"),
+    "one_beside": N_("settings.layout.the_first_beside_the_deck_list"),
+    "above": N_("settings.layout.the_first_above_the_deck_list"),
 }
-SIDE_OPTIONS = [("right", "Right"), ("left", "Left")]
+SIDE_OPTIONS = [("right", N_("settings.layout.right")), ("left", N_("settings.layout.left"))]
 # which comes first where the two stand together, and which goes above the list with Above the list
-FIRST_LABEL = "First"
-FIRST_OPTIONS = [("forest", "Forest"), ("heatmap", "Heatmap")]
-FIRST_TIP = "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too."
+FIRST_LABEL = N_("settings.layout.first")
+FIRST_OPTIONS = [("forest", N_("settings.layout.forest")), ("heatmap", N_("settings.layout.heatmap"))]
+FIRST_TIP = N_("settings.layout.the_one_that_goes_beside_or")
 # (one line: SETTINGS_GUIDELINES.md)
-LAYOUT_NOTE = "Beside the list while the window has room, under it otherwise. Deck screens keep them under it."
+LAYOUT_NOTE = N_("settings.layout.beside_the_list_while_the_window")
 TILE_GAP = 6  # points between two pictures
 # a picture, in points (a point is one of its pixels at 1x, two on a Retina screen)
 PIC_W, PIC_H = 60, 36
@@ -117,13 +118,18 @@ def picture(key: str, side: str = "right", first: str = "forest") -> QPixmap:
     return pm
 
 
+def shown(options) -> list:
+    """Options with their labels in the reader's language (they are marked where they're written)."""
+    return [(key, tx(label)) for key, label in options]
+
+
 class LayoutChoice(Choice):
     """The layouts as pictures with their names under them, side by side, kept together on the
     row's left; the chosen one ringed as the Nature buttons are."""
 
     def __init__(self, value: str):
         self.pictures = {}
-        super().__init__(LAYOUT_OPTIONS, value, LAYOUT_DEFAULT, gap=TILE_GAP, stretch=True)
+        super().__init__(shown(LAYOUT_OPTIONS), value, LAYOUT_DEFAULT, gap=TILE_GAP, stretch=True)
         # (all as wide as the widest, so the row reads as one even choice)
         wide = max(b.minimumWidth() for b in self.buttons.values())
         for b in self.buttons.values():
@@ -134,7 +140,7 @@ class LayoutChoice(Choice):
         b.setCheckable(True)
         b.setAutoDefault(False)  # Enter in the dialog means Done
         b.setCursor(Qt.CursorShape.PointingHandCursor)
-        b.setToolTip(LAYOUT_TIPS[key])
+        b.setToolTip(tx(LAYOUT_TIPS[key]))
         b.setAccessibleName(label)
         b.setStyleSheet(picture_button_style(bold=False))
         v = QVBoxLayout(b)
@@ -165,9 +171,9 @@ class LayoutControls:
 
     def __init__(self, cfg: dict):
         self.choice = LayoutChoice(layout_key(cfg))
-        self.side = JoinedChoice(SIDE_OPTIONS, layout_side(cfg), "right")
-        self.order = JoinedChoice(FIRST_OPTIONS, layout_first(cfg), "forest")
-        self.order.setToolTip(FIRST_TIP)
+        self.side = JoinedChoice(shown(SIDE_OPTIONS), layout_side(cfg), "right")
+        self.order = JoinedChoice(shown(FIRST_OPTIONS), layout_first(cfg), "forest")
+        self.order.setToolTip(tx(FIRST_TIP))
         self.box = QWidget()
         v = QVBoxLayout(self.box)
         v.setContentsMargins(0, 0, 0, 0)
@@ -176,17 +182,17 @@ class LayoutControls:
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(6)
-        self.side_label = QLabel("Side")
+        self.side_label = QLabel(t("settings.layout.side"))
         row.addWidget(self.side_label)
         row.addWidget(self.side)
         row.addSpacing(18)
-        first = QLabel(FIRST_LABEL)
-        first.setToolTip(FIRST_TIP)
+        first = QLabel(tx(FIRST_LABEL))
+        first.setToolTip(tx(FIRST_TIP))
         row.addWidget(first)
         row.addWidget(self.order)
         row.addStretch(1)
         v.addLayout(row)
-        v.addWidget(hint(LAYOUT_NOTE))
+        v.addWidget(hint(tx(LAYOUT_NOTE)))
         self.side.on_change(self.sync)
         self.order.on_change(self.sync)
         self.choice.on_change(self.sync)

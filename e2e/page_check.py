@@ -33,7 +33,7 @@ TODAY = dt.date(2026, 10, 18)  # (the fake forest's today: its trees and the cal
 FIRST = dt.date(2023, 3, 15)  # the made-up history's first day
 # the files the page's behaviour goes through: a change to one runs this
 PAGE_FILES = ("web/calendar.js", "web/caption.js", "web/core.js", "web/hover.js", "web/news.js", "web/phone.js",
-              "web/tooltips.js", "web/util.js", "web/forest.css", "phone.py", "phone_data.py",
+              "web/tooltips.js", "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "web/forest.css", "phone.py", "phone_data.py",
               "e2e/page_check.py", "e2e/page_check.mjs", "e2e/phone_check.py")
 
 
@@ -65,7 +65,7 @@ def calendar(first: dt.date = FIRST, **more) -> dict:
     days = [reviews(a) for a in range(span, -1, -1)]
     cal = {"view": "timeline", "weekStart": 1, "start": first.isoformat(), "days": days,
            "due": [12] + [max(0, 200 - 2 * i) for i in range(1, 121)],
-           "animals": [{"key": "deer", "ago": 30, "label": "a deer", "why": "you studied 14 days in a row"}],
+           "animals": [{"key": "deer", "ago": 30, "name": "A deer", "stayed": "Moved in when you kept a 30-day streak.", "came": "A deer came: you kept a 30-day streak"}],
            "browse": True, "shadeBy": "reviews", "width": 85,
            "time": [n * 8 if n else 0 for n in days],
            "answerTime": [round(2 + (i % 30) / 10, 1) if n else None for i, n in enumerate(days)],

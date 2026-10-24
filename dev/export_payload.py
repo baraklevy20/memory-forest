@@ -88,7 +88,7 @@ def main() -> None:
     mood = scene.choose_mood(cfg, now)
     ann = milestones.anniversaries(forest["trees"], now.date())
     payload = {
-        "trees": forest["trees"], "stats": forest["stats"], "visitors": forest["visitors"], "anniversaries": ann, "merged": forest.get("merged"),
+        "trees": forest["trees"], "stats": forest["stats"], "visitors": milestones.for_page(forest["visitors"]), "anniversaries": ann, "merged": forest.get("merged"),
         "mood": mood, "journal": journal.journal(forest, mood, now.date(), ann),
         "animations": True, "tooltips": True, "maxWidth": MAX_WIDTH, "events": [], "forestSeed": forest["forest_seed"], "credit": False,
     }

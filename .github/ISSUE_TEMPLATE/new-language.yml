@@ -1,0 +1,22 @@
+name: New language
+description: Ask for Memory Forest in another language
+title: "[Language] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Memory Forest follows Anki's language. A new language starts as an AI translation, so it helps a lot if you can read it over once it's in.
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: e.g. Italian
+    validations:
+      required: true
+  - type: checkboxes
+    id: review
+    attributes:
+      label: Reviewing
+      options:
+        - label: I'm a native (or fluent) speaker and could read the translation over

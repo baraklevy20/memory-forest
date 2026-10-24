@@ -1,0 +1,37 @@
+name: Translation correction
+description: Something in your language reads wrong, stiff, or unlike how people say it
+title: "[Translation] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Memory Forest's translations were written by an AI, so a native speaker's eye is exactly what they need. One word or a whole screen, it all helps.
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: e.g. German
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where you saw it
+      description: The heatmap, a tooltip on the forest, a tab of the settings...
+      placeholder: e.g. the Heatmap tab, the row "Fill it with"
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: What it says now
+    validations:
+      required: true
+  - type: textarea
+    id: better
+    attributes:
+      label: What it should say
+      description: And why, if it isn't obvious. A screenshot helps too.
+    validations:
+      required: true

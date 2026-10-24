@@ -1,0 +1,3275 @@
+{
+ "actions.answer_time_date": {
+  "text": "זמן תשובה ({date})",
+  "en": "Answer time ({date})"
+ },
+ "actions.answer_time_days_days_first_to": {
+  "text": {
+   "one": "זמן תשובה (יום אחד, {first} עד {last})",
+   "two": "זמן תשובה (יומיים, {first} עד {last})",
+   "other": "זמן תשובה ({days} ימים, {first} עד {last})"
+  },
+  "en": {
+   "one": "Answer time ({days} day, {first} to {last})",
+   "other": "Answer time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.answer_time_first_to_last": {
+  "text": "זמן תשובה ({first} עד {last})",
+  "en": "Answer time ({first} to {last})"
+ },
+ "actions.back_in_your_forest": {
+  "text": "החפיסה חזרה ליער שלך.",
+  "en": "Back in your forest."
+ },
+ "actions.bring_back_into_memory_forest": {
+  "text": "החזרה ל־ Memory Forest",
+  "en": "Bring back into Memory Forest"
+ },
+ "actions.leave_out_of_memory_forest": {
+  "text": "הוצאה מ־ Memory Forest",
+  "en": "Leave out of Memory Forest"
+ },
+ "actions.left_out_of_memory_forest_with": {
+  "text": "מחוץ ל־ Memory Forest יחד עם חפיסת האב שלה",
+  "en": "Left out of Memory Forest with its parent deck"
+ },
+ "actions.left_out_of_your_forest_its": {
+  "text": "החפיסה הוצאה מהיער שלך. אפשר להחזיר אותה מתפריט ה־ ⚙ שלה.",
+  "en": "Left out of your forest. Its ⚙ menu brings it back."
+ },
+ "actions.reviews_date": {
+  "text": "חזרות ({date})",
+  "en": "Reviews ({date})"
+ },
+ "actions.reviews_days_days_first_to_last": {
+  "text": {
+   "one": "חזרות (יום אחד, {first} עד {last})",
+   "two": "חזרות (יומיים, {first} עד {last})",
+   "other": "חזרות ({days} ימים, {first} עד {last})"
+  },
+  "en": {
+   "one": "Reviews ({days} day, {first} to {last})",
+   "other": "Reviews ({days} days, {first} to {last})"
+  }
+ },
+ "actions.reviews_first_to_last": {
+  "text": "חזרות ({first} עד {last})",
+  "en": "Reviews ({first} to {last})"
+ },
+ "actions.total_time_date": {
+  "text": "זמן כולל ({date})",
+  "en": "Total time ({date})"
+ },
+ "actions.total_time_days_days_first_to": {
+  "text": {
+   "one": "זמן כולל (יום אחד, {first} עד {last})",
+   "two": "זמן כולל (יומיים, {first} עד {last})",
+   "other": "זמן כולל ({days} ימים, {first} עד {last})"
+  },
+  "en": {
+   "one": "Total time ({days} day, {first} to {last})",
+   "other": "Total time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.total_time_first_to_last": {
+  "text": "זמן כולל ({first} עד {last})",
+  "en": "Total time ({first} to {last})"
+ },
+ "answer_column.heading_detail": {
+  "text": "{heading}. {detail}",
+  "en": "{heading}. {detail}"
+ },
+ "answer_column.median_seconds_per_answer_for_the": {
+  "text": "חציון השניות לתשובה עבור הכרטיס ביום שנבחר, כולל ניסיונות חוזרים. ברשומות מוצג החציון של הכרטיס התואם האיטי ביותר.",
+  "en": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median."
+ },
+ "answer_column.number_of_answers_on_the_clicked": {
+  "text": "מספר התשובות ביום שנבחר, כולל ניסיונות חוזרים. ברשומות מוצג הסכום של כל הכרטיסים שלהן.",
+  "en": "Number of answers on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "answer_column.seconds_s": {
+  "text": "{seconds} שנ׳",
+  "en": "{seconds} s"
+ },
+ "answer_column.total_seconds_spent_answering_on_the": {
+  "text": "סך השניות שהושקעו בתשובות ביום שנבחר, כולל ניסיונות חוזרים. ברשומות מוצג הסכום של כל הכרטיסים שלהן.",
+  "en": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "caption.after_the_rain": {
+  "text": "אחרי הגשם",
+  "en": "after the rain"
+ },
+ "caption.city_not_found": {
+  "text": "העיר לא נמצאה",
+  "en": "City not found"
+ },
+ "caption.clear_sky": {
+  "text": "שמיים בהירים",
+  "en": "clear sky"
+ },
+ "caption.click_to_see_all_of_it": {
+  "text": "לחיצה תציג את כולו",
+  "en": "Click to see all of it"
+ },
+ "caption.click_to_see_their_cards": {
+  "text": "לחיצה תציג את הכרטיסים שלהם.",
+  "en": "Click to see their cards."
+ },
+ "caption.cloudy": {
+  "text": "מעונן",
+  "en": "cloudy"
+ },
+ "caption.days_you_studied_in_a_row": {
+  "text": "ימים רצופים שבהם למדת. יום בלי כרטיסים מתוזמנים לא שובר את הרצף.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it."
+ },
+ "caption.days_you_studied_in_a_row_2": {
+  "text": "ימים רצופים שבהם למדת. יום בלי כרטיסים מתוזמנים לא שובר את הרצף, ומכיוון שהרצף שלך נספר לפי {week} ימים בשבוע, גם יום חופש אחד בשבוע לא שובר אותו.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, a day off in a week doesn't either."
+ },
+ "caption.days_you_studied_in_a_row_3": {
+  "text": "ימים רצופים שבהם למדת. יום בלי כרטיסים מתוזמנים לא שובר את הרצף, ומכיוון שהרצף שלך נספר לפי {week} ימים בשבוע, גם יומיים חופש בשבוע לא שוברים אותו.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, two days off in a week don't either."
+ },
+ "caption.deck_lit_of_n_trees": {
+  "text": {
+   "one": "{deck}: {lit} מתוך עץ אחד",
+   "two": "{deck}: {lit} מתוך {n} עצים",
+   "other": "{deck}: {lit} מתוך {n} עצים"
+  },
+  "en": {
+   "one": "{deck}: {lit} of {n} tree",
+   "other": "{deck}: {lit} of {n} trees"
+  }
+ },
+ "caption.deep_winter": {
+  "text": "לב החורף",
+  "en": "deep winter"
+ },
+ "caption.fog": {
+  "text": "ערפל",
+  "en": "fog"
+ },
+ "caption.live_weather_from_met_norway_cc": {
+  "text": "מזג אוויר בזמן אמת מ־ MET Norway (CC BY 4.0).",
+  "en": "Live weather from MET Norway (CC BY 4.0)."
+ },
+ "caption.live_weather_unavailable": {
+  "text": "מזג האוויר בזמן אמת לא זמין",
+  "en": "Live weather unavailable"
+ },
+ "caption.made_up_trees_from_the_test": {
+  "text": "עצים מומצאים מההגדרה ״יער ניסיון״. אפשר לכבות אותה בהגדרות היער כדי לראות את היער האמיתי שלך.",
+  "en": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one."
+ },
+ "caption.n_ancient": {
+  "text": {
+   "one": "{n} עתיק",
+   "two": "{n} עתיקים",
+   "other": "{n} עתיקים"
+  },
+  "en": {
+   "one": "{n} ancient",
+   "other": "{n} ancient"
+  }
+ },
+ "caption.n_day_streak": {
+  "text": {
+   "one": "רצף של יום אחד",
+   "two": "רצף של יומיים",
+   "other": "רצף של {n} ימים"
+  },
+  "en": {
+   "one": "{n}-day streak",
+   "other": "{n}-day streak"
+  }
+ },
+ "caption.n_in_the_deep_forest": {
+  "text": {
+   "one": "{n} ביער העמוק",
+   "two": "{n} ביער העמוק",
+   "other": "{n} ביער העמוק"
+  },
+  "en": {
+   "one": "{n} in the deep forest",
+   "other": "{n} in the deep forest"
+  }
+ },
+ "caption.n_trees": {
+  "text": {
+   "one": "עץ אחד",
+   "two": "{n} עצים",
+   "other": "{n} עצים"
+  },
+  "en": {
+   "one": "{n} tree",
+   "other": "{n} trees"
+  }
+ },
+ "caption.one_tree_for_each_day_you": {
+  "text": "עץ אחד לכל יום שבו למדת כרטיסים חדשים. אפשר להצביע על עץ כדי לראות את היום שלו, וללחוץ עליו כדי לראות את הכרטיסים שלו.",
+  "en": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards."
+ },
+ "caption.openstreetmap_does_not_know_that_city": {
+  "text": "OpenStreetMap לא מכיר את העיר הזו, ולכן הנוף שומר על מזג האוויר שלו. כדאי לבדוק את האיות, או לנסות את השם באנגלית, בהגדרות היער.",
+  "en": "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+ },
+ "caption.rain": {
+  "text": "גשם",
+  "en": "rain"
+ },
+ "caption.snow": {
+  "text": "שלג",
+  "en": "snow"
+ },
+ "caption.test_forest": {
+  "text": "יער ניסיון",
+  "en": "Test forest"
+ },
+ "caption.the_live_weather_could_not_be": {
+  "text": "לא ניתן היה לקבל את מזג האוויר בזמן אמת, ולכן הנוף שומר בינתיים על מזג האוויר שלו.",
+  "en": "The live weather could not be fetched, so the scenery keeps its own weather for now."
+ },
+ "caption.the_scenery_chosen_in_the_forest": {
+  "text": "הנוף, כפי שנבחר בהגדרות היער.",
+  "en": "The scenery, chosen in the forest settings."
+ },
+ "caption.thunderstorm": {
+  "text": "סופת רעמים",
+  "en": "thunderstorm"
+ },
+ "caption.trees_holding_cards_from_this_deck": {
+  "text": "עצים שיש בהם כרטיסים מהחפיסה הזו נשארים צבעוניים, והשאר דוהים. אפשר לשנות זאת דרך ״מסכי החפיסות״ בהגדרות היער.",
+  "en": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings."
+ },
+ "caption.trees_whose_cards_you_will_likely": {
+  "text": "עצים שהכרטיסים שלהם כנראה יישארו בזיכרון יותר משנה: חוזק הזיכרון החציוני שלהם הוא לפחות 365 ימים. זו היציבות של FSRS כשמשתמשים בו, ומרווח הזמן של התזמון כשלא.",
+  "en": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not."
+ },
+ "caption.weather_by_met_norway": {
+  "text": "מזג אוויר מ־ MET Norway",
+  "en": "weather by MET Norway"
+ },
+ "caption.weather_weather": {
+  "text": "מזג אוויר: {weather}",
+  "en": "Weather: {weather}"
+ },
+ "caption.weather_weather_in_city": {
+  "text": "מזג אוויר: {weather} ב־ {city}",
+  "en": "Weather: {weather} in {city}"
+ },
+ "caption.weather_weather_in_city_temp": {
+  "text": "מזג אוויר: {weather} ב־ {city}, {temp}°",
+  "en": "Weather: {weather} in {city}, {temp}°"
+ },
+ "caption.weather_weather_temp": {
+  "text": "מזג אוויר: {weather}, {temp}°",
+  "en": "Weather: {weather}, {temp}°"
+ },
+ "caption.your_trees_from_from_to_to": {
+  "text": {
+   "one": "העצים שלך מ־ {from} עד {to} עומדים יחד במרחק, ויש בהם כרטיס אחד. ציור כל אחד מהם בנפרד היה מאט את רשימת החפיסות.",
+   "two": "העצים שלך מ־ {from} עד {to} עומדים יחד במרחק, ויש בהם {n} כרטיסים. ציור כל אחד מהם בנפרד היה מאט את רשימת החפיסות.",
+   "other": "העצים שלך מ־ {from} עד {to} עומדים יחד במרחק, ויש בהם {n} כרטיסים. ציור כל אחד מהם בנפרד היה מאט את רשימת החפיסות."
+  },
+  "en": {
+   "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
+   "other": "Your trees from {from} to {to} stand together in the distance, holding {n} cards. Drawing every one of them individually would slow the deck list down."
+  }
+ },
+ "date.day_month": {
+  "text": "{day} ב{month}",
+  "en": "{day} {month}"
+ },
+ "date.day_month_year": {
+  "text": "{day} ב{month} {year}",
+  "en": "{day} {month} {year}"
+ },
+ "date.month_year": {
+  "text": "{month} {year}",
+  "en": "{month} {year}"
+ },
+ "env.aurora": {
+  "text": "זוהר צפוני",
+  "en": "Aurora"
+ },
+ "env.bamboo": {
+  "text": "חורשת במבוק בגשם",
+  "en": "Rainy bamboo grove"
+ },
+ "env.frozen_market": {
+  "text": "שוק חג המולד",
+  "en": "Christmas market"
+ },
+ "env.lanterns": {
+  "text": "פנסים",
+  "en": "Lanterns"
+ },
+ "env.misty_valley": {
+  "text": "עמק בערפל",
+  "en": "Misty valley"
+ },
+ "env.natural": {
+  "text": "טבעי",
+  "en": "Natural"
+ },
+ "env.pumpkin_patch": {
+  "text": "שדה דלעות",
+  "en": "Pumpkin patch"
+ },
+ "env.starry_night": {
+  "text": "ליל כוכבים",
+  "en": "Starry night"
+ },
+ "env.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "event.asteroid.a_crater": {
+  "text": "מכתש",
+  "en": "A crater"
+ },
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": {
+  "text": "אסטרואיד פוגע כשהיום של Anki נגמר, אלא אם עושים חזרות לפני כן. אם הוא פוגע, יער חדש צומח מהמכתש שלו.",
+  "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
+ "event.asteroid.asteroid_struck_date": {
+  "text": "האסטרואיד פגע ב־ {date}",
+  "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tonight": {
+  "text": "אסטרואיד: הלילה",
+  "en": "Asteroid: tonight"
+ },
+ "event.asteroid.its_crater_can_play_it_again": {
+  "text": "אפשר גם ללחוץ על המכתש כדי לצפות בזה שוב.",
+  "en": "Its crater can play it again too."
+ },
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "text": {
+   "one": "עץ אחד אבד אחרי יום בלי חזרות; מכאן צומח יער חדש.",
+   "two": "{n} עצים אבדו אחרי יום בלי חזרות; מכאן צומח יער חדש.",
+   "other": "{n} עצים אבדו אחרי יום בלי חזרות; מכאן צומח יער חדש."
+  },
+  "en": {
+   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "text": {
+   "one": "עץ אחד אבד ב־ {date}",
+   "two": "{n} עצים אבדו ב־ {date}",
+   "other": "{n} עצים אבדו ב־ {date}"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}",
+   "other": "{n} trees lost on {date}"
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "text": {
+   "one": "עץ אחד אבד ב־ {date}, אחרי רצף של {streak} ימים",
+   "two": "{n} עצים אבדו ב־ {date}, אחרי רצף של {streak} ימים",
+   "other": "{n} עצים אבדו ב־ {date}, אחרי רצף של {streak} ימים"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}, after a {streak}-day streak",
+   "other": "{n} trees lost on {date}, after a {streak}-day streak"
+  }
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": {
+  "text": "במצב ״שליו״ או ״פראי״ העצים חוזרים למקומם",
+  "en": "On Peaceful or Wild the trees stand again"
+ },
+ "event.asteroid.turn_on_animations_in_the_forest": {
+  "text": "כדי לצפות בזה, יש להפעיל את ״הנפשת היער״ בהגדרות היער.",
+  "en": "Turn on animations in the forest settings to watch it."
+ },
+ "event.asteroid.your_system_asks_for_less_motion": {
+  "text": "המערכת שלך מבקשת פחות תנועה: כדי לצפות בזה, יש להעביר את ״הנפשת היער״ ל״פועל״.",
+  "en": "Your system asks for less motion: set Animate the forest to On to watch it."
+ },
+ "event.fire.fire_n_trees": {
+  "text": {
+   "one": "שריפה: עץ אחד",
+   "two": "שריפה: {n} עצים",
+   "other": "שריפה: {n} עצים"
+  },
+  "en": {
+   "one": "Fire: {n} tree",
+   "other": "Fire: {n} trees"
+  }
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "text": {
+   "one": "עוד יום לימוד אחד יכבה אותה.",
+   "two": "עוד יומיים של לימוד יכבו אותה.",
+   "other": "עוד {n} ימי לימוד יכבו אותה."
+  },
+  "en": {
+   "one": "{n} more day of study puts it out.",
+   "other": "{n} more days of study put it out."
+  }
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "text": {
+   "one": "עץ אחד עלה באש כשלא היית כאן.",
+   "two": "{n} עצים עלו באש כשלא היית כאן.",
+   "other": "{n} עצים עלו באש כשלא היית כאן."
+  },
+  "en": {
+   "one": "{n} tree caught fire while you were away.",
+   "other": "{n} trees caught fire while you were away."
+  }
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "text": {
+   "one": "<b>בוער</b>: האש פרצה כשלא היית כאן · יחזור להיות ירוק אחרי עוד יום לימוד אחד",
+   "two": "<b>בוער</b>: האש פרצה כשלא היית כאן · יחזור להיות ירוק אחרי עוד יומיים של לימוד",
+   "other": "<b>בוער</b>: האש פרצה כשלא היית כאן · יחזור להיות ירוק אחרי עוד {n} ימי לימוד"
+  },
+  "en": {
+   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
+   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+  }
+ },
+ "event.fire.smoke_is_rising_after_two_days": {
+  "text": "עשן עולה אחרי יומיים בלי חזרות. אם לא לומדים היום, מחר היער יעלה באש.",
+  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
+ },
+ "event.fire.smoke_study_today": {
+  "text": "עשן: ללמוד היום",
+  "en": "Smoke: study today"
+ },
+ "event.fire.smoking": {
+  "text": "מעלה עשן",
+  "en": "Smoking"
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "text": {
+   "one": "<b>גיהינום חזרות</b>: חזרה אחת באיחור. אחרי שמסיימים אותה, כדורי הקוצים עפים ברוח.",
+   "two": "<b>גיהינום חזרות</b>: {n} חזרות באיחור. אחרי שמסיימים אותן, כדורי הקוצים עפים ברוח.",
+   "other": "<b>גיהינום חזרות</b>: {n} חזרות באיחור. אחרי שמסיימים אותן, כדורי הקוצים עפים ברוח."
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "text": {
+   "one": "<b>גיהינום חזרות</b>: חזרה אחת באיחור, כשביום רגיל יש {usual}. אחרי שמסיימים אותה, כדורי הקוצים עפים ברוח.",
+   "two": "<b>גיהינום חזרות</b>: {n} חזרות באיחור, כשביום רגיל יש {usual}. אחרי שמסיימים אותן, כדורי הקוצים עפים ברוח.",
+   "other": "<b>גיהינום חזרות</b>: {n} חזרות באיחור, כשביום רגיל יש {usual}. אחרי שמסיימים אותן, כדורי הקוצים עפים ברוח."
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "events.a_fire_broke_out_while_you": {
+  "text": {
+   "one": "פרצה שריפה כשלא היית כאן: עץ אחד בוער. כדי לכבות אותה צריך ללמוד {days} ימים.",
+   "two": "פרצה שריפה כשלא היית כאן: {trees} עצים בוערים. כדי לכבות אותה צריך ללמוד {days} ימים.",
+   "other": "פרצה שריפה כשלא היית כאן: {trees} עצים בוערים. כדי לכבות אותה צריך ללמוד {days} ימים."
+  },
+  "en": {
+   "one": "A fire broke out while you were away: {trees} tree is burning. Study on {days} days to put it out.",
+   "other": "A fire broke out while you were away: {trees} trees are burning. Study on {days} days to put it out."
+  }
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "text": {
+   "one": "אסטרואיד השמיד את היער שלך (עץ אחד). מכאן צומח יער חדש.",
+   "two": "אסטרואיד השמיד את היער שלך ({trees} עצים). מכאן צומח יער חדש.",
+   "other": "אסטרואיד השמיד את היער שלך ({trees} עצים). מכאן צומח יער חדש."
+  },
+  "en": {
+   "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
+   "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
+  }
+ },
+ "events.merciless": {
+  "text": "אכזרי",
+  "en": "Merciless"
+ },
+ "events.miss_a_day_nothing_is_lost": {
+  "text": "פספוס של יום: שום דבר לא אובד. היעדרות של שבוע או יותר משאירה בריכה ביער.",
+  "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
+ },
+ "events.miss_a_day_of_reviews_an": {
+  "text": "פספוס של יום חזרות: אסטרואיד ממתין בשמיים ופוגע כשהיום של Anki נגמר, אלא אם עושים חזרות לפני כן. מהמכתש שלו צומח יער חדש. גם הרגלים רעים משאירים סימנים.",
+  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
+ },
+ "events.miss_two_days_in_a_row": {
+  "text": "פספוס של יומיים ברצף: עשן עולה כאזהרה. פספוס של יום שלישי: שריפה מתפשטת עד ששבעה ימי לימוד מכבים אותה. גם הרגלים רעים משאירים סימנים.",
+  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
+ },
+ "events.peaceful": {
+  "text": "שליו",
+  "en": "Peaceful"
+ },
+ "events.smoke_is_rising_from_your_forest": {
+  "text": "עשן עולה מהיער שלך אחרי יומיים בלי חזרות. אם לא לומדים היום, הוא יעלה באש.",
+  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.switch_back_any_time_and_every": {
+  "text": "אפשר לחזור בכל רגע, וכל העצים יחזרו למקומם.",
+  "en": "Switch back any time and every tree is there again."
+ },
+ "events.the_last_of_the_fire_is": {
+  "text": "השריפה כבתה לגמרי. היער שלך שוב ירוק.",
+  "en": "The last of the fire is out. Your forest is green again."
+ },
+ "events.wild": {
+  "text": "פראי",
+  "en": "Wild"
+ },
+ "events.you_cleared_your_overdue_reviews": {
+  "text": "סיימת את החזרות שבאיחור.",
+  "en": "You cleared your overdue reviews."
+ },
+ "events.you_cleared_your_overdue_reviews_the": {
+  "text": "סיימת את החזרות שבאיחור. כדורי הקוצים עפו ברוח.",
+  "en": "You cleared your overdue reviews. The tumbleweeds blew away."
+ },
+ "heatmap.a_minute": {
+  "text": "דקה",
+  "en": "a minute"
+ },
+ "heatmap.about_n_reviews_a_day": {
+  "text": {
+   "one": "בערך חזרה אחת ביום",
+   "two": "בערך {n} חזרות ביום",
+   "other": "בערך {n} חזרות ביום"
+  },
+  "en": {
+   "one": "About {n} review a day",
+   "other": "About {n} reviews a day"
+  }
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "text": {
+   "one": "בערך חזרה אחת ליום לימוד",
+   "two": "בערך {n} חזרות ליום לימוד",
+   "other": "בערך {n} חזרות ליום לימוד"
+  },
+  "en": {
+   "one": "About {n} review a day studied",
+   "other": "About {n} reviews a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "text": {
+   "one": "בערך חזרה אחת ו־ {time} ליום לימוד",
+   "two": "בערך {n} חזרות ו־ {time} ליום לימוד",
+   "other": "בערך {n} חזרות ו־ {time} ליום לימוד"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day studied",
+   "other": "About {n} reviews and {time} a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "text": {
+   "one": "בערך חזרה אחת ו־ {time} ביום",
+   "two": "בערך {n} חזרות ו־ {time} ביום",
+   "other": "בערך {n} חזרות ו־ {time} ביום"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day",
+   "other": "About {n} reviews and {time} a day"
+  }
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "text": {
+   "one": "כל {n} הכרטיסים שלו נמחקו מאז",
+   "two": "כל {n} הכרטיסים שלו נמחקו מאז",
+   "other": "כל {n} הכרטיסים שלו נמחקו מאז"
+  },
+  "en": {
+   "one": "All {n} of its cards have since been deleted",
+   "other": "All {n} of its cards have since been deleted"
+  }
+ },
+ "heatmap.and_n_more_marked": {
+  "text": {
+   "one": "ועוד יום מסומן אחד",
+   "two": "ועוד {n} ימים מסומנים",
+   "other": "ועוד {n} ימים מסומנים"
+  },
+  "en": {
+   "one": "and {n} more marked",
+   "other": "and {n} more marked"
+  }
+ },
+ "heatmap.back_to_today": {
+  "text": "חזרה להיום",
+  "en": "Back to today"
+ },
+ "heatmap.beat_your_longest_streak_n_days": {
+  "text": {
+   "one": "ביום הזה אפשר לעקוף את הרצף הארוך ביותר שלך (יום אחד), אם לומדים כל יום עד אז",
+   "two": "ביום הזה אפשר לעקוף את הרצף הארוך ביותר שלך (יומיים), אם לומדים כל יום עד אז",
+   "other": "ביום הזה אפשר לעקוף את הרצף הארוך ביותר שלך ({n} ימים), אם לומדים כל יום עד אז"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day, studying every day until then",
+   "other": "Beat your longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "text": {
+   "one": "ביום הזה אפשר לעקוף את הרצף הארוך ביותר שלך (יום אחד)",
+   "two": "ביום הזה אפשר לעקוף את הרצף הארוך ביותר שלך (יומיים)",
+   "other": "ביום הזה אפשר לעקוף את הרצף הארוך ביותר שלך ({n} ימים)"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day",
+   "other": "Beat your longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.before_your_first_review": {
+  "text": "לפני החזרה הראשונה שלך",
+  "en": "Before your first review"
+ },
+ "heatmap.before_your_forest_began": {
+  "text": "לפני שהיער שלך התחיל",
+  "en": "Before your forest began"
+ },
+ "heatmap.birthday": {
+  "text": "יום הולדת",
+  "en": "Birthday"
+ },
+ "heatmap.both_of_its_cards_have_since": {
+  "text": "שני הכרטיסים שלו נמחקו מאז",
+  "en": "Both of its cards have since been deleted"
+ },
+ "heatmap.by_year": {
+  "text": "לפי שנה",
+  "en": "By year"
+ },
+ "heatmap.date_name": {
+  "text": "<i>{date}:</i> {name}",
+  "en": "<i>{date}:</i> {name}"
+ },
+ "heatmap.day_day_of_a_n_day": {
+  "text": {
+   "one": "יום {day} ברצף של יום אחד",
+   "two": "יום {day} ברצף של יומיים",
+   "other": "יום {day} ברצף של {n} ימים"
+  },
+  "en": {
+   "one": "Day {day} of a {n}-day streak",
+   "other": "Day {day} of a {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "text": {
+   "one": "יום {day} מתוך יום אחד ברצף",
+   "two": "יום {day} מתוך יומיים ברצף",
+   "other": "יום {day} מתוך {n} ימים ברצף"
+  },
+  "en": {
+   "one": "Day {day} of {n} in a row",
+   "other": "Day {day} of {n} in a row"
+  }
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "text": {
+   "one": "יום {day} ברצף שלך (יום אחד)",
+   "two": "יום {day} ברצף שלך (יומיים)",
+   "other": "יום {day} ברצף שלך ({n} ימים)"
+  },
+  "en": {
+   "one": "Day {day} of your {n}-day streak",
+   "other": "Day {day} of your {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_your_streak": {
+  "text": "יום {day} ברצף שלך",
+  "en": "Day {day} of your streak"
+ },
+ "heatmap.didnt_break_a_n_day_streak": {
+  "text": {
+   "one": "לא שבר רצף של יום אחד",
+   "two": "לא שבר רצף של יומיים",
+   "other": "לא שבר רצף של {n} ימים"
+  },
+  "en": {
+   "one": "Didn't break a {n}-day streak",
+   "other": "Didn't break a {n}-day streak"
+  }
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "text": {
+   "one": "לא שובר את הרצף שלך (יום אחד)",
+   "two": "לא שובר את הרצף שלך (יומיים)",
+   "other": "לא שובר את הרצף שלך ({n} ימים)"
+  },
+  "en": {
+   "one": "Doesn't break your {n}-day streak",
+   "other": "Doesn't break your {n}-day streak"
+  }
+ },
+ "heatmap.done": {
+  "text": "בוצע",
+  "en": "Done"
+ },
+ "heatmap.earlier": {
+  "text": "מוקדם יותר",
+  "en": "Earlier"
+ },
+ "heatmap.exam": {
+  "text": "מבחן",
+  "en": "Exam"
+ },
+ "heatmap.fast": {
+  "text": "מהיר",
+  "en": "Fast"
+ },
+ "heatmap.from_n_reviews": {
+  "text": {
+   "one": "{from}–{n} חזרות",
+   "two": "{from}–{n} חזרות",
+   "other": "{from}–{n} חזרות"
+  },
+  "en": {
+   "one": "{from}–{n} reviews",
+   "other": "{from}–{n} reviews"
+  }
+ },
+ "heatmap.from_to": {
+  "text": "{from}–{to}",
+  "en": "{from}–{to}"
+ },
+ "heatmap.from_to_min": {
+  "text": "{from}–{to} דק׳",
+  "en": "{from}–{to} min"
+ },
+ "heatmap.from_to_s_per_answer": {
+  "text": "{from}–{to} שנ׳ לתשובה",
+  "en": "{from}–{to} s per answer"
+ },
+ "heatmap.from_to_to": {
+  "text": "{from} עד {to}",
+  "en": "{from} to {to}"
+ },
+ "heatmap.from_to_today": {
+  "text": "{from} עד היום",
+  "en": "{from} to today"
+ },
+ "heatmap.h_hr_m_min": {
+  "text": "{h} שע׳ {m} דק׳",
+  "en": "{h} hr {m} min"
+ },
+ "heatmap.heart": {
+  "text": "לב",
+  "en": "Heart"
+ },
+ "heatmap.its_card_has_since_been_deleted": {
+  "text": "הכרטיס שלו נמחק מאז",
+  "en": "Its card has since been deleted"
+ },
+ "heatmap.january_to_december": {
+  "text": "ינואר עד דצמבר",
+  "en": "January to December"
+ },
+ "heatmap.last_day_of_a_n_day": {
+  "text": {
+   "one": "היום האחרון ברצף של יום אחד",
+   "two": "היום האחרון ברצף של יומיים",
+   "other": "היום האחרון ברצף של {n} ימים"
+  },
+  "en": {
+   "one": "Last day of a {n}-day streak",
+   "other": "Last day of a {n}-day streak"
+  }
+ },
+ "heatmap.later": {
+  "text": "מאוחר יותר",
+  "en": "Later"
+ },
+ "heatmap.less": {
+  "text": "פחות",
+  "en": "Less"
+ },
+ "heatmap.mark_icon": {
+  "text": "סמל הסימון",
+  "en": "Mark icon"
+ },
+ "heatmap.mark_name": {
+  "text": "שם הסימון",
+  "en": "Mark name"
+ },
+ "heatmap.median_s_s_per_answer_n": {
+  "text": {
+   "one": "חציון {s} שנ׳ לתשובה, חזרה אחת, עוד {due} מתוזמנים",
+   "two": "חציון {s} שנ׳ לתשובה, {n} חזרות, עוד {due} מתוזמנים",
+   "other": "חציון {s} שנ׳ לתשובה, {n} חזרות, עוד {due} מתוזמנים"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review, {due} still due",
+   "other": "Median {s} s per answer, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "text": {
+   "one": "חציון {s} שנ׳ לתשובה, חזרה אחת",
+   "two": "חציון {s} שנ׳ לתשובה, {n} חזרות",
+   "other": "חציון {s} שנ׳ לתשובה, {n} חזרות"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review",
+   "other": "Median {s} s per answer, {n} reviews"
+  }
+ },
+ "heatmap.more": {
+  "text": "יותר",
+  "en": "More"
+ },
+ "heatmap.n_cards_due": {
+  "text": {
+   "one": "כרטיס מתוזמן אחד",
+   "two": "{n} כרטיסים מתוזמנים",
+   "other": "{n} כרטיסים מתוזמנים"
+  },
+  "en": {
+   "one": "{n} card due",
+   "other": "{n} cards due"
+  }
+ },
+ "heatmap.n_cards_due_after_today": {
+  "text": {
+   "one": "כרטיס אחד מתוזמן אחרי היום",
+   "two": "{n} כרטיסים מתוזמנים אחרי היום",
+   "other": "{n} כרטיסים מתוזמנים אחרי היום"
+  },
+  "en": {
+   "one": "{n} card due after today",
+   "other": "{n} cards due after today"
+  }
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "text": {
+   "one": "כרטיס אחד מתוזמן בהמשך החודש",
+   "two": "{n} כרטיסים מתוזמנים בהמשך החודש",
+   "other": "{n} כרטיסים מתוזמנים בהמשך החודש"
+  },
+  "en": {
+   "one": "{n} card due later this month",
+   "other": "{n} cards due later this month"
+  }
+ },
+ "heatmap.n_days": {
+  "text": {
+   "one": "יום אחד",
+   "two": "יומיים",
+   "other": "{n} ימים"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "heatmap.n_days_from_to_to": {
+  "text": {
+   "one": "יום אחד, {from} עד {to}",
+   "two": "יומיים, {from} עד {to}",
+   "other": "{n} ימים, {from} עד {to}"
+  },
+  "en": {
+   "one": "{n} day, {from} to {to}",
+   "other": "{n} days, {from} to {to}"
+  }
+ },
+ "heatmap.n_days_from_to_today": {
+  "text": {
+   "one": "יום אחד, {from} עד היום",
+   "two": "יומיים, {from} עד היום",
+   "other": "{n} ימים, {from} עד היום"
+  },
+  "en": {
+   "one": "{n} day, {from} to today",
+   "other": "{n} days, {from} to today"
+  }
+ },
+ "heatmap.n_days_in_a_row": {
+  "text": {
+   "one": "יום אחד ברצף",
+   "two": "יומיים ברצף",
+   "other": "{n} ימים ברצף"
+  },
+  "en": {
+   "one": "{n} day in a row",
+   "other": "{n} days in a row"
+  }
+ },
+ "heatmap.n_days_since_date": {
+  "text": {
+   "one": "יום אחד · מאז {date}",
+   "two": "יומיים · מאז {date}",
+   "other": "{n} ימים · מאז {date}"
+  },
+  "en": {
+   "one": "{n} day · Since {date}",
+   "other": "{n} days · Since {date}"
+  }
+ },
+ "heatmap.n_hr": {
+  "text": "{n} שע׳",
+  "en": "{n} hr"
+ },
+ "heatmap.n_min": {
+  "text": "{n} דק׳",
+  "en": "{n} min"
+ },
+ "heatmap.n_min_2": {
+  "text": "{n}+ דק׳",
+  "en": "{n}+ min"
+ },
+ "heatmap.n_of_its_of_cards_have": {
+  "text": {
+   "one": "{n} מתוך {of} הכרטיסים שלו נמחק מאז",
+   "two": "{n} מתוך {of} הכרטיסים שלו נמחקו מאז",
+   "other": "{n} מתוך {of} הכרטיסים שלו נמחקו מאז"
+  },
+  "en": {
+   "one": "{n} of its {of} cards has since been deleted",
+   "other": "{n} of its {of} cards have since been deleted"
+  }
+ },
+ "heatmap.n_reviews": {
+  "text": {
+   "one": "חזרה אחת",
+   "two": "{n} חזרות",
+   "other": "{n} חזרות"
+  },
+  "en": {
+   "one": "{n} review",
+   "other": "{n} reviews"
+  }
+ },
+ "heatmap.n_reviews_2": {
+  "text": {
+   "one": "{n}+ חזרות",
+   "two": "{n}+ חזרות",
+   "other": "{n}+ חזרות"
+  },
+  "en": {
+   "one": "{n}+ reviews",
+   "other": "{n}+ reviews"
+  }
+ },
+ "heatmap.n_reviews_in_time": {
+  "text": {
+   "one": "חזרה אחת תוך {time}",
+   "two": "{n} חזרות תוך {time}",
+   "other": "{n} חזרות תוך {time}"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "text": {
+   "one": "חזרה אחת, בלי תיעוד זמן",
+   "two": "{n} חזרות, בלי תיעוד זמן",
+   "other": "{n} חזרות, בלי תיעוד זמן"
+  },
+  "en": {
+   "one": "{n} review, no time kept",
+   "other": "{n} reviews, no time kept"
+  }
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "text": {
+   "one": "חזרה אחת עד עכשיו, עוד {due} מתוזמנים",
+   "two": "{n} חזרות עד עכשיו, עוד {due} מתוזמנים",
+   "other": "{n} חזרות עד עכשיו, עוד {due} מתוזמנים"
+  },
+  "en": {
+   "one": "{n} review so far, {due} still due",
+   "other": "{n} reviews so far, {due} still due"
+  }
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "text": {
+   "one": "חזרה אחת עד עכשיו תוך {time}, עוד {due} מתוזמנים",
+   "two": "{n} חזרות עד עכשיו תוך {time}, עוד {due} מתוזמנים",
+   "other": "{n} חזרות עד עכשיו תוך {time}, עוד {due} מתוזמנים"
+  },
+  "en": {
+   "one": "{n} review so far in {time}, {due} still due",
+   "other": "{n} reviews so far in {time}, {due} still due"
+  }
+ },
+ "heatmap.name_in_n_days": {
+  "text": {
+   "one": "{name} בעוד יום אחד",
+   "two": "{name} בעוד יומיים",
+   "other": "{name} בעוד {n} ימים"
+  },
+  "en": {
+   "one": "{name} in {n} day",
+   "other": "{name} in {n} days"
+  }
+ },
+ "heatmap.name_today": {
+  "text": "{name} היום",
+  "en": "{name} today"
+ },
+ "heatmap.name_tomorrow": {
+  "text": "{name} מחר",
+  "en": "{name} tomorrow"
+ },
+ "heatmap.near_date": {
+  "text": "{near}, {date}",
+  "en": "{near}, {date}"
+ },
+ "heatmap.not_studied": {
+  "text": "לא למדת",
+  "en": "Not studied"
+ },
+ "heatmap.not_studied_a_day_off": {
+  "text": "לא למדת: יום חופש",
+  "en": "Not studied: a day off"
+ },
+ "heatmap.not_studied_a_pond_in_your": {
+  "text": "לא למדת: בריכה ביער שלך",
+  "en": "Not studied: a pond in your forest"
+ },
+ "heatmap.not_studied_since_date": {
+  "text": "לא למדת מאז {date}",
+  "en": "Not studied since {date}"
+ },
+ "heatmap.not_studied_so_far": {
+  "text": "לא למדת עד עכשיו",
+  "en": "Not studied so far"
+ },
+ "heatmap.not_studied_yet": {
+  "text": "עדיין לא למדת",
+  "en": "Not studied yet"
+ },
+ "heatmap.not_studied_yet_n_cards_due": {
+  "text": {
+   "one": "עדיין לא למדת, כרטיס מתוזמן אחד",
+   "two": "עדיין לא למדת, {n} כרטיסים מתוזמנים",
+   "other": "עדיין לא למדת, {n} כרטיסים מתוזמנים"
+  },
+  "en": {
+   "one": "Not studied yet, {n} card due",
+   "other": "Not studied yet, {n} cards due"
+  }
+ },
+ "heatmap.nothing_due_today": {
+  "text": "אין כרטיסים מתוזמנים להיום",
+  "en": "Nothing due today"
+ },
+ "heatmap.nothing_due_yet": {
+  "text": "אין כרטיסים מתוזמנים בינתיים",
+  "en": "Nothing due yet"
+ },
+ "heatmap.nothing_was_due": {
+  "text": "לא היו כרטיסים מתוזמנים",
+  "en": "Nothing was due"
+ },
+ "heatmap.pace": {
+  "text": "קצב",
+  "en": "Pace"
+ },
+ "heatmap.pass_your_second_longest_streak_n": {
+  "text": {
+   "one": "ביום הזה הרצף השני הארוך ביותר שלך (יום אחד) ייעקף, אם לומדים כל יום עד אז",
+   "two": "ביום הזה הרצף השני הארוך ביותר שלך (יומיים) ייעקף, אם לומדים כל יום עד אז",
+   "other": "ביום הזה הרצף השני הארוך ביותר שלך ({n} ימים) ייעקף, אם לומדים כל יום עד אז"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your second-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "text": {
+   "one": "ביום הזה הרצף השני הארוך ביותר שלך (יום אחד) ייעקף",
+   "two": "ביום הזה הרצף השני הארוך ביותר שלך (יומיים) ייעקף",
+   "other": "ביום הזה הרצף השני הארוך ביותר שלך ({n} ימים) ייעקף"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day",
+   "other": "Pass your second-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "text": {
+   "one": "ביום הזה הרצף השלישי הארוך ביותר שלך (יום אחד) ייעקף, אם לומדים כל יום עד אז",
+   "two": "ביום הזה הרצף השלישי הארוך ביותר שלך (יומיים) ייעקף, אם לומדים כל יום עד אז",
+   "other": "ביום הזה הרצף השלישי הארוך ביותר שלך ({n} ימים) ייעקף, אם לומדים כל יום עד אז"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your third-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "text": {
+   "one": "ביום הזה הרצף השלישי הארוך ביותר שלך (יום אחד) ייעקף",
+   "two": "ביום הזה הרצף השלישי הארוך ביותר שלך (יומיים) ייעקף",
+   "other": "ביום הזה הרצף השלישי הארוך ביותר שלך ({n} ימים) ייעקף"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day",
+   "other": "Pass your third-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pin": {
+  "text": "נעץ",
+  "en": "Pin"
+ },
+ "heatmap.planted_tree_n_new_cards": {
+  "text": {
+   "one": "עץ שנשתל: כרטיס חדש אחד",
+   "two": "עץ שנשתל: {n} כרטיסים חדשים",
+   "other": "עץ שנשתל: {n} כרטיסים חדשים"
+  },
+  "en": {
+   "one": "Planted tree: {n} new cards",
+   "other": "Planted tree: {n} new cards"
+  }
+ },
+ "heatmap.ponds_and_animals_count_from_here": {
+  "text": "מכאן נספרים הבריכות ובעלי החיים",
+  "en": "Ponds and animals count from here"
+ },
+ "heatmap.reach_a_n_day_streak_on": {
+  "text": {
+   "one": "ביום הזה אפשר להגיע לרצף של יום אחד, אם לומדים כל יום עד אז",
+   "two": "ביום הזה אפשר להגיע לרצף של יומיים, אם לומדים כל יום עד אז",
+   "other": "ביום הזה אפשר להגיע לרצף של {n} ימים, אם לומדים כל יום עד אז"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day, studying every day until then",
+   "other": "Reach a {n}-day streak on this day, studying every day until then"
+  }
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "text": {
+   "one": "ביום הזה אפשר להגיע לרצף של יום אחד",
+   "two": "ביום הזה אפשר להגיע לרצף של יומיים",
+   "other": "ביום הזה אפשר להגיע לרצף של {n} ימים"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day",
+   "other": "Reach a {n}-day streak on this day"
+  }
+ },
+ "heatmap.remove_the_mark": {
+  "text": "הסרת הסימון",
+  "en": "Remove the mark"
+ },
+ "heatmap.reviews": {
+  "text": "חזרות",
+  "en": "Reviews"
+ },
+ "heatmap.s_s_per_answer": {
+  "text": "{s}+ שנ׳ לתשובה",
+  "en": "{s}+ s per answer"
+ },
+ "heatmap.shade_each_day_by_how_long": {
+  "text": "צביעת כל יום לפי משך הלימוד",
+  "en": "Shade each day by how long you studied"
+ },
+ "heatmap.shade_each_day_by_how_many": {
+  "text": "צביעת כל יום לפי מספר החזרות",
+  "en": "Shade each day by how many reviews you did"
+ },
+ "heatmap.shade_each_day_by_its_median": {
+  "text": "צביעת כל יום לפי חציון השניות לתשובה",
+  "en": "Shade each day by its median seconds per answer"
+ },
+ "heatmap.shade_the_days_by": {
+  "text": "צביעת הימים לפי",
+  "en": "Shade the days by"
+ },
+ "heatmap.sick": {
+  "text": "מחלה",
+  "en": "Sick"
+ },
+ "heatmap.slow": {
+  "text": "איטי",
+  "en": "Slow"
+ },
+ "heatmap.star": {
+  "text": "כוכב",
+  "en": "Star"
+ },
+ "heatmap.streak": {
+  "text": "רצף",
+  "en": "Streak"
+ },
+ "heatmap.studied_all_of_them": {
+  "text": "למדת בכולם",
+  "en": "Studied all of them"
+ },
+ "heatmap.studied_all_of_these_n_days": {
+  "text": {
+   "one": "למדת ביום הזה",
+   "two": "למדת בשני הימים האלה",
+   "other": "למדת בכל {n} הימים האלה"
+  },
+  "en": {
+   "one": "Studied all of these {n} day",
+   "other": "Studied all of these {n} days"
+  }
+ },
+ "heatmap.studied_every_day": {
+  "text": "למדת כל יום",
+  "en": "Studied every day"
+ },
+ "heatmap.studied_every_day_since_date": {
+  "text": "למדת כל יום מאז {date}",
+  "en": "Studied every day since {date}"
+ },
+ "heatmap.studied_every_day_so_far": {
+  "text": "למדת כל יום עד עכשיו",
+  "en": "Studied every day so far"
+ },
+ "heatmap.studied_n_of_them_pct": {
+  "text": {
+   "one": "למדת ביום אחד מהם ({pct}%)",
+   "two": "למדת ב־ {n} מהם ({pct}%)",
+   "other": "למדת ב־ {n} מהם ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {n} of them ({pct}%)",
+   "other": "Studied {n} of them ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "text": {
+   "one": "למדת ב־ {studied} מתוך יום אחד ({pct}%)",
+   "two": "למדת ב־ {studied} מתוך יומיים ({pct}%)",
+   "other": "למדת ב־ {studied} מתוך {n} ימים ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day ({pct}%)",
+   "other": "Studied {studied} of {n} days ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "text": {
+   "one": "למדת ב־ {studied} מתוך יום אחד מאז {date} ({pct}%)",
+   "two": "למדת ב־ {studied} מתוך יומיים מאז {date} ({pct}%)",
+   "other": "למדת ב־ {studied} מתוך {n} ימים מאז {date} ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day since {date} ({pct}%)",
+   "other": "Studied {studied} of {n} days since {date} ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "text": {
+   "one": "למדת ב־ {studied} מתוך יום אחד עד עכשיו ({pct}%)",
+   "two": "למדת ב־ {studied} מתוך יומיים עד עכשיו ({pct}%)",
+   "other": "למדת ב־ {studied} מתוך {n} ימים עד עכשיו ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day so far ({pct}%)",
+   "other": "Studied {studied} of {n} days so far ({pct}%)"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "text": {
+   "one": "מפת החום של הלימוד, {from} עד {to}: יום לימוד אחד, רצף של {days} ימים",
+   "two": "מפת החום של הלימוד, {from} עד {to}: {n} ימי לימוד, רצף של {days} ימים",
+   "other": "מפת החום של הלימוד, {from} עד {to}: {n} ימי לימוד, רצף של {days} ימים"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied, a {days}-day streak",
+   "other": "Study heatmap, {from} to {to}: {n} days studied, a {days}-day streak"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "text": {
+   "one": "מפת החום של הלימוד, {from} עד {to}: יום לימוד אחד",
+   "two": "מפת החום של הלימוד, {from} עד {to}: {n} ימי לימוד",
+   "other": "מפת החום של הלימוד, {from} עד {to}: {n} ימי לימוד"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied",
+   "other": "Study heatmap, {from} to {to}: {n} days studied"
+  }
+ },
+ "heatmap.the_months_round_this_one_most": {
+  "text": "החודשים סביב החודש הזה, רובם לפניו",
+  "en": "The months round this one, most of them before it"
+ },
+ "heatmap.this_day_s_tree_is_part": {
+  "text": "העץ של היום הזה הוא חלק מהיער העמוק שלך",
+  "en": "This day’s tree is part of your deep forest"
+ },
+ "heatmap.this_tree_is_outside_your_current": {
+  "text": "העץ הזה מחוץ לתצוגת הזום הנוכחית",
+  "en": "This tree is outside your current zoom view"
+ },
+ "heatmap.time": {
+  "text": "זמן",
+  "en": "Time"
+ },
+ "heatmap.time_2": {
+  "text": "{time}+",
+  "en": "{time}+"
+ },
+ "heatmap.time_n_reviews": {
+  "text": {
+   "one": "{time}, חזרה אחת",
+   "two": "{time}, {n} חזרות",
+   "other": "{time}, {n} חזרות"
+  },
+  "en": {
+   "one": "{time}, {n} review",
+   "other": "{time}, {n} reviews"
+  }
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "text": {
+   "one": "{time} עד עכשיו, חזרה אחת, עוד {due} מתוזמנים",
+   "two": "{time} עד עכשיו, {n} חזרות, עוד {due} מתוזמנים",
+   "other": "{time} עד עכשיו, {n} חזרות, עוד {due} מתוזמנים"
+  },
+  "en": {
+   "one": "{time} so far, {n} review, {due} still due",
+   "other": "{time} so far, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.timeline": {
+  "text": "ציר זמן",
+  "en": "Timeline"
+ },
+ "heatmap.today": {
+  "text": "היום",
+  "en": "Today"
+ },
+ "heatmap.too_far_ahead_to_count": {
+  "text": "רחוק מדי בעתיד מכדי לספור",
+  "en": "Too far ahead to count"
+ },
+ "heatmap.trip": {
+  "text": "טיול",
+  "en": "Trip"
+ },
+ "heatmap.under_a_minute": {
+  "text": "פחות מדקה",
+  "en": "under a minute"
+ },
+ "heatmap.under_n_reviews": {
+  "text": {
+   "one": "פחות מ־ {n} חזרות",
+   "two": "פחות מ־ {n} חזרות",
+   "other": "פחות מ־ {n} חזרות"
+  },
+  "en": {
+   "one": "Under {n} reviews",
+   "other": "Under {n} reviews"
+  }
+ },
+ "heatmap.under_s_s_per_answer": {
+  "text": "פחות מ־ {s} שנ׳ לתשובה",
+  "en": "Under {s} s per answer"
+ },
+ "heatmap.under_time": {
+  "text": "פחות מ־ {time}",
+  "en": "Under {time}"
+ },
+ "heatmap.view": {
+  "text": "תצוגה",
+  "en": "View"
+ },
+ "heatmap.your_forest_began": {
+  "text": "היער שלך התחיל",
+  "en": "Your forest began"
+ },
+ "heatmap.your_longest_streak": {
+  "text": "הרצף הארוך ביותר שלך",
+  "en": "Your longest streak"
+ },
+ "heatmap.your_longest_streak_n_days": {
+  "text": {
+   "one": "הרצף הארוך ביותר שלך: יום אחד",
+   "two": "הרצף הארוך ביותר שלך: יומיים",
+   "other": "הרצף הארוך ביותר שלך: {n} ימים"
+  },
+  "en": {
+   "one": "Your longest streak: {n} day",
+   "other": "Your longest streak: {n} days"
+  }
+ },
+ "heatmap.your_n_day_streak": {
+  "text": {
+   "one": "הרצף שלך (יום אחד)",
+   "two": "הרצף שלך (יומיים)",
+   "other": "הרצף שלך ({n} ימים)"
+  },
+  "en": {
+   "one": "Your {n}-day streak",
+   "other": "Your {n}-day streak"
+  }
+ },
+ "heatmap.your_second_longest_streak": {
+  "text": "הרצף השני באורכו שלך",
+  "en": "Your second-longest streak"
+ },
+ "heatmap.your_second_longest_streak_n_days": {
+  "text": {
+   "one": "הרצף השני באורכו שלך: יום אחד",
+   "two": "הרצף השני באורכו שלך: יומיים",
+   "other": "הרצף השני באורכו שלך: {n} ימים"
+  },
+  "en": {
+   "one": "Your second-longest streak: {n} day",
+   "other": "Your second-longest streak: {n} days"
+  }
+ },
+ "heatmap.your_streak_every_year_of_it": {
+  "text": "הרצף שלך לאורך כל השנים שלו; החצים מובילים לרצפים הקודמים",
+  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+ },
+ "heatmap.your_third_longest_streak": {
+  "text": "הרצף השלישי באורכו שלך",
+  "en": "Your third-longest streak"
+ },
+ "heatmap.your_third_longest_streak_n_days": {
+  "text": {
+   "one": "הרצף השלישי באורכו שלך: יום אחד",
+   "two": "הרצף השלישי באורכו שלך: יומיים",
+   "other": "הרצף השלישי באורכו שלך: {n} ימים"
+  },
+  "en": {
+   "one": "Your third-longest streak: {n} day",
+   "other": "Your third-longest streak: {n} days"
+  }
+ },
+ "heatmap_look.darker": {
+  "text": "כהים יותר",
+  "en": "Darker"
+ },
+ "heatmap_look.flame": {
+  "text": "להבה",
+  "en": "Flame"
+ },
+ "heatmap_look.ice": {
+  "text": "קרח",
+  "en": "Ice"
+ },
+ "heatmap_look.lighter": {
+  "text": "בהירים יותר",
+  "en": "Lighter"
+ },
+ "heatmap_look.lime": {
+  "text": "ליים",
+  "en": "Lime"
+ },
+ "heatmap_look.magenta": {
+  "text": "מג׳נטה",
+  "en": "Magenta"
+ },
+ "heatmap_look.olive": {
+  "text": "זית",
+  "en": "Olive"
+ },
+ "heatmap_style.brush": {
+  "text": "מכחול",
+  "en": "Brush"
+ },
+ "heatmap_style.brush.tip": {
+  "text": "משיכות המכחול של ״ליל כוכבים״",
+  "en": "Starry night's brushstrokes"
+ },
+ "heatmap_style.canes": {
+  "text": "קני במבוק",
+  "en": "Canes"
+ },
+ "heatmap_style.canes.tip": {
+  "text": "קני הבמבוק של ״חורשת במבוק בגשם״, שניים לכל יום",
+  "en": "Bamboo grove's canes, two to a day"
+ },
+ "heatmap_style.chalk": {
+  "text": "גיר",
+  "en": "Chalk"
+ },
+ "heatmap_style.chalk.tip": {
+  "text": "קווי הגיר של ״לוח גיר״",
+  "en": "Chalkboard's chalk hatching"
+ },
+ "heatmap_style.contours": {
+  "text": "קווי גובה",
+  "en": "Contours"
+ },
+ "heatmap_style.contours.tip": {
+  "text": "ימי הלימוד שלך כצורה אחת, והגוונים שלה ברצועות אחידות, כמו במפה טופוגרפית",
+  "en": "The days you studied as one shape, its shades in flat bands, like a contour map"
+ },
+ "heatmap_style.flat": {
+  "text": "שטוח",
+  "en": "Flat"
+ },
+ "heatmap_style.flat.tip": {
+  "text": "משבצות מרובעות, כל אחת בצבע אחיד, עם פינות מעוגלות",
+  "en": "Square tiles, each one solid colour, their corners smooth"
+ },
+ "heatmap_style.ice": {
+  "text": "קוביות קרח",
+  "en": "Ice blocks"
+ },
+ "heatmap_style.ice.tip": {
+  "text": "הקרח של ״שוק על נהר קפוא״, רק בשבוע שלו",
+  "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.pumpkin": {
+  "text": "דלעות",
+  "en": "Pumpkins"
+ },
+ "heatmap_style.pumpkin.tip": {
+  "text": "פסי הדלעת של ״מכשפה על רקע הירח״, רק בשבוע שלו",
+  "en": "Witch across the moon's pumpkin ribs, in its week only"
+ },
+ "heatmap_style.rime": {
+  "text": "כפור",
+  "en": "Rime"
+ },
+ "heatmap_style.rime.tip": {
+  "text": "הכפור של ״עמק הרים בערפל״, לאורך החלק העליון של כל משבצת",
+  "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.round": {
+  "text": "עגול",
+  "en": "Round"
+ },
+ "heatmap_style.round.tip": {
+  "text": "כל יום משבצת עגולה קטנה",
+  "en": "Each day a little round tile"
+ },
+ "heatmap_style.scanlines": {
+  "text": "קווי סריקה",
+  "en": "Scanlines"
+ },
+ "heatmap_style.scanlines.tip": {
+  "text": "קווי הסריקה של Synthwave",
+  "en": "Synthwave's scanlines"
+ },
+ "heatmap_style.scenery": {
+  "text": "נוף",
+  "en": "Scenery"
+ },
+ "heatmap_style.scenery.tip": {
+  "text": "משתמש בסגנון המשבצות של הנוף הנוכחי ומתעדכן כשמחליפים נוף",
+  "en": "Uses the current scenery's own tile style and updates when you change scenery"
+ },
+ "hover.click_to_select_it": {
+  "text": "לחיצה לבחירה",
+  "en": "Click to select it"
+ },
+ "hover.click_to_watch_it_again": {
+  "text": "לחיצה לצפייה חוזרת",
+  "en": "Click to watch it again"
+ },
+ "hover.tap_again_to_watch_it_again": {
+  "text": "הקשה נוספת לצפייה חוזרת",
+  "en": "Tap again to watch it again"
+ },
+ "hover.tap_to_select_it": {
+  "text": "הקשה לבחירה",
+  "en": "Tap to select it"
+ },
+ "journal.a_harvest_moon_rises_over_your": {
+  "text": "ירח קציר זורח ביום השנה של היער שלך.",
+  "en": "A harvest moon rises over your forest's anniversary."
+ },
+ "journal.days_days_in_a_row_the": {
+  "text": {
+   "one": "יום אחד ברצף. היער לא החמיץ אף יום.",
+   "two": "יומיים ברצף. היער לא החמיץ אף יום.",
+   "other": "{days} ימים ברצף. היער לא החמיץ אף יום."
+  },
+  "en": {
+   "one": "{days} day in a row. The forest has not missed one.",
+   "other": "{days} days in a row. The forest has not missed one."
+  }
+ },
+ "journal.meteors_are_falling_tonight": {
+  "text": "מטאורים נופלים הלילה.",
+  "en": "Meteors are falling tonight."
+ },
+ "journal.one_of_your_trees_became_ancient": {
+  "text": "אחד העצים שלך הפך לעתיק היום.",
+  "en": "One of your trees became ancient today."
+ },
+ "journal.one_of_your_trees_became_ancient_2": {
+  "text": "אחד העצים שלך הפך לעתיק היום. כדאי לחפש כוכב נופל.",
+  "en": "One of your trees became ancient today. Watch for a shooting star."
+ },
+ "journal.study_some_new_cards_and_your": {
+  "text": "אחרי שלומדים כמה כרטיסים חדשים, העץ הראשון שלך יכה כאן שורשים.",
+  "en": "Study some new cards and your first tree will take root here."
+ },
+ "journal.the_grass_is_growing_tall_no": {
+  "text": {
+   "one": "העשב צומח לגובה: אין כרטיסים חדשים כבר שבוע.",
+   "two": "העשב צומח לגובה: אין כרטיסים חדשים כבר שבועיים.",
+   "other": "העשב צומח לגובה: אין כרטיסים חדשים כבר {n} שבועות."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} week.",
+   "other": "The grass is growing tall: no new cards for {n} weeks."
+  }
+ },
+ "journal.the_grass_is_growing_tall_no_2": {
+  "text": "העשב צומח לגובה: אין כרטיסים חדשים כבר שבוע.",
+  "en": "The grass is growing tall: no new cards for a week."
+ },
+ "journal.the_tree_you_planted_on_date": {
+  "text": {
+   "one": "העץ ששתלת ב־ {date} בן שנה היום.",
+   "two": "העץ ששתלת ב־ {date} בן שנתיים היום.",
+   "other": "העץ ששתלת ב־ {date} בן {n} שנים היום."
+  },
+  "en": {
+   "one": "The tree you planted on {date} turned {n} year old today.",
+   "other": "The tree you planted on {date} turned {n} years old today."
+  }
+ },
+ "journal.the_tree_you_planted_on_date_2": {
+  "text": "העץ ששתלת ב־ {date} בן שנה היום.",
+  "en": "The tree you planted on {date} turned a year old today."
+ },
+ "journal.your_count_th_tree_planted_today": {
+  "text": {
+   "one": "העץ ה־ {count} שלך, שנשתל היום עם כרטיס חדש אחד.",
+   "two": "העץ ה־ {count} שלך, שנשתל היום עם {cards} כרטיסים חדשים.",
+   "other": "העץ ה־ {count} שלך, שנשתל היום עם {cards} כרטיסים חדשים."
+  },
+  "en": {
+   "one": "Your {count}th tree, planted today with {cards} new card.",
+   "other": "Your {count}th tree, planted today with {cards} new cards."
+  }
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "text": {
+   "one": "העץ הראשון שלך. יש בו כרטיס אחד.",
+   "two": "העץ הראשון שלך. יש בו {cards} כרטיסים.",
+   "other": "העץ הראשון שלך. יש בו {cards} כרטיסים."
+  },
+  "en": {
+   "one": "Your first tree. It holds {cards} card.",
+   "other": "Your first tree. It holds {cards} cards."
+  }
+ },
+ "landmark.moon_bridge": {
+  "text": "גשר ירח",
+  "en": "Moon bridge"
+ },
+ "landmark.none": {
+  "text": "ללא",
+  "en": "None"
+ },
+ "landmark.pagoda": {
+  "text": "פגודה",
+  "en": "Pagoda"
+ },
+ "landmark.peak": {
+  "text": "פסגת הר",
+  "en": "Mountain peak"
+ },
+ "landscape.lake": {
+  "text": "אגם שקט",
+  "en": "Still lake"
+ },
+ "landscape.meadow": {
+  "text": "אחו",
+  "en": "Meadow"
+ },
+ "landscape.mountains": {
+  "text": "עמק בין הרים",
+  "en": "Mountain valley"
+ },
+ "landscape.river": {
+  "text": "נהר",
+  "en": "River"
+ },
+ "month.april": {
+  "text": "אפריל",
+  "en": "April"
+ },
+ "month.august": {
+  "text": "אוגוסט",
+  "en": "August"
+ },
+ "month.december": {
+  "text": "דצמבר",
+  "en": "December"
+ },
+ "month.february": {
+  "text": "פברואר",
+  "en": "February"
+ },
+ "month.january": {
+  "text": "ינואר",
+  "en": "January"
+ },
+ "month.july": {
+  "text": "יולי",
+  "en": "July"
+ },
+ "month.june": {
+  "text": "יוני",
+  "en": "June"
+ },
+ "month.march": {
+  "text": "מרץ",
+  "en": "March"
+ },
+ "month.may": {
+  "text": "מאי",
+  "en": "May"
+ },
+ "month.november": {
+  "text": "נובמבר",
+  "en": "November"
+ },
+ "month.october": {
+  "text": "אוקטובר",
+  "en": "October"
+ },
+ "month.september": {
+  "text": "ספטמבר",
+  "en": "September"
+ },
+ "month_short.apr": {
+  "text": "אפר׳",
+  "en": "Apr"
+ },
+ "month_short.aug": {
+  "text": "אוג׳",
+  "en": "Aug"
+ },
+ "month_short.dec": {
+  "text": "דצמ׳",
+  "en": "Dec"
+ },
+ "month_short.feb": {
+  "text": "פבר׳",
+  "en": "Feb"
+ },
+ "month_short.jan": {
+  "text": "ינו׳",
+  "en": "Jan"
+ },
+ "month_short.jul": {
+  "text": "יולי",
+  "en": "Jul"
+ },
+ "month_short.jun": {
+  "text": "יוני",
+  "en": "Jun"
+ },
+ "month_short.mar": {
+  "text": "מרץ",
+  "en": "Mar"
+ },
+ "month_short.may": {
+  "text": "מאי",
+  "en": "May"
+ },
+ "month_short.nov": {
+  "text": "נוב׳",
+  "en": "Nov"
+ },
+ "month_short.oct": {
+  "text": "אוק׳",
+  "en": "Oct"
+ },
+ "month_short.sep": {
+  "text": "ספט׳",
+  "en": "Sep"
+ },
+ "news.change_scenery_and_settings_new_scenery": {
+  "text": "שינוי הנוף וההגדרות (נוף חדש)",
+  "en": "Change scenery and settings (new scenery)"
+ },
+ "news.change_scenery_and_settings_something_new": {
+  "text": "שינוי הנוף וההגדרות (משהו חדש)",
+  "en": "Change scenery and settings (something new)"
+ },
+ "news.got_it": {
+  "text": "הבנתי",
+  "en": "Got it"
+ },
+ "panel.change_scenery_and_settings": {
+  "text": "שינוי הנוף וההגדרות",
+  "en": "Change scenery and settings"
+ },
+ "panel.seasonal_scenery_for_this_week_only": {
+  "text": "נוף עונתי, לשבוע הזה בלבד. הנוף שלך יחזור ב־ {date}.",
+  "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
+ },
+ "panel.seasonal_scenery_here_until_date": {
+  "text": "נוף עונתי, כאן עד {date}.",
+  "en": "Seasonal scenery, here until {date}."
+ },
+ "panel.todays_scenery_from_surprise_me_daily": {
+  "text": "הנוף של היום, מתוך ״הפתעה יומית״. מחר יגיע הנוף הבא.",
+  "en": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."
+ },
+ "panel.your_own_mix_from_customize_in": {
+  "text": "השילוב שלך, מתוך ״התאמה אישית״ בהגדרות היער.",
+  "en": "Your own mix, from Customize in the forest settings."
+ },
+ "panel.your_study_forest": {
+  "text": "יער הלימוד שלך",
+  "en": "Your study forest"
+ },
+ "phone.forest_full_screen": {
+  "text": "היער במסך מלא",
+  "en": "Forest full screen"
+ },
+ "phone.full_screen_isnt_allowed_here": {
+  "text": "מסך מלא לא זמין כאן.",
+  "en": "Full screen isn't allowed here."
+ },
+ "phone.heatmap_full_screen": {
+  "text": "מפת החום במסך מלא",
+  "en": "Heatmap full screen"
+ },
+ "phone.just_now": {
+  "text": "הרגע",
+  "en": "just now"
+ },
+ "phone.leave_full_screen": {
+  "text": "יציאה ממסך מלא",
+  "en": "Leave full screen"
+ },
+ "phone.memory_forest_could_not_draw_your": {
+  "text": "Memory Forest לא הצליח לצייר כאן את היער שלך.",
+  "en": "Memory Forest could not draw your forest here."
+ },
+ "phone.memory_forest_keeps_your_forest_here": {
+  "text": "Memory Forest שומר כאן את היער שלך, כדי שהטלפון יוכל להציג אותו. כדי לראות אותו, צריך ללמוד את החפיסה הזו ולחזור בלי לענות. התוסף כותב מחדש את הרשומה הזו בכל סנכרון.",
+  "en": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync."
+ },
+ "phone.n_days_ago": {
+  "text": {
+   "one": "לפני יום",
+   "two": "לפני יומיים",
+   "other": "לפני {n} ימים"
+  },
+  "en": {
+   "one": "{n} day ago",
+   "other": "{n} days ago"
+  }
+ },
+ "phone.n_hours_ago": {
+  "text": {
+   "one": "לפני שעה",
+   "two": "לפני שעתיים",
+   "other": "לפני {n} שעות"
+  },
+  "en": {
+   "one": "{n} hour ago",
+   "other": "{n} hours ago"
+  }
+ },
+ "phone.n_minutes_ago": {
+  "text": {
+   "one": "לפני דקה",
+   "two": "לפני שתי דקות",
+   "other": "לפני {n} דקות"
+  },
+  "en": {
+   "one": "{n} minute ago",
+   "other": "{n} minutes ago"
+  }
+ },
+ "phone.sync_anki_on_your_computer_to": {
+  "text": "כדי לעדכן אותו, יש לסנכרן את Anki במחשב.",
+  "en": "Sync Anki on your computer to bring it up to date."
+ },
+ "phone.synced_when": {
+  "text": "סונכרן {when}.",
+  "en": "Synced {when}."
+ },
+ "phone.yesterday": {
+  "text": "אתמול",
+  "en": "yesterday"
+ },
+ "phone.your_forest_arrives_with_the_next": {
+  "text": "היער שלך יגיע בסנכרון הבא מ־ Anki במחשב.",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_arrives_with_the_next_sync": {
+  "text": "היער שלך יגיע בסנכרון הבא מ־ Anki במחשב.",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_is_on_its_way": {
+  "text": "היער שלך בדרך: עוד סנכרון אחד יביא את הציור שלו.",
+  "en": "Your forest is on its way: sync once more to fetch its drawing."
+ },
+ "planting.a_new_tree_was_planted_in": {
+  "text": "עץ חדש נשתל היום ביער שלך.",
+  "en": "A new tree was planted in your forest today."
+ },
+ "preset.aurora": {
+  "text": "ליל זוהר צפוני",
+  "en": "Aurora night"
+ },
+ "preset.aurora.note": {
+  "text": "זוהר צפוני מעל רכס מושלג, משתקף באגם השקט שלמטה.",
+  "en": "Northern lights over a snowy range, moving in the still lake below."
+ },
+ "preset.bamboo": {
+  "text": "חורשת במבוק בגשם",
+  "en": "Rainy bamboo grove"
+ },
+ "preset.bamboo.note": {
+  "text": "קני במבוק גבוהים בגשם ירוק ורך, מקדש בערפל ופנסים שצפים במורד הנהר.",
+  "en": "Tall canes in soft green rain, a temple in the mist, lanterns floating down the river."
+ },
+ "preset.chalkboard": {
+  "text": "לוח גיר",
+  "en": "Chalkboard"
+ },
+ "preset.chalkboard.note": {
+  "text": "היער בגירים צבעוניים על לוח ירוק.",
+  "en": "The forest in coloured chalk on a green blackboard."
+ },
+ "preset.cherry_blossom": {
+  "text": "פריחת הדובדבן",
+  "en": "Cherry blossom"
+ },
+ "preset.cherry_blossom.note": {
+  "text": "האנאמי למרגלות הר פוג׳י: עצי דובדבן פורחים לאורך הנהר, פנסי נייר מעל ועלי כותרת ברוח.",
+  "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
+ },
+ "preset.custom": {
+  "text": "מותאם אישית",
+  "en": "Custom"
+ },
+ "preset.daily": {
+  "text": "הפתעה יומית",
+  "en": "Surprise me daily"
+ },
+ "preset.daily.note": {
+  "text": "נוף אחר בכל יום, לפי הסדר, כך שכל נוף מגיע בתורו.",
+  "en": "A different scenery every day, taking turns so each one comes round in order."
+ },
+ "preset.frozen_market": {
+  "text": "שוק על נהר קפוא",
+  "en": "Frozen river market"
+ },
+ "preset.frozen_market.note": {
+  "text": "שוק חג המולד על הנהר הקפוא: דוכנים וקרוסלה על הקרח, מחליקים מתחת לגשר מואר בפנסים.",
+  "en": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge."
+ },
+ "preset.golden_lake": {
+  "text": "שעת הזהב ליד האגם",
+  "en": "Golden hour by the lake"
+ },
+ "preset.golden_lake.note": {
+  "text": "שמש נמוכה מעל מים שקטים, וכל היער מואר מצד אחד.",
+  "en": "Low sun across still water, the whole forest lit from one side."
+ },
+ "preset.lanterns": {
+  "text": "פנסים בלילה",
+  "en": "Lanterns at night"
+ },
+ "preset.lanterns.note": {
+  "text": "פנסי נייר עולים מגשר ירח אדום אל הירח המלא, וההשתקפויות שלהם יורדות מטה.",
+  "en": "Paper lanterns drifting up from a red moon bridge towards a full moon, and their reflections going down."
+ },
+ "preset.misty_valley": {
+  "text": "עמק הרים בערפל",
+  "en": "Misty mountain valley"
+ },
+ "preset.misty_valley.note": {
+  "text": "פסגה מושלגת מעל עמק שעוד לא התעורר.",
+  "en": "A snow-capped peak over a valley that has not woken up yet."
+ },
+ "preset.pumpkin_patch": {
+  "text": "מכשפה על רקע הירח",
+  "en": "Witch across the moon"
+ },
+ "preset.pumpkin_patch.note": {
+  "text": "מכשפה והחתול שלה חוצים את ירח הקציר העולה, מעל שדה של פנסי דלעת מחייכים ומצחקקים.",
+  "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.starry_night": {
+  "text": "ליל כוכבים",
+  "en": "Starry night"
+ },
+ "preset.starry_night.note": {
+  "text": "בהשראת ואן גוך: שמיים של משיכות מכחול מסתחררות מעל כפר ישן, וברושים כהים בוערים על רקעם.",
+  "en": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
+ },
+ "preset.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "preset.synthwave.note": {
+  "text": "רשת הניאון שנמתחת עד האופק, והשמש המפוספסת שעומדת עליה.",
+  "en": "The neon grid running to the horizon, and the banded sun standing on it."
+ },
+ "scene.after_the_rain": {
+  "text": "אחרי הגשם",
+  "en": "After the rain"
+ },
+ "scene.clear": {
+  "text": "בהיר",
+  "en": "Clear"
+ },
+ "scene.cloudy": {
+  "text": "מעונן",
+  "en": "Cloudy"
+ },
+ "scene.dawn": {
+  "text": "שחר",
+  "en": "Dawn"
+ },
+ "scene.day": {
+  "text": "יום",
+  "en": "Day"
+ },
+ "scene.deep_winter": {
+  "text": "לב החורף",
+  "en": "Deep winter"
+ },
+ "scene.dusk": {
+  "text": "דמדומים",
+  "en": "Dusk"
+ },
+ "scene.fog": {
+  "text": "ערפל",
+  "en": "Fog"
+ },
+ "scene.golden_hour": {
+  "text": "שעת הזהב",
+  "en": "Golden hour"
+ },
+ "scene.night": {
+  "text": "לילה",
+  "en": "Night"
+ },
+ "scene.rain": {
+  "text": "גשם",
+  "en": "Rain"
+ },
+ "scene.snow": {
+  "text": "שלג",
+  "en": "Snow"
+ },
+ "scene.thunderstorm": {
+  "text": "סופת רעמים",
+  "en": "Thunderstorm"
+ },
+ "settings.about.all_release_notes": {
+  "text": "כל הערות הגרסה",
+  "en": "All release notes"
+ },
+ "settings.about.and_a_special_thank_you_to": {
+  "text": "ותודה מיוחדת לתומכים שלי ב־ Patreon:",
+  "en": "And a special thank-you to my Sponsors on Patreon:"
+ },
+ "settings.about.how_it_works": {
+  "text": "איך זה עובד",
+  "en": "How it works"
+ },
+ "settings.about.made_by_barak_levy": {
+  "text": "נוצר על ידי Barak Levy",
+  "en": "Made by Barak Levy"
+ },
+ "settings.about.memory_forest_grows_thanks_to_everyone": {
+  "text": "Memory Forest גדל בזכות כל מי שמדרג אותו, משתף אותו, שולח רעיונות או מדווח על באג. תודה!",
+  "en": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!"
+ },
+ "settings.about.mit_licence": {
+  "text": "רישיון MIT",
+  "en": "MIT licence"
+ },
+ "settings.about.new_scenery_arrives_in_memory_forest": {
+  "text": "נופים חדשים מגיעים קודם ל־ Memory Forest Plus, ובהמשך גם לגרסה הזו. <a href=\"{url}\">להצטרפות ב־ Patreon</a>",
+  "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
+ },
+ "settings.about.one_tree_for_every_day_you": {
+  "text": "עץ אחד לכל יום שבו למדת כרטיסים חדשים. הנבט של היום נמצא בחזית, והעץ הוותיק ביותר מאחור. העצים גדלים ככל שהכרטיסים האלה נקלטים בזיכרון, ומקבלים כמה עלים צהובים כשחלק מהם נשכחים. בימים של חזרות בלבד לא נשתל עץ, אבל הם שומרים על העצים שלך בריאים.",
+  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+ },
+ "settings.about.places_openstreetmap_contributors": {
+  "text": "מקומות © <a href=\"{osm}\">התורמים של OpenStreetMap</a>",
+  "en": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>"
+ },
+ "settings.about.rate_it_on_ankiweb": {
+  "text": "לדרג ב־ AnkiWeb",
+  "en": "Rate it on AnkiWeb"
+ },
+ "settings.about.report_a_bug_or_share_an": {
+  "text": "לדווח על באג או לשתף רעיון",
+  "en": "Report a bug or share an idea"
+ },
+ "settings.about.thank_you": {
+  "text": "תודה",
+  "en": "Thank you"
+ },
+ "settings.about.the_heatmap_under_it_shows_every": {
+  "text": "מפת החום שמתחתיו מציגה כל יום שבו למדת: אפשר להצביע על יום כדי לראות את המספרים שלו, וללחוץ עליו לחיצה ימנית כדי לסמן אותו.",
+  "en": "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it."
+ },
+ "settings.about.version_version": {
+  "text": "גרסה {version}",
+  "en": "Version {version}"
+ },
+ "settings.about.weather_from_met_norway_cc_by": {
+  "text": "מזג אוויר מ־ <a href=\"{met}\">MET Norway</a> (CC BY 4.0)",
+  "en": "Weather from <a href=\"{met}\">MET Norway</a> (CC BY 4.0)"
+ },
+ "settings.about.whats_new": {
+  "text": "מה חדש",
+  "en": "What's new"
+ },
+ "settings.about.youre_part_of_this_thank_you": {
+  "text": "גם לך יש חלק בזה: תודה על התמיכה ב־ <a href=\"{url}\">Patreon</a>",
+  "en": "You're part of this: thank you for supporting it on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.customize.change_anything_here_to_make_it": {
+  "text": "אפשר לשנות כאן כל דבר וליצור שילוב משלך.",
+  "en": "Change anything here to make it your own mix."
+ },
+ "settings.customize.customize_scenery": {
+  "text": "התאמה אישית של {scenery} ›",
+  "en": "Customize {scenery} ›"
+ },
+ "settings.customize.customize_scenery_2": {
+  "text": "התאמה אישית של {scenery}",
+  "en": "Customize {scenery}"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery": {
+  "text": "שילוב משלך, על בסיס {scenery} ›",
+  "en": "Customize your own mix, from {scenery} ›"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery_2": {
+  "text": "שילוב משלך, על בסיס {scenery}",
+  "en": "Customize your own mix, from {scenery}"
+ },
+ "settings.customize.environment": {
+  "text": "עולם",
+  "en": "Environment"
+ },
+ "settings.customize.follows_your_clock": {
+  "text": "לפי השעון שלך",
+  "en": "Follows your clock"
+ },
+ "settings.customize.landmark": {
+  "text": "ציון דרך",
+  "en": "Landmark"
+ },
+ "settings.customize.landscape": {
+  "text": "סביבה",
+  "en": "Landscape"
+ },
+ "settings.customize.live_weather": {
+  "text": "מזג אוויר בזמן אמת",
+  "en": "Live weather"
+ },
+ "settings.customize.reset_a_row_to_put_the": {
+  "text": "איפוס שורה מחזיר את הבחירה המקורית של הנוף.",
+  "en": "Reset a row to put the scenery's own choice back."
+ },
+ "settings.customize.reset_put_back_the_scenerys_own": {
+  "text": "איפוס: החזרת הבחירה המקורית של הנוף",
+  "en": "Reset: put back the scenery's own choice"
+ },
+ "settings.customize.sceneries": {
+  "text": "‹ נופים",
+  "en": "‹ Sceneries"
+ },
+ "settings.customize.time_of_day": {
+  "text": "שעה ביום",
+  "en": "Time of day"
+ },
+ "settings.customize.weather": {
+  "text": "מזג אוויר",
+  "en": "Weather"
+ },
+ "settings.decks.counting_your_trees": {
+  "text": "סופרים את העצים שלך…",
+  "en": "Counting your trees…"
+ },
+ "settings.decks.date_format": {
+  "text": "d 'ב'MMMM yyyy",
+  "en": "d MMMM yyyy"
+ },
+ "settings.decks.days_before_date_grow_no_trees": {
+  "text": "בימים שלפני {date} לא צומחים עצים. מפת החום עדיין מציגה אותם (בלשונית ״מפת חום״).",
+  "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
+ },
+ "settings.decks.decks": {
+  "text": "חפיסות",
+  "en": "Decks"
+ },
+ "settings.decks.keep_suspended_cards_in_their_trees": {
+  "text": "להשאיר כרטיסים מושהים בעצים שלהם",
+  "en": "Keep suspended cards in their trees"
+ },
+ "settings.decks.keep_the_trees_from_before_it": {
+  "text": "לשמור את העצים מלפני התאריך הזה",
+  "en": "Keep the trees from before it"
+ },
+ "settings.decks.no_trees": {
+  "text": "אין עצים",
+  "en": "no trees"
+ },
+ "settings.decks.start_the_forest_on": {
+  "text": "תחילת היער",
+  "en": "Start the forest on"
+ },
+ "settings.decks.they_keep_their_trees_size_but": {
+  "text": "הם שומרים על גודל העץ שלהם, אבל אף פעם לא פוגעים בבריאות שלו.",
+  "en": "They keep their tree's size but never hurt its health."
+ },
+ "settings.decks.unticked_decks_grow_no_trees_you": {
+  "text": "בחפיסות שאינן מסומנות לא צומחים עצים. אפשר לעשות זאת גם מתפריט ⚙ של החפיסה.",
+  "en": "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
+ },
+ "settings.decks.what_counts": {
+  "text": "מה נחשב",
+  "en": "What counts"
+ },
+ "settings.decks.your_forest_starts_on_your_first": {
+  "text": "היער שלך מתחיל ביום הלימוד הראשון שלך, {first}.",
+  "en": "Your forest starts on your first day of study, {first}."
+ },
+ "settings.decks.your_forest_trees": {
+  "text": "היער שלך: <b>{trees}</b>",
+  "en": "Your forest: <b>{trees}</b>"
+ },
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "text": {
+   "one": "היער שלך: <b>{trees}</b> &nbsp;(עץ מוקדם אחד לא נכלל)",
+   "two": "היער שלך: <b>{trees}</b> &nbsp;(שני עצים מוקדמים לא נכללו)",
+   "other": "היער שלך: <b>{trees}</b> &nbsp;({n} עצים מוקדמים לא נכללו)"
+  },
+  "en": {
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
+  }
+ },
+ "settings.decks.your_trees_from_before_it_stay": {
+  "text": "העצים שלך מלפני התאריך הזה נשארים. הבריכות, ״טבע״ ובעלי החיים נספרים מ־ {date}.",
+  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+ },
+ "settings.dialog.about": {
+  "text": "אודות",
+  "en": "About"
+ },
+ "settings.dialog.cancel": {
+  "text": "ביטול",
+  "en": "Cancel"
+ },
+ "settings.dialog.decks": {
+  "text": "חפיסות",
+  "en": "Decks"
+ },
+ "settings.dialog.done": {
+  "text": "סיום",
+  "en": "Done"
+ },
+ "settings.dialog.forest": {
+  "text": "יער",
+  "en": "Forest"
+ },
+ "settings.dialog.heatmap": {
+  "text": "מפת חום",
+  "en": "Heatmap"
+ },
+ "settings.dialog.put_the_settings_back_to_their": {
+  "text": "להחזיר את ההגדרות לברירות המחדל?",
+  "en": "Put the settings back to their defaults?"
+ },
+ "settings.dialog.resets_the_scenery_customize_and_surprise": {
+  "text": "מה מתאפס: הנוף, הנופים של ״התאמה אישית״ ושל ״הפתעה יומית״, ״טבע״ (ל״{nature}״), העיר שלך, איפה מוצגים היער ומפת החום (גם בחפיסות שהסתיימו) והפריסה שלהם, התצוגה של מפת החום, הרוחב שלה ומה שממלא אותה, תחילת השבוע, לפי מה נקבעים הגוונים, הצבעים (כולל ״ימים עמוסים יותר״) והסגנון, האנימציה והודעת השתילה.\n\nמה נשמר: החפיסות שהוצאת, תאריך ההתחלה (האם העצים שלפניו נשארים, ואיך מפת החום והרצף שלך מתייחסים אליו), ימי הרצף שלך בשבוע, כרטיסים מושהים, הימים שסימנת והיער בטלפון.\n\nהכפתור ״ביטול״ עדיין מחזיר את ההגדרות שהיו לפני כן.",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+ },
+ "settings.dialog.restore_defaults": {
+  "text": "שחזור ברירות מחדל",
+  "en": "Restore defaults"
+ },
+ "settings.dialog.restore_defaults_2": {
+  "text": "שחזור ברירות מחדל…",
+  "en": "Restore defaults…"
+ },
+ "settings.dialog.scenery": {
+  "text": "נוף",
+  "en": "Scenery"
+ },
+ "settings.forest.a_forest_of_that_decks_own": {
+  "text": "יער משלה לכל חפיסה",
+  "en": "A forest of that deck's own"
+ },
+ "settings.forest.adds_a_memory_forest_deck_with": {
+  "text": "מוסיף חפיסת \"Memory Forest\" עם כרטיס שמציג את היער ואת מפת החום שלך בכל סנכרון.",
+  "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
+ },
+ "settings.forest.animate_the_forest": {
+  "text": "הנפשת היער",
+  "en": "Animate the forest"
+ },
+ "settings.forest.covers_the_forest_and_the_heatmap": {
+  "text": "חל על היער ועל מפת החום.",
+  "en": "Covers the forest and the heatmap."
+ },
+ "settings.forest.deck_screens": {
+  "text": "מסכי החפיסות",
+  "en": "Deck screens"
+ },
+ "settings.forest.follow_system": {
+  "text": "לפי המערכת",
+  "en": "Follow system"
+ },
+ "settings.forest.forest_width": {
+  "text": "רוחב היער",
+  "en": "Forest width"
+ },
+ "settings.forest.layout": {
+  "text": "פריסה",
+  "en": "Layout"
+ },
+ "settings.forest.main_screen": {
+  "text": "מסך ראשי",
+  "en": "Main screen"
+ },
+ "settings.forest.motion_and_messages": {
+  "text": "תנועה והודעות",
+  "en": "Motion and messages"
+ },
+ "settings.forest.nature": {
+  "text": "טבע",
+  "en": "Nature"
+ },
+ "settings.forest.no_forest": {
+  "text": "בלי יער",
+  "en": "No forest"
+ },
+ "settings.forest.off": {
+  "text": "כבוי",
+  "en": "Off"
+ },
+ "settings.forest.on": {
+  "text": "פועל",
+  "en": "On"
+ },
+ "settings.forest.on_finished_decks_too": {
+  "text": "גם בחפיסות שהסתיימו",
+  "en": "On finished decks too"
+ },
+ "settings.forest.on_your_phone": {
+  "text": "בטלפון שלך",
+  "en": "On your phone"
+ },
+ "settings.forest.px": {
+  "text": " פיקסלים",
+  "en": " px"
+ },
+ "settings.forest.show_a_message_when_todays_tree": {
+  "text": "להציג הודעה כשהעץ של היום נשתל",
+  "en": "Show a message when today's tree is planted"
+ },
+ "settings.forest.show_my_forest_on_my_phone": {
+  "text": "להציג את היער שלי בטלפון שלי",
+  "en": "Show my forest on my phone"
+ },
+ "settings.forest.where_it_shows": {
+  "text": "איפה הוא מוצג",
+  "en": "Where it shows"
+ },
+ "settings.forest.your_forest": {
+  "text": "היער שלך",
+  "en": "Your forest"
+ },
+ "settings.forest.your_forest_that_decks_trees_lit": {
+  "text": "היער שלך, עם העצים של החפיסה מוארים",
+  "en": "Your forest, that deck's trees lit up"
+ },
+ "settings.heatmap.5_days_a_week": {
+  "text": "5 ימים בשבוע",
+  "en": "5 days a week"
+ },
+ "settings.heatmap.680_px_or_less_where_there": {
+  "text": "680 פיקסלים, או פחות כשאין מספיק מקום",
+  "en": "680 px, or less where there is less room"
+ },
+ "settings.heatmap.6_days_a_week": {
+  "text": "6 ימים בשבוע",
+  "en": "6 days a week"
+ },
+ "settings.heatmap.85_of_the_forests_width": {
+  "text": "85% מרוחב היער",
+  "en": "85% of the forest's width"
+ },
+ "settings.heatmap.85_of_the_room_it_has": {
+  "text": "85% מהמקום שיש לה: השורה מתחת לרשימת החפיסות או מעליה, או העמודה שלצדה",
+  "en": "85% of the room it has: the row under or over the deck list, or its column beside it"
+ },
+ "settings.heatmap.a_day_off_keeps_your_streak": {
+  "text": "יום חופש שומר על הרצף שלך, אבל לא מוסיף לו.",
+  "en": "A day off keeps your streak but doesn't add to it."
+ },
+ "settings.heatmap.auto": {
+  "text": "אוטומטי",
+  "en": "Auto"
+ },
+ "settings.heatmap.auto_day": {
+  "text": "{auto} ({day})",
+  "en": "{auto} ({day})"
+ },
+ "settings.heatmap.bigger_days": {
+  "text": "ימים גדולים יותר",
+  "en": "Bigger days"
+ },
+ "settings.heatmap.by_year_and_streak_always_fit": {
+  "text": "בתצוגות ״לפי שנה״ ו״רצף״, שנה שלמה תמיד מותאמת לרוחב.",
+  "en": "By year and Streak always fit a year to the width."
+ },
+ "settings.heatmap.colours": {
+  "text": "צבעים",
+  "en": "Colours"
+ },
+ "settings.heatmap.deck_screens": {
+  "text": "מסכי החפיסות",
+  "en": "Deck screens"
+ },
+ "settings.heatmap.every_day": {
+  "text": "כל יום",
+  "en": "Every day"
+ },
+ "settings.heatmap.every_day_the_same_size_a": {
+  "text": "כל יום באותו גודל: מפת חום רחבה יותר מציגה יותר חודשים",
+  "en": "Every day the same size: a wider heatmap shows more months"
+ },
+ "settings.heatmap.fill_it_with": {
+  "text": "למלא אותה ב",
+  "en": "Fill it with"
+ },
+ "settings.heatmap.fixed": {
+  "text": "קבוע",
+  "en": "Fixed"
+ },
+ "settings.heatmap.follow_the_forest": {
+  "text": "לפי היער",
+  "en": "Follow the forest"
+ },
+ "settings.heatmap.fri": {
+  "text": "ו׳",
+  "en": "Fri"
+ },
+ "settings.heatmap.friday": {
+  "text": "יום שישי",
+  "en": "Friday"
+ },
+ "settings.heatmap.full_width": {
+  "text": "רוחב מלא",
+  "en": "Full width"
+ },
+ "settings.heatmap.layout": {
+  "text": "פריסה",
+  "en": "Layout"
+ },
+ "settings.heatmap.main_screen": {
+  "text": "מסך ראשי",
+  "en": "Main screen"
+ },
+ "settings.heatmap.mon": {
+  "text": "ב׳",
+  "en": "Mon"
+ },
+ "settings.heatmap.monday": {
+  "text": "יום שני",
+  "en": "Monday"
+ },
+ "settings.heatmap.more_months": {
+  "text": "יותר חודשים",
+  "en": "More months"
+ },
+ "settings.heatmap.sat": {
+  "text": "ש׳",
+  "en": "Sat"
+ },
+ "settings.heatmap.saturday": {
+  "text": "שבת",
+  "en": "Saturday"
+ },
+ "settings.heatmap.show_on": {
+  "text": "איפה להציג",
+  "en": "Show on"
+ },
+ "settings.heatmap.show_the_reviews_from_before_your": {
+  "text": "להציג את החזרות מלפני תאריך ההתחלה של היער",
+  "en": "Show the reviews from before your forest's start date"
+ },
+ "settings.heatmap.streak": {
+  "text": "רצף",
+  "en": "Streak"
+ },
+ "settings.heatmap.style": {
+  "text": "סגנון",
+  "en": "Style"
+ },
+ "settings.heatmap.sun": {
+  "text": "א׳",
+  "en": "Sun"
+ },
+ "settings.heatmap.sunday": {
+  "text": "יום ראשון",
+  "en": "Sunday"
+ },
+ "settings.heatmap.ten_months_with_bigger_days_to": {
+  "text": "עשרה חודשים, עם ימים גדולים יותר שממלאים את הרוחב",
+  "en": "Ten months, with bigger days to fill the width"
+ },
+ "settings.heatmap.the_start_date": {
+  "text": "תאריך ההתחלה",
+  "en": "The start date"
+ },
+ "settings.heatmap.thu": {
+  "text": "ה׳",
+  "en": "Thu"
+ },
+ "settings.heatmap.thursday": {
+  "text": "יום חמישי",
+  "en": "Thursday"
+ },
+ "settings.heatmap.tue": {
+  "text": "ג׳",
+  "en": "Tue"
+ },
+ "settings.heatmap.tuesday": {
+  "text": "יום שלישי",
+  "en": "Tuesday"
+ },
+ "settings.heatmap.wed": {
+  "text": "ד׳",
+  "en": "Wed"
+ },
+ "settings.heatmap.wednesday": {
+  "text": "יום רביעי",
+  "en": "Wednesday"
+ },
+ "settings.heatmap.week_starts_on": {
+  "text": "השבוע מתחיל ב",
+  "en": "Week starts on"
+ },
+ "settings.heatmap.width": {
+  "text": "רוחב",
+  "en": "Width"
+ },
+ "settings.heatmap.your_first_review": {
+  "text": "החזרה הראשונה שלך",
+  "en": "Your first review"
+ },
+ "settings.heatmap.your_forests_start_date_is_set": {
+  "text": "את תאריך ההתחלה של היער קובעים בלשונית ״חפיסות״.",
+  "en": "Your forest's start date is set on the Decks tab."
+ },
+ "settings.heatmap.your_streak_counts": {
+  "text": "הרצף שלך נספר",
+  "en": "Your streak counts"
+ },
+ "settings.heatmap.your_streak_counts_from": {
+  "text": "הרצף שלך נספר מ",
+  "en": "Your streak counts from"
+ },
+ "settings.heatmap.your_systems_first_day_of_the": {
+  "text": "היום הראשון בשבוע לפי המערכת",
+  "en": "Your system's first day of the week"
+ },
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": {
+  "text": "היום הראשון בשבוע לפי המערכת: {day}",
+  "en": "Your system's first day of the week: {day}"
+ },
+ "settings.heatmap_look.blend_into": {
+  "text": "מעבר אל",
+  "en": "Blend into"
+ },
+ "settings.heatmap_look.busier_days": {
+  "text": "ימים עמוסים יותר",
+  "en": "Busier days"
+ },
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": {
+  "text": "ימים עמוסים יותר כהים יותר גם במצב הכהה של Anki, כמו במצב הבהיר, ולפי ״קצב״ – ימים מהירים יותר.",
+  "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
+ },
+ "settings.heatmap_look.colours_you_pick_one_dim_to": {
+  "text": "צבעים שבוחרים: אחד, מעמום עד מלא, או שניים, במעבר מהראשון לשני",
+  "en": "Colours you pick: one, dim to full, or two, blending from the first to the second"
+ },
+ "settings.heatmap_look.current_scenery": {
+  "text": "הנוף הנוכחי",
+  "en": "Current scenery"
+ },
+ "settings.heatmap_look.custom": {
+  "text": "מותאם אישית",
+  "en": "Custom"
+ },
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
+  "text": "במצב הכהה של Anki, ימים עמוסים יותר בהירים יותר, ולפי ״קצב״ – ימים מהירים יותר. במצב הבהיר, תמיד כהים יותר.",
+  "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
+ },
+ "settings.heatmap_look.lime_green_to_bright_lime": {
+  "text": "ליים: מירוק לליים בוהק",
+  "en": "Lime: green to bright lime"
+ },
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
+  "text": "להבה של Review Heatmap: מאדום בוהק לצהוב",
+  "en": "Review Heatmap's Flame: bright red to yellow"
+ },
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
+  "text": "קרח של Review Heatmap: מכחול עמוק לתכלת קרח חיוור",
+  "en": "Review Heatmap's Ice: deep blue to pale ice blue"
+ },
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
+  "text": "מג׳נטה של Review Heatmap: מוורוד עמוק לוורוד חיוור",
+  "en": "Review Heatmap's Magenta: deep pink to pale pink"
+ },
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
+  "text": "זית של Review Heatmap: מירוק זית עמוק לירוק-צהבהב חיוור",
+  "en": "Review Heatmap's Olive: deep olive green to pale yellow-green"
+ },
+ "settings.heatmap_look.scenery": {
+  "text": "נוף",
+  "en": "Scenery"
+ },
+ "settings.heatmap_look.the_busiest_days_colour": {
+  "text": "הצבע של הימים העמוסים ביותר",
+  "en": "The busiest days' colour"
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": {
+  "text": "קשה לראות על רקע בהיר את הצבע שבחרת לימים העמוסים ביותר. מפת החום מציגה אותו כפי שבחרת.",
+  "en": "Your busiest colour is hard to see on a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": {
+  "text": "קשה לראות על רקע כהה את הצבע שבחרת לימים העמוסים ביותר. מפת החום מציגה אותו כפי שבחרת.",
+  "en": "Your busiest colour is hard to see on a dark page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": {
+  "text": "קשה לראות על רקע כהה או בהיר את הצבע שבחרת לימים העמוסים ביותר. מפת החום מציגה אותו כפי שבחרת.",
+  "en": "Your busiest colour is hard to see on a dark or a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_days_colour": {
+  "text": "הצבע של הימים העמוסים ביותר שלך",
+  "en": "Your busiest days' colour"
+ },
+ "settings.heatmap_look.your_colour": {
+  "text": "הצבע שלך",
+  "en": "Your colour"
+ },
+ "settings.heatmap_look.your_colour_with_a_blend_the": {
+  "text": "הצבע שלך (עם מעבר: של הימים השקטים ביותר)",
+  "en": "Your colour (with a blend: the quietest days')"
+ },
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": {
+  "text": "הצבעים של הנוף הנוכחי שלך, או של נוף אחר, שנשארים כשמחליפים נוף",
+  "en": "Your current scenery's colours, or another scenery's, which stay when you change scenery"
+ },
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
+  "text": "המשבצות של הנוף הנוכחי שלך, או של נוף אחר, שנשארות כשמחליפים נוף",
+  "en": "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
+ },
+ "settings.layout.above_the_list": {
+  "text": "מעל הרשימה",
+  "en": "Above the list"
+ },
+ "settings.layout.beside_it": {
+  "text": "לצדה",
+  "en": "Beside it"
+ },
+ "settings.layout.beside_the_list_while_the_window": {
+  "text": "לצד הרשימה כשיש בחלון מקום, ואחרת מתחתיה. במסכי החפיסות הם נשארים מתחתיה.",
+  "en": "Beside the list while the window has room, under it otherwise. Deck screens keep them under it."
+ },
+ "settings.layout.first": {
+  "text": "ראשון",
+  "en": "First"
+ },
+ "settings.layout.forest": {
+  "text": "יער",
+  "en": "Forest"
+ },
+ "settings.layout.heatmap": {
+  "text": "מפת חום",
+  "en": "Heatmap"
+ },
+ "settings.layout.left": {
+  "text": "שמאל",
+  "en": "Left"
+ },
+ "settings.layout.one_beside": {
+  "text": "אחד לצדה",
+  "en": "One beside"
+ },
+ "settings.layout.right": {
+  "text": "ימין",
+  "en": "Right"
+ },
+ "settings.layout.side": {
+  "text": "צד",
+  "en": "Side"
+ },
+ "settings.layout.the_first_above_the_deck_list": {
+  "text": "הראשון מעל רשימת החפיסות, והשני מתחתיה",
+  "en": "The first above the deck list, the other under it"
+ },
+ "settings.layout.the_first_beside_the_deck_list": {
+  "text": "הראשון לצד רשימת החפיסות, והשני מתחתיה",
+  "en": "The first beside the deck list, the other under it"
+ },
+ "settings.layout.the_forest_and_the_heatmap_beside": {
+  "text": "היער ומפת החום לצד רשימת החפיסות, כשיש להם מקום בחלון",
+  "en": "The forest and the heatmap beside the deck list, while the window has room for them"
+ },
+ "settings.layout.the_forest_and_the_heatmap_under": {
+  "text": "היער ומפת החום מתחת לרשימת החפיסות",
+  "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_one_that_goes_beside_or": {
+  "text": "זה שמוצב לצד רשימת החפיסות או מעליה, ובא ראשון כשהם מוצגים יחד. גם מסכי החפיסות פועלים לפיו.",
+  "en": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too."
+ },
+ "settings.layout.under_the_list": {
+  "text": "מתחת לרשימה",
+  "en": "Under the list"
+ },
+ "settings.patreon.enjoying_memory_forest": {
+  "text": "נהנים מ־ Memory Forest?",
+  "en": "Enjoying Memory Forest?"
+ },
+ "settings.patreon.every_plus_scenery_joins_this_version": {
+  "text": "כל נוף של Plus מצטרף לגרסה הזו בהמשך.",
+  "en": "Every Plus scenery joins this version later on."
+ },
+ "settings.patreon.new_scenery_arrives_here_first_every": {
+  "text": "נופים חדשים מגיעים לכאן קודם, בכל חודש.",
+  "en": "New scenery arrives here first, every month."
+ },
+ "settings.patreon.support_it_on_patreon_and_get": {
+  "text": "אפשר לתמוך ב־ Patreon ולקבל כל נוף\nחדש לפני כולם, ב־ Memory Forest Plus",
+  "en": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
+ },
+ "settings.patreon.thank_you_for_supporting_memory_forest": {
+  "text": "תודה על התמיכה ב־ Memory Forest ב־ <a href=\"{url}\">Patreon</a>",
+  "en": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.picker.improved": {
+  "text": "משופר",
+  "en": "IMPROVED"
+ },
+ "settings.picker.label_is_in_memory_forest_plus": {
+  "text": "{label} זמין ב־ Memory Forest Plus. <a href=\"{url}\">להשיג ב־ Patreon</a>",
+  "en": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>"
+ },
+ "settings.picker.new": {
+  "text": "חדש",
+  "en": "NEW"
+ },
+ "settings.picker.no_scenery_has_that_in_its": {
+  "text": "לא נמצא נוף בשם הזה.",
+  "en": "No scenery has that in its name."
+ },
+ "settings.picker.sceneries": {
+  "text": "נופים",
+  "en": "Sceneries"
+ },
+ "settings.picker.search_n_sceneries": {
+  "text": {
+   "one": "חיפוש בנוף אחד",
+   "two": "חיפוש ב־ {n} נופים",
+   "other": "חיפוש ב־ {n} נופים"
+  },
+  "en": {
+   "one": "Search {n} scenery",
+   "other": "Search {n} sceneries"
+  }
+ },
+ "settings.picker.this_week_only": {
+  "text": "השבוע בלבד",
+  "en": "This week only"
+ },
+ "settings.picker.until_date": {
+  "text": "עד {date}",
+  "en": "Until {date}"
+ },
+ "settings.picker.your_own_mix_made_in_customize": {
+  "text": "שילוב משלך, שנוצר ב״התאמה אישית״. אפשר לבחור נוף כדי להתחיל ממנו מחדש.",
+  "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
+ },
+ "settings.scenery.couldnt_find_this_city_check_the": {
+  "text": "העיר לא נמצאה. כדאי לבדוק את האיות, או לנסות את השם באנגלית.",
+  "en": "Couldn't find this city. Check the spelling, or try its English name."
+ },
+ "settings.scenery.couldnt_reach_the_weather_service_trying": {
+  "text": "לא ניתן להתחבר לשירות מזג האוויר. ננסה שוב בקרוב.",
+  "en": "Couldn't reach the weather service; trying again soon."
+ },
+ "settings.scenery.follow_the_real_weather_and_time": {
+  "text": "לפי מזג האוויר והשעה האמיתיים",
+  "en": "Follow the real weather and time of day"
+ },
+ "settings.scenery.live_weather_from_met_norway_places": {
+  "text": "מזג אוויר בזמן אמת מ־ MET Norway, מקומות מ־ OpenStreetMap. אפשר להשאיר את השדה ריק כדי לעקוב רק אחרי השעון שלך.",
+  "en": "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
+ },
+ "settings.scenery.scenery": {
+  "text": "נוף",
+  "en": "Scenery"
+ },
+ "settings.scenery.your_city_e_g_berlin": {
+  "text": "העיר שלך, למשל ברלין",
+  "en": "Your city, e.g. Berlin"
+ },
+ "settings.surprise.only_one_ticked_the_same_scenery": {
+  "text": "רק אחד מסומן: אותו נוף בכל יום.",
+  "en": "Only one ticked: the same scenery every day."
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": {
+  "text": "הנופים של ״הפתעה יומית״ (כל ה־ {n}) ›",
+  "en": "Surprise me daily's sceneries (all {n}) ›"
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
+  "text": "הנופים של ״הפתעה יומית״ ({kept} מתוך {n}) ›",
+  "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
+ },
+ "settings.surprise.untick_the_ones_youd_rather_not": {
+  "text": "אפשר לבטל את הסימון של אלה שמעדיפים לא לראות.",
+  "en": "Untick the ones you'd rather not see."
+ },
+ "tooltip.a_big_learning_day_n_new": {
+  "text": {
+   "one": "<b>יום למידה גדול</b>: כרטיס חדש אחד, לעומת {usual} בדרך כלל",
+   "two": "<b>יום למידה גדול</b>: {n} כרטיסים חדשים, לעומת {usual} בדרך כלל",
+   "other": "<b>יום למידה גדול</b>: {n} כרטיסים חדשים, לעומת {usual} בדרך כלל"
+  },
+  "en": {
+   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
+   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"
+  }
+ },
+ "tooltip.a_leech_here_mature_again_the": {
+  "text": "עלוקה כאן חזרה להיות בוגרת: אדום החזה נשאר שבוע",
+  "en": "A leech here mature again: the robin stays a week"
+ },
+ "tooltip.a_quiet_pond": {
+  "text": "בריכה שקטה",
+  "en": "A quiet pond"
+ },
+ "tooltip.all_n_cards_suspended": {
+  "text": {
+   "one": "כל {n} הכרטיסים מושהים",
+   "two": "שני הכרטיסים מושהים",
+   "other": "כל {n} הכרטיסים מושהים"
+  },
+  "en": {
+   "one": "All {n} cards suspended",
+   "other": "All {n} cards suspended"
+  }
+ },
+ "tooltip.ancient": {
+  "text": "עתיק",
+  "en": "ancient"
+ },
+ "tooltip.click_to_see_these_cards": {
+  "text": "לחיצה תציג את הכרטיסים האלה",
+  "en": "Click to see these cards"
+ },
+ "tooltip.from_to": {
+  "text": "{from} – {to}",
+  "en": "{from} – {to}"
+ },
+ "tooltip.its_card_is_suspended": {
+  "text": "הכרטיס שלו מושהה",
+  "en": "Its card is suspended"
+ },
+ "tooltip.lasts_time": {
+  "text": "נשמר בזיכרון ~{time}",
+  "en": "lasts ~{time}"
+ },
+ "tooltip.mature": {
+  "text": "בוגר",
+  "en": "mature"
+ },
+ "tooltip.n_cards": {
+  "text": {
+   "one": "כרטיס אחד",
+   "two": "{n} כרטיסים",
+   "other": "{n} כרטיסים"
+  },
+  "en": {
+   "one": "{n} card",
+   "other": "{n} cards"
+  }
+ },
+ "tooltip.n_days_without_reviews": {
+  "text": {
+   "one": "יום אחד בלי חזרות",
+   "two": "יומיים בלי חזרות",
+   "other": "{n} ימים בלי חזרות"
+  },
+  "en": {
+   "one": "{n} day without reviews",
+   "other": "{n} days without reviews"
+  }
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "text": {
+   "one": "יום אחד בלי חזרות, מ־ {from} עד {to}",
+   "two": "יומיים בלי חזרות, מ־ {from} עד {to}",
+   "other": "{n} ימים בלי חזרות, מ־ {from} עד {to}"
+  },
+  "en": {
+   "one": "{n} day without reviews, from {from} to {to}",
+   "other": "{n} days without reviews, from {from} to {to}"
+  }
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "text": {
+   "one": "יום אחד בלי חזרות, ב{month}",
+   "two": "יומיים בלי חזרות, ב{month}",
+   "other": "{n} ימים בלי חזרות, ב{month}"
+  },
+  "en": {
+   "one": "{n} day without reviews, in {month}",
+   "other": "{n} days without reviews, in {month}"
+  }
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "text": {
+   "one": "עלוקה אחת כאן חזרה להיות בוגרת: אדום החזה נשאר שבוע",
+   "two": "{n} עלוקות כאן חזרו להיות בוגרות: אדום החזה נשאר שבוע",
+   "other": "{n} עלוקות כאן חזרו להיות בוגרות: אדום החזה נשאר שבוע"
+  },
+  "en": {
+   "one": "{n} leech here mature again: the robin stays a week",
+   "other": "{n} leeches here mature again: the robin stays a week"
+  }
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "text": {
+   "one": "עלוקה אחת כאן: העורב שלה נשאר עד שהכרטיס יחזור להיות בוגר (מרווח זמן של 21 יום)",
+   "two": "{n} עלוקות כאן: העורבים נשארים עד שהכרטיסים יחזרו להיות בוגרים (מרווח זמן של 21 יום)",
+   "other": "{n} עלוקות כאן: העורבים נשארים עד שהכרטיסים יחזרו להיות בוגרים (מרווח זמן של 21 יום)"
+  },
+  "en": {
+   "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
+   "other": "{n} leeches here: the crows stay until the cards are mature again (21-day interval)"
+  }
+ },
+ "tooltip.n_months": {
+  "text": {
+   "one": "חודש",
+   "two": "חודשיים",
+   "other": "{n} חודשים"
+  },
+  "en": {
+   "one": "{n} month",
+   "other": "{n} months"
+  }
+ },
+ "tooltip.n_of_them_ancient": {
+  "text": {
+   "one": "אחד מהם עתיק",
+   "two": "{n} מהם עתיקים",
+   "other": "{n} מהם עתיקים"
+  },
+  "en": {
+   "one": "{n} of them ancient",
+   "other": "{n} of them ancient"
+  }
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "text": {
+   "one": "{n} מתוך {total} בלמידה מחדש או נשכח השבוע",
+   "two": "{n} מתוך {total} בלמידה מחדש או נשכחו השבוע",
+   "other": "{n} מתוך {total} בלמידה מחדש או נשכחו השבוע"
+  },
+  "en": {
+   "one": "{n} of {total} relearning or lapsed this week",
+   "other": "{n} of {total} relearning or lapsed this week"
+  }
+ },
+ "tooltip.n_of_total_suspended": {
+  "text": {
+   "one": "{n} מתוך {total} מושהה",
+   "two": "{n} מתוך {total} מושהים",
+   "other": "{n} מתוך {total} מושהים"
+  },
+  "en": {
+   "one": "{n} of {total} suspended",
+   "other": "{n} of {total} suspended"
+  }
+ },
+ "tooltip.n_older_trees": {
+  "text": {
+   "one": "עץ ותיק יותר אחד",
+   "two": "{n} עצים ותיקים יותר",
+   "other": "{n} עצים ותיקים יותר"
+  },
+  "en": {
+   "one": "{n} older tree",
+   "other": "{n} older trees"
+  }
+ },
+ "tooltip.n_years": {
+  "text": "{n} שנים",
+  "en": "{n} years"
+ },
+ "tooltip.old": {
+  "text": "ותיק",
+  "en": "old"
+ },
+ "tooltip.pct_remembered": {
+  "text": "~{pct}% זכורים",
+  "en": "~{pct}% remembered"
+ },
+ "tooltip.pct_still_going_well": {
+  "text": "{pct}% עדיין במצב טוב",
+  "en": "{pct}% still going well"
+ },
+ "tooltip.planted_n_days_ago": {
+  "text": {
+   "one": "נשתל לפני יום",
+   "two": "נשתל לפני יומיים",
+   "other": "נשתל לפני {n} ימים"
+  },
+  "en": {
+   "one": "planted {n} day ago",
+   "other": "planted {n} days ago"
+  }
+ },
+ "tooltip.planted_today": {
+  "text": "נשתל היום",
+  "en": "planted today"
+ },
+ "tooltip.planted_yesterday": {
+  "text": "נשתל אתמול",
+  "en": "planted yesterday"
+ },
+ "tooltip.sapling": {
+  "text": "שתיל",
+  "en": "sapling"
+ },
+ "tooltip.seedling": {
+  "text": "נבט",
+  "en": "seedling"
+ },
+ "tooltip.the_deep_forest": {
+  "text": "היער העמוק",
+  "en": "The deep forest"
+ },
+ "tooltip.young": {
+  "text": "צעיר",
+  "en": "young"
+ },
+ "visitor.a_bear": {
+  "text": "דוב",
+  "en": "A bear"
+ },
+ "visitor.a_bear_came_you_kept_a": {
+  "text": "הגיע דוב: שמרת על רצף של שנתיים",
+  "en": "A bear came: you kept a two-year streak"
+ },
+ "visitor.a_bear_wandered_in_you_kept": {
+  "text": "דוב נדד לכאן: שמרת על רצף של שנתיים.",
+  "en": "A bear wandered in: you kept a two-year streak."
+ },
+ "visitor.a_cabin": {
+  "text": "בקתה",
+  "en": "A cabin"
+ },
+ "visitor.a_cabin_came_your_forest_turned": {
+  "text": "הגיעה בקתה: היער שלך חגג שנה",
+  "en": "A cabin came: your forest turned one year old"
+ },
+ "visitor.a_deer": {
+  "text": "צבי",
+  "en": "A deer"
+ },
+ "visitor.a_deer_came_you_kept_a": {
+  "text": "הגיע צבי: שמרת על רצף של 30 יום",
+  "en": "A deer came: you kept a 30-day streak"
+ },
+ "visitor.a_deer_wandered_in_you_kept": {
+  "text": "צבי נדד לכאן: שמרת על רצף של 30 יום.",
+  "en": "A deer wandered in: you kept a 30-day streak."
+ },
+ "visitor.a_family_of_squirrels": {
+  "text": "משפחת סנאים",
+  "en": "A family of squirrels"
+ },
+ "visitor.a_family_of_squirrels_came_you": {
+  "text": "הגיעה משפחת סנאים: הכרת היטב 10,000 כרטיסים",
+  "en": "A family of squirrels came: you knew 10,000 cards well"
+ },
+ "visitor.a_family_of_squirrels_wandered_in": {
+  "text": "משפחת סנאים נדדה לכאן: הכרת היטב 10,000 כרטיסים.",
+  "en": "A family of squirrels wandered in: you knew 10,000 cards well."
+ },
+ "visitor.a_fox": {
+  "text": "שועל",
+  "en": "A fox"
+ },
+ "visitor.a_fox_came_you_passed_10": {
+  "text": "הגיע שועל: עברת 10,000 חזרות",
+  "en": "A fox came: you passed 10,000 reviews"
+ },
+ "visitor.a_fox_wandered_in_you_passed": {
+  "text": "שועל נדד לכאן: עברת 10,000 חזרות.",
+  "en": "A fox wandered in: you passed 10,000 reviews."
+ },
+ "visitor.a_heron": {
+  "text": "אנפה",
+  "en": "A heron"
+ },
+ "visitor.a_heron_came_a_pond_formed": {
+  "text": "הגיעה אנפה: נוצרה בריכה במקום שבו לקחת הפסקה",
+  "en": "A heron came: a pond formed where you took a break"
+ },
+ "visitor.a_heron_wandered_in_a_pond": {
+  "text": "אנפה נדדה לכאן: נוצרה בריכה במקום שבו לקחת הפסקה.",
+  "en": "A heron wandered in: a pond formed where you took a break."
+ },
+ "visitor.a_little_cabin_now_stands_at": {
+  "text": "בקתה קטנה עומדת עכשיו בקצה היער שלך: עברה שנה מאז העץ הראשון שלך.",
+  "en": "A little cabin now stands at the edge of your forest: a year since your first tree."
+ },
+ "visitor.a_rabbit": {
+  "text": "ארנב",
+  "en": "A rabbit"
+ },
+ "visitor.a_rabbit_came_your_forest_reached": {
+  "text": "הגיע ארנב: היער שלך הגיע ל־ 50 עצים",
+  "en": "A rabbit came: your forest reached 50 trees"
+ },
+ "visitor.a_rabbit_wandered_in_your_forest": {
+  "text": "ארנב נדד לכאן: היער שלך הגיע ל־ 50 עצים.",
+  "en": "A rabbit wandered in: your forest reached 50 trees."
+ },
+ "visitor.a_stag": {
+  "text": "אייל",
+  "en": "A stag"
+ },
+ "visitor.a_stag_came_you_kept_a": {
+  "text": "הגיע אייל: שמרת על רצף של 100 יום",
+  "en": "A stag came: you kept a 100-day streak"
+ },
+ "visitor.a_stag_wandered_in_you_kept": {
+  "text": "אייל נדד לכאן: שמרת על רצף של 100 יום.",
+  "en": "A stag wandered in: you kept a 100-day streak."
+ },
+ "visitor.an_eagle": {
+  "text": "עיט",
+  "en": "An eagle"
+ },
+ "visitor.an_eagle_came_you_knew_25": {
+  "text": "הגיע עיט: הכרת היטב 25,000 כרטיסים",
+  "en": "An eagle came: you knew 25,000 cards well"
+ },
+ "visitor.an_eagle_wandered_in_you_knew": {
+  "text": "עיט נדד לכאן: הכרת היטב 25,000 כרטיסים.",
+  "en": "An eagle wandered in: you knew 25,000 cards well."
+ },
+ "visitor.an_owl": {
+  "text": "ינשוף",
+  "en": "An owl"
+ },
+ "visitor.an_owl_came_your_first_tree": {
+  "text": "הגיע ינשוף: העץ הראשון שלך הפך לעתיק",
+  "en": "An owl came: your first tree became ancient"
+ },
+ "visitor.an_owl_wandered_in_your_first": {
+  "text": "ינשוף נדד לכאן: העץ הראשון שלך הפך לעתיק.",
+  "en": "An owl wandered in: your first tree became ancient."
+ },
+ "visitor.built_when_your_forest_turned_one": {
+  "text": "נבנתה כשהיער שלך חגג שנה.",
+  "en": "Built when your forest turned one year old."
+ },
+ "visitor.moved_in_when_a_pond_formed": {
+  "text": "כאן מאז שנוצרה בריכה במקום שבו לקחת הפסקה.",
+  "en": "Moved in when a pond formed where you took a break."
+ },
+ "visitor.moved_in_when_you_kept_a": {
+  "text": "כאן מאז ששמרת על רצף של 30 יום.",
+  "en": "Moved in when you kept a 30-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_2": {
+  "text": "כאן מאז ששמרת על רצף של 100 יום.",
+  "en": "Moved in when you kept a 100-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_3": {
+  "text": "כאן מאז ששמרת על רצף של שנתיים.",
+  "en": "Moved in when you kept a two-year streak."
+ },
+ "visitor.moved_in_when_you_knew_10": {
+  "text": "כאן מאז שהכרת היטב 10,000 כרטיסים.",
+  "en": "Moved in when you knew 10,000 cards well."
+ },
+ "visitor.moved_in_when_you_knew_25": {
+  "text": "כאן מאז שהכרת היטב 25,000 כרטיסים.",
+  "en": "Moved in when you knew 25,000 cards well."
+ },
+ "visitor.moved_in_when_you_passed_10": {
+  "text": "כאן מאז שעברת 10,000 חזרות.",
+  "en": "Moved in when you passed 10,000 reviews."
+ },
+ "visitor.moved_in_when_your_first_tree": {
+  "text": "כאן מאז שהעץ הראשון שלך הפך לעתיק.",
+  "en": "Moved in when your first tree became ancient."
+ },
+ "visitor.moved_in_when_your_forest_reached": {
+  "text": "כאן מאז שהיער שלך הגיע ל־ 50 עצים.",
+  "en": "Moved in when your forest reached 50 trees."
+ },
+ "zoom.back_to_the_whole_forest": {
+  "text": "חזרה לכל היער",
+  "en": "Back to the whole forest"
+ },
+ "zoom.next_day": {
+  "text": "היום הבא",
+  "en": "Next day"
+ },
+ "zoom.pinch_or_double_tap_to_zoom": {
+  "text": "צביטה או הקשה כפולה להגדלה והקטנה, גרירה כדי להסתובב, הקשה על עץ כדי לבחור אותו",
+  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
+ },
+ "zoom.planted_date": {
+  "text": "נשתל ב־ {date}",
+  "en": "Planted {date}"
+ },
+ "zoom.previous_day": {
+  "text": "היום הקודם",
+  "en": "Previous day"
+ },
+ "zoom.scroll_or_press_to_zoom_drag": {
+  "text": "גלילה או ↑ ↓ להגדלה והקטנה, גרירה או → ← כדי להסתובב, לחיצה על עץ כדי לבחור אותו",
+  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ },
+ "zoom.the_tree_of_the_day_after": {
+  "text": "העץ של היום שאחרי",
+  "en": "The tree of the day after"
+ },
+ "zoom.the_tree_of_the_day_before": {
+  "text": "העץ של היום שלפני",
+  "en": "The tree of the day before"
+ },
+ "zoom.zoom_in_among_the_trees": {
+  "text": "התקרבות אל בין העצים",
+  "en": "Zoom in among the trees"
+ }
+}

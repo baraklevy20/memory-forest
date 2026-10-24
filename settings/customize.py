@@ -16,19 +16,20 @@ from aqt.qt import (
 )
 
 from .. import presets
+from ..i18n import N_, t, tx
 from ..scene import ENVIRONMENTS, LANDMARKS, LANDSCAPES, TIME_LABELS, WEATHER_LABELS
 from ..seasons import offer_day
 from .scenery_picker import mosaic, picture
 from .widgets import Link, combo, hint, set_options, set_quietly
 
-DAILY_OPTION = (presets.DAILY, "Surprise me daily")
-ENV_OPTIONS = [DAILY_OPTION] + list(ENVIRONMENTS.items())
-LANDSCAPE_OPTIONS = [DAILY_OPTION] + list(LANDSCAPES.items())
-LANDMARK_OPTIONS = [DAILY_OPTION] + list(LANDMARKS.items())
-WEATHER_OPTIONS = [("auto", "Live weather"), DAILY_OPTION] + list(WEATHER_LABELS.items())
-TIME_OPTIONS = [("auto", "Follows your clock"), DAILY_OPTION] + list(TIME_LABELS.items())
-FIELD_NAMES = {"environment": "Environment", "landscape": "Landscape", "landmark": "Landmark",
-               "weather": "Weather", "time_of_day": "Time of day"}
+DAILY_OPTION = (presets.DAILY, N_("preset.daily"))
+ENV_OPTIONS = [DAILY_OPTION] + [(k, f"env.{k}") for k in ENVIRONMENTS]  # (names: ids, shown with tx)
+LANDSCAPE_OPTIONS = [DAILY_OPTION] + [(k, f"landscape.{k}") for k in LANDSCAPES]
+LANDMARK_OPTIONS = [DAILY_OPTION] + [(k, f"landmark.{k}") for k in LANDMARKS]
+WEATHER_OPTIONS = [("auto", N_("settings.customize.live_weather")), DAILY_OPTION] + list(WEATHER_LABELS.items())
+TIME_OPTIONS = [("auto", N_("settings.customize.follows_your_clock")), DAILY_OPTION] + list(TIME_LABELS.items())
+FIELD_NAMES = {"environment": N_("settings.customize.environment"), "landscape": N_("settings.customize.landscape"), "landmark": N_("settings.customize.landmark"),
+               "weather": N_("settings.customize.weather"), "time_of_day": N_("settings.customize.time_of_day")}
 RESET_GAP = 6  # between a dropdown and its Reset
 # Reset is a quiet text link, not a button: grey, the accent colour under the pointer
 RESET_STYLE = """
@@ -39,18 +40,23 @@ QToolButton:hover {{ color: {accent}; text-decoration: underline; }}
 COLUMNS = 2
 COLUMN_GAP, ROW_GAP = 18, 8
 # the header: back to the tiles, then the scenery's picture (a small copy of its tile) and name
-BACK = "‹ Sceneries"
+BACK = N_("settings.customize.sceneries")
 THUMB_W, THUMB_H = 48, 27
 HEADER_GAP = 12
-PRESET_NOTE = "Change anything here to make it your own mix."
-MIX_NOTE = "Reset a row to put the scenery's own choice back."
+PRESET_NOTE = N_("settings.customize.change_anything_here_to_make_it")
+MIX_NOTE = N_("settings.customize.reset_a_row_to_put_the")
 
 
 def env_options(day, chosen: str | None) -> list:
     """The environments to offer on `day`: not a seasonal preset's before it first comes
     out, unless it is the one already chosen."""
     hidden = presets.hidden_environments(day) - {chosen}
-    return [o for o in ENV_OPTIONS if o[0] not in hidden]
+    return shown([o for o in ENV_OPTIONS if o[0] not in hidden])
+
+
+def shown(options) -> list:
+    """Options with their labels in the reader's language (they are marked where they're written)."""
+    return [(key, tx(label)) for key, label in options]
 
 
 class Customize(QWidget):
@@ -60,12 +66,12 @@ class Customize(QWidget):
         self._day = offer_day(cfg)
         self._changed = None  # the dialog's, once connected
         self.environment = combo(env_options(self._day, cfg.get("environment")), cfg.get("environment", base.environment), base.environment)
-        self.landscape = combo(LANDSCAPE_OPTIONS, cfg.get("landscape", base.landscape), base.landscape)
-        self.landmark = combo(LANDMARK_OPTIONS, cfg.get("landmark", base.landmark), base.landmark)
-        self.weather = combo(WEATHER_OPTIONS, cfg.get("weather", base.weather), base.weather)
-        self.time = combo(TIME_OPTIONS, cfg.get("time_of_day", base.time), base.time)
+        self.landscape = combo(shown(LANDSCAPE_OPTIONS), cfg.get("landscape", base.landscape), base.landscape)
+        self.landmark = combo(shown(LANDMARK_OPTIONS), cfg.get("landmark", base.landmark), base.landmark)
+        self.weather = combo(shown(WEATHER_OPTIONS), cfg.get("weather", base.weather), base.weather)
+        self.time = combo(shown(TIME_OPTIONS), cfg.get("time_of_day", base.time), base.time)
 
-        self.back = Link(BACK, on_back)
+        self.back = Link(tx(BACK), on_back)
         self.thumb = QLabel()
         self.thumb.setFixedSize(THUMB_W, THUMB_H)
         self.title = QLabel()
@@ -85,7 +91,7 @@ class Customize(QWidget):
         grid.setVerticalSpacing(ROW_GAP)
         for i, (box, field) in enumerate(self._look_boxes()):
             reset = QToolButton(); reset.setText("\u21ba")
-            reset.setToolTip("Reset: put back the scenery's own choice")
+            reset.setToolTip(t("settings.customize.reset_put_back_the_scenerys_own"))
             reset.setCursor(Qt.CursorShape.PointingHandCursor)
             pal = reset.palette()
             reset.setStyleSheet(RESET_STYLE.format(quiet=pal.color(QPalette.ColorRole.PlaceholderText).name(),
@@ -97,7 +103,7 @@ class Customize(QWidget):
             row = QHBoxLayout(); row.setSpacing(RESET_GAP)
             row.addWidget(box, 1); row.addWidget(reset)
             r, c = divmod(i, COLUMNS)
-            grid.addWidget(QLabel(FIELD_NAMES[field]), r, 2 * c)
+            grid.addWidget(QLabel(tx(FIELD_NAMES[field])), r, 2 * c)
             grid.addLayout(row, r, 2 * c + 1)
         for c in range(COLUMNS):
             grid.setColumnStretch(2 * c + 1, 1)
@@ -121,16 +127,19 @@ class Customize(QWidget):
         self._day = day
         set_options(self.environment, env_options(day, self.environment.currentData()))
 
-    def name(self) -> str:
-        """What is being customized: the scenery, or a mix made from it."""
-        return f"your own mix, from {self._spec.label}" if self._differ else self._spec.label
+    def link_text(self) -> str:
+        """The way here under the tiles, naming what is being customized: the scenery, or a mix made from it."""
+        if self._differ:
+            return t("settings.customize.customize_your_own_mix_from_scenery", scenery=tx(self._spec.name))
+        return t("settings.customize.customize_scenery", scenery=tx(self._spec.name))
 
     def sync(self) -> None:
         """The header, the note and the Resets, for the scenery the five settings are, or are
         nearest."""
         spec, differ = presets.nearest(self.look(), presets.available(self._day))
         self._spec, self._differ = spec, differ
-        self.title.setText(f"Customize {self.name()}")
+        self.title.setText(t("settings.customize.customize_your_own_mix_from_scenery_2", scenery=tx(spec.name)) if differ
+                           else t("settings.customize.customize_scenery_2", scenery=tx(spec.name)))
         pix = mosaic() if spec.key == presets.DAILY else picture(spec.key)
         if not pix.isNull():
             dpr = pix.devicePixelRatio()
@@ -138,7 +147,7 @@ class Customize(QWidget):
                                Qt.TransformationMode.FastTransformation)  # (a quarter: whole pixels)
             small.setDevicePixelRatio(dpr)
             self.thumb.setPixmap(small)
-        self.note.setText(MIX_NOTE if differ else PRESET_NOTE)
+        self.note.setText(tx(MIX_NOTE if differ else PRESET_NOTE))
         for field, reset in self.resets.items():
             reset.setVisible(field in differ)
 

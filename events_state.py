@@ -9,6 +9,7 @@ from __future__ import annotations
 from aqt import mw
 
 from . import events, forest_data, milestones, study_log
+from .i18n import t, tn
 from .phone_note import phone_cards, phone_decks
 from .scope import counts_since, day_cutoff, deck_ids, excluded_decks, since
 from .state import _profile, load_state, remembered, save_state, settings_open
@@ -332,14 +333,15 @@ def fire_line(extras: dict) -> str:
     if not fire:
         return ""
     if fire.get("smoke"):
-        return "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+        return t("events.smoke_is_rising_from_your_forest")
     if fire["out"]:
-        return "The last of the fire is out. Your forest is green again."
+        return t("events.the_last_of_the_fire_is")
     if not fire["news"]:
         return ""
     n = fire["trees"]
-    return (f"A fire broke out while you were away: {n} tree{'s are' if n != 1 else ' is'} burning. "
-            f"Study on {events.FIRE_HEAL_DAYS} days to put it out.")
+    # ({trees} as written so far: 1000, not 1,000)
+    return tn("events.a_fire_broke_out_while_you",
+              n, trees=n, days=events.FIRE_HEAL_DAYS)
 
 
 def strike_line(extras: dict) -> str:
@@ -349,7 +351,7 @@ def strike_line(extras: dict) -> str:
     if not strike or not strike["news"] or not strike.get("told"):
         return ""
     lost = strike["lost"]
-    return f"An asteroid took your forest of {lost} tree{'s' if lost != 1 else ''}. A new one grows from here."
+    return tn("events.an_asteroid_took_your_forest_of", lost, trees=lost)
 
 
 def news_line(extras: dict) -> str:
@@ -360,7 +362,9 @@ def news_line(extras: dict) -> str:
         return line
     backlog = extras.get("backlog")
     if backlog and backlog["cleared"]:
-        return "You cleared your overdue reviews" + (". The tumbleweeds blew away." if not events.calm(extras["nature"]) else ".")
+        if events.calm(extras["nature"]):
+            return t("events.you_cleared_your_overdue_reviews")
+        return t("events.you_cleared_your_overdue_reviews_the")
     return ""
 
 

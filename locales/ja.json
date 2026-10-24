@@ -1,0 +1,3077 @@
+{
+ "actions.answer_time_date": {
+  "text": "回答時間 ({date})",
+  "en": "Answer time ({date})"
+ },
+ "actions.answer_time_days_days_first_to": {
+  "text": {
+   "other": "回答時間 ({days} 日間、{first}～{last})"
+  },
+  "en": {
+   "one": "Answer time ({days} day, {first} to {last})",
+   "other": "Answer time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.answer_time_first_to_last": {
+  "text": "回答時間 ({first}～{last})",
+  "en": "Answer time ({first} to {last})"
+ },
+ "actions.back_in_your_forest": {
+  "text": "森に戻りました。",
+  "en": "Back in your forest."
+ },
+ "actions.bring_back_into_memory_forest": {
+  "text": "Memory Forest に戻す",
+  "en": "Bring back into Memory Forest"
+ },
+ "actions.leave_out_of_memory_forest": {
+  "text": "Memory Forest から外す",
+  "en": "Leave out of Memory Forest"
+ },
+ "actions.left_out_of_memory_forest_with": {
+  "text": "親デッキとともに Memory Forest から外されています",
+  "en": "Left out of Memory Forest with its parent deck"
+ },
+ "actions.left_out_of_your_forest_its": {
+  "text": "森から外しました。デッキの ⚙ メニューから戻せます。",
+  "en": "Left out of your forest. Its ⚙ menu brings it back."
+ },
+ "actions.reviews_date": {
+  "text": "復習 ({date})",
+  "en": "Reviews ({date})"
+ },
+ "actions.reviews_days_days_first_to_last": {
+  "text": {
+   "other": "復習 ({days} 日間、{first}～{last})"
+  },
+  "en": {
+   "one": "Reviews ({days} day, {first} to {last})",
+   "other": "Reviews ({days} days, {first} to {last})"
+  }
+ },
+ "actions.reviews_first_to_last": {
+  "text": "復習 ({first}～{last})",
+  "en": "Reviews ({first} to {last})"
+ },
+ "actions.total_time_date": {
+  "text": "合計時間 ({date})",
+  "en": "Total time ({date})"
+ },
+ "actions.total_time_days_days_first_to": {
+  "text": {
+   "other": "合計時間 ({days} 日間、{first}～{last})"
+  },
+  "en": {
+   "one": "Total time ({days} day, {first} to {last})",
+   "other": "Total time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.total_time_first_to_last": {
+  "text": "合計時間 ({first}～{last})",
+  "en": "Total time ({first} to {last})"
+ },
+ "answer_column.heading_detail": {
+  "text": "{heading}。{detail}",
+  "en": "{heading}. {detail}"
+ },
+ "answer_column.median_seconds_per_answer_for_the": {
+  "text": "クリックした日の、そのカードの回答 1 回あたりの秒数の中央値です。やり直しを含みます。ノートでは、条件に合うカードのうち最も遅いカードの中央値を表示します。",
+  "en": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median."
+ },
+ "answer_column.number_of_answers_on_the_clicked": {
+  "text": "クリックした日の回答数です。やり直しを含みます。ノートでは、そのカードの合計を表示します。",
+  "en": "Number of answers on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "answer_column.seconds_s": {
+  "text": "{seconds} 秒",
+  "en": "{seconds} s"
+ },
+ "answer_column.total_seconds_spent_answering_on_the": {
+  "text": "クリックした日に回答にかかった合計秒数です。やり直しを含みます。ノートでは、そのカードの合計を表示します。",
+  "en": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "caption.after_the_rain": {
+  "text": "雨上がり",
+  "en": "after the rain"
+ },
+ "caption.city_not_found": {
+  "text": "都市が見つかりません",
+  "en": "City not found"
+ },
+ "caption.clear_sky": {
+  "text": "晴れ",
+  "en": "clear sky"
+ },
+ "caption.click_to_see_all_of_it": {
+  "text": "クリックするとすべて表示します",
+  "en": "Click to see all of it"
+ },
+ "caption.click_to_see_their_cards": {
+  "text": "クリックするとカードを表示します。",
+  "en": "Click to see their cards."
+ },
+ "caption.cloudy": {
+  "text": "くもり",
+  "en": "cloudy"
+ },
+ "caption.days_you_studied_in_a_row": {
+  "text": "連続して学習した日数です。学習するカードがない日は途切れません。",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it."
+ },
+ "caption.days_you_studied_in_a_row_2": {
+  "text": "連続して学習した日数です。学習するカードがない日は途切れません。また、連続記録を週 {week} 日で数えているため、週に 1 日休んでも途切れません。",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, a day off in a week doesn't either."
+ },
+ "caption.days_you_studied_in_a_row_3": {
+  "text": "連続して学習した日数です。学習するカードがない日は途切れません。また、連続記録を週 {week} 日で数えているため、週に 2 日休んでも途切れません。",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, two days off in a week don't either."
+ },
+ "caption.deck_lit_of_n_trees": {
+  "text": {
+   "other": "{deck}: {n} 本中 {lit} 本"
+  },
+  "en": {
+   "one": "{deck}: {lit} of {n} tree",
+   "other": "{deck}: {lit} of {n} trees"
+  }
+ },
+ "caption.deep_winter": {
+  "text": "真冬",
+  "en": "deep winter"
+ },
+ "caption.fog": {
+  "text": "霧",
+  "en": "fog"
+ },
+ "caption.live_weather_from_met_norway_cc": {
+  "text": "MET Norway によるリアルタイムの天気 (CC BY 4.0)。",
+  "en": "Live weather from MET Norway (CC BY 4.0)."
+ },
+ "caption.live_weather_unavailable": {
+  "text": "リアルタイムの天気を取得できません",
+  "en": "Live weather unavailable"
+ },
+ "caption.made_up_trees_from_the_test": {
+  "text": "「テスト用の森」設定による架空の木です。実際の森を見るには、森の設定でオフにしてください。",
+  "en": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one."
+ },
+ "caption.n_ancient": {
+  "text": {
+   "other": "大樹 {n} 本"
+  },
+  "en": {
+   "one": "{n} ancient",
+   "other": "{n} ancient"
+  }
+ },
+ "caption.n_day_streak": {
+  "text": {
+   "other": "{n} 日連続"
+  },
+  "en": {
+   "one": "{n}-day streak",
+   "other": "{n}-day streak"
+  }
+ },
+ "caption.n_in_the_deep_forest": {
+  "text": {
+   "other": "森の奥に {n} 本"
+  },
+  "en": {
+   "one": "{n} in the deep forest",
+   "other": "{n} in the deep forest"
+  }
+ },
+ "caption.n_trees": {
+  "text": {
+   "other": "{n} 本の木"
+  },
+  "en": {
+   "one": "{n} tree",
+   "other": "{n} trees"
+  }
+ },
+ "caption.one_tree_for_each_day_you": {
+  "text": "新しいカードを学習した日ごとに 1 本の木が育ちます。木にマウスを合わせるとその日を、クリックするとそのカードを表示します。",
+  "en": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards."
+ },
+ "caption.openstreetmap_does_not_know_that_city": {
+  "text": "OpenStreetMap にその都市が見つからないため、風景は独自の天気のままです。森の設定で綴りを確認するか、英語名を試してください。",
+  "en": "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+ },
+ "caption.rain": {
+  "text": "雨",
+  "en": "rain"
+ },
+ "caption.snow": {
+  "text": "雪",
+  "en": "snow"
+ },
+ "caption.test_forest": {
+  "text": "テスト用の森",
+  "en": "Test forest"
+ },
+ "caption.the_live_weather_could_not_be": {
+  "text": "リアルタイムの天気を取得できなかったため、風景はしばらく独自の天気のままです。",
+  "en": "The live weather could not be fetched, so the scenery keeps its own weather for now."
+ },
+ "caption.the_scenery_chosen_in_the_forest": {
+  "text": "風景です。森の設定で選べます。",
+  "en": "The scenery, chosen in the forest settings."
+ },
+ "caption.thunderstorm": {
+  "text": "雷雨",
+  "en": "thunderstorm"
+ },
+ "caption.trees_holding_cards_from_this_deck": {
+  "text": "このデッキのカードを持つ木は色付きのまま、ほかの木は薄く表示されます。森の設定の「デッキ画面」で変更できます。",
+  "en": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings."
+ },
+ "caption.trees_whose_cards_you_will_likely": {
+  "text": "カードを 1 年以上覚えていられそうな木です。記憶の強さの中央値が 365 日以上あります。記憶の強さには、FSRS を使っている場合は安定性を、そうでない場合は復習間隔を使います。",
+  "en": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not."
+ },
+ "caption.weather_by_met_norway": {
+  "text": "天気: MET Norway",
+  "en": "weather by MET Norway"
+ },
+ "caption.weather_weather": {
+  "text": "天気: {weather}",
+  "en": "Weather: {weather}"
+ },
+ "caption.weather_weather_in_city": {
+  "text": "天気: {city}、{weather}",
+  "en": "Weather: {weather} in {city}"
+ },
+ "caption.weather_weather_in_city_temp": {
+  "text": "天気: {city}、{weather}、{temp}°",
+  "en": "Weather: {weather} in {city}, {temp}°"
+ },
+ "caption.weather_weather_temp": {
+  "text": "天気: {weather}、{temp}°",
+  "en": "Weather: {weather}, {temp}°"
+ },
+ "caption.your_trees_from_from_to_to": {
+  "text": {
+   "other": "{from}～{to} の木は遠くにまとまって立ち、カードを {n} 枚持っています。1 本ずつ描くとデッキ一覧の表示が遅くなるためです。"
+  },
+  "en": {
+   "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
+   "other": "Your trees from {from} to {to} stand together in the distance, holding {n} cards. Drawing every one of them individually would slow the deck list down."
+  }
+ },
+ "date.day_month": {
+  "text": "{month}{day}日",
+  "en": "{day} {month}"
+ },
+ "date.day_month_year": {
+  "text": "{year}年{month}{day}日",
+  "en": "{day} {month} {year}"
+ },
+ "date.month_year": {
+  "text": "{year}年{month}",
+  "en": "{month} {year}"
+ },
+ "env.aurora": {
+  "text": "オーロラ",
+  "en": "Aurora"
+ },
+ "env.bamboo": {
+  "text": "雨の竹林",
+  "en": "Rainy bamboo grove"
+ },
+ "env.frozen_market": {
+  "text": "クリスマスマーケット",
+  "en": "Christmas market"
+ },
+ "env.lanterns": {
+  "text": "ランタン",
+  "en": "Lanterns"
+ },
+ "env.misty_valley": {
+  "text": "霧の谷",
+  "en": "Misty valley"
+ },
+ "env.natural": {
+  "text": "ナチュラル",
+  "en": "Natural"
+ },
+ "env.pumpkin_patch": {
+  "text": "かぼちゃ畑",
+  "en": "Pumpkin patch"
+ },
+ "env.starry_night": {
+  "text": "星月夜",
+  "en": "Starry night"
+ },
+ "env.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "event.asteroid.a_crater": {
+  "text": "クレーター",
+  "en": "A crater"
+ },
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": {
+  "text": "Anki の 1 日が終わるまでに復習しないと、小惑星が落ちてきます。落ちたら、そのクレーターから新しい森が育ちます。",
+  "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
+ "event.asteroid.asteroid_struck_date": {
+  "text": "{date} に小惑星が衝突",
+  "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tonight": {
+  "text": "小惑星: 今夜",
+  "en": "Asteroid: tonight"
+ },
+ "event.asteroid.its_crater_can_play_it_again": {
+  "text": "クレーターからも、もう一度再生できます。",
+  "en": "Its crater can play it again too."
+ },
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "text": {
+   "other": "復習のない日が続いたため、{n} 本の木を失いました。ここから新しい森が育ちます。"
+  },
+  "en": {
+   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "text": {
+   "other": "{date} に {n} 本の木を失いました"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}",
+   "other": "{n} trees lost on {date}"
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "text": {
+   "other": "{streak} 日連続のあと、{date} に {n} 本の木を失いました"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}, after a {streak}-day streak",
+   "other": "{n} trees lost on {date}, after a {streak}-day streak"
+  }
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": {
+  "text": "「穏やか」か「荒々しい」なら木は元に戻ります",
+  "en": "On Peaceful or Wild the trees stand again"
+ },
+ "event.asteroid.turn_on_animations_in_the_forest": {
+  "text": "見るには、森の設定でアニメーションをオンにしてください。",
+  "en": "Turn on animations in the forest settings to watch it."
+ },
+ "event.asteroid.your_system_asks_for_less_motion": {
+  "text": "システムで動きを減らす設定になっています。見るには「森のアニメーション」を「オン」にしてください。",
+  "en": "Your system asks for less motion: set Animate the forest to On to watch it."
+ },
+ "event.fire.fire_n_trees": {
+  "text": {
+   "other": "火事: {n} 本"
+  },
+  "en": {
+   "one": "Fire: {n} tree",
+   "other": "Fire: {n} trees"
+  }
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "text": {
+   "other": "あと {n} 日学習すると火が消えます。"
+  },
+  "en": {
+   "one": "{n} more day of study puts it out.",
+   "other": "{n} more days of study put it out."
+  }
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "text": {
+   "other": "留守の間に {n} 本の木に火がつきました。"
+  },
+  "en": {
+   "one": "{n} tree caught fire while you were away.",
+   "other": "{n} trees caught fire while you were away."
+  }
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "text": {
+   "other": "<b>燃えています</b>: 留守の間に火がつきました · あと {n} 日学習すると緑に戻ります"
+  },
+  "en": {
+   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
+   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+  }
+ },
+ "event.fire.smoke_is_rising_after_two_days": {
+  "text": "2 日間復習がなかったため、煙が上がっています。今日学習しないと、明日には森が燃え出します。",
+  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
+ },
+ "event.fire.smoke_study_today": {
+  "text": "煙: 今日学習を",
+  "en": "Smoke: study today"
+ },
+ "event.fire.smoking": {
+  "text": "煙",
+  "en": "Smoking"
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "text": {
+   "other": "<b>復習地獄</b>: 期日を過ぎた復習カードが {n} 枚。片付けるとタンブルウィードが吹き飛びます。"
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "text": {
+   "other": "<b>復習地獄</b>: 期日を過ぎた復習カードが {n} 枚 (普段は 1 日 {usual} 枚)。片付けるとタンブルウィードが吹き飛びます。"
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "events.a_fire_broke_out_while_you": {
+  "text": {
+   "other": "留守の間に火事が起きました。{trees} 本の木が燃えています。{days} 日学習すると火が消えます。"
+  },
+  "en": {
+   "one": "A fire broke out while you were away: {trees} tree is burning. Study on {days} days to put it out.",
+   "other": "A fire broke out while you were away: {trees} trees are burning. Study on {days} days to put it out."
+  }
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "text": {
+   "other": "小惑星が {trees} 本の木の森を奪いました。ここから新しい森が育ちます。"
+  },
+  "en": {
+   "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
+   "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
+  }
+ },
+ "events.merciless": {
+  "text": "容赦なし",
+  "en": "Merciless"
+ },
+ "events.miss_a_day_nothing_is_lost": {
+  "text": "1 日休んでも何も失いません。1 週間以上離れると、森に池ができます。",
+  "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
+ },
+ "events.miss_a_day_of_reviews_an": {
+  "text": "1 日復習しないと、空に小惑星が現れ、復習しないまま Anki の 1 日が終わると落ちてきます。クレーターからは新しい森が育ちます。悪い習慣も跡を残します。",
+  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
+ },
+ "events.miss_two_days_in_a_row": {
+  "text": "2 日続けて休むと、警告として煙が上がります。3 日目も休むと火事が広がり、7 日学習するまで消えません。悪い習慣も跡を残します。",
+  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
+ },
+ "events.peaceful": {
+  "text": "穏やか",
+  "en": "Peaceful"
+ },
+ "events.smoke_is_rising_from_your_forest": {
+  "text": "2 日間復習がなかったため、森から煙が上がっています。今日学習しないと燃え出します。",
+  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.switch_back_any_time_and_every": {
+  "text": "いつでも元に戻せば、すべての木がまた現れます。",
+  "en": "Switch back any time and every tree is there again."
+ },
+ "events.the_last_of_the_fire_is": {
+  "text": "火がすっかり消えました。森がまた緑になりました。",
+  "en": "The last of the fire is out. Your forest is green again."
+ },
+ "events.wild": {
+  "text": "荒々しい",
+  "en": "Wild"
+ },
+ "events.you_cleared_your_overdue_reviews": {
+  "text": "期日を過ぎた復習を片付けました。",
+  "en": "You cleared your overdue reviews."
+ },
+ "events.you_cleared_your_overdue_reviews_the": {
+  "text": "期日を過ぎた復習を片付けました。タンブルウィードが吹き飛んでいきました。",
+  "en": "You cleared your overdue reviews. The tumbleweeds blew away."
+ },
+ "heatmap.a_minute": {
+  "text": "1 分",
+  "en": "a minute"
+ },
+ "heatmap.about_n_reviews_a_day": {
+  "text": {
+   "other": "1 日あたり約 {n} 回の復習"
+  },
+  "en": {
+   "one": "About {n} review a day",
+   "other": "About {n} reviews a day"
+  }
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "text": {
+   "other": "学習した日 1 日あたり約 {n} 回の復習"
+  },
+  "en": {
+   "one": "About {n} review a day studied",
+   "other": "About {n} reviews a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "text": {
+   "other": "学習した日 1 日あたり約 {n} 回の復習、{time}"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day studied",
+   "other": "About {n} reviews and {time} a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "text": {
+   "other": "1 日あたり約 {n} 回の復習、{time}"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day",
+   "other": "About {n} reviews and {time} a day"
+  }
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "text": {
+   "other": "カード {n} 枚はその後削除されました"
+  },
+  "en": {
+   "one": "All {n} of its cards have since been deleted",
+   "other": "All {n} of its cards have since been deleted"
+  }
+ },
+ "heatmap.and_n_more_marked": {
+  "text": {
+   "other": "ほか {n} 件のマーク"
+  },
+  "en": {
+   "one": "and {n} more marked",
+   "other": "and {n} more marked"
+  }
+ },
+ "heatmap.back_to_today": {
+  "text": "今日に戻る",
+  "en": "Back to today"
+ },
+ "heatmap.beat_your_longest_streak_n_days": {
+  "text": {
+   "other": "毎日学習を続けると、この日に最長の連続記録 ({n} 日) を更新します"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day, studying every day until then",
+   "other": "Beat your longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "text": {
+   "other": "この日に最長の連続記録 ({n} 日) を更新"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day",
+   "other": "Beat your longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.before_your_first_review": {
+  "text": "最初の復習より前",
+  "en": "Before your first review"
+ },
+ "heatmap.before_your_forest_began": {
+  "text": "森が始まる前",
+  "en": "Before your forest began"
+ },
+ "heatmap.birthday": {
+  "text": "誕生日",
+  "en": "Birthday"
+ },
+ "heatmap.both_of_its_cards_have_since": {
+  "text": "カード 2 枚はその後削除されました",
+  "en": "Both of its cards have since been deleted"
+ },
+ "heatmap.by_year": {
+  "text": "年別",
+  "en": "By year"
+ },
+ "heatmap.date_name": {
+  "text": "<i>{date}:</i> {name}",
+  "en": "<i>{date}:</i> {name}"
+ },
+ "heatmap.day_day_of_a_n_day": {
+  "text": {
+   "other": "{n} 日連続の {day} 日目"
+  },
+  "en": {
+   "one": "Day {day} of a {n}-day streak",
+   "other": "Day {day} of a {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "text": {
+   "other": "{n} 日連続の {day} 日目"
+  },
+  "en": {
+   "one": "Day {day} of {n} in a row",
+   "other": "Day {day} of {n} in a row"
+  }
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "text": {
+   "other": "{n} 日連続記録の {day} 日目"
+  },
+  "en": {
+   "one": "Day {day} of your {n}-day streak",
+   "other": "Day {day} of your {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_your_streak": {
+  "text": "連続記録の {day} 日目",
+  "en": "Day {day} of your streak"
+ },
+ "heatmap.didnt_break_a_n_day_streak": {
+  "text": {
+   "other": "{n} 日連続の記録は途切れませんでした"
+  },
+  "en": {
+   "one": "Didn't break a {n}-day streak",
+   "other": "Didn't break a {n}-day streak"
+  }
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "text": {
+   "other": "{n} 日連続の記録は途切れません"
+  },
+  "en": {
+   "one": "Doesn't break your {n}-day streak",
+   "other": "Doesn't break your {n}-day streak"
+  }
+ },
+ "heatmap.done": {
+  "text": "完了",
+  "en": "Done"
+ },
+ "heatmap.earlier": {
+  "text": "前へ",
+  "en": "Earlier"
+ },
+ "heatmap.exam": {
+  "text": "試験",
+  "en": "Exam"
+ },
+ "heatmap.fast": {
+  "text": "速い",
+  "en": "Fast"
+ },
+ "heatmap.from_n_reviews": {
+  "text": {
+   "other": "{from}～{n} 回"
+  },
+  "en": {
+   "one": "{from}–{n} reviews",
+   "other": "{from}–{n} reviews"
+  }
+ },
+ "heatmap.from_to": {
+  "text": "{from}～{to}",
+  "en": "{from}–{to}"
+ },
+ "heatmap.from_to_min": {
+  "text": "{from}～{to} 分",
+  "en": "{from}–{to} min"
+ },
+ "heatmap.from_to_s_per_answer": {
+  "text": "回答あたり {from}～{to} 秒",
+  "en": "{from}–{to} s per answer"
+ },
+ "heatmap.from_to_to": {
+  "text": "{from}～{to}",
+  "en": "{from} to {to}"
+ },
+ "heatmap.from_to_today": {
+  "text": "{from}～今日",
+  "en": "{from} to today"
+ },
+ "heatmap.h_hr_m_min": {
+  "text": "{h} 時間 {m} 分",
+  "en": "{h} hr {m} min"
+ },
+ "heatmap.heart": {
+  "text": "ハート",
+  "en": "Heart"
+ },
+ "heatmap.its_card_has_since_been_deleted": {
+  "text": "カードはその後削除されました",
+  "en": "Its card has since been deleted"
+ },
+ "heatmap.january_to_december": {
+  "text": "1月～12月",
+  "en": "January to December"
+ },
+ "heatmap.last_day_of_a_n_day": {
+  "text": {
+   "other": "{n} 日連続の最終日"
+  },
+  "en": {
+   "one": "Last day of a {n}-day streak",
+   "other": "Last day of a {n}-day streak"
+  }
+ },
+ "heatmap.later": {
+  "text": "次へ",
+  "en": "Later"
+ },
+ "heatmap.less": {
+  "text": "少",
+  "en": "Less"
+ },
+ "heatmap.mark_icon": {
+  "text": "マークのアイコン",
+  "en": "Mark icon"
+ },
+ "heatmap.mark_name": {
+  "text": "マークの名前",
+  "en": "Mark name"
+ },
+ "heatmap.median_s_s_per_answer_n": {
+  "text": {
+   "other": "回答あたり中央値 {s} 秒、復習 {n} 回、残り {due} 枚"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review, {due} still due",
+   "other": "Median {s} s per answer, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "text": {
+   "other": "回答あたり中央値 {s} 秒、復習 {n} 回"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review",
+   "other": "Median {s} s per answer, {n} reviews"
+  }
+ },
+ "heatmap.more": {
+  "text": "多",
+  "en": "More"
+ },
+ "heatmap.n_cards_due": {
+  "text": {
+   "other": "期日のカード {n} 枚"
+  },
+  "en": {
+   "one": "{n} card due",
+   "other": "{n} cards due"
+  }
+ },
+ "heatmap.n_cards_due_after_today": {
+  "text": {
+   "other": "明日以降が期日のカード {n} 枚"
+  },
+  "en": {
+   "one": "{n} card due after today",
+   "other": "{n} cards due after today"
+  }
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "text": {
+   "other": "今月これから期日を迎えるカード {n} 枚"
+  },
+  "en": {
+   "one": "{n} card due later this month",
+   "other": "{n} cards due later this month"
+  }
+ },
+ "heatmap.n_days": {
+  "text": {
+   "other": "{n} 日"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "heatmap.n_days_from_to_to": {
+  "text": {
+   "other": "{n} 日 ({from}～{to})"
+  },
+  "en": {
+   "one": "{n} day, {from} to {to}",
+   "other": "{n} days, {from} to {to}"
+  }
+ },
+ "heatmap.n_days_from_to_today": {
+  "text": {
+   "other": "{n} 日 ({from}～今日)"
+  },
+  "en": {
+   "one": "{n} day, {from} to today",
+   "other": "{n} days, {from} to today"
+  }
+ },
+ "heatmap.n_days_in_a_row": {
+  "text": {
+   "other": "{n} 日連続"
+  },
+  "en": {
+   "one": "{n} day in a row",
+   "other": "{n} days in a row"
+  }
+ },
+ "heatmap.n_days_since_date": {
+  "text": {
+   "other": "{n} 日 · {date} から"
+  },
+  "en": {
+   "one": "{n} day · Since {date}",
+   "other": "{n} days · Since {date}"
+  }
+ },
+ "heatmap.n_hr": {
+  "text": "{n} 時間",
+  "en": "{n} hr"
+ },
+ "heatmap.n_min": {
+  "text": "{n} 分",
+  "en": "{n} min"
+ },
+ "heatmap.n_min_2": {
+  "text": "{n} 分以上",
+  "en": "{n}+ min"
+ },
+ "heatmap.n_of_its_of_cards_have": {
+  "text": {
+   "other": "カード {of} 枚のうち {n} 枚はその後削除されました"
+  },
+  "en": {
+   "one": "{n} of its {of} cards has since been deleted",
+   "other": "{n} of its {of} cards have since been deleted"
+  }
+ },
+ "heatmap.n_reviews": {
+  "text": {
+   "other": "復習 {n} 回"
+  },
+  "en": {
+   "one": "{n} review",
+   "other": "{n} reviews"
+  }
+ },
+ "heatmap.n_reviews_2": {
+  "text": {
+   "other": "{n} 回以上"
+  },
+  "en": {
+   "one": "{n}+ reviews",
+   "other": "{n}+ reviews"
+  }
+ },
+ "heatmap.n_reviews_in_time": {
+  "text": {
+   "other": "{time} で復習 {n} 回"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "text": {
+   "other": "復習 {n} 回、時間の記録なし"
+  },
+  "en": {
+   "one": "{n} review, no time kept",
+   "other": "{n} reviews, no time kept"
+  }
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "text": {
+   "other": "ここまで復習 {n} 回、残り {due} 枚"
+  },
+  "en": {
+   "one": "{n} review so far, {due} still due",
+   "other": "{n} reviews so far, {due} still due"
+  }
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "text": {
+   "other": "ここまで {time} で復習 {n} 回、残り {due} 枚"
+  },
+  "en": {
+   "one": "{n} review so far in {time}, {due} still due",
+   "other": "{n} reviews so far in {time}, {due} still due"
+  }
+ },
+ "heatmap.name_in_n_days": {
+  "text": {
+   "other": "{name} まであと {n} 日"
+  },
+  "en": {
+   "one": "{name} in {n} day",
+   "other": "{name} in {n} days"
+  }
+ },
+ "heatmap.name_today": {
+  "text": "{name} は今日",
+  "en": "{name} today"
+ },
+ "heatmap.name_tomorrow": {
+  "text": "{name} は明日",
+  "en": "{name} tomorrow"
+ },
+ "heatmap.near_date": {
+  "text": "{near}、{date}",
+  "en": "{near}, {date}"
+ },
+ "heatmap.not_studied": {
+  "text": "学習なし",
+  "en": "Not studied"
+ },
+ "heatmap.not_studied_a_day_off": {
+  "text": "学習なし: 休みの日",
+  "en": "Not studied: a day off"
+ },
+ "heatmap.not_studied_a_pond_in_your": {
+  "text": "学習なし: 森の池",
+  "en": "Not studied: a pond in your forest"
+ },
+ "heatmap.not_studied_since_date": {
+  "text": "{date} 以降学習なし",
+  "en": "Not studied since {date}"
+ },
+ "heatmap.not_studied_so_far": {
+  "text": "これまで学習なし",
+  "en": "Not studied so far"
+ },
+ "heatmap.not_studied_yet": {
+  "text": "まだ学習なし",
+  "en": "Not studied yet"
+ },
+ "heatmap.not_studied_yet_n_cards_due": {
+  "text": {
+   "other": "まだ学習なし、期日のカード {n} 枚"
+  },
+  "en": {
+   "one": "Not studied yet, {n} card due",
+   "other": "Not studied yet, {n} cards due"
+  }
+ },
+ "heatmap.nothing_due_today": {
+  "text": "今日が期日のカードはありません",
+  "en": "Nothing due today"
+ },
+ "heatmap.nothing_due_yet": {
+  "text": "まだ期日のカードはありません",
+  "en": "Nothing due yet"
+ },
+ "heatmap.nothing_was_due": {
+  "text": "期日のカードはありませんでした",
+  "en": "Nothing was due"
+ },
+ "heatmap.pace": {
+  "text": "ペース",
+  "en": "Pace"
+ },
+ "heatmap.pass_your_second_longest_streak_n": {
+  "text": {
+   "other": "毎日学習を続けると、この日に 2 番目に長い連続記録 ({n} 日) を超えます"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your second-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "text": {
+   "other": "この日に 2 番目に長い連続記録 ({n} 日) を超えます"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day",
+   "other": "Pass your second-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "text": {
+   "other": "毎日学習を続けると、この日に 3 番目に長い連続記録 ({n} 日) を超えます"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your third-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "text": {
+   "other": "この日に 3 番目に長い連続記録 ({n} 日) を超えます"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day",
+   "other": "Pass your third-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pin": {
+  "text": "ピン",
+  "en": "Pin"
+ },
+ "heatmap.planted_tree_n_new_cards": {
+  "text": {
+   "other": "植えた木: 新規カード {n} 枚"
+  },
+  "en": {
+   "one": "Planted tree: {n} new cards",
+   "other": "Planted tree: {n} new cards"
+  }
+ },
+ "heatmap.ponds_and_animals_count_from_here": {
+  "text": "池と動物はここから数えます",
+  "en": "Ponds and animals count from here"
+ },
+ "heatmap.reach_a_n_day_streak_on": {
+  "text": {
+   "other": "毎日学習を続けると、この日に {n} 日連続を達成します"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day, studying every day until then",
+   "other": "Reach a {n}-day streak on this day, studying every day until then"
+  }
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "text": {
+   "other": "この日に {n} 日連続を達成"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day",
+   "other": "Reach a {n}-day streak on this day"
+  }
+ },
+ "heatmap.remove_the_mark": {
+  "text": "マークを削除",
+  "en": "Remove the mark"
+ },
+ "heatmap.reviews": {
+  "text": "復習",
+  "en": "Reviews"
+ },
+ "heatmap.s_s_per_answer": {
+  "text": "回答あたり {s} 秒以上",
+  "en": "{s}+ s per answer"
+ },
+ "heatmap.shade_each_day_by_how_long": {
+  "text": "学習した時間で各日を色分け",
+  "en": "Shade each day by how long you studied"
+ },
+ "heatmap.shade_each_day_by_how_many": {
+  "text": "復習した回数で各日を色分け",
+  "en": "Shade each day by how many reviews you did"
+ },
+ "heatmap.shade_each_day_by_its_median": {
+  "text": "回答あたりの秒数の中央値で各日を色分け",
+  "en": "Shade each day by its median seconds per answer"
+ },
+ "heatmap.shade_the_days_by": {
+  "text": "色分けの基準",
+  "en": "Shade the days by"
+ },
+ "heatmap.sick": {
+  "text": "病気",
+  "en": "Sick"
+ },
+ "heatmap.slow": {
+  "text": "遅い",
+  "en": "Slow"
+ },
+ "heatmap.star": {
+  "text": "星",
+  "en": "Star"
+ },
+ "heatmap.streak": {
+  "text": "連続記録",
+  "en": "Streak"
+ },
+ "heatmap.studied_all_of_them": {
+  "text": "すべての日に学習",
+  "en": "Studied all of them"
+ },
+ "heatmap.studied_all_of_these_n_days": {
+  "text": {
+   "other": "この {n} 日すべてに学習"
+  },
+  "en": {
+   "one": "Studied all of these {n} day",
+   "other": "Studied all of these {n} days"
+  }
+ },
+ "heatmap.studied_every_day": {
+  "text": "毎日学習",
+  "en": "Studied every day"
+ },
+ "heatmap.studied_every_day_since_date": {
+  "text": "{date} から毎日学習",
+  "en": "Studied every day since {date}"
+ },
+ "heatmap.studied_every_day_so_far": {
+  "text": "これまで毎日学習",
+  "en": "Studied every day so far"
+ },
+ "heatmap.studied_n_of_them_pct": {
+  "text": {
+   "other": "そのうち {n} 日学習 ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {n} of them ({pct}%)",
+   "other": "Studied {n} of them ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "text": {
+   "other": "{n} 日中 {studied} 日学習 ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day ({pct}%)",
+   "other": "Studied {studied} of {n} days ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "text": {
+   "other": "{date} から {n} 日中 {studied} 日学習 ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day since {date} ({pct}%)",
+   "other": "Studied {studied} of {n} days since {date} ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "text": {
+   "other": "これまで {n} 日中 {studied} 日学習 ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day so far ({pct}%)",
+   "other": "Studied {studied} of {n} days so far ({pct}%)"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "text": {
+   "other": "学習ヒートマップ、{from}～{to}: 学習 {n} 日、{days} 日連続"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied, a {days}-day streak",
+   "other": "Study heatmap, {from} to {to}: {n} days studied, a {days}-day streak"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "text": {
+   "other": "学習ヒートマップ、{from}～{to}: 学習 {n} 日"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied",
+   "other": "Study heatmap, {from} to {to}: {n} days studied"
+  }
+ },
+ "heatmap.the_months_round_this_one_most": {
+  "text": "この月の前後の月 (大半はこの月より前)",
+  "en": "The months round this one, most of them before it"
+ },
+ "heatmap.this_day_s_tree_is_part": {
+  "text": "この日の木は森の奥にあります",
+  "en": "This day’s tree is part of your deep forest"
+ },
+ "heatmap.this_tree_is_outside_your_current": {
+  "text": "この木は現在のズーム表示の範囲外です",
+  "en": "This tree is outside your current zoom view"
+ },
+ "heatmap.time": {
+  "text": "時間",
+  "en": "Time"
+ },
+ "heatmap.time_2": {
+  "text": "{time} 以上",
+  "en": "{time}+"
+ },
+ "heatmap.time_n_reviews": {
+  "text": {
+   "other": "{time}、復習 {n} 回"
+  },
+  "en": {
+   "one": "{time}, {n} review",
+   "other": "{time}, {n} reviews"
+  }
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "text": {
+   "other": "ここまで {time}、復習 {n} 回、残り {due} 枚"
+  },
+  "en": {
+   "one": "{time} so far, {n} review, {due} still due",
+   "other": "{time} so far, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.timeline": {
+  "text": "タイムライン",
+  "en": "Timeline"
+ },
+ "heatmap.today": {
+  "text": "今日",
+  "en": "Today"
+ },
+ "heatmap.too_far_ahead_to_count": {
+  "text": "先すぎて数えられません",
+  "en": "Too far ahead to count"
+ },
+ "heatmap.trip": {
+  "text": "旅行",
+  "en": "Trip"
+ },
+ "heatmap.under_a_minute": {
+  "text": "1 分未満",
+  "en": "under a minute"
+ },
+ "heatmap.under_n_reviews": {
+  "text": {
+   "other": "{n} 回未満"
+  },
+  "en": {
+   "one": "Under {n} reviews",
+   "other": "Under {n} reviews"
+  }
+ },
+ "heatmap.under_s_s_per_answer": {
+  "text": "回答あたり {s} 秒未満",
+  "en": "Under {s} s per answer"
+ },
+ "heatmap.under_time": {
+  "text": "{time} 未満",
+  "en": "Under {time}"
+ },
+ "heatmap.view": {
+  "text": "表示",
+  "en": "View"
+ },
+ "heatmap.your_forest_began": {
+  "text": "森の始まり",
+  "en": "Your forest began"
+ },
+ "heatmap.your_longest_streak": {
+  "text": "最長の連続記録",
+  "en": "Your longest streak"
+ },
+ "heatmap.your_longest_streak_n_days": {
+  "text": {
+   "other": "最長の連続記録: {n} 日"
+  },
+  "en": {
+   "one": "Your longest streak: {n} day",
+   "other": "Your longest streak: {n} days"
+  }
+ },
+ "heatmap.your_n_day_streak": {
+  "text": {
+   "other": "{n} 日連続の記録"
+  },
+  "en": {
+   "one": "Your {n}-day streak",
+   "other": "Your {n}-day streak"
+  }
+ },
+ "heatmap.your_second_longest_streak": {
+  "text": "2 番目に長い連続記録",
+  "en": "Your second-longest streak"
+ },
+ "heatmap.your_second_longest_streak_n_days": {
+  "text": {
+   "other": "2 番目に長い連続記録: {n} 日"
+  },
+  "en": {
+   "one": "Your second-longest streak: {n} day",
+   "other": "Your second-longest streak: {n} days"
+  }
+ },
+ "heatmap.your_streak_every_year_of_it": {
+  "text": "連続記録の全期間を年ごとに表示。矢印で以前の連続記録へ移動します",
+  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+ },
+ "heatmap.your_third_longest_streak": {
+  "text": "3 番目に長い連続記録",
+  "en": "Your third-longest streak"
+ },
+ "heatmap.your_third_longest_streak_n_days": {
+  "text": {
+   "other": "3 番目に長い連続記録: {n} 日"
+  },
+  "en": {
+   "one": "Your third-longest streak: {n} day",
+   "other": "Your third-longest streak: {n} days"
+  }
+ },
+ "heatmap_look.darker": {
+  "text": "暗く",
+  "en": "Darker"
+ },
+ "heatmap_look.flame": {
+  "text": "炎",
+  "en": "Flame"
+ },
+ "heatmap_look.ice": {
+  "text": "氷",
+  "en": "Ice"
+ },
+ "heatmap_look.lighter": {
+  "text": "明るく",
+  "en": "Lighter"
+ },
+ "heatmap_look.lime": {
+  "text": "ライム",
+  "en": "Lime"
+ },
+ "heatmap_look.magenta": {
+  "text": "マゼンタ",
+  "en": "Magenta"
+ },
+ "heatmap_look.olive": {
+  "text": "オリーブ",
+  "en": "Olive"
+ },
+ "heatmap_style.brush": {
+  "text": "筆",
+  "en": "Brush"
+ },
+ "heatmap_style.brush.tip": {
+  "text": "「星月夜」の筆づかい",
+  "en": "Starry night's brushstrokes"
+ },
+ "heatmap_style.canes": {
+  "text": "竹",
+  "en": "Canes"
+ },
+ "heatmap_style.canes.tip": {
+  "text": "「雨の竹林」の竹 (1 日に 2 本)",
+  "en": "Bamboo grove's canes, two to a day"
+ },
+ "heatmap_style.chalk": {
+  "text": "チョーク",
+  "en": "Chalk"
+ },
+ "heatmap_style.chalk.tip": {
+  "text": "「黒板」のチョークの斜線",
+  "en": "Chalkboard's chalk hatching"
+ },
+ "heatmap_style.contours": {
+  "text": "等高線",
+  "en": "Contours"
+ },
+ "heatmap_style.contours.tip": {
+  "text": "学習した日を 1 つの形にまとめ、濃淡を平らな段で表示 (等高線地図のように)",
+  "en": "The days you studied as one shape, its shades in flat bands, like a contour map"
+ },
+ "heatmap_style.flat": {
+  "text": "フラット",
+  "en": "Flat"
+ },
+ "heatmap_style.flat.tip": {
+  "text": "角の丸い単色の正方形タイル",
+  "en": "Square tiles, each one solid colour, their corners smooth"
+ },
+ "heatmap_style.ice": {
+  "text": "氷のブロック",
+  "en": "Ice blocks"
+ },
+ "heatmap_style.ice.tip": {
+  "text": "「凍った川のマーケット」の氷 (その週のみ)",
+  "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.pumpkin": {
+  "text": "かぼちゃ",
+  "en": "Pumpkins"
+ },
+ "heatmap_style.pumpkin.tip": {
+  "text": "「月を横切る魔女」のかぼちゃの筋 (その週のみ)",
+  "en": "Witch across the moon's pumpkin ribs, in its week only"
+ },
+ "heatmap_style.rime": {
+  "text": "霧氷",
+  "en": "Rime"
+ },
+ "heatmap_style.rime.tip": {
+  "text": "「霧の渓谷」の霜 (各タイルの上端に)",
+  "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.round": {
+  "text": "丸",
+  "en": "Round"
+ },
+ "heatmap_style.round.tip": {
+  "text": "1 日ずつ小さな丸いタイル",
+  "en": "Each day a little round tile"
+ },
+ "heatmap_style.scanlines": {
+  "text": "走査線",
+  "en": "Scanlines"
+ },
+ "heatmap_style.scanlines.tip": {
+  "text": "「Synthwave」の走査線",
+  "en": "Synthwave's scanlines"
+ },
+ "heatmap_style.scenery": {
+  "text": "風景",
+  "en": "Scenery"
+ },
+ "heatmap_style.scenery.tip": {
+  "text": "現在の風景のタイルスタイルを使い、風景を変えると切り替わります",
+  "en": "Uses the current scenery's own tile style and updates when you change scenery"
+ },
+ "hover.click_to_select_it": {
+  "text": "クリックして選択",
+  "en": "Click to select it"
+ },
+ "hover.click_to_watch_it_again": {
+  "text": "クリックしてもう一度見る",
+  "en": "Click to watch it again"
+ },
+ "hover.tap_again_to_watch_it_again": {
+  "text": "もう一度タップすると再生します",
+  "en": "Tap again to watch it again"
+ },
+ "hover.tap_to_select_it": {
+  "text": "タップして選択",
+  "en": "Tap to select it"
+ },
+ "journal.a_harvest_moon_rises_over_your": {
+  "text": "森の記念日に、ハーベストムーンが昇ります。",
+  "en": "A harvest moon rises over your forest's anniversary."
+ },
+ "journal.days_days_in_a_row_the": {
+  "text": {
+   "other": "{days} 日連続。森は 1 日も欠かしていません。"
+  },
+  "en": {
+   "one": "{days} day in a row. The forest has not missed one.",
+   "other": "{days} days in a row. The forest has not missed one."
+  }
+ },
+ "journal.meteors_are_falling_tonight": {
+  "text": "今夜は流れ星が降っています。",
+  "en": "Meteors are falling tonight."
+ },
+ "journal.one_of_your_trees_became_ancient": {
+  "text": "今日、木の 1 本が大樹になりました。",
+  "en": "One of your trees became ancient today."
+ },
+ "journal.one_of_your_trees_became_ancient_2": {
+  "text": "今日、木の 1 本が大樹になりました。流れ星を探してみてください。",
+  "en": "One of your trees became ancient today. Watch for a shooting star."
+ },
+ "journal.study_some_new_cards_and_your": {
+  "text": "新しいカードを学習すると、最初の木がここに根を下ろします。",
+  "en": "Study some new cards and your first tree will take root here."
+ },
+ "journal.the_grass_is_growing_tall_no": {
+  "text": {
+   "other": "草が伸びています: {n} 週間、新しいカードを学習していません。"
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} week.",
+   "other": "The grass is growing tall: no new cards for {n} weeks."
+  }
+ },
+ "journal.the_grass_is_growing_tall_no_2": {
+  "text": "草が伸びています: 1 週間、新しいカードを学習していません。",
+  "en": "The grass is growing tall: no new cards for a week."
+ },
+ "journal.the_tree_you_planted_on_date": {
+  "text": {
+   "other": "{date} に植えた木が、今日で {n} 歳になりました。"
+  },
+  "en": {
+   "one": "The tree you planted on {date} turned {n} year old today.",
+   "other": "The tree you planted on {date} turned {n} years old today."
+  }
+ },
+ "journal.the_tree_you_planted_on_date_2": {
+  "text": "{date} に植えた木が、今日で 1 歳になりました。",
+  "en": "The tree you planted on {date} turned a year old today."
+ },
+ "journal.your_count_th_tree_planted_today": {
+  "text": {
+   "other": "{count} 本目の木です。今日、新規カード {cards} 枚で植えました。"
+  },
+  "en": {
+   "one": "Your {count}th tree, planted today with {cards} new card.",
+   "other": "Your {count}th tree, planted today with {cards} new cards."
+  }
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "text": {
+   "other": "最初の木です。カードを {cards} 枚持っています。"
+  },
+  "en": {
+   "one": "Your first tree. It holds {cards} card.",
+   "other": "Your first tree. It holds {cards} cards."
+  }
+ },
+ "landmark.moon_bridge": {
+  "text": "太鼓橋",
+  "en": "Moon bridge"
+ },
+ "landmark.none": {
+  "text": "なし",
+  "en": "None"
+ },
+ "landmark.pagoda": {
+  "text": "仏塔",
+  "en": "Pagoda"
+ },
+ "landmark.peak": {
+  "text": "山頂",
+  "en": "Mountain peak"
+ },
+ "landscape.lake": {
+  "text": "静かな湖",
+  "en": "Still lake"
+ },
+ "landscape.meadow": {
+  "text": "草原",
+  "en": "Meadow"
+ },
+ "landscape.mountains": {
+  "text": "山あいの谷",
+  "en": "Mountain valley"
+ },
+ "landscape.river": {
+  "text": "川",
+  "en": "River"
+ },
+ "month.april": {
+  "text": "4月",
+  "en": "April"
+ },
+ "month.august": {
+  "text": "8月",
+  "en": "August"
+ },
+ "month.december": {
+  "text": "12月",
+  "en": "December"
+ },
+ "month.february": {
+  "text": "2月",
+  "en": "February"
+ },
+ "month.january": {
+  "text": "1月",
+  "en": "January"
+ },
+ "month.july": {
+  "text": "7月",
+  "en": "July"
+ },
+ "month.june": {
+  "text": "6月",
+  "en": "June"
+ },
+ "month.march": {
+  "text": "3月",
+  "en": "March"
+ },
+ "month.may": {
+  "text": "5月",
+  "en": "May"
+ },
+ "month.november": {
+  "text": "11月",
+  "en": "November"
+ },
+ "month.october": {
+  "text": "10月",
+  "en": "October"
+ },
+ "month.september": {
+  "text": "9月",
+  "en": "September"
+ },
+ "month_short.apr": {
+  "text": "4月",
+  "en": "Apr"
+ },
+ "month_short.aug": {
+  "text": "8月",
+  "en": "Aug"
+ },
+ "month_short.dec": {
+  "text": "12月",
+  "en": "Dec"
+ },
+ "month_short.feb": {
+  "text": "2月",
+  "en": "Feb"
+ },
+ "month_short.jan": {
+  "text": "1月",
+  "en": "Jan"
+ },
+ "month_short.jul": {
+  "text": "7月",
+  "en": "Jul"
+ },
+ "month_short.jun": {
+  "text": "6月",
+  "en": "Jun"
+ },
+ "month_short.mar": {
+  "text": "3月",
+  "en": "Mar"
+ },
+ "month_short.may": {
+  "text": "5月",
+  "en": "May"
+ },
+ "month_short.nov": {
+  "text": "11月",
+  "en": "Nov"
+ },
+ "month_short.oct": {
+  "text": "10月",
+  "en": "Oct"
+ },
+ "month_short.sep": {
+  "text": "9月",
+  "en": "Sep"
+ },
+ "news.change_scenery_and_settings_new_scenery": {
+  "text": "風景と設定を変更 (新しい風景あり)",
+  "en": "Change scenery and settings (new scenery)"
+ },
+ "news.change_scenery_and_settings_something_new": {
+  "text": "風景と設定を変更 (新着あり)",
+  "en": "Change scenery and settings (something new)"
+ },
+ "news.got_it": {
+  "text": "了解",
+  "en": "Got it"
+ },
+ "panel.change_scenery_and_settings": {
+  "text": "風景と設定を変更",
+  "en": "Change scenery and settings"
+ },
+ "panel.seasonal_scenery_for_this_week_only": {
+  "text": "今週だけの季節の風景です。{date} にいつもの風景に戻ります。",
+  "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
+ },
+ "panel.seasonal_scenery_here_until_date": {
+  "text": "季節の風景です ({date} まで)。",
+  "en": "Seasonal scenery, here until {date}."
+ },
+ "panel.todays_scenery_from_surprise_me_daily": {
+  "text": "「毎日おまかせ」による今日の風景です。明日は次の風景になります。",
+  "en": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."
+ },
+ "panel.your_own_mix_from_customize_in": {
+  "text": "森の設定の「カスタマイズ」で作った、自分だけの組み合わせです。",
+  "en": "Your own mix, from Customize in the forest settings."
+ },
+ "panel.your_study_forest": {
+  "text": "学習の森",
+  "en": "Your study forest"
+ },
+ "phone.forest_full_screen": {
+  "text": "森を全画面表示",
+  "en": "Forest full screen"
+ },
+ "phone.full_screen_isnt_allowed_here": {
+  "text": "ここでは全画面表示できません。",
+  "en": "Full screen isn't allowed here."
+ },
+ "phone.heatmap_full_screen": {
+  "text": "ヒートマップを全画面表示",
+  "en": "Heatmap full screen"
+ },
+ "phone.just_now": {
+  "text": "たった今",
+  "en": "just now"
+ },
+ "phone.leave_full_screen": {
+  "text": "全画面表示を終了",
+  "en": "Leave full screen"
+ },
+ "phone.memory_forest_could_not_draw_your": {
+  "text": "Memory Forest はここに森を描けませんでした。",
+  "en": "Memory Forest could not draw your forest here."
+ },
+ "phone.memory_forest_keeps_your_forest_here": {
+  "text": "スマートフォンで表示できるように、Memory Forest はここに森を保存しています。見るにはこのデッキを学習し、回答せずに戻ってください。このノートは同期のたびにアドオンが書き換えます。",
+  "en": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync."
+ },
+ "phone.n_days_ago": {
+  "text": {
+   "other": "{n} 日前"
+  },
+  "en": {
+   "one": "{n} day ago",
+   "other": "{n} days ago"
+  }
+ },
+ "phone.n_hours_ago": {
+  "text": {
+   "other": "{n} 時間前"
+  },
+  "en": {
+   "one": "{n} hour ago",
+   "other": "{n} hours ago"
+  }
+ },
+ "phone.n_minutes_ago": {
+  "text": {
+   "other": "{n} 分前"
+  },
+  "en": {
+   "one": "{n} minute ago",
+   "other": "{n} minutes ago"
+  }
+ },
+ "phone.sync_anki_on_your_computer_to": {
+  "text": "最新の状態にするには、パソコンの Anki で同期してください。",
+  "en": "Sync Anki on your computer to bring it up to date."
+ },
+ "phone.synced_when": {
+  "text": "{when}に同期しました。",
+  "en": "Synced {when}."
+ },
+ "phone.yesterday": {
+  "text": "昨日",
+  "en": "yesterday"
+ },
+ "phone.your_forest_arrives_with_the_next": {
+  "text": "パソコンの Anki で次に同期すると、森が届きます。",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_arrives_with_the_next_sync": {
+  "text": "パソコンの Anki で次に同期すると、森が届きます。",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_is_on_its_way": {
+  "text": "森がもうすぐ届きます。もう一度同期して、森の画像を取得してください。",
+  "en": "Your forest is on its way: sync once more to fetch its drawing."
+ },
+ "planting.a_new_tree_was_planted_in": {
+  "text": "今日、森に新しい木が植えられました。",
+  "en": "A new tree was planted in your forest today."
+ },
+ "preset.aurora": {
+  "text": "オーロラの夜",
+  "en": "Aurora night"
+ },
+ "preset.aurora.note": {
+  "text": "雪の山並みの上に揺れるオーロラが、下の静かな湖に映ります。",
+  "en": "Northern lights over a snowy range, moving in the still lake below."
+ },
+ "preset.bamboo": {
+  "text": "雨の竹林",
+  "en": "Rainy bamboo grove"
+ },
+ "preset.bamboo.note": {
+  "text": "やわらかな緑の雨に打たれる高い竹、霧の中の寺、川を流れていく灯籠。",
+  "en": "Tall canes in soft green rain, a temple in the mist, lanterns floating down the river."
+ },
+ "preset.chalkboard": {
+  "text": "黒板",
+  "en": "Chalkboard"
+ },
+ "preset.chalkboard.note": {
+  "text": "緑の黒板に色チョークで描いた森。",
+  "en": "The forest in coloured chalk on a green blackboard."
+ },
+ "preset.cherry_blossom": {
+  "text": "桜",
+  "en": "Cherry blossom"
+ },
+ "preset.cherry_blossom.note": {
+  "text": "富士山のふもとでお花見。川沿いに咲く桜、頭上の提灯、風に舞う花びら。",
+  "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
+ },
+ "preset.custom": {
+  "text": "カスタム",
+  "en": "Custom"
+ },
+ "preset.daily": {
+  "text": "毎日おまかせ",
+  "en": "Surprise me daily"
+ },
+ "preset.daily.note": {
+  "text": "毎日違う風景を、順番に 1 つずつ表示します。",
+  "en": "A different scenery every day, taking turns so each one comes round in order."
+ },
+ "preset.frozen_market": {
+  "text": "凍った川のマーケット",
+  "en": "Frozen river market"
+ },
+ "preset.frozen_market.note": {
+  "text": "凍った川の上のクリスマスマーケット。氷上の屋台とメリーゴーランド、ランタンに照らされた橋の下を滑るスケーターたち。",
+  "en": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge."
+ },
+ "preset.golden_lake": {
+  "text": "黄金色の湖畔",
+  "en": "Golden hour by the lake"
+ },
+ "preset.golden_lake.note": {
+  "text": "静かな水面に低い日が差し、森全体が片側から照らされています。",
+  "en": "Low sun across still water, the whole forest lit from one side."
+ },
+ "preset.lanterns": {
+  "text": "ランタンの夜",
+  "en": "Lanterns at night"
+ },
+ "preset.lanterns.note": {
+  "text": "赤い太鼓橋から満月へと昇っていく紙のランタンと、水面を下っていくその映り込み。",
+  "en": "Paper lanterns drifting up from a red moon bridge towards a full moon, and their reflections going down."
+ },
+ "preset.misty_valley": {
+  "text": "霧の渓谷",
+  "en": "Misty mountain valley"
+ },
+ "preset.misty_valley.note": {
+  "text": "まだ目覚めていない谷の上にそびえる、雪をかぶった峰。",
+  "en": "A snow-capped peak over a valley that has not woken up yet."
+ },
+ "preset.pumpkin_patch": {
+  "text": "月を横切る魔女",
+  "en": "Witch across the moon"
+ },
+ "preset.pumpkin_patch.note": {
+  "text": "にやにや、くすくす笑うジャック・オー・ランタンの畑の上、昇る大きな満月を魔女と猫が横切ります。",
+  "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.starry_night": {
+  "text": "星月夜",
+  "en": "Starry night"
+ },
+ "preset.starry_night.note": {
+  "text": "ゴッホにならって。眠る村の上に渦巻く筆づかいの空、その前に暗く燃え立つ糸杉。",
+  "en": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
+ },
+ "preset.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "preset.synthwave.note": {
+  "text": "地平線まで続くネオンのグリッドと、その上に立つ縞模様の太陽。",
+  "en": "The neon grid running to the horizon, and the banded sun standing on it."
+ },
+ "scene.after_the_rain": {
+  "text": "雨上がり",
+  "en": "After the rain"
+ },
+ "scene.clear": {
+  "text": "晴れ",
+  "en": "Clear"
+ },
+ "scene.cloudy": {
+  "text": "くもり",
+  "en": "Cloudy"
+ },
+ "scene.dawn": {
+  "text": "夜明け",
+  "en": "Dawn"
+ },
+ "scene.day": {
+  "text": "昼",
+  "en": "Day"
+ },
+ "scene.deep_winter": {
+  "text": "真冬",
+  "en": "Deep winter"
+ },
+ "scene.dusk": {
+  "text": "夕暮れ",
+  "en": "Dusk"
+ },
+ "scene.fog": {
+  "text": "霧",
+  "en": "Fog"
+ },
+ "scene.golden_hour": {
+  "text": "夕映え",
+  "en": "Golden hour"
+ },
+ "scene.night": {
+  "text": "夜",
+  "en": "Night"
+ },
+ "scene.rain": {
+  "text": "雨",
+  "en": "Rain"
+ },
+ "scene.snow": {
+  "text": "雪",
+  "en": "Snow"
+ },
+ "scene.thunderstorm": {
+  "text": "雷雨",
+  "en": "Thunderstorm"
+ },
+ "settings.about.all_release_notes": {
+  "text": "すべてのリリースノート",
+  "en": "All release notes"
+ },
+ "settings.about.and_a_special_thank_you_to": {
+  "text": "Patreon のスポンサーの皆さんにも、心から感謝します:",
+  "en": "And a special thank-you to my Sponsors on Patreon:"
+ },
+ "settings.about.how_it_works": {
+  "text": "しくみ",
+  "en": "How it works"
+ },
+ "settings.about.made_by_barak_levy": {
+  "text": "作者: Barak Levy",
+  "en": "Made by Barak Levy"
+ },
+ "settings.about.memory_forest_grows_thanks_to_everyone": {
+  "text": "Memory Forest は、評価や共有、アイデアの提案、不具合の報告をしてくださる皆さんのおかげで育っています。ありがとうございます！",
+  "en": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!"
+ },
+ "settings.about.mit_licence": {
+  "text": "MIT ライセンス",
+  "en": "MIT licence"
+ },
+ "settings.about.new_scenery_arrives_in_memory_forest": {
+  "text": "新しい風景はまず Memory Forest Plus に登場し、その後このバージョンにも追加されます。<a href=\"{url}\">Patreon で参加</a>",
+  "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
+ },
+ "settings.about.one_tree_for_every_day_you": {
+  "text": "新しいカードを学習した日ごとに 1 本の木が育ちます。今日の芽生えが手前に、いちばん古い木が奥にあります。木はカードが記憶に定着するにつれて育ち、いくつか忘れると黄色い葉が少し混じります。復習だけの日は木を植えませんが、木を元気に保ちます。",
+  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+ },
+ "settings.about.places_openstreetmap_contributors": {
+  "text": "地名 © <a href=\"{osm}\">OpenStreetMap の貢献者</a>",
+  "en": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>"
+ },
+ "settings.about.rate_it_on_ankiweb": {
+  "text": "AnkiWeb で評価する",
+  "en": "Rate it on AnkiWeb"
+ },
+ "settings.about.report_a_bug_or_share_an": {
+  "text": "不具合を報告・アイデアを共有",
+  "en": "Report a bug or share an idea"
+ },
+ "settings.about.thank_you": {
+  "text": "謝辞",
+  "en": "Thank you"
+ },
+ "settings.about.the_heatmap_under_it_shows_every": {
+  "text": "その下のヒートマップには、学習したすべての日が表示されます。日にマウスを合わせると数値を表示し、右クリックするとマークを付けられます。",
+  "en": "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it."
+ },
+ "settings.about.version_version": {
+  "text": "バージョン {version}",
+  "en": "Version {version}"
+ },
+ "settings.about.weather_from_met_norway_cc_by": {
+  "text": "天気: <a href=\"{met}\">MET Norway</a> (CC BY 4.0)",
+  "en": "Weather from <a href=\"{met}\">MET Norway</a> (CC BY 4.0)"
+ },
+ "settings.about.whats_new": {
+  "text": "新着情報",
+  "en": "What's new"
+ },
+ "settings.about.youre_part_of_this_thank_you": {
+  "text": "あなたもこの森の一員です。<a href=\"{url}\">Patreon</a> でのご支援ありがとうございます",
+  "en": "You're part of this: thank you for supporting it on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.customize.change_anything_here_to_make_it": {
+  "text": "ここで何かを変えると、自分だけの組み合わせになります。",
+  "en": "Change anything here to make it your own mix."
+ },
+ "settings.customize.customize_scenery": {
+  "text": "{scenery} をカスタマイズ ›",
+  "en": "Customize {scenery} ›"
+ },
+ "settings.customize.customize_scenery_2": {
+  "text": "{scenery} をカスタマイズ",
+  "en": "Customize {scenery}"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery": {
+  "text": "{scenery} をもとに自分だけの組み合わせを作る ›",
+  "en": "Customize your own mix, from {scenery} ›"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery_2": {
+  "text": "{scenery} をもとに自分だけの組み合わせを作る",
+  "en": "Customize your own mix, from {scenery}"
+ },
+ "settings.customize.environment": {
+  "text": "舞台",
+  "en": "Environment"
+ },
+ "settings.customize.follows_your_clock": {
+  "text": "時計に合わせる",
+  "en": "Follows your clock"
+ },
+ "settings.customize.landmark": {
+  "text": "ランドマーク",
+  "en": "Landmark"
+ },
+ "settings.customize.landscape": {
+  "text": "地形",
+  "en": "Landscape"
+ },
+ "settings.customize.live_weather": {
+  "text": "リアルタイムの天気",
+  "en": "Live weather"
+ },
+ "settings.customize.reset_a_row_to_put_the": {
+  "text": "行をリセットすると、風景の元の設定に戻ります。",
+  "en": "Reset a row to put the scenery's own choice back."
+ },
+ "settings.customize.reset_put_back_the_scenerys_own": {
+  "text": "リセット: 風景の元の設定に戻す",
+  "en": "Reset: put back the scenery's own choice"
+ },
+ "settings.customize.sceneries": {
+  "text": "‹ 風景",
+  "en": "‹ Sceneries"
+ },
+ "settings.customize.time_of_day": {
+  "text": "時間帯",
+  "en": "Time of day"
+ },
+ "settings.customize.weather": {
+  "text": "天気",
+  "en": "Weather"
+ },
+ "settings.decks.counting_your_trees": {
+  "text": "木を数えています…",
+  "en": "Counting your trees…"
+ },
+ "settings.decks.date_format": {
+  "text": "yyyy'年'M'月'd'日'",
+  "en": "d MMMM yyyy"
+ },
+ "settings.decks.days_before_date_grow_no_trees": {
+  "text": "{date} より前の日には木が育ちません。ヒートマップには表示されます (「ヒートマップ」タブ)。",
+  "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
+ },
+ "settings.decks.decks": {
+  "text": "デッキ",
+  "en": "Decks"
+ },
+ "settings.decks.keep_suspended_cards_in_their_trees": {
+  "text": "休止中のカードを木に残す",
+  "en": "Keep suspended cards in their trees"
+ },
+ "settings.decks.keep_the_trees_from_before_it": {
+  "text": "それより前の木を残す",
+  "en": "Keep the trees from before it"
+ },
+ "settings.decks.no_trees": {
+  "text": "木なし",
+  "en": "no trees"
+ },
+ "settings.decks.start_the_forest_on": {
+  "text": "森の開始日",
+  "en": "Start the forest on"
+ },
+ "settings.decks.they_keep_their_trees_size_but": {
+  "text": "木の大きさには数えられますが、木の健康を損なうことはありません。",
+  "en": "They keep their tree's size but never hurt its health."
+ },
+ "settings.decks.unticked_decks_grow_no_trees_you": {
+  "text": "チェックを外したデッキには木が育ちません。デッキの ⚙ メニューからも設定できます。",
+  "en": "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
+ },
+ "settings.decks.what_counts": {
+  "text": "対象",
+  "en": "What counts"
+ },
+ "settings.decks.your_forest_starts_on_your_first": {
+  "text": "森は最初の学習日 ({first}) から始まります。",
+  "en": "Your forest starts on your first day of study, {first}."
+ },
+ "settings.decks.your_forest_trees": {
+  "text": "森: <b>{trees}</b>",
+  "en": "Your forest: <b>{trees}</b>"
+ },
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "text": {
+   "other": "森: <b>{trees}</b> &nbsp;(それより前の {n} 本は除外)"
+  },
+  "en": {
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
+  }
+ },
+ "settings.decks.your_trees_from_before_it_stay": {
+  "text": "それより前の木は残ります。池、自然、動物は {date} から数えます。",
+  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+ },
+ "settings.dialog.about": {
+  "text": "情報",
+  "en": "About"
+ },
+ "settings.dialog.cancel": {
+  "text": "キャンセル",
+  "en": "Cancel"
+ },
+ "settings.dialog.decks": {
+  "text": "デッキ",
+  "en": "Decks"
+ },
+ "settings.dialog.done": {
+  "text": "完了",
+  "en": "Done"
+ },
+ "settings.dialog.forest": {
+  "text": "森",
+  "en": "Forest"
+ },
+ "settings.dialog.heatmap": {
+  "text": "ヒートマップ",
+  "en": "Heatmap"
+ },
+ "settings.dialog.put_the_settings_back_to_their": {
+  "text": "設定を既定値に戻しますか？",
+  "en": "Put the settings back to their defaults?"
+ },
+ "settings.dialog.resets_the_scenery_customize_and_surprise": {
+  "text": "リセットされるもの: 風景、「カスタマイズ」と「毎日おまかせ」の風景、自然 ({nature} に戻ります)、都市、森とヒートマップの表示場所 (完了したデッキでの表示も) とレイアウト、ヒートマップの表示、幅と埋め方、週の始まり、色分けの基準、色 (「学習量の多い日」も) とスタイル、アニメーション、植樹のメッセージ。\n\n保持されるもの: 外したデッキ、開始日 (それより前の木を残すか、ヒートマップと連続記録が開始日にどう従うか)、連続記録の数え方、休止中のカード、マークした日、スマートフォンの森。\n\n「キャンセル」を押すと、これまでの設定に戻ります。",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+ },
+ "settings.dialog.restore_defaults": {
+  "text": "既定値に戻す",
+  "en": "Restore defaults"
+ },
+ "settings.dialog.restore_defaults_2": {
+  "text": "既定値に戻す…",
+  "en": "Restore defaults…"
+ },
+ "settings.dialog.scenery": {
+  "text": "風景",
+  "en": "Scenery"
+ },
+ "settings.forest.a_forest_of_that_decks_own": {
+  "text": "そのデッキだけの森",
+  "en": "A forest of that deck's own"
+ },
+ "settings.forest.adds_a_memory_forest_deck_with": {
+  "text": "「Memory Forest」デッキを追加します。デッキのカードには、同期のたびに森とヒートマップが表示されます。",
+  "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
+ },
+ "settings.forest.animate_the_forest": {
+  "text": "森のアニメーション",
+  "en": "Animate the forest"
+ },
+ "settings.forest.covers_the_forest_and_the_heatmap": {
+  "text": "森とヒートマップに適用されます。",
+  "en": "Covers the forest and the heatmap."
+ },
+ "settings.forest.deck_screens": {
+  "text": "デッキ画面",
+  "en": "Deck screens"
+ },
+ "settings.forest.follow_system": {
+  "text": "システムに従う",
+  "en": "Follow system"
+ },
+ "settings.forest.forest_width": {
+  "text": "森の幅",
+  "en": "Forest width"
+ },
+ "settings.forest.layout": {
+  "text": "レイアウト",
+  "en": "Layout"
+ },
+ "settings.forest.main_screen": {
+  "text": "メイン画面",
+  "en": "Main screen"
+ },
+ "settings.forest.motion_and_messages": {
+  "text": "動きとメッセージ",
+  "en": "Motion and messages"
+ },
+ "settings.forest.nature": {
+  "text": "自然",
+  "en": "Nature"
+ },
+ "settings.forest.no_forest": {
+  "text": "森なし",
+  "en": "No forest"
+ },
+ "settings.forest.off": {
+  "text": "オフ",
+  "en": "Off"
+ },
+ "settings.forest.on": {
+  "text": "オン",
+  "en": "On"
+ },
+ "settings.forest.on_finished_decks_too": {
+  "text": "完了したデッキでも表示",
+  "en": "On finished decks too"
+ },
+ "settings.forest.on_your_phone": {
+  "text": "スマートフォン",
+  "en": "On your phone"
+ },
+ "settings.forest.px": {
+  "text": " px",
+  "en": " px"
+ },
+ "settings.forest.show_a_message_when_todays_tree": {
+  "text": "今日の木が植えられたらメッセージを表示",
+  "en": "Show a message when today's tree is planted"
+ },
+ "settings.forest.show_my_forest_on_my_phone": {
+  "text": "スマートフォンに森を表示",
+  "en": "Show my forest on my phone"
+ },
+ "settings.forest.where_it_shows": {
+  "text": "表示場所",
+  "en": "Where it shows"
+ },
+ "settings.forest.your_forest": {
+  "text": "全体の森",
+  "en": "Your forest"
+ },
+ "settings.forest.your_forest_that_decks_trees_lit": {
+  "text": "全体の森 (そのデッキの木を強調)",
+  "en": "Your forest, that deck's trees lit up"
+ },
+ "settings.heatmap.5_days_a_week": {
+  "text": "週 5 日",
+  "en": "5 days a week"
+ },
+ "settings.heatmap.680_px_or_less_where_there": {
+  "text": "680 px (狭い場所ではそれ以下)",
+  "en": "680 px, or less where there is less room"
+ },
+ "settings.heatmap.6_days_a_week": {
+  "text": "週 6 日",
+  "en": "6 days a week"
+ },
+ "settings.heatmap.85_of_the_forests_width": {
+  "text": "森の幅の 85%",
+  "en": "85% of the forest's width"
+ },
+ "settings.heatmap.85_of_the_room_it_has": {
+  "text": "使える幅の 85%: デッキ一覧の下か上の行、または横の列",
+  "en": "85% of the room it has: the row under or over the deck list, or its column beside it"
+ },
+ "settings.heatmap.a_day_off_keeps_your_streak": {
+  "text": "休みの日は連続記録を途切れさせませんが、日数には加算されません。",
+  "en": "A day off keeps your streak but doesn't add to it."
+ },
+ "settings.heatmap.auto": {
+  "text": "自動",
+  "en": "Auto"
+ },
+ "settings.heatmap.auto_day": {
+  "text": "{auto} ({day})",
+  "en": "{auto} ({day})"
+ },
+ "settings.heatmap.bigger_days": {
+  "text": "日を大きく",
+  "en": "Bigger days"
+ },
+ "settings.heatmap.by_year_and_streak_always_fit": {
+  "text": "「年別」と「連続記録」では、常に 1 年分を幅いっぱいに表示します。",
+  "en": "By year and Streak always fit a year to the width."
+ },
+ "settings.heatmap.colours": {
+  "text": "色",
+  "en": "Colours"
+ },
+ "settings.heatmap.deck_screens": {
+  "text": "デッキ画面",
+  "en": "Deck screens"
+ },
+ "settings.heatmap.every_day": {
+  "text": "毎日",
+  "en": "Every day"
+ },
+ "settings.heatmap.every_day_the_same_size_a": {
+  "text": "どの日も同じ大きさ: ヒートマップが広いほど多くの月を表示",
+  "en": "Every day the same size: a wider heatmap shows more months"
+ },
+ "settings.heatmap.fill_it_with": {
+  "text": "埋め方",
+  "en": "Fill it with"
+ },
+ "settings.heatmap.fixed": {
+  "text": "固定",
+  "en": "Fixed"
+ },
+ "settings.heatmap.follow_the_forest": {
+  "text": "森に合わせる",
+  "en": "Follow the forest"
+ },
+ "settings.heatmap.fri": {
+  "text": "金",
+  "en": "Fri"
+ },
+ "settings.heatmap.friday": {
+  "text": "金曜日",
+  "en": "Friday"
+ },
+ "settings.heatmap.full_width": {
+  "text": "全幅",
+  "en": "Full width"
+ },
+ "settings.heatmap.layout": {
+  "text": "レイアウト",
+  "en": "Layout"
+ },
+ "settings.heatmap.main_screen": {
+  "text": "メイン画面",
+  "en": "Main screen"
+ },
+ "settings.heatmap.mon": {
+  "text": "月",
+  "en": "Mon"
+ },
+ "settings.heatmap.monday": {
+  "text": "月曜日",
+  "en": "Monday"
+ },
+ "settings.heatmap.more_months": {
+  "text": "月を多く",
+  "en": "More months"
+ },
+ "settings.heatmap.sat": {
+  "text": "土",
+  "en": "Sat"
+ },
+ "settings.heatmap.saturday": {
+  "text": "土曜日",
+  "en": "Saturday"
+ },
+ "settings.heatmap.show_on": {
+  "text": "表示場所",
+  "en": "Show on"
+ },
+ "settings.heatmap.show_the_reviews_from_before_your": {
+  "text": "森の開始日より前の復習を表示",
+  "en": "Show the reviews from before your forest's start date"
+ },
+ "settings.heatmap.streak": {
+  "text": "連続記録",
+  "en": "Streak"
+ },
+ "settings.heatmap.style": {
+  "text": "スタイル",
+  "en": "Style"
+ },
+ "settings.heatmap.sun": {
+  "text": "日",
+  "en": "Sun"
+ },
+ "settings.heatmap.sunday": {
+  "text": "日曜日",
+  "en": "Sunday"
+ },
+ "settings.heatmap.ten_months_with_bigger_days_to": {
+  "text": "10 か月 (日を大きくして幅を埋める)",
+  "en": "Ten months, with bigger days to fill the width"
+ },
+ "settings.heatmap.the_start_date": {
+  "text": "開始日",
+  "en": "The start date"
+ },
+ "settings.heatmap.thu": {
+  "text": "木",
+  "en": "Thu"
+ },
+ "settings.heatmap.thursday": {
+  "text": "木曜日",
+  "en": "Thursday"
+ },
+ "settings.heatmap.tue": {
+  "text": "火",
+  "en": "Tue"
+ },
+ "settings.heatmap.tuesday": {
+  "text": "火曜日",
+  "en": "Tuesday"
+ },
+ "settings.heatmap.wed": {
+  "text": "水",
+  "en": "Wed"
+ },
+ "settings.heatmap.wednesday": {
+  "text": "水曜日",
+  "en": "Wednesday"
+ },
+ "settings.heatmap.week_starts_on": {
+  "text": "週の始まり",
+  "en": "Week starts on"
+ },
+ "settings.heatmap.width": {
+  "text": "幅",
+  "en": "Width"
+ },
+ "settings.heatmap.your_first_review": {
+  "text": "最初の復習",
+  "en": "Your first review"
+ },
+ "settings.heatmap.your_forests_start_date_is_set": {
+  "text": "森の開始日は「デッキ」タブで設定します。",
+  "en": "Your forest's start date is set on the Decks tab."
+ },
+ "settings.heatmap.your_streak_counts": {
+  "text": "連続記録の数え方",
+  "en": "Your streak counts"
+ },
+ "settings.heatmap.your_streak_counts_from": {
+  "text": "連続記録の起点",
+  "en": "Your streak counts from"
+ },
+ "settings.heatmap.your_systems_first_day_of_the": {
+  "text": "システムの週の始まり",
+  "en": "Your system's first day of the week"
+ },
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": {
+  "text": "システムの週の始まり: {day}",
+  "en": "Your system's first day of the week: {day}"
+ },
+ "settings.heatmap_look.blend_into": {
+  "text": "グラデーション先",
+  "en": "Blend into"
+ },
+ "settings.heatmap_look.busier_days": {
+  "text": "学習量の多い日",
+  "en": "Busier days"
+ },
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": {
+  "text": "Anki のダークモードでも、ライトモードと同じく学習量の多い日ほど暗くなります (「ペース」では速い日ほど)。",
+  "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
+ },
+ "settings.heatmap_look.colours_you_pick_one_dim_to": {
+  "text": "好きな色: 1 色 (淡い色から濃い色へ) か、2 色 (1 色目から 2 色目へのグラデーション)",
+  "en": "Colours you pick: one, dim to full, or two, blending from the first to the second"
+ },
+ "settings.heatmap_look.current_scenery": {
+  "text": "現在の風景",
+  "en": "Current scenery"
+ },
+ "settings.heatmap_look.custom": {
+  "text": "カスタム",
+  "en": "Custom"
+ },
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
+  "text": "Anki のダークモードでは、学習量の多い日ほど明るくなります (「ペース」では速い日ほど)。ライトモードでは常に暗くなります。",
+  "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
+ },
+ "settings.heatmap_look.lime_green_to_bright_lime": {
+  "text": "ライム: 緑から明るいライム色",
+  "en": "Lime: green to bright lime"
+ },
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
+  "text": "Review Heatmap の「炎」: 明るい赤から黄色",
+  "en": "Review Heatmap's Flame: bright red to yellow"
+ },
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
+  "text": "Review Heatmap の「氷」: 深い青から淡い氷色",
+  "en": "Review Heatmap's Ice: deep blue to pale ice blue"
+ },
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
+  "text": "Review Heatmap の「マゼンタ」: 濃いピンクから淡いピンク",
+  "en": "Review Heatmap's Magenta: deep pink to pale pink"
+ },
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
+  "text": "Review Heatmap の「オリーブ」: 濃いオリーブグリーンから淡い黄緑",
+  "en": "Review Heatmap's Olive: deep olive green to pale yellow-green"
+ },
+ "settings.heatmap_look.scenery": {
+  "text": "風景",
+  "en": "Scenery"
+ },
+ "settings.heatmap_look.the_busiest_days_colour": {
+  "text": "学習量が最も多い日の色",
+  "en": "The busiest days' colour"
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": {
+  "text": "学習量が最も多い日の色は、明るいページでは見えにくくなります。ヒートマップには選んだとおりに表示されます。",
+  "en": "Your busiest colour is hard to see on a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": {
+  "text": "学習量が最も多い日の色は、暗いページでは見えにくくなります。ヒートマップには選んだとおりに表示されます。",
+  "en": "Your busiest colour is hard to see on a dark page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": {
+  "text": "学習量が最も多い日の色は、暗いページでも明るいページでも見えにくくなります。ヒートマップには選んだとおりに表示されます。",
+  "en": "Your busiest colour is hard to see on a dark or a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_days_colour": {
+  "text": "学習量が最も多い日の色",
+  "en": "Your busiest days' colour"
+ },
+ "settings.heatmap_look.your_colour": {
+  "text": "選んだ色",
+  "en": "Your colour"
+ },
+ "settings.heatmap_look.your_colour_with_a_blend_the": {
+  "text": "選んだ色 (グラデーションでは学習量が最も少ない日の色)",
+  "en": "Your colour (with a blend: the quietest days')"
+ },
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": {
+  "text": "現在の風景の色、またはほかの風景の色 (風景を変えてもそのまま)",
+  "en": "Your current scenery's colours, or another scenery's, which stay when you change scenery"
+ },
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
+  "text": "現在の風景のタイル、またはほかの風景のタイル (風景を変えてもそのまま)",
+  "en": "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
+ },
+ "settings.layout.above_the_list": {
+  "text": "一覧の上",
+  "en": "Above the list"
+ },
+ "settings.layout.beside_it": {
+  "text": "横",
+  "en": "Beside it"
+ },
+ "settings.layout.beside_the_list_while_the_window": {
+  "text": "ウィンドウに余裕があれば一覧の横に、なければ下に表示します。デッキ画面では下に表示します。",
+  "en": "Beside the list while the window has room, under it otherwise. Deck screens keep them under it."
+ },
+ "settings.layout.first": {
+  "text": "先頭",
+  "en": "First"
+ },
+ "settings.layout.forest": {
+  "text": "森",
+  "en": "Forest"
+ },
+ "settings.layout.heatmap": {
+  "text": "ヒートマップ",
+  "en": "Heatmap"
+ },
+ "settings.layout.left": {
+  "text": "左",
+  "en": "Left"
+ },
+ "settings.layout.one_beside": {
+  "text": "片方を横",
+  "en": "One beside"
+ },
+ "settings.layout.right": {
+  "text": "右",
+  "en": "Right"
+ },
+ "settings.layout.side": {
+  "text": "位置",
+  "en": "Side"
+ },
+ "settings.layout.the_first_above_the_deck_list": {
+  "text": "先頭をデッキ一覧の上に、もう一方を下に",
+  "en": "The first above the deck list, the other under it"
+ },
+ "settings.layout.the_first_beside_the_deck_list": {
+  "text": "先頭をデッキ一覧の横に、もう一方を下に",
+  "en": "The first beside the deck list, the other under it"
+ },
+ "settings.layout.the_forest_and_the_heatmap_beside": {
+  "text": "ウィンドウに余裕があれば、森とヒートマップをデッキ一覧の横に",
+  "en": "The forest and the heatmap beside the deck list, while the window has room for them"
+ },
+ "settings.layout.the_forest_and_the_heatmap_under": {
+  "text": "森とヒートマップをデッキ一覧の下に",
+  "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_one_that_goes_beside_or": {
+  "text": "デッキ一覧の横か上に置くほうです。両方を並べるときは先に表示されます。デッキ画面もこれに従います。",
+  "en": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too."
+ },
+ "settings.layout.under_the_list": {
+  "text": "一覧の下",
+  "en": "Under the list"
+ },
+ "settings.patreon.enjoying_memory_forest": {
+  "text": "Memory Forest を楽しんでいますか？",
+  "en": "Enjoying Memory Forest?"
+ },
+ "settings.patreon.every_plus_scenery_joins_this_version": {
+  "text": "Plus の風景は、どれも後でこのバージョンにも追加されます。",
+  "en": "Every Plus scenery joins this version later on."
+ },
+ "settings.patreon.new_scenery_arrives_here_first_every": {
+  "text": "新しい風景が毎月、まずここに登場します。",
+  "en": "New scenery arrives here first, every month."
+ },
+ "settings.patreon.support_it_on_patreon_and_get": {
+  "text": "Patreon で支援すると、新しい風景を\nいち早く Memory Forest Plus で楽しめます",
+  "en": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
+ },
+ "settings.patreon.thank_you_for_supporting_memory_forest": {
+  "text": "<a href=\"{url}\">Patreon</a> で Memory Forest をご支援いただき、ありがとうございます",
+  "en": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.picker.improved": {
+  "text": "改良",
+  "en": "IMPROVED"
+ },
+ "settings.picker.label_is_in_memory_forest_plus": {
+  "text": "{label} は Memory Forest Plus で利用できます。<a href=\"{url}\">Patreon で入手</a>",
+  "en": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>"
+ },
+ "settings.picker.new": {
+  "text": "新着",
+  "en": "NEW"
+ },
+ "settings.picker.no_scenery_has_that_in_its": {
+  "text": "その名前の風景はありません。",
+  "en": "No scenery has that in its name."
+ },
+ "settings.picker.sceneries": {
+  "text": "風景",
+  "en": "Sceneries"
+ },
+ "settings.picker.search_n_sceneries": {
+  "text": {
+   "other": "{n} 件の風景を検索"
+  },
+  "en": {
+   "one": "Search {n} scenery",
+   "other": "Search {n} sceneries"
+  }
+ },
+ "settings.picker.this_week_only": {
+  "text": "今週のみ",
+  "en": "This week only"
+ },
+ "settings.picker.until_date": {
+  "text": "{date} まで",
+  "en": "Until {date}"
+ },
+ "settings.picker.your_own_mix_made_in_customize": {
+  "text": "「カスタマイズ」で作った自分だけの組み合わせです。風景を選ぶと、そこから作り直せます。",
+  "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
+ },
+ "settings.scenery.couldnt_find_this_city_check_the": {
+  "text": "この都市が見つかりません。綴りを確認するか、英語名を試してください。",
+  "en": "Couldn't find this city. Check the spelling, or try its English name."
+ },
+ "settings.scenery.couldnt_reach_the_weather_service_trying": {
+  "text": "天気サービスに接続できません。まもなく再試行します。",
+  "en": "Couldn't reach the weather service; trying again soon."
+ },
+ "settings.scenery.follow_the_real_weather_and_time": {
+  "text": "実際の天気と時間帯に合わせる",
+  "en": "Follow the real weather and time of day"
+ },
+ "settings.scenery.live_weather_from_met_norway_places": {
+  "text": "天気は MET Norway、地名は OpenStreetMap から取得します。空欄にすると時計だけに合わせます。",
+  "en": "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
+ },
+ "settings.scenery.scenery": {
+  "text": "風景",
+  "en": "Scenery"
+ },
+ "settings.scenery.your_city_e_g_berlin": {
+  "text": "都市 (例: 東京)",
+  "en": "Your city, e.g. Berlin"
+ },
+ "settings.surprise.only_one_ticked_the_same_scenery": {
+  "text": "1 つだけ選ぶと、毎日同じ風景になります。",
+  "en": "Only one ticked: the same scenery every day."
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": {
+  "text": "「毎日おまかせ」の風景 (全 {n} 件) ›",
+  "en": "Surprise me daily's sceneries (all {n}) ›"
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
+  "text": "「毎日おまかせ」の風景 ({n} 件中 {kept} 件) ›",
+  "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
+ },
+ "settings.surprise.untick_the_ones_youd_rather_not": {
+  "text": "見たくない風景のチェックを外してください。",
+  "en": "Untick the ones you'd rather not see."
+ },
+ "tooltip.a_big_learning_day_n_new": {
+  "text": {
+   "other": "<b>たくさん学習した日</b>: 新規カード {n} 枚 (普段は {usual} 枚)"
+  },
+  "en": {
+   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
+   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"
+  }
+ },
+ "tooltip.a_leech_here_mature_again_the": {
+  "text": "ここの定着しにくいカードが再び習熟期に: コマドリが 1 週間とどまります",
+  "en": "A leech here mature again: the robin stays a week"
+ },
+ "tooltip.a_quiet_pond": {
+  "text": "静かな池",
+  "en": "A quiet pond"
+ },
+ "tooltip.all_n_cards_suspended": {
+  "text": {
+   "other": "カード {n} 枚すべてが休止中"
+  },
+  "en": {
+   "one": "All {n} cards suspended",
+   "other": "All {n} cards suspended"
+  }
+ },
+ "tooltip.ancient": {
+  "text": "大樹",
+  "en": "ancient"
+ },
+ "tooltip.click_to_see_these_cards": {
+  "text": "クリックしてカードを表示",
+  "en": "Click to see these cards"
+ },
+ "tooltip.from_to": {
+  "text": "{from} ～ {to}",
+  "en": "{from} – {to}"
+ },
+ "tooltip.its_card_is_suspended": {
+  "text": "カードは休止中です",
+  "en": "Its card is suspended"
+ },
+ "tooltip.lasts_time": {
+  "text": "約 {time} もつ",
+  "en": "lasts ~{time}"
+ },
+ "tooltip.mature": {
+  "text": "成木",
+  "en": "mature"
+ },
+ "tooltip.n_cards": {
+  "text": {
+   "other": "カード {n} 枚"
+  },
+  "en": {
+   "one": "{n} card",
+   "other": "{n} cards"
+  }
+ },
+ "tooltip.n_days_without_reviews": {
+  "text": {
+   "other": "{n} 日間復習なし"
+  },
+  "en": {
+   "one": "{n} day without reviews",
+   "other": "{n} days without reviews"
+  }
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "text": {
+   "other": "{n} 日間復習なし ({from}～{to})"
+  },
+  "en": {
+   "one": "{n} day without reviews, from {from} to {to}",
+   "other": "{n} days without reviews, from {from} to {to}"
+  }
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "text": {
+   "other": "{n} 日間復習なし ({month})"
+  },
+  "en": {
+   "one": "{n} day without reviews, in {month}",
+   "other": "{n} days without reviews, in {month}"
+  }
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "text": {
+   "other": "ここの定着しにくいカード {n} 枚が再び習熟期に: コマドリが 1 週間とどまります"
+  },
+  "en": {
+   "one": "{n} leech here mature again: the robin stays a week",
+   "other": "{n} leeches here mature again: the robin stays a week"
+  }
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "text": {
+   "other": "ここに定着しにくいカードが {n} 枚: カードが再び習熟期 (間隔 21 日) になるまでカラスがとどまります"
+  },
+  "en": {
+   "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
+   "other": "{n} leeches here: the crows stay until the cards are mature again (21-day interval)"
+  }
+ },
+ "tooltip.n_months": {
+  "text": {
+   "other": "{n} か月"
+  },
+  "en": {
+   "one": "{n} month",
+   "other": "{n} months"
+  }
+ },
+ "tooltip.n_of_them_ancient": {
+  "text": {
+   "other": "うち {n} 本が大樹"
+  },
+  "en": {
+   "one": "{n} of them ancient",
+   "other": "{n} of them ancient"
+  }
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "text": {
+   "other": "{total} 枚中 {n} 枚が今週、再習得中または忘却"
+  },
+  "en": {
+   "one": "{n} of {total} relearning or lapsed this week",
+   "other": "{n} of {total} relearning or lapsed this week"
+  }
+ },
+ "tooltip.n_of_total_suspended": {
+  "text": {
+   "other": "{total} 枚中 {n} 枚が休止中"
+  },
+  "en": {
+   "one": "{n} of {total} suspended",
+   "other": "{n} of {total} suspended"
+  }
+ },
+ "tooltip.n_older_trees": {
+  "text": {
+   "other": "それより古い木 {n} 本"
+  },
+  "en": {
+   "one": "{n} older tree",
+   "other": "{n} older trees"
+  }
+ },
+ "tooltip.n_years": {
+  "text": "{n} 年",
+  "en": "{n} years"
+ },
+ "tooltip.old": {
+  "text": "老木",
+  "en": "old"
+ },
+ "tooltip.pct_remembered": {
+  "text": "約 {pct}% を記憶",
+  "en": "~{pct}% remembered"
+ },
+ "tooltip.pct_still_going_well": {
+  "text": "{pct}% は順調",
+  "en": "{pct}% still going well"
+ },
+ "tooltip.planted_n_days_ago": {
+  "text": {
+   "other": "{n} 日前に植樹"
+  },
+  "en": {
+   "one": "planted {n} day ago",
+   "other": "planted {n} days ago"
+  }
+ },
+ "tooltip.planted_today": {
+  "text": "今日植樹",
+  "en": "planted today"
+ },
+ "tooltip.planted_yesterday": {
+  "text": "昨日植樹",
+  "en": "planted yesterday"
+ },
+ "tooltip.sapling": {
+  "text": "苗木",
+  "en": "sapling"
+ },
+ "tooltip.seedling": {
+  "text": "芽生え",
+  "en": "seedling"
+ },
+ "tooltip.the_deep_forest": {
+  "text": "森の奥",
+  "en": "The deep forest"
+ },
+ "tooltip.young": {
+  "text": "若木",
+  "en": "young"
+ },
+ "visitor.a_bear": {
+  "text": "クマ",
+  "en": "A bear"
+ },
+ "visitor.a_bear_came_you_kept_a": {
+  "text": "クマが来ました: 2 年連続の記録を達成",
+  "en": "A bear came: you kept a two-year streak"
+ },
+ "visitor.a_bear_wandered_in_you_kept": {
+  "text": "クマがやって来ました。2 年連続の記録を達成しました。",
+  "en": "A bear wandered in: you kept a two-year streak."
+ },
+ "visitor.a_cabin": {
+  "text": "小屋",
+  "en": "A cabin"
+ },
+ "visitor.a_cabin_came_your_forest_turned": {
+  "text": "小屋ができました: 森が 1 歳に",
+  "en": "A cabin came: your forest turned one year old"
+ },
+ "visitor.a_deer": {
+  "text": "シカ",
+  "en": "A deer"
+ },
+ "visitor.a_deer_came_you_kept_a": {
+  "text": "シカが来ました: 30 日連続の記録を達成",
+  "en": "A deer came: you kept a 30-day streak"
+ },
+ "visitor.a_deer_wandered_in_you_kept": {
+  "text": "シカがやって来ました。30 日連続の記録を達成しました。",
+  "en": "A deer wandered in: you kept a 30-day streak."
+ },
+ "visitor.a_family_of_squirrels": {
+  "text": "リスの家族",
+  "en": "A family of squirrels"
+ },
+ "visitor.a_family_of_squirrels_came_you": {
+  "text": "リスの家族が来ました: 10,000 枚のカードをしっかり覚えました",
+  "en": "A family of squirrels came: you knew 10,000 cards well"
+ },
+ "visitor.a_family_of_squirrels_wandered_in": {
+  "text": "リスの家族がやって来ました。10,000 枚のカードをしっかり覚えました。",
+  "en": "A family of squirrels wandered in: you knew 10,000 cards well."
+ },
+ "visitor.a_fox": {
+  "text": "キツネ",
+  "en": "A fox"
+ },
+ "visitor.a_fox_came_you_passed_10": {
+  "text": "キツネが来ました: 復習 10,000 回を突破",
+  "en": "A fox came: you passed 10,000 reviews"
+ },
+ "visitor.a_fox_wandered_in_you_passed": {
+  "text": "キツネがやって来ました。復習 10,000 回を突破しました。",
+  "en": "A fox wandered in: you passed 10,000 reviews."
+ },
+ "visitor.a_heron": {
+  "text": "サギ",
+  "en": "A heron"
+ },
+ "visitor.a_heron_came_a_pond_formed": {
+  "text": "サギが来ました: 休んだ場所に池ができました",
+  "en": "A heron came: a pond formed where you took a break"
+ },
+ "visitor.a_heron_wandered_in_a_pond": {
+  "text": "サギがやって来ました。休んだ場所に池ができました。",
+  "en": "A heron wandered in: a pond formed where you took a break."
+ },
+ "visitor.a_little_cabin_now_stands_at": {
+  "text": "森のはずれに小さな小屋が建ちました。最初の木から 1 年です。",
+  "en": "A little cabin now stands at the edge of your forest: a year since your first tree."
+ },
+ "visitor.a_rabbit": {
+  "text": "ウサギ",
+  "en": "A rabbit"
+ },
+ "visitor.a_rabbit_came_your_forest_reached": {
+  "text": "ウサギが来ました: 森が 50 本に",
+  "en": "A rabbit came: your forest reached 50 trees"
+ },
+ "visitor.a_rabbit_wandered_in_your_forest": {
+  "text": "ウサギがやって来ました。森が 50 本になりました。",
+  "en": "A rabbit wandered in: your forest reached 50 trees."
+ },
+ "visitor.a_stag": {
+  "text": "雄ジカ",
+  "en": "A stag"
+ },
+ "visitor.a_stag_came_you_kept_a": {
+  "text": "雄ジカが来ました: 100 日連続の記録を達成",
+  "en": "A stag came: you kept a 100-day streak"
+ },
+ "visitor.a_stag_wandered_in_you_kept": {
+  "text": "雄ジカがやって来ました。100 日連続の記録を達成しました。",
+  "en": "A stag wandered in: you kept a 100-day streak."
+ },
+ "visitor.an_eagle": {
+  "text": "ワシ",
+  "en": "An eagle"
+ },
+ "visitor.an_eagle_came_you_knew_25": {
+  "text": "ワシが来ました: 25,000 枚のカードをしっかり覚えました",
+  "en": "An eagle came: you knew 25,000 cards well"
+ },
+ "visitor.an_eagle_wandered_in_you_knew": {
+  "text": "ワシがやって来ました。25,000 枚のカードをしっかり覚えました。",
+  "en": "An eagle wandered in: you knew 25,000 cards well."
+ },
+ "visitor.an_owl": {
+  "text": "フクロウ",
+  "en": "An owl"
+ },
+ "visitor.an_owl_came_your_first_tree": {
+  "text": "フクロウが来ました: 最初の木が大樹に",
+  "en": "An owl came: your first tree became ancient"
+ },
+ "visitor.an_owl_wandered_in_your_first": {
+  "text": "フクロウがやって来ました。最初の木が大樹になりました。",
+  "en": "An owl wandered in: your first tree became ancient."
+ },
+ "visitor.built_when_your_forest_turned_one": {
+  "text": "森が 1 歳になったときに建ちました。",
+  "en": "Built when your forest turned one year old."
+ },
+ "visitor.moved_in_when_a_pond_formed": {
+  "text": "休んだ場所に池ができたときに住み着きました。",
+  "en": "Moved in when a pond formed where you took a break."
+ },
+ "visitor.moved_in_when_you_kept_a": {
+  "text": "30 日連続の記録を達成したときに住み着きました。",
+  "en": "Moved in when you kept a 30-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_2": {
+  "text": "100 日連続の記録を達成したときに住み着きました。",
+  "en": "Moved in when you kept a 100-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_3": {
+  "text": "2 年連続の記録を達成したときに住み着きました。",
+  "en": "Moved in when you kept a two-year streak."
+ },
+ "visitor.moved_in_when_you_knew_10": {
+  "text": "10,000 枚のカードをしっかり覚えたときに住み着きました。",
+  "en": "Moved in when you knew 10,000 cards well."
+ },
+ "visitor.moved_in_when_you_knew_25": {
+  "text": "25,000 枚のカードをしっかり覚えたときに住み着きました。",
+  "en": "Moved in when you knew 25,000 cards well."
+ },
+ "visitor.moved_in_when_you_passed_10": {
+  "text": "復習 10,000 回を突破したときに住み着きました。",
+  "en": "Moved in when you passed 10,000 reviews."
+ },
+ "visitor.moved_in_when_your_first_tree": {
+  "text": "最初の木が大樹になったときに住み着きました。",
+  "en": "Moved in when your first tree became ancient."
+ },
+ "visitor.moved_in_when_your_forest_reached": {
+  "text": "森が 50 本になったときに住み着きました。",
+  "en": "Moved in when your forest reached 50 trees."
+ },
+ "zoom.back_to_the_whole_forest": {
+  "text": "森全体に戻る",
+  "en": "Back to the whole forest"
+ },
+ "zoom.next_day": {
+  "text": "次の日",
+  "en": "Next day"
+ },
+ "zoom.pinch_or_double_tap_to_zoom": {
+  "text": "ピンチかダブルタップでズーム、ドラッグで歩き回り、木をタップして選択",
+  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
+ },
+ "zoom.planted_date": {
+  "text": "{date} に植樹",
+  "en": "Planted {date}"
+ },
+ "zoom.previous_day": {
+  "text": "前の日",
+  "en": "Previous day"
+ },
+ "zoom.scroll_or_press_to_zoom_drag": {
+  "text": "スクロールか ↑ ↓ キーでズーム、ドラッグか ← → キーで歩き回り、木をクリックして選択",
+  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ },
+ "zoom.the_tree_of_the_day_after": {
+  "text": "翌日の木",
+  "en": "The tree of the day after"
+ },
+ "zoom.the_tree_of_the_day_before": {
+  "text": "前日の木",
+  "en": "The tree of the day before"
+ },
+ "zoom.zoom_in_among_the_trees": {
+  "text": "木々の間にズーム",
+  "en": "Zoom in among the trees"
+ }
+}

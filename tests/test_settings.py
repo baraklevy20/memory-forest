@@ -134,9 +134,13 @@ class FakeBar:
     """A tab bar: each character 8 px wide, each tab 100 px from x 0, any widget put on a tab
     (which there must be none of)."""
 
-    def __init__(self):
+    def __init__(self, rtl: bool = False):
         self.props, self.buttons, self.filters = {}, [], []
+        self.rtl = rtl
         self.ButtonPosition = types.SimpleNamespace(RightSide=1, LeftSide=0)
+
+    def isRightToLeft(self):
+        return self.rtl
 
     def property(self, key):
         return self.props.get(key)
@@ -202,6 +206,18 @@ class NewTabTests(unittest.TestCase):
         name_end = 150 - 8 * len(text) // 2 + 8 * len("Heatmap")
         self.assertEqual(badge.at[0], name_end + whats_new.TAB_GAP)
         self.assertLessEqual(badge.at[0] + badge.width(), 150 + 8 * len(text) // 2)  # (inside the room made)
+
+    def test_right_to_left_the_pill_sits_before_the_name(self):
+        # (the name on the right of the room made, so the pill goes on its left)
+        tabs = FakeTabs("Scenery", "Heatmap")
+        tabs.bar.rtl = True
+        whats_new.tag_tab(tabs, 1)
+        badge, text = self.badges[0], tabs.names[1]
+        self.assertTrue(text.startswith("\u202b"))  # (embedded right to left: widgets.bidi)
+        text = text.strip("\u202b\u202c")  # (marks that take no room)
+        name_start = 150 + 8 * len(text) // 2 - 8 * len("Heatmap")
+        self.assertEqual(badge.at[0] + badge.width(), name_start - whats_new.TAB_GAP)
+        self.assertGreaterEqual(badge.at[0], 150 - 8 * len(text) // 2)  # (inside the room made)
 
     def test_kept_in_place_when_the_bar_is_laid_out_again(self):
         tabs = FakeTabs("Heatmap")

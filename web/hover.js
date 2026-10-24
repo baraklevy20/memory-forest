@@ -10,13 +10,12 @@ const TIP_OFFSET = 14, TIP_MARGIN = 6;
 // Something that can be watched again (a strike) says so: with a mouse, a click does it; on
 // a touch screen, where a tap is a hover and a click at once, the first tap only opens the
 // tooltip, and a second tap on the same thing does it.
-AF.watchHint = touched => `<br><span class="af-hint">${touched ? 'Tap again' : 'Click'} to watch it again</span>`;
+AF.watchHint = touched => `<br><span class="af-hint">${touched ? AF.t('hover.tap_again_to_watch_it_again') : AF.t('hover.click_to_watch_it_again')}</span>`;
 
 /* Wire up one mounted forest. `env()` is the scene as currently built (it is rebuilt on a
  * resize), and `redraw()` draws a still forest's moment again. Returns what the runner
  * draws of it each frame. */
 AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, redraw }) {
-  const words = AF.WORDS;
   let hover = null, deepHover = null, eventHover = null, touched = false, armed = null, shown = null;  // armed: what one more tap replays; shown: the tip as written
   let linkedAgo = null, lifted = null;
   const plantedDays = new Set((data.calendar && data.calendar.planted || []).map(t => t[0]));
@@ -171,7 +170,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       }
       else if (hit.deep) {
         hover = null;
-        html = AF.tips.deep(hit.deep, words);
+        html = AF.tips.deep(hit.deep);
         canvas.style.cursor = data.inAnki && !data.testForest ? 'pointer' : '';
         deepHover = hit.deep;
       }
@@ -179,7 +178,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         hover = { x: hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it };
         // zoomed in, a click picks a tree first (web/visit.js)
         const zoom = root.afVisits, picks = !hit.pond && zoom && zoom.on && zoom.picked !== hit.p.it.index;
-        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, words, picks ? `${touched ? 'Tap' : 'Click'} to select it` : '');
+        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, picks ? (touched ? AF.t('hover.tap_to_select_it') : AF.t('hover.click_to_select_it')) : '');
         canvas.style.cursor = !hit.pond && (picks || (data.inAnki && !data.testForest)) ? 'pointer' : '';
       }
       // the same thing pointed at as before: the tip only follows the pointer (rewriting it, and

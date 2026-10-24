@@ -101,7 +101,9 @@ AF.events.add('tumbleweeds', {
   pick(env, data, mx, my) {
     const b = data.backlog;
     if (!b || !b.hell || !(env.tumbleBoxes || []).some(r => mx >= r.x0 && mx <= r.x1 && my >= r.y0 && my <= r.y1)) return null;
-    return { html: `<b>Review hell</b>: ${b.overdue} reviews overdue${b.usual ? `, where a usual day has ${b.usual}` : ''}. Clear them and the tumbleweeds blow away.` };
+    return { html: b.usual
+      ? AF.tn('event.tumbleweeds.review_hell_n_reviews_overdue_where', b.overdue, { n: b.overdue, usual: b.usual })
+      : AF.tn('event.tumbleweeds.review_hell_n_reviews_overdue_clear', b.overdue, { n: b.overdue }) };
   },
 });
 })();

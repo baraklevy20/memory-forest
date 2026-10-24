@@ -8,6 +8,7 @@ from aqt.qt import QCheckBox, QComboBox, QHBoxLayout, QLineEdit, QSizePolicy, QS
 
 from .. import news, presets
 from ..edition import debug_edition, edition_presets
+from ..i18n import N_, t, tx
 from ..live_weather import city_problem
 from ..seasons import offer_day
 from ..state import animation_mode
@@ -17,12 +18,11 @@ from .scenery_picker import SceneryPicker
 from .surprise_page import SurprisePage
 from .widgets import Link, Tab, error_style, group, hint, resize_with, set_options, set_quietly
 
-CITY_NOTE = "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
+CITY_NOTE = N_("settings.scenery.live_weather_from_met_norway_places")
 CITY_MIN_W = 120  # points: the city field takes the rest of the real-sky row, but never less
 SEARCH_W = 240  # points: the search, on the group title's row
 LINK_GAP = 24  # points between the links under the tiles
 TILES, CUSTOMIZE, SURPRISE = 0, 1, 2  # the stack's pages
-SURPRISE_LINK = "Surprise me daily's sceneries ({}) ›"
 
 
 def preset_options(day, chosen: str | None, edition: str = "") -> list:
@@ -48,10 +48,10 @@ class SceneryTab(Tab):
         self.picker.new_keys = set(new_keys)  # the sceneries announced as new, not yet tried
         self.picker.improved_keys = set(improved_keys)  # and those announced as improved
         self.picker.set_choices(self.scenery_choices(), presets.match(cfg), day)
-        self.real_sky = QCheckBox("Follow the real weather and time of day")
+        self.real_sky = QCheckBox(t("settings.scenery.follow_the_real_weather_and_time"))
         self.real_sky.setChecked(presets.follows_real_sky(cfg))
         self.city = QLineEdit(cfg.get("city", ""))
-        self.city.setPlaceholderText("Your city, e.g. Berlin")
+        self.city.setPlaceholderText(t("settings.scenery.your_city_e_g_berlin"))
         self.city.setMinimumWidth(CITY_MIN_W)
         self.city_status = hint("")
         self.city_status.setStyleSheet(error_style())
@@ -92,10 +92,10 @@ class SceneryTab(Tab):
         sky.addWidget(self.city, 1)
         sv.addLayout(sky)
         sv.addWidget(self.city_status)
-        sv.addWidget(hint(CITY_NOTE))
+        sv.addWidget(hint(tx(CITY_NOTE)))
         v = QVBoxLayout(self)
         v.addWidget(banner())
-        v.addWidget(group("Scenery", sv, beside=self.picker.search))
+        v.addWidget(group(t("settings.scenery.scenery"), sv, beside=self.picker.search))
         v.addStretch(1)
 
     def show_customize(self, on: bool) -> None:
@@ -125,7 +125,7 @@ class SceneryTab(Tab):
     def _surprise_line(self) -> None:
         """The way to Surprise me daily's sceneries: only while it is the scenery chosen (its
         maintainer's call, 2026-10-19: a greyed link to it read as clutter under every other scenery)."""
-        self.surprise_link.setText(SURPRISE_LINK.format(self.surprise.summary()))
+        self.surprise_link.setText(self.surprise.link_text())
         self.surprise_link.setVisible(self.preset.currentData() == presets.DAILY)
 
     def _size_to_page(self) -> None:
@@ -190,12 +190,12 @@ class SceneryTab(Tab):
         # the last lookup of this city, if it went wrong
         problem = city_problem(self.city.text()) if live else ""
         self.city_status.setText("" if not problem else
-                                 "Couldn't find this city. Check the spelling, or try its English name." if problem.startswith("city not found")
-                                 else "Couldn't reach the weather service; trying again soon.")
+                                 t("settings.scenery.couldnt_find_this_city_check_the") if problem.startswith("city not found")
+                                 else t("settings.scenery.couldnt_reach_the_weather_service_trying"))
         self.city.setEnabled(live)
         self.city_status.setVisible(bool(problem))
         self.custom.sync()
-        self.customize.setText(f"Customize {self.custom.name()} ›")
+        self.customize.setText(self.custom.link_text())
         self._surprise_line()
         if key != presets.DAILY and self.stack.currentIndex() == SURPRISE:
             self.show_page(TILES)  # (Surprise me daily no longer chosen: its page has nothing to say)

@@ -107,22 +107,24 @@ AF.events.add('fire', {
     for (const p of env.placed) if (p.it.smoke && !p.it.pond) { const c = crown(env, p); if (c.cols.length) plume(g, p, c, WISP, t); }
   },
   // the caption's item while it burns: [text, tooltip]
-  caption(data, words) {
+  caption(data) {
     const fire = data.fire;
-    if (fire && fire.smoke) return [['Smoke: study today', smokeText]];
+    if (fire && fire.smoke) return [[AF.t('event.fire.smoke_study_today'), smokeText()]];
     if (!fire || !fire.trees) return [];
     const n = fire.trees, left = fire.left;
-    return [[`Fire: ${n} ${n === 1 ? words.one : words.many}`,
-      `${n} ${n === 1 ? words.one : words.many} caught fire while you were away. ${left} more day${left === 1 ? '' : 's'} of study ${left === 1 ? 'puts' : 'put'} it out.`]];
+    // (two sentences: how many trees burn, then how many days put it out)
+    return [[AF.tn('event.fire.fire_n_trees', n, { n }),
+      AF.tn('event.fire.n_trees_caught_fire_while_you', n, { n }) + ' '
+      + AF.tn('event.fire.n_more_days_of_study_put', left, { n: left })]];
   },
 });
 
-const smokeText = 'Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire.';
+const smokeText = () => AF.t('event.fire.smoke_is_rising_after_two_days');
 
 /* what a burning (or smoking) tree's tooltip adds */
 AF.fireLine = t => {
-  if (!t.burn) return `<b>Smoking</b>: ${smokeText}`;
+  if (!t.burn) return `<b>${AF.t('event.fire.smoking')}</b>: ${smokeText()}`;
   const left = Math.max(1, Math.round(t.burn * HEAL_DAYS));
-  return `<b>On fire</b>: it caught while you were away · green again after ${left} more day${left === 1 ? '' : 's'} of study`;
+  return AF.tn('event.fire.on_fire_it_caught_while_you', left, { n: left });
 };
 })();

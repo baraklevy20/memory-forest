@@ -1,9 +1,10 @@
 // node e2e/heatmap_check.mjs <heatmap.html> <chrome>: e2e/heatmap_check.py's look at the heatmap's
 // hover layers, in headless Chrome. Prints JSON: { states: { state: [{ name, off }] }, errors },
 // `off` "" where a year's layer lies on its weeks, else how far it is.
+// (text is read without the U+2066-2069 isolates a right-to-left page puts round its values: web/i18n.js)
 import puppeteer from 'puppeteer-core';
 
-const [html, chrome, forest, deep] = process.argv.slice(2);
+const [html, chrome, forest, deep, forestRtl] = process.argv.slice(2);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', args: ['--disable-gpu'] });
 const out = { states: {}, errors: [] };
@@ -19,7 +20,7 @@ try {
     const root = document.getElementById('p'), box = root.querySelector('.af-cal'), failures = [];
     const css = getComputedStyle(root), contentWidth = root.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
     if (Math.abs(box.getBoundingClientRect().width / contentWidth - 0.85) > 0.01) failures.push('heatmap is not 85% of the forest over it (Follow the forest)');
-    if (!box.querySelector('.af-cal-current')?.textContent.includes('days')) failures.push('current streak has no day-count label');
+    if (!box.querySelector('.af-cal-current')?.textContent.replace(/[\u2066-\u2069]/g, '').includes('days')) failures.push('current streak has no day-count label');
     box.querySelector('[data-view="timeline"]').click();
     // (as many months as its width holds at its days' size, calendar.js DAY_K: labels for all but a month cut short at an end)
     const months = Math.max(3, Math.min(24, Math.round(10 * box.getBoundingClientRect().width / (541 * 1.25)))), shown = box.querySelectorAll('.af-cal-months span[data-m]').length;
@@ -32,7 +33,7 @@ try {
       if (!button || button.hidden) { failures.push(`${mode} answer time unavailable`); continue; }
       button.click();
       if (!button.classList.contains('af-on')) failures.push(`${mode} answer time did not activate`);
-      if (!box.querySelector('.af-cal-key').textContent.includes('Slow')) failures.push(`${mode} answer time has no speed legend`);
+      if (!box.querySelector('.af-cal-key').textContent.replace(/[\u2066-\u2069]/g, '').includes('Slow')) failures.push(`${mode} answer time has no speed legend`);
     }
     box.querySelector('[data-by="reviews"]').click();
     return failures;
@@ -56,9 +57,55 @@ try {
   if (out.states['streak view'].length < 2) out.errors.push(`Streak view showed ${out.states['streak view'].length} row(s), not the streak's rows`);
   await (await p.$('[data-view="by_year"]')).click(); await wait(500);
   out.states['by year again'] = await look();
-  if (forest) {
-    await p.goto('file://' + forest);
+  // the same forest and heatmap, and again right to left (heatmap_check.py: English words, the
+  // panel's direction rtl): the days drawn mirrored, and the pointer and the keyboard on the day drawn
+  for (const [page, rtl] of [[forest, false], [forestRtl, true]]) {
+    if (!page) continue;
+    const said = rtl ? ' (right to left)' : '';
+    await p.goto('file://' + page);
     await p.waitForSelector('.af-cal-canvas');
+    if (rtl) out.errors.push(...(await p.evaluate(() => {
+      const root = document.getElementById('p'), failures = [], fail = m => failures.push(m);
+      if (!root.classList.contains('af-rtl') || getComputedStyle(root).direction !== 'rtl') fail('the panel does not read right to left');
+      const weeks = root.querySelector('.af-cal-canvas'), ring = root.querySelector('.af-cal-hover'), tipEl = root.querySelector('.af-cal-tip');
+      ring.style.transition = 'none';
+      const key = k => weeks.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+      const at = () => { const b = ring.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; };
+      weeks.focus(); key('Home');
+      const today = at(), todayTip = tipEl.textContent.replace(/[\u2066-\u2069]/g, '');
+      for (let i = 0; i < 20; i++) key('ArrowUp');
+      const before = at();
+      if (!(today[0] < before[0])) fail(`today is not left of the days before it: ${today[0]} vs ${before[0]}`);
+      // (← moves the way the screen shows: towards today, a week later)
+      key('ArrowLeft');
+      const left = at();
+      if (!(left[0] < before[0])) fail('← did not step a week to the left');
+      key('ArrowRight'); key('ArrowRight');
+      if (!(at()[0] > before[0])) fail('→ did not step a week to the right, into the earlier days');
+      key('Escape'); weeks.blur();
+      // the pointer on the day drawn there: its tooltip is the keyboard's
+      const move = ([x, y]) => weeks.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+      weeks.parentElement.dispatchEvent(new MouseEvent('mouseleave'));
+      move(today);
+      if (tipEl.textContent.replace(/[\u2066-\u2069]/g, '') !== todayTip) fail(`the pointer on today's tile told another day: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
+      // (and today's frame is drawn there: the canvas's pixel under the ring's edge is the frame's)
+      const r = weeks.getBoundingClientRect(), g = weeks.getContext('2d'), k = weeks.width / r.width;
+      const hb = ring.getBoundingClientRect();
+      const px = g.getImageData(Math.floor((hb.left + 1 - r.left) * k), Math.floor((hb.top + hb.height / 2 - r.top) * k), 1, 1).data;
+      if (!px[3]) fail('nothing drawn under the ring of today');
+      // the months: the weeks' first month at the right end, today's month to the left of it
+      const labels = [...root.querySelectorAll('.af-cal-months span:not([hidden])')];
+      if (labels.length > 1 && !(labels[0].getBoundingClientRect().left > labels[labels.length - 1].getBoundingClientRect().left)) fail('the months run left to right');
+      // the weekdays on the right, the arrows at the left end
+      const days = root.querySelector('.af-cal-days span'), box = root.querySelector('.af-cal').getBoundingClientRect();
+      if (days && !(days.getBoundingClientRect().left >= box.right - 2)) fail('the weekdays are not right of the weeks');
+      const acts = root.querySelector('.af-cal-grid > .af-cal-acts').getBoundingClientRect();
+      if (!(acts.left - box.left < 4)) fail('the arrows are not at the left end of the months row');
+      const earlier = root.querySelector('[data-go="-1"]').getBoundingClientRect(), later = root.querySelector('[data-go="1"]').getBoundingClientRect();
+      if (!(earlier.left > later.left)) fail('Earlier is not right of Later');
+      weeks.parentElement.dispatchEvent(new MouseEvent('mouseleave'));  // (the forest's checks start from rest)
+      return failures;
+    })).map(m => m + said));
     const checks = await p.evaluate(() => {
       const root = document.getElementById('p'), cv = root.querySelector('.af-canvas');
       const snapshot = () => cv.toDataURL();
@@ -90,14 +137,14 @@ try {
       weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
       for (let i = 0; i < tree.it.ago; i++) weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
       if (snapshot() === before) failures.push('keyboard day did not highlight its tree');
-      if (!root.querySelector('.af-cal-tip').textContent.includes('new cards')) failures.push('day tooltip omitted its planted cards');
+      if (!root.querySelector('.af-cal-tip').textContent.replace(/[\u2066-\u2069]/g, '').includes('new cards')) failures.push('day tooltip omitted its planted cards');
       // Return to this exact day through the mouse handler, not the public link callback.
       const dayRing = ring.getBoundingClientRect(), dayX = dayRing.left + dayRing.width / 2, dayY = dayRing.top + dayRing.height / 2;
       weeks.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       if (snapshot() !== before) failures.push('Escape did not clear the linked tree');
       weeks.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: dayX, clientY: dayY }));
       if (snapshot() === before) failures.push('mouse day did not highlight its tree');
-      if (!root.querySelector('.af-cal-tip').textContent.includes('Sep 10, 2026') && tree.it.date === '2026-09-10') failures.push('September 10 pointer selected the wrong date');
+      if (!root.querySelector('.af-cal-tip').textContent.replace(/[\u2066-\u2069]/g, '').includes('Sep 10, 2026') && tree.it.date === '2026-09-10') failures.push('September 10 pointer selected the wrong date');
       // a stretch picked with Shift and two clicks: its summary, the rest of the heatmap dimmed, its
       // trees lit in the forest, a click inside it opening it, Esc letting it go; then days apart
       const dayAt = n => {
@@ -113,7 +160,7 @@ try {
       const unpicked = snapshot(), tipEl = root.querySelector('.af-cal-tip');
       const click = ([x, y], shiftKey) => weeks.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y, shiftKey, detail: 1 }));
       click(first, true); click(second, true);
-      if (tipEl.hidden || !/ to /.test(tipEl.textContent) || !/Studied/.test(tipEl.textContent)) failures.push(`a stretch picked had no summary: "${tipEl.textContent}"`);
+      if (tipEl.hidden || !/ to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || !/Studied/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) failures.push(`a stretch picked had no summary: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       if (!root.querySelector('.af-cal-spot')) failures.push('a stretch picked did not dim the other days');
       if (snapshot() === unpicked) failures.push("a stretch picked did not light its trees");
       weeks.parentElement.dispatchEvent(new MouseEvent('mouseleave'));  // (the heatmap's own: it does not bubble up from the weeks)
@@ -134,7 +181,7 @@ try {
       click(first, true); click(second, true);
       const cmdClick = ([x, y]) => weeks.dispatchEvent(new MouseEvent('click', Object.assign({ bubbles: true, clientX: x, clientY: y, detail: 1 }, cmd)));
       cmdClick(third); cmdClick(apart);
-      if (!/^16 days, /.test(tipEl.textContent)) failures.push(`Cmd-clicks did not pick days apart: "${tipEl.textContent}"`);
+      if (!/^16 days, /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) failures.push(`Cmd-clicks did not pick days apart: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       sent.length = 0;
       window.pycmd = m => { sent.push(m); return false; };
       click(second, false);
@@ -144,7 +191,7 @@ try {
       if (root.querySelector('.af-cal-spot')) failures.push('Esc did not let the days picked go');
       return failures;
     });
-    out.errors.push(...checks);
+    out.errors.push(...checks.map(m => m + said));
     // picking, the rest of it: a plain click setting where Shift picks from, Shift+arrows, one day
     // read as that day, "to today", the count said once, the summary only while pointing, the dim
     // kept while picking (paged away, on every year shown) and on its weeks after paging and
@@ -189,14 +236,14 @@ try {
       const opened = sentBy(() => click(d20));
       if (!opened.some(m => /:day:-20:/.test(m))) fail(`a plain click did not open its day: ${opened}`);
       click(d5, { shiftKey: true });
-      if (!/ to /.test(tipEl.textContent) || dimAt(d9) !== 0 || dimAt(d3) <= 0) fail(`a Shift-click after a plain click did not pick the stretch: "${tipEl.textContent}"`);
+      if (!/ to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || dimAt(d9) !== 0 || dimAt(d3) <= 0) fail(`a Shift-click after a plain click did not pick the stretch: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       // the summary only while pointing; the dim stays at rest
       grid.dispatchEvent(new MouseEvent('mouseleave'));
       if (!tipEl.hidden || !spots().length) fail('at rest the summary stayed, or the dim went');
       move(d9);
-      if (tipEl.hidden || !/^[A-Z][a-z]{2} \d+ to /.test(tipEl.textContent)) fail(`pointing at a picked day did not give the summary: "${tipEl.textContent}"`);
+      if (tipEl.hidden || !/^[A-Z][a-z]{2} \d+ to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`pointing at a picked day did not give the summary: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       if (ring.hidden) fail('the day pointed at in a pick lost its ring');
-      if (!/Studied every day/.test(tipEl.textContent)) fail(`the stretch's summary: "${tipEl.textContent}"`);
+      if (!/Studied every day/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`the stretch's summary: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       // paged away: still dimmed, no summary left behind; back: on its weeks
       grid.dispatchEvent(new MouseEvent('mouseleave'));
       root.querySelector('[data-go="-1"]').click();
@@ -214,7 +261,7 @@ try {
       // Shift and the arrows pick from the keyboard
       weeks().focus(); key('Home'); key('ArrowUp'); key('ArrowUp');
       for (let i = 0; i < 4; i++) key('ArrowUp', { shiftKey: true });
-      if (!/ to /.test(tipEl.textContent) || dimAt(d5) !== 0) fail(`Shift+arrows did not pick: "${tipEl.textContent}"`);
+      if (!/ to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || dimAt(d5) !== 0) fail(`Shift+arrows did not pick: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       done(); esc();
       // one day selected reads as that day; a stretch up to today says so
       click(d9, cmd);
@@ -229,14 +276,14 @@ try {
         const l = [reach(clear, px, py, -1, 0), reach(clear, px, py, 1, 0), reach(clear, px, py, 0, -1), reach(clear, px, py, 0, 1)];
         if (f[0] - l[0] !== l[1] - f[1] || f[2] - l[2] !== l[3] - f[3]) fail(`a selected day's lit square is lopsided round its face: face ${f}, lit ${l}`);
       }
-      if (!/^[A-Z][a-z]+day, /.test(tipEl.textContent) || /Studied every day/.test(tipEl.textContent)) fail(`one day picked did not read as that day: "${tipEl.textContent}"`);
+      if (!/^[A-Z][a-z]+day, /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || /Studied every day/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`one day picked did not read as that day: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       esc();
       click(d3, { shiftKey: true }); click(d0, { shiftKey: true });
-      if (!/to today/.test(tipEl.textContent)) fail(`a stretch up to today did not say "to today": "${tipEl.textContent}"`);
+      if (!/to today/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`a stretch up to today did not say "to today": "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       esc();
       // days apart: their count said once
       click(d20, cmd); click(d9, cmd); click(d5, cmd);
-      if (!/^3 days, /.test(tipEl.textContent) || /of 3 days/.test(tipEl.textContent) || !/of them/.test(tipEl.textContent)) fail(`days apart: "${tipEl.textContent}"`);
+      if (!/^3 days, /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || /of 3 days/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || !/of them/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`days apart: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       // a click off the heatmap, a click on the forest, a right-click to mark: each lets them go
       document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
       if (spots().length) fail('a click off the heatmap did not let the pick go');
@@ -265,7 +312,7 @@ try {
       if (dimAt(earlier) !== 0 || dimAt(n9) !== 0) fail('a pick across two years did not light both days');
       if (dimAt(n0) <= 0) fail('a day not picked was not dimmed');
       move(earlier, pastCv);
-      if (!/^2 days, .*\d{4} to /.test(tipEl.textContent)) fail(`the summary across two years did not count both: "${tipEl.textContent}"`);
+      if (!/^2 days, .*\d{4} to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`the summary across two years did not count both: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       layersOn('with the earlier years shown');
       const both = sentBy(() => click(earlier, {}, pastCv));
       const runs = both.map(m => (m.match(/:days:([^:]*):/) || [])[1]).find(Boolean) || '';
@@ -278,8 +325,9 @@ try {
       root.querySelector('[data-view="by_year"]').click();
       return failures;
     });
-    out.errors.push(...picking);
-    if (!checks.length) out.states['linked hover in a still forest'] = [{ name: 'tree and day', off: '' }];
+    out.errors.push(...picking.map(m => m + said));
+    if (!checks.length) out.states['linked hover in a still forest' + said] = [{ name: 'tree and day', off: '' }];
+    if (rtl) out.states['by year, right to left'] = await look();
   }
   if (deep) {
     await p.goto('file://' + deep);

@@ -17,6 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(os.path.dirname(HERE), "web")
 sys.path.insert(0, os.path.dirname(HERE))
 import catalog
+import milestones
 import presets as presets_mod
 import scene
 
@@ -63,7 +64,7 @@ def scene_list() -> list:
 
     def fake(n, **cfg):
         f = forest_data.merge_old(fake_forest.make(n))
-        return item(f"{n} trees (test forest)", {"trees": f["trees"], "stats": f["stats"], "visitors": f["visitors"],
+        return item(f"{n} trees (test forest)", {"trees": f["trees"], "stats": f["stats"], "visitors": milestones.for_page(f["visitors"]),
                                                  "merged": f.get("merged"), "forestSeed": f["forest_seed"], "testForest": True}, **cfg)
 
     # the catalogue the settings dialog offers: each preset on your forest, then on a big one

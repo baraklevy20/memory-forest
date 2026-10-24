@@ -12,6 +12,8 @@ from aqt.qt import (
     QColor,
     QColorDialog,
     QEvent,
+    QFont,
+    QFontMetrics,
     QGridLayout,
     QHBoxLayout,
     QIcon,
@@ -23,6 +25,7 @@ from aqt.qt import (
     QPainterPath,
     QPen,
     QPixmap,
+    QPoint,
     QPushButton,
     QRectF,
     QSize,
@@ -34,9 +37,10 @@ from aqt.theme import theme_manager
 
 from .. import heatmap_look as HL
 from .. import presets, scene
+from ..i18n import N_, t, tx
 from ..live_weather import for_config
 from ..seasons import today
-from .widgets import JoinedChoice, form, hint, picture_button_style, pixel_ratio
+from .widgets import JoinedChoice, app_rtl, bidi, follow_direction, form, forward, hint, picture_button_style, pixel_ratio, rtl
 
 # a strip: the four shades of a day studied as the heatmap's tiles, side by side, at 1 tile pixel a
 # point (as the heatmap is at about that size)
@@ -44,36 +48,37 @@ STRIP_GAP = 2
 ICON_W, ICON_H = 4 * (HL.TILE + STRIP_GAP) - STRIP_GAP, HL.TILE
 SWATCH_W, SWATCH_H = 28, 16
 BUTTON_COLUMNS, BUTTON_GAP = 3, 6  # the ready ramps and the tiles, three to a row (the dialog stays its width)
-SCENERY_LABEL = "Scenery"
-SCENERY_READY_TIP = "{name}'s colours, on any scenery"
+SCENERY_LABEL = N_("settings.heatmap_look.scenery")
 # any scenery's colours, kept when the scenery changes: one button that opens a list of them (a button
 # each grew with every scenery, and several looked alike: Aurora, Starry night and Frozen market)
 # the scenery's colours, as a dropdown first among the ready ones: the scenery's own (they follow
 # it), or any scenery's, kept when you change the scenery (2026-10-16: one button, no row of its own)
 PICK_LABEL = "{name} \u25be"
-PICK_TIP = "Your current scenery's colours, or another scenery's, which stay when you change scenery"
-FOLLOW_NAME = "Current scenery"  # (plain words: "This scenery's own" read as complex, 2026-10-16)
+PICK_TIP = N_("settings.heatmap_look.your_current_scenerys_colours_or_another")
+FOLLOW_NAME = N_("settings.heatmap_look.current_scenery")  # (plain words: "This scenery's own" read as complex, 2026-10-16)
 # the sceneries' own tiles as one dropdown too, as the colours are (2026-10-23: a button each made one
 # long row, and grows with every scenery that draws its own): the current scenery's (they follow it),
 # or any scenery's that can be had just now; the basic styles beside it
-TILE_PICK_TIP = "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
-BUSIER_LABEL = "Busier days"
+TILE_PICK_TIP = N_("settings.heatmap_look.your_current_scenerys_tiles_or_another")
+BUSIER_LABEL = N_("settings.heatmap_look.busier_days")
 # the ready ramps' tooltips: what they run from and to (each scenery's says whose it is)
-READY_TIPS = {"olive": "Review Heatmap's Olive: deep olive green to pale yellow-green",
-              "lime": "Lime: green to bright lime",
-              "ice": "Review Heatmap's Ice: deep blue to pale ice blue",
-              "magenta": "Review Heatmap's Magenta: deep pink to pale pink",
-              "flame": "Review Heatmap's Flame: bright red to yellow"}
+READY_TIPS = {"olive": N_("settings.heatmap_look.review_heatmaps_olive_deep_olive_green"),
+              "lime": N_("settings.heatmap_look.lime_green_to_bright_lime"),
+              "ice": N_("settings.heatmap_look.review_heatmaps_ice_deep_blue_to"),
+              "magenta": N_("settings.heatmap_look.review_heatmaps_magenta_deep_pink_to"),
+              "flame": N_("settings.heatmap_look.review_heatmaps_flame_bright_red_to")}
 # Busier days, as joined buttons, shown only in Anki's dark mode, the only one it changes (a light
 # page's shades always run darker for more): no words needed to say which page it is for
 # (Pace turns too: its strong end is the faster days)
-BUSIER_TIPS = {"lighter": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker.",
-               "darker": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."}
-# each tile style's name and tooltip, as its file says (web/heatmap/<key>.json; heatmap_look.TILE_SPECS)
-TILE_LABELS = {k: v.get("label", k) for k, v in HL.TILE_SPECS.items()}
-TILE_TIPS = {k: v.get("tip", "") for k, v in HL.TILE_SPECS.items()}
-FAINT_NOTE = "Your busiest colour is hard to see on {pages} page. The heatmap shows it as you picked it."
-PAGE_NAMES = {"light": "a light", "dark": "a dark"}
+BUSIER_TIPS = {"lighter": N_("settings.heatmap_look.in_ankis_dark_mode_busier_days"),
+               "darker": N_("settings.heatmap_look.busier_days_are_darker_in_ankis")}
+# each tile style's name and tooltip, by id: i18n reads their English from web/heatmap/<key>.json
+TILE_LABELS = {k: f"heatmap_style.{k}" for k in HL.TILE_SPECS}
+TILE_TIPS = {k: f"heatmap_style.{k}.tip" if v.get("tip") else "" for k, v in HL.TILE_SPECS.items()}
+# (a whole sentence for each page it is faint on, or both)
+FAINT_NOTES = {("light",): N_("settings.heatmap_look.your_busiest_colour_is_hard_to"),
+               ("dark",): N_("settings.heatmap_look.your_busiest_colour_is_hard_to_2"),
+               ("dark", "light"): N_("settings.heatmap_look.your_busiest_colour_is_hard_to_3")}
 # (one line: SETTINGS_GUIDELINES.md; under the page's header, as it is about both groups. "Your colours
 # stay when you change the scenery" was cut: Scenery, the default, changes with it)
 
@@ -111,8 +116,24 @@ def _pixmap(pixels: dict, w: int, h: int, scale: int = 1) -> QPixmap:
 SMOOTH_R = 1.8
 
 
+def flipped(pm: QPixmap) -> QPixmap:
+    """A sample as the words read: right to left, mirrored, the quiet days on the right and the
+    busy ones on the left (as the heatmap's Less ... More key on the page)."""
+    if not rtl():
+        return pm
+    out = QPixmap.fromImage(pm.toImage().mirrored(True, False))
+    out.setDevicePixelRatio(pm.devicePixelRatio())
+    return out
+
+
 def strip(look: dict, drawer: str = HL.TILE_DEFAULT, sample: bool = False, page: tuple | None = None, gaps: bool = True,
           smooth: tuple | None = None) -> QPixmap:
+    """`_strip`, quiet to busy as the words read (flipped)."""
+    return flipped(_strip(look, drawer, sample, page, gaps, smooth))
+
+
+def _strip(look: dict, drawer: str = HL.TILE_DEFAULT, sample: bool = False, page: tuple | None = None, gaps: bool = True,
+           smooth: tuple | None = None) -> QPixmap:
     """The four shades of `look` (heatmap_look.preview_look) as tiles, on this theme's page (or
     `page`, (its colour, dark)); a tile sample (`sample`) at two points a pixel, so a texture
     shows; a shape with spaces between its days (`gaps`) as a tile for each, as the heatmap draws it;
@@ -135,7 +156,7 @@ def tile_sample(look: dict, key: str, cfg: dict, here_env: str) -> QPixmap:
     spec = HL.TILE_SPECS[key]
     drawer = "flat" if smooth and spec.get("smoothRadius") else HL.tile_env(dict(cfg, calendar_tiles=key), here_env)
     corners = (spec.get("smoothRadius", SMOOTH_R), spec.get("smoothGrow", 0)) if smooth and gaps else None
-    return _pair(strip(look, drawer, sample=True, gaps=gaps, smooth=corners), gaps)
+    return flipped(_pair(_strip(look, drawer, sample=True, gaps=gaps, smooth=corners), gaps))
 
 
 # a style's sample: a quiet day's tile and a busy day's, side by side at two points a pixel (all four
@@ -174,7 +195,7 @@ def menu_tile(look: dict, key: str, cfg: dict, here_env: str) -> QPixmap:
     spec = HL.TILE_SPECS[key]
     drawer = "flat" if smooth and spec.get("smoothRadius") else HL.tile_env(dict(cfg, calendar_tiles=key), here_env)
     corners = (spec.get("smoothRadius", SMOOTH_R), spec.get("smoothGrow", 0)) if smooth and gaps else None
-    pm = strip(look, drawer, sample=True, gaps=gaps, smooth=corners)
+    pm = _strip(look, drawer, sample=True, gaps=gaps, smooth=corners)
     shade = MENU_SHADE[page_bg()[1]]
     dpr = pm.devicePixelRatio()
     out = QPixmap(int(QUAD * dpr), int(QUAD * dpr))
@@ -292,7 +313,7 @@ QUAD = 2 * HL.TILE + STRIP_GAP  # (a menu's icons are square: the four shades tw
 
 
 def quad(look: dict, drawer: str = HL.TILE_DEFAULT) -> QPixmap:
-    """The four shades of `look` as tiles two by two, quietest top left, busiest bottom right: a
+    """The four shades of `look` as tiles two by two, quietest top left, busiest bottom right (mirrored right to left): a
     strip for a square place (the scenery picker's list)."""
     bg, dark = page_bg()
     shades = HL.shades(look["colours"], bg, dark, look.get("exact", False), look.get("flipLight", False), look.get("darker", False),
@@ -301,7 +322,7 @@ def quad(look: dict, drawer: str = HL.TILE_DEFAULT) -> QPixmap:
     for i, shade in enumerate(shades):
         for (x, y), c in HL.tile_pixels(drawer, shade, i).items():
             pixels[x + (i % 2) * (HL.TILE + STRIP_GAP), y + (i // 2) * (HL.TILE + STRIP_GAP)] = c
-    return _pixmap(pixels, QUAD, QUAD)
+    return flipped(_pixmap(pixels, QUAD, QUAD))  # (right to left, quietest top right)
 
 
 def swatch(hex_colour: str) -> QPixmap:
@@ -319,7 +340,7 @@ def swatch(hex_colour: str) -> QPixmap:
 
 def option_button(label: str, tip: str = "") -> QPushButton:
     """A choice drawn as a picture and a word, as Nature's are."""
-    b = QPushButton(f" {label}")
+    b = QPushButton(f" {label}")  # (a space between the picture and the word)
     b.setIconSize(QSize(ICON_W, ICON_H))
     b.setAutoDefault(False)  # Enter in the dialog means Done
     b.setCheckable(True)
@@ -337,7 +358,7 @@ class PickButton(QPushButton):
     opens (every scenery's strip was painted again at each change of the tab)."""
 
     def __init__(self, choices, icons, tip: str, follow: str = HL.MATCH):
-        super().__init__(PICK_LABEL.format(name=SCENERY_LABEL))
+        super().__init__(PICK_LABEL.format(name=tx(SCENERY_LABEL)))
         # (`follow`: the key that follows the scenery, named "Scenery" on the button)
         self.choices, self.icons, self.follow, self.key, self.picked = choices, icons, follow, follow, None
         self.setIconSize(QSize(ICON_W, ICON_H))
@@ -360,22 +381,28 @@ class PickButton(QPushButton):
     def set_key(self, key) -> None:
         """(its strip is drawn with the others': LookControls.refresh)"""
         self.key = key
-        name = SCENERY_LABEL if key == self.follow else next((n for k, n in self.choices() if k == key), key)
+        name = tx(SCENERY_LABEL) if key == self.follow else next((n for k, n in self.choices() if k == key), key)
         self.setText(PICK_LABEL.format(name=name))
 
     def _open(self) -> None:
-        menu = QMenu(self)
+        menu = follow_direction(QMenu(self))
         menu.setStyleSheet(f"QMenu {{ icon-size: {QUAD}px; }}")  # (each picture at its own size: square)
         icons = self.icons()
         for i, (key, name) in enumerate(self.choices()):
             if i == 1:
                 menu.addSeparator()  # (the scenery's own, then every scenery's)
-            act = menu.addAction(icons[key], name)
+            act = menu.addAction(icons[key], bidi(name, menu.isRightToLeft()))
             act.setIconVisibleInMenu(True)  # (macOS leaves menus' icons out unless asked)
             if self.isChecked() and key == self.key:  # (the one chosen in bold: a tick took the strip's place)
                 font = act.font(); font.setBold(True); act.setFont(font)
             act.triggered.connect(lambda _c=False, k=key: self._pick(k))
-        menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
+        if menu.isRightToLeft() and not app_rtl():
+            _right_align(menu)
+        # (under the button, from the corner its words start at)
+        at = self.rect().bottomLeft()
+        if self.isRightToLeft():  # (its right edge under the button's)
+            at = self.rect().bottomRight() - QPoint(menu.sizeHint().width() - 1, 0)
+        menu.exec(self.mapToGlobal(at))
 
     def _pick(self, key) -> None:
         was = self.isChecked() and self.key
@@ -383,6 +410,26 @@ class PickButton(QPushButton):
         self.setChecked(True)  # (the group unchecks the one chosen before and announces it)
         if was and was != key and self.picked:
             self.picked()
+
+
+def _right_align(menu: QMenu) -> None:
+    """A menu's names against its pictures, on the right, right to left: Qt draws a menu's text on
+    the left of its room whatever the menu's direction (it goes by the app's), so each name is led
+    by no-break spaces up to the widest."""
+    menu.ensurePolished()  # (a menu's own font, the system's for menus, only once polished)
+
+    def metrics(act) -> QFontMetrics:
+        font = QFont(menu.font())
+        font.setBold(act.font().bold())  # (the chosen one's in bold)
+        return QFontMetrics(font)
+    acts = [a for a in menu.actions() if not a.isSeparator()]
+    widest = max((metrics(a).horizontalAdvance(a.text()) for a in acts), default=0)
+    for a in acts:
+        fm, text = metrics(a), a.text()
+        # (one at a time, the whole line measured: a lone space's width is rounded, a row of them isn't)
+        while fm.horizontalAdvance("\u00a0" + text) <= widest:
+            text = "\u00a0" + text
+        a.setText(text)
 
 
 class OneOf(QButtonGroup):
@@ -410,7 +457,7 @@ class OneOf(QButtonGroup):
         if event.type() == QEvent.Type.KeyPress and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down):
             shown = [b for b in self.keys.values() if b.isVisible() and b.isEnabled()]
             if obj in shown:
-                at = shown.index(obj) + (1 if event.key() in (Qt.Key.Key_Right, Qt.Key.Key_Down) else -1)
+                at = shown.index(obj) + forward(obj, event.key())
                 if 0 <= at < len(shown):
                     if isinstance(shown[at], PickButton):  # (chosen for the colours it has, its list not opened)
                         shown[at].setChecked(True)
@@ -455,7 +502,7 @@ class LookControls(QObject):
         ready.setContentsMargins(0, 0, 0, 0)
         ready.setSpacing(BUTTON_GAP)
         # (the scenery's colours: its own, or any scenery's, from one dropdown: _scenery_choices)
-        self.scenery = PickButton(self._scenery_choices, self._scenery_icons, PICK_TIP)
+        self.scenery = PickButton(self._scenery_choices, self._scenery_icons, tx(PICK_TIP))
         self.scenery.picked = self._announce
         self.source.add("scenery", self.scenery)
         ready.addWidget(self.scenery, 0, 0)
@@ -463,22 +510,22 @@ class LookControls(QObject):
         # (a seasonal scenery's only in its week, a Plus one only in Plus: _place)
         # (a scenery this copy hasn't at all, a Plus one in the base edition's build, has no button)
         for key, label in HL.READY_LABELS.items():
-            b = option_button(label, READY_TIPS.get(key, ""))
+            b = option_button(tx(label), tx(READY_TIPS.get(key, "")))
             self.ready[key] = b
             self.source.add(HL.READY_PREFIX + key, b)
         self.ready_grid = ready
         # (Custom, not "Yours": with no row labels, the word says these are colours you pick; 2026-10-16)
-        self.yours = option_button("Custom", "Colours you pick: one, dim to full, or two, blending from the first to the second")
+        self.yours = option_button(t("settings.heatmap_look.custom"), t("settings.heatmap_look.colours_you_pick_one_dim_to"))
         self.source.add(HL.MINE, self.yours)
         self.first = QPushButton()
         self.second = QPushButton()
-        for b, tip, i in ((self.first, "Your colour (with a blend: the quietest days')", 0), (self.second, "The busiest days' colour", 1)):
+        for b, tip, i in ((self.first, t("settings.heatmap_look.your_colour_with_a_blend_the"), 0), (self.second, t("settings.heatmap_look.the_busiest_days_colour"), 1)):
             b.setIconSize(QSize(SWATCH_W, SWATCH_H))
             b.setAutoDefault(False)
             b.setToolTip(tip)
             b.setCursor(Qt.CursorShape.PointingHandCursor)
             b.clicked.connect(lambda _c=False, i=i: self._pick_colour(i))
-        self.blend = QCheckBox("Blend into")
+        self.blend = QCheckBox(t("settings.heatmap_look.blend_into"))
         self.blend.setChecked(HL.mine_two(cfg))
         self.blend.toggled.connect(self._blend_toggled)
         mine_row = QHBoxLayout()
@@ -491,11 +538,12 @@ class LookControls(QObject):
         mine_row.addWidget(self.second)
         mine_row.addStretch(1)
         # which way a dark page's shades run (a light page's never change), as joined buttons
-        self.busier = JoinedChoice(HL.BUSIER, HL.busier(cfg), "lighter", BUSIER_TIPS)
+        self.busier = JoinedChoice([(k, tx(label)) for k, label in HL.BUSIER], HL.busier(cfg), "lighter",
+                                   {k: tx(tip) for k, tip in BUSIER_TIPS.items()})
         self.busier_box = QWidget()
         busier_row = QHBoxLayout(self.busier_box)
         busier_row.setContentsMargins(0, 0, 0, 0)
-        busier_row.addWidget(QLabel(BUSIER_LABEL))  # (in its row: the rows above have no labels)
+        busier_row.addWidget(QLabel(tx(BUSIER_LABEL)))  # (in its row: the rows above have no labels)
         busier_row.addSpacing(BUTTON_GAP)
         busier_row.addWidget(self.busier)
         busier_row.addStretch(1)
@@ -506,14 +554,14 @@ class LookControls(QObject):
         tiles_row.setContentsMargins(0, 0, 0, 0)
         tiles_row.setSpacing(BUTTON_GAP)
         # (the sceneries' own tiles: the current scenery's, or any scenery's, from one dropdown: _tile_choices)
-        self.tile_pick = PickButton(self._tile_choices, self._tile_icons, TILE_PICK_TIP, follow=HL.TILE_FOLLOW)
+        self.tile_pick = PickButton(self._tile_choices, self._tile_icons, tx(TILE_PICK_TIP), follow=HL.TILE_FOLLOW)
         self.tile_pick.setIconSize(QSize(PAIR_W, PAIR_H))
         self.tile_pick.picked = lambda: self._tile_clicked(self.tile_pick.key)
         self.tile_choice.add(HL.TILE_FOLLOW, self.tile_pick)
         # then the basic styles, a button each
         self.tile_buttons = {}
         for key in HL.BASIC_TILES:
-            b = option_button(TILE_LABELS[key], TILE_TIPS[key])
+            b = option_button(tx(TILE_LABELS[key]), tx(TILE_TIPS[key]))
             b.setIconSize(QSize(PAIR_W, PAIR_H))  # (a quiet day's tile and a busy day's: _pair)
             self.tile_buttons[key] = b
             self.tile_choice.add(key, b)
@@ -577,7 +625,7 @@ class LookControls(QObject):
         self._announce()
 
     def _pick_colour(self, i: int) -> None:
-        picked = QColorDialog.getColor(QColor(self.mine[i]), (self.first, self.second)[i].window(), "Your colour" if i == 0 else "Your busiest days' colour")
+        picked = QColorDialog.getColor(QColor(self.mine[i]), (self.first, self.second)[i].window(), t("settings.heatmap_look.your_colour") if i == 0 else t("settings.heatmap_look.your_busiest_days_colour"))
         if not picked.isValid():
             return
         self.mine[i] = picked.name().lower()
@@ -661,7 +709,7 @@ class LookControls(QObject):
         that can be had just now (HL.scenery_ready_env): (key, name), each named as the scenery picker
         names it."""
         known = presets.by_key()
-        return [(HL.MATCH, FOLLOW_NAME)] + [(HL.READY_PREFIX + k, known[k].label) for k in HL.SCENERY_READY
+        return [(HL.MATCH, tx(FOLLOW_NAME))] + [(HL.READY_PREFIX + k, tx(known[k].name)) for k in HL.SCENERY_READY
                                            if k in known and HL.scenery_ready_env(k, self.edition_cfg)]
 
     def _scenery_icons(self) -> dict:
@@ -677,8 +725,8 @@ class LookControls(QObject):
         tiles that can be had just now (HL.tile_shown): (key, name), each named after its scenery as the
         scenery picker names it, as the colours' dropdown is (a style's own name, Rime or Brush, didn't
         say whose it was: 2026-10-23)."""
-        names = {p.environment: p.label for p in presets.FOREST_PRESETS}
-        return [(HL.TILE_FOLLOW, FOLLOW_NAME)] + [(k, names.get(HL.TILE_ENVS[k], TILE_LABELS[k])) for k in HL.SCENERY_TILES
+        names = {p.environment: p.name for p in presets.FOREST_PRESETS}
+        return [(HL.TILE_FOLLOW, tx(FOLLOW_NAME))] + [(k, tx(names.get(HL.TILE_ENVS[k], TILE_LABELS[k]))) for k in HL.SCENERY_TILES
                                                  if HL.tile_shown(k, self.edition_cfg)]
 
     def _tile_icons(self) -> dict:
@@ -757,7 +805,7 @@ class LookControls(QObject):
         # once in the tab: a widget shown before it has a parent flashes up as a window)
         mine_look = HL.preview_look(dict(self.edition_cfg, **self.values()), presets.by_key()[self.here].environment)
         faint = HL.faint_on(mine_look["colours"]) if self.source.currentData() == HL.MINE else []
-        self.faint.setText(FAINT_NOTE.format(pages=" or ".join(PAGE_NAMES[p] for p in faint)) if faint else "")
+        self.faint.setText(tx(FAINT_NOTES[tuple(p for p in ("dark", "light") if p in faint)]) if faint else "")
         if self.faint.parent() is not None:
             self.faint.setVisible(bool(faint))
         state = (self.here, self.hour, repr(sorted(self.values().items())), HL.debug_edition(self.edition_cfg), page_bg())

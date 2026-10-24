@@ -10,7 +10,7 @@
  *   grass(g, env, t)       each frame, over the forest but under the animals
  *   front(g, env, t)       each frame, in front of it all
  *   pick(env, data, mx, my, animate)   the pointer: a tooltip ({ html, replay }), or nothing
- *   caption(data, words, animate)      items for the line under the forest
+ *   caption(data, animate)             items for the line under the forest
  *   mount(root, data, opts, animate, seen)   before the forest is mounted: true to take over
  *
  * Events run in the order their files load (see catalog.SCRIPTS). */

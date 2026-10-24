@@ -9,8 +9,8 @@ from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, heatmap_look, journal, live_weather, marks, milestones, news, presets, scene, study_log
-from .edition import debug_available, debug_edition
+from . import events_state, forest_data, heatmap_look, i18n, journal, live_weather, marks, milestones, news, presets, scene, study_log
+from .edition import debug_available, debug_edition, debug_language
 from .phone_note import phone_cards
 from .scope import anki_today, changes, counts_since, day_cutoff, deck_ids, excluded_decks, since, trees_since
 from .seasons import follow_season, season_returns
@@ -194,6 +194,7 @@ def debug_tools(cfg: dict):
 
 def payload(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> dict:
     cfg = heatmap_look.follow_season(follow_season(config()))
+    i18n.set_override(debug_language(cfg))
     # the test forest is a developer's tool, so it only exists while debug is on
     tools = debug_tools(cfg)
     test = bool(tools) and bool(cfg.get("test_forest", False))
@@ -234,7 +235,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         # its day number is only for remembering ancient trees: the page needs neither
         "trees": [_for_page(t) for t in forest["trees"]],
         "stats": _page_stats(forest, cfg, test, did, highlight, changed, calendar),
-        "visitors": forest["visitors"],
+        "visitors": milestones.for_page(forest["visitors"]),
         "anniversaries": ann,
         "mood": mood,
         "journal": events_state.news_line(extras) or journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs,
@@ -246,6 +247,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "testForest": test,
         "animations": ANIMATION_VALUES[animation_mode(cfg)],
         "tooltips": True,
+        "i18n": i18n.page_strings(),  # the page's words in Anki's language (web/i18n.js)
         "zoom": zoom,
         "maxWidth": clamp_int(cfg.get("max_width"), MAX_WIDTH_DEFAULT, MAX_WIDTH_MIN, MAX_WIDTH_MAX),
         # where the forest and the heatmap sit round the deck list (web/core.js AF.arrange); a
@@ -253,7 +255,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "layout": layout(cfg, deck_screen=bool(did)),
         "credit": mood.get("source") == "real",
         "weatherError": weather_error,
-        "environmentName": scene.ENVIRONMENTS[mood["environment"]],
+        "environmentName": i18n.scenery("env", mood["environment"]),
         **_scene_name(cfg, day),
         "inAnki": True,
         "channel": MODULE,  # clicks go back as "<channel>:...", so only this add-on answers them
@@ -465,7 +467,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             # Compact planting dates survive the drawing limit, without sending old sprites.
             "planted": [[t["ago"], t["n"]] for t in trees],
-            "animals": milestones.animal_days(forest.get("visitors") or [], animal_trees, own, col.sched.today, test)
+            "animals": milestones.for_page(milestones.animal_days(forest.get("visitors") or [], animal_trees, own, col.sched.today, test))
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)
@@ -513,16 +515,18 @@ def _scene_name(cfg: dict, today: _dt.date) -> dict:
         return {}
     if key == "daily":
         pick = presets.of_the_day(today, leave_out=presets.left_out(cfg))
-        return {"sceneName": pick.label, "sceneTip": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."}
+        return {"sceneName": i18n.tx(pick.name),
+                "sceneTip": i18n.t("panel.todays_scenery_from_surprise_me_daily")}
     if key == presets.CUSTOM:
-        name = scene.ENVIRONMENTS.get(cfg.get("environment"), "")
-        return {"sceneName": name, "sceneTip": "Your own mix, from Customize in the forest settings."} if name else {}
+        name = i18n.scenery("env", cfg["environment"]) if cfg.get("environment") in scene.ENVIRONMENTS else ""
+        return {"sceneName": name, "sceneTip": i18n.t("panel.your_own_mix_from_customize_in")} if name else {}
     spec = presets.by_key()[key]
+    name = i18n.tx(spec.name)
     back = season_returns(cfg, today)
     if back:
-        return {"sceneName": spec.label,
-                "sceneTip": f"Seasonal scenery, for this week only. Yours comes back on {back.day} {back.strftime('%B')}."}
+        return {"sceneName": name,
+                "sceneTip": i18n.t("panel.seasonal_scenery_for_this_week_only", date=i18n.day_month(back))}
     if spec.season:  # picked by hand in its week: it goes with the week all the same
         last = presets.season_ends(spec, today) - _dt.timedelta(days=1)
-        return {"sceneName": spec.label, "sceneTip": f"Seasonal scenery, here until {last.day} {last.strftime('%B')}."}
-    return {"sceneName": spec.label}
+        return {"sceneName": name, "sceneTip": i18n.t("panel.seasonal_scenery_here_until_date", date=i18n.day_month(last))}
+    return {"sceneName": name}

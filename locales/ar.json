@@ -1,0 +1,3572 @@
+{
+ "actions.answer_time_date": {
+  "text": "وقت الإجابة ({date})",
+  "en": "Answer time ({date})"
+ },
+ "actions.answer_time_days_days_first_to": {
+  "text": {
+   "zero": "وقت الإجابة ({days} يوم، من {first} إلى {last})",
+   "one": "وقت الإجابة (يوم واحد، من {first} إلى {last})",
+   "two": "وقت الإجابة (يومان، من {first} إلى {last})",
+   "few": "وقت الإجابة ({days} أيام، من {first} إلى {last})",
+   "many": "وقت الإجابة ({days} يومًا، من {first} إلى {last})",
+   "other": "وقت الإجابة ({days} يوم، من {first} إلى {last})"
+  },
+  "en": {
+   "one": "Answer time ({days} day, {first} to {last})",
+   "other": "Answer time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.answer_time_first_to_last": {
+  "text": "وقت الإجابة (من {first} إلى {last})",
+  "en": "Answer time ({first} to {last})"
+ },
+ "actions.back_in_your_forest": {
+  "text": "عادت الرزمة إلى غابتك.",
+  "en": "Back in your forest."
+ },
+ "actions.bring_back_into_memory_forest": {
+  "text": "إعادة إلى Memory Forest",
+  "en": "Bring back into Memory Forest"
+ },
+ "actions.leave_out_of_memory_forest": {
+  "text": "استبعاد من Memory Forest",
+  "en": "Leave out of Memory Forest"
+ },
+ "actions.left_out_of_memory_forest_with": {
+  "text": "مستبعدة من Memory Forest مع رزمتها الأم",
+  "en": "Left out of Memory Forest with its parent deck"
+ },
+ "actions.left_out_of_your_forest_its": {
+  "text": "استُبعدت الرزمة من غابتك. يمكن إعادتها من قائمة ⚙ الخاصة بها.",
+  "en": "Left out of your forest. Its ⚙ menu brings it back."
+ },
+ "actions.reviews_date": {
+  "text": "المراجعات ({date})",
+  "en": "Reviews ({date})"
+ },
+ "actions.reviews_days_days_first_to_last": {
+  "text": {
+   "zero": "المراجعات ({days} يوم، من {first} إلى {last})",
+   "one": "المراجعات (يوم واحد، من {first} إلى {last})",
+   "two": "المراجعات (يومان، من {first} إلى {last})",
+   "few": "المراجعات ({days} أيام، من {first} إلى {last})",
+   "many": "المراجعات ({days} يومًا، من {first} إلى {last})",
+   "other": "المراجعات ({days} يوم، من {first} إلى {last})"
+  },
+  "en": {
+   "one": "Reviews ({days} day, {first} to {last})",
+   "other": "Reviews ({days} days, {first} to {last})"
+  }
+ },
+ "actions.reviews_first_to_last": {
+  "text": "المراجعات (من {first} إلى {last})",
+  "en": "Reviews ({first} to {last})"
+ },
+ "actions.total_time_date": {
+  "text": "الوقت الإجمالي ({date})",
+  "en": "Total time ({date})"
+ },
+ "actions.total_time_days_days_first_to": {
+  "text": {
+   "zero": "الوقت الإجمالي ({days} يوم، من {first} إلى {last})",
+   "one": "الوقت الإجمالي (يوم واحد، من {first} إلى {last})",
+   "two": "الوقت الإجمالي (يومان، من {first} إلى {last})",
+   "few": "الوقت الإجمالي ({days} أيام، من {first} إلى {last})",
+   "many": "الوقت الإجمالي ({days} يومًا، من {first} إلى {last})",
+   "other": "الوقت الإجمالي ({days} يوم، من {first} إلى {last})"
+  },
+  "en": {
+   "one": "Total time ({days} day, {first} to {last})",
+   "other": "Total time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.total_time_first_to_last": {
+  "text": "الوقت الإجمالي (من {first} إلى {last})",
+  "en": "Total time ({first} to {last})"
+ },
+ "answer_column.heading_detail": {
+  "text": "{heading}. {detail}",
+  "en": "{heading}. {detail}"
+ },
+ "answer_column.median_seconds_per_answer_for_the": {
+  "text": "وسيط الثواني لكل إجابة على البطاقة في اليوم المحدد، بما في ذلك المحاولات المتكررة. تعرض الملحوظات وسيط أبطأ بطاقة مطابقة.",
+  "en": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median."
+ },
+ "answer_column.number_of_answers_on_the_clicked": {
+  "text": "عدد الإجابات في اليوم المحدد، بما في ذلك المحاولات المتكررة. تعرض الملحوظات المجموع عبر بطاقاتها.",
+  "en": "Number of answers on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "answer_column.seconds_s": {
+  "text": "{seconds} ث",
+  "en": "{seconds} s"
+ },
+ "answer_column.total_seconds_spent_answering_on_the": {
+  "text": "مجموع الثواني المستغرقة في الإجابة في اليوم المحدد، بما في ذلك المحاولات المتكررة. تعرض الملحوظات المجموع عبر بطاقاتها.",
+  "en": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "caption.after_the_rain": {
+  "text": "بعد المطر",
+  "en": "after the rain"
+ },
+ "caption.city_not_found": {
+  "text": "لم يُعثر على المدينة",
+  "en": "City not found"
+ },
+ "caption.clear_sky": {
+  "text": "سماء صافية",
+  "en": "clear sky"
+ },
+ "caption.click_to_see_all_of_it": {
+  "text": "النقر يعرضها كاملة",
+  "en": "Click to see all of it"
+ },
+ "caption.click_to_see_their_cards": {
+  "text": "النقر يعرض بطاقاتها.",
+  "en": "Click to see their cards."
+ },
+ "caption.cloudy": {
+  "text": "غائم",
+  "en": "cloudy"
+ },
+ "caption.days_you_studied_in_a_row": {
+  "text": "أيام الدراسة المتتالية. اليوم الذي لا يُستحق فيه شيء لا يقطعها.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it."
+ },
+ "caption.days_you_studied_in_a_row_2": {
+  "text": "أيام الدراسة المتتالية. اليوم الذي لا يُستحق فيه شيء لا يقطعها، وبما أن سلسلتك تُحسب على أساس {week} أيام في الأسبوع، فلا يقطعها أيضًا يوم راحة واحد في الأسبوع.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, a day off in a week doesn't either."
+ },
+ "caption.days_you_studied_in_a_row_3": {
+  "text": "أيام الدراسة المتتالية. اليوم الذي لا يُستحق فيه شيء لا يقطعها، وبما أن سلسلتك تُحسب على أساس {week} أيام في الأسبوع، فلا يقطعها أيضًا يوما راحة في الأسبوع.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, two days off in a week don't either."
+ },
+ "caption.deck_lit_of_n_trees": {
+  "text": {
+   "zero": "{deck}: {lit} من أصل {n} شجرة",
+   "one": "{deck}: {lit} من أصل شجرة واحدة",
+   "two": "{deck}: {lit} من أصل شجرتين",
+   "few": "{deck}: {lit} من أصل {n} أشجار",
+   "many": "{deck}: {lit} من أصل {n} شجرة",
+   "other": "{deck}: {lit} من أصل {n} شجرة"
+  },
+  "en": {
+   "one": "{deck}: {lit} of {n} tree",
+   "other": "{deck}: {lit} of {n} trees"
+  }
+ },
+ "caption.deep_winter": {
+  "text": "عزّ الشتاء",
+  "en": "deep winter"
+ },
+ "caption.fog": {
+  "text": "ضباب",
+  "en": "fog"
+ },
+ "caption.live_weather_from_met_norway_cc": {
+  "text": "الطقس المباشر من MET Norway (CC BY 4.0).",
+  "en": "Live weather from MET Norway (CC BY 4.0)."
+ },
+ "caption.live_weather_unavailable": {
+  "text": "الطقس المباشر غير متاح",
+  "en": "Live weather unavailable"
+ },
+ "caption.made_up_trees_from_the_test": {
+  "text": "أشجار وهمية من إعداد «غابة تجريبية». يمكن إيقافه في إعدادات الغابة لرؤية غابتك الحقيقية.",
+  "en": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one."
+ },
+ "caption.n_ancient": {
+  "text": {
+   "zero": "لا أشجار معمّرة",
+   "one": "شجرة معمّرة واحدة",
+   "two": "شجرتان معمّرتان",
+   "few": "{n} أشجار معمّرة",
+   "many": "{n} شجرة معمّرة",
+   "other": "{n} شجرة معمّرة"
+  },
+  "en": {
+   "one": "{n} ancient",
+   "other": "{n} ancient"
+  }
+ },
+ "caption.n_day_streak": {
+  "text": {
+   "zero": "سلسلة {n} يوم",
+   "one": "سلسلة يوم واحد",
+   "two": "سلسلة يومين",
+   "few": "سلسلة {n} أيام",
+   "many": "سلسلة {n} يومًا",
+   "other": "سلسلة {n} يوم"
+  },
+  "en": {
+   "one": "{n}-day streak",
+   "other": "{n}-day streak"
+  }
+ },
+ "caption.n_in_the_deep_forest": {
+  "text": {
+   "zero": "{n} شجرة في أعماق الغابة",
+   "one": "شجرة واحدة في أعماق الغابة",
+   "two": "شجرتان في أعماق الغابة",
+   "few": "{n} أشجار في أعماق الغابة",
+   "many": "{n} شجرة في أعماق الغابة",
+   "other": "{n} شجرة في أعماق الغابة"
+  },
+  "en": {
+   "one": "{n} in the deep forest",
+   "other": "{n} in the deep forest"
+  }
+ },
+ "caption.n_trees": {
+  "text": {
+   "zero": "لا أشجار",
+   "one": "شجرة واحدة",
+   "two": "شجرتان",
+   "few": "{n} أشجار",
+   "many": "{n} شجرة",
+   "other": "{n} شجرة"
+  },
+  "en": {
+   "one": "{n} tree",
+   "other": "{n} trees"
+  }
+ },
+ "caption.one_tree_for_each_day_you": {
+  "text": "شجرة واحدة عن كل يوم تعلّمت فيه بطاقات جديدة. التمرير فوق شجرة يعرض يومها، والنقر عليها يعرض بطاقاتها.",
+  "en": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards."
+ },
+ "caption.openstreetmap_does_not_know_that_city": {
+  "text": "لا يعرف OpenStreetMap هذه المدينة، لذا يحتفظ المنظر بطقسه الخاص. يمكن التحقق من الإملاء، أو تجربة اسمها بالإنجليزية، في إعدادات الغابة.",
+  "en": "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+ },
+ "caption.rain": {
+  "text": "مطر",
+  "en": "rain"
+ },
+ "caption.snow": {
+  "text": "ثلج",
+  "en": "snow"
+ },
+ "caption.test_forest": {
+  "text": "غابة تجريبية",
+  "en": "Test forest"
+ },
+ "caption.the_live_weather_could_not_be": {
+  "text": "تعذّر جلب الطقس المباشر، لذا يحتفظ المنظر بطقسه الخاص في الوقت الحالي.",
+  "en": "The live weather could not be fetched, so the scenery keeps its own weather for now."
+ },
+ "caption.the_scenery_chosen_in_the_forest": {
+  "text": "المنظر، كما اختير في إعدادات الغابة.",
+  "en": "The scenery, chosen in the forest settings."
+ },
+ "caption.thunderstorm": {
+  "text": "عاصفة رعدية",
+  "en": "thunderstorm"
+ },
+ "caption.trees_holding_cards_from_this_deck": {
+  "text": "الأشجار التي تحمل بطاقات من هذه الرزمة تبقى ملوّنة، وتبهت البقية. يمكن تغيير ذلك عبر «شاشات الرزم» في إعدادات الغابة.",
+  "en": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings."
+ },
+ "caption.trees_whose_cards_you_will_likely": {
+  "text": "أشجار يُرجَّح أن تبقى بطاقاتها في ذاكرتك أكثر من سنة: وسيط قوة الذاكرة لديها 365 يومًا على الأقل. وهو استقرار FSRS حيث يُستخدم، والفاصل الزمني للجدولة حيث لا يُستخدم.",
+  "en": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not."
+ },
+ "caption.weather_by_met_norway": {
+  "text": "الطقس من MET Norway",
+  "en": "weather by MET Norway"
+ },
+ "caption.weather_weather": {
+  "text": "الطقس: {weather}",
+  "en": "Weather: {weather}"
+ },
+ "caption.weather_weather_in_city": {
+  "text": "الطقس: {weather} في {city}",
+  "en": "Weather: {weather} in {city}"
+ },
+ "caption.weather_weather_in_city_temp": {
+  "text": "الطقس: {weather} في {city}، {temp}°",
+  "en": "Weather: {weather} in {city}, {temp}°"
+ },
+ "caption.weather_weather_temp": {
+  "text": "الطقس: {weather}، {temp}°",
+  "en": "Weather: {weather}, {temp}°"
+ },
+ "caption.your_trees_from_from_to_to": {
+  "text": {
+   "zero": "أشجارك من {from} إلى {to} تقف معًا في البعيد، وتحمل {n} بطاقة. رسم كل واحدة منها على حدة كان سيُبطئ قائمة الرزم.",
+   "one": "أشجارك من {from} إلى {to} تقف معًا في البعيد، وتحمل بطاقة واحدة. رسم كل واحدة منها على حدة كان سيُبطئ قائمة الرزم.",
+   "two": "أشجارك من {from} إلى {to} تقف معًا في البعيد، وتحمل بطاقتين. رسم كل واحدة منها على حدة كان سيُبطئ قائمة الرزم.",
+   "few": "أشجارك من {from} إلى {to} تقف معًا في البعيد، وتحمل {n} بطاقات. رسم كل واحدة منها على حدة كان سيُبطئ قائمة الرزم.",
+   "many": "أشجارك من {from} إلى {to} تقف معًا في البعيد، وتحمل {n} بطاقة. رسم كل واحدة منها على حدة كان سيُبطئ قائمة الرزم.",
+   "other": "أشجارك من {from} إلى {to} تقف معًا في البعيد، وتحمل {n} بطاقة. رسم كل واحدة منها على حدة كان سيُبطئ قائمة الرزم."
+  },
+  "en": {
+   "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
+   "other": "Your trees from {from} to {to} stand together in the distance, holding {n} cards. Drawing every one of them individually would slow the deck list down."
+  }
+ },
+ "date.day_month": {
+  "text": "{day} {month}",
+  "en": "{day} {month}"
+ },
+ "date.day_month_year": {
+  "text": "{day} {month} {year}",
+  "en": "{day} {month} {year}"
+ },
+ "date.month_year": {
+  "text": "{month} {year}",
+  "en": "{month} {year}"
+ },
+ "env.aurora": {
+  "text": "الشفق القطبي",
+  "en": "Aurora"
+ },
+ "env.bamboo": {
+  "text": "خيزران تحت المطر",
+  "en": "Rainy bamboo grove"
+ },
+ "env.frozen_market": {
+  "text": "سوق عيد الميلاد",
+  "en": "Christmas market"
+ },
+ "env.lanterns": {
+  "text": "الفوانيس",
+  "en": "Lanterns"
+ },
+ "env.misty_valley": {
+  "text": "وادٍ في الضباب",
+  "en": "Misty valley"
+ },
+ "env.natural": {
+  "text": "طبيعي",
+  "en": "Natural"
+ },
+ "env.pumpkin_patch": {
+  "text": "حقل اليقطين",
+  "en": "Pumpkin patch"
+ },
+ "env.starry_night": {
+  "text": "ليلة النجوم",
+  "en": "Starry night"
+ },
+ "env.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "event.asteroid.a_crater": {
+  "text": "فوهة",
+  "en": "A crater"
+ },
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": {
+  "text": "يضرب كويكب عند انتهاء يوم Anki، ما لم تُجرَ مراجعة قبل ذلك. وإن ضرب، تنمو غابة جديدة من فوهته.",
+  "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
+ "event.asteroid.asteroid_struck_date": {
+  "text": "ضرب الكويكب في {date}",
+  "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tonight": {
+  "text": "كويكب: الليلة",
+  "en": "Asteroid: tonight"
+ },
+ "event.asteroid.its_crater_can_play_it_again": {
+  "text": "ويمكن إعادة عرضه بالنقر على فوهته أيضًا.",
+  "en": "Its crater can play it again too."
+ },
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "text": {
+   "zero": "فُقدت {n} شجرة بعد يوم بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "one": "فُقدت شجرة واحدة بعد يوم بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "two": "فُقدت شجرتان بعد يوم بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "few": "فُقدت {n} أشجار بعد يوم بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "many": "فُقدت {n} شجرة بعد يوم بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "other": "فُقدت {n} شجرة بعد يوم بلا مراجعات؛ من هنا تنمو غابة جديدة."
+  },
+  "en": {
+   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "text": {
+   "zero": "فُقدت {n} شجرة في {date}",
+   "one": "فُقدت شجرة واحدة في {date}",
+   "two": "فُقدت شجرتان في {date}",
+   "few": "فُقدت {n} أشجار في {date}",
+   "many": "فُقدت {n} شجرة في {date}",
+   "other": "فُقدت {n} شجرة في {date}"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}",
+   "other": "{n} trees lost on {date}"
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "text": {
+   "zero": "فُقدت {n} شجرة في {date}، بعد سلسلة عدد أيامها {streak}",
+   "one": "فُقدت شجرة واحدة في {date}، بعد سلسلة عدد أيامها {streak}",
+   "two": "فُقدت شجرتان في {date}، بعد سلسلة عدد أيامها {streak}",
+   "few": "فُقدت {n} أشجار في {date}، بعد سلسلة عدد أيامها {streak}",
+   "many": "فُقدت {n} شجرة في {date}، بعد سلسلة عدد أيامها {streak}",
+   "other": "فُقدت {n} شجرة في {date}، بعد سلسلة عدد أيامها {streak}"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}, after a {streak}-day streak",
+   "other": "{n} trees lost on {date}, after a {streak}-day streak"
+  }
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": {
+  "text": "مع «هادئة» أو «جامحة» تعود الأشجار قائمة",
+  "en": "On Peaceful or Wild the trees stand again"
+ },
+ "event.asteroid.turn_on_animations_in_the_forest": {
+  "text": "لمشاهدته، يلزم تشغيل «تحريك الغابة» في إعدادات الغابة.",
+  "en": "Turn on animations in the forest settings to watch it."
+ },
+ "event.asteroid.your_system_asks_for_less_motion": {
+  "text": "يطلب نظامك حركة أقل: لمشاهدته، يلزم ضبط «تحريك الغابة» على «مفعّل».",
+  "en": "Your system asks for less motion: set Animate the forest to On to watch it."
+ },
+ "event.fire.fire_n_trees": {
+  "text": {
+   "zero": "حريق: {n} شجرة",
+   "one": "حريق: شجرة واحدة",
+   "two": "حريق: شجرتان",
+   "few": "حريق: {n} أشجار",
+   "many": "حريق: {n} شجرة",
+   "other": "حريق: {n} شجرة"
+  },
+  "en": {
+   "one": "Fire: {n} tree",
+   "other": "Fire: {n} trees"
+  }
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "text": {
+   "zero": "ما زال يلزم {n} يوم من الدراسة لإطفائه.",
+   "one": "ما زال يلزم يوم دراسة واحد لإطفائه.",
+   "two": "ما زال يلزم يوما دراسة لإطفائه.",
+   "few": "ما زال يلزم {n} أيام دراسة لإطفائه.",
+   "many": "ما زال يلزم {n} يومًا من الدراسة لإطفائه.",
+   "other": "ما زال يلزم {n} يوم من الدراسة لإطفائه."
+  },
+  "en": {
+   "one": "{n} more day of study puts it out.",
+   "other": "{n} more days of study put it out."
+  }
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "text": {
+   "zero": "اشتعلت النار في {n} شجرة أثناء غيابك.",
+   "one": "اشتعلت النار في شجرة واحدة أثناء غيابك.",
+   "two": "اشتعلت النار في شجرتين أثناء غيابك.",
+   "few": "اشتعلت النار في {n} أشجار أثناء غيابك.",
+   "many": "اشتعلت النار في {n} شجرة أثناء غيابك.",
+   "other": "اشتعلت النار في {n} شجرة أثناء غيابك."
+  },
+  "en": {
+   "one": "{n} tree caught fire while you were away.",
+   "other": "{n} trees caught fire while you were away."
+  }
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "text": {
+   "zero": "<b>مشتعلة</b>: اشتعلت أثناء غيابك · تعود خضراء بعد {n} يوم آخر من الدراسة",
+   "one": "<b>مشتعلة</b>: اشتعلت أثناء غيابك · تعود خضراء بعد يوم دراسة واحد آخر",
+   "two": "<b>مشتعلة</b>: اشتعلت أثناء غيابك · تعود خضراء بعد يومي دراسة آخرين",
+   "few": "<b>مشتعلة</b>: اشتعلت أثناء غيابك · تعود خضراء بعد {n} أيام دراسة أخرى",
+   "many": "<b>مشتعلة</b>: اشتعلت أثناء غيابك · تعود خضراء بعد {n} يومًا آخر من الدراسة",
+   "other": "<b>مشتعلة</b>: اشتعلت أثناء غيابك · تعود خضراء بعد {n} يوم آخر من الدراسة"
+  },
+  "en": {
+   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
+   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+  }
+ },
+ "event.fire.smoke_is_rising_after_two_days": {
+  "text": "يتصاعد الدخان بعد يومين بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
+  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
+ },
+ "event.fire.smoke_study_today": {
+  "text": "دخان: الدراسة اليوم",
+  "en": "Smoke: study today"
+ },
+ "event.fire.smoking": {
+  "text": "يتصاعد الدخان",
+  "en": "Smoking"
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "text": {
+   "zero": "<b>جحيم المراجعات</b>: {n} مراجعة متأخرة. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "one": "<b>جحيم المراجعات</b>: مراجعة واحدة متأخرة. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "two": "<b>جحيم المراجعات</b>: مراجعتان متأخرتان. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "few": "<b>جحيم المراجعات</b>: {n} مراجعات متأخرة. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "many": "<b>جحيم المراجعات</b>: {n} مراجعة متأخرة. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "other": "<b>جحيم المراجعات</b>: {n} مراجعة متأخرة. بإنهائها تطير الأعشاب المتدحرجة بعيدًا."
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "text": {
+   "zero": "<b>جحيم المراجعات</b>: {n} مراجعة متأخرة، بينما يحمل اليوم المعتاد {usual}. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "one": "<b>جحيم المراجعات</b>: مراجعة واحدة متأخرة، بينما يحمل اليوم المعتاد {usual}. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "two": "<b>جحيم المراجعات</b>: مراجعتان متأخرتان، بينما يحمل اليوم المعتاد {usual}. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "few": "<b>جحيم المراجعات</b>: {n} مراجعات متأخرة، بينما يحمل اليوم المعتاد {usual}. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "many": "<b>جحيم المراجعات</b>: {n} مراجعة متأخرة، بينما يحمل اليوم المعتاد {usual}. بإنهائها تطير الأعشاب المتدحرجة بعيدًا.",
+   "other": "<b>جحيم المراجعات</b>: {n} مراجعة متأخرة، بينما يحمل اليوم المعتاد {usual}. بإنهائها تطير الأعشاب المتدحرجة بعيدًا."
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "events.a_fire_broke_out_while_you": {
+  "text": {
+   "zero": "اندلع حريق أثناء غيابك: {trees} شجرة تحترق. يلزم {days} أيام من الدراسة لإطفائه.",
+   "one": "اندلع حريق أثناء غيابك: شجرة واحدة تحترق. يلزم {days} أيام من الدراسة لإطفائه.",
+   "two": "اندلع حريق أثناء غيابك: شجرتان تحترقان. يلزم {days} أيام من الدراسة لإطفائه.",
+   "few": "اندلع حريق أثناء غيابك: {trees} أشجار تحترق. يلزم {days} أيام من الدراسة لإطفائه.",
+   "many": "اندلع حريق أثناء غيابك: {trees} شجرة تحترق. يلزم {days} أيام من الدراسة لإطفائه.",
+   "other": "اندلع حريق أثناء غيابك: {trees} شجرة تحترق. يلزم {days} أيام من الدراسة لإطفائه."
+  },
+  "en": {
+   "one": "A fire broke out while you were away: {trees} tree is burning. Study on {days} days to put it out.",
+   "other": "A fire broke out while you were away: {trees} trees are burning. Study on {days} days to put it out."
+  }
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "text": {
+   "zero": "دمّر كويكب غابتك ({trees} شجرة). من هنا تنمو غابة جديدة.",
+   "one": "دمّر كويكب غابتك (شجرة واحدة). من هنا تنمو غابة جديدة.",
+   "two": "دمّر كويكب غابتك (شجرتان). من هنا تنمو غابة جديدة.",
+   "few": "دمّر كويكب غابتك ({trees} أشجار). من هنا تنمو غابة جديدة.",
+   "many": "دمّر كويكب غابتك ({trees} شجرة). من هنا تنمو غابة جديدة.",
+   "other": "دمّر كويكب غابتك ({trees} شجرة). من هنا تنمو غابة جديدة."
+  },
+  "en": {
+   "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
+   "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
+  }
+ },
+ "events.merciless": {
+  "text": "بلا رحمة",
+  "en": "Merciless"
+ },
+ "events.miss_a_day_nothing_is_lost": {
+  "text": "تفويت يوم: لا يضيع شيء. الغياب أسبوعًا أو أكثر يترك بركة في الغابة.",
+  "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
+ },
+ "events.miss_a_day_of_reviews_an": {
+  "text": "تفويت يوم من المراجعات: ينتظر كويكب في السماء، ويضرب عند انتهاء يوم Anki ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة. والعادات السيئة تترك آثارًا أيضًا.",
+  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
+ },
+ "events.miss_two_days_in_a_row": {
+  "text": "تفويت يومين متتاليين: يتصاعد الدخان تحذيرًا. تفويت يوم ثالث: ينتشر حريق حتى تُطفئه سبعة أيام من الدراسة. والعادات السيئة تترك آثارًا أيضًا.",
+  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
+ },
+ "events.peaceful": {
+  "text": "هادئة",
+  "en": "Peaceful"
+ },
+ "events.smoke_is_rising_from_your_forest": {
+  "text": "يتصاعد الدخان من غابتك بعد يومين بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
+  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.switch_back_any_time_and_every": {
+  "text": "يمكن العودة في أي وقت، فتعود كل شجرة إلى مكانها.",
+  "en": "Switch back any time and every tree is there again."
+ },
+ "events.the_last_of_the_fire_is": {
+  "text": "انطفأ آخر الحريق. عادت غابتك خضراء.",
+  "en": "The last of the fire is out. Your forest is green again."
+ },
+ "events.wild": {
+  "text": "جامحة",
+  "en": "Wild"
+ },
+ "events.you_cleared_your_overdue_reviews": {
+  "text": "أنهيت مراجعاتك المتأخرة.",
+  "en": "You cleared your overdue reviews."
+ },
+ "events.you_cleared_your_overdue_reviews_the": {
+  "text": "أنهيت مراجعاتك المتأخرة، فطارت الأعشاب المتدحرجة بعيدًا.",
+  "en": "You cleared your overdue reviews. The tumbleweeds blew away."
+ },
+ "heatmap.a_minute": {
+  "text": "دقيقة",
+  "en": "a minute"
+ },
+ "heatmap.about_n_reviews_a_day": {
+  "text": {
+   "zero": "نحو {n} مراجعة في اليوم",
+   "one": "نحو مراجعة واحدة في اليوم",
+   "two": "نحو مراجعتين في اليوم",
+   "few": "نحو {n} مراجعات في اليوم",
+   "many": "نحو {n} مراجعة في اليوم",
+   "other": "نحو {n} مراجعة في اليوم"
+  },
+  "en": {
+   "one": "About {n} review a day",
+   "other": "About {n} reviews a day"
+  }
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "text": {
+   "zero": "نحو {n} مراجعة في كل يوم دراسة",
+   "one": "نحو مراجعة واحدة في كل يوم دراسة",
+   "two": "نحو مراجعتين في كل يوم دراسة",
+   "few": "نحو {n} مراجعات في كل يوم دراسة",
+   "many": "نحو {n} مراجعة في كل يوم دراسة",
+   "other": "نحو {n} مراجعة في كل يوم دراسة"
+  },
+  "en": {
+   "one": "About {n} review a day studied",
+   "other": "About {n} reviews a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "text": {
+   "zero": "نحو {n} مراجعة و{time} في كل يوم دراسة",
+   "one": "نحو مراجعة واحدة و{time} في كل يوم دراسة",
+   "two": "نحو مراجعتين و{time} في كل يوم دراسة",
+   "few": "نحو {n} مراجعات و{time} في كل يوم دراسة",
+   "many": "نحو {n} مراجعة و{time} في كل يوم دراسة",
+   "other": "نحو {n} مراجعة و{time} في كل يوم دراسة"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day studied",
+   "other": "About {n} reviews and {time} a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "text": {
+   "zero": "نحو {n} مراجعة و{time} في اليوم",
+   "one": "نحو مراجعة واحدة و{time} في اليوم",
+   "two": "نحو مراجعتين و{time} في اليوم",
+   "few": "نحو {n} مراجعات و{time} في اليوم",
+   "many": "نحو {n} مراجعة و{time} في اليوم",
+   "other": "نحو {n} مراجعة و{time} في اليوم"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day",
+   "other": "About {n} reviews and {time} a day"
+  }
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "text": {
+   "zero": "حُذفت جميع بطاقاته ({n}) منذ ذلك الحين",
+   "one": "حُذفت بطاقته منذ ذلك الحين",
+   "two": "حُذفت بطاقتاه كلتاهما منذ ذلك الحين",
+   "few": "حُذفت جميع بطاقاته ({n}) منذ ذلك الحين",
+   "many": "حُذفت جميع بطاقاته ({n}) منذ ذلك الحين",
+   "other": "حُذفت جميع بطاقاته ({n}) منذ ذلك الحين"
+  },
+  "en": {
+   "one": "All {n} of its cards have since been deleted",
+   "other": "All {n} of its cards have since been deleted"
+  }
+ },
+ "heatmap.and_n_more_marked": {
+  "text": {
+   "zero": "و{n} يوم آخر معلَّم",
+   "one": "ويوم آخر معلَّم",
+   "two": "ويومان آخران معلَّمان",
+   "few": "و{n} أيام أخرى معلَّمة",
+   "many": "و{n} يومًا آخر معلَّمًا",
+   "other": "و{n} يوم آخر معلَّم"
+  },
+  "en": {
+   "one": "and {n} more marked",
+   "other": "and {n} more marked"
+  }
+ },
+ "heatmap.back_to_today": {
+  "text": "العودة إلى اليوم",
+  "en": "Back to today"
+ },
+ "heatmap.beat_your_longest_streak_n_days": {
+  "text": {
+   "zero": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} يوم)، مع الدراسة كل يوم حتى ذلك الحين",
+   "one": "في هذا اليوم يمكن تجاوز أطول سلسلة لك (يوم واحد)، مع الدراسة كل يوم حتى ذلك الحين",
+   "two": "في هذا اليوم يمكن تجاوز أطول سلسلة لك (يومان)، مع الدراسة كل يوم حتى ذلك الحين",
+   "few": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} أيام)، مع الدراسة كل يوم حتى ذلك الحين",
+   "many": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} يومًا)، مع الدراسة كل يوم حتى ذلك الحين",
+   "other": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} يوم)، مع الدراسة كل يوم حتى ذلك الحين"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day, studying every day until then",
+   "other": "Beat your longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "text": {
+   "zero": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} يوم)",
+   "one": "في هذا اليوم يمكن تجاوز أطول سلسلة لك (يوم واحد)",
+   "two": "في هذا اليوم يمكن تجاوز أطول سلسلة لك (يومان)",
+   "few": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} أيام)",
+   "many": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} يومًا)",
+   "other": "في هذا اليوم يمكن تجاوز أطول سلسلة لك ({n} يوم)"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day",
+   "other": "Beat your longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.before_your_first_review": {
+  "text": "قبل مراجعتك الأولى",
+  "en": "Before your first review"
+ },
+ "heatmap.before_your_forest_began": {
+  "text": "قبل أن تبدأ غابتك",
+  "en": "Before your forest began"
+ },
+ "heatmap.birthday": {
+  "text": "عيد ميلاد",
+  "en": "Birthday"
+ },
+ "heatmap.both_of_its_cards_have_since": {
+  "text": "حُذفت بطاقتاه كلتاهما منذ ذلك الحين",
+  "en": "Both of its cards have since been deleted"
+ },
+ "heatmap.by_year": {
+  "text": "حسب السنة",
+  "en": "By year"
+ },
+ "heatmap.date_name": {
+  "text": "<i>{date}:</i> {name}",
+  "en": "<i>{date}:</i> {name}"
+ },
+ "heatmap.day_day_of_a_n_day": {
+  "text": {
+   "zero": "اليوم {day} من سلسلة {n} يوم",
+   "one": "اليوم {day} من سلسلة يوم واحد",
+   "two": "اليوم {day} من سلسلة يومين",
+   "few": "اليوم {day} من سلسلة {n} أيام",
+   "many": "اليوم {day} من سلسلة {n} يومًا",
+   "other": "اليوم {day} من سلسلة {n} يوم"
+  },
+  "en": {
+   "one": "Day {day} of a {n}-day streak",
+   "other": "Day {day} of a {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "text": {
+   "zero": "اليوم {day} من {n} يوم على التوالي",
+   "one": "اليوم {day} من يوم واحد على التوالي",
+   "two": "اليوم {day} من يومين على التوالي",
+   "few": "اليوم {day} من {n} أيام على التوالي",
+   "many": "اليوم {day} من {n} يومًا على التوالي",
+   "other": "اليوم {day} من {n} يوم على التوالي"
+  },
+  "en": {
+   "one": "Day {day} of {n} in a row",
+   "other": "Day {day} of {n} in a row"
+  }
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "text": {
+   "zero": "اليوم {day} من سلسلتك ({n} يوم)",
+   "one": "اليوم {day} من سلسلتك (يوم واحد)",
+   "two": "اليوم {day} من سلسلتك (يومان)",
+   "few": "اليوم {day} من سلسلتك ({n} أيام)",
+   "many": "اليوم {day} من سلسلتك ({n} يومًا)",
+   "other": "اليوم {day} من سلسلتك ({n} يوم)"
+  },
+  "en": {
+   "one": "Day {day} of your {n}-day streak",
+   "other": "Day {day} of your {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_your_streak": {
+  "text": "اليوم {day} من سلسلتك",
+  "en": "Day {day} of your streak"
+ },
+ "heatmap.didnt_break_a_n_day_streak": {
+  "text": {
+   "zero": "لم يقطع سلسلة {n} يوم",
+   "one": "لم يقطع سلسلة يوم واحد",
+   "two": "لم يقطع سلسلة يومين",
+   "few": "لم يقطع سلسلة {n} أيام",
+   "many": "لم يقطع سلسلة {n} يومًا",
+   "other": "لم يقطع سلسلة {n} يوم"
+  },
+  "en": {
+   "one": "Didn't break a {n}-day streak",
+   "other": "Didn't break a {n}-day streak"
+  }
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "text": {
+   "zero": "لا يقطع سلسلتك ({n} يوم)",
+   "one": "لا يقطع سلسلتك (يوم واحد)",
+   "two": "لا يقطع سلسلتك (يومان)",
+   "few": "لا يقطع سلسلتك ({n} أيام)",
+   "many": "لا يقطع سلسلتك ({n} يومًا)",
+   "other": "لا يقطع سلسلتك ({n} يوم)"
+  },
+  "en": {
+   "one": "Doesn't break your {n}-day streak",
+   "other": "Doesn't break your {n}-day streak"
+  }
+ },
+ "heatmap.done": {
+  "text": "مُنجز",
+  "en": "Done"
+ },
+ "heatmap.earlier": {
+  "text": "الأقدم",
+  "en": "Earlier"
+ },
+ "heatmap.exam": {
+  "text": "امتحان",
+  "en": "Exam"
+ },
+ "heatmap.fast": {
+  "text": "سريع",
+  "en": "Fast"
+ },
+ "heatmap.from_n_reviews": {
+  "text": {
+   "zero": "{from}–{n} مراجعة",
+   "one": "{from}–{n} مراجعة",
+   "two": "{from}–{n} مراجعة",
+   "few": "{from}–{n} مراجعات",
+   "many": "{from}–{n} مراجعة",
+   "other": "{from}–{n} مراجعة"
+  },
+  "en": {
+   "one": "{from}–{n} reviews",
+   "other": "{from}–{n} reviews"
+  }
+ },
+ "heatmap.from_to": {
+  "text": "{from}–{to}",
+  "en": "{from}–{to}"
+ },
+ "heatmap.from_to_min": {
+  "text": "{from}–{to} د",
+  "en": "{from}–{to} min"
+ },
+ "heatmap.from_to_s_per_answer": {
+  "text": "{from}–{to} ث لكل إجابة",
+  "en": "{from}–{to} s per answer"
+ },
+ "heatmap.from_to_to": {
+  "text": "من {from} إلى {to}",
+  "en": "{from} to {to}"
+ },
+ "heatmap.from_to_today": {
+  "text": "من {from} إلى اليوم",
+  "en": "{from} to today"
+ },
+ "heatmap.h_hr_m_min": {
+  "text": "{h} س {m} د",
+  "en": "{h} hr {m} min"
+ },
+ "heatmap.heart": {
+  "text": "قلب",
+  "en": "Heart"
+ },
+ "heatmap.its_card_has_since_been_deleted": {
+  "text": "حُذفت بطاقته منذ ذلك الحين",
+  "en": "Its card has since been deleted"
+ },
+ "heatmap.january_to_december": {
+  "text": "من يناير إلى ديسمبر",
+  "en": "January to December"
+ },
+ "heatmap.last_day_of_a_n_day": {
+  "text": {
+   "zero": "اليوم الأخير من سلسلة {n} يوم",
+   "one": "اليوم الأخير من سلسلة يوم واحد",
+   "two": "اليوم الأخير من سلسلة يومين",
+   "few": "اليوم الأخير من سلسلة {n} أيام",
+   "many": "اليوم الأخير من سلسلة {n} يومًا",
+   "other": "اليوم الأخير من سلسلة {n} يوم"
+  },
+  "en": {
+   "one": "Last day of a {n}-day streak",
+   "other": "Last day of a {n}-day streak"
+  }
+ },
+ "heatmap.later": {
+  "text": "الأحدث",
+  "en": "Later"
+ },
+ "heatmap.less": {
+  "text": "أقل",
+  "en": "Less"
+ },
+ "heatmap.mark_icon": {
+  "text": "أيقونة العلامة",
+  "en": "Mark icon"
+ },
+ "heatmap.mark_name": {
+  "text": "اسم العلامة",
+  "en": "Mark name"
+ },
+ "heatmap.median_s_s_per_answer_n": {
+  "text": {
+   "zero": "الوسيط {s} ث لكل إجابة، {n} مراجعة، والمستحق المتبقي: {due}",
+   "one": "الوسيط {s} ث لكل إجابة، مراجعة واحدة، والمستحق المتبقي: {due}",
+   "two": "الوسيط {s} ث لكل إجابة، مراجعتان، والمستحق المتبقي: {due}",
+   "few": "الوسيط {s} ث لكل إجابة، {n} مراجعات، والمستحق المتبقي: {due}",
+   "many": "الوسيط {s} ث لكل إجابة، {n} مراجعة، والمستحق المتبقي: {due}",
+   "other": "الوسيط {s} ث لكل إجابة، {n} مراجعة، والمستحق المتبقي: {due}"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review, {due} still due",
+   "other": "Median {s} s per answer, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "text": {
+   "zero": "الوسيط {s} ث لكل إجابة، {n} مراجعة",
+   "one": "الوسيط {s} ث لكل إجابة، مراجعة واحدة",
+   "two": "الوسيط {s} ث لكل إجابة، مراجعتان",
+   "few": "الوسيط {s} ث لكل إجابة، {n} مراجعات",
+   "many": "الوسيط {s} ث لكل إجابة، {n} مراجعة",
+   "other": "الوسيط {s} ث لكل إجابة، {n} مراجعة"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review",
+   "other": "Median {s} s per answer, {n} reviews"
+  }
+ },
+ "heatmap.more": {
+  "text": "أكثر",
+  "en": "More"
+ },
+ "heatmap.n_cards_due": {
+  "text": {
+   "zero": "لا بطاقات مستحقة",
+   "one": "بطاقة واحدة مستحقة",
+   "two": "بطاقتان مستحقتان",
+   "few": "{n} بطاقات مستحقة",
+   "many": "{n} بطاقة مستحقة",
+   "other": "{n} بطاقة مستحقة"
+  },
+  "en": {
+   "one": "{n} card due",
+   "other": "{n} cards due"
+  }
+ },
+ "heatmap.n_cards_due_after_today": {
+  "text": {
+   "zero": "لا بطاقات مستحقة بعد اليوم",
+   "one": "بطاقة واحدة مستحقة بعد اليوم",
+   "two": "بطاقتان مستحقتان بعد اليوم",
+   "few": "{n} بطاقات مستحقة بعد اليوم",
+   "many": "{n} بطاقة مستحقة بعد اليوم",
+   "other": "{n} بطاقة مستحقة بعد اليوم"
+  },
+  "en": {
+   "one": "{n} card due after today",
+   "other": "{n} cards due after today"
+  }
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "text": {
+   "zero": "لا بطاقات مستحقة لاحقًا هذا الشهر",
+   "one": "بطاقة واحدة مستحقة لاحقًا هذا الشهر",
+   "two": "بطاقتان مستحقتان لاحقًا هذا الشهر",
+   "few": "{n} بطاقات مستحقة لاحقًا هذا الشهر",
+   "many": "{n} بطاقة مستحقة لاحقًا هذا الشهر",
+   "other": "{n} بطاقة مستحقة لاحقًا هذا الشهر"
+  },
+  "en": {
+   "one": "{n} card due later this month",
+   "other": "{n} cards due later this month"
+  }
+ },
+ "heatmap.n_days": {
+  "text": {
+   "zero": "{n} يوم",
+   "one": "يوم واحد",
+   "two": "يومان",
+   "few": "{n} أيام",
+   "many": "{n} يومًا",
+   "other": "{n} يوم"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "heatmap.n_days_from_to_to": {
+  "text": {
+   "zero": "{n} يوم، من {from} إلى {to}",
+   "one": "يوم واحد، من {from} إلى {to}",
+   "two": "يومان، من {from} إلى {to}",
+   "few": "{n} أيام، من {from} إلى {to}",
+   "many": "{n} يومًا، من {from} إلى {to}",
+   "other": "{n} يوم، من {from} إلى {to}"
+  },
+  "en": {
+   "one": "{n} day, {from} to {to}",
+   "other": "{n} days, {from} to {to}"
+  }
+ },
+ "heatmap.n_days_from_to_today": {
+  "text": {
+   "zero": "{n} يوم، من {from} إلى اليوم",
+   "one": "يوم واحد، من {from} إلى اليوم",
+   "two": "يومان، من {from} إلى اليوم",
+   "few": "{n} أيام، من {from} إلى اليوم",
+   "many": "{n} يومًا، من {from} إلى اليوم",
+   "other": "{n} يوم، من {from} إلى اليوم"
+  },
+  "en": {
+   "one": "{n} day, {from} to today",
+   "other": "{n} days, {from} to today"
+  }
+ },
+ "heatmap.n_days_in_a_row": {
+  "text": {
+   "zero": "{n} يوم على التوالي",
+   "one": "يوم واحد على التوالي",
+   "two": "يومان على التوالي",
+   "few": "{n} أيام على التوالي",
+   "many": "{n} يومًا على التوالي",
+   "other": "{n} يوم على التوالي"
+  },
+  "en": {
+   "one": "{n} day in a row",
+   "other": "{n} days in a row"
+  }
+ },
+ "heatmap.n_days_since_date": {
+  "text": {
+   "zero": "{n} يوم · منذ {date}",
+   "one": "يوم واحد · منذ {date}",
+   "two": "يومان · منذ {date}",
+   "few": "{n} أيام · منذ {date}",
+   "many": "{n} يومًا · منذ {date}",
+   "other": "{n} يوم · منذ {date}"
+  },
+  "en": {
+   "one": "{n} day · Since {date}",
+   "other": "{n} days · Since {date}"
+  }
+ },
+ "heatmap.n_hr": {
+  "text": "{n} س",
+  "en": "{n} hr"
+ },
+ "heatmap.n_min": {
+  "text": "{n} د",
+  "en": "{n} min"
+ },
+ "heatmap.n_min_2": {
+  "text": "{n}+ د",
+  "en": "{n}+ min"
+ },
+ "heatmap.n_of_its_of_cards_have": {
+  "text": {
+   "zero": "حُذفت {n} من بطاقاته (من أصل {of}) منذ ذلك الحين",
+   "one": "حُذفت {n} من بطاقاته (من أصل {of}) منذ ذلك الحين",
+   "two": "حُذفت {n} من بطاقاته (من أصل {of}) منذ ذلك الحين",
+   "few": "حُذفت {n} من بطاقاته (من أصل {of}) منذ ذلك الحين",
+   "many": "حُذفت {n} من بطاقاته (من أصل {of}) منذ ذلك الحين",
+   "other": "حُذفت {n} من بطاقاته (من أصل {of}) منذ ذلك الحين"
+  },
+  "en": {
+   "one": "{n} of its {of} cards has since been deleted",
+   "other": "{n} of its {of} cards have since been deleted"
+  }
+ },
+ "heatmap.n_reviews": {
+  "text": {
+   "zero": "لا مراجعات",
+   "one": "مراجعة واحدة",
+   "two": "مراجعتان",
+   "few": "{n} مراجعات",
+   "many": "{n} مراجعة",
+   "other": "{n} مراجعة"
+  },
+  "en": {
+   "one": "{n} review",
+   "other": "{n} reviews"
+  }
+ },
+ "heatmap.n_reviews_2": {
+  "text": {
+   "zero": "{n}+ مراجعة",
+   "one": "{n}+ مراجعة",
+   "two": "{n}+ مراجعة",
+   "few": "{n}+ مراجعات",
+   "many": "{n}+ مراجعة",
+   "other": "{n}+ مراجعة"
+  },
+  "en": {
+   "one": "{n}+ reviews",
+   "other": "{n}+ reviews"
+  }
+ },
+ "heatmap.n_reviews_in_time": {
+  "text": {
+   "zero": "{n} مراجعة في {time}",
+   "one": "مراجعة واحدة في {time}",
+   "two": "مراجعتان في {time}",
+   "few": "{n} مراجعات في {time}",
+   "many": "{n} مراجعة في {time}",
+   "other": "{n} مراجعة في {time}"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "text": {
+   "zero": "{n} مراجعة، دون تسجيل الوقت",
+   "one": "مراجعة واحدة، دون تسجيل الوقت",
+   "two": "مراجعتان، دون تسجيل الوقت",
+   "few": "{n} مراجعات، دون تسجيل الوقت",
+   "many": "{n} مراجعة، دون تسجيل الوقت",
+   "other": "{n} مراجعة، دون تسجيل الوقت"
+  },
+  "en": {
+   "one": "{n} review, no time kept",
+   "other": "{n} reviews, no time kept"
+  }
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "text": {
+   "zero": "{n} مراجعة حتى الآن، والمستحق المتبقي: {due}",
+   "one": "مراجعة واحدة حتى الآن، والمستحق المتبقي: {due}",
+   "two": "مراجعتان حتى الآن، والمستحق المتبقي: {due}",
+   "few": "{n} مراجعات حتى الآن، والمستحق المتبقي: {due}",
+   "many": "{n} مراجعة حتى الآن، والمستحق المتبقي: {due}",
+   "other": "{n} مراجعة حتى الآن، والمستحق المتبقي: {due}"
+  },
+  "en": {
+   "one": "{n} review so far, {due} still due",
+   "other": "{n} reviews so far, {due} still due"
+  }
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "text": {
+   "zero": "{n} مراجعة حتى الآن في {time}، والمستحق المتبقي: {due}",
+   "one": "مراجعة واحدة حتى الآن في {time}، والمستحق المتبقي: {due}",
+   "two": "مراجعتان حتى الآن في {time}، والمستحق المتبقي: {due}",
+   "few": "{n} مراجعات حتى الآن في {time}، والمستحق المتبقي: {due}",
+   "many": "{n} مراجعة حتى الآن في {time}، والمستحق المتبقي: {due}",
+   "other": "{n} مراجعة حتى الآن في {time}، والمستحق المتبقي: {due}"
+  },
+  "en": {
+   "one": "{n} review so far in {time}, {due} still due",
+   "other": "{n} reviews so far in {time}, {due} still due"
+  }
+ },
+ "heatmap.name_in_n_days": {
+  "text": {
+   "zero": "{name} بعد {n} يوم",
+   "one": "{name} بعد يوم واحد",
+   "two": "{name} بعد يومين",
+   "few": "{name} بعد {n} أيام",
+   "many": "{name} بعد {n} يومًا",
+   "other": "{name} بعد {n} يوم"
+  },
+  "en": {
+   "one": "{name} in {n} day",
+   "other": "{name} in {n} days"
+  }
+ },
+ "heatmap.name_today": {
+  "text": "{name} اليوم",
+  "en": "{name} today"
+ },
+ "heatmap.name_tomorrow": {
+  "text": "{name} غدًا",
+  "en": "{name} tomorrow"
+ },
+ "heatmap.near_date": {
+  "text": "{near}، {date}",
+  "en": "{near}, {date}"
+ },
+ "heatmap.not_studied": {
+  "text": "بلا دراسة",
+  "en": "Not studied"
+ },
+ "heatmap.not_studied_a_day_off": {
+  "text": "بلا دراسة: يوم راحة",
+  "en": "Not studied: a day off"
+ },
+ "heatmap.not_studied_a_pond_in_your": {
+  "text": "بلا دراسة: بركة في غابتك",
+  "en": "Not studied: a pond in your forest"
+ },
+ "heatmap.not_studied_since_date": {
+  "text": "لا دراسة منذ {date}",
+  "en": "Not studied since {date}"
+ },
+ "heatmap.not_studied_so_far": {
+  "text": "لا دراسة حتى الآن",
+  "en": "Not studied so far"
+ },
+ "heatmap.not_studied_yet": {
+  "text": "لا دراسة بعد",
+  "en": "Not studied yet"
+ },
+ "heatmap.not_studied_yet_n_cards_due": {
+  "text": {
+   "zero": "لا دراسة بعد، لا بطاقات مستحقة",
+   "one": "لا دراسة بعد، بطاقة واحدة مستحقة",
+   "two": "لا دراسة بعد، بطاقتان مستحقتان",
+   "few": "لا دراسة بعد، {n} بطاقات مستحقة",
+   "many": "لا دراسة بعد، {n} بطاقة مستحقة",
+   "other": "لا دراسة بعد، {n} بطاقة مستحقة"
+  },
+  "en": {
+   "one": "Not studied yet, {n} card due",
+   "other": "Not studied yet, {n} cards due"
+  }
+ },
+ "heatmap.nothing_due_today": {
+  "text": "لا شيء مستحق اليوم",
+  "en": "Nothing due today"
+ },
+ "heatmap.nothing_due_yet": {
+  "text": "لا شيء مستحق بعد",
+  "en": "Nothing due yet"
+ },
+ "heatmap.nothing_was_due": {
+  "text": "لم يكن هناك شيء مستحق",
+  "en": "Nothing was due"
+ },
+ "heatmap.pace": {
+  "text": "الوتيرة",
+  "en": "Pace"
+ },
+ "heatmap.pass_your_second_longest_streak_n": {
+  "text": {
+   "zero": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} يوم)، مع الدراسة كل يوم حتى ذلك الحين",
+   "one": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك (يوم واحد)، مع الدراسة كل يوم حتى ذلك الحين",
+   "two": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك (يومان)، مع الدراسة كل يوم حتى ذلك الحين",
+   "few": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} أيام)، مع الدراسة كل يوم حتى ذلك الحين",
+   "many": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} يومًا)، مع الدراسة كل يوم حتى ذلك الحين",
+   "other": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} يوم)، مع الدراسة كل يوم حتى ذلك الحين"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your second-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "text": {
+   "zero": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} يوم)",
+   "one": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك (يوم واحد)",
+   "two": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك (يومان)",
+   "few": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} أيام)",
+   "many": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} يومًا)",
+   "other": "في هذا اليوم يمكن تجاوز ثاني أطول سلسلة لك ({n} يوم)"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day",
+   "other": "Pass your second-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "text": {
+   "zero": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} يوم)، مع الدراسة كل يوم حتى ذلك الحين",
+   "one": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك (يوم واحد)، مع الدراسة كل يوم حتى ذلك الحين",
+   "two": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك (يومان)، مع الدراسة كل يوم حتى ذلك الحين",
+   "few": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} أيام)، مع الدراسة كل يوم حتى ذلك الحين",
+   "many": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} يومًا)، مع الدراسة كل يوم حتى ذلك الحين",
+   "other": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} يوم)، مع الدراسة كل يوم حتى ذلك الحين"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your third-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "text": {
+   "zero": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} يوم)",
+   "one": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك (يوم واحد)",
+   "two": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك (يومان)",
+   "few": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} أيام)",
+   "many": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} يومًا)",
+   "other": "في هذا اليوم يمكن تجاوز ثالث أطول سلسلة لك ({n} يوم)"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day",
+   "other": "Pass your third-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pin": {
+  "text": "دبوس",
+  "en": "Pin"
+ },
+ "heatmap.planted_tree_n_new_cards": {
+  "text": {
+   "zero": "شجرة مغروسة: {n} بطاقة جديدة",
+   "one": "شجرة مغروسة: بطاقة جديدة واحدة",
+   "two": "شجرة مغروسة: بطاقتان جديدتان",
+   "few": "شجرة مغروسة: {n} بطاقات جديدة",
+   "many": "شجرة مغروسة: {n} بطاقة جديدة",
+   "other": "شجرة مغروسة: {n} بطاقة جديدة"
+  },
+  "en": {
+   "one": "Planted tree: {n} new cards",
+   "other": "Planted tree: {n} new cards"
+  }
+ },
+ "heatmap.ponds_and_animals_count_from_here": {
+  "text": "من هنا تُحتسب البرك والحيوانات",
+  "en": "Ponds and animals count from here"
+ },
+ "heatmap.reach_a_n_day_streak_on": {
+  "text": {
+   "zero": "في هذا اليوم يمكن بلوغ سلسلة {n} يوم، مع الدراسة كل يوم حتى ذلك الحين",
+   "one": "في هذا اليوم يمكن بلوغ سلسلة يوم واحد، مع الدراسة كل يوم حتى ذلك الحين",
+   "two": "في هذا اليوم يمكن بلوغ سلسلة يومين، مع الدراسة كل يوم حتى ذلك الحين",
+   "few": "في هذا اليوم يمكن بلوغ سلسلة {n} أيام، مع الدراسة كل يوم حتى ذلك الحين",
+   "many": "في هذا اليوم يمكن بلوغ سلسلة {n} يومًا، مع الدراسة كل يوم حتى ذلك الحين",
+   "other": "في هذا اليوم يمكن بلوغ سلسلة {n} يوم، مع الدراسة كل يوم حتى ذلك الحين"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day, studying every day until then",
+   "other": "Reach a {n}-day streak on this day, studying every day until then"
+  }
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "text": {
+   "zero": "في هذا اليوم يمكن بلوغ سلسلة {n} يوم",
+   "one": "في هذا اليوم يمكن بلوغ سلسلة يوم واحد",
+   "two": "في هذا اليوم يمكن بلوغ سلسلة يومين",
+   "few": "في هذا اليوم يمكن بلوغ سلسلة {n} أيام",
+   "many": "في هذا اليوم يمكن بلوغ سلسلة {n} يومًا",
+   "other": "في هذا اليوم يمكن بلوغ سلسلة {n} يوم"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day",
+   "other": "Reach a {n}-day streak on this day"
+  }
+ },
+ "heatmap.remove_the_mark": {
+  "text": "إزالة العلامة",
+  "en": "Remove the mark"
+ },
+ "heatmap.reviews": {
+  "text": "المراجعات",
+  "en": "Reviews"
+ },
+ "heatmap.s_s_per_answer": {
+  "text": "{s}+ ث لكل إجابة",
+  "en": "{s}+ s per answer"
+ },
+ "heatmap.shade_each_day_by_how_long": {
+  "text": "تلوين كل يوم حسب مدة الدراسة",
+  "en": "Shade each day by how long you studied"
+ },
+ "heatmap.shade_each_day_by_how_many": {
+  "text": "تلوين كل يوم حسب عدد المراجعات",
+  "en": "Shade each day by how many reviews you did"
+ },
+ "heatmap.shade_each_day_by_its_median": {
+  "text": "تلوين كل يوم حسب وسيط الثواني لكل إجابة",
+  "en": "Shade each day by its median seconds per answer"
+ },
+ "heatmap.shade_the_days_by": {
+  "text": "تلوين الأيام حسب",
+  "en": "Shade the days by"
+ },
+ "heatmap.sick": {
+  "text": "مرض",
+  "en": "Sick"
+ },
+ "heatmap.slow": {
+  "text": "بطيء",
+  "en": "Slow"
+ },
+ "heatmap.star": {
+  "text": "نجمة",
+  "en": "Star"
+ },
+ "heatmap.streak": {
+  "text": "السلسلة",
+  "en": "Streak"
+ },
+ "heatmap.studied_all_of_them": {
+  "text": "درست فيها جميعًا",
+  "en": "Studied all of them"
+ },
+ "heatmap.studied_all_of_these_n_days": {
+  "text": {
+   "zero": "درست في جميع هذه الأيام ({n})",
+   "one": "درست في هذا اليوم",
+   "two": "درست في هذين اليومين",
+   "few": "درست في جميع هذه الأيام ({n})",
+   "many": "درست في جميع هذه الأيام ({n})",
+   "other": "درست في جميع هذه الأيام ({n})"
+  },
+  "en": {
+   "one": "Studied all of these {n} day",
+   "other": "Studied all of these {n} days"
+  }
+ },
+ "heatmap.studied_every_day": {
+  "text": "درست كل يوم",
+  "en": "Studied every day"
+ },
+ "heatmap.studied_every_day_since_date": {
+  "text": "درست كل يوم منذ {date}",
+  "en": "Studied every day since {date}"
+ },
+ "heatmap.studied_every_day_so_far": {
+  "text": "درست كل يوم حتى الآن",
+  "en": "Studied every day so far"
+ },
+ "heatmap.studied_n_of_them_pct": {
+  "text": {
+   "zero": "درست في {n} منها ({pct}%)",
+   "one": "درست في يوم واحد منها ({pct}%)",
+   "two": "درست في يومين منها ({pct}%)",
+   "few": "درست في {n} منها ({pct}%)",
+   "many": "درست في {n} منها ({pct}%)",
+   "other": "درست في {n} منها ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {n} of them ({pct}%)",
+   "other": "Studied {n} of them ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "text": {
+   "zero": "درست في {studied} من أصل {n} يوم ({pct}%)",
+   "one": "درست في {studied} من أصل يوم واحد ({pct}%)",
+   "two": "درست في {studied} من أصل يومين ({pct}%)",
+   "few": "درست في {studied} من أصل {n} أيام ({pct}%)",
+   "many": "درست في {studied} من أصل {n} يومًا ({pct}%)",
+   "other": "درست في {studied} من أصل {n} يوم ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day ({pct}%)",
+   "other": "Studied {studied} of {n} days ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "text": {
+   "zero": "درست في {studied} من أصل {n} يوم منذ {date} ({pct}%)",
+   "one": "درست في {studied} من أصل يوم واحد منذ {date} ({pct}%)",
+   "two": "درست في {studied} من أصل يومين منذ {date} ({pct}%)",
+   "few": "درست في {studied} من أصل {n} أيام منذ {date} ({pct}%)",
+   "many": "درست في {studied} من أصل {n} يومًا منذ {date} ({pct}%)",
+   "other": "درست في {studied} من أصل {n} يوم منذ {date} ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day since {date} ({pct}%)",
+   "other": "Studied {studied} of {n} days since {date} ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "text": {
+   "zero": "درست في {studied} من أصل {n} يوم حتى الآن ({pct}%)",
+   "one": "درست في {studied} من أصل يوم واحد حتى الآن ({pct}%)",
+   "two": "درست في {studied} من أصل يومين حتى الآن ({pct}%)",
+   "few": "درست في {studied} من أصل {n} أيام حتى الآن ({pct}%)",
+   "many": "درست في {studied} من أصل {n} يومًا حتى الآن ({pct}%)",
+   "other": "درست في {studied} من أصل {n} يوم حتى الآن ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day so far ({pct}%)",
+   "other": "Studied {studied} of {n} days so far ({pct}%)"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "text": {
+   "zero": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} يوم دراسة، وعدد أيام السلسلة {days}",
+   "one": "الخريطة الحرارية للدراسة، من {from} إلى {to}: يوم دراسة واحد، وعدد أيام السلسلة {days}",
+   "two": "الخريطة الحرارية للدراسة، من {from} إلى {to}: يوما دراسة، وعدد أيام السلسلة {days}",
+   "few": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} أيام دراسة، وعدد أيام السلسلة {days}",
+   "many": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} يومًا من الدراسة، وعدد أيام السلسلة {days}",
+   "other": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} يوم دراسة، وعدد أيام السلسلة {days}"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied, a {days}-day streak",
+   "other": "Study heatmap, {from} to {to}: {n} days studied, a {days}-day streak"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "text": {
+   "zero": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} يوم دراسة",
+   "one": "الخريطة الحرارية للدراسة، من {from} إلى {to}: يوم دراسة واحد",
+   "two": "الخريطة الحرارية للدراسة، من {from} إلى {to}: يوما دراسة",
+   "few": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} أيام دراسة",
+   "many": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} يومًا من الدراسة",
+   "other": "الخريطة الحرارية للدراسة، من {from} إلى {to}: {n} يوم دراسة"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied",
+   "other": "Study heatmap, {from} to {to}: {n} days studied"
+  }
+ },
+ "heatmap.the_months_round_this_one_most": {
+  "text": "الأشهر المحيطة بهذا الشهر، ومعظمها قبله",
+  "en": "The months round this one, most of them before it"
+ },
+ "heatmap.this_day_s_tree_is_part": {
+  "text": "شجرة هذا اليوم جزء من أعماق غابتك",
+  "en": "This day’s tree is part of your deep forest"
+ },
+ "heatmap.this_tree_is_outside_your_current": {
+  "text": "هذه الشجرة خارج نطاق التكبير الحالي",
+  "en": "This tree is outside your current zoom view"
+ },
+ "heatmap.time": {
+  "text": "الوقت",
+  "en": "Time"
+ },
+ "heatmap.time_2": {
+  "text": "{time}+",
+  "en": "{time}+"
+ },
+ "heatmap.time_n_reviews": {
+  "text": {
+   "zero": "{time}، {n} مراجعة",
+   "one": "{time}، مراجعة واحدة",
+   "two": "{time}، مراجعتان",
+   "few": "{time}، {n} مراجعات",
+   "many": "{time}، {n} مراجعة",
+   "other": "{time}، {n} مراجعة"
+  },
+  "en": {
+   "one": "{time}, {n} review",
+   "other": "{time}, {n} reviews"
+  }
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "text": {
+   "zero": "{time} حتى الآن، {n} مراجعة، والمستحق المتبقي: {due}",
+   "one": "{time} حتى الآن، مراجعة واحدة، والمستحق المتبقي: {due}",
+   "two": "{time} حتى الآن، مراجعتان، والمستحق المتبقي: {due}",
+   "few": "{time} حتى الآن، {n} مراجعات، والمستحق المتبقي: {due}",
+   "many": "{time} حتى الآن، {n} مراجعة، والمستحق المتبقي: {due}",
+   "other": "{time} حتى الآن، {n} مراجعة، والمستحق المتبقي: {due}"
+  },
+  "en": {
+   "one": "{time} so far, {n} review, {due} still due",
+   "other": "{time} so far, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.timeline": {
+  "text": "خط زمني",
+  "en": "Timeline"
+ },
+ "heatmap.today": {
+  "text": "اليوم",
+  "en": "Today"
+ },
+ "heatmap.too_far_ahead_to_count": {
+  "text": "بعيد جدًا في المستقبل لحسابه",
+  "en": "Too far ahead to count"
+ },
+ "heatmap.trip": {
+  "text": "رحلة",
+  "en": "Trip"
+ },
+ "heatmap.under_a_minute": {
+  "text": "أقل من دقيقة",
+  "en": "under a minute"
+ },
+ "heatmap.under_n_reviews": {
+  "text": {
+   "zero": "أقل من {n} مراجعة",
+   "one": "أقل من مراجعة واحدة",
+   "two": "أقل من مراجعتين",
+   "few": "أقل من {n} مراجعات",
+   "many": "أقل من {n} مراجعة",
+   "other": "أقل من {n} مراجعة"
+  },
+  "en": {
+   "one": "Under {n} reviews",
+   "other": "Under {n} reviews"
+  }
+ },
+ "heatmap.under_s_s_per_answer": {
+  "text": "أقل من {s} ث لكل إجابة",
+  "en": "Under {s} s per answer"
+ },
+ "heatmap.under_time": {
+  "text": "أقل من {time}",
+  "en": "Under {time}"
+ },
+ "heatmap.view": {
+  "text": "طريقة العرض",
+  "en": "View"
+ },
+ "heatmap.your_forest_began": {
+  "text": "بدأت غابتك",
+  "en": "Your forest began"
+ },
+ "heatmap.your_longest_streak": {
+  "text": "أطول سلسلة لك",
+  "en": "Your longest streak"
+ },
+ "heatmap.your_longest_streak_n_days": {
+  "text": {
+   "zero": "أطول سلسلة لك: {n} يوم",
+   "one": "أطول سلسلة لك: يوم واحد",
+   "two": "أطول سلسلة لك: يومان",
+   "few": "أطول سلسلة لك: {n} أيام",
+   "many": "أطول سلسلة لك: {n} يومًا",
+   "other": "أطول سلسلة لك: {n} يوم"
+  },
+  "en": {
+   "one": "Your longest streak: {n} day",
+   "other": "Your longest streak: {n} days"
+  }
+ },
+ "heatmap.your_n_day_streak": {
+  "text": {
+   "zero": "سلسلتك ({n} يوم)",
+   "one": "سلسلتك (يوم واحد)",
+   "two": "سلسلتك (يومان)",
+   "few": "سلسلتك ({n} أيام)",
+   "many": "سلسلتك ({n} يومًا)",
+   "other": "سلسلتك ({n} يوم)"
+  },
+  "en": {
+   "one": "Your {n}-day streak",
+   "other": "Your {n}-day streak"
+  }
+ },
+ "heatmap.your_second_longest_streak": {
+  "text": "ثاني أطول سلسلة لك",
+  "en": "Your second-longest streak"
+ },
+ "heatmap.your_second_longest_streak_n_days": {
+  "text": {
+   "zero": "ثاني أطول سلسلة لك: {n} يوم",
+   "one": "ثاني أطول سلسلة لك: يوم واحد",
+   "two": "ثاني أطول سلسلة لك: يومان",
+   "few": "ثاني أطول سلسلة لك: {n} أيام",
+   "many": "ثاني أطول سلسلة لك: {n} يومًا",
+   "other": "ثاني أطول سلسلة لك: {n} يوم"
+  },
+  "en": {
+   "one": "Your second-longest streak: {n} day",
+   "other": "Your second-longest streak: {n} days"
+  }
+ },
+ "heatmap.your_streak_every_year_of_it": {
+  "text": "سلسلتك بكل سنواتها؛ تنتقل الأسهم إلى السلاسل التي سبقتها",
+  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+ },
+ "heatmap.your_third_longest_streak": {
+  "text": "ثالث أطول سلسلة لك",
+  "en": "Your third-longest streak"
+ },
+ "heatmap.your_third_longest_streak_n_days": {
+  "text": {
+   "zero": "ثالث أطول سلسلة لك: {n} يوم",
+   "one": "ثالث أطول سلسلة لك: يوم واحد",
+   "two": "ثالث أطول سلسلة لك: يومان",
+   "few": "ثالث أطول سلسلة لك: {n} أيام",
+   "many": "ثالث أطول سلسلة لك: {n} يومًا",
+   "other": "ثالث أطول سلسلة لك: {n} يوم"
+  },
+  "en": {
+   "one": "Your third-longest streak: {n} day",
+   "other": "Your third-longest streak: {n} days"
+  }
+ },
+ "heatmap_look.darker": {
+  "text": "أغمق",
+  "en": "Darker"
+ },
+ "heatmap_look.flame": {
+  "text": "لهب",
+  "en": "Flame"
+ },
+ "heatmap_look.ice": {
+  "text": "جليد",
+  "en": "Ice"
+ },
+ "heatmap_look.lighter": {
+  "text": "أفتح",
+  "en": "Lighter"
+ },
+ "heatmap_look.lime": {
+  "text": "ليموني",
+  "en": "Lime"
+ },
+ "heatmap_look.magenta": {
+  "text": "ماجنتا",
+  "en": "Magenta"
+ },
+ "heatmap_look.olive": {
+  "text": "زيتوني",
+  "en": "Olive"
+ },
+ "heatmap_style.brush": {
+  "text": "فرشاة",
+  "en": "Brush"
+ },
+ "heatmap_style.brush.tip": {
+  "text": "ضربات فرشاة «ليلة النجوم»",
+  "en": "Starry night's brushstrokes"
+ },
+ "heatmap_style.canes": {
+  "text": "أعواد",
+  "en": "Canes"
+ },
+ "heatmap_style.canes.tip": {
+  "text": "أعواد الخيزران من «خيزران تحت المطر»، عودان لكل يوم",
+  "en": "Bamboo grove's canes, two to a day"
+ },
+ "heatmap_style.chalk": {
+  "text": "طباشير",
+  "en": "Chalk"
+ },
+ "heatmap_style.chalk.tip": {
+  "text": "تظليل الطباشير من «السبورة»",
+  "en": "Chalkboard's chalk hatching"
+ },
+ "heatmap_style.contours": {
+  "text": "خطوط كنتورية",
+  "en": "Contours"
+ },
+ "heatmap_style.contours.tip": {
+  "text": "أيام دراستك شكلًا واحدًا، بدرجات لونية في أشرطة مسطحة، كخريطة كنتورية",
+  "en": "The days you studied as one shape, its shades in flat bands, like a contour map"
+ },
+ "heatmap_style.flat": {
+  "text": "مسطّح",
+  "en": "Flat"
+ },
+ "heatmap_style.flat.tip": {
+  "text": "خانات مربعة، كل منها بلون واحد، بزوايا ناعمة",
+  "en": "Square tiles, each one solid colour, their corners smooth"
+ },
+ "heatmap_style.ice": {
+  "text": "قوالب جليد",
+  "en": "Ice blocks"
+ },
+ "heatmap_style.ice.tip": {
+  "text": "جليد «سوق على النهر المتجمد»، في أسبوعه فقط",
+  "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.pumpkin": {
+  "text": "يقطين",
+  "en": "Pumpkins"
+ },
+ "heatmap_style.pumpkin.tip": {
+  "text": "أضلاع اليقطين من «ساحرة تعبر القمر»، في أسبوعه فقط",
+  "en": "Witch across the moon's pumpkin ribs, in its week only"
+ },
+ "heatmap_style.rime": {
+  "text": "صقيع",
+  "en": "Rime"
+ },
+ "heatmap_style.rime.tip": {
+  "text": "صقيع «وادٍ جبلي في الضباب» على طول أعلى كل خانة",
+  "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.round": {
+  "text": "دائري",
+  "en": "Round"
+ },
+ "heatmap_style.round.tip": {
+  "text": "كل يوم خانة صغيرة مستديرة",
+  "en": "Each day a little round tile"
+ },
+ "heatmap_style.scanlines": {
+  "text": "خطوط المسح",
+  "en": "Scanlines"
+ },
+ "heatmap_style.scanlines.tip": {
+  "text": "خطوط مسح Synthwave",
+  "en": "Synthwave's scanlines"
+ },
+ "heatmap_style.scenery": {
+  "text": "المنظر",
+  "en": "Scenery"
+ },
+ "heatmap_style.scenery.tip": {
+  "text": "يستخدم نمط خانات المنظر الحالي ويتغير عند تغيير المنظر",
+  "en": "Uses the current scenery's own tile style and updates when you change scenery"
+ },
+ "hover.click_to_select_it": {
+  "text": "النقر للتحديد",
+  "en": "Click to select it"
+ },
+ "hover.click_to_watch_it_again": {
+  "text": "النقر للمشاهدة مجددًا",
+  "en": "Click to watch it again"
+ },
+ "hover.tap_again_to_watch_it_again": {
+  "text": "لمسة أخرى للمشاهدة مجددًا",
+  "en": "Tap again to watch it again"
+ },
+ "hover.tap_to_select_it": {
+  "text": "اللمس للتحديد",
+  "en": "Tap to select it"
+ },
+ "journal.a_harvest_moon_rises_over_your": {
+  "text": "يطلع قمر الحصاد في الذكرى السنوية لغابتك.",
+  "en": "A harvest moon rises over your forest's anniversary."
+ },
+ "journal.days_days_in_a_row_the": {
+  "text": {
+   "zero": "{days} يوم على التوالي. لم تفوّت الغابة يومًا واحدًا.",
+   "one": "يوم واحد على التوالي. لم تفوّت الغابة يومًا واحدًا.",
+   "two": "يومان على التوالي. لم تفوّت الغابة يومًا واحدًا.",
+   "few": "{days} أيام على التوالي. لم تفوّت الغابة يومًا واحدًا.",
+   "many": "{days} يومًا على التوالي. لم تفوّت الغابة يومًا واحدًا.",
+   "other": "{days} يوم على التوالي. لم تفوّت الغابة يومًا واحدًا."
+  },
+  "en": {
+   "one": "{days} day in a row. The forest has not missed one.",
+   "other": "{days} days in a row. The forest has not missed one."
+  }
+ },
+ "journal.meteors_are_falling_tonight": {
+  "text": "تتساقط الشهب الليلة.",
+  "en": "Meteors are falling tonight."
+ },
+ "journal.one_of_your_trees_became_ancient": {
+  "text": "صارت إحدى أشجارك معمّرة اليوم.",
+  "en": "One of your trees became ancient today."
+ },
+ "journal.one_of_your_trees_became_ancient_2": {
+  "text": "صارت إحدى أشجارك معمّرة اليوم. وقد يعبر السماء شهاب.",
+  "en": "One of your trees became ancient today. Watch for a shooting star."
+ },
+ "journal.study_some_new_cards_and_your": {
+  "text": "بعد دراسة بعض البطاقات الجديدة، ستضرب شجرتك الأولى جذورها هنا.",
+  "en": "Study some new cards and your first tree will take root here."
+ },
+ "journal.the_grass_is_growing_tall_no": {
+  "text": {
+   "zero": "العشب يطول: لا بطاقات جديدة منذ {n} أسبوع.",
+   "one": "العشب يطول: لا بطاقات جديدة منذ أسبوع.",
+   "two": "العشب يطول: لا بطاقات جديدة منذ أسبوعين.",
+   "few": "العشب يطول: لا بطاقات جديدة منذ {n} أسابيع.",
+   "many": "العشب يطول: لا بطاقات جديدة منذ {n} أسبوعًا.",
+   "other": "العشب يطول: لا بطاقات جديدة منذ {n} أسبوع."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} week.",
+   "other": "The grass is growing tall: no new cards for {n} weeks."
+  }
+ },
+ "journal.the_grass_is_growing_tall_no_2": {
+  "text": "العشب يطول: لا بطاقات جديدة منذ أسبوع.",
+  "en": "The grass is growing tall: no new cards for a week."
+ },
+ "journal.the_tree_you_planted_on_date": {
+  "text": {
+   "zero": "بلغت الشجرة التي غرستها في {date} من العمر {n} سنة اليوم.",
+   "one": "أتمّت الشجرة التي غرستها في {date} عامها الأول اليوم.",
+   "two": "بلغت الشجرة التي غرستها في {date} من العمر سنتين اليوم.",
+   "few": "بلغت الشجرة التي غرستها في {date} من العمر {n} سنوات اليوم.",
+   "many": "بلغت الشجرة التي غرستها في {date} من العمر {n} سنة اليوم.",
+   "other": "بلغت الشجرة التي غرستها في {date} من العمر {n} سنة اليوم."
+  },
+  "en": {
+   "one": "The tree you planted on {date} turned {n} year old today.",
+   "other": "The tree you planted on {date} turned {n} years old today."
+  }
+ },
+ "journal.the_tree_you_planted_on_date_2": {
+  "text": "أتمّت الشجرة التي غرستها في {date} عامها الأول اليوم.",
+  "en": "The tree you planted on {date} turned a year old today."
+ },
+ "journal.your_count_th_tree_planted_today": {
+  "text": {
+   "zero": "شجرتك رقم {count}، غُرست اليوم مع {cards} بطاقة جديدة.",
+   "one": "شجرتك رقم {count}، غُرست اليوم مع بطاقة جديدة واحدة.",
+   "two": "شجرتك رقم {count}، غُرست اليوم مع بطاقتين جديدتين.",
+   "few": "شجرتك رقم {count}، غُرست اليوم مع {cards} بطاقات جديدة.",
+   "many": "شجرتك رقم {count}، غُرست اليوم مع {cards} بطاقة جديدة.",
+   "other": "شجرتك رقم {count}، غُرست اليوم مع {cards} بطاقة جديدة."
+  },
+  "en": {
+   "one": "Your {count}th tree, planted today with {cards} new card.",
+   "other": "Your {count}th tree, planted today with {cards} new cards."
+  }
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "text": {
+   "zero": "شجرتك الأولى. تحمل {cards} بطاقة.",
+   "one": "شجرتك الأولى. تحمل بطاقة واحدة.",
+   "two": "شجرتك الأولى. تحمل بطاقتين.",
+   "few": "شجرتك الأولى. تحمل {cards} بطاقات.",
+   "many": "شجرتك الأولى. تحمل {cards} بطاقة.",
+   "other": "شجرتك الأولى. تحمل {cards} بطاقة."
+  },
+  "en": {
+   "one": "Your first tree. It holds {cards} card.",
+   "other": "Your first tree. It holds {cards} cards."
+  }
+ },
+ "landmark.moon_bridge": {
+  "text": "جسر القمر",
+  "en": "Moon bridge"
+ },
+ "landmark.none": {
+  "text": "بلا",
+  "en": "None"
+ },
+ "landmark.pagoda": {
+  "text": "باغودا",
+  "en": "Pagoda"
+ },
+ "landmark.peak": {
+  "text": "قمة جبل",
+  "en": "Mountain peak"
+ },
+ "landscape.lake": {
+  "text": "بحيرة ساكنة",
+  "en": "Still lake"
+ },
+ "landscape.meadow": {
+  "text": "مرج",
+  "en": "Meadow"
+ },
+ "landscape.mountains": {
+  "text": "وادٍ بين الجبال",
+  "en": "Mountain valley"
+ },
+ "landscape.river": {
+  "text": "نهر",
+  "en": "River"
+ },
+ "month.april": {
+  "text": "أبريل",
+  "en": "April"
+ },
+ "month.august": {
+  "text": "أغسطس",
+  "en": "August"
+ },
+ "month.december": {
+  "text": "ديسمبر",
+  "en": "December"
+ },
+ "month.february": {
+  "text": "فبراير",
+  "en": "February"
+ },
+ "month.january": {
+  "text": "يناير",
+  "en": "January"
+ },
+ "month.july": {
+  "text": "يوليو",
+  "en": "July"
+ },
+ "month.june": {
+  "text": "يونيو",
+  "en": "June"
+ },
+ "month.march": {
+  "text": "مارس",
+  "en": "March"
+ },
+ "month.may": {
+  "text": "مايو",
+  "en": "May"
+ },
+ "month.november": {
+  "text": "نوفمبر",
+  "en": "November"
+ },
+ "month.october": {
+  "text": "أكتوبر",
+  "en": "October"
+ },
+ "month.september": {
+  "text": "سبتمبر",
+  "en": "September"
+ },
+ "month_short.apr": {
+  "text": "أبريل",
+  "en": "Apr"
+ },
+ "month_short.aug": {
+  "text": "أغسطس",
+  "en": "Aug"
+ },
+ "month_short.dec": {
+  "text": "ديسمبر",
+  "en": "Dec"
+ },
+ "month_short.feb": {
+  "text": "فبراير",
+  "en": "Feb"
+ },
+ "month_short.jan": {
+  "text": "يناير",
+  "en": "Jan"
+ },
+ "month_short.jul": {
+  "text": "يوليو",
+  "en": "Jul"
+ },
+ "month_short.jun": {
+  "text": "يونيو",
+  "en": "Jun"
+ },
+ "month_short.mar": {
+  "text": "مارس",
+  "en": "Mar"
+ },
+ "month_short.may": {
+  "text": "مايو",
+  "en": "May"
+ },
+ "month_short.nov": {
+  "text": "نوفمبر",
+  "en": "Nov"
+ },
+ "month_short.oct": {
+  "text": "أكتوبر",
+  "en": "Oct"
+ },
+ "month_short.sep": {
+  "text": "سبتمبر",
+  "en": "Sep"
+ },
+ "news.change_scenery_and_settings_new_scenery": {
+  "text": "تغيير المنظر والإعدادات (منظر جديد)",
+  "en": "Change scenery and settings (new scenery)"
+ },
+ "news.change_scenery_and_settings_something_new": {
+  "text": "تغيير المنظر والإعدادات (شيء جديد)",
+  "en": "Change scenery and settings (something new)"
+ },
+ "news.got_it": {
+  "text": "فهمت",
+  "en": "Got it"
+ },
+ "panel.change_scenery_and_settings": {
+  "text": "تغيير المنظر والإعدادات",
+  "en": "Change scenery and settings"
+ },
+ "panel.seasonal_scenery_for_this_week_only": {
+  "text": "منظر موسمي، لهذا الأسبوع فقط. يعود منظرك في {date}.",
+  "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
+ },
+ "panel.seasonal_scenery_here_until_date": {
+  "text": "منظر موسمي، باقٍ حتى {date}.",
+  "en": "Seasonal scenery, here until {date}."
+ },
+ "panel.todays_scenery_from_surprise_me_daily": {
+  "text": "منظر اليوم، من «مفاجأة كل يوم». وغدًا يأتي المنظر التالي.",
+  "en": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."
+ },
+ "panel.your_own_mix_from_customize_in": {
+  "text": "مزيجك الخاص، من «تخصيص» في إعدادات الغابة.",
+  "en": "Your own mix, from Customize in the forest settings."
+ },
+ "panel.your_study_forest": {
+  "text": "غابة دراستك",
+  "en": "Your study forest"
+ },
+ "phone.forest_full_screen": {
+  "text": "الغابة بملء الشاشة",
+  "en": "Forest full screen"
+ },
+ "phone.full_screen_isnt_allowed_here": {
+  "text": "ملء الشاشة غير متاح هنا.",
+  "en": "Full screen isn't allowed here."
+ },
+ "phone.heatmap_full_screen": {
+  "text": "الخريطة الحرارية بملء الشاشة",
+  "en": "Heatmap full screen"
+ },
+ "phone.just_now": {
+  "text": "للتو",
+  "en": "just now"
+ },
+ "phone.leave_full_screen": {
+  "text": "الخروج من ملء الشاشة",
+  "en": "Leave full screen"
+ },
+ "phone.memory_forest_could_not_draw_your": {
+  "text": "تعذّر على Memory Forest رسم غابتك هنا.",
+  "en": "Memory Forest could not draw your forest here."
+ },
+ "phone.memory_forest_keeps_your_forest_here": {
+  "text": "تحفظ Memory Forest غابتك هنا ليتمكن هاتفك من عرضها. لرؤيتها، تكفي دراسة هذه الرزمة ثم الرجوع دون إجابة. تعيد الإضافة كتابة هذه الملحوظة عند كل مزامنة.",
+  "en": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync."
+ },
+ "phone.n_days_ago": {
+  "text": {
+   "zero": "قبل {n} يوم",
+   "one": "قبل يوم",
+   "two": "قبل يومين",
+   "few": "قبل {n} أيام",
+   "many": "قبل {n} يومًا",
+   "other": "قبل {n} يوم"
+  },
+  "en": {
+   "one": "{n} day ago",
+   "other": "{n} days ago"
+  }
+ },
+ "phone.n_hours_ago": {
+  "text": {
+   "zero": "قبل {n} ساعة",
+   "one": "قبل ساعة",
+   "two": "قبل ساعتين",
+   "few": "قبل {n} ساعات",
+   "many": "قبل {n} ساعة",
+   "other": "قبل {n} ساعة"
+  },
+  "en": {
+   "one": "{n} hour ago",
+   "other": "{n} hours ago"
+  }
+ },
+ "phone.n_minutes_ago": {
+  "text": {
+   "zero": "قبل {n} دقيقة",
+   "one": "قبل دقيقة",
+   "two": "قبل دقيقتين",
+   "few": "قبل {n} دقائق",
+   "many": "قبل {n} دقيقة",
+   "other": "قبل {n} دقيقة"
+  },
+  "en": {
+   "one": "{n} minute ago",
+   "other": "{n} minutes ago"
+  }
+ },
+ "phone.sync_anki_on_your_computer_to": {
+  "text": "لتحديثها، يلزم مزامنة Anki على حاسوبك.",
+  "en": "Sync Anki on your computer to bring it up to date."
+ },
+ "phone.synced_when": {
+  "text": "تمت المزامنة {when}.",
+  "en": "Synced {when}."
+ },
+ "phone.yesterday": {
+  "text": "أمس",
+  "en": "yesterday"
+ },
+ "phone.your_forest_arrives_with_the_next": {
+  "text": "تصل غابتك مع المزامنة التالية من Anki على حاسوبك.",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_arrives_with_the_next_sync": {
+  "text": "تصل غابتك مع المزامنة التالية من Anki على حاسوبك.",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_is_on_its_way": {
+  "text": "غابتك في الطريق: مزامنة أخرى تجلب رسمها.",
+  "en": "Your forest is on its way: sync once more to fetch its drawing."
+ },
+ "planting.a_new_tree_was_planted_in": {
+  "text": "غُرست شجرة جديدة في غابتك اليوم.",
+  "en": "A new tree was planted in your forest today."
+ },
+ "preset.aurora": {
+  "text": "ليلة الشفق القطبي",
+  "en": "Aurora night"
+ },
+ "preset.aurora.note": {
+  "text": "شفق قطبي فوق جبال مكسوّة بالثلج، يتموّج في البحيرة الساكنة تحتها.",
+  "en": "Northern lights over a snowy range, moving in the still lake below."
+ },
+ "preset.bamboo": {
+  "text": "خيزران تحت المطر",
+  "en": "Rainy bamboo grove"
+ },
+ "preset.bamboo.note": {
+  "text": "أعواد خيزران طويلة تحت مطر أخضر ناعم، ومعبد في الضباب، وفوانيس تطفو مع مجرى النهر.",
+  "en": "Tall canes in soft green rain, a temple in the mist, lanterns floating down the river."
+ },
+ "preset.chalkboard": {
+  "text": "السبورة",
+  "en": "Chalkboard"
+ },
+ "preset.chalkboard.note": {
+  "text": "الغابة بالطباشير الملوّن على سبورة خضراء.",
+  "en": "The forest in coloured chalk on a green blackboard."
+ },
+ "preset.cherry_blossom": {
+  "text": "أزهار الكرز",
+  "en": "Cherry blossom"
+ },
+ "preset.cherry_blossom.note": {
+  "text": "هانامي عند سفح فوجي: أشجار كرز مزهرة على طول النهر، وفوانيس ورقية في الأعلى، وبتلات في النسيم.",
+  "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
+ },
+ "preset.custom": {
+  "text": "مخصّص",
+  "en": "Custom"
+ },
+ "preset.daily": {
+  "text": "مفاجأة كل يوم",
+  "en": "Surprise me daily"
+ },
+ "preset.daily.note": {
+  "text": "منظر مختلف كل يوم، بالتناوب حتى يأتي دور كل منظر بالترتيب.",
+  "en": "A different scenery every day, taking turns so each one comes round in order."
+ },
+ "preset.frozen_market": {
+  "text": "سوق على النهر المتجمد",
+  "en": "Frozen river market"
+ },
+ "preset.frozen_market.note": {
+  "text": "سوق عيد الميلاد على النهر المتجمد: أكشاك ودوّامة خيل على الجليد، ومتزلّجون تحت جسر تضيئه الفوانيس.",
+  "en": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge."
+ },
+ "preset.golden_lake": {
+  "text": "الساعة الذهبية عند البحيرة",
+  "en": "Golden hour by the lake"
+ },
+ "preset.golden_lake.note": {
+  "text": "شمس منخفضة فوق مياه ساكنة، والغابة كلها مضاءة من جانب واحد.",
+  "en": "Low sun across still water, the whole forest lit from one side."
+ },
+ "preset.lanterns": {
+  "text": "فوانيس في الليل",
+  "en": "Lanterns at night"
+ },
+ "preset.lanterns.note": {
+  "text": "فوانيس ورقية ترتفع من جسر قمر أحمر نحو البدر، وانعكاساتها تهبط إلى الأسفل.",
+  "en": "Paper lanterns drifting up from a red moon bridge towards a full moon, and their reflections going down."
+ },
+ "preset.misty_valley": {
+  "text": "وادٍ جبلي في الضباب",
+  "en": "Misty mountain valley"
+ },
+ "preset.misty_valley.note": {
+  "text": "قمة مكسوّة بالثلج فوق وادٍ لم يستيقظ بعد.",
+  "en": "A snow-capped peak over a valley that has not woken up yet."
+ },
+ "preset.pumpkin_patch": {
+  "text": "ساحرة تعبر القمر",
+  "en": "Witch across the moon"
+ },
+ "preset.pumpkin_patch.note": {
+  "text": "ساحرة وقطّتها تعبران قمر حصاد صاعدًا فوق حقل من فوانيس اليقطين المبتسمة الضاحكة.",
+  "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.starry_night": {
+  "text": "ليلة النجوم",
+  "en": "Starry night"
+ },
+ "preset.starry_night.note": {
+  "text": "على طريقة فان غوخ: سماء من ضربات فرشاة دوّارة فوق قرية نائمة، وأشجار سرو داكنة تتّقد أمامها.",
+  "en": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
+ },
+ "preset.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "preset.synthwave.note": {
+  "text": "شبكة النيون الممتدة حتى الأفق، والشمس المخطّطة واقفة عليها.",
+  "en": "The neon grid running to the horizon, and the banded sun standing on it."
+ },
+ "scene.after_the_rain": {
+  "text": "بعد المطر",
+  "en": "After the rain"
+ },
+ "scene.clear": {
+  "text": "صافٍ",
+  "en": "Clear"
+ },
+ "scene.cloudy": {
+  "text": "غائم",
+  "en": "Cloudy"
+ },
+ "scene.dawn": {
+  "text": "الفجر",
+  "en": "Dawn"
+ },
+ "scene.day": {
+  "text": "النهار",
+  "en": "Day"
+ },
+ "scene.deep_winter": {
+  "text": "عزّ الشتاء",
+  "en": "Deep winter"
+ },
+ "scene.dusk": {
+  "text": "الغسق",
+  "en": "Dusk"
+ },
+ "scene.fog": {
+  "text": "ضباب",
+  "en": "Fog"
+ },
+ "scene.golden_hour": {
+  "text": "الساعة الذهبية",
+  "en": "Golden hour"
+ },
+ "scene.night": {
+  "text": "الليل",
+  "en": "Night"
+ },
+ "scene.rain": {
+  "text": "مطر",
+  "en": "Rain"
+ },
+ "scene.snow": {
+  "text": "ثلج",
+  "en": "Snow"
+ },
+ "scene.thunderstorm": {
+  "text": "عاصفة رعدية",
+  "en": "Thunderstorm"
+ },
+ "settings.about.all_release_notes": {
+  "text": "كل ملاحظات الإصدار",
+  "en": "All release notes"
+ },
+ "settings.about.and_a_special_thank_you_to": {
+  "text": "وشكر خاص لداعميّ على Patreon:",
+  "en": "And a special thank-you to my Sponsors on Patreon:"
+ },
+ "settings.about.how_it_works": {
+  "text": "كيف تعمل",
+  "en": "How it works"
+ },
+ "settings.about.made_by_barak_levy": {
+  "text": "من صنع Barak Levy",
+  "en": "Made by Barak Levy"
+ },
+ "settings.about.memory_forest_grows_thanks_to_everyone": {
+  "text": "تنمو Memory Forest بفضل كل من يقيّمها أو يشاركها أو يرسل أفكارًا أو يبلّغ عن خلل. شكرًا لكم!",
+  "en": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!"
+ },
+ "settings.about.mit_licence": {
+  "text": "رخصة MIT",
+  "en": "MIT licence"
+ },
+ "settings.about.new_scenery_arrives_in_memory_forest": {
+  "text": "تصل المناظر الجديدة إلى Memory Forest Plus أولًا، ثم إلى هذا الإصدار أيضًا. <a href=\"{url}\">الانضمام على Patreon</a>",
+  "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
+ },
+ "settings.about.one_tree_for_every_day_you": {
+  "text": "شجرة واحدة عن كل يوم تُتعلَّم فيه بطاقات جديدة. بادرة اليوم في المقدمة، وأقدم شجرة في الخلف. تنمو الأشجار كلما رسخت تلك البطاقات في الذاكرة، وتظهر عليها بضع أوراق صفراء حين يُنسى بعضها. أيام المراجعة وحدها لا تغرس شجرة، لكنها تحافظ على صحة أشجارك.",
+  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+ },
+ "settings.about.places_openstreetmap_contributors": {
+  "text": "الأماكن © <a href=\"{osm}\">المساهمون في OpenStreetMap</a>",
+  "en": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>"
+ },
+ "settings.about.rate_it_on_ankiweb": {
+  "text": "تقييمها على AnkiWeb",
+  "en": "Rate it on AnkiWeb"
+ },
+ "settings.about.report_a_bug_or_share_an": {
+  "text": "الإبلاغ عن خلل أو مشاركة فكرة",
+  "en": "Report a bug or share an idea"
+ },
+ "settings.about.thank_you": {
+  "text": "شكرًا",
+  "en": "Thank you"
+ },
+ "settings.about.the_heatmap_under_it_shows_every": {
+  "text": "تعرض الخريطة الحرارية تحتها كل يوم درست فيه: التمرير فوق يوم يعرض أرقامه، والنقر عليه بالزر الأيمن يضع عليه علامة.",
+  "en": "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it."
+ },
+ "settings.about.version_version": {
+  "text": "الإصدار {version}",
+  "en": "Version {version}"
+ },
+ "settings.about.weather_from_met_norway_cc_by": {
+  "text": "الطقس من <a href=\"{met}\">MET Norway</a> (CC BY 4.0)",
+  "en": "Weather from <a href=\"{met}\">MET Norway</a> (CC BY 4.0)"
+ },
+ "settings.about.whats_new": {
+  "text": "ما الجديد",
+  "en": "What's new"
+ },
+ "settings.about.youre_part_of_this_thank_you": {
+  "text": "أنت جزء من هذا: شكرًا لدعمها عبر <a href=\"{url}\">Patreon</a>",
+  "en": "You're part of this: thank you for supporting it on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.customize.change_anything_here_to_make_it": {
+  "text": "يمكن تغيير أي شيء هنا لصنع مزيجك الخاص.",
+  "en": "Change anything here to make it your own mix."
+ },
+ "settings.customize.customize_scenery": {
+  "text": "تخصيص {scenery} ›",
+  "en": "Customize {scenery} ›"
+ },
+ "settings.customize.customize_scenery_2": {
+  "text": "تخصيص {scenery}",
+  "en": "Customize {scenery}"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery": {
+  "text": "مزيجك الخاص، انطلاقًا من {scenery} ›",
+  "en": "Customize your own mix, from {scenery} ›"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery_2": {
+  "text": "مزيجك الخاص، انطلاقًا من {scenery}",
+  "en": "Customize your own mix, from {scenery}"
+ },
+ "settings.customize.environment": {
+  "text": "العالم",
+  "en": "Environment"
+ },
+ "settings.customize.follows_your_clock": {
+  "text": "حسب ساعتك",
+  "en": "Follows your clock"
+ },
+ "settings.customize.landmark": {
+  "text": "المَعلم",
+  "en": "Landmark"
+ },
+ "settings.customize.landscape": {
+  "text": "التضاريس",
+  "en": "Landscape"
+ },
+ "settings.customize.live_weather": {
+  "text": "الطقس المباشر",
+  "en": "Live weather"
+ },
+ "settings.customize.reset_a_row_to_put_the": {
+  "text": "إعادة تعيين صف تُرجع اختيار المنظر الأصلي.",
+  "en": "Reset a row to put the scenery's own choice back."
+ },
+ "settings.customize.reset_put_back_the_scenerys_own": {
+  "text": "إعادة تعيين: إرجاع اختيار المنظر الأصلي",
+  "en": "Reset: put back the scenery's own choice"
+ },
+ "settings.customize.sceneries": {
+  "text": "‹ المناظر",
+  "en": "‹ Sceneries"
+ },
+ "settings.customize.time_of_day": {
+  "text": "وقت اليوم",
+  "en": "Time of day"
+ },
+ "settings.customize.weather": {
+  "text": "الطقس",
+  "en": "Weather"
+ },
+ "settings.decks.counting_your_trees": {
+  "text": "جارٍ عدّ أشجارك…",
+  "en": "Counting your trees…"
+ },
+ "settings.decks.date_format": {
+  "text": "d MMMM yyyy",
+  "en": "d MMMM yyyy"
+ },
+ "settings.decks.days_before_date_grow_no_trees": {
+  "text": "الأيام التي تسبق {date} لا تُنبت أشجارًا. ولا تزال الخريطة الحرارية تعرضها (تبويب «الخريطة الحرارية»).",
+  "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
+ },
+ "settings.decks.decks": {
+  "text": "الرزم",
+  "en": "Decks"
+ },
+ "settings.decks.keep_suspended_cards_in_their_trees": {
+  "text": "إبقاء البطاقات المعلّقة في أشجارها",
+  "en": "Keep suspended cards in their trees"
+ },
+ "settings.decks.keep_the_trees_from_before_it": {
+  "text": "إبقاء الأشجار التي تسبقه",
+  "en": "Keep the trees from before it"
+ },
+ "settings.decks.no_trees": {
+  "text": "لا أشجار",
+  "en": "no trees"
+ },
+ "settings.decks.start_the_forest_on": {
+  "text": "بدء الغابة في",
+  "en": "Start the forest on"
+ },
+ "settings.decks.they_keep_their_trees_size_but": {
+  "text": "تحافظ على حجم شجرتها، لكنها لا تضرّ بصحتها أبدًا.",
+  "en": "They keep their tree's size but never hurt its health."
+ },
+ "settings.decks.unticked_decks_grow_no_trees_you": {
+  "text": "الرزم غير المحددة لا تُنبت أشجارًا. يمكن فعل ذلك أيضًا من قائمة ⚙ الخاصة بالرزمة.",
+  "en": "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
+ },
+ "settings.decks.what_counts": {
+  "text": "ما يُحتسب",
+  "en": "What counts"
+ },
+ "settings.decks.your_forest_starts_on_your_first": {
+  "text": "تبدأ غابتك في أول يوم دراسة لك، {first}.",
+  "en": "Your forest starts on your first day of study, {first}."
+ },
+ "settings.decks.your_forest_trees": {
+  "text": "غابتك: <b>{trees}</b>",
+  "en": "Your forest: <b>{trees}</b>"
+ },
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "text": {
+   "zero": "غابتك: <b>{trees}</b> &nbsp;({n} شجرة سابقة مستبعدة)",
+   "one": "غابتك: <b>{trees}</b> &nbsp;(شجرة سابقة واحدة مستبعدة)",
+   "two": "غابتك: <b>{trees}</b> &nbsp;(شجرتان سابقتان مستبعدتان)",
+   "few": "غابتك: <b>{trees}</b> &nbsp;({n} أشجار سابقة مستبعدة)",
+   "many": "غابتك: <b>{trees}</b> &nbsp;({n} شجرة سابقة مستبعدة)",
+   "other": "غابتك: <b>{trees}</b> &nbsp;({n} شجرة سابقة مستبعدة)"
+  },
+  "en": {
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
+  }
+ },
+ "settings.decks.your_trees_from_before_it_stay": {
+  "text": "تبقى أشجارك التي تسبقه. أما البرك و«الطبيعة» والحيوانات فتُحتسب من {date}.",
+  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+ },
+ "settings.dialog.about": {
+  "text": "حول",
+  "en": "About"
+ },
+ "settings.dialog.cancel": {
+  "text": "إلغاء",
+  "en": "Cancel"
+ },
+ "settings.dialog.decks": {
+  "text": "الرزم",
+  "en": "Decks"
+ },
+ "settings.dialog.done": {
+  "text": "تم",
+  "en": "Done"
+ },
+ "settings.dialog.forest": {
+  "text": "الغابة",
+  "en": "Forest"
+ },
+ "settings.dialog.heatmap": {
+  "text": "الخريطة الحرارية",
+  "en": "Heatmap"
+ },
+ "settings.dialog.put_the_settings_back_to_their": {
+  "text": "إعادة الإعدادات إلى قيمها الافتراضية؟",
+  "en": "Put the settings back to their defaults?"
+ },
+ "settings.dialog.resets_the_scenery_customize_and_surprise": {
+  "text": "يُعاد تعيين: المنظر، ومناظر «تخصيص» و«مفاجأة كل يوم»، و«الطبيعة» (إلى «{nature}»)، ومدينتك، ومكان ظهور الغابة والخريطة الحرارية (في الرزم المنتهية أيضًا) وتخطيطهما، وطريقة عرض الخريطة الحرارية وعرضها وما يملؤها، وبداية الأسبوع، وأساس درجاتها اللونية، وألوانها (و«الأيام الأكثر نشاطًا» أيضًا) ونمطها، والتحريك، ورسالة الغرس.\n\nيُحتفظ بـ: الرزم التي استبعدتها، وتاريخ البدء (وهل تبقى الأشجار التي تسبقه، وكيف تتعامل معه الخريطة الحرارية وسلسلتك)، وأيام سلسلتك في الأسبوع، والبطاقات المعلّقة، وأيامك المعلَّمة، والغابة على هاتفك.\n\nولا يزال «إلغاء» يُرجع الإعدادات التي كانت لديك من قبل.",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+ },
+ "settings.dialog.restore_defaults": {
+  "text": "استعادة الافتراضيات",
+  "en": "Restore defaults"
+ },
+ "settings.dialog.restore_defaults_2": {
+  "text": "استعادة الافتراضيات…",
+  "en": "Restore defaults…"
+ },
+ "settings.dialog.scenery": {
+  "text": "المنظر",
+  "en": "Scenery"
+ },
+ "settings.forest.a_forest_of_that_decks_own": {
+  "text": "غابة خاصة بتلك الرزمة",
+  "en": "A forest of that deck's own"
+ },
+ "settings.forest.adds_a_memory_forest_deck_with": {
+  "text": "تضيف رزمة «Memory Forest» فيها بطاقة تعرض غابتك وخريطتك الحرارية عند المزامنة.",
+  "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
+ },
+ "settings.forest.animate_the_forest": {
+  "text": "تحريك الغابة",
+  "en": "Animate the forest"
+ },
+ "settings.forest.covers_the_forest_and_the_heatmap": {
+  "text": "يشمل الغابة والخريطة الحرارية.",
+  "en": "Covers the forest and the heatmap."
+ },
+ "settings.forest.deck_screens": {
+  "text": "شاشات الرزم",
+  "en": "Deck screens"
+ },
+ "settings.forest.follow_system": {
+  "text": "حسب النظام",
+  "en": "Follow system"
+ },
+ "settings.forest.forest_width": {
+  "text": "عرض الغابة",
+  "en": "Forest width"
+ },
+ "settings.forest.layout": {
+  "text": "التخطيط",
+  "en": "Layout"
+ },
+ "settings.forest.main_screen": {
+  "text": "الشاشة الرئيسية",
+  "en": "Main screen"
+ },
+ "settings.forest.motion_and_messages": {
+  "text": "الحركة والرسائل",
+  "en": "Motion and messages"
+ },
+ "settings.forest.nature": {
+  "text": "الطبيعة",
+  "en": "Nature"
+ },
+ "settings.forest.no_forest": {
+  "text": "بلا غابة",
+  "en": "No forest"
+ },
+ "settings.forest.off": {
+  "text": "معطّل",
+  "en": "Off"
+ },
+ "settings.forest.on": {
+  "text": "مفعّل",
+  "en": "On"
+ },
+ "settings.forest.on_finished_decks_too": {
+  "text": "في الرزم المنتهية أيضًا",
+  "en": "On finished decks too"
+ },
+ "settings.forest.on_your_phone": {
+  "text": "على هاتفك",
+  "en": "On your phone"
+ },
+ "settings.forest.px": {
+  "text": " بكسل",
+  "en": " px"
+ },
+ "settings.forest.show_a_message_when_todays_tree": {
+  "text": "إظهار رسالة عند غرس شجرة اليوم",
+  "en": "Show a message when today's tree is planted"
+ },
+ "settings.forest.show_my_forest_on_my_phone": {
+  "text": "إظهار غابتي على هاتفي",
+  "en": "Show my forest on my phone"
+ },
+ "settings.forest.where_it_shows": {
+  "text": "مكان الظهور",
+  "en": "Where it shows"
+ },
+ "settings.forest.your_forest": {
+  "text": "غابتك",
+  "en": "Your forest"
+ },
+ "settings.forest.your_forest_that_decks_trees_lit": {
+  "text": "غابتك، مع إضاءة أشجار تلك الرزمة",
+  "en": "Your forest, that deck's trees lit up"
+ },
+ "settings.heatmap.5_days_a_week": {
+  "text": "5 أيام في الأسبوع",
+  "en": "5 days a week"
+ },
+ "settings.heatmap.680_px_or_less_where_there": {
+  "text": "680 بكسل، أو أقل حيث تضيق المساحة",
+  "en": "680 px, or less where there is less room"
+ },
+ "settings.heatmap.6_days_a_week": {
+  "text": "6 أيام في الأسبوع",
+  "en": "6 days a week"
+ },
+ "settings.heatmap.85_of_the_forests_width": {
+  "text": "85% من عرض الغابة",
+  "en": "85% of the forest's width"
+ },
+ "settings.heatmap.85_of_the_room_it_has": {
+  "text": "85% من المساحة المتاحة لها: الصف تحت قائمة الرزم أو فوقها، أو عمودها بجانبها",
+  "en": "85% of the room it has: the row under or over the deck list, or its column beside it"
+ },
+ "settings.heatmap.a_day_off_keeps_your_streak": {
+  "text": "يوم الراحة يحافظ على سلسلتك لكنه لا يزيدها.",
+  "en": "A day off keeps your streak but doesn't add to it."
+ },
+ "settings.heatmap.auto": {
+  "text": "تلقائي",
+  "en": "Auto"
+ },
+ "settings.heatmap.auto_day": {
+  "text": "{auto} ({day})",
+  "en": "{auto} ({day})"
+ },
+ "settings.heatmap.bigger_days": {
+  "text": "أيام أكبر",
+  "en": "Bigger days"
+ },
+ "settings.heatmap.by_year_and_streak_always_fit": {
+  "text": "في «حسب السنة» و«السلسلة» تمتد سنة كاملة على العرض دائمًا.",
+  "en": "By year and Streak always fit a year to the width."
+ },
+ "settings.heatmap.colours": {
+  "text": "الألوان",
+  "en": "Colours"
+ },
+ "settings.heatmap.deck_screens": {
+  "text": "شاشات الرزم",
+  "en": "Deck screens"
+ },
+ "settings.heatmap.every_day": {
+  "text": "كل يوم",
+  "en": "Every day"
+ },
+ "settings.heatmap.every_day_the_same_size_a": {
+  "text": "كل يوم بالحجم نفسه: الخريطة الأعرض تعرض أشهرًا أكثر",
+  "en": "Every day the same size: a wider heatmap shows more months"
+ },
+ "settings.heatmap.fill_it_with": {
+  "text": "ما يملؤها",
+  "en": "Fill it with"
+ },
+ "settings.heatmap.fixed": {
+  "text": "ثابت",
+  "en": "Fixed"
+ },
+ "settings.heatmap.follow_the_forest": {
+  "text": "حسب الغابة",
+  "en": "Follow the forest"
+ },
+ "settings.heatmap.fri": {
+  "text": "جمعة",
+  "en": "Fri"
+ },
+ "settings.heatmap.friday": {
+  "text": "الجمعة",
+  "en": "Friday"
+ },
+ "settings.heatmap.full_width": {
+  "text": "العرض الكامل",
+  "en": "Full width"
+ },
+ "settings.heatmap.layout": {
+  "text": "التخطيط",
+  "en": "Layout"
+ },
+ "settings.heatmap.main_screen": {
+  "text": "الشاشة الرئيسية",
+  "en": "Main screen"
+ },
+ "settings.heatmap.mon": {
+  "text": "اثنين",
+  "en": "Mon"
+ },
+ "settings.heatmap.monday": {
+  "text": "الاثنين",
+  "en": "Monday"
+ },
+ "settings.heatmap.more_months": {
+  "text": "أشهر أكثر",
+  "en": "More months"
+ },
+ "settings.heatmap.sat": {
+  "text": "سبت",
+  "en": "Sat"
+ },
+ "settings.heatmap.saturday": {
+  "text": "السبت",
+  "en": "Saturday"
+ },
+ "settings.heatmap.show_on": {
+  "text": "الظهور في",
+  "en": "Show on"
+ },
+ "settings.heatmap.show_the_reviews_from_before_your": {
+  "text": "إظهار المراجعات التي تسبق تاريخ بدء غابتك",
+  "en": "Show the reviews from before your forest's start date"
+ },
+ "settings.heatmap.streak": {
+  "text": "السلسلة",
+  "en": "Streak"
+ },
+ "settings.heatmap.style": {
+  "text": "النمط",
+  "en": "Style"
+ },
+ "settings.heatmap.sun": {
+  "text": "أحد",
+  "en": "Sun"
+ },
+ "settings.heatmap.sunday": {
+  "text": "الأحد",
+  "en": "Sunday"
+ },
+ "settings.heatmap.ten_months_with_bigger_days_to": {
+  "text": "عشرة أشهر، بأيام أكبر تملأ العرض",
+  "en": "Ten months, with bigger days to fill the width"
+ },
+ "settings.heatmap.the_start_date": {
+  "text": "تاريخ البدء",
+  "en": "The start date"
+ },
+ "settings.heatmap.thu": {
+  "text": "خميس",
+  "en": "Thu"
+ },
+ "settings.heatmap.thursday": {
+  "text": "الخميس",
+  "en": "Thursday"
+ },
+ "settings.heatmap.tue": {
+  "text": "ثلاثاء",
+  "en": "Tue"
+ },
+ "settings.heatmap.tuesday": {
+  "text": "الثلاثاء",
+  "en": "Tuesday"
+ },
+ "settings.heatmap.wed": {
+  "text": "أربعاء",
+  "en": "Wed"
+ },
+ "settings.heatmap.wednesday": {
+  "text": "الأربعاء",
+  "en": "Wednesday"
+ },
+ "settings.heatmap.week_starts_on": {
+  "text": "بداية الأسبوع",
+  "en": "Week starts on"
+ },
+ "settings.heatmap.width": {
+  "text": "العرض",
+  "en": "Width"
+ },
+ "settings.heatmap.your_first_review": {
+  "text": "مراجعتك الأولى",
+  "en": "Your first review"
+ },
+ "settings.heatmap.your_forests_start_date_is_set": {
+  "text": "يُضبط تاريخ بدء غابتك في تبويب «الرزم».",
+  "en": "Your forest's start date is set on the Decks tab."
+ },
+ "settings.heatmap.your_streak_counts": {
+  "text": "حساب السلسلة",
+  "en": "Your streak counts"
+ },
+ "settings.heatmap.your_streak_counts_from": {
+  "text": "بداية حساب السلسلة",
+  "en": "Your streak counts from"
+ },
+ "settings.heatmap.your_systems_first_day_of_the": {
+  "text": "أول أيام الأسبوع في نظامك",
+  "en": "Your system's first day of the week"
+ },
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": {
+  "text": "أول أيام الأسبوع في نظامك: {day}",
+  "en": "Your system's first day of the week: {day}"
+ },
+ "settings.heatmap_look.blend_into": {
+  "text": "التدرّج إلى",
+  "en": "Blend into"
+ },
+ "settings.heatmap_look.busier_days": {
+  "text": "الأيام الأكثر نشاطًا",
+  "en": "Busier days"
+ },
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": {
+  "text": "الأيام الأكثر نشاطًا أغمق في الوضع الداكن في Anki أيضًا، كما في الوضع الساطع، وكذلك الأيام الأسرع حسب «الوتيرة».",
+  "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
+ },
+ "settings.heatmap_look.colours_you_pick_one_dim_to": {
+  "text": "ألوان من اختيارك: لون واحد، من الخافت إلى الكامل، أو لونان، بتدرّج من الأول إلى الثاني",
+  "en": "Colours you pick: one, dim to full, or two, blending from the first to the second"
+ },
+ "settings.heatmap_look.current_scenery": {
+  "text": "المنظر الحالي",
+  "en": "Current scenery"
+ },
+ "settings.heatmap_look.custom": {
+  "text": "مخصّص",
+  "en": "Custom"
+ },
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
+  "text": "في الوضع الداكن في Anki، تكون الأيام الأكثر نشاطًا أفتح، وكذلك الأيام الأسرع حسب «الوتيرة». وفي الوضع الساطع، تكون أغمق دائمًا.",
+  "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
+ },
+ "settings.heatmap_look.lime_green_to_bright_lime": {
+  "text": "ليموني: من الأخضر إلى الليموني الساطع",
+  "en": "Lime: green to bright lime"
+ },
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
+  "text": "لهب Review Heatmap: من الأحمر الساطع إلى الأصفر",
+  "en": "Review Heatmap's Flame: bright red to yellow"
+ },
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
+  "text": "جليد Review Heatmap: من الأزرق الداكن إلى الأزرق الجليدي الباهت",
+  "en": "Review Heatmap's Ice: deep blue to pale ice blue"
+ },
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
+  "text": "ماجنتا Review Heatmap: من الوردي الداكن إلى الوردي الباهت",
+  "en": "Review Heatmap's Magenta: deep pink to pale pink"
+ },
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
+  "text": "زيتوني Review Heatmap: من الأخضر الزيتوني الداكن إلى الأخضر المصفرّ الباهت",
+  "en": "Review Heatmap's Olive: deep olive green to pale yellow-green"
+ },
+ "settings.heatmap_look.scenery": {
+  "text": "المنظر",
+  "en": "Scenery"
+ },
+ "settings.heatmap_look.the_busiest_days_colour": {
+  "text": "لون أكثر الأيام نشاطًا",
+  "en": "The busiest days' colour"
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": {
+  "text": "يصعب رؤية لون أكثر أيامك نشاطًا على صفحة فاتحة. تعرضه الخريطة الحرارية كما اخترته.",
+  "en": "Your busiest colour is hard to see on a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": {
+  "text": "يصعب رؤية لون أكثر أيامك نشاطًا على صفحة داكنة. تعرضه الخريطة الحرارية كما اخترته.",
+  "en": "Your busiest colour is hard to see on a dark page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": {
+  "text": "يصعب رؤية لون أكثر أيامك نشاطًا على صفحة داكنة أو فاتحة. تعرضه الخريطة الحرارية كما اخترته.",
+  "en": "Your busiest colour is hard to see on a dark or a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_days_colour": {
+  "text": "لون أكثر أيامك نشاطًا",
+  "en": "Your busiest days' colour"
+ },
+ "settings.heatmap_look.your_colour": {
+  "text": "لونك",
+  "en": "Your colour"
+ },
+ "settings.heatmap_look.your_colour_with_a_blend_the": {
+  "text": "لونك (مع التدرّج: لون أهدأ الأيام)",
+  "en": "Your colour (with a blend: the quietest days')"
+ },
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": {
+  "text": "ألوان منظرك الحالي، أو ألوان منظر آخر تبقى عند تغيير المنظر",
+  "en": "Your current scenery's colours, or another scenery's, which stay when you change scenery"
+ },
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
+  "text": "خانات منظرك الحالي، أو خانات منظر آخر تبقى عند تغيير المنظر",
+  "en": "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
+ },
+ "settings.layout.above_the_list": {
+  "text": "فوق القائمة",
+  "en": "Above the list"
+ },
+ "settings.layout.beside_it": {
+  "text": "بجانبها",
+  "en": "Beside it"
+ },
+ "settings.layout.beside_the_list_while_the_window": {
+  "text": "بجانب القائمة ما دام في النافذة متّسع، وإلا فتحتها. وفي شاشات الرزم يبقيان تحتها.",
+  "en": "Beside the list while the window has room, under it otherwise. Deck screens keep them under it."
+ },
+ "settings.layout.first": {
+  "text": "الأول",
+  "en": "First"
+ },
+ "settings.layout.forest": {
+  "text": "الغابة",
+  "en": "Forest"
+ },
+ "settings.layout.heatmap": {
+  "text": "الخريطة الحرارية",
+  "en": "Heatmap"
+ },
+ "settings.layout.left": {
+  "text": "يسار",
+  "en": "Left"
+ },
+ "settings.layout.one_beside": {
+  "text": "واحد بجانبها",
+  "en": "One beside"
+ },
+ "settings.layout.right": {
+  "text": "يمين",
+  "en": "Right"
+ },
+ "settings.layout.side": {
+  "text": "الجانب",
+  "en": "Side"
+ },
+ "settings.layout.the_first_above_the_deck_list": {
+  "text": "الأول فوق قائمة الرزم، والآخر تحتها",
+  "en": "The first above the deck list, the other under it"
+ },
+ "settings.layout.the_first_beside_the_deck_list": {
+  "text": "الأول بجانب قائمة الرزم، والآخر تحتها",
+  "en": "The first beside the deck list, the other under it"
+ },
+ "settings.layout.the_forest_and_the_heatmap_beside": {
+  "text": "الغابة والخريطة الحرارية بجانب قائمة الرزم، ما دام في النافذة متّسع لهما",
+  "en": "The forest and the heatmap beside the deck list, while the window has room for them"
+ },
+ "settings.layout.the_forest_and_the_heatmap_under": {
+  "text": "الغابة والخريطة الحرارية تحت قائمة الرزم",
+  "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_one_that_goes_beside_or": {
+  "text": "الذي يوضع بجانب قائمة الرزم أو فوقها، ويأتي أولًا حين يظهران معًا. وتتبعه شاشات الرزم أيضًا.",
+  "en": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too."
+ },
+ "settings.layout.under_the_list": {
+  "text": "تحت القائمة",
+  "en": "Under the list"
+ },
+ "settings.patreon.enjoying_memory_forest": {
+  "text": "هل أعجبتك Memory Forest؟",
+  "en": "Enjoying Memory Forest?"
+ },
+ "settings.patreon.every_plus_scenery_joins_this_version": {
+  "text": "كل منظر من Plus ينضم إلى هذا الإصدار لاحقًا.",
+  "en": "Every Plus scenery joins this version later on."
+ },
+ "settings.patreon.new_scenery_arrives_here_first_every": {
+  "text": "تصل المناظر الجديدة إلى هنا أولًا، كل شهر.",
+  "en": "New scenery arrives here first, every month."
+ },
+ "settings.patreon.support_it_on_patreon_and_get": {
+  "text": "بدعمها على Patreon يصلك كل منظر\nجديد أولًا، في Memory Forest Plus",
+  "en": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
+ },
+ "settings.patreon.thank_you_for_supporting_memory_forest": {
+  "text": "شكرًا لدعم Memory Forest على <a href=\"{url}\">Patreon</a>",
+  "en": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.picker.improved": {
+  "text": "مُحسَّن",
+  "en": "IMPROVED"
+ },
+ "settings.picker.label_is_in_memory_forest_plus": {
+  "text": "{label} متوفر في Memory Forest Plus. <a href=\"{url}\">الحصول عليه عبر Patreon</a>",
+  "en": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>"
+ },
+ "settings.picker.new": {
+  "text": "جديد",
+  "en": "NEW"
+ },
+ "settings.picker.no_scenery_has_that_in_its": {
+  "text": "لا يوجد منظر بهذا الاسم.",
+  "en": "No scenery has that in its name."
+ },
+ "settings.picker.sceneries": {
+  "text": "المناظر",
+  "en": "Sceneries"
+ },
+ "settings.picker.search_n_sceneries": {
+  "text": {
+   "zero": "البحث في {n} منظر",
+   "one": "البحث في منظر واحد",
+   "two": "البحث في منظرين",
+   "few": "البحث في {n} مناظر",
+   "many": "البحث في {n} منظرًا",
+   "other": "البحث في {n} منظر"
+  },
+  "en": {
+   "one": "Search {n} scenery",
+   "other": "Search {n} sceneries"
+  }
+ },
+ "settings.picker.this_week_only": {
+  "text": "هذا الأسبوع فقط",
+  "en": "This week only"
+ },
+ "settings.picker.until_date": {
+  "text": "حتى {date}",
+  "en": "Until {date}"
+ },
+ "settings.picker.your_own_mix_made_in_customize": {
+  "text": "مزيجك الخاص، صُنع في «تخصيص». يمكن اختيار منظر للبدء منه من جديد.",
+  "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
+ },
+ "settings.scenery.couldnt_find_this_city_check_the": {
+  "text": "تعذّر العثور على هذه المدينة. يمكن التحقق من الإملاء، أو تجربة اسمها بالإنجليزية.",
+  "en": "Couldn't find this city. Check the spelling, or try its English name."
+ },
+ "settings.scenery.couldnt_reach_the_weather_service_trying": {
+  "text": "تعذّر الوصول إلى خدمة الطقس؛ ستُعاد المحاولة قريبًا.",
+  "en": "Couldn't reach the weather service; trying again soon."
+ },
+ "settings.scenery.follow_the_real_weather_and_time": {
+  "text": "اتباع الطقس الحقيقي ووقت اليوم",
+  "en": "Follow the real weather and time of day"
+ },
+ "settings.scenery.live_weather_from_met_norway_places": {
+  "text": "الطقس المباشر من MET Norway، والأماكن من OpenStreetMap. يُترك الحقل فارغًا لاتباع ساعتك فقط.",
+  "en": "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
+ },
+ "settings.scenery.scenery": {
+  "text": "المنظر",
+  "en": "Scenery"
+ },
+ "settings.scenery.your_city_e_g_berlin": {
+  "text": "مدينتك، مثل برلين",
+  "en": "Your city, e.g. Berlin"
+ },
+ "settings.surprise.only_one_ticked_the_same_scenery": {
+  "text": "واحد فقط محدد: المنظر نفسه كل يوم.",
+  "en": "Only one ticked: the same scenery every day."
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": {
+  "text": "مناظر «مفاجأة كل يوم» (كلها، {n}) ›",
+  "en": "Surprise me daily's sceneries (all {n}) ›"
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
+  "text": "مناظر «مفاجأة كل يوم» ({kept} من {n}) ›",
+  "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
+ },
+ "settings.surprise.untick_the_ones_youd_rather_not": {
+  "text": "يمكن إلغاء تحديد المناظر غير المرغوب في رؤيتها.",
+  "en": "Untick the ones you'd rather not see."
+ },
+ "tooltip.a_big_learning_day_n_new": {
+  "text": {
+   "zero": "<b>يوم تعلّم كبير</b>: {n} بطاقة جديدة، بعد أن كان المعتاد {usual}",
+   "one": "<b>يوم تعلّم كبير</b>: بطاقة جديدة واحدة، بعد أن كان المعتاد {usual}",
+   "two": "<b>يوم تعلّم كبير</b>: بطاقتان جديدتان، بعد أن كان المعتاد {usual}",
+   "few": "<b>يوم تعلّم كبير</b>: {n} بطاقات جديدة، بعد أن كان المعتاد {usual}",
+   "many": "<b>يوم تعلّم كبير</b>: {n} بطاقة جديدة، بعد أن كان المعتاد {usual}",
+   "other": "<b>يوم تعلّم كبير</b>: {n} بطاقة جديدة، بعد أن كان المعتاد {usual}"
+  },
+  "en": {
+   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
+   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"
+  }
+ },
+ "tooltip.a_leech_here_mature_again_the": {
+  "text": "بطاقة مستعصية هنا عادت ناضجة: يبقى أبو الحناء أسبوعًا",
+  "en": "A leech here mature again: the robin stays a week"
+ },
+ "tooltip.a_quiet_pond": {
+  "text": "بركة هادئة",
+  "en": "A quiet pond"
+ },
+ "tooltip.all_n_cards_suspended": {
+  "text": {
+   "zero": "البطاقات كلها معلّقة ({n})",
+   "one": "البطاقة معلّقة",
+   "two": "البطاقتان كلتاهما معلّقتان",
+   "few": "البطاقات كلها معلّقة ({n})",
+   "many": "البطاقات كلها معلّقة ({n})",
+   "other": "البطاقات كلها معلّقة ({n})"
+  },
+  "en": {
+   "one": "All {n} cards suspended",
+   "other": "All {n} cards suspended"
+  }
+ },
+ "tooltip.ancient": {
+  "text": "معمّرة",
+  "en": "ancient"
+ },
+ "tooltip.click_to_see_these_cards": {
+  "text": "النقر يعرض هذه البطاقات",
+  "en": "Click to see these cards"
+ },
+ "tooltip.from_to": {
+  "text": "{from} – {to}",
+  "en": "{from} – {to}"
+ },
+ "tooltip.its_card_is_suspended": {
+  "text": "بطاقتها معلّقة",
+  "en": "Its card is suspended"
+ },
+ "tooltip.lasts_time": {
+  "text": "تبقى في الذاكرة ~{time}",
+  "en": "lasts ~{time}"
+ },
+ "tooltip.mature": {
+  "text": "ناضجة",
+  "en": "mature"
+ },
+ "tooltip.n_cards": {
+  "text": {
+   "zero": "لا بطاقات",
+   "one": "بطاقة واحدة",
+   "two": "بطاقتان",
+   "few": "{n} بطاقات",
+   "many": "{n} بطاقة",
+   "other": "{n} بطاقة"
+  },
+  "en": {
+   "one": "{n} card",
+   "other": "{n} cards"
+  }
+ },
+ "tooltip.n_days_without_reviews": {
+  "text": {
+   "zero": "{n} يوم بلا مراجعات",
+   "one": "يوم واحد بلا مراجعات",
+   "two": "يومان بلا مراجعات",
+   "few": "{n} أيام بلا مراجعات",
+   "many": "{n} يومًا بلا مراجعات",
+   "other": "{n} يوم بلا مراجعات"
+  },
+  "en": {
+   "one": "{n} day without reviews",
+   "other": "{n} days without reviews"
+  }
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "text": {
+   "zero": "{n} يوم بلا مراجعات، من {from} إلى {to}",
+   "one": "يوم واحد بلا مراجعات، من {from} إلى {to}",
+   "two": "يومان بلا مراجعات، من {from} إلى {to}",
+   "few": "{n} أيام بلا مراجعات، من {from} إلى {to}",
+   "many": "{n} يومًا بلا مراجعات، من {from} إلى {to}",
+   "other": "{n} يوم بلا مراجعات، من {from} إلى {to}"
+  },
+  "en": {
+   "one": "{n} day without reviews, from {from} to {to}",
+   "other": "{n} days without reviews, from {from} to {to}"
+  }
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "text": {
+   "zero": "{n} يوم بلا مراجعات، في {month}",
+   "one": "يوم واحد بلا مراجعات، في {month}",
+   "two": "يومان بلا مراجعات، في {month}",
+   "few": "{n} أيام بلا مراجعات، في {month}",
+   "many": "{n} يومًا بلا مراجعات، في {month}",
+   "other": "{n} يوم بلا مراجعات، في {month}"
+  },
+  "en": {
+   "one": "{n} day without reviews, in {month}",
+   "other": "{n} days without reviews, in {month}"
+  }
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "text": {
+   "zero": "{n} بطاقة مستعصية هنا عادت ناضجة: يبقى أبو الحناء أسبوعًا",
+   "one": "بطاقة مستعصية واحدة هنا عادت ناضجة: يبقى أبو الحناء أسبوعًا",
+   "two": "بطاقتان مستعصيتان هنا عادتا ناضجتين: يبقى أبو الحناء أسبوعًا",
+   "few": "{n} بطاقات مستعصية هنا عادت ناضجة: يبقى أبو الحناء أسبوعًا",
+   "many": "{n} بطاقة مستعصية هنا عادت ناضجة: يبقى أبو الحناء أسبوعًا",
+   "other": "{n} بطاقة مستعصية هنا عادت ناضجة: يبقى أبو الحناء أسبوعًا"
+  },
+  "en": {
+   "one": "{n} leech here mature again: the robin stays a week",
+   "other": "{n} leeches here mature again: the robin stays a week"
+  }
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "text": {
+   "zero": "{n} بطاقة مستعصية هنا: تبقى الغربان حتى تنضج البطاقات من جديد (فاصل 21 يومًا)",
+   "one": "بطاقة مستعصية واحدة هنا: يبقى غرابها حتى تنضج البطاقة من جديد (فاصل 21 يومًا)",
+   "two": "بطاقتان مستعصيتان هنا: يبقى الغرابان حتى تنضج البطاقتان من جديد (فاصل 21 يومًا)",
+   "few": "{n} بطاقات مستعصية هنا: تبقى الغربان حتى تنضج البطاقات من جديد (فاصل 21 يومًا)",
+   "many": "{n} بطاقة مستعصية هنا: تبقى الغربان حتى تنضج البطاقات من جديد (فاصل 21 يومًا)",
+   "other": "{n} بطاقة مستعصية هنا: تبقى الغربان حتى تنضج البطاقات من جديد (فاصل 21 يومًا)"
+  },
+  "en": {
+   "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
+   "other": "{n} leeches here: the crows stay until the cards are mature again (21-day interval)"
+  }
+ },
+ "tooltip.n_months": {
+  "text": {
+   "zero": "{n} شهر",
+   "one": "شهر واحد",
+   "two": "شهران",
+   "few": "{n} أشهر",
+   "many": "{n} شهرًا",
+   "other": "{n} شهر"
+  },
+  "en": {
+   "one": "{n} month",
+   "other": "{n} months"
+  }
+ },
+ "tooltip.n_of_them_ancient": {
+  "text": {
+   "zero": "{n} منها معمّرة",
+   "one": "واحدة منها معمّرة",
+   "two": "اثنتان منها معمّرتان",
+   "few": "{n} منها معمّرة",
+   "many": "{n} منها معمّرة",
+   "other": "{n} منها معمّرة"
+  },
+  "en": {
+   "one": "{n} of them ancient",
+   "other": "{n} of them ancient"
+  }
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "text": {
+   "zero": "{n} من {total} في طور إعادة التعلم أو نُسيت هذا الأسبوع",
+   "one": "{n} من {total} في طور إعادة التعلم أو نُسيت هذا الأسبوع",
+   "two": "{n} من {total} في طور إعادة التعلم أو نُسيت هذا الأسبوع",
+   "few": "{n} من {total} في طور إعادة التعلم أو نُسيت هذا الأسبوع",
+   "many": "{n} من {total} في طور إعادة التعلم أو نُسيت هذا الأسبوع",
+   "other": "{n} من {total} في طور إعادة التعلم أو نُسيت هذا الأسبوع"
+  },
+  "en": {
+   "one": "{n} of {total} relearning or lapsed this week",
+   "other": "{n} of {total} relearning or lapsed this week"
+  }
+ },
+ "tooltip.n_of_total_suspended": {
+  "text": {
+   "zero": "{n} من {total} معلّقة",
+   "one": "{n} من {total} معلّقة",
+   "two": "{n} من {total} معلّقة",
+   "few": "{n} من {total} معلّقة",
+   "many": "{n} من {total} معلّقة",
+   "other": "{n} من {total} معلّقة"
+  },
+  "en": {
+   "one": "{n} of {total} suspended",
+   "other": "{n} of {total} suspended"
+  }
+ },
+ "tooltip.n_older_trees": {
+  "text": {
+   "zero": "{n} شجرة أقدم",
+   "one": "شجرة أقدم واحدة",
+   "two": "شجرتان أقدم",
+   "few": "{n} أشجار أقدم",
+   "many": "{n} شجرة أقدم",
+   "other": "{n} شجرة أقدم"
+  },
+  "en": {
+   "one": "{n} older tree",
+   "other": "{n} older trees"
+  }
+ },
+ "tooltip.n_years": {
+  "text": "{n} سنة",
+  "en": "{n} years"
+ },
+ "tooltip.old": {
+  "text": "مُسنّة",
+  "en": "old"
+ },
+ "tooltip.pct_remembered": {
+  "text": "~{pct}% منها في الذاكرة",
+  "en": "~{pct}% remembered"
+ },
+ "tooltip.pct_still_going_well": {
+  "text": "{pct}% منها ما زالت بخير",
+  "en": "{pct}% still going well"
+ },
+ "tooltip.planted_n_days_ago": {
+  "text": {
+   "zero": "غُرست قبل {n} يوم",
+   "one": "غُرست قبل يوم",
+   "two": "غُرست قبل يومين",
+   "few": "غُرست قبل {n} أيام",
+   "many": "غُرست قبل {n} يومًا",
+   "other": "غُرست قبل {n} يوم"
+  },
+  "en": {
+   "one": "planted {n} day ago",
+   "other": "planted {n} days ago"
+  }
+ },
+ "tooltip.planted_today": {
+  "text": "غُرست اليوم",
+  "en": "planted today"
+ },
+ "tooltip.planted_yesterday": {
+  "text": "غُرست أمس",
+  "en": "planted yesterday"
+ },
+ "tooltip.sapling": {
+  "text": "شتلة",
+  "en": "sapling"
+ },
+ "tooltip.seedling": {
+  "text": "بادرة",
+  "en": "seedling"
+ },
+ "tooltip.the_deep_forest": {
+  "text": "أعماق الغابة",
+  "en": "The deep forest"
+ },
+ "tooltip.young": {
+  "text": "يافعة",
+  "en": "young"
+ },
+ "visitor.a_bear": {
+  "text": "دب",
+  "en": "A bear"
+ },
+ "visitor.a_bear_came_you_kept_a": {
+  "text": "جاء دب: حافظت على سلسلة دامت سنتين",
+  "en": "A bear came: you kept a two-year streak"
+ },
+ "visitor.a_bear_wandered_in_you_kept": {
+  "text": "تجوّل دب حتى وصل إلى هنا: حافظت على سلسلة دامت سنتين.",
+  "en": "A bear wandered in: you kept a two-year streak."
+ },
+ "visitor.a_cabin": {
+  "text": "كوخ",
+  "en": "A cabin"
+ },
+ "visitor.a_cabin_came_your_forest_turned": {
+  "text": "ظهر كوخ: أتمّت غابتك عامها الأول",
+  "en": "A cabin came: your forest turned one year old"
+ },
+ "visitor.a_deer": {
+  "text": "غزال",
+  "en": "A deer"
+ },
+ "visitor.a_deer_came_you_kept_a": {
+  "text": "جاء غزال: حافظت على سلسلة دامت 30 يومًا",
+  "en": "A deer came: you kept a 30-day streak"
+ },
+ "visitor.a_deer_wandered_in_you_kept": {
+  "text": "تجوّل غزال حتى وصل إلى هنا: حافظت على سلسلة دامت 30 يومًا.",
+  "en": "A deer wandered in: you kept a 30-day streak."
+ },
+ "visitor.a_family_of_squirrels": {
+  "text": "عائلة سناجب",
+  "en": "A family of squirrels"
+ },
+ "visitor.a_family_of_squirrels_came_you": {
+  "text": "جاءت عائلة سناجب: عرفت 10,000 بطاقة جيدًا",
+  "en": "A family of squirrels came: you knew 10,000 cards well"
+ },
+ "visitor.a_family_of_squirrels_wandered_in": {
+  "text": "تجوّلت عائلة سناجب حتى وصلت إلى هنا: عرفت 10,000 بطاقة جيدًا.",
+  "en": "A family of squirrels wandered in: you knew 10,000 cards well."
+ },
+ "visitor.a_fox": {
+  "text": "ثعلب",
+  "en": "A fox"
+ },
+ "visitor.a_fox_came_you_passed_10": {
+  "text": "جاء ثعلب: تجاوزت 10,000 مراجعة",
+  "en": "A fox came: you passed 10,000 reviews"
+ },
+ "visitor.a_fox_wandered_in_you_passed": {
+  "text": "تجوّل ثعلب حتى وصل إلى هنا: تجاوزت 10,000 مراجعة.",
+  "en": "A fox wandered in: you passed 10,000 reviews."
+ },
+ "visitor.a_heron": {
+  "text": "مالك الحزين",
+  "en": "A heron"
+ },
+ "visitor.a_heron_came_a_pond_formed": {
+  "text": "جاء مالك الحزين: تكوّنت بركة حيث أخذت استراحة",
+  "en": "A heron came: a pond formed where you took a break"
+ },
+ "visitor.a_heron_wandered_in_a_pond": {
+  "text": "تجوّل مالك الحزين حتى وصل إلى هنا: تكوّنت بركة حيث أخذت استراحة.",
+  "en": "A heron wandered in: a pond formed where you took a break."
+ },
+ "visitor.a_little_cabin_now_stands_at": {
+  "text": "يقف الآن كوخ صغير على طرف غابتك: مرّ عام على شجرتك الأولى.",
+  "en": "A little cabin now stands at the edge of your forest: a year since your first tree."
+ },
+ "visitor.a_rabbit": {
+  "text": "أرنب",
+  "en": "A rabbit"
+ },
+ "visitor.a_rabbit_came_your_forest_reached": {
+  "text": "جاء أرنب: بلغت غابتك 50 شجرة",
+  "en": "A rabbit came: your forest reached 50 trees"
+ },
+ "visitor.a_rabbit_wandered_in_your_forest": {
+  "text": "تجوّل أرنب حتى وصل إلى هنا: بلغت غابتك 50 شجرة.",
+  "en": "A rabbit wandered in: your forest reached 50 trees."
+ },
+ "visitor.a_stag": {
+  "text": "أيّل",
+  "en": "A stag"
+ },
+ "visitor.a_stag_came_you_kept_a": {
+  "text": "جاء أيّل: حافظت على سلسلة دامت 100 يوم",
+  "en": "A stag came: you kept a 100-day streak"
+ },
+ "visitor.a_stag_wandered_in_you_kept": {
+  "text": "تجوّل أيّل حتى وصل إلى هنا: حافظت على سلسلة دامت 100 يوم.",
+  "en": "A stag wandered in: you kept a 100-day streak."
+ },
+ "visitor.an_eagle": {
+  "text": "نسر",
+  "en": "An eagle"
+ },
+ "visitor.an_eagle_came_you_knew_25": {
+  "text": "جاء نسر: عرفت 25,000 بطاقة جيدًا",
+  "en": "An eagle came: you knew 25,000 cards well"
+ },
+ "visitor.an_eagle_wandered_in_you_knew": {
+  "text": "تجوّل نسر حتى وصل إلى هنا: عرفت 25,000 بطاقة جيدًا.",
+  "en": "An eagle wandered in: you knew 25,000 cards well."
+ },
+ "visitor.an_owl": {
+  "text": "بومة",
+  "en": "An owl"
+ },
+ "visitor.an_owl_came_your_first_tree": {
+  "text": "جاءت بومة: صارت شجرتك الأولى معمّرة",
+  "en": "An owl came: your first tree became ancient"
+ },
+ "visitor.an_owl_wandered_in_your_first": {
+  "text": "تجوّلت بومة حتى وصلت إلى هنا: صارت شجرتك الأولى معمّرة.",
+  "en": "An owl wandered in: your first tree became ancient."
+ },
+ "visitor.built_when_your_forest_turned_one": {
+  "text": "بُني حين أتمّت غابتك عامها الأول.",
+  "en": "Built when your forest turned one year old."
+ },
+ "visitor.moved_in_when_a_pond_formed": {
+  "text": "هنا منذ أن تكوّنت بركة حيث أخذت استراحة.",
+  "en": "Moved in when a pond formed where you took a break."
+ },
+ "visitor.moved_in_when_you_kept_a": {
+  "text": "هنا منذ أن حافظت على سلسلة دامت 30 يومًا.",
+  "en": "Moved in when you kept a 30-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_2": {
+  "text": "هنا منذ أن حافظت على سلسلة دامت 100 يوم.",
+  "en": "Moved in when you kept a 100-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_3": {
+  "text": "هنا منذ أن حافظت على سلسلة دامت سنتين.",
+  "en": "Moved in when you kept a two-year streak."
+ },
+ "visitor.moved_in_when_you_knew_10": {
+  "text": "هنا منذ أن عرفت 10,000 بطاقة جيدًا.",
+  "en": "Moved in when you knew 10,000 cards well."
+ },
+ "visitor.moved_in_when_you_knew_25": {
+  "text": "هنا منذ أن عرفت 25,000 بطاقة جيدًا.",
+  "en": "Moved in when you knew 25,000 cards well."
+ },
+ "visitor.moved_in_when_you_passed_10": {
+  "text": "هنا منذ أن تجاوزت 10,000 مراجعة.",
+  "en": "Moved in when you passed 10,000 reviews."
+ },
+ "visitor.moved_in_when_your_first_tree": {
+  "text": "هنا منذ أن صارت شجرتك الأولى معمّرة.",
+  "en": "Moved in when your first tree became ancient."
+ },
+ "visitor.moved_in_when_your_forest_reached": {
+  "text": "هنا منذ أن بلغت غابتك 50 شجرة.",
+  "en": "Moved in when your forest reached 50 trees."
+ },
+ "zoom.back_to_the_whole_forest": {
+  "text": "العودة إلى الغابة كلها",
+  "en": "Back to the whole forest"
+ },
+ "zoom.next_day": {
+  "text": "اليوم التالي",
+  "en": "Next day"
+ },
+ "zoom.pinch_or_double_tap_to_zoom": {
+  "text": "القرص أو اللمس المزدوج للتكبير، والسحب للتجوّل، ولمس شجرة لتحديدها",
+  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
+ },
+ "zoom.planted_date": {
+  "text": "غُرست في {date}",
+  "en": "Planted {date}"
+ },
+ "zoom.previous_day": {
+  "text": "اليوم السابق",
+  "en": "Previous day"
+ },
+ "zoom.scroll_or_press_to_zoom_drag": {
+  "text": "التمرير أو ↑ ↓ للتكبير، والسحب أو → ← للتجوّل، والنقر على شجرة لتحديدها",
+  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ },
+ "zoom.the_tree_of_the_day_after": {
+  "text": "شجرة اليوم التالي",
+  "en": "The tree of the day after"
+ },
+ "zoom.the_tree_of_the_day_before": {
+  "text": "شجرة اليوم السابق",
+  "en": "The tree of the day before"
+ },
+ "zoom.zoom_in_among_the_trees": {
+  "text": "الاقتراب بين الأشجار",
+  "en": "Zoom in among the trees"
+ }
+}

@@ -21,6 +21,8 @@ from aqt.qt import (
 )
 
 from ..edition import is_plus
+from ..i18n import N_, tx
+from .widgets import mirror_css
 
 PATREON = "https://www.patreon.com/BarakLevy"
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -30,12 +32,12 @@ TREE = os.path.join(HERE, "patreon_tree.png")
 HEART = os.path.join(HERE, "patreon_heart.png")
 PIXEL_SCALE = 2
 
-HEADING = "Enjoying Memory Forest?"
-BUTTON = "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
-FREE = "Every Plus scenery joins this version later on."
+HEADING = N_("settings.patreon.enjoying_memory_forest")
+BUTTON = N_("settings.patreon.support_it_on_patreon_and_get")
+FREE = N_("settings.patreon.every_plus_scenery_joins_this_version")
 # the heart goes between the first line and its "!"
-THANKS = f'Thank you for supporting Memory Forest on <a href="{PATREON}">Patreon</a>'
-THANKS_MORE = "New scenery arrives here first, every month."
+THANKS = N_("settings.patreon.thank_you_for_supporting_memory_forest")
+THANKS_MORE = N_("settings.patreon.new_scenery_arrives_here_first_every")
 
 BUTTON_STYLE = """
 QPushButton { font-size: 15px; text-align: left; padding: 8px 14px;
@@ -79,7 +81,7 @@ def pixel_label(path: str) -> QLabel:
 
 def thanks() -> QWidget:
     """Plus's thank-you: the tree, then two lines, the first ending in the heart and "!"."""
-    first = QLabel(THANKS)
+    first = QLabel(tx(THANKS, url=PATREON))
     first.setTextFormat(Qt.TextFormat.RichText); first.setOpenExternalLinks(True)
     line = QHBoxLayout()
     line.setSpacing(4)
@@ -90,7 +92,7 @@ def thanks() -> QWidget:
     text = QVBoxLayout()
     text.setSpacing(2)
     text.addLayout(line)
-    text.addWidget(QLabel(THANKS_MORE))
+    text.addWidget(QLabel(tx(THANKS_MORE)))
     row = QWidget()
     row.setStyleSheet("QLabel { font-size: 15px; }")
     lay = QHBoxLayout(row)
@@ -110,16 +112,16 @@ def banner() -> QWidget:
     if is_plus():
         lay.addWidget(thanks())
         return box
-    heading = QLabel(HEADING)
+    heading = QLabel(tx(HEADING))
     heading.setStyleSheet("font-size: 16px; font-weight: bold;")
     tree, tree_size = pixel_art(TREE)
-    button = QPushButton(QIcon(tree), BUTTON)
+    button = QPushButton(QIcon(tree), tx(BUTTON))
     button.setIconSize(tree_size)
-    button.setStyleSheet(BUTTON_STYLE)
+    button.setStyleSheet(mirror_css(BUTTON_STYLE))  # (its words against the tree, right to left too)
     button.setCursor(Qt.CursorShape.PointingHandCursor)
     button.setAutoDefault(False)  # Enter in the dialog means Done, not Patreon
     button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(PATREON)))
-    free = QLabel(FREE)
+    free = QLabel(tx(FREE))
     free.setAlignment(Qt.AlignmentFlag.AlignCenter)
     free.setStyleSheet("color: gray; font-size: 11px;")
     lay.addWidget(with_heart(heading))

@@ -151,7 +151,7 @@ check('heatmap: a day\'s tooltip: its date, its reviews, its place in the streak
   has(f, await keyTo(p, -20), ['Monday, Sep 28, 2026', 'Not studied: a day off', 'Doesn\'t break your 43-day streak'], 'a day off');
   has(f, await keyTo(p, -45), [/Not studied$/], 'a missed day');
   has(f, await keyTo(p, -76), ['Aug 3, 2026', 'Not studied: a pond in your forest'], 'a pond\'s day');
-  has(f, await keyTo(p, -30), ['A deer came: you studied 14 days in a row'], 'an animal\'s day');
+  has(f, await keyTo(p, -30), ['A deer came: you kept a 30-day streak'], 'an animal\'s day');
   has(f, await keyTo(p, -5), ['All 4 of its cards have since been deleted'], 'a day whose cards are gone');
   has(f, await keyTo(p, -3), ['2 of its 5 cards have since been deleted'], 'a day with some cards gone');
   has(f, await keyTo(p, 7), ['Sunday, Oct 25, 2026', 'Final exam in 7 days'], 'a marked day ahead');

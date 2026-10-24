@@ -45,6 +45,11 @@ class Preset:
     #: (the day it first appears, (month, day) its week starts, (month, day) its last day), or ()
     season: tuple = ()
 
+    @property
+    def name(self) -> str:
+        """The id of its name, to show with i18n.tx (its label is the English, from its .json)."""
+        return f"preset.{self.key}"
+
     def values(self) -> dict:
         """The five settings this preset stands for."""
         return {"environment": self.environment, "landscape": self.landscape,
@@ -53,8 +58,10 @@ class Preset:
 
 try:
     from . import catalog
+    from .i18n import N_
 except ImportError:  # tests and dev scripts import these files as top-level modules
     import catalog
+    from i18n import N_
 
 
 def _month_day(text: str) -> tuple:
@@ -80,8 +87,9 @@ def _catalogue() -> tuple:
             out.append(Preset(p.get("key", env), p["label"], env, p["landscape"], p.get("landmark", "none"),
                               p.get("weather", "clear"), p.get("time", "day"), p.get("note", ""), _season(p.get("season"))))
     # not a scene of its own: a different one of the above each day
-    out.append(Preset("daily", "Surprise me daily", DAILY, DAILY, DAILY, DAILY, DAILY,
-                      "A different scenery every day, taking turns so each one comes round in order."))
+    # (its label and note are ids, shown with i18n.tx as every preset's name is)
+    out.append(Preset("daily", N_("preset.daily"), DAILY, DAILY, DAILY, DAILY, DAILY,
+                      N_("preset.daily.note")))
     return tuple(out)
 
 
@@ -258,8 +266,8 @@ def nearest(cfg: dict, presets=FOREST_PRESETS) -> tuple:
 
 
 def options(presets=FOREST_PRESETS) -> list:
-    """(key, label) pairs for the dropdown, with Custom last."""
-    return [(p.key, p.label) for p in presets] + [(CUSTOM, "Custom")]
+    """(key, name) pairs for the dropdown, with Custom last (names are ids, to show with i18n.tx)."""
+    return [(p.key, p.name) for p in presets] + [(CUSTOM, N_("preset.custom"))]
 
 
 def apply(key: str, current: dict, presets=FOREST_PRESETS) -> dict:

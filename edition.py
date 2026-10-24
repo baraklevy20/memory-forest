@@ -59,6 +59,13 @@ def debug_edition(cfg: dict | None = None) -> str:
     return edition if edition in DEBUG_EDITIONS and debug_available(cfg) else ""
 
 
+def debug_language(cfg: dict | None = None) -> str:
+    """While debug is on, the language the Debug tab picked over Anki's (i18n.set_override: a
+    translated one, or a made-up en-XA / en-XB), or "" for Anki's own."""
+    cfg = config() if cfg is None else cfg
+    return str(cfg.get("debug_language") or "") if debug_available(cfg) else ""
+
+
 def edition_presets(edition: str) -> set | None:
     """The preset keys `edition` ships, from editions.json, or None for every one here (no
     edition, or no editions.json to read it from)."""

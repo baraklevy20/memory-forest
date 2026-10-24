@@ -8,6 +8,7 @@ from aqt import mw
 from aqt.utils import tooltip
 
 from . import study_log
+from .i18n import t
 from .phone_note import phone_cards
 from .scope import day_cutoff, excluded_decks
 from .state import config, load_state, log, save_state
@@ -39,6 +40,6 @@ def on_answer(reviewer, card, ease) -> None:
         state["last_planted"] = today
         save_state(state)
         _planted_today = today
-        tooltip("🌱 A new tree was planted in your forest today.", period=PLANTING_TOOLTIP_MS)
+        tooltip("🌱 " + t("planting.a_new_tree_was_planted_in"), period=PLANTING_TOOLTIP_MS)
     except Exception:
         log("planting tooltip failed:\n" + traceback.format_exc())

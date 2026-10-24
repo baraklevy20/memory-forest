@@ -40,10 +40,11 @@ from aqt.qt import (
     QWidget,
 )
 
-from .. import presets
+from .. import i18n, presets
+from ..i18n import N_, tn, tx
 from .palette import color
 from .patreon import PATREON
-from .widgets import hint, hint_style, pixel_ratio
+from .widgets import bidi, forward, hint, hint_style, leading, mirror, pixel_ratio
 
 # each preset's picture, drawn by dev/thumbnails.py: a piece of its scene in the scene's own
 # pixels, shown a pixel a point; and the same piece moving (dev/tile_gifs.py), shown instead
@@ -56,15 +57,13 @@ PICTURE_W, PICTURE_H = 192, 108
 PLUS_LIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plus.json")
 PLUS_TAG = "PLUS"
 PLUS_INK = (240, 200, 110, 255)  # RGBA
-NEW_TAG = "NEW"  # a scenery announced as new (news.py), until it is picked or two weeks pass
-NEW_INK = (159, 227, 180, 255)  # RGBA
-IMPROVED_TAG = "IMPROVED"  # likewise, a scenery announced as improved
-IMPROVED_INK = (160, 200, 255, 255)  # RGBA
+NEW_INK = (159, 227, 180, 255)  # RGBA: a scenery announced as new (news.py), until it is picked or two weeks pass
+IMPROVED_INK = (160, 200, 255, 255)  # RGBA: likewise, a scenery announced as improved
 # a Plus scenery's line under the tiles, the same under the pointer and once clicked (when it
 # stays, so the link can be reached): the way to it, opened only if they follow the link.
 # (The sceneries' own descriptions stay in their JSON: nobody read them under the tiles.)
-PLUS_LINE = '{label} is in Memory Forest Plus. <a href="{url}">Get it on Patreon</a>'
-CUSTOM_NOTE = "Your own mix, made in Customize. Pick a scenery to start again from it."
+PLUS_LINE = N_("settings.picker.label_is_in_memory_forest_plus")
+CUSTOM_NOTE = N_("settings.picker.your_own_mix_made_in_customize")
 SEARCH_FROM = 12  # tiles before the picker offers a search
 COLUMN_GAP, ROW_GAP = 10, 10
 PLUS_SECTION = "Memory Forest Plus"
@@ -160,6 +159,11 @@ class PlusScenery:
     note: str = ""
     season: object = None
 
+    @property
+    def name(self) -> str:
+        """The id of its name, as a preset's (presets.Preset.name)."""
+        return f"preset.{self.key}"
+
 
 def _plus_listed() -> list:
     """What plus.json lists: each scenery Plus has and the base does not yet."""
@@ -183,12 +187,14 @@ def plus_only(offered) -> list:
             if e["key"] not in offered and os.path.exists(os.path.join(PICTURES, f"{e['key']}.png"))]
 
 
-def pill(p: QPainter, text: str, ink: QColor, x: float, top: float, right_aligned: bool) -> None:
-    """A small dark label, its top corner at (x, top): the left one, or the right one."""
+def pill(p: QPainter, text: str, ink: QColor, x: float, top: float, right_aligned: bool, spaced: bool = False) -> None:
+    """A small dark label, its top corner at (x, top): the left one, or the right one; `spaced`,
+    its letters spread a little (PLUS, NEW)."""
     font = QFont()
     font.setPixelSize(PILL_FONT)
     font.setBold(True)
-    font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, PILL_SPACING if text in (PLUS_TAG, NEW_TAG) else 0)
+    # (spread only in Latin letters: other scripts read worse spread, and Arabic's letters would come apart)
+    font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, PILL_SPACING if spaced and text.isascii() else 0)
     fm = QFontMetrics(font)
     w = fm.horizontalAdvance(text) + 2 * PILL_PAD_X
     h = fm.height() + 2 * PILL_PAD_Y
@@ -199,8 +205,26 @@ def pill(p: QPainter, text: str, ink: QColor, x: float, top: float, right_aligne
     p.drawRoundedRect(box, h / 2, h / 2)
     p.setFont(font)
     p.setPen(ink)
-    p.drawText(box, Qt.AlignmentFlag.AlignCenter, text)
+    p.drawText(box, Qt.AlignmentFlag.AlignCenter, bidi(text))
     p.restore()
+
+
+def name_lines(fm: QFontMetrics, name: str, width: int) -> list:
+    """A tile's name as it is shown: one line where it fits; else two, broken between words, the
+    second cut short at its end ("…") if the rest won't fit either. A first word too long for a line
+    of its own is cut short on one line, as all names were before 2026-10-24."""
+    if fm.horizontalAdvance(name) <= width:
+        return [name]
+    words = name.split(" ")
+    first = ""
+    for i in range(1, len(words)):
+        if fm.horizontalAdvance(" ".join(words[:i])) > width:
+            break
+        first = " ".join(words[:i])
+        rest = " ".join(words[i:])
+    if not first:
+        return [fm.elidedText(name, Qt.TextElideMode.ElideRight, width)]
+    return [first, fm.elidedText(rest, Qt.TextElideMode.ElideRight, width)]
 
 
 def last_day(preset, day) -> str:
@@ -208,7 +232,7 @@ def last_day(preset, day) -> str:
     # the label counts from today
     end = presets.season_ends(preset, day or _dt.date.today())
     last = end.fromordinal(end.toordinal() - 1)
-    return f"{last.day} {last.strftime('%b')}"
+    return i18n.day_month(last, short=True)
 
 
 class _Search(QLineEdit):
@@ -249,6 +273,7 @@ class _Tile(QAbstractButton):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         if self.locked:
             self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setToolTip(tx(preset.name))  # (its whole name: a long one is cut short on the picture)
         font = self.font()
         font.setPixelSize(NAME_FONT)
         font.setWeight(QFont.Weight.DemiBold)
@@ -318,7 +343,7 @@ class _Tile(QAbstractButton):
     def _paint_tick_box(self, p: QPainter, frame: QRectF, path: QPainterPath, ring: QColor) -> None:
         """One of many: ticked, the picture as it is with the tick in its corner; unticked, the
         picture faded toward the window and an empty circle where the tick goes."""
-        badge = QRectF(frame.right() - BADGE - 6, frame.top() + 6, BADGE, BADGE)
+        badge = self._badge(frame)
         if not self.isChecked():
             # (the theme's ground, not the palette's window: the panel's is see-through)
             veil = QColor(color("CANVAS_ELEVATED"))
@@ -337,6 +362,11 @@ class _Tile(QAbstractButton):
             p.drawRoundedRect(frame.adjusted(-0.75, -0.75, 0.75, 0.75), TILE_RADIUS + 0.75, TILE_RADIUS + 0.75)
         if self.isChecked():
             self._paint_tick(p, badge, ring)
+
+    def _badge(self, frame: QRectF) -> QRectF:
+        """Where the tick goes: the top right corner, the top left right to left (the pills swap too)."""
+        x = frame.left() + 6 if self.isRightToLeft() else frame.right() - BADGE - 6
+        return QRectF(x, frame.top() + 6, BADGE, BADGE)
 
     def _paint_tick(self, p: QPainter, badge: QRectF, ring: QColor) -> None:
         p.setPen(Qt.PenStyle.NoPen)
@@ -373,20 +403,29 @@ class _Tile(QAbstractButton):
         p.fillRect(QRectF(frame.left(), frame.bottom() - PICTURE_H * SHADE_H, PICTURE_W, PICTURE_H * SHADE_H), shade)
         name_h = self.fontMetrics().height()
         name = QRectF(frame.left() + NAME_PAD, frame.bottom() - NAME_PAD + 2 - name_h, PICTURE_W - 2 * NAME_PAD, name_h)
-        text = self.fontMetrics().elidedText(self.preset.label, Qt.TextElideMode.ElideRight, int(name.width()))
-        p.setPen(QColor(0, 0, 0, 160))
-        p.drawText(name.translated(0, 1), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
-        p.setPen(QColor("white"))
-        p.drawText(name, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
+        align = leading(self) | Qt.AlignmentFlag.AlignVCenter
+        # one line, or two from the bottom up, the last one's lowest (name_lines)
+        for i, line in enumerate(reversed(name_lines(self.fontMetrics(), tx(self.preset.name), int(name.width())))):
+            text = bidi(line, self.isRightToLeft())
+            at = name.translated(0, -i * name_h)
+            p.setPen(QColor(0, 0, 0, 160))
+            p.drawText(at.translated(0, 1), align, text)
+            p.setPen(QColor("white"))
+            p.drawText(at, align, text)
         p.restore()
+        # the label in the top corner where the words start (the top left, the top right right to
+        # left), PLUS and the tick in the other
+        rtl = self.isRightToLeft()
+        start = frame.right() - PILL_INSET if rtl else frame.left() + PILL_INSET
+        end = frame.left() + PILL_INSET if rtl else frame.right() - PILL_INSET
         if self.tag:
-            pill(p, self.tag, QColor("white"), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
+            pill(p, self.tag, QColor("white"), start, frame.top() + PILL_INSET, rtl)
         elif self.new:
-            pill(p, NEW_TAG, QColor(*NEW_INK), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
+            pill(p, i18n.t("settings.picker.new"), QColor(*NEW_INK), start, frame.top() + PILL_INSET, rtl, True)
         elif self.improved:
-            pill(p, IMPROVED_TAG, QColor(*IMPROVED_INK), frame.left() + PILL_INSET, frame.top() + PILL_INSET, False)
+            pill(p, i18n.t("settings.picker.improved"), QColor(*IMPROVED_INK), start, frame.top() + PILL_INSET, rtl)
         if self.locked:
-            pill(p, PLUS_TAG, QColor(*PLUS_INK), frame.right() - PILL_INSET, frame.top() + PILL_INSET, True)
+            pill(p, PLUS_TAG, QColor(*PLUS_INK), end, frame.top() + PILL_INSET, not rtl, True)  # (the edition's name)
         ring = QColor(color("BORDER_FOCUS"))
         if self.many:
             self._paint_tick_box(p, frame, path, ring)
@@ -400,7 +439,7 @@ class _Tile(QAbstractButton):
             edge = RING / 2 if self.isChecked() else 0.75
             p.drawRoundedRect(frame.adjusted(-edge, -edge, edge, edge), TILE_RADIUS + edge, TILE_RADIUS + edge)
         if self.isChecked():
-            self._paint_tick(p, QRectF(frame.right() - BADGE - 6, frame.top() + 6, BADGE, BADGE), ring)
+            self._paint_tick(p, self._badge(frame), ring)
         p.end()
 
 
@@ -528,14 +567,14 @@ class SceneryPicker(QWidget):
         bv = self.body_layout = QVBoxLayout(body)
         bv.setContentsMargins(0, 0, 0, 0)
         # Plus's own sceneries come before the rest, the ones this copy lacks after them
-        groups = [(title, members) for title, members in (("This week only", limited), (PLUS_SECTION, own_plus),
-                                                          ("Sceneries", rest), (PLUS_SECTION, locked)) if members]
+        groups = [(title, members) for title, members in ((i18n.t("settings.picker.this_week_only"), limited), (PLUS_SECTION, own_plus),
+                                                          (i18n.t("settings.picker.sceneries"), rest), (PLUS_SECTION, locked)) if members]
         for i, (title, members) in enumerate(groups):
             tiles = []
             for p in members:
                 daily = p.key == presets.DAILY
                 tile = _Tile(p, mosaic(self.left_out, day) if daily else picture(p.key), None if daily else moving(p.key),
-                             f"Until {last_day(p, day)}" if p.season else "")
+                             i18n.t("settings.picker.until_date", date=last_day(p, day)) if p.season else "")
                 tile.many = self.many
                 tile.keep = lambda: len(self.ticked()) <= 1
                 if self.many:
@@ -562,11 +601,12 @@ class SceneryPicker(QWidget):
             label.setVisible(len(groups) > 1)
             self.tiles += tiles
             self.sections.append((label, grid, tiles))
-        self.none_found = hint("No scenery has that in its name.")
+        self.none_found = hint(i18n.t("settings.picker.no_scenery_has_that_in_its"))
         bv.addWidget(self.none_found)
         bv.addStretch(1)
         self.scroll.setWidget(body)  # (the old tiles go with the old body)
-        self.search.setPlaceholderText(f"Search {len(self.tiles)} sceneries")
+        mirror(body)  # (the section titles, right to left)
+        self.search.setPlaceholderText(tn("settings.picker.search_n_sceneries", len(self.tiles)))
         self.search_wanted = len(self.tiles) > SEARCH_FROM
         self.allow_search(self.search_allowed)
         self.columns = 0
@@ -590,7 +630,7 @@ class SceneryPicker(QWidget):
         elif event.type() == QEvent.Type.KeyPress and event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down):
             shown = [t for t in self.tiles if t.isVisible()]
             if obj in shown:
-                at = shown.index(obj) + (1 if event.key() in (Qt.Key.Key_Right, Qt.Key.Key_Down) else -1)
+                at = shown.index(obj) + forward(obj, event.key())
                 if 0 <= at < len(shown):
                     self._tab_stop(shown[at])
                     shown[at].setFocus(Qt.FocusReason.TabFocusReason)
@@ -632,7 +672,8 @@ class SceneryPicker(QWidget):
             for t in tiles:
                 grid.removeWidget(t)
                 t.hide()
-            shown = [t for t in tiles if not want or want in t.preset.label.lower()]
+            # (by the name shown, or the English one)
+            shown = [t for t in tiles if not want or want in tx(t.preset.name).lower() or want in t.preset.label.lower()]
             for i, t in enumerate(shown):
                 grid.addWidget(t, i // self.columns, i % self.columns, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
                 t.show()
@@ -659,9 +700,9 @@ class SceneryPicker(QWidget):
         if self.many:
             text = ""
         elif self.invite is not None:
-            text = PLUS_LINE.format(label=html.escape(self.invite.label), url=PATREON)
+            text = tx(PLUS_LINE, label=html.escape(tx(self.invite.name)), url=PATREON)
         elif self.current not in presets.by_key():
-            text = html.escape(CUSTOM_NOTE)
+            text = html.escape(tx(CUSTOM_NOTE))
         else:
             text = ""
         self.note.setText(text)

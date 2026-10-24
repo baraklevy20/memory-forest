@@ -7,8 +7,10 @@
   width: 100%;
   padding: 0 12px;
   box-sizing: border-box;
-  direction: ltr;  /* (its words are English: in an Anki set to a right-to-left language the heatmap's footer mirrored) */
+  direction: ltr;  /* (its words' direction, not Anki's: an Anki in a right-to-left language the add-on has no words in reads English here) */
 }
+/* the add-on's words right to left (data.i18n.dir, core.js AF.mount): the end of this file */
+.af-panel.af-rtl { direction: rtl; }
 /* on a finished deck's congratulations page (panel.on_page_loaded): under its message */
 .af-finished { margin: 28px auto 0; padding: 0 16px 24px; }
 .af-scene {
@@ -31,6 +33,9 @@
    (blurred, so its words stay easy to read), the beige with a faint edge the shadow can't give on
    a dark page */
 :root {
+  /* the one font stack: the system's UI font (a script it lacks, Hebrew's or Arabic's, comes from the
+     system's own fallback for that script) */
+  --af-font: -apple-system, "Segoe UI", system-ui, sans-serif;
   --af-tip-bg: rgba(18, 22, 20, 0.72); --af-tip-panel: rgb(18, 22, 20); --af-tip-fg: #eef2ec; --af-tip-soft: #c9d8c4; --af-tip-accent: #9fe3b4;
   --af-tip-line: rgba(238, 242, 236, 0.3); --af-tip-faint: rgba(238, 242, 236, 0.45);
   --af-tip-hover: rgba(238, 242, 236, 0.08); --af-tip-chosen: rgba(238, 242, 236, 0.18);
@@ -51,7 +56,7 @@
   border-radius: 8px;
   background: var(--af-tip-bg);
   color: var(--af-tip-fg);
-  font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif;
+  font: 12.5px/1.45 var(--af-font);
   pointer-events: none;
   box-shadow: var(--af-tip-shadow);
   -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
@@ -64,7 +69,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   margin-top: 8px;
-  font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif;
+  font: 12.5px/1.4 var(--af-font);
   color: var(--fg-subtle, #8a8f8c);
 }
 /* the room between them as margins, not gap: Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
@@ -76,7 +81,7 @@
 .af-canvas { transition: opacity 0.18s ease; }
 .af-visit {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  margin-top: 8px; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif;
+  margin-top: 8px; font: 12.5px/1.4 var(--af-font);
   color: var(--fg-subtle, #8a8f8c);
 }
 .af-visit[hidden] { display: none; }
@@ -153,7 +158,7 @@
   position: absolute; z-index: 2; left: 10px; top: 10px;
   max-width: calc(100% - 20px); max-width: min(290px, calc(100% - 20px));  /* (min() needs Chromium 79) */
   padding: 10px 12px; border-radius: 8px; background: var(--af-tip-bg); color: var(--af-tip-fg);
-  font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; text-align: left;
+  font: 12.5px/1.45 var(--af-font); text-align: left;
   box-shadow: var(--af-tip-shadow);
 }
 .af-news b { display: block; font-size: 13px; margin-bottom: 3px; }
@@ -174,7 +179,7 @@
 /* the study calendar under the forest (web/calendar.js). Margins rather than gap throughout:
    Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
 /* Its Width (calendar.js AF.calendarFit), in the middle of where it stands */
-.af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
+.af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 var(--af-font); color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
 /* the heatmap first (Layout's Heatmap first): 12px under its footer, which is the key's row alone,
    empty but on hover (the journal stays in the caption under the forest): about 37px from its
    streaks' lane to the forest at rest. Its top 20px are room for the view switch and ‹ › » over the
@@ -308,7 +313,7 @@
 .af-cal-pin-icon:focus { outline: 2px solid var(--af-tip-fg) !important; outline-offset: -2px; }
 .af-cal-pin-icon:focus:not(:focus-visible) { outline: none !important; }
 .af-cal-pin-name { width: 150px; padding: 3px 2px; border: none; border-bottom: 1px solid var(--af-tip-line); outline: none;
-  background: transparent; color: var(--af-tip-fg); font: 12.5px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  background: transparent; color: var(--af-tip-fg); font: 12.5px/1.45 var(--af-font); }
 .af-cal-pin-name::placeholder { color: var(--af-tip-faint); }
 .af-cal-pin-del { box-sizing: border-box; height: 24px !important; min-width: 0 !important; min-height: 0 !important; margin: 0 0 0 4px !important;
   padding: 0 4px !important; border: 0 !important; border-radius: 6px !important; background: transparent !important; box-shadow: none !important;
@@ -376,3 +381,50 @@ body.af-lay.af-lay-sticky:not(.af-lay-narrow) .af-slot-left, body.af-lay.af-lay-
 /* a heatmap wider than the forest stacked with it (Heatmap width): the panel as wide as the heatmap,
    the forest its own width in the middle (core.js AF.panelWidth) */
 .af-heat-wider:not(.af-apart) > .af-forest { max-width: var(--af-forest-w); margin-left: auto; margin-right: auto; }
+
+/* right to left (.af-rtl: the add-on's language reads so, core.js AF.mount; Anki's own <html dir>
+   is not asked, the panel follows the add-on's words): the text runs from the right, each row's parts
+   mirrored, the heatmap's time too (calendar.js paint: today at the left end, the weekdays on the
+   right, the arrows at the left end of the months' row). The forest is a picture and never turns, but
+   its cog and zoom button move to its top left corner, where the line starts (and the cog's line over a
+   heatmap alone with them), and a note on it to the top right */
+.af-rtl .af-top { justify-content: flex-start; }
+.af-rtl .af-scene .af-top { right: auto; left: 8px; }
+.af-rtl .af-zoom { right: auto; left: 8px; }
+.af-rtl .af-has-cog .af-zoom { right: auto; left: 42px; }
+.af-rtl .af-news { left: auto; right: 10px; }
+.af-rtl .af-journal { margin-right: 0; margin-left: 16px; }
+.af-rtl .af-visit-about { margin: 3px 0 3px 16px; }
+.af-rtl .af-visit-btn { margin: 3px 6px 3px 0 !important; }
+.af-rtl .af-news { text-align: right; }
+.af-rtl .af-news-acts button + button { margin-left: 0; margin-right: 14px; }
+.af-rtl .af-cal { text-align: right; }
+.af-rtl .af-cal-journal { margin-right: 0; margin-left: 16px; }
+.af-rtl .af-cal-key { margin-left: 0; margin-right: auto; }
+.af-rtl .af-cal-key span { margin-right: 0; margin-left: 4px; }
+.af-rtl .af-cal-key span:last-child { margin-left: 0; }
+.af-rtl .af-cal-swatch { margin-right: 0; margin-left: 2px; }
+.af-rtl .af-cal-key .af-cal-swatch:last-of-type { margin-right: 0; margin-left: 4px; }
+.af-rtl .af-cal-by { margin: 0 0 0 16px; }
+.af-rtl .af-cal-foot > .af-cal-shade { margin: 0 auto 0 12px; }
+.af-rtl .af-cal-foot > .af-cal-shade + .af-cal-key { margin-right: 0; }
+.af-rtl .af-cal-foot > .af-cal-acts { margin-left: 12px; margin-right: auto; }
+.af-rtl .af-cal-acts + .af-cal-key { margin-right: 0; }
+.af-rtl .af-cal-chev { margin: 0 2px 0 0 !important; }
+.af-rtl .af-cal-today { margin: 0 2px 0 6px !important; }
+/* (the weeks and their labels placed by calendar.js in the canvas's own pixels, from its left edge,
+   whatever the direction: the grid itself left to right, so the phone's swiped timeline scrolls as
+   it always has; the words on it right to left) */
+.af-rtl .af-cal-grid { direction: ltr; }
+.af-rtl .af-cal-grid > .af-cal-acts, .af-rtl .af-cal-months span, .af-rtl .af-cal-notes, .af-rtl .af-cal-past-head span { direction: rtl; }
+.af-rtl .af-cal-grid > .af-cal-acts { right: auto; left: 0; }
+.af-rtl .af-top + .af-cal .af-cal-grid > .af-cal-acts { right: auto; left: 36px; }
+/* the weekdays just outside the heatmap's right edge, where its weeks begin */
+.af-rtl .af-cal-days { left: auto; right: 0; }
+.af-rtl .af-cal-days span { right: auto; left: 6px; direction: rtl; }
+.af-rtl .af-cal-pin-icons { margin-right: 0; margin-left: 6px; }
+.af-rtl .af-cal-pin-icon { margin: 0 0 0 2px !important; }
+.af-rtl .af-cal-pin-del { margin: 0 4px 0 0 !important; }
+/* (the phone's footer: phone.py's card CSS sets its parts' left margins) */
+.af-rtl .af-cal-swiped .af-cal-foot .af-cal-key { margin-left: 0; margin-right: auto; }
+.af-rtl .af-turn.af-expand-cal { margin: 0 12px 0 0; }

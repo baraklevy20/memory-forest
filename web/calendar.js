@@ -44,10 +44,32 @@ const SHOWN_STREAK = 30;  // an earlier streak this long or longer gets a bracke
 // metal, L its shine, D its shade), and each one's metal
 const TROPHY = ['GGGGGGG', 'G.GLG.G', 'G.GLG.G', '.GGGGG.', '..GGG..', '...D...', '..DDD..', '.DDDDD.'];
 const TROPHIES = [
-  { G: '#e3b04b', L: '#fff3c4', D: '#a8782a', place: 'longest' },
-  { G: '#c9ccd1', L: '#f6f7f9', D: '#8b9098', place: 'second-longest' },
-  { G: '#c4834a', L: '#ecc196', D: '#8a5528', place: 'third-longest' }
-].map(t => ({ frames: [TROPHY], pal: { G: t.G, L: t.L, D: t.D }, place: t.place }));
+  { G: '#e3b04b', L: '#fff3c4', D: '#a8782a' },
+  { G: '#c9ccd1', L: '#f6f7f9', D: '#8b9098' },
+  { G: '#c4834a', L: '#ecc196', D: '#8a5528' }
+].map(t => ({ frames: [TROPHY], pal: { G: t.G, L: t.L, D: t.D } }));
+// which of your longest streaks it is, by its rank (0 the longest), each its own sentence
+const placeName = rank => [AF.t('heatmap.your_longest_streak'), AF.t('heatmap.your_second_longest_streak'), AF.t('heatmap.your_third_longest_streak')][rank];
+// the goal's day: pass the next of them (beat the longest), or reach the first trophy's length; `daily`:
+// with days off a week allowed, if you take none of them until then
+const goalLine = (goal, daily) => {
+  const n = goal.beats;
+  if (!n) {
+    return daily ? AF.tn('heatmap.reach_a_n_day_streak_on', SHOWN_STREAK)
+      : AF.tn('heatmap.reach_a_n_day_streak_on_2', SHOWN_STREAK);
+  }
+  if (daily) {
+    return [AF.tn('heatmap.beat_your_longest_streak_n_days', n),
+      AF.tn('heatmap.pass_your_second_longest_streak_n', n),
+      AF.tn('heatmap.pass_your_third_longest_streak_n', n)][goal.rank];
+  }
+  return [AF.tn('heatmap.beat_your_longest_streak_n_days_2', n),
+    AF.tn('heatmap.pass_your_second_longest_streak_n_2', n),
+    AF.tn('heatmap.pass_your_third_longest_streak_n_2', n)][goal.rank];
+};
+const placeLine = (rank, n) => [AF.tn('heatmap.your_longest_streak_n_days', n),
+  AF.tn('heatmap.your_second_longest_streak_n_days', n),
+  AF.tn('heatmap.your_third_longest_streak_n_days', n)][rank];
 // a day you marked as important (marks.py), with the icon you picked for it, all in the pin's red
 // (red is the mark that is yours): R red, L its shine, D a dark detail; `label` names a mark you
 // didn't name. Their order is marks.ICONS', the order a click on the icon steps through them.
@@ -55,27 +77,36 @@ const MARK_PAL = { R: '#e0524a', L: '#ffb3a8', W: '#fff1ec', D: '#8a7a6a', K: '#
 const MARK_ICONS = {
   // (six by six each, so one sits centred, a pixel clear all round, on the eight a tile shows before
   // its edge or gap: TILE_FACE)
-  pin: { label: 'Pin', rows: ['.RRRR.', 'RRWWRR', 'RRWWRR', 'RRRRRR', '.RRRR.', '..RR..'] },
-  exam: { label: 'Exam', rows: ['RRRRRR', 'KRWWWR', 'RRRRRR', 'KRWWWR', 'RRRRRR', 'KRRRRR'] },
-  trip: { label: 'Trip', rows: ['..RR..', '..RR..', '.RRRR.', 'RRRRRR', '..RR..', '.RRRR.'] },  // (a plane from above, nose up: on its side it read as a red cross)
-  birthday: { label: 'Birthday', rows: ['..LL..', '..DD..', '.RRRR.', '.WRWW.', 'RRRRRR', 'RRRRRR'] },
-  star: { label: 'Star', rows: ['..RR..', '..RR..', 'RRWRRR', '.RRRR.', '.RRRR.', 'RR..RR'] },
-  heart: { label: 'Heart', rows: ['RR..RR', 'RRRRRR', 'RWRRRR', 'RRRRRR', '.RRRR.', '..RR..'] },
-  done: { label: 'Done', rows: ['......', '.....R', '....RR', 'R..RR.', 'RRRR..', '.RR...'] },
-  sick: { label: 'Sick', rows: ['......', 'R.....', 'RLL...', 'RLLWWR', 'RRRRRR', 'R....R'] },  // (a head on the pillow, a sheet over them: a bare bed read as a flag)
+  pin: { label: AF.N_('heatmap.pin'), rows: ['.RRRR.', 'RRWWRR', 'RRWWRR', 'RRRRRR', '.RRRR.', '..RR..'] },
+  exam: { label: AF.N_('heatmap.exam'), rows: ['RRRRRR', 'KRWWWR', 'RRRRRR', 'KRWWWR', 'RRRRRR', 'KRRRRR'] },
+  trip: { label: AF.N_('heatmap.trip'), rows: ['..RR..', '..RR..', '.RRRR.', 'RRRRRR', '..RR..', '.RRRR.'] },  // (a plane from above, nose up: on its side it read as a red cross)
+  birthday: { label: AF.N_('heatmap.birthday'), rows: ['..LL..', '..DD..', '.RRRR.', '.WRWW.', 'RRRRRR', 'RRRRRR'] },
+  star: { label: AF.N_('heatmap.star'), rows: ['..RR..', '..RR..', 'RRWRRR', '.RRRR.', '.RRRR.', 'RR..RR'] },
+  heart: { label: AF.N_('heatmap.heart'), rows: ['RR..RR', 'RRRRRR', 'RWRRRR', 'RRRRRR', '.RRRR.', '..RR..'] },
+  done: { label: AF.N_('heatmap.done'), rows: ['......', '.....R', '....RR', 'R..RR.', 'RRRR..', '.RR...'] },
+  sick: { label: AF.N_('heatmap.sick'), rows: ['......', 'R.....', 'RLL...', 'RLLWWR', 'RRRRRR', 'R....R'] },  // (a head on the pillow, a sheet over them: a bare bed read as a flag)
 };
 const MARK_ORDER = Object.keys(MARK_ICONS);
 for (const m of Object.values(MARK_ICONS)) m.spr = { frames: [m.rows], pal: MARK_PAL };
 const markOf = m => MARK_ICONS[m && m.icon] || MARK_ICONS.pin;
-// a mark's line in its day's tooltip: its name (or its icon's), and how far off it is
+// a mark's name as the tooltips put it, escaped: one you typed kept in its own direction (a Latin
+// name in a right-to-left line, say: AF.i18n.bdi)
+const markName = m => (m.name ? (AF.i18n.rtl() ? AF.i18n.bdi(esc(m.name)) : esc(m.name)) : esc(AF.tx(markOf(m).label)));
+// a mark's line in its day's tooltip, as html: its name (or its icon's), and how far off it is
 const markLine = (m, o) => {
-  const name = m.name || markOf(m).label;
-  return o > 1 ? `${name} in ${o} days` : o === 1 ? `${name} tomorrow` : o === 0 ? `${name} today` : name;
+  const name = markName(m);
+  // (its days unformatted, as before: "Exam in 1234 days")
+  return o > 1 ? AF.tn('heatmap.name_in_n_days', o, { name, n: o }) : o === 1 ? AF.t('heatmap.name_tomorrow', { name })
+    : o === 0 ? AF.t('heatmap.name_today', { name }) : name;
 };
 // the goal ahead: a pennant on the day the current streak would pass the next record, gold when
 // it would be your longest, silver your second-longest (P its pole, G the metal, L its shine)
 const GOAL = ['PGGGG', 'PGGLG', 'PGGG.', 'PG...', 'P....', 'P....', 'P....', 'P....'];
-const GOALS = TROPHIES.map(t => ({ frames: [GOAL], pal: { P: '#8a7a6a', G: t.pal.G, L: t.pal.L }, place: t.place }));
+const GOALS = TROPHIES.map(t => ({ frames: [GOAL], pal: { P: '#8a7a6a', G: t.pal.G, L: t.pal.L } }));
+// (right to left: the same pennant flying the other way; its pole on the day's middle mirrored, a
+// tile's face being TILE_FACE across)
+const GOALS_RTL = GOALS.map(g => ({ frames: [GOAL.map(row => row.split('').reverse().join(''))], pal: g.pal }));
+const GOAL_AT = 4, GOAL_AT_RTL = 3;
 const GOAL_LINE = 0.75;  // the dotted line from today to the goal: gold, this strong (on a dark page)
 // the trophies' and the pennant's metals on a light page, by their own metal: gold, silver, bronze
 const METALS_ON_LIGHT = { '#e3b04b': { G: '#b07d1e', L: '#e3b04b', D: '#8f6a1c' }, '#c9ccd1': { G: '#8b9098', L: '#c9ccd1', D: '#6f747c' },
@@ -116,9 +147,6 @@ const DAYS_ROOM = 28, NOTE_ROOM = 44, SINCE_ROOM = 150;  // css px: room the wee
 const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
 const TOUCH_PAD = 6, TAP_SLOP = 10;
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const deep = v => Array.isArray(v) ? v.map(deep) : hex(v);
 const P = {};
 Object.entries({
@@ -136,19 +164,23 @@ Object.entries({
 
 const utc = iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
 const iso = ms => new Date(ms).toISOString().slice(0, 10);
-// a day as the forest's tooltips write it (AF.u.fmtDate), with its weekday, in English as the rest
+// a day as the forest's tooltips write it (AF.u.fmtDate), and without its year ("Oct 17"), in the
+// reader's language as the rest; with its weekday ("Saturday, Oct 17, 2026", "Saturday, Oct 17")
 const fmt = ms => AF.u.fmtDate(iso(ms));
-const weekday = ms => new Date(iso(ms) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+const dayOnly = ms => AF.i18n.dayIn(ms, { month: 'short', day: 'numeric' });
+const withWeekday = (ms, year) => AF.i18n.dayIn(ms, year ? { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' } : { weekday: 'long', month: 'short', day: 'numeric' });
 // a day's row: 0 on the day the weeks start (payload.WEEK_START_DAYS: Monday unless the system
 // or the setting says otherwise), as the page counts days (Sunday 0)
 let weekStart = 1;
 const dow = ms => (new Date(ms).getUTCDay() - weekStart + 7) % 7;
-const num = n => n.toLocaleString('en');
+const num = n => AF.i18n.num(n);
 const yearOf = ms => new Date(ms).getUTCFullYear();
 // a stretch of time in seconds, in minutes: "under a minute", "a minute", "48 min", "1 hr 12 min"
+// (a time put into a sentence as a number with its unit is; its minutes unformatted, as before)
 const lasted = secs => {
   const m = Math.round(secs / 60);
-  return m < 1 ? 'under a minute' : m === 1 ? 'a minute' : m < 60 ? `${m} min` : m >= 600 ? `${Math.round(m / 60)} hr` : `${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}`;
+  return m < 1 ? AF.t('heatmap.under_a_minute') : m === 1 ? AF.t('heatmap.a_minute') : m < 60 ? AF.t('heatmap.n_min', { n: m }) : m >= 600 ? AF.t('heatmap.n_hr', { n: Math.round(m / 60) })
+    : m % 60 ? AF.t('heatmap.h_hr_m_min', { h: Math.floor(m / 60), m: m % 60 }) : AF.t('heatmap.n_hr', { n: m / 60 });
 };
 
 /* every day by its offset from today (0 today, -1 yesterday, 1 tomorrow): its reviews or cards
@@ -939,10 +971,17 @@ function paint(H, win, sp, paper) {
   // the days in weeks, their first day on top; Timeline starts each month in a column of its own (By
   // year runs its months on in the same weeks)
   const cells = columns(H, win).map(([o, ms, col, row]) => ({ o, ms, n: H.n(o), col, row }));
+  const W = weeksWidth(H, win, cells[cells.length - 1].col), Hh = band + ROWS * CELL + BRACKET;
+  // right to left (AF.i18n.rtl), time runs the other way: each week's column counted from the right
+  // end, so the first week stands at the right and today towards the left. From here on a column is
+  // where a day stands on screen, whichever way: the tiles, the shapes joining their neighbours, the
+  // pointer's day (`at`); only what follows time (a streak's bracket from its first day to its last,
+  // the goal ahead) asks `rtl` again. Each tile, sprite and mark is drawn as it is, unmirrored
+  const rtl = AF.i18n.rtl(), cols = (W - 1) / CELL;
+  if (rtl) for (const c of cells) c.col = cols - 1 - c.col;
   const xOf = c => 1 + c.col * CELL, yOf = c => band + c.row * CELL + 1;
   const at = new Map();  // (each day by its column and row, for the pointer)
   for (const c of cells) { c.x = xOf(c); c.y = yOf(c); at.set(c.col * ROWS + c.row, c); }
-  const W = weeksWidth(H, win, cells[cells.length - 1].col), Hh = band + ROWS * CELL + BRACKET;
   const [cv, g] = layer(W, Hh);
   // the animals (and the forest's first seedling) on a layer of their own over it, shown while the
   // pointer is on the heatmap (forest.css): the forest's milestones, which the forest shows already
@@ -1007,11 +1046,12 @@ function paint(H, win, sp, paper) {
     const fo = Math.max(r.from, win.from), to = Math.min(r.to, win.to);
     if (fo > to) continue;
     const a = cells[fo - win.from], b = cells[to - win.from];
-    const x0 = a.x + (fo === r.from ? 1 : 0), x1 = b.x + TILE - 2;
+    // (x0 its left end, x1 its right: right to left, its first day's at the right, as drawn mirrored)
+    const x0 = rtl ? b.x : a.x + (fo === r.from ? 1 : 0), x1 = rtl ? a.x + TILE - 2 - (fo === r.from ? 1 : 0) : b.x + TILE - 2;
     g.fillStyle = rgb(live ? (dark ? P.gold : P.goldOnLight) : P.past);
     g.fillRect(x0, by, x1 - x0 + 1, 1);
-    if (fo === r.from) g.fillRect(x0, by - 2, 1, 2);
-    if (to === r.to) g.fillRect(x1, by - 2, 1, 2);
+    if (fo === r.from) g.fillRect(rtl ? x1 : x0, by - 2, 1, 2);
+    if (to === r.to) g.fillRect(rtl ? x0 : x1, by - 2, 1, 2);
     // dotted under a week the streak passed over with nothing due (an old deck's quiet weeks)
     const weeks = new Map();
     for (let o = fo; o <= to; o++) { const c = cells[o - win.from]; weeks.set(c.col, (weeks.get(c.col) !== false) && !c.n); }
@@ -1031,16 +1071,20 @@ function paint(H, win, sp, paper) {
   if (H.goal && H.current && H.current.to >= win.from && H.current.to <= win.to) {
     const a = cells[H.current.to - win.from], gc = H.goal.o <= win.to ? cells[H.goal.o - win.from] : cells[cells.length - 1];
     ag.fillStyle = dark ? rgb(P.gold, GOAL_LINE) : rgb(P.goldOnLight);
-    for (let x = a.x + TILE; x <= gc.x + 4; x += 2) ag.fillRect(x, by, 1, 1);
-    if (H.goal.o <= win.to) ag.fillRect(gc.x + 4, by - 2, 1, 2);
+    // (right to left: from today's tile leftwards, the pole on the goal day's middle as mirrored)
+    if (rtl) for (let x = a.x - 2; x >= gc.x + GOAL_AT_RTL; x -= 2) ag.fillRect(x, by, 1, 1);
+    else for (let x = a.x + TILE; x <= gc.x + GOAL_AT; x += 2) ag.fillRect(x, by, 1, 1);
+    if (H.goal.o <= win.to) ag.fillRect(gc.x + (rtl ? GOAL_AT_RTL : GOAL_AT), by - 2, 1, 2);
   }
   const lane = [];
   for (const [run, i] of H.podium) lane.push([run.to, TROPHIES[i]]);
-  if (H.goal) lane.push([H.goal.o, GOALS[H.goal.rank]]);
+  // (right to left, the pennant flies the other way, towards the days ahead, its pole at its right)
+  if (H.goal) lane.push([H.goal.o, (rtl ? GOALS_RTL : GOALS)[H.goal.rank]]);
   for (const [o, spr] of lane) {
     if (o < win.from || o > win.to) continue;
     // (the goal's pole on the day's middle, under the dotted line's end; a trophy centred)
-    const c = cells[o - win.from], w = spr.frames[0][0].length, x0 = c.x + (GOALS.includes(spr) ? 4 : Math.floor((TILE - w) / 2)), y0 = by + 3;
+    const c = cells[o - win.from], w = spr.frames[0][0].length, y0 = by + 3;
+    const x0 = c.x + (GOALS.includes(spr) ? GOAL_AT : GOALS_RTL.includes(spr) ? GOAL_AT_RTL - (w - 1) : Math.floor((TILE - w) / 2));
     // (on a light page in their deeper shades: pale gold and silver would fade into it)
     const metal = !dark && METALS_ON_LIGHT[spr.pal.G];
     drawAnimal(ag, metal ? Object.assign({}, spr, { pal: Object.assign({}, spr.pal, metal) }) : spr, x0, y0, null, paper.bg);
@@ -1144,13 +1188,13 @@ function footHeight(root, H) {
   foot.style.visibility = 'hidden';
   const j = el('af-cal-journal'); j.appendChild(journal.cloneNode(true)); foot.appendChild(j);
   // (the choice shows with two or more ways to shade: Reviews, Time with study time kept, Pace)
-  const ways = ['Reviews'].concat(H.timed ? ['Time'] : [], H.paced ? ['Pace'] : []);
+  const ways = shadeWays().filter(w => w[0] === 'reviews' || (w[0] === 'time' ? H.timed : H.paced)).map(w => w[1]);
   if (ways.length >= 2) {
     const by = el('af-cal-by af-cal-shade');
     ways.forEach(w => { const b = document.createElement('button'); b.type = 'button'; b.textContent = w; by.appendChild(b); });
     foot.appendChild(by);
   }
-  const key = el('af-cal-key'), ends = H.by === 'median' ? ['Slow', 'Fast'] : ['Less', 'More'];
+  const key = el('af-cal-key'), ends = keyEnds(H);
   const word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
   [word(ends[0])].concat([0, 1, 2, 3].map(() => el('af-cal-swatch', 'canvas')), [word(ends[1])]).forEach(e => key.appendChild(e));
   foot.appendChild(key);
@@ -1159,6 +1203,12 @@ function footHeight(root, H) {
   foot.remove();
   return Math.max(FOOT_H, h);
 }
+// the footer's words: what the days are shaded by (each way's key and words), and the ends of the
+// key ("Less .. More", "Slow .. Fast" by Pace)
+const shadeWays = () => [['reviews', AF.t('heatmap.reviews')], ['time', AF.t('heatmap.time')],
+  ['median', AF.t('heatmap.pace')]];
+const keyEnds = H => (H.by === 'median' ? [AF.t('heatmap.slow'), AF.t('heatmap.fast')]
+  : [AF.t('heatmap.less'), AF.t('heatmap.more')]);
 /* whether the forest's journal stays in its caption rather than coming down into the heatmap's
  * footer: with the heatmap first (the caption under the forest is the panel's last line), or the two
  * placed apart round the deck list (core.js AF.arrange) */
@@ -1188,6 +1238,7 @@ AF.calendarHeight = function (cal, width, root) {
 };
 
 AF.calendar = function (root, data, env) {
+  AF.i18n.use(data.i18n);
   const cal = data.calendar;
   if (!cal || !cal.days || !cal.days.length) return;
   // (a calendar drawn here before stops watching the page: this one takes its place)
@@ -1213,33 +1264,42 @@ AF.calendar = function (root, data, env) {
   const described = win => {
     let studied = 0;
     for (let o = Math.max(H.first, win.from); o <= Math.min(0, win.to); o++) if (H.n(o)) studied++;
-    const month = o => { const d = new Date(H.today + o * DAY_MS); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
-    return `Study heatmap, ${month(win.from)} to ${month(win.to)}: ${num(studied)} day${studied === 1 ? '' : 's'} studied`
-      + (H.current && win.to >= 0 && win.from <= 0 ? `, a ${num(H.current.days)}-day streak` : '');
+    const month = o => AF.i18n.dayIn(H.today + o * DAY_MS, { month: 'short', year: 'numeric' });
+    const v = { from: month(win.from), to: month(win.to) };
+    return H.current && win.to >= 0 && win.from <= 0
+      ? AF.tn('heatmap.study_heatmap_from_to_to_n',
+        studied, Object.assign(v, { days: num(H.current.days) }))
+      : AF.tn('heatmap.study_heatmap_from_to_to_n_2', studied, v);
   };
 
   // the weeks, and a footer: the forest's journal (the panel's last line), the way about (‹ › and
   // », back to today, after them; on the phone a Today pill alone, once scrolled away) and the key,
   // the last two shown on hover (forest.css)
+  // (the words escaped, as any text put into the page)
+  const [byReviews, byTime, byPace] = shadeWays().map(w => esc(w[1]));
+  const titled = text => `aria-label="${esc(text)}" title="${esc(text)}"`;
+  // right to left (paint), the earlier days are to the right: ‹ › point the way they go, kept left
+  // to right so the line's direction doesn't mirror them back (AF.i18n.arrow)
+  const rtl = AF.i18n.rtl(), [EARLIER, LATER] = rtl ? ['›', '‹'] : ['‹', '›'], chevDir = rtl ? ' dir="ltr"' : '';
   box.innerHTML = '<div class="af-cal-grid"><div class="af-cal-months"></div><div class="af-cal-days"></div><div class="af-cal-hover" hidden></div><div class="af-cal-notes"></div><div class="af-cal-past"></div></div>'
     + '<div class="af-cal-foot"><span class="af-cal-journal"></span><span class="af-cal-acts">'
-    + (swiped ? '<button type="button" class="af-cal-chev af-cal-today" data-go="0">Today</button>'
-      : '<button type="button" class="af-cal-chev" data-go="-1" aria-label="Earlier" title="Earlier">‹</button>'
-      + '<button type="button" class="af-cal-chev" data-go="1" aria-label="Later" title="Later">›</button>'
-      + '<button type="button" class="af-cal-chev af-cal-now" data-go="0" aria-label="Back to today" title="Back to today">»</button>')
-    + '</span><span class="af-cal-by af-cal-view" role="radiogroup" aria-label="View">'
-    + '<button type="button" role="radio" data-view="timeline" title="The months round this one, most of them before it">Timeline</button>'
-    + '<button type="button" role="radio" data-view="by_year" title="January to December">By year</button>'
-    + '<button type="button" role="radio" data-view="streak" title="Your streak, every year of it; the arrows go to the streaks before it">Streak</button>'
-    + '</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="Shade the days by">'
-    + '<button type="button" role="radio" data-by="reviews" title="Shade each day by how many reviews you did">Reviews</button>'
-    + '<button type="button" role="radio" data-by="time" title="Shade each day by how long you studied">Time</button>'
-    + '<button type="button" role="radio" data-by="median" title="Shade each day by its median seconds per answer">Pace</button>'
+    + (swiped ? `<button type="button" class="af-cal-chev af-cal-today" data-go="0">${esc(AF.t('heatmap.today'))}</button>`
+      : `<button type="button" class="af-cal-chev" data-go="-1"${chevDir} ${titled(AF.t('heatmap.earlier'))}>${EARLIER}</button>`
+      + `<button type="button" class="af-cal-chev" data-go="1"${chevDir} ${titled(AF.t('heatmap.later'))}>${LATER}</button>`
+      + `<button type="button" class="af-cal-chev af-cal-now" data-go="0"${chevDir} ${titled(AF.t('heatmap.back_to_today'))}>${rtl ? '«' : '»'}</button>`)
+    + `</span><span class="af-cal-by af-cal-view" role="radiogroup" aria-label="${esc(AF.t('heatmap.view'))}">`
+    + `<button type="button" role="radio" data-view="timeline" title="${esc(AF.t('heatmap.the_months_round_this_one_most'))}">${esc(AF.t('heatmap.timeline'))}</button>`
+    + `<button type="button" role="radio" data-view="by_year" title="${esc(AF.t('heatmap.january_to_december'))}">${esc(AF.t('heatmap.by_year'))}</button>`
+    + `<button type="button" role="radio" data-view="streak" title="${esc(AF.t('heatmap.your_streak_every_year_of_it'))}">${esc(AF.t('heatmap.streak'))}</button>`
+    + `</span><span class="af-cal-by af-cal-shade" role="radiogroup" aria-label="${esc(AF.t('heatmap.shade_the_days_by'))}">`
+    + `<button type="button" role="radio" data-by="reviews" title="${esc(AF.t('heatmap.shade_each_day_by_how_many'))}">${byReviews}</button>`
+    + `<button type="button" role="radio" data-by="time" title="${esc(AF.t('heatmap.shade_each_day_by_how_long'))}">${byTime}</button>`
+    + `<button type="button" role="radio" data-by="median" title="${esc(AF.t('heatmap.shade_each_day_by_its_median'))}">${byPace}</button>`
     + '</span><span class="af-cal-key"></span></div>'
     + '<div class="af-tip af-cal-tip" hidden></div>'
     + '<div class="af-cal-pin" hidden><span class="af-cal-pin-icons"></span>'
-    + '<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="Mark name">'
-    + '<button type="button" class="af-cal-pin-del" aria-label="Remove the mark" title="Remove the mark">\u00d7</button></div>';
+    + `<input class="af-cal-pin-name" maxlength="40" spellcheck="false" aria-label="${esc(AF.t('heatmap.mark_name'))}">`
+    + `<button type="button" class="af-cal-pin-del" ${titled(AF.t('heatmap.remove_the_mark'))}>\u00d7</button></div>`;
   if (swiped) box.classList.add('af-cal-swiped');
   // the forest's journal comes down to the foot of the panel: a forest's caption with the
   // calendar under it would read as the calendar's
@@ -1271,12 +1331,14 @@ AF.calendar = function (root, data, env) {
   // Timeline | By year | Streak, just left of it: the view as the Heatmap tab sets it, changed here for good
   // (as the shade is; not on the phone, which swipes along its own)
   const viewBox = box.querySelector('.af-cal-view');
+  // (← → move a choice the way it looks: right to left, its next one is to the left)
+  const arrowStep = key => ({ ArrowLeft: rtl ? 1 : -1, ArrowUp: -1, ArrowRight: rtl ? -1 : 1, ArrowDown: 1 })[key];
   viewBox.hidden = swiped;
   if (!swiped) acts.insertBefore(viewBox, acts.firstChild);
   viewBox.querySelectorAll('button').forEach(b => {
     b.addEventListener('mousedown', e => e.preventDefault());
     b.addEventListener('keydown', e => {
-      const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+      const step = arrowStep(e.key);
       if (!step) return;
       e.preventDefault();
       const to = viewBox.querySelector(`[data-view="${VIEWS[(VIEWS.indexOf(b.dataset.view) + step + VIEWS.length) % VIEWS.length]}"]`);
@@ -1304,7 +1366,7 @@ AF.calendar = function (root, data, env) {
   byBox.querySelectorAll('button').forEach(b => {
     b.addEventListener('mousedown', e => e.preventDefault());  // (no focus left behind: as the arrows)
     b.addEventListener('keydown', e => {  // (←/→ move the choice, as radio buttons do)
-      const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+      const step = arrowStep(e.key);
       if (!step) return;
       e.preventDefault();
       const shown = [...byBox.querySelectorAll('button')].filter(x => !x.hidden);
@@ -1501,7 +1563,7 @@ AF.calendar = function (root, data, env) {
     const keyBox = box.querySelector('.af-cal-key'), word = t => { const w = document.createElement('span'); w.textContent = t; return w; };
     keyBox.textContent = '';  // (and each appended alone: Chromium 77, Anki 2.1.45's, has no replaceChildren)
     // (Less .. More, by reviews or by time alike: a shade pointed at gives its numbers)
-    const ends = H.by === 'median' ? ['Slow', 'Fast'] : ['Less', 'More'];
+    const ends = keyEnds(H);
     [word(ends[0])].concat(drawn.key.map(swatch), [word(ends[1])]).forEach(el => keyBox.appendChild(el));
     viewBox.querySelectorAll('button').forEach(b => {
       const on = b.dataset.view === view;
@@ -1519,7 +1581,7 @@ AF.calendar = function (root, data, env) {
       // lies, » from the past, « from the days ahead)
       const now = btn(0), later = view === 'by_year' ? (year || yearOf(H.today)) > yearOf(H.today) : view === 'streak' ? ahead > 0 : page > 0;
       now.disabled = view === 'by_year' ? win.year === yearOf(H.today) : view === 'streak' ? !pages.length && !ahead : page === 0;
-      now.textContent = later ? '«' : '»';
+      now.textContent = later === rtl ? '»' : '«';  // (right to left, today lies the other way)
       // (a button gone out of use under the keyboard - ‹ at the start of your history, › at the end,
       // » once back - hands its focus to the arrow still in use, so Tab starts from where you were)
       if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
@@ -1528,27 +1590,43 @@ AF.calendar = function (root, data, env) {
     // (their summary goes with their days: under them on the new page, or away when none is on it)
     if (sel && (tip.hidden || selTip)) showSel(selTip); else if (sel) spot(null);
   }
-  const cards = (n, what) => `${num(n)} ${what}${n === 1 ? '' : 's'}`;
-  // the time a day's reviews took: "in 48 min", "in 1 hr 12 min" ("" where there is none to tell)
-  const took = o => (H.time(o) ? ` in ${lasted(H.time(o))}` : '');
+  // a number of reviews, and the time they took where the review log kept it: "103 reviews in 19 min"
+  const reviewsIn = (n, secs) => (secs ? AF.tn('heatmap.n_reviews_in_time', n, { time: lasted(secs) })
+    : AF.tn('heatmap.n_reviews', n));
+  const due = n => AF.tn('heatmap.n_cards_due', n);
+  // about how many a day: "About 34 reviews and 6 min a day", "studied" at its end where some days were missed
+  const perDay = (reviews, studied, secs, missed) => {
+    const n = Math.round(reviews / studied), v = { time: secs ? lasted(secs / studied) : '' };
+    if (missed) {
+      return secs ? AF.tn('heatmap.about_n_reviews_and_time_a', n, v)
+        : AF.tn('heatmap.about_n_reviews_a_day_studied', n);
+    }
+    return secs ? AF.tn('heatmap.about_n_reviews_and_time_a_2', n, v) : AF.tn('heatmap.about_n_reviews_a_day', n);
+  };
+  // the days studied of so many: "Studied 26 of 31 days (84%)", or since a day, or so far
+  const studiedOf = (studied, span, since, sofar) => {
+    const v = { studied: num(studied), pct: Math.min(99, Math.max(1, Math.round(100 * studied / span))), date: since };  // (never 100% with a day missed, nor 0% with one studied)
+    return since ? AF.tn('heatmap.studied_studied_of_n_days_since', span, v)
+      : sofar ? AF.tn('heatmap.studied_studied_of_n_days_so', span, v)
+        : AF.tn('heatmap.studied_studied_of_n_days_pct', span, v);
+  };
   // the days studied from one day to another, and their share: "Studied 26 of 31 days (84%)", the
   // reviews and about how many a day; only the days since your first review, up to today
   const studiedLines = (from, to) => {
     // (today counts once studied: until then it isn't over, nor missed)
     const end = H.n(0) ? 0 : -1, a = Math.max(from, H.first), b = Math.min(to, end);
-    if (b < a) return [a === 0 ? 'Not studied yet' : H.hid !== null && b < H.hid ? 'Before your forest began' : 'Before your first review'];
+    if (b < a) return [a === 0 ? AF.t('heatmap.not_studied_yet') : H.hid !== null && b < H.hid ? AF.t('heatmap.before_your_forest_began') : AF.t('heatmap.before_your_first_review')];
     let studied = 0, reviews = 0, secs = 0;
     for (let o = a; o <= b; o++) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
     // (a stretch your history starts inside counts from your first review: "since Mar 1")
-    const since = a > from ? ` since ${new Date(H.today + a * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}` : '';
-    const span = b - a + 1, now = since || (b === end && to > end ? ' so far' : '');
-    if (!studied) return [`Not studied${now}`];
+    const since = a > from ? dayOnly(H.today + a * DAY_MS) : '';
+    const span = b - a + 1, sofar = !since && b === end && to > end;
+    if (!studied) return [since ? AF.t('heatmap.not_studied_since_date', { date: since }) : sofar ? AF.t('heatmap.not_studied_so_far') : AF.t('heatmap.not_studied')];
     // (short enough not to wrap: the totals on one line, the day's average on the next, "studied"
     // only where some days were missed; the time where the review log kept it)
-    const on = studied < span ? ' studied' : '', avg = cards(Math.round(reviews / studied), 'review');
-    return [studied === span ? `Studied every day${now}` : `Studied ${num(studied)} of ${num(span)} day${span === 1 ? '' : 's'}${now} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,  // (never 100% with a day missed, nor 0% with one studied)
-      cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
-      `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
+    return [studied === span ? (since ? AF.t('heatmap.studied_every_day_since_date', { date: since }) : sofar ? AF.t('heatmap.studied_every_day_so_far') : AF.t('heatmap.studied_every_day'))
+      : studiedOf(studied, span, since, sofar),
+    reviewsIn(reviews, secs), perDay(reviews, studied, secs, studied < span)];
   };
   // Streak view's earlier rows: those above the last one (drawn as the heatmap's own weeks), each
   // with its months over it, oldest at the top, so the picture reads down to now as a calendar does
@@ -1591,19 +1669,23 @@ AF.calendar = function (root, data, env) {
   // a row's months' labels, each over its first week: January is its year alone, every other month
   // its name, and in Streak view a row's first label its year too ("Jun 2024"); where two would
   // touch (a narrow calendar), the one with a year stays and the other goes
+  // (right to left, each label ends over its month's first week, at that week's right edge, and the
+  // next one stands to its left)
   function label(into, d) {
     let html = '', lastM = -1;
     for (const c of d.cells) {
       const day = new Date(c.ms);
-      if (day.getUTCDate() > 7 || day.getUTCMonth() === lastM || c.x * k > d.W * k - LABEL_END) continue;
+      if (day.getUTCDate() > 7 || day.getUTCMonth() === lastM || (rtl ? (c.x + TILE) * k < LABEL_END : c.x * k > d.W * k - LABEL_END)) continue;
       lastM = day.getUTCMonth();
-      const text = lastM === 0 ? String(day.getUTCFullYear()) : MONTHS[lastM] + (view === 'streak' && !html ? ` ${day.getUTCFullYear()}` : '');
-      html += `<span${text !== MONTHS[lastM] ? ' class="af-cal-year"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
+      const name = AF.i18n.monthName(lastM, 'short');
+      const text = lastM === 0 ? AF.i18n.dayIn(c.ms, { year: 'numeric' }) : view === 'streak' && !html ? AF.i18n.dayIn(c.ms, { month: 'short', year: 'numeric' }) : name;
+      html += `<span${text !== name ? ' class="af-cal-year"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
     }
     into.innerHTML = html;
+    if (rtl) for (const s of into.children) s.style.left = parseFloat(s.style.left) + TILE * k - s.offsetWidth + 'px';
     let prev = null;
     for (const s of into.children) {
-      if (prev && s.offsetLeft < prev.offsetLeft + prev.offsetWidth + LABEL_GAP) {
+      if (prev && (rtl ? s.offsetLeft + s.offsetWidth + LABEL_GAP > prev.offsetLeft : s.offsetLeft < prev.offsetLeft + prev.offsetWidth + LABEL_GAP)) {
         const drop = prev.classList.contains('af-cal-year') && !s.classList.contains('af-cal-year') ? s : prev;
         drop.hidden = true;
         if (drop === s) continue;
@@ -1640,7 +1722,8 @@ AF.calendar = function (root, data, env) {
     if (drawn.win.from !== was && animates(data)) {
       grid.classList.remove('af-cal-from-left', 'af-cal-from-right');
       void grid.offsetWidth;  // (so the animation starts again on a quick second click)
-      grid.classList.add(drawn.win.from < was ? 'af-cal-from-left' : 'af-cal-from-right');
+      // (right to left, the earlier days come in from the right)
+      grid.classList.add((drawn.win.from < was) !== rtl ? 'af-cal-from-left' : 'af-cal-from-right');
     }
   }
   // fitted to the room there is, all its width (By year its year, Timeline its months, countFor),
@@ -1660,7 +1743,7 @@ AF.calendar = function (root, data, env) {
     // (the key's tiles as big as the calendar's, and as far apart)
     box.querySelectorAll('.af-cal-swatch').forEach((sw, i, all) => {
       const F = d.smooth ? TILE_FACE : TILE;
-      sw.style.width = sw.style.height = F * k + 'px'; if (i < all.length - 1) sw.style.marginRight = (CELL - F) * k + 'px';
+      sw.style.width = sw.style.height = F * k + 'px'; if (i < all.length - 1) sw.style[rtl ? 'marginLeft' : 'marginRight'] = (CELL - F) * k + 'px';
       sw.style.borderRadius = d.smooth ? d.radius * k + 'px' : '';
     });
     d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';  // (too small to stay crisp, pixels smooth better than they drop)
@@ -1671,8 +1754,9 @@ AF.calendar = function (root, data, env) {
     // (not where they would hang off the page: they stand just outside the forest's edge)
     if (!swiped) {
       const top = d.cv.offsetTop;
-      days.innerHTML = [1, 3, 5].map(r => `<span style="top:${top + (d.band + r * CELL + TILE / 2) * k}px">${WEEKDAYS[(weekStart + r) % 7]}</span>`).join('');
-      days.hidden = box.getBoundingClientRect().left < DAYS_ROOM;
+      days.innerHTML = [1, 3, 5].map(r => `<span style="top:${top + (d.band + r * CELL + TILE / 2) * k}px">${esc(AF.i18n.weekdayName((weekStart + r) % 7, 'short'))}</span>`).join('');
+      // (right to left, beside the weeks' first column, at the right)
+      days.hidden = (rtl ? document.documentElement.clientWidth - box.getBoundingClientRect().right : box.getBoundingClientRect().left) < DAYS_ROOM;
     }
     // ‹ Today › stand over the months' row, in the gap above it (with earlier years shown, over the
     // first of them), unless the forest's caption's last line reaches them there: then they go down
@@ -1684,18 +1768,19 @@ AF.calendar = function (root, data, env) {
       // (the caption reaches them only from just above: not under the heatmap, nor beside it)
       const a = acts.getBoundingClientRect(), cap = stays ? null : root.querySelector('.af-caption');
       const words = cap ? [...cap.children].map(el => el.getBoundingClientRect()).filter(r => r.width && r.bottom > a.top - 30) : [];
-      const low = words.some(r => r.right > a.left - LABEL_GAP && r.bottom > a.top - 4);
+      const low = words.some(r => (rtl ? r.left < a.right + LABEL_GAP : r.right > a.left - LABEL_GAP) && r.bottom > a.top - 4);
       acts.classList.toggle('af-acts-low', low);
       if (low) acts.style.top = row + 'px';
-      const edge = acts.offsetLeft - LABEL_GAP;
-      for (const s of months.children) s.classList.toggle('af-under', low && !pasts.length && s.offsetLeft + s.offsetWidth > edge);
+      const edge = rtl ? acts.offsetLeft + acts.offsetWidth + LABEL_GAP : acts.offsetLeft - LABEL_GAP;
+      for (const s of months.children) s.classList.toggle('af-under', low && !pasts.length && (rtl ? s.offsetLeft < edge : s.offsetLeft + s.offsetWidth > edge));
     }
     // each streak's length, the current one's too, centred under its bracket
     notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - NOTE_H / 2 + 'px';
     notes.innerHTML = d.brackets.filter(b => (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4)).map(b => {
       const since = b.live && b.cut && !box.classList.contains('af-cal-years-open') && (b.x1 - b.x0) * k >= SINCE_ROOM + NOTE_ROOM
-        ? ` · Since ${esc(fmt(H.today + b.run.from * DAY_MS))}` : '';
-      return `<span class="af-cal-note${b.live ? ' af-cal-current' : ''}" style="left:${(b.x0 + b.x1) / 2 * k}px">${num(b.len)} days${since}</span>`;
+        ? esc(fmt(H.today + b.run.from * DAY_MS)) : '';
+      const text = since ? AF.tn('heatmap.n_days_since_date', b.len, { date: since }) : AF.tn('heatmap.n_days', b.len);
+      return `<span class="af-cal-note${b.live ? ' af-cal-current' : ''}" style="left:${(b.x0 + b.x1) / 2 * k}px">${text}</span>`;
     }).join('');
     if (swiped) { away(); clip(); }
     if (selTip && !tip.hidden) placeSel();  // (the earlier years shown or hidden move the year in view)
@@ -1711,7 +1796,8 @@ AF.calendar = function (root, data, env) {
   }
   // the phone's timeline: opened on today, most of the way across, the days behind it in view
   function toToday(smooth) {
-    const today = drawn.cells.find(c => c.o === 0), left = today ? Math.max(0, today.x * k - grid.clientWidth * SWIPED_TODAY_AT) : 0;
+    // (right to left, the days behind it are to its right: today as far from the right edge)
+    const today = drawn.cells.find(c => c.o === 0), left = today ? Math.max(0, today.x * k - grid.clientWidth * (rtl ? 1 - SWIPED_TODAY_AT : SWIPED_TODAY_AT)) : 0;
     if (smooth && grid.scrollTo) grid.scrollTo({ left, behavior: 'smooth' }); else grid.scrollLeft = left;
   }
   // (the timeline: Today only while today is scrolled out of view; a month's label cut by an
@@ -1824,22 +1910,25 @@ AF.calendar = function (root, data, env) {
   const monthSummary = (y, m) => {
     const at = (yy, mm) => (Date.UTC(yy, mm, 1) - H.today) / DAY_MS;
     const from = at(y, m), to = at(y, m + 1) - 1;
-    const year = m === 0 && from <= 0 ? [`<b>${y}</b>`, ...studiedLines(from, at(y + 1, 0) - 1), ''] : [];
-    const lines = [...year, `<b>${MONTH_NAMES[m]} ${y}</b>`, ...(from > 0 ? [] : studiedLines(from, to))];
-    return lines.concat(notesOf(from, to, ' later this month')).join('<br>');
+    const year = m === 0 && from <= 0 ? [`<b>${AF.i18n.dayIn(Date.UTC(y, 0, 15), { year: 'numeric' })}</b>`, ...studiedLines(from, at(y + 1, 0) - 1), ''] : [];
+    const lines = [...year, `<b>${AF.i18n.dayIn(Date.UTC(y, m, 15), { month: 'long', year: 'numeric' })}</b>`, ...(from > 0 ? [] : studiedLines(from, to))];
+    return lines.concat(notesOf(from, to, 'month')).join('<br>');
   };
   // a stretch's marked days, by date and name, as their tooltips name them, and the cards due in
-  // its days ahead (`later`: how a stretch begun before today says so)
+  // its days ahead (`later`: how a stretch begun before today says so, 'month' "later this month",
+  // else "after today")
   const notesOf = (from, to, later, has = () => true) => {
     const lines = [];
     const marked = [...H.marked].filter(([o]) => o >= from && o <= to && has(o)).sort((p, q) => p[0] - q[0]);
-    for (const [o, mk] of marked.slice(0, 4)) lines.push(`<i>${new Date(H.today + o * DAY_MS).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}:</i> ${esc(mk.name || markOf(mk).label)}`);
-    if (marked.length > 4) lines.push(`<i>and ${marked.length - 4} more marked</i>`);
-    let due = 0;
-    for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) if (has(o)) due += H.n(o);
-    if (due) lines.push(`${cards(due, 'card')} due${from > 0 ? '' : later}`);
-    else if (from > H.ahead) lines.push('Too far ahead to count');
-    else if (from > 0) lines.push('Nothing due yet');
+    for (const [o, mk] of marked.slice(0, 4)) lines.push(AF.t('heatmap.date_name', { date: dayOnly(H.today + o * DAY_MS), name: markName(mk) }));
+    if (marked.length > 4) lines.push(`<i>${AF.tn('heatmap.and_n_more_marked', marked.length - 4)}</i>`);
+    let n = 0;
+    for (let o = Math.max(from, 1); o <= Math.min(to, H.ahead); o++) if (has(o)) n += H.n(o);
+    if (n) {
+      lines.push(from > 0 ? due(n) : later === 'month' ? AF.tn('heatmap.n_cards_due_later_this_month', n)
+        : AF.tn('heatmap.n_cards_due_after_today', n));
+    } else if (from > H.ahead) lines.push(AF.t('heatmap.too_far_ahead_to_count'));
+    else if (from > 0) lines.push(AF.t('heatmap.nothing_due_yet'));
     return lines;
   };
   // the days selected, as runs of days in a row: [[from, to], ...], oldest first
@@ -1858,31 +1947,36 @@ AF.calendar = function (root, data, env) {
     const runs = runsOf(), from = runs[0][0], to = runs[runs.length - 1][1];
     const day = o => esc(fmt(H.today + o * DAY_MS)), year = o => yearOf(H.today + o * DAY_MS);
     // (a year said once; up to today, "to today", as your streak's bracket says it)
-    const first = to !== 0 && year(from) === year(to) ? day(from).replace(/, [0-9]{4}$/, '') : day(from);
-    const span = from === to ? day(from) : `${first} to ${to === 0 ? 'today' : day(to)}`;
+    const first = to !== 0 && year(from) === year(to) ? esc(dayOnly(H.today + from * DAY_MS)) : day(from);
+    const stretch = { from: first, to: to === 0 ? '' : day(to) };
     // (one day selected: that day's own words, as its tooltip has them, not a stretch's "Studied every day")
     if (sel.size === 1) {
-      const n = H.n(from), what = from < H.first ? 'Before your first review' : from > H.ahead ? 'Too far ahead to count'
-        : from > 0 ? (n ? `${cards(n, 'card')} due` : 'Nothing due yet') : n ? cards(n, 'review') + took(from) : from === 0 ? 'Not studied yet' : 'Not studied';
-      return [`<b>${esc(weekday(H.today + from * DAY_MS))}, ${day(from)}</b>`, what, ...(H.marked.has(from) ? [esc(markLine(H.marked.get(from), from))] : [])].join('<br>');
+      const n = H.n(from), what = from < H.first ? AF.t('heatmap.before_your_first_review') : from > H.ahead ? AF.t('heatmap.too_far_ahead_to_count')
+        : from > 0 ? (n ? due(n) : AF.t('heatmap.nothing_due_yet')) : n ? reviewsIn(n, H.time(from)) : from === 0 ? AF.t('heatmap.not_studied_yet') : AF.t('heatmap.not_studied');
+      return [`<b>${esc(withWeekday(H.today + from * DAY_MS, true))}</b>`, what, ...(H.marked.has(from) ? [markLine(H.marked.get(from), from)] : [])].join('<br>');
     }
-    if (runs.length === 1) return [`<b>${span}</b>`, ...(from > 0 ? [] : studiedLines(from, to)), ...notesOf(from, to, ' after today')].join('<br>');
-    return [`<b>${num(sel.size)} days, ${span}</b>`, ...(from > 0 ? [] : pickedLines()), ...notesOf(from, to, ' after today', o => sel.has(o))].join('<br>');
+    if (runs.length === 1) {
+      const span = from === to ? day(from) : to === 0 ? AF.t('heatmap.from_to_today', stretch) : AF.t('heatmap.from_to_to', stretch);
+      return [`<b>${span}</b>`, ...(from > 0 ? [] : studiedLines(from, to)), ...notesOf(from, to, 'after')].join('<br>');
+    }
+    const head = to === 0 ? AF.tn('heatmap.n_days_from_to_today', sel.size, stretch)
+      : AF.tn('heatmap.n_days_from_to_to', sel.size, stretch);
+    return [`<b>${head}</b>`, ...(from > 0 ? [] : pickedLines()), ...notesOf(from, to, 'after', o => sel.has(o))].join('<br>');
   };
   // studiedLines' words for days selected apart: "Studied 9 of 12 days (75%)", their reviews and
   // about how many a day; only the days since your first review, up to today
   const pickedLines = () => {
     const end = H.n(0) ? 0 : -1, past = [...sel].filter(o => o >= H.first && o <= end);
-    if (!past.length) return [[...sel].some(o => o === 0) ? 'Not studied yet' : 'Before your first review'];
+    if (!past.length) return [[...sel].some(o => o === 0) ? AF.t('heatmap.not_studied_yet') : AF.t('heatmap.before_your_first_review')];
     let studied = 0, reviews = 0, secs = 0;
     for (const o of past) if (H.n(o)) { studied++; reviews += H.n(o); secs += H.time(o) || 0; }
-    if (!studied) return ['Not studied'];
-    const span = past.length, on = studied < span ? ' studied' : '', avg = cards(Math.round(reviews / studied), 'review');
+    if (!studied) return [AF.t('heatmap.not_studied')];
+    const span = past.length, pct = Math.min(99, Math.max(1, Math.round(100 * studied / span)));
     // (the heading counts them: "of them" where these are all of them, not the count again)
-    const of = span === sel.size ? 'them' : `${num(span)} day${span === 1 ? '' : 's'}`;
-    return [studied === span ? `Studied all of ${of === 'them' ? 'them' : `these ${of}`}` : `Studied ${num(studied)} of ${of} (${Math.min(99, Math.max(1, Math.round(100 * studied / span)))}%)`,
-      cards(reviews, 'review') + (secs ? ` in ${lasted(secs)}` : ''),
-      `About ${avg}${secs ? ` and ${lasted(secs / studied)}` : ''} a day${on}`];
+    const all = span === sel.size;
+    return [studied === span ? (all ? AF.t('heatmap.studied_all_of_them') : AF.tn('heatmap.studied_all_of_these_n_days', span))
+      : all ? AF.tn('heatmap.studied_n_of_them_pct', studied, { pct }) : studiedOf(studied, span, '', false),
+    reviewsIn(reviews, secs), perDay(reviews, studied, secs, studied < span)];
   };
   // (the days selected open in the browser where one of them in the past was studied)
   // (or, ahead, has cards due: those open as a day ahead clicked opens them; today, before you
@@ -1968,22 +2062,31 @@ AF.calendar = function (root, data, env) {
   // a shade in the key, pointed at, tells what it stands for, in a few words: "65–109 reviews",
   // "8–12 min", "Under 3 min", "154+ reviews"
   const shadeLine = lv => {
-    const s = H.splits(), by = H.by === 'time';
+    const s = H.splits();
     if (H.by === 'median') {
       lv = 3 - lv;
       // ("Under 3.2 s per answer", "3.2–4.1 s per answer", "4.1+ s per answer": as the other keys' lines)
-      const t = v => v.toFixed(1);
-      return (lv === 0 ? `Under ${t(s[1])}` : lv === 3 ? `${t(s[3])}+` : `${t(s[lv])}\u2013${t(s[lv + 1])}`) + ' s per answer';
+      const t = v => AF.i18n.dec(v);
+      return lv === 0 ? AF.t('heatmap.under_s_s_per_answer', { s: t(s[1]) }) : lv === 3 ? AF.t('heatmap.s_s_per_answer', { s: t(s[3]) })
+        : AF.t('heatmap.from_to_s_per_answer', { from: t(s[lv]), to: t(s[lv + 1]) });
     }
-    const at = i => by ? lasted(s[i]) : num(s[i]), upto = i => by ? lasted(s[i] - 60) : num(s[i] - 1);
-    const unit = by ? '' : ' reviews';
-    if (lv === 0) return `Under ${at(1)}${unit}`;
-    if (lv === 3) return by && /^[0-9]+ min$/.test(at(3)) ? `${at(3).slice(0, -4)}+ min` : `${at(3)}+${unit}`;  // ("20+ min", as "154+ reviews")
-    const lo = at(lv), hi = upto(lv + 1);
-    if (lo === hi) return by ? lo : cards(s[lv], 'review');
-    // ("8–12 min": the first minutes' unit left to the second)
-    const from = !by ? lo : lo === 'a minute' ? '1' : / min$/.test(hi) && !/hr/.test(lo + hi) ? lo.slice(0, -4) : lo;
-    return `${from}\u2013${hi}${unit}`;
+    if (H.by === 'time') {
+      // (in minutes as lasted() writes them: "Under 8 min", "20+ min", "8–12 min", "a minute")
+      const mins = secs => Math.round(secs / 60), inMin = m => m >= 1 && m < 60;
+      if (lv === 0) return AF.t('heatmap.under_time', { time: lasted(s[1]) });
+      if (lv === 3) return inMin(mins(s[3])) && mins(s[3]) > 1 ? AF.t('heatmap.n_min_2', { n: mins(s[3]) }) : AF.t('heatmap.time_2', { time: lasted(s[3]) });
+      const lo = lasted(s[lv]), hi = lasted(s[lv + 1] - 60);
+      if (lo === hi) return lo;
+      // ("8–12 min": the first minutes' unit left to the second)
+      const a = mins(s[lv]), b = mins(s[lv + 1] - 60);
+      if (inMin(a) && inMin(b) && b > 1) return AF.t('heatmap.from_to_min', { from: a, to: b });
+      return AF.t('heatmap.from_to', { from: a === 1 ? '1' : lo, to: hi });
+    }
+    // ("65–109 reviews", "Under 65 reviews", "154+ reviews")
+    if (lv === 0) return AF.tn('heatmap.under_n_reviews', s[1]);
+    if (lv === 3) return AF.tn('heatmap.n_reviews_2', s[3]);
+    if (s[lv] === s[lv + 1] - 1) return AF.tn('heatmap.n_reviews', s[lv]);
+    return AF.tn('heatmap.from_n_reviews', s[lv + 1] - 1, { from: num(s[lv]) });
   };
   const keyEl = box.querySelector('.af-cal-key');
   keyEl.addEventListener('mouseover', e => {
@@ -2005,8 +2108,9 @@ AF.calendar = function (root, data, env) {
   const streak = b => {
     const r = b.run, day = o => esc(fmt(H.today + o * DAY_MS)), year = o => yearOf(H.today + o * DAY_MS);
     // ("Jun 1 to Dec 19, 2025": a year said once)
-    const first = !b.live && year(r.from) === year(r.to) ? day(r.from).replace(/, [0-9]{4}$/, '') : day(r.from);
-    tip.innerHTML = `<b>${first} to ${b.live ? 'today' : day(r.to)}</b><br>${b.live ? `Your ${num(r.days)}-day streak` : `${num(r.days)} days in a row`}`;
+    const first = !b.live && year(r.from) === year(r.to) ? esc(dayOnly(H.today + r.from * DAY_MS)) : day(r.from);
+    const span = b.live ? AF.t('heatmap.from_to_today', { from: first }) : AF.t('heatmap.from_to_to', { from: first, to: day(r.to) });
+    tip.innerHTML = `<b>${span}</b><br>${b.live ? AF.tn('heatmap.your_n_day_streak', r.days) : AF.tn('heatmap.n_days_in_a_row', r.days)}`;
     selTip = false;
     tip.hidden = false;
     const on = pointed || drawn, left = grid.offsetLeft + on.cv.offsetLeft - grid.scrollLeft, cx = left + (b.x0 + b.x1) / 2 * k;
@@ -2043,51 +2147,60 @@ AF.calendar = function (root, data, env) {
     if (!c) { tip.hidden = true; if (hit && hit.run) streak(hit); else if (sel) showSel(); return; }
     const off = c.o <= 0 && !c.n && H.free.has(c.o);  // (a day with nothing due)
     const run = c.o <= 0 && (c.n || off) ? H.runOf(c.o) : null;
-    const what = c.o < H.first ? (H.hid !== null && c.o < H.hid ? 'Before your forest began' : 'Before your first review')
-      : c.o > H.ahead ? 'Too far ahead to count'
-      : c.o > 0 ? (c.n ? `${cards(c.n, 'card')} due` : 'Nothing due yet')
-      : c.o === 0 && !c.n && H.dueToday ? `Not studied yet, ${cards(H.dueToday, 'card')} due`
-      : c.n && H.by === 'median' && H.answerTime(c.o) !== null ? `Median ${H.answerTime(c.o).toFixed(1)} s per answer, ${cards(c.n, 'review')}${c.o === 0 && H.dueToday ? `, ${num(H.dueToday)} still due` : ''}`
-      : c.o === 0 && H.dueToday ? (H.by === 'time' && H.time(c.o) ? `${cap(lasted(H.time(c.o)))} so far, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')} so far${took(c.o)}`) + `, ${num(H.dueToday)} still due`
+    const t = H.time(c.o), still = { due: num(H.dueToday) };
+    const what = c.o < H.first ? (H.hid !== null && c.o < H.hid ? AF.t('heatmap.before_your_forest_began') : AF.t('heatmap.before_your_first_review'))
+      : c.o > H.ahead ? AF.t('heatmap.too_far_ahead_to_count')
+      : c.o > 0 ? (c.n ? due(c.n) : AF.t('heatmap.nothing_due_yet'))
+      : c.o === 0 && !c.n && H.dueToday ? AF.tn('heatmap.not_studied_yet_n_cards_due', H.dueToday)
+      : c.n && H.by === 'median' && H.answerTime(c.o) !== null ? (c.o === 0 && H.dueToday
+        ? AF.tn('heatmap.median_s_s_per_answer_n', c.n, Object.assign({ s: AF.i18n.dec(H.answerTime(c.o)) }, still))
+        : AF.tn('heatmap.median_s_s_per_answer_n_2', c.n, { s: AF.i18n.dec(H.answerTime(c.o)) }))
+      : c.o === 0 && H.dueToday ? (H.by === 'time' && t ? cap(AF.tn('heatmap.time_so_far_n_reviews_due', c.n, Object.assign({ time: lasted(t) }, still)))
+        : t ? AF.tn('heatmap.n_reviews_so_far_in_time', c.n, Object.assign({ time: lasted(t) }, still))
+          : AF.tn('heatmap.n_reviews_so_far_due_still', c.n, still))
       // (shaded by time, the time first: "2 hr 9 min, 420 reviews")
-      : c.n ? (H.by !== 'time' ? cards(c.n, 'review') + took(c.o) : H.time(c.o) ? `${cap(lasted(H.time(c.o)))}, ${cards(c.n, 'review')}` : `${cards(c.n, 'review')}, no time kept`) : H.daysOff.has(c.o) ? 'Not studied: a day off' : off ? (c.o === 0 ? 'Nothing due today' : 'Nothing was due')
-      : H.pond.has(c.o) ? 'Not studied: a pond in your forest' : c.o === 0 ? 'Not studied yet' : 'Not studied';
+      : c.n ? (H.by !== 'time' ? reviewsIn(c.n, t) : t ? cap(AF.tn('heatmap.time_n_reviews', c.n, { time: lasted(t) }))
+        : AF.tn('heatmap.n_reviews_no_time_kept', c.n))
+      : H.daysOff.has(c.o) ? AF.t('heatmap.not_studied_a_day_off') : off ? (c.o === 0 ? AF.t('heatmap.nothing_due_today') : AF.t('heatmap.nothing_was_due'))
+      : H.pond.has(c.o) ? AF.t('heatmap.not_studied_a_pond_in_your') : c.o === 0 ? AF.t('heatmap.not_studied_yet') : AF.t('heatmap.not_studied');
     // (where in its streak, in days studied)
     let day = 0;
     for (let o = run ? run.from : 1; o <= c.o; o++) if (H.n(o)) day++;
-    const total = run ? run.days : 0;
+    const total = run ? run.days : 0, at = { day: num(day) };
     // (a lone day between missed ones is no run: nothing to say)
-    const where = run && off ? (run === H.current ? `Doesn't break your ${num(total)}-day streak` : `Didn't break a ${num(total)}-day streak`) : !run || (total === 1 && run !== H.current) ? ''
-      : (run === H.current ? (day === total ? `Day ${num(day)} of your streak` : `Day ${num(day)} of your ${num(total)}-day streak`) : day === total && total >= SHOWN_STREAK ? `Last day of a ${num(total)}-day streak` : total >= SHOWN_STREAK ? `Day ${num(day)} of a ${num(total)}-day streak` : `Day ${num(day)} of ${num(total)} in a row`)
+    const where = run && off ? (run === H.current ? AF.tn('heatmap.doesnt_break_your_n_day_streak', total) : AF.tn('heatmap.didnt_break_a_n_day_streak', total))
+      : !run || (total === 1 && run !== H.current) ? ''
+        : (run === H.current ? (day === total ? AF.t('heatmap.day_day_of_your_streak', at) : AF.tn('heatmap.day_day_of_your_n_day', total, at))
+          : day === total && total >= SHOWN_STREAK ? AF.tn('heatmap.last_day_of_a_n_day', total)
+            : total >= SHOWN_STREAK ? AF.tn('heatmap.day_day_of_a_n_day', total, at) : AF.tn('heatmap.day_day_of_n_in_a', total, at))
         // (which of your longest it is: on its trophy, not on each of its days)
-        + (hit && hit.trophy >= 0 && H.podium.has(run) ? `<br>Your ${TROPHIES[hit.trophy].place} streak` : '');
-    const goal = H.goal && H.goal.o === c.o
-      // (with no earlier streak of that rank to pass, the goal is a trophy's first length)
-      ? (H.goal.beats ? `<br>${H.goal.rank ? 'Pass' : 'Beat'} your ${GOALS[H.goal.rank].place} streak (${num(H.goal.beats)} days) on this day`
-        : `<br>Reach a ${num(SHOWN_STREAK)}-day streak on this day`)
-        // (the soonest it can be, with days off a week allowed: if you take none of them)
-        + ((data.stats && data.stats.streak_week || 7) < 7 ? ', studying every day until then' : '') : '';
-    const began = H.fs === c.o ? '<br>Your forest began' : H.fs !== null && c.o < H.fs && c.o >= H.first ? '<br><i>Before your forest began</i>'
-      : H.fs === null && H.cf === c.o ? '<br>Ponds and animals count from here' : '';
-    const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(cap(a.label))} came: ${esc(a.why)}`).join('');
-    const marked = H.marked.has(c.o) ? `<br>${esc(markLine(H.marked.get(c.o), c.o))}` : '';
+        + (hit && hit.trophy >= 0 && H.podium.has(run) ? `<br>${placeName(hit.trophy)}` : '');
+    // (the soonest it can be, with days off a week allowed: if you take none of them)
+    const goal = H.goal && H.goal.o === c.o ? '<br>' + goalLine(H.goal, (data.stats && data.stats.streak_week || 7) < 7) : '';
+    const began = H.fs === c.o ? `<br>${AF.t('heatmap.your_forest_began')}` : H.fs !== null && c.o < H.fs && c.o >= H.first ? `<br><i>${AF.t('heatmap.before_your_forest_began')}</i>`
+      : H.fs === null && H.cf === c.o ? `<br>${AF.t('heatmap.ponds_and_animals_count_from_here')}` : '';
+    const came = goal + began + (H.animals.get(c.o) || []).map(a => `<br>${esc(a.came)}`).join('');
+    const marked = H.marked.has(c.o) ? `<br>${markLine(H.marked.get(c.o), c.o)}` : '';
     // (in cards, not reviews: a card reviewed twice that day counts once)
     const [lost, of] = c.o <= 0 && c.n ? H.gone.get(c.o) || [0, 0] : [0, 0];
-    const gone = !lost ? '' : lost >= of ? `<br><i>${of === 1 ? 'Its card has' : of === 2 ? 'Both of its cards have' : `All ${num(of)} of its cards have`} since been deleted</i>`
-      : `<br><i>${num(lost)} of its ${num(of)} cards ${lost === 1 ? 'has' : 'have'} since been deleted</i>`;
+    const gone = !lost ? '' : `<br><i>${lost >= of ? (of === 1 ? AF.t('heatmap.its_card_has_since_been_deleted') : of === 2 ? AF.t('heatmap.both_of_its_cards_have_since')
+      : AF.tn('heatmap.all_n_of_its_cards_have', of))
+      : AF.tn('heatmap.n_of_its_of_cards_have', lost, { of: num(of) })}</i>`;
     // (today, yesterday and tomorrow by name, the year left out)
-    const near = { '-1': 'Yesterday', 0: 'Today', 1: 'Tomorrow' }[c.o];
-    const head = `<b>${near ? `${near}, ${esc(weekday(c.ms))}, ${esc(fmt(c.ms).replace(/, \d{4}$/, ''))}` : `${esc(weekday(c.ms))}, ${esc(fmt(c.ms))}`}</b>`;
+    const near = c.o >= -1 && c.o <= 1;
+    const head = `<b>${esc(near ? AF.t('heatmap.near_date', { near: AF.i18n.nearDay(c.o), date: withWeekday(c.ms, false) }) : withWeekday(c.ms, true))}</b>`;
     // (a trophy pointed at: its day and its streak, no more; the day's own numbers are on its tile)
     const trophy = hit && hit.trophy >= 0 && run && H.podium.has(run);
-    const tree = data.showForest === false || c.o < H.first ? null : treesByDay.get(c.o), planted = tree ? `<br>${esc(cap(AF.WORDS.planted))} ${esc(AF.WORDS.one || 'tree')}: ${num(tree.n)} new cards` : '';
+    const tree = data.showForest === false || c.o < H.first ? null : treesByDay.get(c.o);
+    // (its cards always "cards", as before)
+    const planted = tree ? `<br>${AF.tn('heatmap.planted_tree_n_new_cards', tree.n)}` : '';
     const zoom = root.afVisits, scene = root.afEnv;
     const inView = tree && scene && scene.placed.some(p => !p.it.pond && p.it.ago === tree.ago);
     const location = !tree || data.showForest === false || inView ? '' : zoom && zoom.on
-      ? '<br><i>This tree is outside your current zoom view</i>'
+      ? `<br><i>${AF.t('heatmap.this_tree_is_outside_your_current')}</i>`
       : data.merged && tree.ago >= data.merged.to_ago && tree.ago <= data.merged.from_ago
-        ? '<br><i>This day’s tree is part of your deep forest</i>' : '';
-    tip.innerHTML = trophy ? `${head}<br>Your ${TROPHIES[hit.trophy].place} streak: ${num(total)} days`
+        ? `<br><i>${AF.t('heatmap.this_day_s_tree_is_part')}</i>` : '';
+    tip.innerHTML = trophy ? `${head}<br>${placeLine(hit.trophy, total)}`
       : `${head}<br>${what}${planted}${location}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
     reveal();
     // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
@@ -2123,7 +2236,8 @@ AF.calendar = function (root, data, env) {
     grid.addEventListener('focusout', e => { if (e.target === drawn.cv) unpoint(); });
     grid.addEventListener('keydown', e => {
       if (e.target !== drawn.cv || e.altKey || ((e.ctrlKey || e.metaKey) && e.key !== 'Enter')) return;
-      const step = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
+      // (← → a week the way the weeks run on screen: right to left, ← is a week later)
+      const step = { ArrowLeft: rtl ? 7 : -7, ArrowRight: rtl ? -7 : 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
       if (e.key === 'Escape') { if (!tip.hidden) { e.preventDefault(); e.stopPropagation(); unpoint(); } return; }
       if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c) dayClick(c, e); return; }
       if (e.key === 'Home') { e.preventDefault(); cur = 0; if (!curCell()) go('0'); toCur(); return; }
@@ -2180,7 +2294,8 @@ AF.calendar = function (root, data, env) {
     if (fresh) swept = 0;
     if (swept === null) return;
     swept += dx;
-    if (Math.abs(swept) >= SWIPE_PX) { const to = swept > 0 ? '1' : '-1'; swept = null; go(to); }
+    // (towards the right, the later days; right to left, the earlier)
+    if (Math.abs(swept) >= SWIPE_PX) { const to = (swept > 0) !== rtl ? '1' : '-1'; swept = null; go(to); }
   }, { passive: false });
   // a click opens its day in the browser; Shift or Cmd and a click selects days (select), and a click on
   // one of them then opens them all (on any other day, lets them go)
@@ -2216,12 +2331,12 @@ AF.calendar = function (root, data, env) {
   // and drawn here at once (the forest itself is not drawn again).
   const pin = box.querySelector('.af-cal-pin'), pinName = pin.querySelector('.af-cal-pin-name');
   const pinIcons = pin.querySelector('.af-cal-pin-icons');
-  pinIcons.setAttribute('role', 'radiogroup'); pinIcons.setAttribute('aria-label', 'Mark icon');
+  pinIcons.setAttribute('role', 'radiogroup'); pinIcons.setAttribute('aria-label', AF.t('heatmap.mark_icon'));
   // each icon a small button of its own, drawn from its sprite at a scale of 2
   MARK_ORDER.forEach(key => {
     const b = document.createElement('button'), cv = document.createElement('canvas'), rows = MARK_ICONS[key].rows, s = 2;
     b.type = 'button'; b.className = 'af-cal-pin-icon'; b.dataset.icon = key; b.setAttribute('role', 'radio');
-    b.title = MARK_ICONS[key].label; b.setAttribute('aria-label', MARK_ICONS[key].label);
+    b.title = AF.tx(MARK_ICONS[key].label); b.setAttribute('aria-label', b.title);
     cv.width = rows[0].length * s; cv.height = rows.length * s;
     const g = cv.getContext('2d');
     const markPal = markPalOf(sp, H.look);  // (in the colour the heatmap draws them in)
@@ -2248,7 +2363,7 @@ AF.calendar = function (root, data, env) {
       b.setAttribute('aria-checked', on ? 'true' : 'false');
       b.tabIndex = on ? 0 : -1;
     }
-    pinName.placeholder = markOf(m).label;
+    pinName.placeholder = AF.tx(markOf(m).label);
   };
   // the editor above its day, as its tooltip stands, inside the heatmap's sides (under the day when
   // the window has no room above it); placed again when the heatmap is laid out anew
@@ -2308,7 +2423,7 @@ AF.calendar = function (root, data, env) {
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePin(false); }
     else if (e.target.parentNode === pinIcons && /^Arrow/.test(e.key)) {
       e.preventDefault();
-      const all = [...pinIcons.children], d = /Left|Up/.test(e.key) ? -1 : 1, to = all[(all.indexOf(e.target) + d + all.length) % all.length];
+      const all = [...pinIcons.children], d = arrowStep(e.key) || 1, to = all[(all.indexOf(e.target) + d + all.length) % all.length];
       to.focus(); to.click();
     }
   });

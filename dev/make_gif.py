@@ -36,6 +36,7 @@ from render_page import CHROME, NOW, scripts
 
 import fake_forest
 import forest_data
+import milestones
 import presets
 import scene
 
@@ -70,7 +71,7 @@ def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None)
     mood = scene.choose_mood(dict(cfg, landmark=cfg.get("landmark", "none")), NOW)
     f = forest_data.merge_old(fake_forest.make(n))
     visitors = [v for v in f["visitors"] if v["key"] not in hide]
-    data = {"trees": f["trees"], "stats": f["stats"], "visitors": visitors, "merged": f.get("merged"),
+    data = {"trees": f["trees"], "stats": f["stats"], "visitors": milestones.for_page(visitors), "merged": f.get("merged"),
             "forestSeed": f["forest_seed"], "anniversaries": [], "events": [], "journal": "",
             "mood": mood, "environmentName": "", "animations": True,
             "tooltips": False, "maxWidth": PANEL_PX, "testForest": True}

@@ -21,24 +21,24 @@ from __future__ import annotations
 import zlib
 
 if __package__:
+    from .i18n import N_
     from .numeric import median
 else:  # tests and dev scripts import this as a top-level module
+    from i18n import N_
     from numeric import median
 
-NATURE_LABELS = {"peaceful": "Peaceful", "wild": "Wild", "merciless": "Merciless"}
+NATURE_LABELS = {"peaceful": N_("events.peaceful"), "wild": N_("events.wild"), "merciless": N_("events.merciless")}  # (shown with i18n.tx)
 DEFAULT_NATURE = "peaceful"
 
 # what each level means, for the settings dialog (what it costs, by name; the rest each
 # level brings only as a hint: it is for the forest to show)
 NATURE_NOTES = {
-    "peaceful": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest.",
-    "wild": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days "
-            "of study put it out. Bad habits leave marks too.",
-    "merciless": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you "
-                 "review. A new forest grows from its crater. Bad habits leave marks too.",
+    "peaceful": N_("events.miss_a_day_nothing_is_lost"),
+    "wild": N_("events.miss_two_days_in_a_row"),
+    "merciless": N_("events.miss_a_day_of_reviews_an"),
 }
 # said once, on its own line under Wild's and Merciless's, rather than in each of them
-NATURE_SWITCH_NOTE = "Switch back any time and every tree is there again."
+NATURE_SWITCH_NOTE = N_("events.switch_back_any_time_and_every")
 
 
 def nature_level(value) -> str:

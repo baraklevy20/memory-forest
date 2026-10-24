@@ -24,6 +24,7 @@ from aqt.qt import (
 
 from .. import news
 from ..edition import is_plus, manifest
+from ..i18n import N_, t, tx
 from ..state import ADDON_DIR, config
 from .patreon import HEART, PATREON, TREE, pixel_label
 from .widgets import group
@@ -40,18 +41,17 @@ RELEASES = "https://github.com/baraklevy20/memory-forest/releases"
 MET_NORWAY = "https://api.met.no/"
 OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
 
-HOW = ("One tree for every day you learn new cards. Today's seedling is at the front, the oldest "
-       "tree at the back. Trees grow as those cards settle into memory and get a few yellow "
-       "leaves when some slip. Review-only days plant no tree, but keep yours healthy.<br><br>"
-       "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it.")
-THANKS_ALL = ("Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or "
-              "reports a bug. Thank you!")
-THANKS_SPONSORS = "And a special thank-you to my Sponsors on Patreon:"
-FREE_LINE = (f'New scenery arrives in Memory Forest Plus first, and comes to this version too. '
-             f'<a href="{PATREON}">Join on Patreon</a>')
+# (two paragraphs, a key each)
+HOW = (N_("settings.about.one_tree_for_every_day_you"),
+       N_("settings.about.the_heatmap_under_it_shows_every"))
+THANKS_ALL = N_("settings.about.memory_forest_grows_thanks_to_everyone")
+THANKS_SPONSORS = N_("settings.about.and_a_special_thank_you_to")
+FREE_LINE = N_("settings.about.new_scenery_arrives_in_memory_forest")
 # the pixel heart follows this one, as in the Scenery tab's thank-you
-PLUS_LINE = f'You\'re part of this: thank you for supporting it on <a href="{PATREON}">Patreon</a>'
-CREDITS = f'Made by Barak Levy · Weather from <a href="{MET_NORWAY}">MET Norway</a> (CC BY 4.0) · Places © <a href="{OSM_COPYRIGHT}">OpenStreetMap contributors</a> · MIT licence'
+PLUS_LINE = N_("settings.about.youre_part_of_this_thank_you")
+# the credits, one key each, between dots
+CREDITS = (N_("settings.about.made_by_barak_levy"), N_("settings.about.weather_from_met_norway_cc_by"),
+           N_("settings.about.places_openstreetmap_contributors"), N_("settings.about.mit_licence"))
 
 TITLE_STYLE = "font-size: 16px; font-weight: bold;"
 SMALL_PX = 11
@@ -110,13 +110,13 @@ def header(plus: bool) -> QWidget:
     version = manifest().get("human_version", "")
     title = QLabel("Memory Forest Plus" if plus else "Memory Forest")
     title.setStyleSheet(TITLE_STYLE)
-    notes = link(RELEASES, "All release notes")
-    ver = text(f"Version {version} · {notes}" if version else notes, small_style())
+    notes = link(RELEASES, t("settings.about.all_release_notes"))
+    ver = text(t("settings.about.version_version", version=version) + " · " + notes if version else notes, small_style())
     # the version can be copied, for a bug report
     ver.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
-    links = [link(ISSUES, "Report a bug or share an idea"), link(PATREON, "Patreon")]
+    links = [link(ISSUES, t("settings.about.report_a_bug_or_share_an")), link(PATREON, "Patreon")]
     if not plus:
-        links.insert(0, link(ANKIWEB_REVIEW, "Rate it on AnkiWeb"))
+        links.insert(0, link(ANKIWEB_REVIEW, t("settings.about.rate_it_on_ankiweb")))
     words = QVBoxLayout()
     words.setSpacing(2)
     words.addWidget(title)
@@ -168,7 +168,7 @@ def plus_line() -> QWidget:
     lay = QHBoxLayout(row)
     lay.setContentsMargins(0, 0, 0, 0)
     lay.setSpacing(4)
-    words = text(PLUS_LINE, small_style())
+    words = text(tx(PLUS_LINE, url=PATREON), small_style())
     words.setWordWrap(False)  # wrapping would leave the heart far from the words
     lay.addWidget(words, 0, Qt.AlignmentFlag.AlignVCenter)
     lay.addWidget(pixel_label(HEART), 0, Qt.AlignmentFlag.AlignVCenter)
@@ -184,13 +184,17 @@ def thanks(names: list, plus: bool) -> QWidget:
     head = QHBoxLayout()
     head.setSpacing(8)
     head.addWidget(pixel_label(HEART), 0, Qt.AlignmentFlag.AlignVCenter)
-    head.addWidget(text(THANKS_ALL), 1)
+    head.addWidget(text(tx(THANKS_ALL)), 1)
     lay.addLayout(head)
     if names:
-        lay.addWidget(text(THANKS_SPONSORS))
+        lay.addWidget(text(tx(THANKS_SPONSORS)))
         lay.addWidget(names_grid(names))
-    lay.addWidget(plus_line() if plus else text(FREE_LINE, small_style()))
-    return group("Thank you", lay)
+    lay.addWidget(plus_line() if plus else text(tx(FREE_LINE, url=PATREON), small_style()))
+    return group(t("settings.about.thank_you"), lay)
+
+
+def credits() -> str:
+    return " · ".join(tx(c, met=MET_NORWAY, osm=OSM_COPYRIGHT) for c in CREDITS)
 
 
 class _Filler(QScrollArea):
@@ -224,6 +228,8 @@ def whats_new() -> QWidget:
     body = text(news_html(config()))
     body.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (a short release sits at the top, not mid-box)
     scroll = _Filler()
+    # (the release notes stay English, i18n.py: left to right in a dialog that reads right to left too)
+    scroll.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
     scroll.setWidget(body)
     scroll.setWidgetResizable(True)
     scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -231,7 +237,7 @@ def whats_new() -> QWidget:
     scroll.setStyleSheet(GOAT_SCROLL_STYLE)
     lay = QVBoxLayout()
     lay.addWidget(scroll)
-    box = group("What's new", lay)
+    box = group(t("settings.about.whats_new"), lay)
     box.body = body
     return box
 
@@ -241,15 +247,15 @@ class AboutTab(QWidget):
         super().__init__()
         plus = is_plus()
         how = QVBoxLayout()
-        how.addWidget(text(HOW))
+        how.addWidget(text("<br><br>".join(tx(p) for p in HOW)))
         av = QVBoxLayout(self)
         av.setSpacing(12)
         av.addWidget(header(plus))
         self.news = whats_new()
         av.addWidget(self.news, 1)  # (it takes the room to spare)
-        av.addWidget(group("How it works", how))
+        av.addWidget(group(t("settings.about.how_it_works"), how))
         av.addWidget(thanks(goats(), plus))
-        av.addWidget(text(CREDITS, small_style()))
+        av.addWidget(text(credits(), small_style()))
 
     def show_news(self, cfg: dict) -> None:
         """What's new again, for the edition the Debug tab's choice makes this copy, at once."""

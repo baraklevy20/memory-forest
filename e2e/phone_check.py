@@ -37,7 +37,7 @@ MOOD = {"time": "golden_hour", "clock": False, "weather": "clear", "special": "n
         "environment": "natural", "landscape": "lake", "landmark": "none", "moon": 0.631, "source": "manual"}
 # the files a phone card's taps go through (paths from this folder): a change to one runs this
 PHONE_FILES = ("phone.py", "phone_data.py", "phone_note.py", "web/phone.js", "web/calendar.js", "web/hover.js",
-               "web/util.js", "web/forest.css", "e2e/phone_check.py", "e2e/phone_check.mjs")  # the made-up calendar: days of history, days ahead
+               "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "web/forest.css", "e2e/phone_check.py", "e2e/phone_check.mjs")  # the made-up calendar: days of history, days ahead
 # the browser's full screen, stubbed: the phone card's own full-screen code runs as on a phone
 FULLSCREEN_STUB = """<script>
 Object.defineProperty(document, 'fullscreenEnabled', { value: true });

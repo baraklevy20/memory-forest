@@ -50,7 +50,7 @@ class PresetEdgeTests(unittest.TestCase):
 
     def test_the_dropdown_ends_with_custom(self):
         options = presets.options()
-        self.assertEqual(options[-1], (presets.CUSTOM, "Custom"))
+        self.assertEqual(options[-1], (presets.CUSTOM, "preset.custom"))
         self.assertEqual(options[0][0], presets.FOREST_PRESETS[0].key)
         self.assertEqual(len(options), len(presets.FOREST_PRESETS) + 1)
 

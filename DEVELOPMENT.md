@@ -34,12 +34,17 @@ milestones.py    the animals that move in, and anniversaries (no aqt)
 events.py        the events' rules: Nature's strikes and fire, big days, tall grass, review hell (no aqt)
 fake_forest.py   the made-up test forest, for debug (no aqt)
 scene.py         environment/weather/time selection, moon phase, night-sky events
+i18n.py          the words in Anki's language: t / tn by id, the plural rules, dates and numbers (no aqt)
+locales/         en.json (every wording's English, by id),
+                 catalog.json (the ids the code uses, from dev/strings.py) and a <lang>.json per language
 journal.py       the one line under the forest, on the days there is something to say
 weather.py       Photon geocoding + MET Norway forecast, sun times, JSON cache in user_files/
 store.py         the small JSON files under user_files/, written atomically
 catalog.py       what this copy can draw, read from the files under web/, and the
                  scripts every forest loads, in order
 web/util.js      shared helpers; makes window.AnkiForest, so it loads first
+web/i18n.js      the page's words in the reader's language (AF.t / tn), and its dates and numbers
+web/strings_en.js  ... their English (made by npm run strings)
 web/layout.js    where the trees, ponds and deep forest stand
 web/scenery.js   the registries environments, landscapes and landmarks add themselves to
 web/theme.js     times of day, and the theme the weather and your numbers make of them
@@ -105,6 +110,9 @@ npm run perf:baseline  # record what each scene costs in CPU and memory (kept lo
 npm run perf           # ... and check a change made none of them cost much more (dev/perf_check.mjs)
 npm run audit          # what each setting actually changes; fails on one that does nothing
 
+npm run strings       # after changing any wording: locales/catalog.json and web/strings_en.js
+npm run strings -- check            # ... and check en.json and every translation against them
+
 npm run payload -- "~/Library/Application Support/Anki2/User 1/collection.anki2"
 npm run gallery        # writes dev/gallery.html
 ```
@@ -126,3 +134,36 @@ The Anki checks use Qt's offscreen platform and do not activate native windows;
 The render checks need Chrome. The export copies the collection (and its `-wal`) before
 reading, so it is safe while Anki is open. `dev/payload.js` holds your study history and is
 gitignored, and `dev/package.py` refuses to build an add-on file that would ship it.
+
+## Languages
+
+The add-on speaks Anki's interface language where `locales/` has it, and English elsewhere, one
+wording at a time: a language half translated reads half in English. Every wording has an id that
+never changes, and its English is in `locales/en.json`:
+
+```python
+t("caption.click_to_see_their_cards")        # a wording
+tn("heatmap.n_reviews", n)                   # a plural: {"one": ..., "other": ...} in en.json
+NOTE = N_("settings.decks.note") ... tx(NOTE)  # a constant made before the language is known
+```
+
+and the same on the page as `AF.t`, `AF.tn`, `AF.N_` and `AF.tx`. Each sentence is one id with
+`{placeholders}`, never pieces joined together: other languages put the words in another order.
+A scenery's name and note have ids of their own (`preset.aurora`, `env.aurora`), their
+English read from its .json. Dates and numbers come from `AF.i18n` (Intl) on the page and
+`i18n.day_month_year` and `i18n.num` in Python, in the language only where its words are translated.
+
+To add a wording, add its id and English to `locales/en.json` and run `npm run strings`, which
+updates `locales/catalog.json` (every id the code uses) and `web/strings_en.js` (the English the page
+needs); the unit tests fail while either is out of date, or while an id has no English. Fixing the
+English of a wording changes nothing else. Each language's file keeps a translation with the English
+it was made from, so a wording whose English changed still shows its old translation, and `npm run
+strings -- check` lists it to translate again.
+
+To add a language, add `locales/<lang>.json`: each id with its translation, `{"text": ...}` (a plural's
+`"text"` is its forms), and run `npm run strings`, which marks each with the English it was made from;
+`check` then finds a lost placeholder or tag, a missing plural form or an id the code no longer has.
+The language's plural rule, if not English's, goes in `i18n.PLURAL_RULE` (and right to left in
+`i18n.RTL`). The Debug tab's Language shows the add-on
+in any of them, or in en-XA (made-up, a third longer: plain English left on screen is a wording the
+code forgot) and en-XB (the same, right to left).

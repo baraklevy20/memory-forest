@@ -6,14 +6,15 @@ from __future__ import annotations
 from aqt.qt import QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 from .. import presets
+from ..i18n import N_, t, tx
 from .scenery_picker import SceneryPicker
 from .widgets import Link, hint
 
-BACK = "‹ Sceneries"
-TITLE = "Surprise me daily"
+BACK = N_("settings.customize.sceneries")
+TITLE = N_("preset.daily")
 # one line beside the title, so the page is no taller than the tiles with their links under them
-NOTE = "Untick the ones you'd rather not see."  # (how many are ticked: on the link)
-ONE_LEFT = "Only one ticked: the same scenery every day."
+NOTE = N_("settings.surprise.untick_the_ones_youd_rather_not")  # (how many are ticked: on the link)
+ONE_LEFT = N_("settings.surprise.only_one_ticked_the_same_scenery")
 HEADER_GAP = 12
 
 
@@ -31,8 +32,8 @@ class SurprisePage(QWidget):
         self.left_out = presets.left_out(cfg)
         self.on_change = on_change
         self.offered = []
-        self.back = Link(BACK, on_back)
-        self.title = QLabel(TITLE)
+        self.back = Link(tx(BACK), on_back)
+        self.title = QLabel(tx(TITLE))
         font = self.title.font(); font.setBold(True); self.title.setFont(font)
         self.note = hint("")
         header = QHBoxLayout()
@@ -77,13 +78,15 @@ class SurprisePage(QWidget):
     def kept(self) -> int:
         return len(self._kept())
 
-    def summary(self) -> str:
-        """How many it takes turns with: "all 12", or "9 of 12"."""
+    def link_text(self) -> str:
+        """The Scenery tab's way here, with how many it takes turns with: "all 12", or "9 of 12"."""
         kept, every = self.kept(), len(self.offered)
-        return f"all {every}" if kept == every else f"{kept} of {every}"
+        if kept == every:
+            return t("settings.surprise.surprise_me_dailys_sceneries_all_n", n=every)
+        return t("settings.surprise.surprise_me_dailys_sceneries_kept_of", kept=kept, n=every)
 
     def _count(self) -> None:
-        self.note.setText(ONE_LEFT if self.kept() == 1 else NOTE)
+        self.note.setText(tx(ONE_LEFT if self.kept() == 1 else NOTE))
 
     def values(self) -> dict:
         return {"surprise_left_out": sorted(self.left_out)}

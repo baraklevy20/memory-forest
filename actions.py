@@ -12,6 +12,7 @@ from aqt.overview import Overview
 from aqt.utils import tooltip
 
 from . import answer_column, events_state, marks, news, payload, study_log
+from .i18n import N_, t, tn, tx
 from .panel import hold_shortcuts, refresh
 from .phone import publish as publish_for_phone
 from .phone import switch
@@ -57,8 +58,7 @@ def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, 
         cutoff = day_cutoff(mw.col)
         values = (study_log.day_answer_times(mw.col.db, cutoff, offset) if answer_mode == "median"
                   else study_log.day_card_totals(mw.col.db, cutoff, offset, answer_mode))
-        title = {"reviews": "Reviews", "time": "Total time", "median": "Answer time"}[answer_mode]
-        label = f"{title} ({study_log.day_date(-offset, cutoff).isoformat()})"
+        label = _column_label(answer_mode, study_log.day_date(-offset, cutoff).isoformat())
     _open_browser(study_log.calendar_search(mw.col.db, offset, mw.col.sched.today, due), did, values, label, answer_mode)
 
 
@@ -86,13 +86,31 @@ def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = 
         if due:
             _open_browser([study_log._any_of(due)], did)
         return
-    title = {"reviews": "Reviews", "time": "Total time", "median": "Answer time"}[mode]
     date = lambda o: study_log.day_date(-o, cutoff).isoformat()  # noqa: E731
     days = sum(b - a + 1 for a, b in runs)
-    span = date(runs[0][0]) if days == 1 else f"{date(runs[0][0])} to {date(runs[-1][1])}"
-    label = f"{title} ({span})" if len(runs) == 1 else f"{title} ({days} days, {span})"
+    label = _column_label(mode, date(runs[0][0]), date(runs[-1][1]) if days > 1 else "", days if len(runs) > 1 else 0)
     terms = study_log.calendar_days_search(runs)
     _open_browser([study_log._any_of(terms + due)] if due else terms, did, values, label, mode)
+
+
+def _column_label(mode: str, first: str, last: str = "", days: int = 0) -> str:
+    """The browser column's heading for the days clicked or picked on the heatmap: "Reviews
+    (2026-10-12)", "Reviews (2026-10-01 to 2026-10-05)", or for days apart, "Reviews (3 days,
+    2026-10-01 to 2026-10-05)"; "Total time" or "Answer time" for the other modes."""
+    if mode == "time":
+        if days:
+            return tn("actions.total_time_days_days_first_to", days,
+                      days=days, first=first, last=last)
+        return t("actions.total_time_first_to_last", first=first, last=last) if last else t("actions.total_time_date", date=first)
+    if mode == "median":
+        if days:
+            return tn("actions.answer_time_days_days_first_to", days,
+                      days=days, first=first, last=last)
+        return t("actions.answer_time_first_to_last", first=first, last=last) if last else t("actions.answer_time_date", date=first)
+    if days:
+        return tn("actions.reviews_days_days_first_to_last", days,
+                  days=days, first=first, last=last)
+    return t("actions.reviews_first_to_last", first=first, last=last) if last else t("actions.reviews_date", date=first)
 
 
 def _days_picked(text: str) -> list:
@@ -189,8 +207,8 @@ def on_js_message(handled, message, context):
     return (True, None)
 
 
-LEFT_OUT = "Left out of your forest. Its ⚙ menu brings it back."
-BROUGHT_BACK = "Back in your forest."
+LEFT_OUT = N_("actions.left_out_of_your_forest_its")
+BROUGHT_BACK = N_("actions.back_in_your_forest")
 
 
 def on_deck_options_menu(menu, did: int) -> None:
@@ -202,13 +220,13 @@ def on_deck_options_menu(menu, did: int) -> None:
         cfg = config()
         mine = [int(d) for d in cfg.get("excluded_decks") or [] if str(d).lstrip("-").isdigit()]
         if did in mine:
-            action = menu.addAction("Bring back into Memory Forest")
+            action = menu.addAction(t("actions.bring_back_into_memory_forest"))
             action.triggered.connect(lambda: _set_excluded([d for d in mine if d != did], BROUGHT_BACK))
         elif did in excluded_decks(cfg):
-            action = menu.addAction("Left out of Memory Forest with its parent deck")
+            action = menu.addAction(t("actions.left_out_of_memory_forest_with"))
             action.setEnabled(False)
         else:
-            action = menu.addAction("Leave out of Memory Forest")
+            action = menu.addAction(t("actions.leave_out_of_memory_forest"))
             action.triggered.connect(lambda: _set_excluded(mine + [did], LEFT_OUT))
     except Exception:
         log("could not add to the deck menu:\n" + traceback.format_exc())
@@ -219,4 +237,4 @@ def _set_excluded(dids: list, message: str) -> None:
     cfg["excluded_decks"] = sorted(set(dids))
     save_config(cfg)
     refresh()
-    tooltip(message)
+    tooltip(tx(message))

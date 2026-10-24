@@ -349,7 +349,7 @@ class RestoreDefaultsTests(QtCase):
     def test_restore_defaults_asks_first_and_says_what_it_keeps(self):
         d = self.open_dialog(self.SETTINGS)
         seen = self.restore(d, confirm=False)
-        self.assertEqual(seen["text"], addon.s_dialog.RESTORE_QUESTION)
+        self.assertEqual(seen["text"], "Put the settings back to their defaults?")
         self.assertIn("Keeps: the decks you left out", seen["more"])
         self.assertTrue(d.isVisible())
         self.assertEqual(saved(), self.SETTINGS)

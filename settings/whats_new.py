@@ -5,16 +5,20 @@ is tagged in its own text: point at one to mark a whole group of controls."""
 
 from __future__ import annotations
 
+import html
+
 from aqt.qt import QBoxLayout, QCheckBox, QEvent, QFormLayout, QHBoxLayout, QLabel, QLayout, QObject, QSizePolicy, Qt, QWidget
 
-NEW_TAG = "NEW"
+from ..i18n import t
+from .widgets import app_rtl, bidi, unmarked
+
 NEW_STYLE = "color: white; background: #2f8f52; border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: bold;"
 # on a form's label, where a stylesheet can't reach: the same colours as rich text
-NEW_HTML = ' <span style="background-color: #2f8f52; color: white; font-size: 10px; font-weight: bold;">&nbsp;NEW&nbsp;</span>'
+NEW_HTML = ' <span style="background-color: #2f8f52; color: white; font-size: 10px; font-weight: bold;">&nbsp;{new}&nbsp;</span>'
 
 
 def pill() -> QLabel:
-    label = QLabel(NEW_TAG)
+    label = QLabel(t("settings.picker.new"))
     label.setStyleSheet(NEW_STYLE)
     label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
     return label
@@ -27,9 +31,14 @@ TAB_GAP = 6  # px between the name and the pill
 PILL_GAP = 8  # points between a control and the pill after it, in a row made for the pill
 
 
-def tab_text(name: str, pill_width: int, space_width: int) -> str:
+# embedded (right to left, or in a right-to-left Anki), no-break spaces: the bidi rules move spaces at a
+# line's end to the paragraph's end, which is Anki's way, and the name ended up on the wrong side of the room
+TAB_ROOM_RTL = "\u00a0"
+
+
+def tab_text(name: str, pill_width: int, space_width: int, room: str = TAB_ROOM) -> str:
     """The tab's name with room after it for a pill `pill_width` wide."""
-    return name + TAB_ROOM * -(-(pill_width + TAB_GAP) // max(1, space_width))
+    return name + room * -(-(pill_width + TAB_GAP) // max(1, space_width))
 
 
 class _KeepPlaced(QObject):
@@ -51,18 +60,21 @@ def tag_tab(tabs, index: int) -> None:
     if index < 0 or bar.property("af_new_tab"):
         return
     bar.setProperty("af_new_tab", True)
-    name, badge = tabs.tabText(index), pill()
+    name, badge = unmarked(tabs.tabText(index)), pill()
     badge.setParent(bar)
     badge.adjustSize()
     fm = bar.fontMetrics()
-    text = tab_text(name, badge.width(), fm.horizontalAdvance(TAB_ROOM))
-    tabs.setTabText(index, text)
+    room = TAB_ROOM_RTL if bar.isRightToLeft() or app_rtl() else TAB_ROOM  # (embedded: widgets.bidi)
+    text = tab_text(name, badge.width(), fm.horizontalAdvance(room), room)
+    tabs.setTabText(index, bidi(text, bar.isRightToLeft()))  # (right to left, embedded so: widgets.bidi)
 
     def place() -> None:
         # (the style centres the text, the room after the name included)
+        # (right to left, the name on the right of the room, the pill on its left)
         r = bar.tabRect(index)
-        badge.move(r.center().x() - fm.horizontalAdvance(text) // 2 + fm.horizontalAdvance(name) + TAB_GAP,
-                   r.center().y() - badge.height() // 2 + 1)
+        half, room = fm.horizontalAdvance(text) // 2, fm.horizontalAdvance(name) + TAB_GAP
+        x = r.center().x() + half - room - badge.width() if bar.isRightToLeft() else r.center().x() - half + room
+        badge.move(x, r.center().y() - badge.height() // 2 + 1)
     bar.installEventFilter(_KeepPlaced(bar, place))
     badge.show()
     place()
@@ -104,7 +116,7 @@ def _box(root: QWidget, widget: QWidget) -> QBoxLayout | None:
 def _tag_label(root: QWidget, label: QLabel) -> None:
     fixed = label.minimumWidth() if label.minimumWidth() == label.maximumWidth() else 0
     label.setTextFormat(Qt.TextFormat.RichText)
-    label.setText(label.text() + NEW_HTML)
+    label.setText(label.text() + NEW_HTML.format(new=html.escape(t("settings.picker.new"))))
     # labels made one width (as Fine-tuning's are) all grow to keep the tag, and in line
     if fixed and label.sizeHint().width() > fixed:
         wider = label.sizeHint().width()

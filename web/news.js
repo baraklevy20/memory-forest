@@ -11,7 +11,7 @@ AF.news = function (root, data) {
   const cog = root.querySelector('.af-cog');
   if (cog && data.newDot) {
     cog.classList.add('af-cog-new');
-    cog.title = `Change scenery and settings (${data.newDot === 'scenery' ? 'new scenery' : 'something new'})`;
+    cog.title = data.newDot === 'scenery' ? AF.t('news.change_scenery_and_settings_new_scenery') : AF.t('news.change_scenery_and_settings_something_new');
     cog.setAttribute('aria-label', cog.title);
     // opening the settings answers it (news.settings_opened); the forest redraws later
     cog.addEventListener('click', () => cog.classList.remove('af-cog-new'));
@@ -22,7 +22,7 @@ AF.news = function (root, data) {
   card.className = 'af-news';
   card.innerHTML = `<b>${esc(n.title)}</b>${esc(n.text)}<div class="af-news-acts">`
     + (n.action ? `<button type="button" data-news="open">${esc(n.action)}</button>` : '')
-    + '<button type="button" data-news="seen">Got it</button></div>';
+    + `<button type="button" data-news="seen">${AF.t('news.got_it')}</button></div>`;
   card.addEventListener('click', e => {
     const b = e.target.closest('[data-news]');
     if (!b) return;

@@ -1,0 +1,3880 @@
+{
+ "actions.answer_time_date": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.answer_time_days_days_first_to": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.answer_time_first_to_last": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.back_in_your_forest": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.bring_back_into_memory_forest": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.leave_out_of_memory_forest": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.left_out_of_memory_forest_with": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.left_out_of_your_forest_its": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.reviews_date": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.reviews_days_days_first_to_last": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.reviews_first_to_last": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.total_time_date": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.total_time_days_days_first_to": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "actions.total_time_first_to_last": {
+  "web": false,
+  "where": [
+   "actions.py"
+  ]
+ },
+ "answer_column.heading_detail": {
+  "web": false,
+  "where": [
+   "answer_column.py"
+  ]
+ },
+ "answer_column.median_seconds_per_answer_for_the": {
+  "web": false,
+  "where": [
+   "answer_column.py"
+  ]
+ },
+ "answer_column.number_of_answers_on_the_clicked": {
+  "web": false,
+  "where": [
+   "answer_column.py"
+  ]
+ },
+ "answer_column.seconds_s": {
+  "web": false,
+  "where": [
+   "answer_column.py"
+  ]
+ },
+ "answer_column.total_seconds_spent_answering_on_the": {
+  "web": false,
+  "where": [
+   "answer_column.py"
+  ]
+ },
+ "caption.after_the_rain": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.city_not_found": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.clear_sky": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.click_to_see_all_of_it": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.click_to_see_their_cards": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.cloudy": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.days_you_studied_in_a_row": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.days_you_studied_in_a_row_2": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.days_you_studied_in_a_row_3": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.deck_lit_of_n_trees": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.deep_winter": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.fog": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.live_weather_from_met_norway_cc": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.live_weather_unavailable": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.made_up_trees_from_the_test": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.n_ancient": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.n_day_streak": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.n_in_the_deep_forest": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.n_trees": {
+  "web": true,
+  "where": [
+   "web/caption.js",
+   "settings/decks.py"
+  ]
+ },
+ "caption.one_tree_for_each_day_you": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.openstreetmap_does_not_know_that_city": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.rain": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.snow": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.test_forest": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.the_live_weather_could_not_be": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.the_scenery_chosen_in_the_forest": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.thunderstorm": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.trees_holding_cards_from_this_deck": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.trees_whose_cards_you_will_likely": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.weather_by_met_norway": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.weather_weather": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.weather_weather_in_city": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.weather_weather_in_city_temp": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.weather_weather_temp": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "caption.your_trees_from_from_to_to": {
+  "web": true,
+  "where": [
+   "web/caption.js"
+  ]
+ },
+ "date.day_month": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "date.day_month_year": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "date.month_year": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "env.aurora": {
+  "web": false,
+  "where": [
+   "web/envs/aurora.json"
+  ]
+ },
+ "env.bamboo": {
+  "web": false,
+  "where": [
+   "web/envs/bamboo.json"
+  ]
+ },
+ "env.frozen_market": {
+  "web": false,
+  "where": [
+   "web/envs/frozen_market.json"
+  ]
+ },
+ "env.lanterns": {
+  "web": false,
+  "where": [
+   "web/envs/lanterns.json"
+  ]
+ },
+ "env.misty_valley": {
+  "web": false,
+  "where": [
+   "web/envs/misty_valley.json"
+  ]
+ },
+ "env.natural": {
+  "web": false,
+  "where": [
+   "web/envs/natural.json"
+  ]
+ },
+ "env.pumpkin_patch": {
+  "web": false,
+  "where": [
+   "web/envs/pumpkin_patch.json"
+  ]
+ },
+ "env.starry_night": {
+  "web": false,
+  "where": [
+   "web/envs/starry_night.json"
+  ]
+ },
+ "env.synthwave": {
+  "web": false,
+  "where": [
+   "web/envs/synthwave.json"
+  ]
+ },
+ "event.asteroid.a_crater": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.asteroid_struck_date": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.asteroid_tonight": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.its_crater_can_play_it_again": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.turn_on_animations_in_the_forest": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.your_system_asks_for_less_motion": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.fire.fire_n_trees": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.fire.smoke_is_rising_after_two_days": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.fire.smoke_study_today": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.fire.smoking": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "web": true,
+  "where": [
+   "web/events/tumbleweeds.js"
+  ]
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "web": true,
+  "where": [
+   "web/events/tumbleweeds.js"
+  ]
+ },
+ "events.a_fire_broke_out_while_you": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "events.merciless": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.miss_a_day_nothing_is_lost": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.miss_a_day_of_reviews_an": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.miss_two_days_in_a_row": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.peaceful": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.smoke_is_rising_from_your_forest": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "events.switch_back_any_time_and_every": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.the_last_of_the_fire_is": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "events.wild": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
+ "events.you_cleared_your_overdue_reviews": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "events.you_cleared_your_overdue_reviews_the": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "heatmap.a_minute": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.about_n_reviews_a_day": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.and_n_more_marked": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.back_to_today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.beat_your_longest_streak_n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.before_your_first_review": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.before_your_forest_began": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.birthday": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.both_of_its_cards_have_since": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.by_year": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.date_name": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.day_day_of_a_n_day": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.day_day_of_your_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.didnt_break_a_n_day_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.done": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.earlier": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.exam": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.fast": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.from_n_reviews": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.from_to": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.from_to_min": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.from_to_s_per_answer": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.from_to_to": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.from_to_today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.h_hr_m_min": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.heart": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.its_card_has_since_been_deleted": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.january_to_december": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.last_day_of_a_n_day": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.later": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.less": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.mark_icon": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.mark_name": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.median_s_s_per_answer_n": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.more": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_cards_due": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_cards_due_after_today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js",
+   "web/tooltips.js"
+  ]
+ },
+ "heatmap.n_days_from_to_to": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_days_from_to_today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_days_in_a_row": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_days_since_date": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_hr": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_min": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_min_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_of_its_of_cards_have": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_reviews": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_reviews_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_reviews_in_time": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.name_in_n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.name_today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.name_tomorrow": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.near_date": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied_a_day_off": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied_a_pond_in_your": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied_since_date": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied_so_far": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied_yet": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.not_studied_yet_n_cards_due": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.nothing_due_today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.nothing_due_yet": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.nothing_was_due": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.pace": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.pass_your_second_longest_streak_n": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.pin": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.planted_tree_n_new_cards": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.ponds_and_animals_count_from_here": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.reach_a_n_day_streak_on": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.remove_the_mark": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.reviews": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.s_s_per_answer": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.shade_each_day_by_how_long": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.shade_each_day_by_how_many": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.shade_each_day_by_its_median": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.shade_the_days_by": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.sick": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.slow": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.star": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_all_of_them": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_all_of_these_n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_every_day": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_every_day_since_date": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_every_day_so_far": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_n_of_them_pct": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.the_months_round_this_one_most": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.this_day_s_tree_is_part": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.this_tree_is_outside_your_current": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.time": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.time_2": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.time_n_reviews": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.timeline": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.today": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.too_far_ahead_to_count": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.trip": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.under_a_minute": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.under_n_reviews": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.under_s_s_per_answer": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.under_time": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.view": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_forest_began": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_longest_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_longest_streak_n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_n_day_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_second_longest_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_second_longest_streak_n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_streak_every_year_of_it": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_third_longest_streak": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.your_third_longest_streak_n_days": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap_look.darker": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_look.flame": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_look.ice": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_look.lighter": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_look.lime": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_look.magenta": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_look.olive": {
+  "web": false,
+  "where": [
+   "heatmap_look.py"
+  ]
+ },
+ "heatmap_style.brush": {
+  "web": false,
+  "where": [
+   "web/heatmap/brush.json"
+  ]
+ },
+ "heatmap_style.brush.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/brush.json"
+  ]
+ },
+ "heatmap_style.canes": {
+  "web": false,
+  "where": [
+   "web/heatmap/canes.json"
+  ]
+ },
+ "heatmap_style.canes.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/canes.json"
+  ]
+ },
+ "heatmap_style.chalk": {
+  "web": false,
+  "where": [
+   "web/heatmap/chalk.json"
+  ]
+ },
+ "heatmap_style.chalk.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/chalk.json"
+  ]
+ },
+ "heatmap_style.contours": {
+  "web": false,
+  "where": [
+   "web/heatmap/contours.json"
+  ]
+ },
+ "heatmap_style.contours.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/contours.json"
+  ]
+ },
+ "heatmap_style.flat": {
+  "web": false,
+  "where": [
+   "web/heatmap/flat.json"
+  ]
+ },
+ "heatmap_style.flat.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/flat.json"
+  ]
+ },
+ "heatmap_style.ice": {
+  "web": false,
+  "where": [
+   "web/heatmap/ice.json"
+  ]
+ },
+ "heatmap_style.ice.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/ice.json"
+  ]
+ },
+ "heatmap_style.pumpkin": {
+  "web": false,
+  "where": [
+   "web/heatmap/pumpkin.json"
+  ]
+ },
+ "heatmap_style.pumpkin.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/pumpkin.json"
+  ]
+ },
+ "heatmap_style.rime": {
+  "web": false,
+  "where": [
+   "web/heatmap/rime.json"
+  ]
+ },
+ "heatmap_style.rime.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/rime.json"
+  ]
+ },
+ "heatmap_style.round": {
+  "web": false,
+  "where": [
+   "web/heatmap/round.json"
+  ]
+ },
+ "heatmap_style.round.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/round.json"
+  ]
+ },
+ "heatmap_style.scanlines": {
+  "web": false,
+  "where": [
+   "web/heatmap/scanlines.json"
+  ]
+ },
+ "heatmap_style.scanlines.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/scanlines.json"
+  ]
+ },
+ "heatmap_style.scenery": {
+  "web": false,
+  "where": [
+   "web/heatmap/scenery.json"
+  ]
+ },
+ "heatmap_style.scenery.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/scenery.json"
+  ]
+ },
+ "hover.click_to_select_it": {
+  "web": true,
+  "where": [
+   "web/hover.js"
+  ]
+ },
+ "hover.click_to_watch_it_again": {
+  "web": true,
+  "where": [
+   "web/hover.js"
+  ]
+ },
+ "hover.tap_again_to_watch_it_again": {
+  "web": true,
+  "where": [
+   "web/hover.js"
+  ]
+ },
+ "hover.tap_to_select_it": {
+  "web": true,
+  "where": [
+   "web/hover.js"
+  ]
+ },
+ "journal.a_harvest_moon_rises_over_your": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.days_days_in_a_row_the": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.meteors_are_falling_tonight": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.one_of_your_trees_became_ancient": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.one_of_your_trees_became_ancient_2": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.study_some_new_cards_and_your": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.the_grass_is_growing_tall_no": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.the_grass_is_growing_tall_no_2": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.the_tree_you_planted_on_date": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.the_tree_you_planted_on_date_2": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.your_count_th_tree_planted_today": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "web": false,
+  "where": [
+   "journal.py"
+  ]
+ },
+ "landmark.moon_bridge": {
+  "web": false,
+  "where": [
+   "web/landmarks/moon_bridge.json"
+  ]
+ },
+ "landmark.none": {
+  "web": false,
+  "where": [
+   "web/landmarks/none.json"
+  ]
+ },
+ "landmark.pagoda": {
+  "web": false,
+  "where": [
+   "web/landmarks/pagoda.json"
+  ]
+ },
+ "landmark.peak": {
+  "web": false,
+  "where": [
+   "web/landmarks/peak.json"
+  ]
+ },
+ "landscape.lake": {
+  "web": false,
+  "where": [
+   "web/landscapes/lake.json"
+  ]
+ },
+ "landscape.meadow": {
+  "web": false,
+  "where": [
+   "web/landscapes/meadow.json"
+  ]
+ },
+ "landscape.mountains": {
+  "web": false,
+  "where": [
+   "web/landscapes/mountains.json"
+  ]
+ },
+ "landscape.river": {
+  "web": false,
+  "where": [
+   "web/landscapes/river.json"
+  ]
+ },
+ "month.april": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.august": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.december": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.february": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.january": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.july": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.june": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.march": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.may": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.november": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.october": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month.september": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.apr": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.aug": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.dec": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.feb": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.jan": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.jul": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.jun": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.mar": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.may": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.nov": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.oct": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "month_short.sep": {
+  "web": false,
+  "where": [
+   "i18n.py"
+  ]
+ },
+ "news.change_scenery_and_settings_new_scenery": {
+  "web": true,
+  "where": [
+   "web/news.js"
+  ]
+ },
+ "news.change_scenery_and_settings_something_new": {
+  "web": true,
+  "where": [
+   "web/news.js"
+  ]
+ },
+ "news.got_it": {
+  "web": true,
+  "where": [
+   "web/news.js"
+  ]
+ },
+ "panel.change_scenery_and_settings": {
+  "web": true,
+  "where": [
+   "web/core.js"
+  ]
+ },
+ "panel.seasonal_scenery_for_this_week_only": {
+  "web": false,
+  "where": [
+   "payload.py"
+  ]
+ },
+ "panel.seasonal_scenery_here_until_date": {
+  "web": false,
+  "where": [
+   "payload.py"
+  ]
+ },
+ "panel.todays_scenery_from_surprise_me_daily": {
+  "web": false,
+  "where": [
+   "payload.py"
+  ]
+ },
+ "panel.your_own_mix_from_customize_in": {
+  "web": false,
+  "where": [
+   "payload.py"
+  ]
+ },
+ "panel.your_study_forest": {
+  "web": true,
+  "where": [
+   "web/core.js"
+  ]
+ },
+ "phone.forest_full_screen": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.full_screen_isnt_allowed_here": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.heatmap_full_screen": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.just_now": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.leave_full_screen": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.memory_forest_could_not_draw_your": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.memory_forest_keeps_your_forest_here": {
+  "web": false,
+  "where": [
+   "phone.py"
+  ]
+ },
+ "phone.n_days_ago": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.n_hours_ago": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.n_minutes_ago": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.sync_anki_on_your_computer_to": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.synced_when": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.yesterday": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.your_forest_arrives_with_the_next": {
+  "web": true,
+  "where": [
+   "web/phone.js"
+  ]
+ },
+ "phone.your_forest_arrives_with_the_next_sync": {
+  "web": false,
+  "where": [
+   "phone.py"
+  ]
+ },
+ "phone.your_forest_is_on_its_way": {
+  "web": true,
+  "where": [
+   "web/phone.js",
+   "phone.py"
+  ]
+ },
+ "planting.a_new_tree_was_planted_in": {
+  "web": false,
+  "where": [
+   "planting.py"
+  ]
+ },
+ "preset.aurora": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.aurora.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.bamboo": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.bamboo.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.chalkboard": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.chalkboard.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.cherry_blossom": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.cherry_blossom.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.custom": {
+  "web": false,
+  "where": [
+   "presets.py"
+  ]
+ },
+ "preset.daily": {
+  "web": false,
+  "where": [
+   "presets.py",
+   "settings/customize.py",
+   "settings/surprise_page.py"
+  ]
+ },
+ "preset.daily.note": {
+  "web": false,
+  "where": [
+   "presets.py"
+  ]
+ },
+ "preset.frozen_market": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.frozen_market.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.golden_lake": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.golden_lake.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.lanterns": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.lanterns.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.misty_valley": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.misty_valley.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.pumpkin_patch": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.pumpkin_patch.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.starry_night": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.starry_night.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.synthwave": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.synthwave.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "scene.after_the_rain": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.clear": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.cloudy": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.dawn": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.day": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.deep_winter": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.dusk": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.fog": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.golden_hour": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.night": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.rain": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.snow": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "scene.thunderstorm": {
+  "web": false,
+  "where": [
+   "scene.py"
+  ]
+ },
+ "settings.about.all_release_notes": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.and_a_special_thank_you_to": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.how_it_works": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.made_by_barak_levy": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.memory_forest_grows_thanks_to_everyone": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.mit_licence": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.new_scenery_arrives_in_memory_forest": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.one_tree_for_every_day_you": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.places_openstreetmap_contributors": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.rate_it_on_ankiweb": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.report_a_bug_or_share_an": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.thank_you": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.the_heatmap_under_it_shows_every": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.version_version": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.weather_from_met_norway_cc_by": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.whats_new": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.youre_part_of_this_thank_you": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.customize.change_anything_here_to_make_it": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.customize_scenery": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.customize_scenery_2": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.customize_your_own_mix_from_scenery": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.customize_your_own_mix_from_scenery_2": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.environment": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.follows_your_clock": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.landmark": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.landscape": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.live_weather": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.reset_a_row_to_put_the": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.reset_put_back_the_scenerys_own": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.sceneries": {
+  "web": false,
+  "where": [
+   "settings/customize.py",
+   "settings/surprise_page.py"
+  ]
+ },
+ "settings.customize.time_of_day": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.customize.weather": {
+  "web": false,
+  "where": [
+   "settings/customize.py"
+  ]
+ },
+ "settings.decks.counting_your_trees": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.date_format": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.days_before_date_grow_no_trees": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.decks": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.keep_suspended_cards_in_their_trees": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.keep_the_trees_from_before_it": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.no_trees": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.start_the_forest_on": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.they_keep_their_trees_size_but": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.unticked_decks_grow_no_trees_you": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.what_counts": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.your_forest_starts_on_your_first": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.your_forest_trees": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.decks.your_trees_from_before_it_stay": {
+  "web": false,
+  "where": [
+   "settings/decks.py"
+  ]
+ },
+ "settings.dialog.about": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.cancel": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.decks": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.done": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.forest": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.heatmap": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.put_the_settings_back_to_their": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.resets_the_scenery_customize_and_surprise": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.restore_defaults": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.restore_defaults_2": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.dialog.scenery": {
+  "web": false,
+  "where": [
+   "settings/dialog.py"
+  ]
+ },
+ "settings.forest.a_forest_of_that_decks_own": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.adds_a_memory_forest_deck_with": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.animate_the_forest": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.covers_the_forest_and_the_heatmap": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.deck_screens": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.follow_system": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.forest_width": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.layout": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.main_screen": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.motion_and_messages": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.nature": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.no_forest": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.off": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.on": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.on_finished_decks_too": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.on_your_phone": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.px": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.show_a_message_when_todays_tree": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.show_my_forest_on_my_phone": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.where_it_shows": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.your_forest": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.forest.your_forest_that_decks_trees_lit": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "settings.heatmap.5_days_a_week": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.680_px_or_less_where_there": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.6_days_a_week": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.85_of_the_forests_width": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.85_of_the_room_it_has": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.a_day_off_keeps_your_streak": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.auto": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.auto_day": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.bigger_days": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.by_year_and_streak_always_fit": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.colours": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.deck_screens": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.every_day": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.every_day_the_same_size_a": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.fill_it_with": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.fixed": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.follow_the_forest": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.fri": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.friday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.full_width": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.layout": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.main_screen": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.mon": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.monday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.more_months": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.sat": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.saturday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.show_on": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.show_the_reviews_from_before_your": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.streak": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.style": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.sun": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.sunday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.ten_months_with_bigger_days_to": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.the_start_date": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.thu": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.thursday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.tue": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.tuesday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.wed": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.wednesday": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.week_starts_on": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.width": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.your_first_review": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.your_forests_start_date_is_set": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.your_streak_counts": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.your_streak_counts_from": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.your_systems_first_day_of_the": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": {
+  "web": false,
+  "where": [
+   "settings/heatmap_tab.py"
+  ]
+ },
+ "settings.heatmap_look.blend_into": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.busier_days": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.colours_you_pick_one_dim_to": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.current_scenery": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.custom": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.lime_green_to_bright_lime": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.scenery": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.the_busiest_days_colour": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_busiest_days_colour": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_colour": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_colour_with_a_blend_the": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
+  "web": false,
+  "where": [
+   "settings/heatmap_look.py"
+  ]
+ },
+ "settings.layout.above_the_list": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.beside_it": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.beside_the_list_while_the_window": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.first": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.forest": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.heatmap": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.left": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.one_beside": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.right": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.side": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.the_first_above_the_deck_list": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.the_first_beside_the_deck_list": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.the_forest_and_the_heatmap_beside": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.the_forest_and_the_heatmap_under": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.the_one_that_goes_beside_or": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.under_the_list": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.patreon.enjoying_memory_forest": {
+  "web": false,
+  "where": [
+   "settings/patreon.py"
+  ]
+ },
+ "settings.patreon.every_plus_scenery_joins_this_version": {
+  "web": false,
+  "where": [
+   "settings/patreon.py"
+  ]
+ },
+ "settings.patreon.new_scenery_arrives_here_first_every": {
+  "web": false,
+  "where": [
+   "settings/patreon.py"
+  ]
+ },
+ "settings.patreon.support_it_on_patreon_and_get": {
+  "web": false,
+  "where": [
+   "settings/patreon.py"
+  ]
+ },
+ "settings.patreon.thank_you_for_supporting_memory_forest": {
+  "web": false,
+  "where": [
+   "settings/patreon.py"
+  ]
+ },
+ "settings.picker.improved": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.label_is_in_memory_forest_plus": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.new": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py",
+   "settings/whats_new.py"
+  ]
+ },
+ "settings.picker.no_scenery_has_that_in_its": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.sceneries": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.search_n_sceneries": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.this_week_only": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.until_date": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.picker.your_own_mix_made_in_customize": {
+  "web": false,
+  "where": [
+   "settings/scenery_picker.py"
+  ]
+ },
+ "settings.scenery.couldnt_find_this_city_check_the": {
+  "web": false,
+  "where": [
+   "settings/scenery_tab.py"
+  ]
+ },
+ "settings.scenery.couldnt_reach_the_weather_service_trying": {
+  "web": false,
+  "where": [
+   "settings/scenery_tab.py"
+  ]
+ },
+ "settings.scenery.follow_the_real_weather_and_time": {
+  "web": false,
+  "where": [
+   "settings/scenery_tab.py"
+  ]
+ },
+ "settings.scenery.live_weather_from_met_norway_places": {
+  "web": false,
+  "where": [
+   "settings/scenery_tab.py"
+  ]
+ },
+ "settings.scenery.scenery": {
+  "web": false,
+  "where": [
+   "settings/scenery_tab.py"
+  ]
+ },
+ "settings.scenery.your_city_e_g_berlin": {
+  "web": false,
+  "where": [
+   "settings/scenery_tab.py"
+  ]
+ },
+ "settings.surprise.only_one_ticked_the_same_scenery": {
+  "web": false,
+  "where": [
+   "settings/surprise_page.py"
+  ]
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": {
+  "web": false,
+  "where": [
+   "settings/surprise_page.py"
+  ]
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
+  "web": false,
+  "where": [
+   "settings/surprise_page.py"
+  ]
+ },
+ "settings.surprise.untick_the_ones_youd_rather_not": {
+  "web": false,
+  "where": [
+   "settings/surprise_page.py"
+  ]
+ },
+ "tooltip.a_big_learning_day_n_new": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.a_leech_here_mature_again_the": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.a_quiet_pond": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.all_n_cards_suspended": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.ancient": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.click_to_see_these_cards": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.from_to": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.its_card_is_suspended": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.lasts_time": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.mature": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_cards": {
+  "web": true,
+  "where": [
+   "web/tooltips.js",
+   "web/visit.js"
+  ]
+ },
+ "tooltip.n_days_without_reviews": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_months": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_of_them_ancient": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_of_total_suspended": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_older_trees": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.n_years": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.old": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.pct_remembered": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.pct_still_going_well": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.planted_n_days_ago": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.planted_today": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.planted_yesterday": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.sapling": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.seedling": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.the_deep_forest": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.young": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "visitor.a_bear": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_bear_came_you_kept_a": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_bear_wandered_in_you_kept": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_cabin": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_cabin_came_your_forest_turned": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_deer": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_deer_came_you_kept_a": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_deer_wandered_in_you_kept": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_family_of_squirrels": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_family_of_squirrels_came_you": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_family_of_squirrels_wandered_in": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_fox": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_fox_came_you_passed_10": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_fox_wandered_in_you_passed": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_heron": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_heron_came_a_pond_formed": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_heron_wandered_in_a_pond": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_little_cabin_now_stands_at": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_rabbit": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_rabbit_came_your_forest_reached": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_rabbit_wandered_in_your_forest": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_stag": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_stag_came_you_kept_a": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.a_stag_wandered_in_you_kept": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.an_eagle": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.an_eagle_came_you_knew_25": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.an_eagle_wandered_in_you_knew": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.an_owl": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.an_owl_came_your_first_tree": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.an_owl_wandered_in_your_first": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.built_when_your_forest_turned_one": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_a_pond_formed": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_you_kept_a": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_you_kept_a_2": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_you_kept_a_3": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_you_knew_10": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_you_knew_25": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_you_passed_10": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_your_first_tree": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "visitor.moved_in_when_your_forest_reached": {
+  "web": false,
+  "where": [
+   "milestones.py"
+  ]
+ },
+ "zoom.back_to_the_whole_forest": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.next_day": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.pinch_or_double_tap_to_zoom": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.planted_date": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.previous_day": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.scroll_or_press_to_zoom_drag": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.the_tree_of_the_day_after": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.the_tree_of_the_day_before": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
+ "zoom.zoom_in_among_the_trees": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ }
+}

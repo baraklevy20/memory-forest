@@ -19,20 +19,21 @@ from aqt.qt import (
     QVBoxLayout,
 )
 
-from .. import study_log
+from .. import i18n, study_log
+from ..i18n import N_, t, tn, tx
 from ..phone_note import phone_cards, phone_decks
 from ..scope import anki_today, day_cutoff
 from ..state import OFF_VALUES, keeps_earlier_trees, log
 from .widgets import Tab, date_field, group, grow_window, hint
 
 DECK_ROLE = Qt.ItemDataRole.UserRole
-DATE_FORMAT = "d MMMM yyyy"
-DECKS_NOTE = "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
-SINCE_NOTE = "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
-KEEP_NOTE = "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
-SINCE_OFF_NOTE = "Your forest starts on your first day of study, {first}."
-SUSPENDED_NOTE = "They keep their tree's size but never hurt its health."
-COUNTING = "Counting your trees…"
+DATE_FORMAT = "d MMMM yyyy"  # (the Debug tab's, in English; the Decks tab's is its language's: settings.decks.date_format)
+DECKS_NOTE = N_("settings.decks.unticked_decks_grow_no_trees_you")
+SINCE_NOTE = N_("settings.decks.days_before_date_grow_no_trees")
+KEEP_NOTE = N_("settings.decks.your_trees_from_before_it_stay")
+SINCE_OFF_NOTE = N_("settings.decks.your_forest_starts_on_your_first")
+SUSPENDED_NOTE = N_("settings.decks.they_keep_their_trees_size_but")
+COUNTING = N_("settings.decks.counting_your_trees")
 # with fewer decks than this, the list opens fully; with more, only down to the decks left out
 UNFOLD_UNDER = 15
 # room between the start date and the suspended cards, now they share a group
@@ -94,9 +95,9 @@ class DecksTab(Tab):
             since = _dt.date.fromisoformat(str(cfg.get("ignore_before") or ""))
         except ValueError:
             pass
-        self.since_on = QCheckBox("Start the forest on")
+        self.since_on = QCheckBox(t("settings.decks.start_the_forest_on"))
         self.since_on.setChecked(since is not None)
-        self.since = date_field(DATE_FORMAT)
+        self.since = date_field(t("settings.decks.date_format"))
         # Anki's today, not the calendar's: after midnight, until the rollover hour, the
         # calendar's is Anki's tomorrow, and a forest started then would be empty
         today = QDate(self.today.year, self.today.month, self.today.day)
@@ -104,10 +105,10 @@ class DecksTab(Tab):
         # ticked for the first time, it starts at the beginning of this month, not today,
         # which would leave only a seedling
         self.since.setDate(QDate(since.year, since.month, since.day) if since else QDate(today.year(), today.month(), 1))
-        self.keep_trees = QCheckBox("Keep the trees from before it")
+        self.keep_trees = QCheckBox(t("settings.decks.keep_the_trees_from_before_it"))
         self.keep_trees.setChecked(keeps_earlier_trees(cfg))
-        self.summary = QLabel(COUNTING)
-        deck_box = QVBoxLayout(); deck_box.addWidget(self.decks); deck_box.addWidget(self.summary); deck_box.addWidget(hint(DECKS_NOTE))
+        self.summary = QLabel(tx(COUNTING))
+        deck_box = QVBoxLayout(); deck_box.addWidget(self.decks); deck_box.addWidget(self.summary); deck_box.addWidget(hint(tx(DECKS_NOTE)))
         sv = QVBoxLayout()
         since_row = QHBoxLayout(); since_row.addWidget(self.since_on); since_row.addWidget(self.since); since_row.addStretch(1)
         self.since_hint = hint(self._since_note())
@@ -116,12 +117,12 @@ class DecksTab(Tab):
         keep_row = QHBoxLayout(); keep_row.addSpacing(KEEP_INDENT); keep_row.addWidget(self.keep_trees); keep_row.addStretch(1)
         sv.addLayout(since_row); sv.addLayout(keep_row); sv.addWidget(self.since_hint)
         sv.addSpacing(WHAT_COUNTS_GAP)
-        self.keep_suspended = QCheckBox("Keep suspended cards in their trees")
+        self.keep_suspended = QCheckBox(t("settings.decks.keep_suspended_cards_in_their_trees"))
         self.keep_suspended.setChecked(cfg.get("keep_suspended", True) not in OFF_VALUES)
-        sv.addWidget(self.keep_suspended); sv.addWidget(hint(SUSPENDED_NOTE))
+        sv.addWidget(self.keep_suspended); sv.addWidget(hint(tx(SUSPENDED_NOTE)))
         hv = QVBoxLayout(self)
-        hv.addWidget(group("Decks", deck_box), 1)
-        hv.addWidget(group("What counts", sv))
+        hv.addWidget(group(t("settings.decks.decks"), deck_box), 1)
+        hv.addWidget(group(t("settings.decks.what_counts"), sv))
         # reading the collection can take a moment on a big one: after the dialog is up
         QTimer.singleShot(0, self._load_days)
 
@@ -230,10 +231,10 @@ class DecksTab(Tab):
         growing = counted | (set(days) - set(self.items) - phone_decks())
         total = study_log.tree_days(days, growing, since_ago, suspended)
         everything = study_log.tree_days(days, growing, None, suspended)
-        text = f"Your forest: <b>{_trees_text(len(total))}</b>"
-        if len(everything) > len(total):
-            text += f" &nbsp;({len(everything) - len(total):,} earlier ones left out)"
-        self.summary.setText(text)
+        trees, earlier = _trees_text(len(total)), len(everything) - len(total)
+        # (English says "ones" for one too, as it always has)
+        self.summary.setText(tn("settings.decks.your_forest_trees_n_earlier_ones", earlier, trees=trees)
+                             if earlier > 0 else t("settings.decks.your_forest_trees", trees=trees))
         self._show_first_day(max(everything) if everything else None)
         # the counts come in just after the dialog opens, and can make this tab taller
         grow_window(self)
@@ -248,7 +249,7 @@ class DecksTab(Tab):
             out |= self._deck_trees(item.child(i), days, counted, since_ago, suspended, dim)
         if did not in counted:  # its subdecks may count, but it grows nothing itself
             out = set()
-        item.setText(1, _trees_text(len(out)) if out else "no trees")
+        item.setText(1, _trees_text(len(out)) if out else t("settings.decks.no_trees"))
         item.setForeground(1, dim)
         item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         return out
@@ -271,14 +272,14 @@ class DecksTab(Tab):
         and no counts to name the first day, none."""
         first = self._first
         text = (self._since_note() if self.since_on.isChecked() else
-                SINCE_OFF_NOTE.format(first=f"{first.day} {first:%B %Y}") if first is not None else "")
+                tx(SINCE_OFF_NOTE, first=i18n.day_month_year(first)) if first is not None else "")
         self.since_hint.setText(text)
         if self.since_hint.parent() is not None:  # (shown before it has a parent, it flashes up as a window)
             self.since_hint.setVisible(bool(text))
 
     def _since_note(self) -> str:
         chosen = self.since.date().toPyDate()  # (the date itself: "this date" read as today)
-        return (KEEP_NOTE if self.keep_trees.isChecked() else SINCE_NOTE).format(date=f"{chosen.day} {chosen:%B %Y}")
+        return tx(KEEP_NOTE if self.keep_trees.isChecked() else SINCE_NOTE, date=i18n.day_month_year(chosen))
 
     def news_targets(self) -> dict:
         """The settings here a note can point at (news.py): key -> (widget, name)."""
@@ -322,4 +323,4 @@ class DecksTab(Tab):
 
 
 def _trees_text(n: int) -> str:
-    return f"{n:,} tree{'' if n == 1 else 's'}"
+    return tn("caption.n_trees", n)

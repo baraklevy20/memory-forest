@@ -20,13 +20,15 @@ from __future__ import annotations
 
 import datetime as _dt
 import hashlib
+import json
 import os
 import traceback
 
 from aqt import mw
 
-from . import events_state, heatmap_look, live_weather, payload, phone_data
+from . import events_state, heatmap_look, i18n, live_weather, payload, phone_data
 from .edition import DEV_PACKAGE, PLUS_PACKAGE, is_plus_folder, manifest
+from .i18n import N_, tx
 from .phone_note import OLD_PHONE_SWITCH, PHONE_DECK, PHONE_NOTETYPE, phone_note_ids, phone_on, remember_phone_cards
 from .seasons import follow_season, today
 from .state import config, log
@@ -34,8 +36,7 @@ from .state import config, log
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 FIELDS = ("About", "Forest")  # never change these: a field added later forces a full sync
-ABOUT = ("Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, "
-         "and go back without answering. The add-on rewrites this note at every sync.")
+ABOUT = N_("phone.memory_forest_keeps_your_forest_here")
 # the deck's own options: the one card always shows when the deck is studied
 NEW_PER_DAY, REVIEWS_PER_DAY = 100, 9999
 # ... and keeps coming back: Again, Hard and Good move it along learning steps a second
@@ -43,21 +44,39 @@ NEW_PER_DAY, REVIEWS_PER_DAY = 100, 9999
 # it out of the deck, and the next sync makes it new again (_keep_new)
 STEPS = [1 / 60] * 50
 
+# what the card says before its forest can be drawn, in every language the add-on has: the template
+# is the same on every computer (a computer in another language never rewrites it), and picks the
+# forest's language, or the phone's where the note has no forest yet
+WAITING = (N_("phone.your_forest_arrives_with_the_next_sync"), N_("phone.your_forest_is_on_its_way"))
+
+
+def _waiting_words() -> dict:
+    """lang -> [the two lines], English's as "en"."""
+    en = i18n.english()
+    out = {"en": [en[k] for k in WAITING]}
+    for tag in i18n.available()[1:]:
+        have = i18n.translations(tag)
+        out[tag] = [have[k]["text"] if k in have else en[k] for k in WAITING]
+    return out
+
+
 FRONT = """<div id="memory-forest-phone" class="af-panel"></div>
 <script type="application/json" id="memory-forest-phone-data">{{Forest}}</script>
 <script>
 (function () {
   var root = document.getElementById('memory-forest-phone'), data = null;
   try { data = JSON.parse(document.getElementById('memory-forest-phone-data').textContent); } catch (e) {}
-  if (!data || !data.script) { root.textContent = 'Your forest arrives with the next sync from Anki on your computer.'; return; }
+  var words = WAITING_WORDS, lang = String((data && data.i18n && data.i18n.lang) || navigator.language || 'en');
+  var say = words[lang] || words[lang.split('-')[0]] || words.en;
+  if (!data || !data.script) { root.textContent = say[0]; return; }
   var s = document.createElement('script');
   s.src = data.script;
   s.charset = 'utf-8';
   s.setAttribute('data-root', 'memory-forest-phone');
-  s.onerror = function () { root.textContent = 'Your forest is on its way: sync once more to fetch its drawing.'; };
+  s.onerror = function () { root.textContent = say[1]; };
   document.body.appendChild(s);
 })();
-</script>"""
+</script>""".replace("WAITING_WORDS", json.dumps(_waiting_words(), ensure_ascii=True, separators=(",", ":")))
 BACK = "{{FrontSide}}"
 CSS = """.card { margin: 0; padding: 0; }
 .af-panel { margin-top: 12px; }
@@ -80,7 +99,7 @@ CSS = """.card { margin: 0; padding: 0; }
 /* the one line under it all, and the greys, readable on AnkiDroid's day and night cards */
 .af-phone-shell { --fg-subtle: #676c69; }
 .night_mode .af-phone-shell, .nightMode .af-phone-shell { --fg-subtle: #a3a8a5; }
-.af-phone-note { font: 11px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--fg-subtle, #8a8f8c); text-align: left; margin: 16px 12px 12px; }
+.af-phone-note { font: 11px/1.4 var(--af-font, -apple-system, "Segoe UI", system-ui, sans-serif); color: var(--fg-subtle, #8a8f8c); text-align: left; margin: 16px 12px 12px; }
 .af-phone-shell .af-info { border-bottom-color: rgba(128, 128, 128, 0.45); }
 .af-turn[hidden] { display: none; }
 .af-sideways { position: fixed; top: 0; left: 0; transform-origin: top left; box-sizing: border-box;
@@ -214,7 +233,7 @@ def _make(col) -> None:
     """The note, with its note type, deck and options: what turning the setting on makes."""
     types_ = _notetype(col)
     note = col.new_note(types_[0])
-    note["About"], note["Forest"] = ABOUT, ""
+    note["About"], note["Forest"] = tx(ABOUT), ""
     did = col.decks.id(PHONE_DECK)
     _options(col, did)
     col.add_note(note, did)

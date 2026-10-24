@@ -15,6 +15,7 @@ import os
 
 from . import catalog, presets
 from .edition import debug_available, debug_edition, edition_presets
+from .i18n import N_
 from .seasons import offer_day, today
 from .state import save_config
 
@@ -86,7 +87,8 @@ READY = {
     "magenta": ["#ae017e", "#fcc5c0"],  # (its pink stretch: its ends, deep purple and near white, read as purple, not the pink its users see)
     "flame": ["#e31a1c", "#fed976"],  # (its bright stretch: its dark wine and near-white yellow ends went dull)
 }
-READY_LABELS = {"olive": "Olive", "lime": "Lime", "ice": "Ice", "magenta": "Magenta", "flame": "Flame"}
+# (the names shown with i18n.tx)
+READY_LABELS = {"olive": N_("heatmap_look.olive"), "lime": N_("heatmap_look.lime"), "ice": N_("heatmap_look.ice"), "magenta": N_("heatmap_look.magenta"), "flame": N_("heatmap_look.flame")}
 # and each scenery's own colours, on any scenery ("ready:aurora", by its preset): shaded as that
 # scenery shades them (not `exact`), from its colour in KEYS_FILE. For now every scenery with one,
 # until the ready colours are chosen (2026-10-16); a Plus one this copy lacks isn't offered. Named
@@ -244,7 +246,7 @@ def plus_locked(env: str, cfg: dict) -> bool:
 # which way a dark page's shades run (the Heatmap tab): busier days lighter (towards white, the
 # default), or darker (a pale tint for a quiet day down to a deep colour for a busy one). A light
 # page's already run darker for more
-BUSIER = (("lighter", "Lighter"), ("darker", "Darker"))
+BUSIER = (("lighter", N_("heatmap_look.lighter")), ("darker", N_("heatmap_look.darker")))
 
 
 def busier(cfg: dict) -> str:

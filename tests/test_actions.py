@@ -220,7 +220,7 @@ class ActionTests(unittest.TestCase):
             self.assertEqual(menu.actions[0].text, "Leave out of Memory Forest")
             menu.actions[0].triggered.connect.call_args[0][0]()
             self.assertEqual(mw.addonManager.config["excluded_decks"], [10])
-            self.assertEqual(tooltips, [actions.LEFT_OUT])
+            self.assertEqual(tooltips, [addon.i18n.t(actions.LEFT_OUT)])
             menu = Menu()
             actions.on_deck_options_menu(menu, 11)  # its subdeck goes with it
             self.assertEqual(menu.actions[0].text, "Left out of Memory Forest with its parent deck")
@@ -229,7 +229,7 @@ class ActionTests(unittest.TestCase):
             self.assertEqual(menu.actions[0].text, "Bring back into Memory Forest")
             menu.actions[0].triggered.connect.call_args[0][0]()
             self.assertNotIn("excluded_decks", mw.addonManager.config)
-            self.assertEqual(tooltips[-1], actions.BROUGHT_BACK)
+            self.assertEqual(tooltips[-1], addon.i18n.t(actions.BROUGHT_BACK))
         menu = Menu()
         actions.on_deck_options_menu(menu, 30)  # a filtered deck has no forest to leave
         self.assertEqual(menu.actions, [])

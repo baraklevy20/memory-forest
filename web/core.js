@@ -5,11 +5,13 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { layer, send, animates } = AF.u;
+const { layer, send, animates, esc } = AF.u;
 const { HORIZON, GROUND_BOTTOM } = AF.GEOM;
 
 /* ---------- the scene runner ---------- */
 AF.mount = function (root, data, opts) {
+  AF.i18n.use(data.i18n);  // (its words, dates and numbers in Anki's language)
+  AF.i18n.dirOn(root);  // (and their direction: the panel right to left for a language that reads so, forest.css .af-rtl)
   const engine = AF.engines.pixel;
   root.afPointTreeDay = null;
   root.afLightTreeDays = null;
@@ -46,7 +48,8 @@ AF.mount = function (root, data, opts) {
   // (the forest and its caption in a box of their own, which the deck list's layout can place apart
   // from the heatmap: AF.arrange)
   root.innerHTML = '<div class="af-forest"><div class="af-scene' + (data.inAnki ? ' af-has-cog' : '') + '">' + cogHtml(data)
-    + '<canvas class="af-canvas" aria-label="Your study forest"></canvas><div class="af-tip" hidden></div></div>'
+    + `<canvas class="af-canvas" aria-label="${esc(AF.t('panel.your_study_forest'))}"></canvas>`
+    + '<div class="af-tip" hidden></div></div>'
     + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div></div>';
   const sceneEl = root.querySelector('.af-scene'), canvas = root.querySelector('canvas'), tip = root.querySelector('.af-tip');
   AF.panelWidth(root, data);
@@ -428,7 +431,7 @@ const REFINE_MS = 40, WARM_MS = 8;
 // the settings cog (in Anki only), and what clicking it does; with what's new: its dot, and a
 // note on the forest (web/news.js)
 const cogHtml = data => data.inAnki
-  ? '<div class="af-top"><button type="button" class="af-cog" title="Change scenery and settings" aria-label="Change scenery and settings">' + COG + '</button></div>' : '';
+  ? `<div class="af-top"><button type="button" class="af-cog" title="${esc(AF.t('panel.change_scenery_and_settings'))}" aria-label="${esc(AF.t('panel.change_scenery_and_settings'))}">${COG}</button></div>` : '';
 function hookCog(root, data) {
   const cog = root.querySelector('.af-cog');
   if (cog) cog.addEventListener('click', () => send(`${data.channel}:settings`));

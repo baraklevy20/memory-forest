@@ -86,11 +86,14 @@ function crater(g, cx, cy, lost, age, env) {
 }
 
 /* ---------- tooltips ---------- */
-const fmt = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+const fmt = iso => AF.i18n.dayIn(iso, { day: 'numeric', month: 'short', year: 'numeric' });
 // (how to watch the latest one again is for the pointer to say: a click, or a tap and a button)
-const craterHtml = c => `<b>A crater</b><br>${c.lost} tree${c.lost === 1 ? '' : 's'} lost on ${fmt(c.date)}${c.streak ? `, after a ${c.streak}-day streak` : ''}<br>On Peaceful or Wild the trees stand again`;
-const doomText = () => 'An asteroid strikes when Anki\'s day ends, unless you review before then. If it strikes, a new forest grows from its crater.';
-const fmtShort = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+const craterHtml = c => `<b>${AF.t('event.asteroid.a_crater')}</b><br>`
+  + (c.streak ? AF.tn('event.asteroid.n_trees_lost_on_date_after', c.lost, { n: c.lost, date: fmt(c.date), streak: c.streak })
+    : AF.tn('event.asteroid.n_trees_lost_on_date', c.lost, { n: c.lost, date: fmt(c.date) }))
+  + `<br>${AF.t('event.asteroid.on_peaceful_or_wild_the_trees')}`;
+const doomText = () => AF.t('event.asteroid.an_asteroid_strikes_when_ankis_day');
+const fmtShort = iso => AF.i18n.dayIn(iso, { day: 'numeric', month: 'short' });
 
 /* ---------- the strike: a meteor shower, then the forest blown apart ---------- */
 // The page first draws the forest as it stood, lets the shower fall on it, then puts up the
@@ -258,18 +261,19 @@ AF.events.add('asteroid', {
     return null;
   },
   // the caption's items: [text, tooltip, a click (given the forest's root), if any]
-  caption(data, words, animate) {
+  caption(data, animate) {
     const items = [], s = data.strike;
     if (s && s.news) {
       const again = animate && replayable(s);
-      items.push([`Asteroid struck ${fmtShort(s.date)}`, `${s.lost} ${s.lost === 1 ? words.one : words.many} lost after a day without reviews; a new forest grows from here.`
-        + (again ? ' Its crater can play it again too.' : animate ? '' : data.animations === 'system'
-          ? ' Your system asks for less motion: set Animate the forest to On to watch it.'
-          : ' Turn on animations in the forest settings to watch it.'),
+      items.push([AF.t('event.asteroid.asteroid_struck_date', { date: fmtShort(s.date) }),
+        AF.tn('event.asteroid.n_trees_lost_after_a_day', s.lost, { n: s.lost })
+        + (again ? ' ' + AF.t('event.asteroid.its_crater_can_play_it_again') : animate ? '' : data.animations === 'system'
+          ? ' ' + AF.t('event.asteroid.your_system_asks_for_less_motion')
+          : ' ' + AF.t('event.asteroid.turn_on_animations_in_the_forest')),
       again ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;
-    if (d) items.push(['Asteroid: tonight', doomText(d)]);
+    if (d) items.push([AF.t('event.asteroid.asteroid_tonight'), doomText(d)]);
     return items;
   },
   // Ready `root` to replay `data`'s latest strike, and play it now if it hasn't been seen

@@ -1,0 +1,3176 @@
+{
+ "actions.answer_time_date": {
+  "text": "Tempo de resposta ({date})",
+  "en": "Answer time ({date})"
+ },
+ "actions.answer_time_days_days_first_to": {
+  "text": {
+   "one": "Tempo de resposta ({days} dia, de {first} a {last})",
+   "other": "Tempo de resposta ({days} dias, de {first} a {last})"
+  },
+  "en": {
+   "one": "Answer time ({days} day, {first} to {last})",
+   "other": "Answer time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.answer_time_first_to_last": {
+  "text": "Tempo de resposta (de {first} a {last})",
+  "en": "Answer time ({first} to {last})"
+ },
+ "actions.back_in_your_forest": {
+  "text": "De volta à sua floresta.",
+  "en": "Back in your forest."
+ },
+ "actions.bring_back_into_memory_forest": {
+  "text": "Trazer de volta ao Memory Forest",
+  "en": "Bring back into Memory Forest"
+ },
+ "actions.leave_out_of_memory_forest": {
+  "text": "Deixar fora do Memory Forest",
+  "en": "Leave out of Memory Forest"
+ },
+ "actions.left_out_of_memory_forest_with": {
+  "text": "Fora do Memory Forest junto com o baralho principal",
+  "en": "Left out of Memory Forest with its parent deck"
+ },
+ "actions.left_out_of_your_forest_its": {
+  "text": "Fora da sua floresta. O menu ⚙ dele o traz de volta.",
+  "en": "Left out of your forest. Its ⚙ menu brings it back."
+ },
+ "actions.reviews_date": {
+  "text": "Revisões ({date})",
+  "en": "Reviews ({date})"
+ },
+ "actions.reviews_days_days_first_to_last": {
+  "text": {
+   "one": "Revisões ({days} dia, de {first} a {last})",
+   "other": "Revisões ({days} dias, de {first} a {last})"
+  },
+  "en": {
+   "one": "Reviews ({days} day, {first} to {last})",
+   "other": "Reviews ({days} days, {first} to {last})"
+  }
+ },
+ "actions.reviews_first_to_last": {
+  "text": "Revisões (de {first} a {last})",
+  "en": "Reviews ({first} to {last})"
+ },
+ "actions.total_time_date": {
+  "text": "Tempo total ({date})",
+  "en": "Total time ({date})"
+ },
+ "actions.total_time_days_days_first_to": {
+  "text": {
+   "one": "Tempo total ({days} dia, de {first} a {last})",
+   "other": "Tempo total ({days} dias, de {first} a {last})"
+  },
+  "en": {
+   "one": "Total time ({days} day, {first} to {last})",
+   "other": "Total time ({days} days, {first} to {last})"
+  }
+ },
+ "actions.total_time_first_to_last": {
+  "text": "Tempo total (de {first} a {last})",
+  "en": "Total time ({first} to {last})"
+ },
+ "answer_column.heading_detail": {
+  "text": "{heading}. {detail}",
+  "en": "{heading}. {detail}"
+ },
+ "answer_column.median_seconds_per_answer_for_the": {
+  "text": "Mediana de segundos por resposta do cartão no dia clicado, incluindo novas tentativas. As notas mostram a mediana do cartão correspondente mais lento.",
+  "en": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median."
+ },
+ "answer_column.number_of_answers_on_the_clicked": {
+  "text": "Número de respostas no dia clicado, incluindo novas tentativas. As notas mostram a soma dos seus cartões.",
+  "en": "Number of answers on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "answer_column.seconds_s": {
+  "text": "{seconds} s",
+  "en": "{seconds} s"
+ },
+ "answer_column.total_seconds_spent_answering_on_the": {
+  "text": "Total de segundos gastos respondendo no dia clicado, incluindo novas tentativas. As notas mostram a soma dos seus cartões.",
+  "en": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards."
+ },
+ "caption.after_the_rain": {
+  "text": "depois da chuva",
+  "en": "after the rain"
+ },
+ "caption.city_not_found": {
+  "text": "Cidade não encontrada",
+  "en": "City not found"
+ },
+ "caption.clear_sky": {
+  "text": "céu limpo",
+  "en": "clear sky"
+ },
+ "caption.click_to_see_all_of_it": {
+  "text": "Clique para ver tudo",
+  "en": "Click to see all of it"
+ },
+ "caption.click_to_see_their_cards": {
+  "text": "Clique para ver os cartões delas.",
+  "en": "Click to see their cards."
+ },
+ "caption.cloudy": {
+  "text": "nublado",
+  "en": "cloudy"
+ },
+ "caption.days_you_studied_in_a_row": {
+  "text": "Dias seguidos em que você estudou. Um dia sem nada a revisar não a interrompe.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it."
+ },
+ "caption.days_you_studied_in_a_row_2": {
+  "text": "Dias seguidos em que você estudou. Um dia sem nada a revisar não a interrompe e, como sua sequência conta {week} dias por semana, um dia de folga na semana também não.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, a day off in a week doesn't either."
+ },
+ "caption.days_you_studied_in_a_row_3": {
+  "text": "Dias seguidos em que você estudou. Um dia sem nada a revisar não a interrompe e, como sua sequência conta {week} dias por semana, dois dias de folga na semana também não.",
+  "en": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, two days off in a week don't either."
+ },
+ "caption.deck_lit_of_n_trees": {
+  "text": {
+   "one": "{deck}: {lit} de {n} árvore",
+   "other": "{deck}: {lit} de {n} árvores"
+  },
+  "en": {
+   "one": "{deck}: {lit} of {n} tree",
+   "other": "{deck}: {lit} of {n} trees"
+  }
+ },
+ "caption.deep_winter": {
+  "text": "pleno inverno",
+  "en": "deep winter"
+ },
+ "caption.fog": {
+  "text": "neblina",
+  "en": "fog"
+ },
+ "caption.live_weather_from_met_norway_cc": {
+  "text": "Clima ao vivo do MET Norway (CC BY 4.0).",
+  "en": "Live weather from MET Norway (CC BY 4.0)."
+ },
+ "caption.live_weather_unavailable": {
+  "text": "Clima ao vivo indisponível",
+  "en": "Live weather unavailable"
+ },
+ "caption.made_up_trees_from_the_test": {
+  "text": "Árvores inventadas da opção Floresta de teste. Desative-a nas configurações da floresta para ver a sua de verdade.",
+  "en": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one."
+ },
+ "caption.n_ancient": {
+  "text": {
+   "one": "{n} milenar",
+   "other": "{n} milenares"
+  },
+  "en": {
+   "one": "{n} ancient",
+   "other": "{n} ancient"
+  }
+ },
+ "caption.n_day_streak": {
+  "text": {
+   "one": "Sequência de {n} dia",
+   "other": "Sequência de {n} dias"
+  },
+  "en": {
+   "one": "{n}-day streak",
+   "other": "{n}-day streak"
+  }
+ },
+ "caption.n_in_the_deep_forest": {
+  "text": {
+   "one": "{n} no fundo da floresta",
+   "other": "{n} no fundo da floresta"
+  },
+  "en": {
+   "one": "{n} in the deep forest",
+   "other": "{n} in the deep forest"
+  }
+ },
+ "caption.n_trees": {
+  "text": {
+   "one": "{n} árvore",
+   "other": "{n} árvores"
+  },
+  "en": {
+   "one": "{n} tree",
+   "other": "{n} trees"
+  }
+ },
+ "caption.one_tree_for_each_day_you": {
+  "text": "Uma árvore para cada dia em que você aprendeu cartões novos. Passe o mouse sobre uma para ver o dia dela; clique nela para ver seus cartões.",
+  "en": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards."
+ },
+ "caption.openstreetmap_does_not_know_that_city": {
+  "text": "O OpenStreetMap não conhece essa cidade, então o cenário mantém o próprio clima. Confira a grafia ou tente o nome em inglês nas configurações da floresta.",
+  "en": "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings."
+ },
+ "caption.rain": {
+  "text": "chuva",
+  "en": "rain"
+ },
+ "caption.snow": {
+  "text": "neve",
+  "en": "snow"
+ },
+ "caption.test_forest": {
+  "text": "Floresta de teste",
+  "en": "Test forest"
+ },
+ "caption.the_live_weather_could_not_be": {
+  "text": "Não foi possível obter o clima ao vivo, então o cenário mantém o próprio clima por enquanto.",
+  "en": "The live weather could not be fetched, so the scenery keeps its own weather for now."
+ },
+ "caption.the_scenery_chosen_in_the_forest": {
+  "text": "O cenário, escolhido nas configurações da floresta.",
+  "en": "The scenery, chosen in the forest settings."
+ },
+ "caption.thunderstorm": {
+  "text": "tempestade",
+  "en": "thunderstorm"
+ },
+ "caption.trees_holding_cards_from_this_deck": {
+  "text": "As árvores com cartões deste baralho ficam coloridas; as demais se apagam. Mude isso em Telas de baralho, nas configurações da floresta.",
+  "en": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings."
+ },
+ "caption.trees_whose_cards_you_will_likely": {
+  "text": "Árvores cujos cartões você provavelmente vai lembrar por mais de um ano: a força de memória mediana delas é de pelo menos 365 dias. É a estabilidade do FSRS onde você a tem e o intervalo de agendamento onde não tem.",
+  "en": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not."
+ },
+ "caption.weather_by_met_norway": {
+  "text": "clima do MET Norway",
+  "en": "weather by MET Norway"
+ },
+ "caption.weather_weather": {
+  "text": "Clima: {weather}",
+  "en": "Weather: {weather}"
+ },
+ "caption.weather_weather_in_city": {
+  "text": "Clima: {weather} em {city}",
+  "en": "Weather: {weather} in {city}"
+ },
+ "caption.weather_weather_in_city_temp": {
+  "text": "Clima: {weather} em {city}, {temp}°",
+  "en": "Weather: {weather} in {city}, {temp}°"
+ },
+ "caption.weather_weather_temp": {
+  "text": "Clima: {weather}, {temp}°",
+  "en": "Weather: {weather}, {temp}°"
+ },
+ "caption.your_trees_from_from_to_to": {
+  "text": {
+   "one": "Suas árvores de {from} a {to} ficam juntas ao longe, com {n} cartão. Desenhar cada uma separadamente deixaria a lista de baralhos lenta.",
+   "other": "Suas árvores de {from} a {to} ficam juntas ao longe, com {n} cartões. Desenhar cada uma separadamente deixaria a lista de baralhos lenta."
+  },
+  "en": {
+   "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
+   "other": "Your trees from {from} to {to} stand together in the distance, holding {n} cards. Drawing every one of them individually would slow the deck list down."
+  }
+ },
+ "date.day_month": {
+  "text": "{day} de {month}",
+  "en": "{day} {month}"
+ },
+ "date.day_month_year": {
+  "text": "{day} de {month} de {year}",
+  "en": "{day} {month} {year}"
+ },
+ "date.month_year": {
+  "text": "{month} de {year}",
+  "en": "{month} {year}"
+ },
+ "env.aurora": {
+  "text": "Aurora boreal",
+  "en": "Aurora"
+ },
+ "env.bamboo": {
+  "text": "Bambuzal na chuva",
+  "en": "Rainy bamboo grove"
+ },
+ "env.frozen_market": {
+  "text": "Feira de Natal",
+  "en": "Christmas market"
+ },
+ "env.lanterns": {
+  "text": "Lanternas",
+  "en": "Lanterns"
+ },
+ "env.misty_valley": {
+  "text": "Vale enevoado",
+  "en": "Misty valley"
+ },
+ "env.natural": {
+  "text": "Natural",
+  "en": "Natural"
+ },
+ "env.pumpkin_patch": {
+  "text": "Plantação de abóboras",
+  "en": "Pumpkin patch"
+ },
+ "env.starry_night": {
+  "text": "Noite estrelada",
+  "en": "Starry night"
+ },
+ "env.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "event.asteroid.a_crater": {
+  "text": "Uma cratera",
+  "en": "A crater"
+ },
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": {
+  "text": "Um asteroide cai quando o dia do Anki termina, a menos que você revise antes. Se ele cair, uma nova floresta cresce da cratera.",
+  "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
+ "event.asteroid.asteroid_struck_date": {
+  "text": "Asteroide caiu em {date}",
+  "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tonight": {
+  "text": "Asteroide: esta noite",
+  "en": "Asteroid: tonight"
+ },
+ "event.asteroid.its_crater_can_play_it_again": {
+  "text": "A cratera também pode mostrar de novo.",
+  "en": "Its crater can play it again too."
+ },
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "text": {
+   "one": "{n} árvore perdida após um dia sem revisões; uma nova floresta cresce daqui.",
+   "other": "{n} árvores perdidas após um dia sem revisões; uma nova floresta cresce daqui."
+  },
+  "en": {
+   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "text": {
+   "one": "{n} árvore perdida em {date}",
+   "other": "{n} árvores perdidas em {date}"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}",
+   "other": "{n} trees lost on {date}"
+  }
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "text": {
+   "one": "{n} árvore perdida em {date}, após uma sequência de {streak} dias",
+   "other": "{n} árvores perdidas em {date}, após uma sequência de {streak} dias"
+  },
+  "en": {
+   "one": "{n} tree lost on {date}, after a {streak}-day streak",
+   "other": "{n} trees lost on {date}, after a {streak}-day streak"
+  }
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": {
+  "text": "No Pacífico ou no Selvagem, as árvores voltam a ficar de pé",
+  "en": "On Peaceful or Wild the trees stand again"
+ },
+ "event.asteroid.turn_on_animations_in_the_forest": {
+  "text": "Ative as animações nas configurações da floresta para ver.",
+  "en": "Turn on animations in the forest settings to watch it."
+ },
+ "event.asteroid.your_system_asks_for_less_motion": {
+  "text": "Seu sistema pede menos movimento: coloque Animar a floresta em Ativado para ver.",
+  "en": "Your system asks for less motion: set Animate the forest to On to watch it."
+ },
+ "event.fire.fire_n_trees": {
+  "text": {
+   "one": "Fogo: {n} árvore",
+   "other": "Fogo: {n} árvores"
+  },
+  "en": {
+   "one": "Fire: {n} tree",
+   "other": "Fire: {n} trees"
+  }
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "text": {
+   "one": "Mais {n} dia de estudo apaga o fogo.",
+   "other": "Mais {n} dias de estudo apagam o fogo."
+  },
+  "en": {
+   "one": "{n} more day of study puts it out.",
+   "other": "{n} more days of study put it out."
+  }
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "text": {
+   "one": "{n} árvore pegou fogo enquanto você estava fora.",
+   "other": "{n} árvores pegaram fogo enquanto você estava fora."
+  },
+  "en": {
+   "one": "{n} tree caught fire while you were away.",
+   "other": "{n} trees caught fire while you were away."
+  }
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "text": {
+   "one": "<b>Em chamas</b>: pegou fogo enquanto você estava fora · verde de novo após mais {n} dia de estudo",
+   "other": "<b>Em chamas</b>: pegou fogo enquanto você estava fora · verde de novo após mais {n} dias de estudo"
+  },
+  "en": {
+   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
+   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+  }
+ },
+ "event.fire.smoke_is_rising_after_two_days": {
+  "text": "Está subindo fumaça depois de dois dias sem revisões. Estude hoje, ou amanhã a floresta pega fogo.",
+  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
+ },
+ "event.fire.smoke_study_today": {
+  "text": "Fumaça: estude hoje",
+  "en": "Smoke: study today"
+ },
+ "event.fire.smoking": {
+  "text": "Fumaça",
+  "en": "Smoking"
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "text": {
+   "one": "<b>Inferno de revisões</b>: {n} revisão atrasada. Coloque em dia e as bolas de feno vão embora com o vento.",
+   "other": "<b>Inferno de revisões</b>: {n} revisões atrasadas. Coloque em dia e as bolas de feno vão embora com o vento."
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "text": {
+   "one": "<b>Inferno de revisões</b>: {n} revisão atrasada, num dia normal são {usual}. Coloque em dia e as bolas de feno vão embora com o vento.",
+   "other": "<b>Inferno de revisões</b>: {n} revisões atrasadas, num dia normal são {usual}. Coloque em dia e as bolas de feno vão embora com o vento."
+  },
+  "en": {
+   "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
+   "other": "<b>Review hell</b>: {n} reviews overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away."
+  }
+ },
+ "events.a_fire_broke_out_while_you": {
+  "text": {
+   "one": "Começou um incêndio enquanto você estava fora: {trees} árvore está queimando. Estude em {days} dias para apagá-lo.",
+   "other": "Começou um incêndio enquanto você estava fora: {trees} árvores estão queimando. Estude em {days} dias para apagá-lo."
+  },
+  "en": {
+   "one": "A fire broke out while you were away: {trees} tree is burning. Study on {days} days to put it out.",
+   "other": "A fire broke out while you were away: {trees} trees are burning. Study on {days} days to put it out."
+  }
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "text": {
+   "one": "Um asteroide levou sua floresta de {trees} árvore. Uma nova cresce daqui.",
+   "other": "Um asteroide levou sua floresta de {trees} árvores. Uma nova cresce daqui."
+  },
+  "en": {
+   "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
+   "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
+  }
+ },
+ "events.merciless": {
+  "text": "Implacável",
+  "en": "Merciless"
+ },
+ "events.miss_a_day_nothing_is_lost": {
+  "text": "Perdeu um dia: nada se perde. Uma semana ou mais fora deixa uma lagoa na floresta.",
+  "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
+ },
+ "events.miss_a_day_of_reviews_an": {
+  "text": "Perdeu um dia de revisões: um asteroide espera no céu e cai quando o dia do Anki termina, a menos que você revise. Uma nova floresta cresce da cratera. Maus hábitos também deixam marcas.",
+  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
+ },
+ "events.miss_two_days_in_a_row": {
+  "text": "Perdeu dois dias seguidos: sobe fumaça como aviso. Perdeu o terceiro: um incêndio se espalha até que sete dias de estudo o apaguem. Maus hábitos também deixam marcas.",
+  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
+ },
+ "events.peaceful": {
+  "text": "Pacífico",
+  "en": "Peaceful"
+ },
+ "events.smoke_is_rising_from_your_forest": {
+  "text": "Está subindo fumaça da sua floresta depois de dois dias sem revisões. Estude hoje, ou ela pega fogo.",
+  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.switch_back_any_time_and_every": {
+  "text": "Volte quando quiser e todas as árvores estarão lá de novo.",
+  "en": "Switch back any time and every tree is there again."
+ },
+ "events.the_last_of_the_fire_is": {
+  "text": "O fogo se apagou de vez. Sua floresta está verde de novo.",
+  "en": "The last of the fire is out. Your forest is green again."
+ },
+ "events.wild": {
+  "text": "Selvagem",
+  "en": "Wild"
+ },
+ "events.you_cleared_your_overdue_reviews": {
+  "text": "Você colocou em dia suas revisões atrasadas.",
+  "en": "You cleared your overdue reviews."
+ },
+ "events.you_cleared_your_overdue_reviews_the": {
+  "text": "Você colocou em dia suas revisões atrasadas. As bolas de feno foram embora com o vento.",
+  "en": "You cleared your overdue reviews. The tumbleweeds blew away."
+ },
+ "heatmap.a_minute": {
+  "text": "1 min",
+  "en": "a minute"
+ },
+ "heatmap.about_n_reviews_a_day": {
+  "text": {
+   "one": "Cerca de {n} revisão por dia",
+   "other": "Cerca de {n} revisões por dia"
+  },
+  "en": {
+   "one": "About {n} review a day",
+   "other": "About {n} reviews a day"
+  }
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "text": {
+   "one": "Cerca de {n} revisão por dia de estudo",
+   "other": "Cerca de {n} revisões por dia de estudo"
+  },
+  "en": {
+   "one": "About {n} review a day studied",
+   "other": "About {n} reviews a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "text": {
+   "one": "Cerca de {n} revisão e {time} por dia de estudo",
+   "other": "Cerca de {n} revisões e {time} por dia de estudo"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day studied",
+   "other": "About {n} reviews and {time} a day studied"
+  }
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "text": {
+   "one": "Cerca de {n} revisão e {time} por dia",
+   "other": "Cerca de {n} revisões e {time} por dia"
+  },
+  "en": {
+   "one": "About {n} review and {time} a day",
+   "other": "About {n} reviews and {time} a day"
+  }
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "text": {
+   "one": "Seu único cartão já foi excluído",
+   "other": "Todos os seus {n} cartões já foram excluídos"
+  },
+  "en": {
+   "one": "All {n} of its cards have since been deleted",
+   "other": "All {n} of its cards have since been deleted"
+  }
+ },
+ "heatmap.and_n_more_marked": {
+  "text": {
+   "one": "e mais {n} marcado",
+   "other": "e mais {n} marcados"
+  },
+  "en": {
+   "one": "and {n} more marked",
+   "other": "and {n} more marked"
+  }
+ },
+ "heatmap.back_to_today": {
+  "text": "Voltar para hoje",
+  "en": "Back to today"
+ },
+ "heatmap.beat_your_longest_streak_n_days": {
+  "text": {
+   "one": "Supere sua maior sequência ({n} dia) neste dia, estudando todos os dias até lá",
+   "other": "Supere sua maior sequência ({n} dias) neste dia, estudando todos os dias até lá"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day, studying every day until then",
+   "other": "Beat your longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "text": {
+   "one": "Supere sua maior sequência ({n} dia) neste dia",
+   "other": "Supere sua maior sequência ({n} dias) neste dia"
+  },
+  "en": {
+   "one": "Beat your longest streak ({n} day) on this day",
+   "other": "Beat your longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.before_your_first_review": {
+  "text": "Antes da sua primeira revisão",
+  "en": "Before your first review"
+ },
+ "heatmap.before_your_forest_began": {
+  "text": "Antes de sua floresta começar",
+  "en": "Before your forest began"
+ },
+ "heatmap.birthday": {
+  "text": "Aniversário",
+  "en": "Birthday"
+ },
+ "heatmap.both_of_its_cards_have_since": {
+  "text": "Seus dois cartões já foram excluídos",
+  "en": "Both of its cards have since been deleted"
+ },
+ "heatmap.by_year": {
+  "text": "Por ano",
+  "en": "By year"
+ },
+ "heatmap.date_name": {
+  "text": "<i>{date}:</i> {name}",
+  "en": "<i>{date}:</i> {name}"
+ },
+ "heatmap.day_day_of_a_n_day": {
+  "text": {
+   "one": "Dia {day} de uma sequência de {n} dia",
+   "other": "Dia {day} de uma sequência de {n} dias"
+  },
+  "en": {
+   "one": "Day {day} of a {n}-day streak",
+   "other": "Day {day} of a {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "text": {
+   "one": "Dia {day} de {n} seguido",
+   "other": "Dia {day} de {n} seguidos"
+  },
+  "en": {
+   "one": "Day {day} of {n} in a row",
+   "other": "Day {day} of {n} in a row"
+  }
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "text": {
+   "one": "Dia {day} da sua sequência de {n} dia",
+   "other": "Dia {day} da sua sequência de {n} dias"
+  },
+  "en": {
+   "one": "Day {day} of your {n}-day streak",
+   "other": "Day {day} of your {n}-day streak"
+  }
+ },
+ "heatmap.day_day_of_your_streak": {
+  "text": "Dia {day} da sua sequência",
+  "en": "Day {day} of your streak"
+ },
+ "heatmap.didnt_break_a_n_day_streak": {
+  "text": {
+   "one": "Não interrompeu uma sequência de {n} dia",
+   "other": "Não interrompeu uma sequência de {n} dias"
+  },
+  "en": {
+   "one": "Didn't break a {n}-day streak",
+   "other": "Didn't break a {n}-day streak"
+  }
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "text": {
+   "one": "Não interrompe sua sequência de {n} dia",
+   "other": "Não interrompe sua sequência de {n} dias"
+  },
+  "en": {
+   "one": "Doesn't break your {n}-day streak",
+   "other": "Doesn't break your {n}-day streak"
+  }
+ },
+ "heatmap.done": {
+  "text": "Concluído",
+  "en": "Done"
+ },
+ "heatmap.earlier": {
+  "text": "Antes",
+  "en": "Earlier"
+ },
+ "heatmap.exam": {
+  "text": "Prova",
+  "en": "Exam"
+ },
+ "heatmap.fast": {
+  "text": "Rápido",
+  "en": "Fast"
+ },
+ "heatmap.from_n_reviews": {
+  "text": {
+   "one": "{from}–{n} revisões",
+   "other": "{from}–{n} revisões"
+  },
+  "en": {
+   "one": "{from}–{n} reviews",
+   "other": "{from}–{n} reviews"
+  }
+ },
+ "heatmap.from_to": {
+  "text": "{from}–{to}",
+  "en": "{from}–{to}"
+ },
+ "heatmap.from_to_min": {
+  "text": "{from}–{to} min",
+  "en": "{from}–{to} min"
+ },
+ "heatmap.from_to_s_per_answer": {
+  "text": "{from}–{to} s por resposta",
+  "en": "{from}–{to} s per answer"
+ },
+ "heatmap.from_to_to": {
+  "text": "{from} a {to}",
+  "en": "{from} to {to}"
+ },
+ "heatmap.from_to_today": {
+  "text": "{from} até hoje",
+  "en": "{from} to today"
+ },
+ "heatmap.h_hr_m_min": {
+  "text": "{h} h {m} min",
+  "en": "{h} hr {m} min"
+ },
+ "heatmap.heart": {
+  "text": "Coração",
+  "en": "Heart"
+ },
+ "heatmap.its_card_has_since_been_deleted": {
+  "text": "Seu cartão já foi excluído",
+  "en": "Its card has since been deleted"
+ },
+ "heatmap.january_to_december": {
+  "text": "Janeiro a dezembro",
+  "en": "January to December"
+ },
+ "heatmap.last_day_of_a_n_day": {
+  "text": {
+   "one": "Último dia de uma sequência de {n} dia",
+   "other": "Último dia de uma sequência de {n} dias"
+  },
+  "en": {
+   "one": "Last day of a {n}-day streak",
+   "other": "Last day of a {n}-day streak"
+  }
+ },
+ "heatmap.later": {
+  "text": "Depois",
+  "en": "Later"
+ },
+ "heatmap.less": {
+  "text": "Menos",
+  "en": "Less"
+ },
+ "heatmap.mark_icon": {
+  "text": "Ícone da marcação",
+  "en": "Mark icon"
+ },
+ "heatmap.mark_name": {
+  "text": "Nome da marcação",
+  "en": "Mark name"
+ },
+ "heatmap.median_s_s_per_answer_n": {
+  "text": {
+   "one": "Mediana de {s} s por resposta, {n} revisão, {due} ainda a revisar",
+   "other": "Mediana de {s} s por resposta, {n} revisões, {due} ainda a revisar"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review, {due} still due",
+   "other": "Median {s} s per answer, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "text": {
+   "one": "Mediana de {s} s por resposta, {n} revisão",
+   "other": "Mediana de {s} s por resposta, {n} revisões"
+  },
+  "en": {
+   "one": "Median {s} s per answer, {n} review",
+   "other": "Median {s} s per answer, {n} reviews"
+  }
+ },
+ "heatmap.more": {
+  "text": "Mais",
+  "en": "More"
+ },
+ "heatmap.n_cards_due": {
+  "text": {
+   "one": "{n} cartão a revisar",
+   "other": "{n} cartões a revisar"
+  },
+  "en": {
+   "one": "{n} card due",
+   "other": "{n} cards due"
+  }
+ },
+ "heatmap.n_cards_due_after_today": {
+  "text": {
+   "one": "{n} cartão a revisar depois de hoje",
+   "other": "{n} cartões a revisar depois de hoje"
+  },
+  "en": {
+   "one": "{n} card due after today",
+   "other": "{n} cards due after today"
+  }
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "text": {
+   "one": "{n} cartão a revisar ainda este mês",
+   "other": "{n} cartões a revisar ainda este mês"
+  },
+  "en": {
+   "one": "{n} card due later this month",
+   "other": "{n} cards due later this month"
+  }
+ },
+ "heatmap.n_days": {
+  "text": {
+   "one": "{n} dia",
+   "other": "{n} dias"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "heatmap.n_days_from_to_to": {
+  "text": {
+   "one": "{n} dia, de {from} a {to}",
+   "other": "{n} dias, de {from} a {to}"
+  },
+  "en": {
+   "one": "{n} day, {from} to {to}",
+   "other": "{n} days, {from} to {to}"
+  }
+ },
+ "heatmap.n_days_from_to_today": {
+  "text": {
+   "one": "{n} dia, de {from} até hoje",
+   "other": "{n} dias, de {from} até hoje"
+  },
+  "en": {
+   "one": "{n} day, {from} to today",
+   "other": "{n} days, {from} to today"
+  }
+ },
+ "heatmap.n_days_in_a_row": {
+  "text": {
+   "one": "{n} dia seguido",
+   "other": "{n} dias seguidos"
+  },
+  "en": {
+   "one": "{n} day in a row",
+   "other": "{n} days in a row"
+  }
+ },
+ "heatmap.n_days_since_date": {
+  "text": {
+   "one": "{n} dia · Desde {date}",
+   "other": "{n} dias · Desde {date}"
+  },
+  "en": {
+   "one": "{n} day · Since {date}",
+   "other": "{n} days · Since {date}"
+  }
+ },
+ "heatmap.n_hr": {
+  "text": "{n} h",
+  "en": "{n} hr"
+ },
+ "heatmap.n_min": {
+  "text": "{n} min",
+  "en": "{n} min"
+ },
+ "heatmap.n_min_2": {
+  "text": "{n}+ min",
+  "en": "{n}+ min"
+ },
+ "heatmap.n_of_its_of_cards_have": {
+  "text": {
+   "one": "{n} dos seus {of} cartões já foi excluído",
+   "other": "{n} dos seus {of} cartões já foram excluídos"
+  },
+  "en": {
+   "one": "{n} of its {of} cards has since been deleted",
+   "other": "{n} of its {of} cards have since been deleted"
+  }
+ },
+ "heatmap.n_reviews": {
+  "text": {
+   "one": "{n} revisão",
+   "other": "{n} revisões"
+  },
+  "en": {
+   "one": "{n} review",
+   "other": "{n} reviews"
+  }
+ },
+ "heatmap.n_reviews_2": {
+  "text": {
+   "one": "{n}+ revisões",
+   "other": "{n}+ revisões"
+  },
+  "en": {
+   "one": "{n}+ reviews",
+   "other": "{n}+ reviews"
+  }
+ },
+ "heatmap.n_reviews_in_time": {
+  "text": {
+   "one": "{n} revisão em {time}",
+   "other": "{n} revisões em {time}"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "text": {
+   "one": "{n} revisão, sem tempo registrado",
+   "other": "{n} revisões, sem tempo registrado"
+  },
+  "en": {
+   "one": "{n} review, no time kept",
+   "other": "{n} reviews, no time kept"
+  }
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "text": {
+   "one": "{n} revisão até agora, {due} ainda a revisar",
+   "other": "{n} revisões até agora, {due} ainda a revisar"
+  },
+  "en": {
+   "one": "{n} review so far, {due} still due",
+   "other": "{n} reviews so far, {due} still due"
+  }
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "text": {
+   "one": "{n} revisão até agora em {time}, {due} ainda a revisar",
+   "other": "{n} revisões até agora em {time}, {due} ainda a revisar"
+  },
+  "en": {
+   "one": "{n} review so far in {time}, {due} still due",
+   "other": "{n} reviews so far in {time}, {due} still due"
+  }
+ },
+ "heatmap.name_in_n_days": {
+  "text": {
+   "one": "{name} em {n} dia",
+   "other": "{name} em {n} dias"
+  },
+  "en": {
+   "one": "{name} in {n} day",
+   "other": "{name} in {n} days"
+  }
+ },
+ "heatmap.name_today": {
+  "text": "{name} hoje",
+  "en": "{name} today"
+ },
+ "heatmap.name_tomorrow": {
+  "text": "{name} amanhã",
+  "en": "{name} tomorrow"
+ },
+ "heatmap.near_date": {
+  "text": "{near}, {date}",
+  "en": "{near}, {date}"
+ },
+ "heatmap.not_studied": {
+  "text": "Sem estudo",
+  "en": "Not studied"
+ },
+ "heatmap.not_studied_a_day_off": {
+  "text": "Sem estudo: um dia de folga",
+  "en": "Not studied: a day off"
+ },
+ "heatmap.not_studied_a_pond_in_your": {
+  "text": "Sem estudo: uma lagoa na sua floresta",
+  "en": "Not studied: a pond in your forest"
+ },
+ "heatmap.not_studied_since_date": {
+  "text": "Sem estudo desde {date}",
+  "en": "Not studied since {date}"
+ },
+ "heatmap.not_studied_so_far": {
+  "text": "Sem estudo até agora",
+  "en": "Not studied so far"
+ },
+ "heatmap.not_studied_yet": {
+  "text": "Ainda sem estudo",
+  "en": "Not studied yet"
+ },
+ "heatmap.not_studied_yet_n_cards_due": {
+  "text": {
+   "one": "Ainda sem estudo, {n} cartão a revisar",
+   "other": "Ainda sem estudo, {n} cartões a revisar"
+  },
+  "en": {
+   "one": "Not studied yet, {n} card due",
+   "other": "Not studied yet, {n} cards due"
+  }
+ },
+ "heatmap.nothing_due_today": {
+  "text": "Nada a revisar hoje",
+  "en": "Nothing due today"
+ },
+ "heatmap.nothing_due_yet": {
+  "text": "Nada a revisar ainda",
+  "en": "Nothing due yet"
+ },
+ "heatmap.nothing_was_due": {
+  "text": "Não havia nada a revisar",
+  "en": "Nothing was due"
+ },
+ "heatmap.pace": {
+  "text": "Ritmo",
+  "en": "Pace"
+ },
+ "heatmap.pass_your_second_longest_streak_n": {
+  "text": {
+   "one": "Passe sua segunda maior sequência ({n} dia) neste dia, estudando todos os dias até lá",
+   "other": "Passe sua segunda maior sequência ({n} dias) neste dia, estudando todos os dias até lá"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your second-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "text": {
+   "one": "Passe sua segunda maior sequência ({n} dia) neste dia",
+   "other": "Passe sua segunda maior sequência ({n} dias) neste dia"
+  },
+  "en": {
+   "one": "Pass your second-longest streak ({n} day) on this day",
+   "other": "Pass your second-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "text": {
+   "one": "Passe sua terceira maior sequência ({n} dia) neste dia, estudando todos os dias até lá",
+   "other": "Passe sua terceira maior sequência ({n} dias) neste dia, estudando todos os dias até lá"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
+   "other": "Pass your third-longest streak ({n} days) on this day, studying every day until then"
+  }
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "text": {
+   "one": "Passe sua terceira maior sequência ({n} dia) neste dia",
+   "other": "Passe sua terceira maior sequência ({n} dias) neste dia"
+  },
+  "en": {
+   "one": "Pass your third-longest streak ({n} day) on this day",
+   "other": "Pass your third-longest streak ({n} days) on this day"
+  }
+ },
+ "heatmap.pin": {
+  "text": "Alfinete",
+  "en": "Pin"
+ },
+ "heatmap.planted_tree_n_new_cards": {
+  "text": {
+   "one": "Árvore plantada: {n} cartão novo",
+   "other": "Árvore plantada: {n} cartões novos"
+  },
+  "en": {
+   "one": "Planted tree: {n} new cards",
+   "other": "Planted tree: {n} new cards"
+  }
+ },
+ "heatmap.ponds_and_animals_count_from_here": {
+  "text": "Lagoas e animais contam a partir daqui",
+  "en": "Ponds and animals count from here"
+ },
+ "heatmap.reach_a_n_day_streak_on": {
+  "text": {
+   "one": "Chegue a uma sequência de {n} dia neste dia, estudando todos os dias até lá",
+   "other": "Chegue a uma sequência de {n} dias neste dia, estudando todos os dias até lá"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day, studying every day until then",
+   "other": "Reach a {n}-day streak on this day, studying every day until then"
+  }
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "text": {
+   "one": "Chegue a uma sequência de {n} dia neste dia",
+   "other": "Chegue a uma sequência de {n} dias neste dia"
+  },
+  "en": {
+   "one": "Reach a {n}-day streak on this day",
+   "other": "Reach a {n}-day streak on this day"
+  }
+ },
+ "heatmap.remove_the_mark": {
+  "text": "Remover a marcação",
+  "en": "Remove the mark"
+ },
+ "heatmap.reviews": {
+  "text": "Revisões",
+  "en": "Reviews"
+ },
+ "heatmap.s_s_per_answer": {
+  "text": "{s}+ s por resposta",
+  "en": "{s}+ s per answer"
+ },
+ "heatmap.shade_each_day_by_how_long": {
+  "text": "Colorir cada dia pelo tempo de estudo",
+  "en": "Shade each day by how long you studied"
+ },
+ "heatmap.shade_each_day_by_how_many": {
+  "text": "Colorir cada dia pelo número de revisões",
+  "en": "Shade each day by how many reviews you did"
+ },
+ "heatmap.shade_each_day_by_its_median": {
+  "text": "Colorir cada dia pela mediana de segundos por resposta",
+  "en": "Shade each day by its median seconds per answer"
+ },
+ "heatmap.shade_the_days_by": {
+  "text": "Colorir os dias por",
+  "en": "Shade the days by"
+ },
+ "heatmap.sick": {
+  "text": "Doente",
+  "en": "Sick"
+ },
+ "heatmap.slow": {
+  "text": "Lento",
+  "en": "Slow"
+ },
+ "heatmap.star": {
+  "text": "Estrela",
+  "en": "Star"
+ },
+ "heatmap.streak": {
+  "text": "Sequência",
+  "en": "Streak"
+ },
+ "heatmap.studied_all_of_them": {
+  "text": "Estudou em todos",
+  "en": "Studied all of them"
+ },
+ "heatmap.studied_all_of_these_n_days": {
+  "text": {
+   "one": "Estudou neste dia",
+   "other": "Estudou em todos estes {n} dias"
+  },
+  "en": {
+   "one": "Studied all of these {n} day",
+   "other": "Studied all of these {n} days"
+  }
+ },
+ "heatmap.studied_every_day": {
+  "text": "Estudou todos os dias",
+  "en": "Studied every day"
+ },
+ "heatmap.studied_every_day_since_date": {
+  "text": "Estudou todos os dias desde {date}",
+  "en": "Studied every day since {date}"
+ },
+ "heatmap.studied_every_day_so_far": {
+  "text": "Estudou todos os dias até agora",
+  "en": "Studied every day so far"
+ },
+ "heatmap.studied_n_of_them_pct": {
+  "text": {
+   "one": "Estudou em {n} deles ({pct}%)",
+   "other": "Estudou em {n} deles ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {n} of them ({pct}%)",
+   "other": "Studied {n} of them ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "text": {
+   "one": "Estudou em {studied} de {n} dia ({pct}%)",
+   "other": "Estudou em {studied} de {n} dias ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day ({pct}%)",
+   "other": "Studied {studied} of {n} days ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "text": {
+   "one": "Estudou em {studied} de {n} dia desde {date} ({pct}%)",
+   "other": "Estudou em {studied} de {n} dias desde {date} ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day since {date} ({pct}%)",
+   "other": "Studied {studied} of {n} days since {date} ({pct}%)"
+  }
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "text": {
+   "one": "Estudou em {studied} de {n} dia até agora ({pct}%)",
+   "other": "Estudou em {studied} de {n} dias até agora ({pct}%)"
+  },
+  "en": {
+   "one": "Studied {studied} of {n} day so far ({pct}%)",
+   "other": "Studied {studied} of {n} days so far ({pct}%)"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "text": {
+   "one": "Mapa de calor de estudo, de {from} a {to}: {n} dia de estudo, uma sequência de {days} dias",
+   "other": "Mapa de calor de estudo, de {from} a {to}: {n} dias de estudo, uma sequência de {days} dias"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied, a {days}-day streak",
+   "other": "Study heatmap, {from} to {to}: {n} days studied, a {days}-day streak"
+  }
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "text": {
+   "one": "Mapa de calor de estudo, de {from} a {to}: {n} dia de estudo",
+   "other": "Mapa de calor de estudo, de {from} a {to}: {n} dias de estudo"
+  },
+  "en": {
+   "one": "Study heatmap, {from} to {to}: {n} day studied",
+   "other": "Study heatmap, {from} to {to}: {n} days studied"
+  }
+ },
+ "heatmap.the_months_round_this_one_most": {
+  "text": "Os meses em volta deste, a maioria antes dele",
+  "en": "The months round this one, most of them before it"
+ },
+ "heatmap.this_day_s_tree_is_part": {
+  "text": "A árvore deste dia faz parte do fundo da sua floresta",
+  "en": "This day’s tree is part of your deep forest"
+ },
+ "heatmap.this_tree_is_outside_your_current": {
+  "text": "Esta árvore está fora da sua visão de zoom atual",
+  "en": "This tree is outside your current zoom view"
+ },
+ "heatmap.time": {
+  "text": "Tempo",
+  "en": "Time"
+ },
+ "heatmap.time_2": {
+  "text": "{time}+",
+  "en": "{time}+"
+ },
+ "heatmap.time_n_reviews": {
+  "text": {
+   "one": "{time}, {n} revisão",
+   "other": "{time}, {n} revisões"
+  },
+  "en": {
+   "one": "{time}, {n} review",
+   "other": "{time}, {n} reviews"
+  }
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "text": {
+   "one": "{time} até agora, {n} revisão, {due} ainda a revisar",
+   "other": "{time} até agora, {n} revisões, {due} ainda a revisar"
+  },
+  "en": {
+   "one": "{time} so far, {n} review, {due} still due",
+   "other": "{time} so far, {n} reviews, {due} still due"
+  }
+ },
+ "heatmap.timeline": {
+  "text": "Linha do tempo",
+  "en": "Timeline"
+ },
+ "heatmap.today": {
+  "text": "Hoje",
+  "en": "Today"
+ },
+ "heatmap.too_far_ahead_to_count": {
+  "text": "Longe demais para contar",
+  "en": "Too far ahead to count"
+ },
+ "heatmap.trip": {
+  "text": "Viagem",
+  "en": "Trip"
+ },
+ "heatmap.under_a_minute": {
+  "text": "menos de 1 min",
+  "en": "under a minute"
+ },
+ "heatmap.under_n_reviews": {
+  "text": {
+   "one": "Menos de {n} revisões",
+   "other": "Menos de {n} revisões"
+  },
+  "en": {
+   "one": "Under {n} reviews",
+   "other": "Under {n} reviews"
+  }
+ },
+ "heatmap.under_s_s_per_answer": {
+  "text": "Menos de {s} s por resposta",
+  "en": "Under {s} s per answer"
+ },
+ "heatmap.under_time": {
+  "text": "Menos de {time}",
+  "en": "Under {time}"
+ },
+ "heatmap.view": {
+  "text": "Visão",
+  "en": "View"
+ },
+ "heatmap.your_forest_began": {
+  "text": "Sua floresta começou",
+  "en": "Your forest began"
+ },
+ "heatmap.your_longest_streak": {
+  "text": "Sua maior sequência",
+  "en": "Your longest streak"
+ },
+ "heatmap.your_longest_streak_n_days": {
+  "text": {
+   "one": "Sua maior sequência: {n} dia",
+   "other": "Sua maior sequência: {n} dias"
+  },
+  "en": {
+   "one": "Your longest streak: {n} day",
+   "other": "Your longest streak: {n} days"
+  }
+ },
+ "heatmap.your_n_day_streak": {
+  "text": {
+   "one": "Sua sequência de {n} dia",
+   "other": "Sua sequência de {n} dias"
+  },
+  "en": {
+   "one": "Your {n}-day streak",
+   "other": "Your {n}-day streak"
+  }
+ },
+ "heatmap.your_second_longest_streak": {
+  "text": "Sua segunda maior sequência",
+  "en": "Your second-longest streak"
+ },
+ "heatmap.your_second_longest_streak_n_days": {
+  "text": {
+   "one": "Sua segunda maior sequência: {n} dia",
+   "other": "Sua segunda maior sequência: {n} dias"
+  },
+  "en": {
+   "one": "Your second-longest streak: {n} day",
+   "other": "Your second-longest streak: {n} days"
+  }
+ },
+ "heatmap.your_streak_every_year_of_it": {
+  "text": "Sua sequência, ano a ano; as setas levam às sequências anteriores",
+  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+ },
+ "heatmap.your_third_longest_streak": {
+  "text": "Sua terceira maior sequência",
+  "en": "Your third-longest streak"
+ },
+ "heatmap.your_third_longest_streak_n_days": {
+  "text": {
+   "one": "Sua terceira maior sequência: {n} dia",
+   "other": "Sua terceira maior sequência: {n} dias"
+  },
+  "en": {
+   "one": "Your third-longest streak: {n} day",
+   "other": "Your third-longest streak: {n} days"
+  }
+ },
+ "heatmap_look.darker": {
+  "text": "Mais escuros",
+  "en": "Darker"
+ },
+ "heatmap_look.flame": {
+  "text": "Chama",
+  "en": "Flame"
+ },
+ "heatmap_look.ice": {
+  "text": "Gelo",
+  "en": "Ice"
+ },
+ "heatmap_look.lighter": {
+  "text": "Mais claros",
+  "en": "Lighter"
+ },
+ "heatmap_look.lime": {
+  "text": "Lima",
+  "en": "Lime"
+ },
+ "heatmap_look.magenta": {
+  "text": "Magenta",
+  "en": "Magenta"
+ },
+ "heatmap_look.olive": {
+  "text": "Oliva",
+  "en": "Olive"
+ },
+ "heatmap_style.brush": {
+  "text": "Pincel",
+  "en": "Brush"
+ },
+ "heatmap_style.brush.tip": {
+  "text": "As pinceladas de Noite estrelada",
+  "en": "Starry night's brushstrokes"
+ },
+ "heatmap_style.canes": {
+  "text": "Hastes",
+  "en": "Canes"
+ },
+ "heatmap_style.canes.tip": {
+  "text": "As hastes de Bambuzal na chuva, duas por dia",
+  "en": "Bamboo grove's canes, two to a day"
+ },
+ "heatmap_style.chalk": {
+  "text": "Giz",
+  "en": "Chalk"
+ },
+ "heatmap_style.chalk.tip": {
+  "text": "As hachuras de giz de Quadro-negro",
+  "en": "Chalkboard's chalk hatching"
+ },
+ "heatmap_style.contours": {
+  "text": "Curvas de nível",
+  "en": "Contours"
+ },
+ "heatmap_style.contours.tip": {
+  "text": "Os dias em que você estudou como uma só forma, com os tons em faixas planas, como num mapa de curvas de nível",
+  "en": "The days you studied as one shape, its shades in flat bands, like a contour map"
+ },
+ "heatmap_style.flat": {
+  "text": "Liso",
+  "en": "Flat"
+ },
+ "heatmap_style.flat.tip": {
+  "text": "Quadrados de uma só cor, com cantos arredondados",
+  "en": "Square tiles, each one solid colour, their corners smooth"
+ },
+ "heatmap_style.ice": {
+  "text": "Blocos de gelo",
+  "en": "Ice blocks"
+ },
+ "heatmap_style.ice.tip": {
+  "text": "O gelo de Feira no rio congelado, só na semana dele",
+  "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.pumpkin": {
+  "text": "Abóboras",
+  "en": "Pumpkins"
+ },
+ "heatmap_style.pumpkin.tip": {
+  "text": "Os gomos de abóbora de Bruxa diante da lua, só na semana dele",
+  "en": "Witch across the moon's pumpkin ribs, in its week only"
+ },
+ "heatmap_style.rime": {
+  "text": "Geada",
+  "en": "Rime"
+ },
+ "heatmap_style.rime.tip": {
+  "text": "A geada de Vale enevoado no alto de cada quadrado",
+  "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.round": {
+  "text": "Redondo",
+  "en": "Round"
+ },
+ "heatmap_style.round.tip": {
+  "text": "Cada dia um pequeno círculo",
+  "en": "Each day a little round tile"
+ },
+ "heatmap_style.scanlines": {
+  "text": "Scanlines",
+  "en": "Scanlines"
+ },
+ "heatmap_style.scanlines.tip": {
+  "text": "As scanlines de Synthwave",
+  "en": "Synthwave's scanlines"
+ },
+ "heatmap_style.scenery": {
+  "text": "Cenário",
+  "en": "Scenery"
+ },
+ "heatmap_style.scenery.tip": {
+  "text": "Usa o estilo de quadrados do cenário atual e muda quando você troca de cenário",
+  "en": "Uses the current scenery's own tile style and updates when you change scenery"
+ },
+ "hover.click_to_select_it": {
+  "text": "Clique para selecionar",
+  "en": "Click to select it"
+ },
+ "hover.click_to_watch_it_again": {
+  "text": "Clique para ver de novo",
+  "en": "Click to watch it again"
+ },
+ "hover.tap_again_to_watch_it_again": {
+  "text": "Toque de novo para ver de novo",
+  "en": "Tap again to watch it again"
+ },
+ "hover.tap_to_select_it": {
+  "text": "Toque para selecionar",
+  "en": "Tap to select it"
+ },
+ "journal.a_harvest_moon_rises_over_your": {
+  "text": "Uma lua da colheita nasce sobre o aniversário da sua floresta.",
+  "en": "A harvest moon rises over your forest's anniversary."
+ },
+ "journal.days_days_in_a_row_the": {
+  "text": {
+   "one": "{days} dia seguido. A floresta não perdeu nenhum.",
+   "other": "{days} dias seguidos. A floresta não perdeu nenhum."
+  },
+  "en": {
+   "one": "{days} day in a row. The forest has not missed one.",
+   "other": "{days} days in a row. The forest has not missed one."
+  }
+ },
+ "journal.meteors_are_falling_tonight": {
+  "text": "Esta noite tem chuva de meteoros.",
+  "en": "Meteors are falling tonight."
+ },
+ "journal.one_of_your_trees_became_ancient": {
+  "text": "Uma das suas árvores ficou milenar hoje.",
+  "en": "One of your trees became ancient today."
+ },
+ "journal.one_of_your_trees_became_ancient_2": {
+  "text": "Uma das suas árvores ficou milenar hoje. Fique de olho numa estrela cadente.",
+  "en": "One of your trees became ancient today. Watch for a shooting star."
+ },
+ "journal.study_some_new_cards_and_your": {
+  "text": "Estude alguns cartões novos e sua primeira árvore vai criar raízes aqui.",
+  "en": "Study some new cards and your first tree will take root here."
+ },
+ "journal.the_grass_is_growing_tall_no": {
+  "text": {
+   "one": "O mato está crescendo: nenhum cartão novo há {n} semana.",
+   "other": "O mato está crescendo: nenhum cartão novo há {n} semanas."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} week.",
+   "other": "The grass is growing tall: no new cards for {n} weeks."
+  }
+ },
+ "journal.the_grass_is_growing_tall_no_2": {
+  "text": "O mato está crescendo: nenhum cartão novo há uma semana.",
+  "en": "The grass is growing tall: no new cards for a week."
+ },
+ "journal.the_tree_you_planted_on_date": {
+  "text": {
+   "one": "A árvore que você plantou em {date} fez {n} ano hoje.",
+   "other": "A árvore que você plantou em {date} fez {n} anos hoje."
+  },
+  "en": {
+   "one": "The tree you planted on {date} turned {n} year old today.",
+   "other": "The tree you planted on {date} turned {n} years old today."
+  }
+ },
+ "journal.the_tree_you_planted_on_date_2": {
+  "text": "A árvore que você plantou em {date} fez um ano hoje.",
+  "en": "The tree you planted on {date} turned a year old today."
+ },
+ "journal.your_count_th_tree_planted_today": {
+  "text": {
+   "one": "Sua {count}ª árvore, plantada hoje com {cards} cartão novo.",
+   "other": "Sua {count}ª árvore, plantada hoje com {cards} cartões novos."
+  },
+  "en": {
+   "one": "Your {count}th tree, planted today with {cards} new card.",
+   "other": "Your {count}th tree, planted today with {cards} new cards."
+  }
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "text": {
+   "one": "Sua primeira árvore. Ela tem {cards} cartão.",
+   "other": "Sua primeira árvore. Ela tem {cards} cartões."
+  },
+  "en": {
+   "one": "Your first tree. It holds {cards} card.",
+   "other": "Your first tree. It holds {cards} cards."
+  }
+ },
+ "landmark.moon_bridge": {
+  "text": "Ponte da lua",
+  "en": "Moon bridge"
+ },
+ "landmark.none": {
+  "text": "Nenhum",
+  "en": "None"
+ },
+ "landmark.pagoda": {
+  "text": "Pagode",
+  "en": "Pagoda"
+ },
+ "landmark.peak": {
+  "text": "Pico da montanha",
+  "en": "Mountain peak"
+ },
+ "landscape.lake": {
+  "text": "Lago sereno",
+  "en": "Still lake"
+ },
+ "landscape.meadow": {
+  "text": "Campina",
+  "en": "Meadow"
+ },
+ "landscape.mountains": {
+  "text": "Vale entre montanhas",
+  "en": "Mountain valley"
+ },
+ "landscape.river": {
+  "text": "Rio",
+  "en": "River"
+ },
+ "month.april": {
+  "text": "abril",
+  "en": "April"
+ },
+ "month.august": {
+  "text": "agosto",
+  "en": "August"
+ },
+ "month.december": {
+  "text": "dezembro",
+  "en": "December"
+ },
+ "month.february": {
+  "text": "fevereiro",
+  "en": "February"
+ },
+ "month.january": {
+  "text": "janeiro",
+  "en": "January"
+ },
+ "month.july": {
+  "text": "julho",
+  "en": "July"
+ },
+ "month.june": {
+  "text": "junho",
+  "en": "June"
+ },
+ "month.march": {
+  "text": "março",
+  "en": "March"
+ },
+ "month.may": {
+  "text": "maio",
+  "en": "May"
+ },
+ "month.november": {
+  "text": "novembro",
+  "en": "November"
+ },
+ "month.october": {
+  "text": "outubro",
+  "en": "October"
+ },
+ "month.september": {
+  "text": "setembro",
+  "en": "September"
+ },
+ "month_short.apr": {
+  "text": "abr",
+  "en": "Apr"
+ },
+ "month_short.aug": {
+  "text": "ago",
+  "en": "Aug"
+ },
+ "month_short.dec": {
+  "text": "dez",
+  "en": "Dec"
+ },
+ "month_short.feb": {
+  "text": "fev",
+  "en": "Feb"
+ },
+ "month_short.jan": {
+  "text": "jan",
+  "en": "Jan"
+ },
+ "month_short.jul": {
+  "text": "jul",
+  "en": "Jul"
+ },
+ "month_short.jun": {
+  "text": "jun",
+  "en": "Jun"
+ },
+ "month_short.mar": {
+  "text": "mar",
+  "en": "Mar"
+ },
+ "month_short.may": {
+  "text": "mai",
+  "en": "May"
+ },
+ "month_short.nov": {
+  "text": "nov",
+  "en": "Nov"
+ },
+ "month_short.oct": {
+  "text": "out",
+  "en": "Oct"
+ },
+ "month_short.sep": {
+  "text": "set",
+  "en": "Sep"
+ },
+ "news.change_scenery_and_settings_new_scenery": {
+  "text": "Mudar cenário e configurações (cenário novo)",
+  "en": "Change scenery and settings (new scenery)"
+ },
+ "news.change_scenery_and_settings_something_new": {
+  "text": "Mudar cenário e configurações (novidade)",
+  "en": "Change scenery and settings (something new)"
+ },
+ "news.got_it": {
+  "text": "Entendi",
+  "en": "Got it"
+ },
+ "panel.change_scenery_and_settings": {
+  "text": "Mudar cenário e configurações",
+  "en": "Change scenery and settings"
+ },
+ "panel.seasonal_scenery_for_this_week_only": {
+  "text": "Cenário sazonal, só nesta semana. O seu volta em {date}.",
+  "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
+ },
+ "panel.seasonal_scenery_here_until_date": {
+  "text": "Cenário sazonal, aqui até {date}.",
+  "en": "Seasonal scenery, here until {date}."
+ },
+ "panel.todays_scenery_from_surprise_me_daily": {
+  "text": "Cenário de hoje, do Surpreenda-me todo dia. Amanhã vem o próximo.",
+  "en": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."
+ },
+ "panel.your_own_mix_from_customize_in": {
+  "text": "Sua própria combinação, de Personalizar nas configurações da floresta.",
+  "en": "Your own mix, from Customize in the forest settings."
+ },
+ "panel.your_study_forest": {
+  "text": "Sua floresta de estudos",
+  "en": "Your study forest"
+ },
+ "phone.forest_full_screen": {
+  "text": "Floresta em tela cheia",
+  "en": "Forest full screen"
+ },
+ "phone.full_screen_isnt_allowed_here": {
+  "text": "Tela cheia não é permitida aqui.",
+  "en": "Full screen isn't allowed here."
+ },
+ "phone.heatmap_full_screen": {
+  "text": "Mapa de calor em tela cheia",
+  "en": "Heatmap full screen"
+ },
+ "phone.just_now": {
+  "text": "agora mesmo",
+  "en": "just now"
+ },
+ "phone.leave_full_screen": {
+  "text": "Sair da tela cheia",
+  "en": "Leave full screen"
+ },
+ "phone.memory_forest_could_not_draw_your": {
+  "text": "O Memory Forest não conseguiu desenhar sua floresta aqui.",
+  "en": "Memory Forest could not draw your forest here."
+ },
+ "phone.memory_forest_keeps_your_forest_here": {
+  "text": "O Memory Forest guarda sua floresta aqui para que seu celular possa mostrá-la. Estude este baralho para vê-la e volte sem responder. O complemento reescreve esta nota a cada sincronização.",
+  "en": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync."
+ },
+ "phone.n_days_ago": {
+  "text": {
+   "one": "há {n} dia",
+   "other": "há {n} dias"
+  },
+  "en": {
+   "one": "{n} day ago",
+   "other": "{n} days ago"
+  }
+ },
+ "phone.n_hours_ago": {
+  "text": {
+   "one": "há {n} hora",
+   "other": "há {n} horas"
+  },
+  "en": {
+   "one": "{n} hour ago",
+   "other": "{n} hours ago"
+  }
+ },
+ "phone.n_minutes_ago": {
+  "text": {
+   "one": "há {n} minuto",
+   "other": "há {n} minutos"
+  },
+  "en": {
+   "one": "{n} minute ago",
+   "other": "{n} minutes ago"
+  }
+ },
+ "phone.sync_anki_on_your_computer_to": {
+  "text": "Sincronize o Anki no seu computador para atualizá-la.",
+  "en": "Sync Anki on your computer to bring it up to date."
+ },
+ "phone.synced_when": {
+  "text": "Sincronizado {when}.",
+  "en": "Synced {when}."
+ },
+ "phone.yesterday": {
+  "text": "ontem",
+  "en": "yesterday"
+ },
+ "phone.your_forest_arrives_with_the_next": {
+  "text": "Sua floresta chega na próxima sincronização do Anki no seu computador.",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_arrives_with_the_next_sync": {
+  "text": "Sua floresta chega na próxima sincronização do Anki no seu computador.",
+  "en": "Your forest arrives with the next sync from Anki on your computer."
+ },
+ "phone.your_forest_is_on_its_way": {
+  "text": "Sua floresta está a caminho: sincronize mais uma vez para baixar o desenho dela.",
+  "en": "Your forest is on its way: sync once more to fetch its drawing."
+ },
+ "planting.a_new_tree_was_planted_in": {
+  "text": "Uma nova árvore foi plantada na sua floresta hoje.",
+  "en": "A new tree was planted in your forest today."
+ },
+ "preset.aurora": {
+  "text": "Noite de aurora boreal",
+  "en": "Aurora night"
+ },
+ "preset.aurora.note": {
+  "text": "Aurora boreal sobre uma serra nevada, refletida no lago sereno abaixo.",
+  "en": "Northern lights over a snowy range, moving in the still lake below."
+ },
+ "preset.bamboo": {
+  "text": "Bambuzal na chuva",
+  "en": "Rainy bamboo grove"
+ },
+ "preset.bamboo.note": {
+  "text": "Hastes altas sob uma chuva verde e suave, um templo na névoa, lanternas descendo o rio.",
+  "en": "Tall canes in soft green rain, a temple in the mist, lanterns floating down the river."
+ },
+ "preset.chalkboard": {
+  "text": "Quadro-negro",
+  "en": "Chalkboard"
+ },
+ "preset.chalkboard.note": {
+  "text": "A floresta em giz colorido num quadro-negro verde.",
+  "en": "The forest in coloured chalk on a green blackboard."
+ },
+ "preset.cherry_blossom": {
+  "text": "Cerejeiras em flor",
+  "en": "Cherry blossom"
+ },
+ "preset.cherry_blossom.note": {
+  "text": "Hanami ao pé do Fuji: cerejeiras floridas ao longo do rio, lanternas de papel no alto e pétalas ao vento.",
+  "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
+ },
+ "preset.custom": {
+  "text": "Personalizado",
+  "en": "Custom"
+ },
+ "preset.daily": {
+  "text": "Surpreenda-me todo dia",
+  "en": "Surprise me daily"
+ },
+ "preset.daily.note": {
+  "text": "Um cenário diferente a cada dia, em rodízio, para que cada um chegue na sua vez.",
+  "en": "A different scenery every day, taking turns so each one comes round in order."
+ },
+ "preset.frozen_market": {
+  "text": "Feira no rio congelado",
+  "en": "Frozen river market"
+ },
+ "preset.frozen_market.note": {
+  "text": "A feira de Natal no rio congelado: barracas e um carrossel no gelo, patinadores sob uma ponte iluminada por lanternas.",
+  "en": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge."
+ },
+ "preset.golden_lake": {
+  "text": "Hora dourada no lago",
+  "en": "Golden hour by the lake"
+ },
+ "preset.golden_lake.note": {
+  "text": "Sol baixo sobre a água parada, a floresta inteira iluminada de um lado só.",
+  "en": "Low sun across still water, the whole forest lit from one side."
+ },
+ "preset.lanterns": {
+  "text": "Lanternas na noite",
+  "en": "Lanterns at night"
+ },
+ "preset.lanterns.note": {
+  "text": "Lanternas de papel subindo de uma ponte vermelha em arco rumo à lua cheia, e seus reflexos descendo.",
+  "en": "Paper lanterns drifting up from a red moon bridge towards a full moon, and their reflections going down."
+ },
+ "preset.misty_valley": {
+  "text": "Vale enevoado",
+  "en": "Misty mountain valley"
+ },
+ "preset.misty_valley.note": {
+  "text": "Um pico nevado sobre um vale que ainda não acordou.",
+  "en": "A snow-capped peak over a valley that has not woken up yet."
+ },
+ "preset.pumpkin_patch": {
+  "text": "Bruxa diante da lua",
+  "en": "Witch across the moon"
+ },
+ "preset.pumpkin_patch.note": {
+  "text": "Uma bruxa e seu gato cruzam uma lua da colheita nascente sobre uma plantação de abóboras de Halloween sorridentes e risonhas.",
+  "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.starry_night": {
+  "text": "Noite estrelada",
+  "en": "Starry night"
+ },
+ "preset.starry_night.note": {
+  "text": "À maneira de Van Gogh: um céu de pinceladas em redemoinho sobre uma aldeia adormecida, com ciprestes ardendo escuros à frente.",
+  "en": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
+ },
+ "preset.synthwave": {
+  "text": "Synthwave",
+  "en": "Synthwave"
+ },
+ "preset.synthwave.note": {
+  "text": "A grade de neon correndo até o horizonte e o sol listrado pousado sobre ela.",
+  "en": "The neon grid running to the horizon, and the banded sun standing on it."
+ },
+ "scene.after_the_rain": {
+  "text": "Depois da chuva",
+  "en": "After the rain"
+ },
+ "scene.clear": {
+  "text": "Céu limpo",
+  "en": "Clear"
+ },
+ "scene.cloudy": {
+  "text": "Nublado",
+  "en": "Cloudy"
+ },
+ "scene.dawn": {
+  "text": "Amanhecer",
+  "en": "Dawn"
+ },
+ "scene.day": {
+  "text": "Dia",
+  "en": "Day"
+ },
+ "scene.deep_winter": {
+  "text": "Pleno inverno",
+  "en": "Deep winter"
+ },
+ "scene.dusk": {
+  "text": "Entardecer",
+  "en": "Dusk"
+ },
+ "scene.fog": {
+  "text": "Neblina",
+  "en": "Fog"
+ },
+ "scene.golden_hour": {
+  "text": "Hora dourada",
+  "en": "Golden hour"
+ },
+ "scene.night": {
+  "text": "Noite",
+  "en": "Night"
+ },
+ "scene.rain": {
+  "text": "Chuva",
+  "en": "Rain"
+ },
+ "scene.snow": {
+  "text": "Neve",
+  "en": "Snow"
+ },
+ "scene.thunderstorm": {
+  "text": "Tempestade",
+  "en": "Thunderstorm"
+ },
+ "settings.about.all_release_notes": {
+  "text": "Todas as notas de versão",
+  "en": "All release notes"
+ },
+ "settings.about.and_a_special_thank_you_to": {
+  "text": "E um agradecimento especial aos meus apoiadores no Patreon:",
+  "en": "And a special thank-you to my Sponsors on Patreon:"
+ },
+ "settings.about.how_it_works": {
+  "text": "Como funciona",
+  "en": "How it works"
+ },
+ "settings.about.made_by_barak_levy": {
+  "text": "Feito por Barak Levy",
+  "en": "Made by Barak Levy"
+ },
+ "settings.about.memory_forest_grows_thanks_to_everyone": {
+  "text": "O Memory Forest cresce graças a todos que o avaliam, compartilham, mandam ideias ou relatam um bug. Obrigado!",
+  "en": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!"
+ },
+ "settings.about.mit_licence": {
+  "text": "Licença MIT",
+  "en": "MIT licence"
+ },
+ "settings.about.new_scenery_arrives_in_memory_forest": {
+  "text": "Os cenários novos chegam primeiro ao Memory Forest Plus e depois a esta versão também. <a href=\"{url}\">Participe no Patreon</a>",
+  "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
+ },
+ "settings.about.one_tree_for_every_day_you": {
+  "text": "Uma árvore para cada dia em que você aprende cartões novos. O broto de hoje fica na frente, a árvore mais velha no fundo. As árvores crescem conforme esses cartões se firmam na memória e ganham algumas folhas amarelas quando alguns escapam. Dias só de revisão não plantam árvore, mas mantêm as suas saudáveis.",
+  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+ },
+ "settings.about.places_openstreetmap_contributors": {
+  "text": "Locais © <a href=\"{osm}\">colaboradores do OpenStreetMap</a>",
+  "en": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>"
+ },
+ "settings.about.rate_it_on_ankiweb": {
+  "text": "Avalie no AnkiWeb",
+  "en": "Rate it on AnkiWeb"
+ },
+ "settings.about.report_a_bug_or_share_an": {
+  "text": "Relate um bug ou compartilhe uma ideia",
+  "en": "Report a bug or share an idea"
+ },
+ "settings.about.thank_you": {
+  "text": "Obrigado",
+  "en": "Thank you"
+ },
+ "settings.about.the_heatmap_under_it_shows_every": {
+  "text": "O mapa de calor abaixo dela mostra cada dia em que você estudou: passe o mouse sobre um dia para ver os números; clique com o botão direito para marcá-lo.",
+  "en": "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it."
+ },
+ "settings.about.version_version": {
+  "text": "Versão {version}",
+  "en": "Version {version}"
+ },
+ "settings.about.weather_from_met_norway_cc_by": {
+  "text": "Clima do <a href=\"{met}\">MET Norway</a> (CC BY 4.0)",
+  "en": "Weather from <a href=\"{met}\">MET Norway</a> (CC BY 4.0)"
+ },
+ "settings.about.whats_new": {
+  "text": "Novidades",
+  "en": "What's new"
+ },
+ "settings.about.youre_part_of_this_thank_you": {
+  "text": "Você faz parte disto: obrigado por apoiar no <a href=\"{url}\">Patreon</a>",
+  "en": "You're part of this: thank you for supporting it on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.customize.change_anything_here_to_make_it": {
+  "text": "Mude o que quiser aqui para criar sua própria combinação.",
+  "en": "Change anything here to make it your own mix."
+ },
+ "settings.customize.customize_scenery": {
+  "text": "Personalizar {scenery} ›",
+  "en": "Customize {scenery} ›"
+ },
+ "settings.customize.customize_scenery_2": {
+  "text": "Personalizar {scenery}",
+  "en": "Customize {scenery}"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery": {
+  "text": "Personalizar sua combinação, a partir de {scenery} ›",
+  "en": "Customize your own mix, from {scenery} ›"
+ },
+ "settings.customize.customize_your_own_mix_from_scenery_2": {
+  "text": "Personalizar sua combinação, a partir de {scenery}",
+  "en": "Customize your own mix, from {scenery}"
+ },
+ "settings.customize.environment": {
+  "text": "Ambiente",
+  "en": "Environment"
+ },
+ "settings.customize.follows_your_clock": {
+  "text": "Segue seu relógio",
+  "en": "Follows your clock"
+ },
+ "settings.customize.landmark": {
+  "text": "Marco",
+  "en": "Landmark"
+ },
+ "settings.customize.landscape": {
+  "text": "Paisagem",
+  "en": "Landscape"
+ },
+ "settings.customize.live_weather": {
+  "text": "Clima ao vivo",
+  "en": "Live weather"
+ },
+ "settings.customize.reset_a_row_to_put_the": {
+  "text": "Redefina uma linha para voltar à escolha do próprio cenário.",
+  "en": "Reset a row to put the scenery's own choice back."
+ },
+ "settings.customize.reset_put_back_the_scenerys_own": {
+  "text": "Redefinir: voltar à escolha do próprio cenário",
+  "en": "Reset: put back the scenery's own choice"
+ },
+ "settings.customize.sceneries": {
+  "text": "‹ Cenários",
+  "en": "‹ Sceneries"
+ },
+ "settings.customize.time_of_day": {
+  "text": "Hora do dia",
+  "en": "Time of day"
+ },
+ "settings.customize.weather": {
+  "text": "Clima",
+  "en": "Weather"
+ },
+ "settings.decks.counting_your_trees": {
+  "text": "Contando suas árvores…",
+  "en": "Counting your trees…"
+ },
+ "settings.decks.date_format": {
+  "text": "d 'de' MMMM 'de' yyyy",
+  "en": "d MMMM yyyy"
+ },
+ "settings.decks.days_before_date_grow_no_trees": {
+  "text": "Os dias antes de {date} não dão árvores. O mapa de calor ainda os mostra (aba Mapa de calor).",
+  "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
+ },
+ "settings.decks.decks": {
+  "text": "Baralhos",
+  "en": "Decks"
+ },
+ "settings.decks.keep_suspended_cards_in_their_trees": {
+  "text": "Manter cartões suspensos nas suas árvores",
+  "en": "Keep suspended cards in their trees"
+ },
+ "settings.decks.keep_the_trees_from_before_it": {
+  "text": "Manter as árvores de antes",
+  "en": "Keep the trees from before it"
+ },
+ "settings.decks.no_trees": {
+  "text": "nenhuma árvore",
+  "en": "no trees"
+ },
+ "settings.decks.start_the_forest_on": {
+  "text": "Começar a floresta em",
+  "en": "Start the forest on"
+ },
+ "settings.decks.they_keep_their_trees_size_but": {
+  "text": "Eles mantêm o tamanho da árvore, mas nunca prejudicam a saúde dela.",
+  "en": "They keep their tree's size but never hurt its health."
+ },
+ "settings.decks.unticked_decks_grow_no_trees_you": {
+  "text": "Baralhos desmarcados não dão árvores. Você também pode fazer isso pelo menu ⚙ de um baralho.",
+  "en": "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu."
+ },
+ "settings.decks.what_counts": {
+  "text": "O que conta",
+  "en": "What counts"
+ },
+ "settings.decks.your_forest_starts_on_your_first": {
+  "text": "Sua floresta começa no seu primeiro dia de estudo, {first}.",
+  "en": "Your forest starts on your first day of study, {first}."
+ },
+ "settings.decks.your_forest_trees": {
+  "text": "Sua floresta: <b>{trees}</b>",
+  "en": "Your forest: <b>{trees}</b>"
+ },
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "text": {
+   "one": "Sua floresta: <b>{trees}</b> &nbsp;({n} anterior deixada de fora)",
+   "other": "Sua floresta: <b>{trees}</b> &nbsp;({n} anteriores deixadas de fora)"
+  },
+  "en": {
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
+  }
+ },
+ "settings.decks.your_trees_from_before_it_stay": {
+  "text": "Suas árvores de antes ficam. Lagoas, Natureza e os animais contam a partir de {date}.",
+  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+ },
+ "settings.dialog.about": {
+  "text": "Sobre",
+  "en": "About"
+ },
+ "settings.dialog.cancel": {
+  "text": "Cancelar",
+  "en": "Cancel"
+ },
+ "settings.dialog.decks": {
+  "text": "Baralhos",
+  "en": "Decks"
+ },
+ "settings.dialog.done": {
+  "text": "Concluído",
+  "en": "Done"
+ },
+ "settings.dialog.forest": {
+  "text": "Floresta",
+  "en": "Forest"
+ },
+ "settings.dialog.heatmap": {
+  "text": "Mapa de calor",
+  "en": "Heatmap"
+ },
+ "settings.dialog.put_the_settings_back_to_their": {
+  "text": "Voltar as configurações ao padrão?",
+  "en": "Put the settings back to their defaults?"
+ },
+ "settings.dialog.resets_the_scenery_customize_and_surprise": {
+  "text": "Redefine: o cenário, os cenários de Personalizar e de Surpreenda-me todo dia, a Natureza (para {nature}), sua cidade, onde a floresta e o mapa de calor aparecem (inclusive em baralhos concluídos) e a disposição deles, a visão do mapa de calor, sua largura e o que a preenche, o início da semana, pelo que os tons se guiam, as cores (inclusive Dias mais cheios) e o estilo, a animação e a mensagem de plantio.\n\nMantém: os baralhos que você deixou de fora, a data de início (se as árvores de antes ficam e como o mapa de calor e sua sequência se guiam por ela), os dias por semana da sua sequência, os cartões suspensos, seus dias marcados e a floresta no seu celular.\n\nCancelar continua trazendo de volta as configurações que você tinha antes.",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+ },
+ "settings.dialog.restore_defaults": {
+  "text": "Restaurar padrões",
+  "en": "Restore defaults"
+ },
+ "settings.dialog.restore_defaults_2": {
+  "text": "Restaurar padrões…",
+  "en": "Restore defaults…"
+ },
+ "settings.dialog.scenery": {
+  "text": "Cenário",
+  "en": "Scenery"
+ },
+ "settings.forest.a_forest_of_that_decks_own": {
+  "text": "Uma floresta só daquele baralho",
+  "en": "A forest of that deck's own"
+ },
+ "settings.forest.adds_a_memory_forest_deck_with": {
+  "text": "Adiciona um baralho \"Memory Forest\" com um cartão que mostra sua floresta e seu mapa de calor ao sincronizar.",
+  "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
+ },
+ "settings.forest.animate_the_forest": {
+  "text": "Animar a floresta",
+  "en": "Animate the forest"
+ },
+ "settings.forest.covers_the_forest_and_the_heatmap": {
+  "text": "Vale para a floresta e o mapa de calor.",
+  "en": "Covers the forest and the heatmap."
+ },
+ "settings.forest.deck_screens": {
+  "text": "Telas de baralho",
+  "en": "Deck screens"
+ },
+ "settings.forest.follow_system": {
+  "text": "Conforme o sistema",
+  "en": "Follow system"
+ },
+ "settings.forest.forest_width": {
+  "text": "Largura da floresta",
+  "en": "Forest width"
+ },
+ "settings.forest.layout": {
+  "text": "Disposição",
+  "en": "Layout"
+ },
+ "settings.forest.main_screen": {
+  "text": "Tela principal",
+  "en": "Main screen"
+ },
+ "settings.forest.motion_and_messages": {
+  "text": "Movimento e mensagens",
+  "en": "Motion and messages"
+ },
+ "settings.forest.nature": {
+  "text": "Natureza",
+  "en": "Nature"
+ },
+ "settings.forest.no_forest": {
+  "text": "Sem floresta",
+  "en": "No forest"
+ },
+ "settings.forest.off": {
+  "text": "Desativado",
+  "en": "Off"
+ },
+ "settings.forest.on": {
+  "text": "Ativado",
+  "en": "On"
+ },
+ "settings.forest.on_finished_decks_too": {
+  "text": "Também em baralhos concluídos",
+  "en": "On finished decks too"
+ },
+ "settings.forest.on_your_phone": {
+  "text": "No seu celular",
+  "en": "On your phone"
+ },
+ "settings.forest.px": {
+  "text": " px",
+  "en": " px"
+ },
+ "settings.forest.show_a_message_when_todays_tree": {
+  "text": "Mostrar uma mensagem quando a árvore de hoje for plantada",
+  "en": "Show a message when today's tree is planted"
+ },
+ "settings.forest.show_my_forest_on_my_phone": {
+  "text": "Mostrar minha floresta no meu celular",
+  "en": "Show my forest on my phone"
+ },
+ "settings.forest.where_it_shows": {
+  "text": "Onde aparece",
+  "en": "Where it shows"
+ },
+ "settings.forest.your_forest": {
+  "text": "Sua floresta",
+  "en": "Your forest"
+ },
+ "settings.forest.your_forest_that_decks_trees_lit": {
+  "text": "Sua floresta, com as árvores daquele baralho em destaque",
+  "en": "Your forest, that deck's trees lit up"
+ },
+ "settings.heatmap.5_days_a_week": {
+  "text": "5 dias por semana",
+  "en": "5 days a week"
+ },
+ "settings.heatmap.680_px_or_less_where_there": {
+  "text": "680 px, ou menos onde houver menos espaço",
+  "en": "680 px, or less where there is less room"
+ },
+ "settings.heatmap.6_days_a_week": {
+  "text": "6 dias por semana",
+  "en": "6 days a week"
+ },
+ "settings.heatmap.85_of_the_forests_width": {
+  "text": "85% da largura da floresta",
+  "en": "85% of the forest's width"
+ },
+ "settings.heatmap.85_of_the_room_it_has": {
+  "text": "85% do espaço que ele tem: a linha abaixo ou acima da lista de baralhos, ou a coluna ao lado dela",
+  "en": "85% of the room it has: the row under or over the deck list, or its column beside it"
+ },
+ "settings.heatmap.a_day_off_keeps_your_streak": {
+  "text": "Um dia de folga mantém sua sequência, mas não a aumenta.",
+  "en": "A day off keeps your streak but doesn't add to it."
+ },
+ "settings.heatmap.auto": {
+  "text": "Automático",
+  "en": "Auto"
+ },
+ "settings.heatmap.auto_day": {
+  "text": "{auto} ({day})",
+  "en": "{auto} ({day})"
+ },
+ "settings.heatmap.bigger_days": {
+  "text": "Dias maiores",
+  "en": "Bigger days"
+ },
+ "settings.heatmap.by_year_and_streak_always_fit": {
+  "text": "Por ano e Sequência sempre encaixam um ano na largura.",
+  "en": "By year and Streak always fit a year to the width."
+ },
+ "settings.heatmap.colours": {
+  "text": "Cores",
+  "en": "Colours"
+ },
+ "settings.heatmap.deck_screens": {
+  "text": "Telas de baralho",
+  "en": "Deck screens"
+ },
+ "settings.heatmap.every_day": {
+  "text": "Todos os dias",
+  "en": "Every day"
+ },
+ "settings.heatmap.every_day_the_same_size_a": {
+  "text": "Todos os dias do mesmo tamanho: um mapa de calor mais largo mostra mais meses",
+  "en": "Every day the same size: a wider heatmap shows more months"
+ },
+ "settings.heatmap.fill_it_with": {
+  "text": "Preencher com",
+  "en": "Fill it with"
+ },
+ "settings.heatmap.fixed": {
+  "text": "Fixa",
+  "en": "Fixed"
+ },
+ "settings.heatmap.follow_the_forest": {
+  "text": "Igual à floresta",
+  "en": "Follow the forest"
+ },
+ "settings.heatmap.fri": {
+  "text": "sex",
+  "en": "Fri"
+ },
+ "settings.heatmap.friday": {
+  "text": "Sexta-feira",
+  "en": "Friday"
+ },
+ "settings.heatmap.full_width": {
+  "text": "Largura total",
+  "en": "Full width"
+ },
+ "settings.heatmap.layout": {
+  "text": "Disposição",
+  "en": "Layout"
+ },
+ "settings.heatmap.main_screen": {
+  "text": "Tela principal",
+  "en": "Main screen"
+ },
+ "settings.heatmap.mon": {
+  "text": "seg",
+  "en": "Mon"
+ },
+ "settings.heatmap.monday": {
+  "text": "Segunda-feira",
+  "en": "Monday"
+ },
+ "settings.heatmap.more_months": {
+  "text": "Mais meses",
+  "en": "More months"
+ },
+ "settings.heatmap.sat": {
+  "text": "sáb",
+  "en": "Sat"
+ },
+ "settings.heatmap.saturday": {
+  "text": "Sábado",
+  "en": "Saturday"
+ },
+ "settings.heatmap.show_on": {
+  "text": "Mostrar em",
+  "en": "Show on"
+ },
+ "settings.heatmap.show_the_reviews_from_before_your": {
+  "text": "Mostrar as revisões de antes da data de início da sua floresta",
+  "en": "Show the reviews from before your forest's start date"
+ },
+ "settings.heatmap.streak": {
+  "text": "Sequência",
+  "en": "Streak"
+ },
+ "settings.heatmap.style": {
+  "text": "Estilo",
+  "en": "Style"
+ },
+ "settings.heatmap.sun": {
+  "text": "dom",
+  "en": "Sun"
+ },
+ "settings.heatmap.sunday": {
+  "text": "Domingo",
+  "en": "Sunday"
+ },
+ "settings.heatmap.ten_months_with_bigger_days_to": {
+  "text": "Dez meses, com dias maiores para preencher a largura",
+  "en": "Ten months, with bigger days to fill the width"
+ },
+ "settings.heatmap.the_start_date": {
+  "text": "A data de início",
+  "en": "The start date"
+ },
+ "settings.heatmap.thu": {
+  "text": "qui",
+  "en": "Thu"
+ },
+ "settings.heatmap.thursday": {
+  "text": "Quinta-feira",
+  "en": "Thursday"
+ },
+ "settings.heatmap.tue": {
+  "text": "ter",
+  "en": "Tue"
+ },
+ "settings.heatmap.tuesday": {
+  "text": "Terça-feira",
+  "en": "Tuesday"
+ },
+ "settings.heatmap.wed": {
+  "text": "qua",
+  "en": "Wed"
+ },
+ "settings.heatmap.wednesday": {
+  "text": "Quarta-feira",
+  "en": "Wednesday"
+ },
+ "settings.heatmap.week_starts_on": {
+  "text": "Início da semana",
+  "en": "Week starts on"
+ },
+ "settings.heatmap.width": {
+  "text": "Largura",
+  "en": "Width"
+ },
+ "settings.heatmap.your_first_review": {
+  "text": "Sua primeira revisão",
+  "en": "Your first review"
+ },
+ "settings.heatmap.your_forests_start_date_is_set": {
+  "text": "A data de início da sua floresta é definida na aba Baralhos.",
+  "en": "Your forest's start date is set on the Decks tab."
+ },
+ "settings.heatmap.your_streak_counts": {
+  "text": "Sua sequência conta",
+  "en": "Your streak counts"
+ },
+ "settings.heatmap.your_streak_counts_from": {
+  "text": "Sua sequência conta desde",
+  "en": "Your streak counts from"
+ },
+ "settings.heatmap.your_systems_first_day_of_the": {
+  "text": "O primeiro dia da semana do seu sistema",
+  "en": "Your system's first day of the week"
+ },
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": {
+  "text": "O primeiro dia da semana do seu sistema: {day}",
+  "en": "Your system's first day of the week: {day}"
+ },
+ "settings.heatmap_look.blend_into": {
+  "text": "Mesclar com",
+  "en": "Blend into"
+ },
+ "settings.heatmap_look.busier_days": {
+  "text": "Dias mais cheios",
+  "en": "Busier days"
+ },
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": {
+  "text": "Os dias mais cheios ficam mais escuros também no tema escuro do Anki, como no claro, e, por Ritmo, os dias mais rápidos.",
+  "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
+ },
+ "settings.heatmap_look.colours_you_pick_one_dim_to": {
+  "text": "Cores que você escolhe: uma, de clara a intensa, ou duas, mesclando da primeira para a segunda",
+  "en": "Colours you pick: one, dim to full, or two, blending from the first to the second"
+ },
+ "settings.heatmap_look.current_scenery": {
+  "text": "Cenário atual",
+  "en": "Current scenery"
+ },
+ "settings.heatmap_look.custom": {
+  "text": "Personalizadas",
+  "en": "Custom"
+ },
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
+  "text": "No tema escuro do Anki, os dias mais cheios ficam mais claros e, por Ritmo, os dias mais rápidos. No tema claro, sempre mais escuros.",
+  "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
+ },
+ "settings.heatmap_look.lime_green_to_bright_lime": {
+  "text": "Lima: verde a verde-limão vivo",
+  "en": "Lime: green to bright lime"
+ },
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
+  "text": "Chama, do Review Heatmap: vermelho vivo a amarelo",
+  "en": "Review Heatmap's Flame: bright red to yellow"
+ },
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
+  "text": "Gelo, do Review Heatmap: azul profundo a azul-gelo claro",
+  "en": "Review Heatmap's Ice: deep blue to pale ice blue"
+ },
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
+  "text": "Magenta, do Review Heatmap: rosa profundo a rosa-claro",
+  "en": "Review Heatmap's Magenta: deep pink to pale pink"
+ },
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
+  "text": "Oliva, do Review Heatmap: verde-oliva profundo a verde-amarelado claro",
+  "en": "Review Heatmap's Olive: deep olive green to pale yellow-green"
+ },
+ "settings.heatmap_look.scenery": {
+  "text": "Cenário",
+  "en": "Scenery"
+ },
+ "settings.heatmap_look.the_busiest_days_colour": {
+  "text": "A cor dos dias mais cheios",
+  "en": "The busiest days' colour"
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": {
+  "text": "A sua cor dos dias mais cheios é difícil de ver numa página clara. O mapa de calor a mostra como você escolheu.",
+  "en": "Your busiest colour is hard to see on a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": {
+  "text": "A sua cor dos dias mais cheios é difícil de ver numa página escura. O mapa de calor a mostra como você escolheu.",
+  "en": "Your busiest colour is hard to see on a dark page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": {
+  "text": "A sua cor dos dias mais cheios é difícil de ver numa página escura ou clara. O mapa de calor a mostra como você escolheu.",
+  "en": "Your busiest colour is hard to see on a dark or a light page. The heatmap shows it as you picked it."
+ },
+ "settings.heatmap_look.your_busiest_days_colour": {
+  "text": "Cor dos seus dias mais cheios",
+  "en": "Your busiest days' colour"
+ },
+ "settings.heatmap_look.your_colour": {
+  "text": "Sua cor",
+  "en": "Your colour"
+ },
+ "settings.heatmap_look.your_colour_with_a_blend_the": {
+  "text": "Sua cor (mesclando: a dos dias mais tranquilos)",
+  "en": "Your colour (with a blend: the quietest days')"
+ },
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": {
+  "text": "As cores do seu cenário atual, ou as de outro cenário, que ficam quando você troca de cenário",
+  "en": "Your current scenery's colours, or another scenery's, which stay when you change scenery"
+ },
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
+  "text": "Os quadrados do seu cenário atual, ou os de outro cenário, que ficam quando você troca de cenário",
+  "en": "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
+ },
+ "settings.layout.above_the_list": {
+  "text": "Acima da lista",
+  "en": "Above the list"
+ },
+ "settings.layout.beside_it": {
+  "text": "Ao lado",
+  "en": "Beside it"
+ },
+ "settings.layout.beside_the_list_while_the_window": {
+  "text": "Ao lado da lista enquanto houver espaço na janela; senão, abaixo. As telas de baralho os mantêm abaixo.",
+  "en": "Beside the list while the window has room, under it otherwise. Deck screens keep them under it."
+ },
+ "settings.layout.first": {
+  "text": "Primeiro",
+  "en": "First"
+ },
+ "settings.layout.forest": {
+  "text": "Floresta",
+  "en": "Forest"
+ },
+ "settings.layout.heatmap": {
+  "text": "Mapa de calor",
+  "en": "Heatmap"
+ },
+ "settings.layout.left": {
+  "text": "Esquerda",
+  "en": "Left"
+ },
+ "settings.layout.one_beside": {
+  "text": "Um ao lado",
+  "en": "One beside"
+ },
+ "settings.layout.right": {
+  "text": "Direita",
+  "en": "Right"
+ },
+ "settings.layout.side": {
+  "text": "Lado",
+  "en": "Side"
+ },
+ "settings.layout.the_first_above_the_deck_list": {
+  "text": "O primeiro acima da lista de baralhos, o outro abaixo",
+  "en": "The first above the deck list, the other under it"
+ },
+ "settings.layout.the_first_beside_the_deck_list": {
+  "text": "O primeiro ao lado da lista de baralhos, o outro abaixo",
+  "en": "The first beside the deck list, the other under it"
+ },
+ "settings.layout.the_forest_and_the_heatmap_beside": {
+  "text": "A floresta e o mapa de calor ao lado da lista de baralhos, enquanto houver espaço na janela",
+  "en": "The forest and the heatmap beside the deck list, while the window has room for them"
+ },
+ "settings.layout.the_forest_and_the_heatmap_under": {
+  "text": "A floresta e o mapa de calor abaixo da lista de baralhos",
+  "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_one_that_goes_beside_or": {
+  "text": "O que fica ao lado ou acima da lista de baralhos e vem primeiro quando os dois ficam juntos. As telas de baralho também seguem isso.",
+  "en": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too."
+ },
+ "settings.layout.under_the_list": {
+  "text": "Abaixo da lista",
+  "en": "Under the list"
+ },
+ "settings.patreon.enjoying_memory_forest": {
+  "text": "Está gostando do Memory Forest?",
+  "en": "Enjoying Memory Forest?"
+ },
+ "settings.patreon.every_plus_scenery_joins_this_version": {
+  "text": "Todo cenário Plus chega depois a esta versão.",
+  "en": "Every Plus scenery joins this version later on."
+ },
+ "settings.patreon.new_scenery_arrives_here_first_every": {
+  "text": "Cenários novos chegam aqui primeiro, todo mês.",
+  "en": "New scenery arrives here first, every month."
+ },
+ "settings.patreon.support_it_on_patreon_and_get": {
+  "text": "Apoie no Patreon e receba cada cenário\nnovo primeiro, no Memory Forest Plus",
+  "en": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
+ },
+ "settings.patreon.thank_you_for_supporting_memory_forest": {
+  "text": "Obrigado por apoiar o Memory Forest no <a href=\"{url}\">Patreon</a>",
+  "en": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>"
+ },
+ "settings.picker.improved": {
+  "text": "MELHORADO",
+  "en": "IMPROVED"
+ },
+ "settings.picker.label_is_in_memory_forest_plus": {
+  "text": "{label} está no Memory Forest Plus. <a href=\"{url}\">Obtenha no Patreon</a>",
+  "en": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>"
+ },
+ "settings.picker.new": {
+  "text": "NOVO",
+  "en": "NEW"
+ },
+ "settings.picker.no_scenery_has_that_in_its": {
+  "text": "Nenhum cenário tem isso no nome.",
+  "en": "No scenery has that in its name."
+ },
+ "settings.picker.sceneries": {
+  "text": "Cenários",
+  "en": "Sceneries"
+ },
+ "settings.picker.search_n_sceneries": {
+  "text": {
+   "one": "Pesquisar {n} cenário",
+   "other": "Pesquisar {n} cenários"
+  },
+  "en": {
+   "one": "Search {n} scenery",
+   "other": "Search {n} sceneries"
+  }
+ },
+ "settings.picker.this_week_only": {
+  "text": "Só nesta semana",
+  "en": "This week only"
+ },
+ "settings.picker.until_date": {
+  "text": "Até {date}",
+  "en": "Until {date}"
+ },
+ "settings.picker.your_own_mix_made_in_customize": {
+  "text": "Sua própria combinação, feita em Personalizar. Escolha um cenário para recomeçar a partir dele.",
+  "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
+ },
+ "settings.scenery.couldnt_find_this_city_check_the": {
+  "text": "Não foi possível encontrar esta cidade. Confira a grafia ou tente o nome em inglês.",
+  "en": "Couldn't find this city. Check the spelling, or try its English name."
+ },
+ "settings.scenery.couldnt_reach_the_weather_service_trying": {
+  "text": "Não foi possível acessar o serviço de clima; tentando de novo em breve.",
+  "en": "Couldn't reach the weather service; trying again soon."
+ },
+ "settings.scenery.follow_the_real_weather_and_time": {
+  "text": "Seguir o clima real e a hora do dia",
+  "en": "Follow the real weather and time of day"
+ },
+ "settings.scenery.live_weather_from_met_norway_places": {
+  "text": "Clima ao vivo do MET Norway, locais do OpenStreetMap. Deixe em branco para seguir só o seu relógio.",
+  "en": "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock."
+ },
+ "settings.scenery.scenery": {
+  "text": "Cenário",
+  "en": "Scenery"
+ },
+ "settings.scenery.your_city_e_g_berlin": {
+  "text": "Sua cidade, ex.: São Paulo",
+  "en": "Your city, e.g. Berlin"
+ },
+ "settings.surprise.only_one_ticked_the_same_scenery": {
+  "text": "Só um marcado: o mesmo cenário todo dia.",
+  "en": "Only one ticked: the same scenery every day."
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": {
+  "text": "Cenários do Surpreenda-me todo dia (todos os {n}) ›",
+  "en": "Surprise me daily's sceneries (all {n}) ›"
+ },
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
+  "text": "Cenários do Surpreenda-me todo dia ({kept} de {n}) ›",
+  "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
+ },
+ "settings.surprise.untick_the_ones_youd_rather_not": {
+  "text": "Desmarque os que você prefere não ver.",
+  "en": "Untick the ones you'd rather not see."
+ },
+ "tooltip.a_big_learning_day_n_new": {
+  "text": {
+   "one": "<b>Um grande dia de aprendizado</b>: {n} cartão novo, acima dos {usual} de sempre",
+   "other": "<b>Um grande dia de aprendizado</b>: {n} cartões novos, acima dos {usual} de sempre"
+  },
+  "en": {
+   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
+   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"
+  }
+ },
+ "tooltip.a_leech_here_mature_again_the": {
+  "text": "Uma sanguessuga daqui está madura de novo: o sabiá fica uma semana",
+  "en": "A leech here mature again: the robin stays a week"
+ },
+ "tooltip.a_quiet_pond": {
+  "text": "Uma lagoa tranquila",
+  "en": "A quiet pond"
+ },
+ "tooltip.all_n_cards_suspended": {
+  "text": {
+   "one": "Cartão suspenso",
+   "other": "Todos os {n} cartões suspensos"
+  },
+  "en": {
+   "one": "All {n} cards suspended",
+   "other": "All {n} cards suspended"
+  }
+ },
+ "tooltip.ancient": {
+  "text": "milenar",
+  "en": "ancient"
+ },
+ "tooltip.click_to_see_these_cards": {
+  "text": "Clique para ver estes cartões",
+  "en": "Click to see these cards"
+ },
+ "tooltip.from_to": {
+  "text": "{from} – {to}",
+  "en": "{from} – {to}"
+ },
+ "tooltip.its_card_is_suspended": {
+  "text": "Seu cartão está suspenso",
+  "en": "Its card is suspended"
+ },
+ "tooltip.lasts_time": {
+  "text": "dura ~{time}",
+  "en": "lasts ~{time}"
+ },
+ "tooltip.mature": {
+  "text": "adulta",
+  "en": "mature"
+ },
+ "tooltip.n_cards": {
+  "text": {
+   "one": "{n} cartão",
+   "other": "{n} cartões"
+  },
+  "en": {
+   "one": "{n} card",
+   "other": "{n} cards"
+  }
+ },
+ "tooltip.n_days_without_reviews": {
+  "text": {
+   "one": "{n} dia sem revisões",
+   "other": "{n} dias sem revisões"
+  },
+  "en": {
+   "one": "{n} day without reviews",
+   "other": "{n} days without reviews"
+  }
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "text": {
+   "one": "{n} dia sem revisões, de {from} a {to}",
+   "other": "{n} dias sem revisões, de {from} a {to}"
+  },
+  "en": {
+   "one": "{n} day without reviews, from {from} to {to}",
+   "other": "{n} days without reviews, from {from} to {to}"
+  }
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "text": {
+   "one": "{n} dia sem revisões, em {month}",
+   "other": "{n} dias sem revisões, em {month}"
+  },
+  "en": {
+   "one": "{n} day without reviews, in {month}",
+   "other": "{n} days without reviews, in {month}"
+  }
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "text": {
+   "one": "{n} sanguessuga daqui está madura de novo: o sabiá fica uma semana",
+   "other": "{n} sanguessugas daqui estão maduras de novo: o sabiá fica uma semana"
+  },
+  "en": {
+   "one": "{n} leech here mature again: the robin stays a week",
+   "other": "{n} leeches here mature again: the robin stays a week"
+  }
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "text": {
+   "one": "{n} sanguessuga aqui: o corvo dela fica até o cartão estar maduro de novo (intervalo de 21 dias)",
+   "other": "{n} sanguessugas aqui: os corvos ficam até os cartões estarem maduros de novo (intervalo de 21 dias)"
+  },
+  "en": {
+   "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
+   "other": "{n} leeches here: the crows stay until the cards are mature again (21-day interval)"
+  }
+ },
+ "tooltip.n_months": {
+  "text": {
+   "one": "{n} mês",
+   "other": "{n} meses"
+  },
+  "en": {
+   "one": "{n} month",
+   "other": "{n} months"
+  }
+ },
+ "tooltip.n_of_them_ancient": {
+  "text": {
+   "one": "{n} delas milenar",
+   "other": "{n} delas milenares"
+  },
+  "en": {
+   "one": "{n} of them ancient",
+   "other": "{n} of them ancient"
+  }
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "text": {
+   "one": "{n} de {total} reaprendendo ou esquecido nesta semana",
+   "other": "{n} de {total} reaprendendo ou esquecidos nesta semana"
+  },
+  "en": {
+   "one": "{n} of {total} relearning or lapsed this week",
+   "other": "{n} of {total} relearning or lapsed this week"
+  }
+ },
+ "tooltip.n_of_total_suspended": {
+  "text": {
+   "one": "{n} de {total} suspenso",
+   "other": "{n} de {total} suspensos"
+  },
+  "en": {
+   "one": "{n} of {total} suspended",
+   "other": "{n} of {total} suspended"
+  }
+ },
+ "tooltip.n_older_trees": {
+  "text": {
+   "one": "{n} árvore mais antiga",
+   "other": "{n} árvores mais antigas"
+  },
+  "en": {
+   "one": "{n} older tree",
+   "other": "{n} older trees"
+  }
+ },
+ "tooltip.n_years": {
+  "text": "{n} anos",
+  "en": "{n} years"
+ },
+ "tooltip.old": {
+  "text": "velha",
+  "en": "old"
+ },
+ "tooltip.pct_remembered": {
+  "text": "~{pct}% lembrados",
+  "en": "~{pct}% remembered"
+ },
+ "tooltip.pct_still_going_well": {
+  "text": "{pct}% ainda indo bem",
+  "en": "{pct}% still going well"
+ },
+ "tooltip.planted_n_days_ago": {
+  "text": {
+   "one": "plantada há {n} dia",
+   "other": "plantada há {n} dias"
+  },
+  "en": {
+   "one": "planted {n} day ago",
+   "other": "planted {n} days ago"
+  }
+ },
+ "tooltip.planted_today": {
+  "text": "plantada hoje",
+  "en": "planted today"
+ },
+ "tooltip.planted_yesterday": {
+  "text": "plantada ontem",
+  "en": "planted yesterday"
+ },
+ "tooltip.sapling": {
+  "text": "muda",
+  "en": "sapling"
+ },
+ "tooltip.seedling": {
+  "text": "broto",
+  "en": "seedling"
+ },
+ "tooltip.the_deep_forest": {
+  "text": "O fundo da floresta",
+  "en": "The deep forest"
+ },
+ "tooltip.young": {
+  "text": "jovem",
+  "en": "young"
+ },
+ "visitor.a_bear": {
+  "text": "Um urso",
+  "en": "A bear"
+ },
+ "visitor.a_bear_came_you_kept_a": {
+  "text": "Veio um urso: você manteve uma sequência de dois anos",
+  "en": "A bear came: you kept a two-year streak"
+ },
+ "visitor.a_bear_wandered_in_you_kept": {
+  "text": "Um urso apareceu: você manteve uma sequência de dois anos.",
+  "en": "A bear wandered in: you kept a two-year streak."
+ },
+ "visitor.a_cabin": {
+  "text": "Uma cabana",
+  "en": "A cabin"
+ },
+ "visitor.a_cabin_came_your_forest_turned": {
+  "text": "Surgiu uma cabana: sua floresta fez um ano",
+  "en": "A cabin came: your forest turned one year old"
+ },
+ "visitor.a_deer": {
+  "text": "Uma corça",
+  "en": "A deer"
+ },
+ "visitor.a_deer_came_you_kept_a": {
+  "text": "Veio uma corça: você manteve uma sequência de 30 dias",
+  "en": "A deer came: you kept a 30-day streak"
+ },
+ "visitor.a_deer_wandered_in_you_kept": {
+  "text": "Uma corça apareceu: você manteve uma sequência de 30 dias.",
+  "en": "A deer wandered in: you kept a 30-day streak."
+ },
+ "visitor.a_family_of_squirrels": {
+  "text": "Uma família de esquilos",
+  "en": "A family of squirrels"
+ },
+ "visitor.a_family_of_squirrels_came_you": {
+  "text": "Veio uma família de esquilos: você sabia bem 10.000 cartões",
+  "en": "A family of squirrels came: you knew 10,000 cards well"
+ },
+ "visitor.a_family_of_squirrels_wandered_in": {
+  "text": "Uma família de esquilos apareceu: você sabia bem 10.000 cartões.",
+  "en": "A family of squirrels wandered in: you knew 10,000 cards well."
+ },
+ "visitor.a_fox": {
+  "text": "Uma raposa",
+  "en": "A fox"
+ },
+ "visitor.a_fox_came_you_passed_10": {
+  "text": "Veio uma raposa: você passou de 10.000 revisões",
+  "en": "A fox came: you passed 10,000 reviews"
+ },
+ "visitor.a_fox_wandered_in_you_passed": {
+  "text": "Uma raposa apareceu: você passou de 10.000 revisões.",
+  "en": "A fox wandered in: you passed 10,000 reviews."
+ },
+ "visitor.a_heron": {
+  "text": "Uma garça",
+  "en": "A heron"
+ },
+ "visitor.a_heron_came_a_pond_formed": {
+  "text": "Veio uma garça: uma lagoa se formou onde você fez uma pausa",
+  "en": "A heron came: a pond formed where you took a break"
+ },
+ "visitor.a_heron_wandered_in_a_pond": {
+  "text": "Uma garça apareceu: uma lagoa se formou onde você fez uma pausa.",
+  "en": "A heron wandered in: a pond formed where you took a break."
+ },
+ "visitor.a_little_cabin_now_stands_at": {
+  "text": "Agora há uma pequena cabana na beira da sua floresta: um ano desde sua primeira árvore.",
+  "en": "A little cabin now stands at the edge of your forest: a year since your first tree."
+ },
+ "visitor.a_rabbit": {
+  "text": "Um coelho",
+  "en": "A rabbit"
+ },
+ "visitor.a_rabbit_came_your_forest_reached": {
+  "text": "Veio um coelho: sua floresta chegou a 50 árvores",
+  "en": "A rabbit came: your forest reached 50 trees"
+ },
+ "visitor.a_rabbit_wandered_in_your_forest": {
+  "text": "Um coelho apareceu: sua floresta chegou a 50 árvores.",
+  "en": "A rabbit wandered in: your forest reached 50 trees."
+ },
+ "visitor.a_stag": {
+  "text": "Um cervo",
+  "en": "A stag"
+ },
+ "visitor.a_stag_came_you_kept_a": {
+  "text": "Veio um cervo: você manteve uma sequência de 100 dias",
+  "en": "A stag came: you kept a 100-day streak"
+ },
+ "visitor.a_stag_wandered_in_you_kept": {
+  "text": "Um cervo apareceu: você manteve uma sequência de 100 dias.",
+  "en": "A stag wandered in: you kept a 100-day streak."
+ },
+ "visitor.an_eagle": {
+  "text": "Uma águia",
+  "en": "An eagle"
+ },
+ "visitor.an_eagle_came_you_knew_25": {
+  "text": "Veio uma águia: você sabia bem 25.000 cartões",
+  "en": "An eagle came: you knew 25,000 cards well"
+ },
+ "visitor.an_eagle_wandered_in_you_knew": {
+  "text": "Uma águia apareceu: você sabia bem 25.000 cartões.",
+  "en": "An eagle wandered in: you knew 25,000 cards well."
+ },
+ "visitor.an_owl": {
+  "text": "Uma coruja",
+  "en": "An owl"
+ },
+ "visitor.an_owl_came_your_first_tree": {
+  "text": "Veio uma coruja: sua primeira árvore ficou milenar",
+  "en": "An owl came: your first tree became ancient"
+ },
+ "visitor.an_owl_wandered_in_your_first": {
+  "text": "Uma coruja apareceu: sua primeira árvore ficou milenar.",
+  "en": "An owl wandered in: your first tree became ancient."
+ },
+ "visitor.built_when_your_forest_turned_one": {
+  "text": "Construída quando sua floresta fez um ano.",
+  "en": "Built when your forest turned one year old."
+ },
+ "visitor.moved_in_when_a_pond_formed": {
+  "text": "Chegou para ficar quando uma lagoa se formou onde você fez uma pausa.",
+  "en": "Moved in when a pond formed where you took a break."
+ },
+ "visitor.moved_in_when_you_kept_a": {
+  "text": "Chegou para ficar quando você manteve uma sequência de 30 dias.",
+  "en": "Moved in when you kept a 30-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_2": {
+  "text": "Chegou para ficar quando você manteve uma sequência de 100 dias.",
+  "en": "Moved in when you kept a 100-day streak."
+ },
+ "visitor.moved_in_when_you_kept_a_3": {
+  "text": "Chegou para ficar quando você manteve uma sequência de dois anos.",
+  "en": "Moved in when you kept a two-year streak."
+ },
+ "visitor.moved_in_when_you_knew_10": {
+  "text": "Chegou para ficar quando você sabia bem 10.000 cartões.",
+  "en": "Moved in when you knew 10,000 cards well."
+ },
+ "visitor.moved_in_when_you_knew_25": {
+  "text": "Chegou para ficar quando você sabia bem 25.000 cartões.",
+  "en": "Moved in when you knew 25,000 cards well."
+ },
+ "visitor.moved_in_when_you_passed_10": {
+  "text": "Chegou para ficar quando você passou de 10.000 revisões.",
+  "en": "Moved in when you passed 10,000 reviews."
+ },
+ "visitor.moved_in_when_your_first_tree": {
+  "text": "Chegou para ficar quando sua primeira árvore ficou milenar.",
+  "en": "Moved in when your first tree became ancient."
+ },
+ "visitor.moved_in_when_your_forest_reached": {
+  "text": "Chegou para ficar quando sua floresta chegou a 50 árvores.",
+  "en": "Moved in when your forest reached 50 trees."
+ },
+ "zoom.back_to_the_whole_forest": {
+  "text": "Voltar à floresta inteira",
+  "en": "Back to the whole forest"
+ },
+ "zoom.next_day": {
+  "text": "Dia seguinte",
+  "en": "Next day"
+ },
+ "zoom.pinch_or_double_tap_to_zoom": {
+  "text": "Faça pinça ou toque duas vezes para dar zoom, arraste para andar, toque numa árvore para selecioná-la",
+  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
+ },
+ "zoom.planted_date": {
+  "text": "Plantada em {date}",
+  "en": "Planted {date}"
+ },
+ "zoom.previous_day": {
+  "text": "Dia anterior",
+  "en": "Previous day"
+ },
+ "zoom.scroll_or_press_to_zoom_drag": {
+  "text": "Role ou pressione ↑ ↓ para dar zoom, arraste ou pressione ← → para andar, clique numa árvore para selecioná-la",
+  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ },
+ "zoom.the_tree_of_the_day_after": {
+  "text": "A árvore do dia seguinte",
+  "en": "The tree of the day after"
+ },
+ "zoom.the_tree_of_the_day_before": {
+  "text": "A árvore do dia anterior",
+  "en": "The tree of the day before"
+ },
+ "zoom.zoom_in_among_the_trees": {
+  "text": "Dar zoom entre as árvores",
+  "en": "Zoom in among the trees"
+ }
+}

@@ -9,9 +9,10 @@ import math
 from aqt import gui_hooks, mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QGuiApplication, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
-from .. import news, presets
-from ..edition import debug_available, debug_edition, is_plus
+from .. import i18n, news, presets
+from ..edition import debug_available, debug_edition, debug_language, is_plus
 from ..events import NATURE_LABELS, nature_level
+from ..i18n import N_, t, tx
 from ..seasons import offer_day, today
 from . import whats_new
 from .about import AboutTab
@@ -20,7 +21,7 @@ from .forest_tab import ForestTab
 from .heatmap_tab import HeatmapTab
 from .scenery_picker import ROW_H, ROWS_FEWEST, ROWS_SHOWN
 from .scenery_tab import SceneryTab
-from .widgets import Scrolled
+from .widgets import Scrolled, follow_direction, mirror
 
 DIALOG_MIN_WIDTH = 460
 # the Debug tab's timeline buttons need more room than the dialog's usual width
@@ -43,14 +44,10 @@ DATA_KEYS = ("excluded_decks", "ignore_before", "keep_earlier_trees", "keep_susp
 OUTSIDE_KEYS = ("calendar_shade", "calendar")
 
 
-RESTORE_TITLE = "Restore defaults"
-RESTORE_BUTTON = "Restore defaults\u2026"  # (it asks first)
-RESTORE_QUESTION = "Put the settings back to their defaults?"
-RESTORE_NOTE = ("Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the "
-                "heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, "
-                "what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your "
-                "streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\n"
-                "Cancel still puts back the settings you had before.")
+RESTORE_TITLE = N_("settings.dialog.restore_defaults")
+RESTORE_BUTTON = N_("settings.dialog.restore_defaults_2")  # (it asks first)
+RESTORE_QUESTION = N_("settings.dialog.put_the_settings_back_to_their")
+RESTORE_NOTE = N_("settings.dialog.resets_the_scenery_customize_and_surprise")  # (one key: {nature} is a Nature level's name)
 # the tab the dialog was left on, for the next time it opens while Anki is: kept in memory
 # only, so Anki starts again on the Scenery tab (not the config either: it is no setting)
 _last_tab = ""
@@ -61,7 +58,7 @@ OLD_TAB_KEYS = {"general": "scenery", "fine": "scenery", "history": "decks"}
 def restore_note(defaults: dict) -> str:
     """What Restore defaults asks before it does anything: what it resets, and what it keeps
     (DATA_KEYS)."""
-    return RESTORE_NOTE.format(nature=NATURE_LABELS[nature_level(defaults.get("nature"))])
+    return tx(RESTORE_NOTE, nature=tx(NATURE_LABELS[nature_level(defaults.get("nature"))]))
 
 
 class NoDebugTab:
@@ -100,6 +97,11 @@ class SettingsDialog(QDialog):
         self.on_change, self.on_phone = on_change, on_phone
         self.reopen = reopen
         cfg = dict(mw.addonManager.getConfig(module) or {})
+        i18n.set_override(debug_language(cfg))  # (the Debug tab's Language, read on opening)
+        # the dialog reads the way its words do, not as Anki's own language does: a right-to-left one
+        # (Hebrew, Arabic...) in an English Anki right to left, an English one in a right-to-left Anki
+        # left to right (its children follow)
+        follow_direction(self)
         carry = carry or {}
         # what this dialog's changes are saved on top of (the keys no tab holds, such as debug's
         # while its tab is hidden), and what Cancel puts back: the same, unless Restore defaults
@@ -120,10 +122,11 @@ class SettingsDialog(QDialog):
         # the made-up test forest and the event switches are a developer's tool: their tab is
         # only there while debug is on (its values are still kept, so they wait for next time)
         self.debug = debug_tab(cfg)
-        shown = [(self.scenery, "Scenery"), (self.forest, "Forest"), (self.heatmap, "Heatmap"), (self.decks, "Decks")]
+        shown = [(self.scenery, t("settings.dialog.scenery")), (self.forest, t("settings.dialog.forest")),
+                 (self.heatmap, t("settings.dialog.heatmap")), (self.decks, t("settings.dialog.decks"))]
         if not isinstance(self.debug, NoDebugTab):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
-            shown.append((self.debug, "Debug"))
+            shown.append((self.debug, "Debug"))  # (a developer's tool: stays English)
         self.debug.offer_news(self.news_targets())
         # (the dialog's own timer, as below: a closed dialog is never called back)
         self._whole = QTimer(self); self._whole.setSingleShot(True); self._whole.setInterval(0)
@@ -142,13 +145,15 @@ class SettingsDialog(QDialog):
             # (the Debug tab, the longest by far, asks for no more than Forest either, and never grows
             # the dialog when shown: the dialog is as tall with debug on as without, Debug scrolls)
             self.pages[self.debug] = Scrolled(self.debug, cap=lambda: self.pages[self.forest].sizeHint().height())
-        for widget, name in shown + [(self.about, "About")]:
+        for widget, name in shown + [(self.about, t("settings.dialog.about"))]:
             tabs.addTab(self._page(widget), name)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
                                    | QDialogButtonBox.StandardButton.RestoreDefaults)
-        buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Done")
-        buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults).setText(RESTORE_BUTTON)
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText(t("settings.dialog.done"))
+        # (Qt's own words are Anki's language, which the add-on's need not be: the Debug tab's, or one Anki lacks)
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText(t("settings.dialog.cancel"))
+        buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults).setText(tx(RESTORE_BUTTON))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults).clicked.connect(self.restore_defaults)
@@ -189,6 +194,10 @@ class SettingsDialog(QDialog):
                 else:
                     whats_new.tag(tab, targets[key][1])
         self.show_news(focus)
+        # right to left, the labels' lines start on the right whatever their words (mirror), and
+        # again for what a tab makes as it is shown
+        mirror(self)
+        tabs.currentChanged.connect(lambda _i: mirror(self))
         self.layout().activate()
         self.fit_screen()
         self.adjustSize()
@@ -386,13 +395,15 @@ class SettingsDialog(QDialog):
                 focused.setFocus()
 
     def _restore_confirmed(self, known: dict) -> bool:
-        box = QMessageBox(self)
+        box = follow_direction(QMessageBox(self))
         box.setIcon(QMessageBox.Icon.Question)
-        box.setWindowTitle(RESTORE_TITLE)
-        box.setText(RESTORE_QUESTION)
+        box.setWindowTitle(tx(RESTORE_TITLE))
+        box.setText(tx(RESTORE_QUESTION))
         box.setInformativeText(restore_note(known))
-        restore = box.addButton(RESTORE_TITLE, QMessageBox.ButtonRole.AcceptRole)
+        restore = box.addButton(tx(RESTORE_TITLE), QMessageBox.ButtonRole.AcceptRole)
         keep = box.addButton(QMessageBox.StandardButton.Cancel)
+        keep.setText(t("settings.dialog.cancel"))
+        mirror(box)
         box.setDefaultButton(keep)
         box.setEscapeButton(keep)
         box.exec()

@@ -2,6 +2,12 @@
   "_comment": "Every version's release notes, newest first: the one place they are written. dev/notes.py makes the AnkiWeb page's What's new from them (npm run notes), dev/release.py the GitHub release's, and the add-on reads them for the About tab and for what an update announces. See release_notes.py for what an item can hold. One short sentence each.",
   "versions": [
     {
+      "version": "1.5.0",
+      "new": [
+        "Memory Forest now speaks your Anki's language: German, Spanish, French, Brazilian Portuguese, Japanese, Chinese, Arabic and Hebrew, with right-to-left layouts for Arabic and Hebrew."
+      ]
+    },
+    {
       "version": "1.4.0",
       "new": [
         {

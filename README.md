@@ -137,6 +137,13 @@ and share it with friends who study with Anki. It is what helps other people fin
 A new scenery arrives every month. Want each one first? [Join on Patreon](https://www.patreon.com/BarakLevy)
 for Memory Forest Plus, and every scenery comes to this version later on.
 
+## Languages
+
+Memory Forest follows your Anki's language. So far it supports German, Spanish, French, Brazilian
+Portuguese, Japanese, Chinese (Simplified), Arabic and Hebrew, right to left where the language reads
+so. The translations were made with AI and no native speaker has read them yet, so they're probably
+bad in places: if something reads wrong in your language, please [tell me](TRANSLATING.md).
+
 ## Feedback
 
 Found a bug or have an idea? [Open an issue](https://github.com/baraklevy20/memory-forest/issues).

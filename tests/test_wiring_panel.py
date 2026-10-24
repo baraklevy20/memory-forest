@@ -185,7 +185,7 @@ class GearMenuTests(unittest.TestCase):
             actions.on_deck_options_menu(menu, 20)
             menu.actions[0].triggered.connect.call_args.args[0]()
         redraw.assert_called_once_with()
-        self.assertEqual(tooltips, [actions.LEFT_OUT])
+        self.assertEqual(tooltips, [addon.i18n.t(actions.LEFT_OUT)])
         self.assertEqual(mw.addonManager.config["excluded_decks"], [20])
 
     def test_a_deck_that_is_gone_gets_nothing(self):

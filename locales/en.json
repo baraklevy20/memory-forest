@@ -1,0 +1,883 @@
+{
+ "actions.answer_time_date": "Answer time ({date})",
+ "actions.answer_time_days_days_first_to": {
+  "one": "Answer time ({days} day, {first} to {last})",
+  "other": "Answer time ({days} days, {first} to {last})"
+ },
+ "actions.answer_time_first_to_last": "Answer time ({first} to {last})",
+ "actions.back_in_your_forest": "Back in your forest.",
+ "actions.bring_back_into_memory_forest": "Bring back into Memory Forest",
+ "actions.leave_out_of_memory_forest": "Leave out of Memory Forest",
+ "actions.left_out_of_memory_forest_with": "Left out of Memory Forest with its parent deck",
+ "actions.left_out_of_your_forest_its": "Left out of your forest. Its ⚙ menu brings it back.",
+ "actions.reviews_date": "Reviews ({date})",
+ "actions.reviews_days_days_first_to_last": {
+  "one": "Reviews ({days} day, {first} to {last})",
+  "other": "Reviews ({days} days, {first} to {last})"
+ },
+ "actions.reviews_first_to_last": "Reviews ({first} to {last})",
+ "actions.total_time_date": "Total time ({date})",
+ "actions.total_time_days_days_first_to": {
+  "one": "Total time ({days} day, {first} to {last})",
+  "other": "Total time ({days} days, {first} to {last})"
+ },
+ "actions.total_time_first_to_last": "Total time ({first} to {last})",
+ "answer_column.heading_detail": "{heading}. {detail}",
+ "answer_column.median_seconds_per_answer_for_the": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median.",
+ "answer_column.number_of_answers_on_the_clicked": "Number of answers on the clicked day, including retries. Notes show the sum across their cards.",
+ "answer_column.seconds_s": "{seconds} s",
+ "answer_column.total_seconds_spent_answering_on_the": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards.",
+ "caption.after_the_rain": "after the rain",
+ "caption.city_not_found": "City not found",
+ "caption.clear_sky": "clear sky",
+ "caption.click_to_see_all_of_it": "Click to see all of it",
+ "caption.click_to_see_their_cards": "Click to see their cards.",
+ "caption.cloudy": "cloudy",
+ "caption.days_you_studied_in_a_row": "Days you studied, in a row. A day with nothing due doesn't break it.",
+ "caption.days_you_studied_in_a_row_2": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, a day off in a week doesn't either.",
+ "caption.days_you_studied_in_a_row_3": "Days you studied, in a row. A day with nothing due doesn't break it, and as your streak counts {week} days a week, two days off in a week don't either.",
+ "caption.deck_lit_of_n_trees": {
+  "one": "{deck}: {lit} of {n} tree",
+  "other": "{deck}: {lit} of {n} trees"
+ },
+ "caption.deep_winter": "deep winter",
+ "caption.fog": "fog",
+ "caption.live_weather_from_met_norway_cc": "Live weather from MET Norway (CC BY 4.0).",
+ "caption.live_weather_unavailable": "Live weather unavailable",
+ "caption.made_up_trees_from_the_test": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one.",
+ "caption.n_ancient": {
+  "one": "{n} ancient",
+  "other": "{n} ancient"
+ },
+ "caption.n_day_streak": {
+  "one": "{n}-day streak",
+  "other": "{n}-day streak"
+ },
+ "caption.n_in_the_deep_forest": {
+  "one": "{n} in the deep forest",
+  "other": "{n} in the deep forest"
+ },
+ "caption.n_trees": {
+  "one": "{n} tree",
+  "other": "{n} trees"
+ },
+ "caption.one_tree_for_each_day_you": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards.",
+ "caption.openstreetmap_does_not_know_that_city": "OpenStreetMap does not know that city, so the scenery keeps its own weather. Check the spelling, or try its English name, in the forest settings.",
+ "caption.rain": "rain",
+ "caption.snow": "snow",
+ "caption.test_forest": "Test forest",
+ "caption.the_live_weather_could_not_be": "The live weather could not be fetched, so the scenery keeps its own weather for now.",
+ "caption.the_scenery_chosen_in_the_forest": "The scenery, chosen in the forest settings.",
+ "caption.thunderstorm": "thunderstorm",
+ "caption.trees_holding_cards_from_this_deck": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings.",
+ "caption.trees_whose_cards_you_will_likely": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not.",
+ "caption.weather_by_met_norway": "weather by MET Norway",
+ "caption.weather_weather": "Weather: {weather}",
+ "caption.weather_weather_in_city": "Weather: {weather} in {city}",
+ "caption.weather_weather_in_city_temp": "Weather: {weather} in {city}, {temp}°",
+ "caption.weather_weather_temp": "Weather: {weather}, {temp}°",
+ "caption.your_trees_from_from_to_to": {
+  "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
+  "other": "Your trees from {from} to {to} stand together in the distance, holding {n} cards. Drawing every one of them individually would slow the deck list down."
+ },
+ "date.day_month": "{day} {month}",
+ "date.day_month_year": "{day} {month} {year}",
+ "date.month_year": "{month} {year}",
+ "event.asteroid.a_crater": "A crater",
+ "event.asteroid.an_asteroid_strikes_when_ankis_day": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater.",
+ "event.asteroid.asteroid_struck_date": "Asteroid struck {date}",
+ "event.asteroid.asteroid_tonight": "Asteroid: tonight",
+ "event.asteroid.its_crater_can_play_it_again": "Its crater can play it again too.",
+ "event.asteroid.n_trees_lost_after_a_day": {
+  "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
+  "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+ },
+ "event.asteroid.n_trees_lost_on_date": {
+  "one": "{n} tree lost on {date}",
+  "other": "{n} trees lost on {date}"
+ },
+ "event.asteroid.n_trees_lost_on_date_after": {
+  "one": "{n} tree lost on {date}, after a {streak}-day streak",
+  "other": "{n} trees lost on {date}, after a {streak}-day streak"
+ },
+ "event.asteroid.on_peaceful_or_wild_the_trees": "On Peaceful or Wild the trees stand again",
+ "event.asteroid.turn_on_animations_in_the_forest": "Turn on animations in the forest settings to watch it.",
+ "event.asteroid.your_system_asks_for_less_motion": "Your system asks for less motion: set Animate the forest to On to watch it.",
+ "event.fire.fire_n_trees": {
+  "one": "Fire: {n} tree",
+  "other": "Fire: {n} trees"
+ },
+ "event.fire.n_more_days_of_study_put": {
+  "one": "{n} more day of study puts it out.",
+  "other": "{n} more days of study put it out."
+ },
+ "event.fire.n_trees_caught_fire_while_you": {
+  "one": "{n} tree caught fire while you were away.",
+  "other": "{n} trees caught fire while you were away."
+ },
+ "event.fire.on_fire_it_caught_while_you": {
+  "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
+  "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+ },
+ "event.fire.smoke_is_rising_after_two_days": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire.",
+ "event.fire.smoke_study_today": "Smoke: study today",
+ "event.fire.smoking": "Smoking",
+ "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
+  "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
+  "other": "<b>Review hell</b>: {n} reviews overdue. Clear them and the tumbleweeds blow away."
+ },
+ "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
+  "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
+  "other": "<b>Review hell</b>: {n} reviews overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away."
+ },
+ "events.a_fire_broke_out_while_you": {
+  "one": "A fire broke out while you were away: {trees} tree is burning. Study on {days} days to put it out.",
+  "other": "A fire broke out while you were away: {trees} trees are burning. Study on {days} days to put it out."
+ },
+ "events.an_asteroid_took_your_forest_of": {
+  "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
+  "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
+ },
+ "events.merciless": "Merciless",
+ "events.miss_a_day_nothing_is_lost": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest.",
+ "events.miss_a_day_of_reviews_an": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too.",
+ "events.miss_two_days_in_a_row": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too.",
+ "events.peaceful": "Peaceful",
+ "events.smoke_is_rising_from_your_forest": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire.",
+ "events.switch_back_any_time_and_every": "Switch back any time and every tree is there again.",
+ "events.the_last_of_the_fire_is": "The last of the fire is out. Your forest is green again.",
+ "events.wild": "Wild",
+ "events.you_cleared_your_overdue_reviews": "You cleared your overdue reviews.",
+ "events.you_cleared_your_overdue_reviews_the": "You cleared your overdue reviews. The tumbleweeds blew away.",
+ "heatmap.a_minute": "a minute",
+ "heatmap.about_n_reviews_a_day": {
+  "one": "About {n} review a day",
+  "other": "About {n} reviews a day"
+ },
+ "heatmap.about_n_reviews_a_day_studied": {
+  "one": "About {n} review a day studied",
+  "other": "About {n} reviews a day studied"
+ },
+ "heatmap.about_n_reviews_and_time_a": {
+  "one": "About {n} review and {time} a day studied",
+  "other": "About {n} reviews and {time} a day studied"
+ },
+ "heatmap.about_n_reviews_and_time_a_2": {
+  "one": "About {n} review and {time} a day",
+  "other": "About {n} reviews and {time} a day"
+ },
+ "heatmap.all_n_of_its_cards_have": {
+  "one": "All {n} of its cards have since been deleted",
+  "other": "All {n} of its cards have since been deleted"
+ },
+ "heatmap.and_n_more_marked": {
+  "one": "and {n} more marked",
+  "other": "and {n} more marked"
+ },
+ "heatmap.back_to_today": "Back to today",
+ "heatmap.beat_your_longest_streak_n_days": {
+  "one": "Beat your longest streak ({n} day) on this day, studying every day until then",
+  "other": "Beat your longest streak ({n} days) on this day, studying every day until then"
+ },
+ "heatmap.beat_your_longest_streak_n_days_2": {
+  "one": "Beat your longest streak ({n} day) on this day",
+  "other": "Beat your longest streak ({n} days) on this day"
+ },
+ "heatmap.before_your_first_review": "Before your first review",
+ "heatmap.before_your_forest_began": "Before your forest began",
+ "heatmap.birthday": "Birthday",
+ "heatmap.both_of_its_cards_have_since": "Both of its cards have since been deleted",
+ "heatmap.by_year": "By year",
+ "heatmap.date_name": "<i>{date}:</i> {name}",
+ "heatmap.day_day_of_a_n_day": {
+  "one": "Day {day} of a {n}-day streak",
+  "other": "Day {day} of a {n}-day streak"
+ },
+ "heatmap.day_day_of_n_in_a": {
+  "one": "Day {day} of {n} in a row",
+  "other": "Day {day} of {n} in a row"
+ },
+ "heatmap.day_day_of_your_n_day": {
+  "one": "Day {day} of your {n}-day streak",
+  "other": "Day {day} of your {n}-day streak"
+ },
+ "heatmap.day_day_of_your_streak": "Day {day} of your streak",
+ "heatmap.didnt_break_a_n_day_streak": {
+  "one": "Didn't break a {n}-day streak",
+  "other": "Didn't break a {n}-day streak"
+ },
+ "heatmap.doesnt_break_your_n_day_streak": {
+  "one": "Doesn't break your {n}-day streak",
+  "other": "Doesn't break your {n}-day streak"
+ },
+ "heatmap.done": "Done",
+ "heatmap.earlier": "Earlier",
+ "heatmap.exam": "Exam",
+ "heatmap.fast": "Fast",
+ "heatmap.from_n_reviews": {
+  "one": "{from}–{n} reviews",
+  "other": "{from}–{n} reviews"
+ },
+ "heatmap.from_to": "{from}–{to}",
+ "heatmap.from_to_min": "{from}–{to} min",
+ "heatmap.from_to_s_per_answer": "{from}–{to} s per answer",
+ "heatmap.from_to_to": "{from} to {to}",
+ "heatmap.from_to_today": "{from} to today",
+ "heatmap.h_hr_m_min": "{h} hr {m} min",
+ "heatmap.heart": "Heart",
+ "heatmap.its_card_has_since_been_deleted": "Its card has since been deleted",
+ "heatmap.january_to_december": "January to December",
+ "heatmap.last_day_of_a_n_day": {
+  "one": "Last day of a {n}-day streak",
+  "other": "Last day of a {n}-day streak"
+ },
+ "heatmap.later": "Later",
+ "heatmap.less": "Less",
+ "heatmap.mark_icon": "Mark icon",
+ "heatmap.mark_name": "Mark name",
+ "heatmap.median_s_s_per_answer_n": {
+  "one": "Median {s} s per answer, {n} review, {due} still due",
+  "other": "Median {s} s per answer, {n} reviews, {due} still due"
+ },
+ "heatmap.median_s_s_per_answer_n_2": {
+  "one": "Median {s} s per answer, {n} review",
+  "other": "Median {s} s per answer, {n} reviews"
+ },
+ "heatmap.more": "More",
+ "heatmap.n_cards_due": {
+  "one": "{n} card due",
+  "other": "{n} cards due"
+ },
+ "heatmap.n_cards_due_after_today": {
+  "one": "{n} card due after today",
+  "other": "{n} cards due after today"
+ },
+ "heatmap.n_cards_due_later_this_month": {
+  "one": "{n} card due later this month",
+  "other": "{n} cards due later this month"
+ },
+ "heatmap.n_days": {
+  "one": "{n} day",
+  "other": "{n} days"
+ },
+ "heatmap.n_days_from_to_to": {
+  "one": "{n} day, {from} to {to}",
+  "other": "{n} days, {from} to {to}"
+ },
+ "heatmap.n_days_from_to_today": {
+  "one": "{n} day, {from} to today",
+  "other": "{n} days, {from} to today"
+ },
+ "heatmap.n_days_in_a_row": {
+  "one": "{n} day in a row",
+  "other": "{n} days in a row"
+ },
+ "heatmap.n_days_since_date": {
+  "one": "{n} day · Since {date}",
+  "other": "{n} days · Since {date}"
+ },
+ "heatmap.n_hr": "{n} hr",
+ "heatmap.n_min": "{n} min",
+ "heatmap.n_min_2": "{n}+ min",
+ "heatmap.n_of_its_of_cards_have": {
+  "one": "{n} of its {of} cards has since been deleted",
+  "other": "{n} of its {of} cards have since been deleted"
+ },
+ "heatmap.n_reviews": {
+  "one": "{n} review",
+  "other": "{n} reviews"
+ },
+ "heatmap.n_reviews_2": {
+  "one": "{n}+ reviews",
+  "other": "{n}+ reviews"
+ },
+ "heatmap.n_reviews_in_time": {
+  "one": "{n} review in {time}",
+  "other": "{n} reviews in {time}"
+ },
+ "heatmap.n_reviews_no_time_kept": {
+  "one": "{n} review, no time kept",
+  "other": "{n} reviews, no time kept"
+ },
+ "heatmap.n_reviews_so_far_due_still": {
+  "one": "{n} review so far, {due} still due",
+  "other": "{n} reviews so far, {due} still due"
+ },
+ "heatmap.n_reviews_so_far_in_time": {
+  "one": "{n} review so far in {time}, {due} still due",
+  "other": "{n} reviews so far in {time}, {due} still due"
+ },
+ "heatmap.name_in_n_days": {
+  "one": "{name} in {n} day",
+  "other": "{name} in {n} days"
+ },
+ "heatmap.name_today": "{name} today",
+ "heatmap.name_tomorrow": "{name} tomorrow",
+ "heatmap.near_date": "{near}, {date}",
+ "heatmap.not_studied": "Not studied",
+ "heatmap.not_studied_a_day_off": "Not studied: a day off",
+ "heatmap.not_studied_a_pond_in_your": "Not studied: a pond in your forest",
+ "heatmap.not_studied_since_date": "Not studied since {date}",
+ "heatmap.not_studied_so_far": "Not studied so far",
+ "heatmap.not_studied_yet": "Not studied yet",
+ "heatmap.not_studied_yet_n_cards_due": {
+  "one": "Not studied yet, {n} card due",
+  "other": "Not studied yet, {n} cards due"
+ },
+ "heatmap.nothing_due_today": "Nothing due today",
+ "heatmap.nothing_due_yet": "Nothing due yet",
+ "heatmap.nothing_was_due": "Nothing was due",
+ "heatmap.pace": "Pace",
+ "heatmap.pass_your_second_longest_streak_n": {
+  "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
+  "other": "Pass your second-longest streak ({n} days) on this day, studying every day until then"
+ },
+ "heatmap.pass_your_second_longest_streak_n_2": {
+  "one": "Pass your second-longest streak ({n} day) on this day",
+  "other": "Pass your second-longest streak ({n} days) on this day"
+ },
+ "heatmap.pass_your_third_longest_streak_n": {
+  "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
+  "other": "Pass your third-longest streak ({n} days) on this day, studying every day until then"
+ },
+ "heatmap.pass_your_third_longest_streak_n_2": {
+  "one": "Pass your third-longest streak ({n} day) on this day",
+  "other": "Pass your third-longest streak ({n} days) on this day"
+ },
+ "heatmap.pin": "Pin",
+ "heatmap.planted_tree_n_new_cards": {
+  "one": "Planted tree: {n} new cards",
+  "other": "Planted tree: {n} new cards"
+ },
+ "heatmap.ponds_and_animals_count_from_here": "Ponds and animals count from here",
+ "heatmap.reach_a_n_day_streak_on": {
+  "one": "Reach a {n}-day streak on this day, studying every day until then",
+  "other": "Reach a {n}-day streak on this day, studying every day until then"
+ },
+ "heatmap.reach_a_n_day_streak_on_2": {
+  "one": "Reach a {n}-day streak on this day",
+  "other": "Reach a {n}-day streak on this day"
+ },
+ "heatmap.remove_the_mark": "Remove the mark",
+ "heatmap.reviews": "Reviews",
+ "heatmap.s_s_per_answer": "{s}+ s per answer",
+ "heatmap.shade_each_day_by_how_long": "Shade each day by how long you studied",
+ "heatmap.shade_each_day_by_how_many": "Shade each day by how many reviews you did",
+ "heatmap.shade_each_day_by_its_median": "Shade each day by its median seconds per answer",
+ "heatmap.shade_the_days_by": "Shade the days by",
+ "heatmap.sick": "Sick",
+ "heatmap.slow": "Slow",
+ "heatmap.star": "Star",
+ "heatmap.streak": "Streak",
+ "heatmap.studied_all_of_them": "Studied all of them",
+ "heatmap.studied_all_of_these_n_days": {
+  "one": "Studied all of these {n} day",
+  "other": "Studied all of these {n} days"
+ },
+ "heatmap.studied_every_day": "Studied every day",
+ "heatmap.studied_every_day_since_date": "Studied every day since {date}",
+ "heatmap.studied_every_day_so_far": "Studied every day so far",
+ "heatmap.studied_n_of_them_pct": {
+  "one": "Studied {n} of them ({pct}%)",
+  "other": "Studied {n} of them ({pct}%)"
+ },
+ "heatmap.studied_studied_of_n_days_pct": {
+  "one": "Studied {studied} of {n} day ({pct}%)",
+  "other": "Studied {studied} of {n} days ({pct}%)"
+ },
+ "heatmap.studied_studied_of_n_days_since": {
+  "one": "Studied {studied} of {n} day since {date} ({pct}%)",
+  "other": "Studied {studied} of {n} days since {date} ({pct}%)"
+ },
+ "heatmap.studied_studied_of_n_days_so": {
+  "one": "Studied {studied} of {n} day so far ({pct}%)",
+  "other": "Studied {studied} of {n} days so far ({pct}%)"
+ },
+ "heatmap.study_heatmap_from_to_to_n": {
+  "one": "Study heatmap, {from} to {to}: {n} day studied, a {days}-day streak",
+  "other": "Study heatmap, {from} to {to}: {n} days studied, a {days}-day streak"
+ },
+ "heatmap.study_heatmap_from_to_to_n_2": {
+  "one": "Study heatmap, {from} to {to}: {n} day studied",
+  "other": "Study heatmap, {from} to {to}: {n} days studied"
+ },
+ "heatmap.the_months_round_this_one_most": "The months round this one, most of them before it",
+ "heatmap.this_day_s_tree_is_part": "This day’s tree is part of your deep forest",
+ "heatmap.this_tree_is_outside_your_current": "This tree is outside your current zoom view",
+ "heatmap.time": "Time",
+ "heatmap.time_2": "{time}+",
+ "heatmap.time_n_reviews": {
+  "one": "{time}, {n} review",
+  "other": "{time}, {n} reviews"
+ },
+ "heatmap.time_so_far_n_reviews_due": {
+  "one": "{time} so far, {n} review, {due} still due",
+  "other": "{time} so far, {n} reviews, {due} still due"
+ },
+ "heatmap.timeline": "Timeline",
+ "heatmap.today": "Today",
+ "heatmap.too_far_ahead_to_count": "Too far ahead to count",
+ "heatmap.trip": "Trip",
+ "heatmap.under_a_minute": "under a minute",
+ "heatmap.under_n_reviews": {
+  "one": "Under {n} reviews",
+  "other": "Under {n} reviews"
+ },
+ "heatmap.under_s_s_per_answer": "Under {s} s per answer",
+ "heatmap.under_time": "Under {time}",
+ "heatmap.view": "View",
+ "heatmap.your_forest_began": "Your forest began",
+ "heatmap.your_longest_streak": "Your longest streak",
+ "heatmap.your_longest_streak_n_days": {
+  "one": "Your longest streak: {n} day",
+  "other": "Your longest streak: {n} days"
+ },
+ "heatmap.your_n_day_streak": {
+  "one": "Your {n}-day streak",
+  "other": "Your {n}-day streak"
+ },
+ "heatmap.your_second_longest_streak": "Your second-longest streak",
+ "heatmap.your_second_longest_streak_n_days": {
+  "one": "Your second-longest streak: {n} day",
+  "other": "Your second-longest streak: {n} days"
+ },
+ "heatmap.your_streak_every_year_of_it": "Your streak, every year of it; the arrows go to the streaks before it",
+ "heatmap.your_third_longest_streak": "Your third-longest streak",
+ "heatmap.your_third_longest_streak_n_days": {
+  "one": "Your third-longest streak: {n} day",
+  "other": "Your third-longest streak: {n} days"
+ },
+ "heatmap_look.darker": "Darker",
+ "heatmap_look.flame": "Flame",
+ "heatmap_look.ice": "Ice",
+ "heatmap_look.lighter": "Lighter",
+ "heatmap_look.lime": "Lime",
+ "heatmap_look.magenta": "Magenta",
+ "heatmap_look.olive": "Olive",
+ "hover.click_to_select_it": "Click to select it",
+ "hover.click_to_watch_it_again": "Click to watch it again",
+ "hover.tap_again_to_watch_it_again": "Tap again to watch it again",
+ "hover.tap_to_select_it": "Tap to select it",
+ "journal.a_harvest_moon_rises_over_your": "A harvest moon rises over your forest's anniversary.",
+ "journal.days_days_in_a_row_the": {
+  "one": "{days} day in a row. The forest has not missed one.",
+  "other": "{days} days in a row. The forest has not missed one."
+ },
+ "journal.meteors_are_falling_tonight": "Meteors are falling tonight.",
+ "journal.one_of_your_trees_became_ancient": "One of your trees became ancient today.",
+ "journal.one_of_your_trees_became_ancient_2": "One of your trees became ancient today. Watch for a shooting star.",
+ "journal.study_some_new_cards_and_your": "Study some new cards and your first tree will take root here.",
+ "journal.the_grass_is_growing_tall_no": {
+  "one": "The grass is growing tall: no new cards for {n} week.",
+  "other": "The grass is growing tall: no new cards for {n} weeks."
+ },
+ "journal.the_grass_is_growing_tall_no_2": "The grass is growing tall: no new cards for a week.",
+ "journal.the_tree_you_planted_on_date": {
+  "one": "The tree you planted on {date} turned {n} year old today.",
+  "other": "The tree you planted on {date} turned {n} years old today."
+ },
+ "journal.the_tree_you_planted_on_date_2": "The tree you planted on {date} turned a year old today.",
+ "journal.your_count_th_tree_planted_today": {
+  "one": "Your {count}th tree, planted today with {cards} new card.",
+  "other": "Your {count}th tree, planted today with {cards} new cards."
+ },
+ "journal.your_first_tree_it_holds_n": {
+  "one": "Your first tree. It holds {cards} card.",
+  "other": "Your first tree. It holds {cards} cards."
+ },
+ "month.april": "April",
+ "month.august": "August",
+ "month.december": "December",
+ "month.february": "February",
+ "month.january": "January",
+ "month.july": "July",
+ "month.june": "June",
+ "month.march": "March",
+ "month.may": "May",
+ "month.november": "November",
+ "month.october": "October",
+ "month.september": "September",
+ "month_short.apr": "Apr",
+ "month_short.aug": "Aug",
+ "month_short.dec": "Dec",
+ "month_short.feb": "Feb",
+ "month_short.jan": "Jan",
+ "month_short.jul": "Jul",
+ "month_short.jun": "Jun",
+ "month_short.mar": "Mar",
+ "month_short.may": "May",
+ "month_short.nov": "Nov",
+ "month_short.oct": "Oct",
+ "month_short.sep": "Sep",
+ "news.change_scenery_and_settings_new_scenery": "Change scenery and settings (new scenery)",
+ "news.change_scenery_and_settings_something_new": "Change scenery and settings (something new)",
+ "news.got_it": "Got it",
+ "panel.change_scenery_and_settings": "Change scenery and settings",
+ "panel.seasonal_scenery_for_this_week_only": "Seasonal scenery, for this week only. Yours comes back on {date}.",
+ "panel.seasonal_scenery_here_until_date": "Seasonal scenery, here until {date}.",
+ "panel.todays_scenery_from_surprise_me_daily": "Today's scenery, from Surprise me daily. Tomorrow brings the next one.",
+ "panel.your_own_mix_from_customize_in": "Your own mix, from Customize in the forest settings.",
+ "panel.your_study_forest": "Your study forest",
+ "phone.forest_full_screen": "Forest full screen",
+ "phone.full_screen_isnt_allowed_here": "Full screen isn't allowed here.",
+ "phone.heatmap_full_screen": "Heatmap full screen",
+ "phone.just_now": "just now",
+ "phone.leave_full_screen": "Leave full screen",
+ "phone.memory_forest_could_not_draw_your": "Memory Forest could not draw your forest here.",
+ "phone.memory_forest_keeps_your_forest_here": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync.",
+ "phone.n_days_ago": {
+  "one": "{n} day ago",
+  "other": "{n} days ago"
+ },
+ "phone.n_hours_ago": {
+  "one": "{n} hour ago",
+  "other": "{n} hours ago"
+ },
+ "phone.n_minutes_ago": {
+  "one": "{n} minute ago",
+  "other": "{n} minutes ago"
+ },
+ "phone.sync_anki_on_your_computer_to": "Sync Anki on your computer to bring it up to date.",
+ "phone.synced_when": "Synced {when}.",
+ "phone.yesterday": "yesterday",
+ "phone.your_forest_arrives_with_the_next": "Your forest arrives with the next sync from Anki on your computer.",
+ "phone.your_forest_arrives_with_the_next_sync": "Your forest arrives with the next sync from Anki on your computer.",
+ "phone.your_forest_is_on_its_way": "Your forest is on its way: sync once more to fetch its drawing.",
+ "planting.a_new_tree_was_planted_in": "A new tree was planted in your forest today.",
+ "preset.custom": "Custom",
+ "preset.daily": "Surprise me daily",
+ "preset.daily.note": "A different scenery every day, taking turns so each one comes round in order.",
+ "scene.after_the_rain": "After the rain",
+ "scene.clear": "Clear",
+ "scene.cloudy": "Cloudy",
+ "scene.dawn": "Dawn",
+ "scene.day": "Day",
+ "scene.deep_winter": "Deep winter",
+ "scene.dusk": "Dusk",
+ "scene.fog": "Fog",
+ "scene.golden_hour": "Golden hour",
+ "scene.night": "Night",
+ "scene.rain": "Rain",
+ "scene.snow": "Snow",
+ "scene.thunderstorm": "Thunderstorm",
+ "settings.about.all_release_notes": "All release notes",
+ "settings.about.and_a_special_thank_you_to": "And a special thank-you to my Sponsors on Patreon:",
+ "settings.about.how_it_works": "How it works",
+ "settings.about.made_by_barak_levy": "Made by Barak Levy",
+ "settings.about.memory_forest_grows_thanks_to_everyone": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!",
+ "settings.about.mit_licence": "MIT licence",
+ "settings.about.new_scenery_arrives_in_memory_forest": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>",
+ "settings.about.one_tree_for_every_day_you": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy.",
+ "settings.about.places_openstreetmap_contributors": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>",
+ "settings.about.rate_it_on_ankiweb": "Rate it on AnkiWeb",
+ "settings.about.report_a_bug_or_share_an": "Report a bug or share an idea",
+ "settings.about.thank_you": "Thank you",
+ "settings.about.the_heatmap_under_it_shows_every": "The heatmap under it shows every day you studied: hover a day for its numbers, right-click it to mark it.",
+ "settings.about.version_version": "Version {version}",
+ "settings.about.weather_from_met_norway_cc_by": "Weather from <a href=\"{met}\">MET Norway</a> (CC BY 4.0)",
+ "settings.about.whats_new": "What's new",
+ "settings.about.youre_part_of_this_thank_you": "You're part of this: thank you for supporting it on <a href=\"{url}\">Patreon</a>",
+ "settings.customize.change_anything_here_to_make_it": "Change anything here to make it your own mix.",
+ "settings.customize.customize_scenery": "Customize {scenery} ›",
+ "settings.customize.customize_scenery_2": "Customize {scenery}",
+ "settings.customize.customize_your_own_mix_from_scenery": "Customize your own mix, from {scenery} ›",
+ "settings.customize.customize_your_own_mix_from_scenery_2": "Customize your own mix, from {scenery}",
+ "settings.customize.environment": "Environment",
+ "settings.customize.follows_your_clock": "Follows your clock",
+ "settings.customize.landmark": "Landmark",
+ "settings.customize.landscape": "Landscape",
+ "settings.customize.live_weather": "Live weather",
+ "settings.customize.reset_a_row_to_put_the": "Reset a row to put the scenery's own choice back.",
+ "settings.customize.reset_put_back_the_scenerys_own": "Reset: put back the scenery's own choice",
+ "settings.customize.sceneries": "‹ Sceneries",
+ "settings.customize.time_of_day": "Time of day",
+ "settings.customize.weather": "Weather",
+ "settings.decks.counting_your_trees": "Counting your trees…",
+ "settings.decks.date_format": "d MMMM yyyy",
+ "settings.decks.days_before_date_grow_no_trees": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab).",
+ "settings.decks.decks": "Decks",
+ "settings.decks.keep_suspended_cards_in_their_trees": "Keep suspended cards in their trees",
+ "settings.decks.keep_the_trees_from_before_it": "Keep the trees from before it",
+ "settings.decks.no_trees": "no trees",
+ "settings.decks.start_the_forest_on": "Start the forest on",
+ "settings.decks.they_keep_their_trees_size_but": "They keep their tree's size but never hurt its health.",
+ "settings.decks.unticked_decks_grow_no_trees_you": "Unticked decks grow no trees. You can also do this from a deck's ⚙ menu.",
+ "settings.decks.what_counts": "What counts",
+ "settings.decks.your_forest_starts_on_your_first": "Your forest starts on your first day of study, {first}.",
+ "settings.decks.your_forest_trees": "Your forest: <b>{trees}</b>",
+ "settings.decks.your_forest_trees_n_earlier_ones": {
+  "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+  "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
+ },
+ "settings.decks.your_trees_from_before_it_stay": "Your trees from before it stay. Ponds, Nature and the animals count from {date}.",
+ "settings.dialog.about": "About",
+ "settings.dialog.cancel": "Cancel",
+ "settings.dialog.decks": "Decks",
+ "settings.dialog.done": "Done",
+ "settings.dialog.forest": "Forest",
+ "settings.dialog.heatmap": "Heatmap",
+ "settings.dialog.put_the_settings_back_to_their": "Put the settings back to their defaults?",
+ "settings.dialog.resets_the_scenery_customize_and_surprise": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before.",
+ "settings.dialog.restore_defaults": "Restore defaults",
+ "settings.dialog.restore_defaults_2": "Restore defaults…",
+ "settings.dialog.scenery": "Scenery",
+ "settings.forest.a_forest_of_that_decks_own": "A forest of that deck's own",
+ "settings.forest.adds_a_memory_forest_deck_with": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync.",
+ "settings.forest.animate_the_forest": "Animate the forest",
+ "settings.forest.covers_the_forest_and_the_heatmap": "Covers the forest and the heatmap.",
+ "settings.forest.deck_screens": "Deck screens",
+ "settings.forest.follow_system": "Follow system",
+ "settings.forest.forest_width": "Forest width",
+ "settings.forest.layout": "Layout",
+ "settings.forest.main_screen": "Main screen",
+ "settings.forest.motion_and_messages": "Motion and messages",
+ "settings.forest.nature": "Nature",
+ "settings.forest.no_forest": "No forest",
+ "settings.forest.off": "Off",
+ "settings.forest.on": "On",
+ "settings.forest.on_finished_decks_too": "On finished decks too",
+ "settings.forest.on_your_phone": "On your phone",
+ "settings.forest.px": " px",
+ "settings.forest.show_a_message_when_todays_tree": "Show a message when today's tree is planted",
+ "settings.forest.show_my_forest_on_my_phone": "Show my forest on my phone",
+ "settings.forest.where_it_shows": "Where it shows",
+ "settings.forest.your_forest": "Your forest",
+ "settings.forest.your_forest_that_decks_trees_lit": "Your forest, that deck's trees lit up",
+ "settings.heatmap.5_days_a_week": "5 days a week",
+ "settings.heatmap.680_px_or_less_where_there": "680 px, or less where there is less room",
+ "settings.heatmap.6_days_a_week": "6 days a week",
+ "settings.heatmap.85_of_the_forests_width": "85% of the forest's width",
+ "settings.heatmap.85_of_the_room_it_has": "85% of the room it has: the row under or over the deck list, or its column beside it",
+ "settings.heatmap.a_day_off_keeps_your_streak": "A day off keeps your streak but doesn't add to it.",
+ "settings.heatmap.auto": "Auto",
+ "settings.heatmap.auto_day": "{auto} ({day})",
+ "settings.heatmap.bigger_days": "Bigger days",
+ "settings.heatmap.by_year_and_streak_always_fit": "By year and Streak always fit a year to the width.",
+ "settings.heatmap.colours": "Colours",
+ "settings.heatmap.deck_screens": "Deck screens",
+ "settings.heatmap.every_day": "Every day",
+ "settings.heatmap.every_day_the_same_size_a": "Every day the same size: a wider heatmap shows more months",
+ "settings.heatmap.fill_it_with": "Fill it with",
+ "settings.heatmap.fixed": "Fixed",
+ "settings.heatmap.follow_the_forest": "Follow the forest",
+ "settings.heatmap.fri": "Fri",
+ "settings.heatmap.friday": "Friday",
+ "settings.heatmap.full_width": "Full width",
+ "settings.heatmap.layout": "Layout",
+ "settings.heatmap.main_screen": "Main screen",
+ "settings.heatmap.mon": "Mon",
+ "settings.heatmap.monday": "Monday",
+ "settings.heatmap.more_months": "More months",
+ "settings.heatmap.sat": "Sat",
+ "settings.heatmap.saturday": "Saturday",
+ "settings.heatmap.show_on": "Show on",
+ "settings.heatmap.show_the_reviews_from_before_your": "Show the reviews from before your forest's start date",
+ "settings.heatmap.streak": "Streak",
+ "settings.heatmap.style": "Style",
+ "settings.heatmap.sun": "Sun",
+ "settings.heatmap.sunday": "Sunday",
+ "settings.heatmap.ten_months_with_bigger_days_to": "Ten months, with bigger days to fill the width",
+ "settings.heatmap.the_start_date": "The start date",
+ "settings.heatmap.thu": "Thu",
+ "settings.heatmap.thursday": "Thursday",
+ "settings.heatmap.tue": "Tue",
+ "settings.heatmap.tuesday": "Tuesday",
+ "settings.heatmap.wed": "Wed",
+ "settings.heatmap.wednesday": "Wednesday",
+ "settings.heatmap.week_starts_on": "Week starts on",
+ "settings.heatmap.width": "Width",
+ "settings.heatmap.your_first_review": "Your first review",
+ "settings.heatmap.your_forests_start_date_is_set": "Your forest's start date is set on the Decks tab.",
+ "settings.heatmap.your_streak_counts": "Your streak counts",
+ "settings.heatmap.your_streak_counts_from": "Your streak counts from",
+ "settings.heatmap.your_systems_first_day_of_the": "Your system's first day of the week",
+ "settings.heatmap.your_systems_first_day_of_the_tooltip_the": "Your system's first day of the week: {day}",
+ "settings.heatmap_look.blend_into": "Blend into",
+ "settings.heatmap_look.busier_days": "Busier days",
+ "settings.heatmap_look.busier_days_are_darker_in_ankis": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days.",
+ "settings.heatmap_look.colours_you_pick_one_dim_to": "Colours you pick: one, dim to full, or two, blending from the first to the second",
+ "settings.heatmap_look.current_scenery": "Current scenery",
+ "settings.heatmap_look.custom": "Custom",
+ "settings.heatmap_look.in_ankis_dark_mode_busier_days": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker.",
+ "settings.heatmap_look.lime_green_to_bright_lime": "Lime: green to bright lime",
+ "settings.heatmap_look.review_heatmaps_flame_bright_red_to": "Review Heatmap's Flame: bright red to yellow",
+ "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": "Review Heatmap's Ice: deep blue to pale ice blue",
+ "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": "Review Heatmap's Magenta: deep pink to pale pink",
+ "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": "Review Heatmap's Olive: deep olive green to pale yellow-green",
+ "settings.heatmap_look.scenery": "Scenery",
+ "settings.heatmap_look.the_busiest_days_colour": "The busiest days' colour",
+ "settings.heatmap_look.your_busiest_colour_is_hard_to": "Your busiest colour is hard to see on a light page. The heatmap shows it as you picked it.",
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_2": "Your busiest colour is hard to see on a dark page. The heatmap shows it as you picked it.",
+ "settings.heatmap_look.your_busiest_colour_is_hard_to_3": "Your busiest colour is hard to see on a dark or a light page. The heatmap shows it as you picked it.",
+ "settings.heatmap_look.your_busiest_days_colour": "Your busiest days' colour",
+ "settings.heatmap_look.your_colour": "Your colour",
+ "settings.heatmap_look.your_colour_with_a_blend_the": "Your colour (with a blend: the quietest days')",
+ "settings.heatmap_look.your_current_scenerys_colours_or_another": "Your current scenery's colours, or another scenery's, which stay when you change scenery",
+ "settings.heatmap_look.your_current_scenerys_tiles_or_another": "Your current scenery's tiles, or another scenery's, which stay when you change scenery",
+ "settings.layout.above_the_list": "Above the list",
+ "settings.layout.beside_it": "Beside it",
+ "settings.layout.beside_the_list_while_the_window": "Beside the list while the window has room, under it otherwise. Deck screens keep them under it.",
+ "settings.layout.first": "First",
+ "settings.layout.forest": "Forest",
+ "settings.layout.heatmap": "Heatmap",
+ "settings.layout.left": "Left",
+ "settings.layout.one_beside": "One beside",
+ "settings.layout.right": "Right",
+ "settings.layout.side": "Side",
+ "settings.layout.the_first_above_the_deck_list": "The first above the deck list, the other under it",
+ "settings.layout.the_first_beside_the_deck_list": "The first beside the deck list, the other under it",
+ "settings.layout.the_forest_and_the_heatmap_beside": "The forest and the heatmap beside the deck list, while the window has room for them",
+ "settings.layout.the_forest_and_the_heatmap_under": "The forest and the heatmap under the deck list",
+ "settings.layout.the_one_that_goes_beside_or": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too.",
+ "settings.layout.under_the_list": "Under the list",
+ "settings.patreon.enjoying_memory_forest": "Enjoying Memory Forest?",
+ "settings.patreon.every_plus_scenery_joins_this_version": "Every Plus scenery joins this version later on.",
+ "settings.patreon.new_scenery_arrives_here_first_every": "New scenery arrives here first, every month.",
+ "settings.patreon.support_it_on_patreon_and_get": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus",
+ "settings.patreon.thank_you_for_supporting_memory_forest": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>",
+ "settings.picker.improved": "IMPROVED",
+ "settings.picker.label_is_in_memory_forest_plus": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>",
+ "settings.picker.new": "NEW",
+ "settings.picker.no_scenery_has_that_in_its": "No scenery has that in its name.",
+ "settings.picker.sceneries": "Sceneries",
+ "settings.picker.search_n_sceneries": {
+  "one": "Search {n} scenery",
+  "other": "Search {n} sceneries"
+ },
+ "settings.picker.this_week_only": "This week only",
+ "settings.picker.until_date": "Until {date}",
+ "settings.picker.your_own_mix_made_in_customize": "Your own mix, made in Customize. Pick a scenery to start again from it.",
+ "settings.scenery.couldnt_find_this_city_check_the": "Couldn't find this city. Check the spelling, or try its English name.",
+ "settings.scenery.couldnt_reach_the_weather_service_trying": "Couldn't reach the weather service; trying again soon.",
+ "settings.scenery.follow_the_real_weather_and_time": "Follow the real weather and time of day",
+ "settings.scenery.live_weather_from_met_norway_places": "Live weather from MET Norway, places from OpenStreetMap. Leave it empty to follow only your clock.",
+ "settings.scenery.scenery": "Scenery",
+ "settings.scenery.your_city_e_g_berlin": "Your city, e.g. Berlin",
+ "settings.surprise.only_one_ticked_the_same_scenery": "Only one ticked: the same scenery every day.",
+ "settings.surprise.surprise_me_dailys_sceneries_all_n": "Surprise me daily's sceneries (all {n}) ›",
+ "settings.surprise.surprise_me_dailys_sceneries_kept_of": "Surprise me daily's sceneries ({kept} of {n}) ›",
+ "settings.surprise.untick_the_ones_youd_rather_not": "Untick the ones you'd rather not see.",
+ "tooltip.a_big_learning_day_n_new": {
+  "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
+  "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"
+ },
+ "tooltip.a_leech_here_mature_again_the": "A leech here mature again: the robin stays a week",
+ "tooltip.a_quiet_pond": "A quiet pond",
+ "tooltip.all_n_cards_suspended": {
+  "one": "All {n} cards suspended",
+  "other": "All {n} cards suspended"
+ },
+ "tooltip.ancient": "ancient",
+ "tooltip.click_to_see_these_cards": "Click to see these cards",
+ "tooltip.from_to": "{from} – {to}",
+ "tooltip.its_card_is_suspended": "Its card is suspended",
+ "tooltip.lasts_time": "lasts ~{time}",
+ "tooltip.mature": "mature",
+ "tooltip.n_cards": {
+  "one": "{n} card",
+  "other": "{n} cards"
+ },
+ "tooltip.n_days_without_reviews": {
+  "one": "{n} day without reviews",
+  "other": "{n} days without reviews"
+ },
+ "tooltip.n_days_without_reviews_from_from": {
+  "one": "{n} day without reviews, from {from} to {to}",
+  "other": "{n} days without reviews, from {from} to {to}"
+ },
+ "tooltip.n_days_without_reviews_in_month": {
+  "one": "{n} day without reviews, in {month}",
+  "other": "{n} days without reviews, in {month}"
+ },
+ "tooltip.n_leeches_here_mature_again_the": {
+  "one": "{n} leech here mature again: the robin stays a week",
+  "other": "{n} leeches here mature again: the robin stays a week"
+ },
+ "tooltip.n_leeches_here_the_crows_stay": {
+  "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
+  "other": "{n} leeches here: the crows stay until the cards are mature again (21-day interval)"
+ },
+ "tooltip.n_months": {
+  "one": "{n} month",
+  "other": "{n} months"
+ },
+ "tooltip.n_of_them_ancient": {
+  "one": "{n} of them ancient",
+  "other": "{n} of them ancient"
+ },
+ "tooltip.n_of_total_relearning_or_lapsed": {
+  "one": "{n} of {total} relearning or lapsed this week",
+  "other": "{n} of {total} relearning or lapsed this week"
+ },
+ "tooltip.n_of_total_suspended": {
+  "one": "{n} of {total} suspended",
+  "other": "{n} of {total} suspended"
+ },
+ "tooltip.n_older_trees": {
+  "one": "{n} older tree",
+  "other": "{n} older trees"
+ },
+ "tooltip.n_years": "{n} years",
+ "tooltip.old": "old",
+ "tooltip.pct_remembered": "~{pct}% remembered",
+ "tooltip.pct_still_going_well": "{pct}% still going well",
+ "tooltip.planted_n_days_ago": {
+  "one": "planted {n} day ago",
+  "other": "planted {n} days ago"
+ },
+ "tooltip.planted_today": "planted today",
+ "tooltip.planted_yesterday": "planted yesterday",
+ "tooltip.sapling": "sapling",
+ "tooltip.seedling": "seedling",
+ "tooltip.the_deep_forest": "The deep forest",
+ "tooltip.young": "young",
+ "visitor.a_bear": "A bear",
+ "visitor.a_bear_came_you_kept_a": "A bear came: you kept a two-year streak",
+ "visitor.a_bear_wandered_in_you_kept": "A bear wandered in: you kept a two-year streak.",
+ "visitor.a_cabin": "A cabin",
+ "visitor.a_cabin_came_your_forest_turned": "A cabin came: your forest turned one year old",
+ "visitor.a_deer": "A deer",
+ "visitor.a_deer_came_you_kept_a": "A deer came: you kept a 30-day streak",
+ "visitor.a_deer_wandered_in_you_kept": "A deer wandered in: you kept a 30-day streak.",
+ "visitor.a_family_of_squirrels": "A family of squirrels",
+ "visitor.a_family_of_squirrels_came_you": "A family of squirrels came: you knew 10,000 cards well",
+ "visitor.a_family_of_squirrels_wandered_in": "A family of squirrels wandered in: you knew 10,000 cards well.",
+ "visitor.a_fox": "A fox",
+ "visitor.a_fox_came_you_passed_10": "A fox came: you passed 10,000 reviews",
+ "visitor.a_fox_wandered_in_you_passed": "A fox wandered in: you passed 10,000 reviews.",
+ "visitor.a_heron": "A heron",
+ "visitor.a_heron_came_a_pond_formed": "A heron came: a pond formed where you took a break",
+ "visitor.a_heron_wandered_in_a_pond": "A heron wandered in: a pond formed where you took a break.",
+ "visitor.a_little_cabin_now_stands_at": "A little cabin now stands at the edge of your forest: a year since your first tree.",
+ "visitor.a_rabbit": "A rabbit",
+ "visitor.a_rabbit_came_your_forest_reached": "A rabbit came: your forest reached 50 trees",
+ "visitor.a_rabbit_wandered_in_your_forest": "A rabbit wandered in: your forest reached 50 trees.",
+ "visitor.a_stag": "A stag",
+ "visitor.a_stag_came_you_kept_a": "A stag came: you kept a 100-day streak",
+ "visitor.a_stag_wandered_in_you_kept": "A stag wandered in: you kept a 100-day streak.",
+ "visitor.an_eagle": "An eagle",
+ "visitor.an_eagle_came_you_knew_25": "An eagle came: you knew 25,000 cards well",
+ "visitor.an_eagle_wandered_in_you_knew": "An eagle wandered in: you knew 25,000 cards well.",
+ "visitor.an_owl": "An owl",
+ "visitor.an_owl_came_your_first_tree": "An owl came: your first tree became ancient",
+ "visitor.an_owl_wandered_in_your_first": "An owl wandered in: your first tree became ancient.",
+ "visitor.built_when_your_forest_turned_one": "Built when your forest turned one year old.",
+ "visitor.moved_in_when_a_pond_formed": "Moved in when a pond formed where you took a break.",
+ "visitor.moved_in_when_you_kept_a": "Moved in when you kept a 30-day streak.",
+ "visitor.moved_in_when_you_kept_a_2": "Moved in when you kept a 100-day streak.",
+ "visitor.moved_in_when_you_kept_a_3": "Moved in when you kept a two-year streak.",
+ "visitor.moved_in_when_you_knew_10": "Moved in when you knew 10,000 cards well.",
+ "visitor.moved_in_when_you_knew_25": "Moved in when you knew 25,000 cards well.",
+ "visitor.moved_in_when_you_passed_10": "Moved in when you passed 10,000 reviews.",
+ "visitor.moved_in_when_your_first_tree": "Moved in when your first tree became ancient.",
+ "visitor.moved_in_when_your_forest_reached": "Moved in when your forest reached 50 trees.",
+ "zoom.back_to_the_whole_forest": "Back to the whole forest",
+ "zoom.next_day": "Next day",
+ "zoom.pinch_or_double_tap_to_zoom": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it",
+ "zoom.planted_date": "Planted {date}",
+ "zoom.previous_day": "Previous day",
+ "zoom.scroll_or_press_to_zoom_drag": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it",
+ "zoom.the_tree_of_the_day_after": "The tree of the day after",
+ "zoom.the_tree_of_the_day_before": "The tree of the day before",
+ "zoom.zoom_in_among_the_trees": "Zoom in among the trees"
+}

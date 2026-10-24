@@ -41,7 +41,7 @@ def calendar(f: dict, n: int, view: str) -> dict:
     reviews = {n - 1 - i: r for i, r in enumerate(days)}
     return {"view": view, "weekStart": 1, "start": (dt.date.today() - dt.timedelta(days=n - 1)).isoformat(),
             "days": days, "due": [60] + [max(0, 250 - 8 * i) for i in range(1, CAL_AHEAD)],
-            "animals": milestones.animal_days(f["visitors"], f["trees"], reviews, 0, True),
+            "animals": milestones.for_page(milestones.animal_days(f["visitors"], f["trees"], reviews, 0, True)),
             "forestStart": None, "streakFromStart": False, "marks": [], "browse": False}
 
 
@@ -55,7 +55,7 @@ def page(preset: str, n: int, overrides: dict | None = None) -> str:
     cfg.setdefault("landmark", "none")
     mood = scene.choose_mood(cfg, NOW)
     f = forest_data.merge_old(fake_forest.make(n))
-    data = {"trees": f["trees"], "stats": f["stats"], "visitors": f["visitors"], "merged": f.get("merged"),
+    data = {"trees": f["trees"], "stats": f["stats"], "visitors": milestones.for_page(f["visitors"]), "merged": f.get("merged"),
             "forestSeed": f["forest_seed"], "anniversaries": [0] if n > 2 else [], "events": [], "journal": "",
             "mood": mood, "environmentName": preset, "animations": True,
             "tooltips": True, "maxWidth": MAX_WIDTH, "testForest": True, "inAnki": True}

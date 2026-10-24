@@ -10,6 +10,11 @@ import calendar
 import datetime as _dt
 from collections.abc import Iterable
 
+try:
+    from .i18n import N_, tx
+except ImportError:  # tests and dev scripts import this as a top-level module
+    from i18n import N_, tx
+
 # The milestones the animals come for. The forest remembers the day each animal came
 # (events_state.py), which is when the journal announces it.
 RABBIT_TREES = 50
@@ -22,18 +27,31 @@ BEAR_STREAK = 730
 SQUIRREL_MATURE, EAGLE_MATURE = 10_000, 25_000
 
 VISITORS = (
-    # key, who, why they came, test
-    ("rabbit", "a rabbit", "your forest reached 50 trees", lambda s: s["trees"] >= RABBIT_TREES),
-    ("deer", "a deer", "you kept a 30-day streak", lambda s: s["longest_streak"] >= DEER_STREAK),
-    ("fox", "a fox", "you passed 10,000 reviews", lambda s: s["reviews"] >= FOX_REVIEWS),
-    ("owl", "an owl", "your first tree became ancient", lambda s: s["ancient"] >= 1),
-    ("heron", "a heron", "a pond formed where you took a break", lambda s: s.get("ponds", 0) >= 1),
-    ("stag", "a stag", "you kept a 100-day streak", lambda s: s["longest_streak"] >= STAG_STREAK),
-    ("cabin", "a cabin", "your forest turned one year old", lambda s: s["forest_age"] >= CABIN_AGE_DAYS),
-    ("bear", "a bear", "you kept a two-year streak", lambda s: s["longest_streak"] >= BEAR_STREAK),
-    ("squirrel", "a family of squirrels", "you knew 10,000 cards well", lambda s: s.get("mature_cards", 0) >= SQUIRREL_MATURE),
-    ("eagle", "an eagle", "you knew 25,000 cards well", lambda s: s.get("mature_cards", 0) >= EAGLE_MATURE),
+    # key, and the test that brings it (who and why it came: NAMES, STAYED, CAME and ARRIVED, below)
+    ("rabbit", lambda s: s["trees"] >= RABBIT_TREES),
+    ("deer", lambda s: s["longest_streak"] >= DEER_STREAK),
+    ("fox", lambda s: s["reviews"] >= FOX_REVIEWS),
+    ("owl", lambda s: s["ancient"] >= 1),
+    ("heron", lambda s: s.get("ponds", 0) >= 1),
+    ("stag", lambda s: s["longest_streak"] >= STAG_STREAK),
+    ("cabin", lambda s: s["forest_age"] >= CABIN_AGE_DAYS),
+    ("bear", lambda s: s["longest_streak"] >= BEAR_STREAK),
+    ("squirrel", lambda s: s.get("mature_cards", 0) >= SQUIRREL_MATURE),
+    ("eagle", lambda s: s.get("mature_cards", 0) >= EAGLE_MATURE),
 )
+# the journal's line on the day each one comes, a whole sentence each (the cabin's says it in its own words)
+ARRIVED = {
+    "rabbit": N_("visitor.a_rabbit_wandered_in_your_forest"),
+    "deer": N_("visitor.a_deer_wandered_in_you_kept"),
+    "fox": N_("visitor.a_fox_wandered_in_you_passed"),
+    "owl": N_("visitor.an_owl_wandered_in_your_first"),
+    "heron": N_("visitor.a_heron_wandered_in_a_pond"),
+    "stag": N_("visitor.a_stag_wandered_in_you_kept"),
+    "cabin": N_("visitor.a_little_cabin_now_stands_at"),
+    "bear": N_("visitor.a_bear_wandered_in_you_kept"),
+    "squirrel": N_("visitor.a_family_of_squirrels_wandered_in"),
+    "eagle": N_("visitor.an_eagle_wandered_in_you_knew"),
+}
 
 
 def visitors(stats: dict, arrived: dict | None = None, today: int | None = None) -> list:
@@ -48,14 +66,67 @@ def visitors(stats: dict, arrived: dict | None = None, today: int | None = None)
     those today's numbers bring, and new when _arrived_today can tell.
     """
     out = []
-    for key, label, why, test in VISITORS:
+    for key, test in VISITORS:
         if arrived is not None:
             if key in arrived:
                 # the day it came (the scheduler's day number), if it came while the forest watched
-                out.append({"key": key, "label": label, "why": why, "new": today is not None and arrived[key] == today,
+                out.append({"key": key, "new": today is not None and arrived[key] == today,
                             "day": arrived[key]})
         elif test(stats):
-            out.append({"key": key, "label": label, "why": why, "new": _arrived_today(key, stats)})
+            out.append({"key": key, "new": _arrived_today(key, stats)})
+    return out
+
+
+# what the page calls each, over its tooltip
+NAMES = {
+    "rabbit": N_("visitor.a_rabbit"),
+    "deer": N_("visitor.a_deer"),
+    "fox": N_("visitor.a_fox"),
+    "owl": N_("visitor.an_owl"),
+    "heron": N_("visitor.a_heron"),
+    "stag": N_("visitor.a_stag"),
+    "cabin": N_("visitor.a_cabin"),
+    "bear": N_("visitor.a_bear"),
+    "squirrel": N_("visitor.a_family_of_squirrels"),
+    "eagle": N_("visitor.an_eagle"),
+}
+# its tooltip's line: why it is there, a whole sentence
+STAYED = {
+    "rabbit": N_("visitor.moved_in_when_your_forest_reached"),
+    "deer": N_("visitor.moved_in_when_you_kept_a"),
+    "fox": N_("visitor.moved_in_when_you_passed_10"),
+    "owl": N_("visitor.moved_in_when_your_first_tree"),
+    "heron": N_("visitor.moved_in_when_a_pond_formed"),
+    "stag": N_("visitor.moved_in_when_you_kept_a_2"),
+    "cabin": N_("visitor.built_when_your_forest_turned_one"),
+    "bear": N_("visitor.moved_in_when_you_kept_a_3"),
+    "squirrel": N_("visitor.moved_in_when_you_knew_10"),
+    "eagle": N_("visitor.moved_in_when_you_knew_25"),
+}
+# the heatmap's line on the day it came (web/calendar.js)
+CAME = {
+    "rabbit": N_("visitor.a_rabbit_came_your_forest_reached"),
+    "deer": N_("visitor.a_deer_came_you_kept_a"),
+    "fox": N_("visitor.a_fox_came_you_passed_10"),
+    "owl": N_("visitor.an_owl_came_your_first_tree"),
+    "heron": N_("visitor.a_heron_came_a_pond_formed"),
+    "stag": N_("visitor.a_stag_came_you_kept_a"),
+    "cabin": N_("visitor.a_cabin_came_your_forest_turned"),
+    "bear": N_("visitor.a_bear_came_you_kept_a"),
+    "squirrel": N_("visitor.a_family_of_squirrels_came_you"),
+    "eagle": N_("visitor.an_eagle_came_you_knew_25"),
+}
+
+
+def for_page(animals: list) -> list:
+    """Visitors (or animal_days) as the page shows them: their name, and why they came in whole
+    sentences, in the reader's language (rather than who and why, which only English can join)."""
+    out = []
+    for a in animals:
+        page = dict(a)
+        if a["key"] in NAMES:
+            page.update(name=tx(NAMES[a["key"]]), stayed=tx(STAYED[a["key"]]), came=tx(CAME[a["key"]]))
+        out.append(page)
     return out
 
 
@@ -64,7 +135,7 @@ def arrivals(stats: dict, known: dict, today: int | None) -> dict:
     numbers bring added, as coming on `today` (None: quietly, on no day to announce, for
     the first look at a forest that already had them)."""
     out = dict(known)
-    for key, _label, _why, test in VISITORS:
+    for key, test in VISITORS:
         if key not in out and test(stats):
             out[key] = today
     return out
@@ -136,5 +207,5 @@ def animal_days(visitors: list, trees: list, day_reviews: dict, today: int, made
         if ago is None and made_up:
             ago = MADE_UP_AGO + MADE_UP_APART * [k for k, *_rest in VISITORS].index(v["key"])
         if ago is not None and ago >= 0:
-            out.append({"key": v["key"], "ago": ago, "label": v["label"], "why": v["why"]})
+            out.append({"key": v["key"], "ago": ago})
     return out

@@ -16,10 +16,10 @@ import os
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 KINDS = ("envs", "landscapes", "landmarks")
 # The scripts every forest loads, in this order, before its own environment, landscape and
-# landmark: util.js makes window.AnkiForest, the rest add to it, and each part of the pixel
+# landmark: util.js makes window.AnkiForest, i18n.js and strings_en.js its words, the rest add to it, and each part of the pixel
 # engine uses the parts before it. The panel, the render checks and the gallery all load these.
 SCRIPTS = (
-    "util.js", "layout.js", "scenery.js", "theme.js", "visitors.js", "ponds.js", "tooltips.js",
+    "util.js", "i18n.js", "strings_en.js", "layout.js", "scenery.js", "theme.js", "visitors.js", "ponds.js", "tooltips.js",
     "caption.js", "news.js", "hover.js", "visit.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
     "engines/pixel/water.js", "engines/pixel/engine.js", "calendar.js",

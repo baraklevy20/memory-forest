@@ -32,6 +32,7 @@ from aqt.qt import (
 )
 
 from ..events import DEFAULT_NATURE, NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
+from ..i18n import N_, t, tx
 from ..phone_note import phone_on
 from ..state import (
     ANIMATION_VALUES,
@@ -45,7 +46,7 @@ from ..state import (
 from .layout_picker import LayoutControls
 from .palette import color
 from .scenery_picker import NAME_FONT, NAME_PAD, RING, TILE_RADIUS
-from .widgets import Choice, Tab, form, group, hint
+from .widgets import Choice, Tab, bidi, form, group, hint, leading
 
 NATURE_ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nature")
 # Nature's levels as picture tiles, each what that level does to a forest over the days: the real
@@ -62,18 +63,32 @@ NATURE_SHADE_H, NATURE_SHADE_ALPHA = 0.4, 150
 NATURE_STILL_MS = {"peaceful": 8000, "wild": 4800, "merciless": 4600}
 # what "On finished decks too" covers: both, so it is never greyed out by the Heatmap tab's deck screens
 # (SETTINGS_GUIDELINES.md: one tab's control never changes another's)
-FINISHED_NOTE = "Covers the forest and the heatmap."
+FINISHED_NOTE = N_("settings.forest.covers_the_forest_and_the_heatmap")
 # (one line: SETTINGS_GUIDELINES.md)
-PHONE_NOTE = 'Adds a "Memory Forest" deck with a card showing your forest and heatmap as you sync.'
-ANIMATION_OPTIONS = [("on", "On"), ("off", "Off"), ("system", "Follow system")]
+PHONE_NOTE = N_("settings.forest.adds_a_memory_forest_deck_with")
+ANIMATION_OPTIONS = [("on", N_("settings.forest.on")), ("off", N_("settings.forest.off")),
+                     ("system", N_("settings.forest.follow_system"))]
 # where the forest shows: the same "No forest" in both, so the two rows read alike
-MAIN_OPTIONS = [(True, "Your forest"), (False, "No forest")]
-DECK_OPTIONS = [("highlight", "Your forest, that deck's trees lit up"), ("own", "A forest of that deck's own"), ("off", "No forest")]
+MAIN_OPTIONS = [(True, N_("settings.forest.your_forest")), (False, N_("settings.forest.no_forest"))]
+DECK_OPTIONS = [("highlight", N_("settings.forest.your_forest_that_decks_trees_lit")), ("own", N_("settings.forest.a_forest_of_that_decks_own")),
+                ("off", N_("settings.forest.no_forest"))]
 # points between two fields sharing a row (the deck screens' forest and "On finished decks too",
 # the heatmap's two screens), so the tab grows no taller (SETTINGS_GUIDELINES.md)
 CALENDAR_GAP = 24
 WIDTH_STEP = 50
 WIDTH_BOX_W = 110
+
+
+def shown(options) -> list:
+    """A choice's options in the reader's language (their labels marked with N_ / NC_)."""
+    return [(k, tx(label)) for k, label in options]
+
+
+def nature_note(level: str) -> str:
+    """What a Nature level does, and for a level that takes trees away, that switching back
+    brings them again (two sentences, each its own)."""
+    note = tx(NATURE_NOTES.get(level, ""))
+    return note if calm(level) else f"{note} {tx(NATURE_SWITCH_NOTE)}"
 
 
 def reduce_motion() -> bool:
@@ -182,10 +197,12 @@ class NatureTile(QAbstractButton):
         p.fillRect(QRectF(frame.left(), top, NATURE_GIF_W, frame.bottom() - top), shade)
         name_h = self.fontMetrics().height()
         name = QRectF(frame.left() + NAME_PAD, frame.bottom() - NAME_PAD + 2 - name_h, NATURE_GIF_W - 2 * NAME_PAD, name_h)
+        align = leading(self) | Qt.AlignmentFlag.AlignVCenter
+        label = bidi(self.label, self.isRightToLeft())
         p.setPen(QColor(0, 0, 0, 160))
-        p.drawText(name.translated(0, 1), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.label)
+        p.drawText(name.translated(0, 1), align, label)
         p.setPen(QColor("white"))
-        p.drawText(name, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.label)
+        p.drawText(name, align, label)
         p.restore()
         # the chosen one ringed in the theme's focus blue; the one with the focus, if another, thinly
         if self.isChecked() or self.hasFocus():
@@ -203,7 +220,7 @@ class NatureTiles(Choice):
     tile) and the arrow keys from one tile to the next, as widgets.JoinedChoice has."""
 
     def __init__(self, level: str):
-        super().__init__(list(NATURE_LABELS.items()), level, DEFAULT_NATURE, gap=NATURE_TILE_GAP, stretch=True)
+        super().__init__([(k, tx(v)) for k, v in NATURE_LABELS.items()], level, DEFAULT_NATURE, gap=NATURE_TILE_GAP, stretch=True)
         for b in self.buttons.values():
             b.installEventFilter(self)
         self.group.buttonToggled.connect(lambda _b, _on: self._tab_stop())
@@ -227,8 +244,8 @@ class NatureTiles(Choice):
         return False
 
     def set_moving(self, moving: bool) -> None:
-        for t in self.buttons.values():
-            t.set_moving(moving)
+        for tile in self.buttons.values():
+            tile.set_moving(moving)
 
 
 def beside(first, *rest, top: bool = False) -> QHBoxLayout:
@@ -252,25 +269,25 @@ class ForestTab(Tab):
         # grey under pictures this loud reads as a footnote (SETTINGS_GUIDELINES.md: Decided)
         self.nature_note = QLabel("")
         self.nature_note.setWordWrap(True)
-        self.nature_note.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # (its room fits the longest level)
+        self.nature_note.setAlignment(leading() | Qt.AlignmentFlag.AlignTop)  # (its room fits the longest level)
         self.nature_note.installEventFilter(self)
-        self.main_forest = Choice(MAIN_OPTIONS, shows_on_deck_list(cfg), True)
-        self.deck_mode = Choice(DECK_OPTIONS, cfg.get("deck_forest_mode", "highlight"), "highlight", vertical=True)
+        self.main_forest = Choice(shown(MAIN_OPTIONS), shows_on_deck_list(cfg), True)
+        self.deck_mode = Choice(shown(DECK_OPTIONS), cfg.get("deck_forest_mode", "highlight"), "highlight", vertical=True)
         # the deck screens' forest and heatmap on a deck you have finished too (Anki's
         # congratulations page), beside their choice
-        self.finished = QCheckBox("On finished decks too")
+        self.finished = QCheckBox(t("settings.forest.on_finished_decks_too"))
         self.finished.setChecked(shows_on_finished(cfg))
-        self.max_width = QSpinBox(); self.max_width.setRange(MAX_WIDTH_MIN, MAX_WIDTH_MAX); self.max_width.setSingleStep(WIDTH_STEP); self.max_width.setSuffix(" px")
+        self.max_width = QSpinBox(); self.max_width.setRange(MAX_WIDTH_MIN, MAX_WIDTH_MAX); self.max_width.setSingleStep(WIDTH_STEP); self.max_width.setSuffix(t("settings.forest.px"))
         self.max_width.setMaximumWidth(WIDTH_BOX_W)
         try:
             self.max_width.setValue(int(cfg.get("max_width", MAX_WIDTH_DEFAULT)))
         except (TypeError, ValueError):
             self.max_width.setValue(MAX_WIDTH_DEFAULT)
         # On, Off, or Follow system (still while the system asks for reduced motion)
-        self.animations = Choice(ANIMATION_OPTIONS, animation_mode(cfg), "on")
-        self.planting = QCheckBox("Show a message when today's tree is planted")
+        self.animations = Choice(shown(ANIMATION_OPTIONS), animation_mode(cfg), "on")
+        self.planting = QCheckBox(t("settings.forest.show_a_message_when_todays_tree"))
         self.planting.setChecked(bool(cfg.get("planting_tooltip", True)))
-        self.phone = QCheckBox("Show my forest on my phone")
+        self.phone = QCheckBox(t("settings.forest.show_my_forest_on_my_phone"))
         # not the add-on config's: whether the collection holds the note that takes the forest
         # to your phone (phone.py), made or taken away as it is ticked, and put back on Cancel -
         # as it was when the first of the dialogs opened, after Restore defaults reopened it
@@ -286,32 +303,32 @@ class ForestTab(Tab):
         # where the forest and the heatmap sit round the deck list: first, the row people look for
         # here (layout_picker.py)
         self.layout_pick = LayoutControls(cfg)
-        where.addRow("Layout", self.layout_pick.box)
-        where.addRow("Main screen", self.main_forest)
+        where.addRow(t("settings.forest.layout"), self.layout_pick.box)
+        where.addRow(t("settings.forest.main_screen"), self.main_forest)
         finished = QWidget()  # (the box with its hint just under it, as heatmap_tab.with_hint has them)
         fv = QVBoxLayout(finished)
         fv.setContentsMargins(0, 0, 0, 0)
         fv.setSpacing(4)
         fv.addWidget(self.finished)
-        note = hint(FINISHED_NOTE)
+        note = hint(tx(FINISHED_NOTE))
         note.setWordWrap(False)  # (one short line: wrapped, it took the box's width and broke in two)
         fv.addWidget(note)
-        where.addRow("Deck screens", beside(self.deck_mode, finished, top=True))
-        where.addRow("Forest width", self.max_width)
+        where.addRow(t("settings.forest.deck_screens"), beside(self.deck_mode, finished, top=True))
+        where.addRow(t("settings.forest.forest_width"), self.max_width)
         motion = QVBoxLayout()
         animate = form()
         # (the planting message beside it, on one row: room for Nature's moving picture)
-        animate.addRow("Animate the forest", beside(self.animations, self.planting))
+        animate.addRow(t("settings.forest.animate_the_forest"), beside(self.animations, self.planting))
         motion.addLayout(animate)
         pv = QVBoxLayout()
         pv.addWidget(self.phone)
-        pv.addWidget(hint(PHONE_NOTE))
+        pv.addWidget(hint(tx(PHONE_NOTE)))
         v = QVBoxLayout(self)
-        self.nature_group = group("Nature", nv)
+        self.nature_group = group(t("settings.forest.nature"), nv)
         v.addWidget(self.nature_group)
-        v.addWidget(group("Where it shows", where))
-        v.addWidget(group("Motion and messages", motion))
-        v.addWidget(group("On your phone", pv))
+        v.addWidget(group(t("settings.forest.where_it_shows"), where))
+        v.addWidget(group(t("settings.forest.motion_and_messages"), motion))
+        v.addWidget(group(t("settings.forest.on_your_phone"), pv))
         v.addStretch(1)
 
     def put_phone_back(self) -> None:
@@ -339,8 +356,7 @@ class ForestTab(Tab):
 
     def sync(self) -> None:
         level = self.nature.currentData()
-        note = NATURE_NOTES.get(level, "")
-        self.nature_note.setText(note if calm(level) else f"{note} {NATURE_SWITCH_NOTE}")
+        self.nature_note.setText(nature_note(level))
         self.nature.set_moving(nature_moves(self.animations.currentData()))
         self.fit()
 
@@ -355,8 +371,8 @@ class ForestTab(Tab):
         width = self.nature_note.width()
         if width > 0:
             metrics = self.nature_note.fontMetrics()
-            texts = [n if calm(k) else f"{n} {NATURE_SWITCH_NOTE}" for k, n in NATURE_NOTES.items()]
-            tallest = max(metrics.boundingRect(QRect(0, 0, width, 10000), Qt.TextFlag.TextWordWrap, t).height() for t in texts)
+            texts = [nature_note(k) for k in NATURE_NOTES]
+            tallest = max(metrics.boundingRect(QRect(0, 0, width, 10000), Qt.TextFlag.TextWordWrap, text).height() for text in texts)
             if tallest != self.nature_note.minimumHeight():
                 self.nature_note.setMinimumHeight(tallest)
 

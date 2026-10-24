@@ -9,6 +9,7 @@ from helpers import CUTOFF, TODAY, card, rows
 
 import fake_forest
 import forest_data as fd
+import i18n
 import journal
 import milestones
 
@@ -33,10 +34,10 @@ class MilestoneTests(unittest.TestCase):
 
     def test_every_animal_is_announced_the_day_it_comes(self):
         stats = fake_forest.make(1)["stats"]
-        for key, _label, why, _test in milestones.VISITORS:
+        for key, _test in milestones.VISITORS:
             forest = dict(fake_forest.make(1), visitors=milestones.visitors(stats, {key: 2000}, 2000))
             line = journal.journal(forest, {"time": "day"}, dt.date(2026, 9, 19), [])
-            self.assertIn("a year since" if key == "cabin" else why, line, key)
+            self.assertEqual(line, i18n.t(milestones.ARRIVED[key]), key)
 
     def test_the_test_forest_has_every_card_animal_from_420_trees(self):
         keys = {v["key"] for v in fake_forest.make(fake_forest.FAKE_ALL_ANIMALS_TREES)["visitors"]}
@@ -60,7 +61,7 @@ class AnimalDayTests(unittest.TestCase):
         # studied 40 days ago, then every day from 35 days ago: the 30th day in a row is 6 days ago
         reviews = {40: 5, **dict.fromkeys(range(36), 5)}
         got = milestones.animal_days([self.visitor("deer")], [], reviews, TODAY)
-        self.assertEqual(got, [{"key": "deer", "ago": 6, "label": "deer", "why": ""}])
+        self.assertEqual(got, [{"key": "deer", "ago": 6}])
 
     def test_the_fox_came_with_the_10000th_review_and_the_heron_with_the_first_pond(self):
         reviews = {9: 6000, 5: 3000, 2: 2000, 0: 10}

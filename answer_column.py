@@ -5,6 +5,8 @@ from __future__ import annotations
 from aqt import gui_hooks, mw
 from aqt.qt import QEvent, QObject, Qt
 
+from .i18n import dec, num, t
+
 KEY = "memoryForestAnswerTime"
 _session = None
 
@@ -51,12 +53,13 @@ def show(browser, times: dict, label: str, search: str, metric: str = "median") 
     if previous_layout is None:
         previous_layout = header.saveState()
     original_toggle = table.toggle_state
-    detail = {
-        "reviews": "Number of answers on the clicked day, including retries. Notes show the sum across their cards.",
-        "time": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards.",
-        "median": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median.",
-    }[metric]
-    description = f"{label}. {detail}"
+    if metric == "reviews":
+        detail = t("answer_column.number_of_answers_on_the_clicked")
+    elif metric == "time":
+        detail = t("answer_column.total_seconds_spent_answering_on_the")
+    else:
+        detail = t("answer_column.median_seconds_per_answer_for_the")
+    description = t("answer_column.heading_detail", heading=label, detail=detail)
     model.columns[KEY] = Column(
         key=KEY, cards_mode_label=label, notes_mode_label=label,
         uses_cell_font=False, alignment=BrowserColumns.ALIGNMENT_CENTER,
@@ -77,7 +80,8 @@ def show(browser, times: dict, label: str, search: str, metric: str = "median") 
             return
         value = (note_times if notes else times).get(item) if active else None
         cell = row.cells[columns.index(KEY)]
-        cell.text = (str(int(value)) if metric == "reviews" else f"{value / 1000:.1f} s") if value is not None else "—"
+        cell.text = ((num(int(value)) if metric == "reviews" else t("answer_column.seconds_s", seconds=dec(value / 1000)))
+                     if value is not None else "—")
 
     def searched(context):
         nonlocal active

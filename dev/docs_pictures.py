@@ -43,6 +43,7 @@ catalog = importlib.import_module(PK + ".catalog")
 presets = importlib.import_module(PK + ".presets")
 scene = importlib.import_module(PK + ".scene")
 fake_forest = importlib.import_module(PK + ".fake_forest")
+milestones = importlib.import_module(PK + ".milestones")
 HL = importlib.import_module(PK + ".heatmap_look")
 
 DOCS = os.path.join(ADDON, "docs")
@@ -210,7 +211,7 @@ def layout_forest() -> dict:
     forest = fake_forest.make_forest(trees, LAYOUT_STREAK, LAYOUT_STREAK, len(trees) * fake_forest.FAKE_REVIEWS_PER_TREE, 186)
     stats = forest["stats"]
     stats["mature_cards"] = max(stats["mature_cards"], fake_forest.SQUIRREL_MATURE)
-    return {"trees": forest["trees"], "stats": stats, "forestSeed": forest["forest_seed"], "visitors": fake_forest.visitors(stats)}
+    return {"trees": forest["trees"], "stats": stats, "forestSeed": forest["forest_seed"], "visitors": milestones.for_page(fake_forest.visitors(stats))}
 
 
 def layout_page(mood: dict, data: dict) -> str:
@@ -324,7 +325,7 @@ def main() -> None:
             # with its margins, down to Anki's studied-today line
             board = mood_of("chalkboard")
             # (with --collection, your own forest and the animals its numbers bring; the decks stay made up)
-            trees = layout_forest() if REAL_DATA is None else {"visitors": fake_forest.visitors(REAL_DATA["stats"])}
+            trees = layout_forest() if REAL_DATA is None else {"visitors": milestones.for_page(fake_forest.visitors(REAL_DATA["stats"]))}
             lay = dict(forest_data(board), **trees, calendar=dict(calendar(board, [], view=LAYOUT_VIEW), size={"width": "full", "fill": "more"}), showForest=True, maxWidth=LAYOUT_FOREST,
                        journal=LAYOUT_JOURNAL, sceneName=presets.by_key()["chalkboard"].label,
                        layout={"forest": "right", "heatmap": "below", "first": "forest"})
