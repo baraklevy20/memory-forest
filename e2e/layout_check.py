@@ -38,7 +38,7 @@ LAYOUT_FILES = ("panel.py", "payload.py", "state.py", "web/core.js", "web/captio
 WIDE, NARROW = 1400, 720  # css px: a window with room beside the list, and one without
 # (and one without that still has room for more than the forest: a heatmap at Full width fallen under
 # the list there is wider than the forest, as it is under the list)
-MID = 900
+MID = 900  # (the deck list is held at 400 px, whatever the fonts: so MID has no room beside it on any machine)
 CARDS = [(i, 10, i % 90) for i in range(1, 400)]  # (a forest, and three months of heatmap)
 FOREST_W = 800  # the Forest width (config.json's max_width)
 FIXED_W = 680  # the heatmap's Fixed width (calendar.js FIXED_W); Follow the forest and Full width are 85% of the forest and of the room
@@ -73,7 +73,8 @@ def page(stats: str, dark: bool) -> str:
     return f"""<!doctype html><html class="{'night-mode' if dark else ''}"><head><meta charset="utf-8">
 <script>window.pycmd = (m, cb) => {{ if (cb) cb(null); return false; }};</script>
 <style>{css}</style><style>body {{ font: 13px -apple-system, system-ui, sans-serif; margin: 0; padding: 12px 0;
-  background: {'#2c2c2c' if dark else '#f5f5f5'}; color: {'#ddd' if dark else '#222'} }} td, th {{ padding: 2px 6px }}</style></head>
+  background: {'#2c2c2c' if dark else '#f5f5f5'}; color: {'#ddd' if dark else '#222'} }} td, th {{ padding: 2px 6px }}
+  center > table {{ width: 400px }}</style></head>
 <body class="{'nightMode night_mode' if dark else ''}">
 <center>
 <table cellspacing=0 cellpadding=3>
