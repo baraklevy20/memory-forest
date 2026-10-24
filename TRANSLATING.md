@@ -4,7 +4,7 @@ Memory Forest follows your Anki's language. So far it supports German, Spanish, 
 Portuguese, Japanese, Chinese (Simplified), Arabic and Hebrew.
 
 I want to be fully transparent: I don't speak most of these languages, so every translation was
-made with AI (Claude). It uses Anki's own words for things like decks and reviews, but no native
+made with AI. It uses Anki's own words for things like decks and reviews, but no native
 speaker has read it yet, and it's probably bad in places. Think of it as a decent start.
 
 If something reads wrong or just isn't how people say it, please tell me. A single word or a whole
