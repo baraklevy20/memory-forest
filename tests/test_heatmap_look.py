@@ -202,6 +202,8 @@ class SceneryColourTests(unittest.TestCase):
 
 
     def test_chalkboard_s_colours_are_offered_where_chalkboard_is(self):
+        if "chalkboard" not in addon.presets.by_key():
+            self.skipTest("this copy has no Chalkboard (the public one)")
         for edition, env in (("plus", "chalkboard"), ("base", None)):
             pretend = {"debug": True, "debug_edition": edition}
             if addon.edition.debug_available(pretend) and HL.debug_edition(pretend):

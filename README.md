@@ -87,7 +87,8 @@ Change your mind at any time: switch back and your forest is just as it was.
 Your study days, streaks and upcoming reviews, in your scenery's colours.
 Hover for details; click a day to open its cards.
 
-- **Views**: a rolling 10-month timeline or a full year.
+- **Views**: a rolling timeline, a full year, or your whole streak at once.
+- **Pick days**: Shift-click or Ctrl/Cmd-click days to light up their trees.
 - **Reviews, time or pace**: shade days by review count, study time or seconds per answer.
 - **Per deck**: each deck has its own heatmap and streak.
 - **Fair streaks**: days with nothing due don't break your streak.

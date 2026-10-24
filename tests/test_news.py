@@ -179,6 +179,14 @@ class DotTests(unittest.TestCase):
             self.assertNotIn("cherry_blossom", news.dots(DEBUG_BASE))  # (debug's made-up one is there)
             self.assertIn("cherry_blossom", news.dots(DEBUG_PLUS))
 
+    def test_a_scenery_come_to_the_free_edition_is_announced_there_alone(self):
+        editions_here(self)
+        free = {"text": "Starry night is now in the free edition.", "needs": "scenery:starry_night edition:base",
+                "announce": {"id": "starry_free", "kind": "dot"}}
+        with notes(free), debug_tools():
+            self.assertIn("starry_night", news.dots(DEBUG_BASE))
+            self.assertNotIn("starry_night", news.dots(DEBUG_PLUS))
+
 
 class ImprovedTests(unittest.TestCase):
     def setUp(self):

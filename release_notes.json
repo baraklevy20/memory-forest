@@ -6,9 +6,29 @@
       "new": [
         {
           "text": "Starry night is now in the free edition.",
-          "needs": "scenery:starry_night edition:base"
+          "needs": "scenery:starry_night edition:base",
+          "announce": {
+            "id": "starry-night-free-1.4",
+            "kind": "dot"
+          }
         },
-        "Put the forest and heatmap beside or above your deck list (Forest tab).",
+        {
+          "text": "Put the forest and heatmap beside or above your deck list (Forest tab).",
+          "announce": {
+            "id": "layout-1.4",
+            "kind": "note",
+            "title": "New: layouts and a Streak view",
+            "text": "Put the forest and heatmap beside or above your deck list, and see your whole streak at once in the heatmap's new Streak view.",
+            "action": "Choose a layout",
+            "opens": "layout",
+            "settings": [
+              "layout",
+              "calendar_width",
+              "calendar_fill",
+              "keep_earlier_trees"
+            ]
+          }
+        },
         "A Streak view shows your whole streak at once.",
         {
           "text": "Select heatmap days with Shift-click or Ctrl/Cmd-click to light up their trees."
