@@ -245,31 +245,60 @@ const DEF = {
     } else {
       const grid = env.theme.grid;
       // a sea in front keeps its water: the floor runs over the land, to the sand (env.landEnds,
-      // where the landscape's dry land ends on each row)
+      // where the landscape's dry land ends on each row), and only the lines go on over the sea
       const sea = env.landEnds;
-      if (sea) {
-        g.save(); g.beginPath(); g.moveTo(0, top);
-        for (let y = top; y < H; y++) { const x = sea[y] ?? W; g.lineTo(x, y); g.lineTo(x, y + 1); }
-        g.lineTo(0, H); g.closePath(); g.clip();
-      }
+      if (sea) { g.save(); seaPath(g, env, top, true); g.clip(); }
       g.fillStyle = grid.floor; g.fillRect(0, top, W, H - top);
       if (env._floorGlow === undefined) env._floorGlow = floorGlow(env, top);
       if (env._floorGlow) g.drawImage(env._floorGlow, 0, 0);
-      g.fillStyle = grid.far; pxLine(g, 0, top, W, top);
-      let last = top;
-      for (let k = 0; k < 7; k++) {
-        const z = ((k + t * AF.u.drift(0.6, 1)) % 7) / 7, y = Math.round(top + (H - top) * z * z);
-        if (y - last < 3) continue;
-        g.fillStyle = z < 0.45 ? grid.far : grid.near; pxLine(g, 0, y, W, y); last = y;
-      }
-      g.fillStyle = grid.near;
-      for (let k = -10; k <= 10; k++) pxLine(g, W / 2 + k * W / 40, top, W / 2 + k * W / 9, H);
-      if (sea) g.restore();
+      gridLines(g, env, t, top, grid.far, grid.near);
+      if (sea) { g.restore(); seaGrid(g, env, t, top); }
     }
     if (!env._palms) env._palms = palmLayer(env);
     g.drawImage(env._palms, 0, 0);
   },
 };
+/* the grid's lines: the far edge, the rows scrolling towards you and the lines running
+ * out from the middle */
+function gridLines(g, env, t, top, far, near) {
+  const { W, H } = env;
+  g.fillStyle = far; pxLine(g, 0, top, W, top);
+  let last = top;
+  for (let k = 0; k < 7; k++) {
+    const z = ((k + t * AF.u.drift(0.6, 1)) % 7) / 7, y = Math.round(top + (H - top) * z * z);
+    if (y - last < 3) continue;
+    g.fillStyle = z < 0.45 ? far : near; pxLine(g, 0, y, W, y); last = y;
+  }
+  g.fillStyle = near;
+  for (let k = -10; k <= 10; k++) pxLine(g, W / 2 + k * W / 40, top, W / 2 + k * W / 9, H);
+}
+
+/* the land in front of a sea (`land`) or the sea itself, from the grid's top down */
+function seaPath(g, env, top, land) {
+  const { W, H } = env, sea = env.landEnds, edge = land ? 0 : W;
+  g.beginPath(); g.moveTo(edge, top);
+  for (let y = top; y < H; y++) { const x = sea[y] ?? W; g.lineTo(x, y); g.lineTo(x, y + 1); }
+  g.lineTo(edge, H); g.closePath();
+}
+
+/* On a sea the grid goes on as the same lines, faint and in a light shade of the water, so
+ * the water leads; each row sways a little, more towards you (still on ice). */
+const SEA_LINE_LIGHT = 0.35, SEA_LINE_ALPHA = 0.45, SEA_SWAY = 2.2;
+function seaGrid(g, env, t, top) {
+  const { W, H } = env, th = env.theme;
+  if (!env._seaLines) env._seaLines = AF.u.layer(W, H);
+  const [cv, lg] = env._seaLines, tone = mixHex(th.water, '#ffffff', SEA_LINE_LIGHT);
+  lg.clearRect(0, top, W, H - top);
+  gridLines(lg, env, t, top, tone, tone);
+  g.save(); seaPath(g, env, top, false); g.clip(); g.globalAlpha = SEA_LINE_ALPHA;
+  for (let y = top; y < H; y++) {
+    const off = th.frozen ? 0 : Math.round(Math.sin(t * 1.6 + y * 0.45) * (0.6 + SEA_SWAY * (y - top) / (H - top)));
+    g.drawImage(cv, 0, y, W, 1, off, y, W, 1);
+    if (off > 0) g.drawImage(cv, W - off, y, off, 1, 0, y, off, 1);
+  }
+  g.restore();
+}
+
 /* the study calendar's tiles in scanlines, every other row darker as on an old monitor */
 DEF.calendarTile = (g, pal, edge, v, T) => {
   const n = T - 1;  // (the last row and column: the gap between tiles)
