@@ -371,10 +371,12 @@ test('a night scenery keeps its colours after dark and wears its day colours by 
     assert.ok(deg(dawn[0]) > deg(day[0]) && deg(dawn[0]) < deg(night[0]) && chromaOf(dawn[0]) > 0.6 * Math.min(chromaOf(day[0]), chromaOf(night[0])));
     assert.deepEqual(plain(labs(N, atHour(N, 'aurora', 'night', 'golden_hour'), paper)), plain(dawn));
   }
-  // a scenery at home at dusk (Pumpkin patch) too: its dusk and night colours by night, all orange by day
+  // a scenery at home at dusk (Pumpkin patch) too: its dusk and night colours by night, the vines' green to orange by day
   const pk = t => labs(N, atHour(N, 'pumpkin_patch', 'dusk', t), PAGES[0]);
   assert.deepEqual(plain(pk('night')), plain(own(PAGES[0], 'pumpkin_patch')));
-  assert.ok(pk('day').every(k => Math.abs(hue(k) * 180 / Math.PI - 60) < 25), 'pumpkin orange');
+  const pkDay = pk('day').map(k => (hue(k) * 180 / Math.PI + 360) % 360);
+  assert.ok(pkDay[0] > 100 && pkDay[0] < 150, 'the fewest the vines\' green');
+  assert.ok(Math.abs(pkDay[3] - 60) < 25, 'the most pumpkin orange');
   // a day scenery whose trees take no tint at night (Chalkboard) keeps its yellow chalk at every hour
   if (CHALK) {
     const ch = t => labs(N, atHour(N, 'chalkboard', 'day', t), PAGES[0]);
