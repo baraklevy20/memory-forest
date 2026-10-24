@@ -22,6 +22,21 @@ CUTOFF = int(dt.datetime(2026, 9, 20, 4, 0).timestamp())  # next rollover; "toda
 TODAY = 2000
 
 
+def out_of_season():
+    """A patch that makes seasons.today()'s real date "today" (19 Sep), out of every seasonal
+    scenery's week, so a test of the default scenery passes in Halloween's or Christmas's too."""
+    from unittest import mock
+
+    from fake_anki import addon
+
+    class Day(dt.date):
+        @classmethod
+        def today(cls):
+            return dt.date(2026, 9, 19)
+
+    return mock.patch.object(addon.seasons, "_dt", mock.Mock(wraps=dt, date=Day))
+
+
 def ms(days_ago: int, hour: int = 12) -> int:
     """Revlog-style ms timestamp at `hour` o'clock on the Anki day `days_ago` days back."""
     return int((CUTOFF - (days_ago + 1) * DAY + (hour - 4) * 3600) * 1000)

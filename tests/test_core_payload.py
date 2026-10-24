@@ -11,7 +11,7 @@ import unittest
 from unittest import mock
 
 from fake_anki import addon, mw, reset
-from helpers import TODAY, ms
+from helpers import TODAY, ms, out_of_season
 
 payload, state, presets = addon.payload, addon.state, addon.presets
 
@@ -240,7 +240,8 @@ class SceneNameTests(unittest.TestCase):
 
     def test_the_default_scenery_goes_unnamed(self):
         self.assertEqual(payload._scene_name(dict(state.config()), self.DAY), {})
-        self.assertNotIn("sceneName", payload.payload())
+        with out_of_season():
+            self.assertNotIn("sceneName", payload.payload())
 
     def test_a_preset_is_named_by_its_label(self):
         p = next(p for p in presets.FOREST_PRESETS[1:] if not p.season and p.key != presets.DAILY)

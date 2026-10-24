@@ -10,6 +10,7 @@ import unittest
 from unittest import mock
 
 from fake_anki import addon, mw, reset
+from helpers import out_of_season
 
 state = addon.state
 payload = addon.payload
@@ -229,7 +230,8 @@ class OlderConfigTests(unittest.TestCase):
 
     def test_a_1_2_0_config_draws_the_heatmap_with_its_defaults(self):
         reset([(1, 10, 3), (2, 10, 1)], CONFIG_1_2_0)
-        p = payload.payload()
+        with out_of_season():  # (in Halloween's week the heatmap wears pumpkins)
+            p = payload.payload()
         cal = p["calendar"]
         self.assertIsNotNone(cal)  # (on for everyone, on both screens)
         self.assertEqual((cal["view"], cal["shadeBy"], cal["streakFromStart"]), ("timeline", "reviews", False))
