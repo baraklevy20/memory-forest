@@ -7,7 +7,13 @@
         "Memory Forest now speaks your Anki's language: German, Spanish, French, Brazilian Portuguese, Japanese, Chinese, Arabic and Hebrew, with right-to-left layouts for Arabic and Hebrew."
       ],
       "improved": [
-        "Selecting heatmap days is easier to find and works from the keyboard too."
+        "The Streak view and the forest's layouts got a polish, and the Streak view now fits in an Onigiri tile.",
+        "Selecting heatmap days is easier to find and works from the keyboard too.",
+        "The settings now fit on smaller screens, like 1280×720.",
+        "Frozen ponds now take on the colours of dusk and night."
+      ],
+      "fixed": [
+        "Your forest on your phone no longer gets cut off in landscape full screen, and says more plainly when it last synced."
       ]
     },
     {
