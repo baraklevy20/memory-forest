@@ -346,7 +346,7 @@
  },
  "heatmap.pin": "Pin",
  "heatmap.planted_tree_n_new_cards": {
-  "one": "Planted tree: {n} new cards",
+  "one": "Planted tree: {n} new card",
   "other": "Planted tree: {n} new cards"
  },
  "heatmap.ponds_and_animals_count_from_here": "Ponds and animals count from here",
@@ -420,7 +420,7 @@
  "heatmap.trip": "Trip",
  "heatmap.under_a_minute": "under a minute",
  "heatmap.under_n_reviews": {
-  "one": "Under {n} reviews",
+  "one": "Under {n} review",
   "other": "Under {n} reviews"
  },
  "heatmap.under_s_s_per_answer": "Under {s} s per answer",
@@ -732,7 +732,7 @@
  "settings.layout.under_the_list": "Under the list",
  "settings.patreon.enjoying_memory_forest": "Enjoying Memory Forest?",
  "settings.patreon.every_plus_scenery_joins_this_version": "Every Plus scenery joins this version later on.",
- "settings.patreon.new_scenery_arrives_here_first_every": "New scenery arrives here first, every month.",
+ "settings.patreon.new_scenery_arrives_here_first_every": "New sceneries arrive here first.",
  "settings.patreon.support_it_on_patreon_and_get": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus",
  "settings.patreon.thank_you_for_supporting_memory_forest": "Thank you for supporting Memory Forest on <a href=\"{url}\">Patreon</a>",
  "settings.picker.improved": "IMPROVED",

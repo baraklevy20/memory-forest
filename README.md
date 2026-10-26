@@ -134,7 +134,7 @@ Your computer draws this copy, so it updates whenever Anki syncs there.
 If you enjoy Memory Forest, please [give it a thumbs up on AnkiWeb](https://ankiweb.net/shared/review/1255432496)
 and share it with friends who study with Anki. It is what helps other people find it.
 
-A new scenery arrives every month. Want each one first? [Join on Patreon](https://www.patreon.com/BarakLevy)
+New sceneries keep coming. Want each one first? [Join on Patreon](https://www.patreon.com/BarakLevy)
 for Memory Forest Plus, and every scenery comes to this version later on.
 
 ## Languages

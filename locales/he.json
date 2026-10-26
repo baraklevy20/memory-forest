@@ -1136,7 +1136,7 @@
    "other": "עץ שנשתל: {n} כרטיסים חדשים"
   },
   "en": {
-   "one": "Planted tree: {n} new cards",
+   "one": "Planted tree: {n} new card",
    "other": "Planted tree: {n} new cards"
   }
  },
@@ -1372,7 +1372,7 @@
    "other": "פחות מ־ {n} חזרות"
   },
   "en": {
-   "one": "Under {n} reviews",
+   "one": "Under {n} review",
    "other": "Under {n} reviews"
   }
  },
@@ -2756,8 +2756,8 @@
   "en": "Every Plus scenery joins this version later on."
  },
  "settings.patreon.new_scenery_arrives_here_first_every": {
-  "text": "נופים חדשים מגיעים לכאן קודם, בכל חודש.",
-  "en": "New scenery arrives here first, every month."
+  "text": "נופים חדשים מגיעים לכאן קודם.",
+  "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
   "text": "אפשר לתמוך ב־ Patreon ולקבל כל נוף\nחדש לפני כולם, ב־ Memory Forest Plus",

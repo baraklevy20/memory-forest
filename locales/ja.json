@@ -1018,7 +1018,7 @@
    "other": "植えた木: 新規カード {n} 枚"
   },
   "en": {
-   "one": "Planted tree: {n} new cards",
+   "one": "Planted tree: {n} new card",
    "other": "Planted tree: {n} new cards"
   }
  },
@@ -1230,7 +1230,7 @@
    "other": "{n} 回未満"
   },
   "en": {
-   "one": "Under {n} reviews",
+   "one": "Under {n} review",
    "other": "Under {n} reviews"
   }
  },
@@ -2588,8 +2588,8 @@
   "en": "Every Plus scenery joins this version later on."
  },
  "settings.patreon.new_scenery_arrives_here_first_every": {
-  "text": "新しい風景が毎月、まずここに登場します。",
-  "en": "New scenery arrives here first, every month."
+  "text": "新しい風景は、まずここに登場します。",
+  "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
   "text": "Patreon で支援すると、新しい風景を\nいち早く Memory Forest Plus で楽しめます",

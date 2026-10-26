@@ -1313,7 +1313,7 @@
    "other": "شجرة مغروسة: {n} بطاقة جديدة"
   },
   "en": {
-   "one": "Planted tree: {n} new cards",
+   "one": "Planted tree: {n} new card",
    "other": "Planted tree: {n} new cards"
   }
  },
@@ -1585,7 +1585,7 @@
    "other": "أقل من {n} مراجعة"
   },
   "en": {
-   "one": "Under {n} reviews",
+   "one": "Under {n} review",
    "other": "Under {n} reviews"
   }
  },
@@ -3008,8 +3008,8 @@
   "en": "Every Plus scenery joins this version later on."
  },
  "settings.patreon.new_scenery_arrives_here_first_every": {
-  "text": "تصل المناظر الجديدة إلى هنا أولًا، كل شهر.",
-  "en": "New scenery arrives here first, every month."
+  "text": "تصل المناظر الجديدة إلى هنا أولًا.",
+  "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
   "text": "بدعمها على Patreon يصلك كل منظر\nجديد أولًا، في Memory Forest Plus",

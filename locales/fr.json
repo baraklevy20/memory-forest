@@ -1077,7 +1077,7 @@
    "other": "Arbre planté : {n} nouvelles cartes"
   },
   "en": {
-   "one": "Planted tree: {n} new cards",
+   "one": "Planted tree: {n} new card",
    "other": "Planted tree: {n} new cards"
   }
  },
@@ -1301,7 +1301,7 @@
    "other": "Moins de {n} révisions"
   },
   "en": {
-   "one": "Under {n} reviews",
+   "one": "Under {n} review",
    "other": "Under {n} reviews"
   }
  },
@@ -2672,8 +2672,8 @@
   "en": "Every Plus scenery joins this version later on."
  },
  "settings.patreon.new_scenery_arrives_here_first_every": {
-  "text": "Les nouveaux décors arrivent ici en premier, chaque mois.",
-  "en": "New scenery arrives here first, every month."
+  "text": "Les nouveaux décors arrivent ici en premier.",
+  "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
   "text": "Soutenez-le sur Patreon et recevez chaque nouveau\ndécor en premier, dans Memory Forest Plus",

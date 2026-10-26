@@ -298,7 +298,7 @@ window.AnkiForest.EN = {
  },
  "heatmap.pin": "Pin",
  "heatmap.planted_tree_n_new_cards": {
-  "one": "Planted tree: {n} new cards",
+  "one": "Planted tree: {n} new card",
   "other": "Planted tree: {n} new cards"
  },
  "heatmap.ponds_and_animals_count_from_here": "Ponds and animals count from here",
@@ -372,7 +372,7 @@ window.AnkiForest.EN = {
  "heatmap.trip": "Trip",
  "heatmap.under_a_minute": "under a minute",
  "heatmap.under_n_reviews": {
-  "one": "Under {n} reviews",
+  "one": "Under {n} review",
   "other": "Under {n} reviews"
  },
  "heatmap.under_s_s_per_answer": "Under {s} s per answer",

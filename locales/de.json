@@ -1077,7 +1077,7 @@
    "other": "Baum gepflanzt: {n} neue Karten"
   },
   "en": {
-   "one": "Planted tree: {n} new cards",
+   "one": "Planted tree: {n} new card",
    "other": "Planted tree: {n} new cards"
   }
  },
@@ -1301,7 +1301,7 @@
    "other": "Unter {n} Wiederholungen"
   },
   "en": {
-   "one": "Under {n} reviews",
+   "one": "Under {n} review",
    "other": "Under {n} reviews"
   }
  },
@@ -2672,8 +2672,8 @@
   "en": "Every Plus scenery joins this version later on."
  },
  "settings.patreon.new_scenery_arrives_here_first_every": {
-  "text": "Neue Szenerien erscheinen hier zuerst, jeden Monat.",
-  "en": "New scenery arrives here first, every month."
+  "text": "Neue Szenerien erscheinen hier zuerst.",
+  "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
   "text": "Unterstütze es auf Patreon und bekomm jede neue\nSzenerie zuerst, in Memory Forest Plus",
@@ -2785,8 +2785,8 @@
  },
  "tooltip.all_n_cards_suspended": {
   "text": {
-   "one": "Alle {n} Karten ausgeschlossen",
-   "other": "Alle {n} Karten ausgeschlossen"
+   "one": "Alle {n} Karten ausgesetzt",
+   "other": "Alle {n} Karten ausgesetzt"
   },
   "en": {
    "one": "All {n} cards suspended",
@@ -2806,7 +2806,7 @@
   "en": "{from} – {to}"
  },
  "tooltip.its_card_is_suspended": {
-  "text": "Seine Karte ist ausgeschlossen",
+  "text": "Seine Karte ist ausgesetzt",
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
@@ -2909,8 +2909,8 @@
  },
  "tooltip.n_of_total_suspended": {
   "text": {
-   "one": "{n} von {total} ausgeschlossen",
-   "other": "{n} von {total} ausgeschlossen"
+   "one": "{n} von {total} ausgesetzt",
+   "other": "{n} von {total} ausgesetzt"
   },
   "en": {
    "one": "{n} of {total} suspended",

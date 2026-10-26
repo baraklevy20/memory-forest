@@ -1018,7 +1018,7 @@
    "other": "种下一棵树：{n} 张新卡片"
   },
   "en": {
-   "one": "Planted tree: {n} new cards",
+   "one": "Planted tree: {n} new card",
    "other": "Planted tree: {n} new cards"
   }
  },
@@ -1230,7 +1230,7 @@
    "other": "少于 {n} 次复习"
   },
   "en": {
-   "one": "Under {n} reviews",
+   "one": "Under {n} review",
    "other": "Under {n} reviews"
   }
  },
@@ -2588,8 +2588,8 @@
   "en": "Every Plus scenery joins this version later on."
  },
  "settings.patreon.new_scenery_arrives_here_first_every": {
-  "text": "新场景每月首先在这里推出。",
-  "en": "New scenery arrives here first, every month."
+  "text": "新场景首先在这里推出。",
+  "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
   "text": "在 Patreon 上支持它，即可在 Memory Forest Plus 中\n抢先获得每个新场景",
