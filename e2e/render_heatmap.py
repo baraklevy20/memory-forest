@@ -90,8 +90,9 @@ async function probes(r) {
     if (!/reviews|min/.test(say())) r.errors.push('heatmap: a shade in the key showed no tooltip');
   } else r.errors.push('heatmap: no key');
   // the trophies' lane under the weeks, along its middle where the pointer lands on a trophy: a
-  // trophy or the goal flag answers (a layer laid over the lane once swallowed it)
-  const n = document.querySelector('.af-cal-notes'), lc = into(cv), nr = n.getBoundingClientRect(), mid = (nr.top + nr.bottom) / 2;
+  // trophy or the goal flag answers (a layer laid over the lane once swallowed it); the heatmap's own
+  // lane, not an earlier Streak view row's
+  const n = document.querySelector('.af-cal-grid > .af-cal-notes'), lc = into(cv), nr = n.getBoundingClientRect(), mid = (nr.top + nr.bottom) / 2;
   let lane = '';
   for (let x = lc.left; x < lc.right && !lane; x += 2) { move(cv, x, mid); await sleep(5); if (/longest|on this day/.test(say())) lane = say(); }
   // (the frames before today's: the history's patchy years, with no streak long enough for a trophy)
