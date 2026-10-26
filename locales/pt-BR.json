@@ -1668,51 +1668,51 @@
   "en": "September"
  },
  "month_short.apr": {
-  "text": "abr",
+  "text": "abr.",
   "en": "Apr"
  },
  "month_short.aug": {
-  "text": "ago",
+  "text": "ago.",
   "en": "Aug"
  },
  "month_short.dec": {
-  "text": "dez",
+  "text": "dez.",
   "en": "Dec"
  },
  "month_short.feb": {
-  "text": "fev",
+  "text": "fev.",
   "en": "Feb"
  },
  "month_short.jan": {
-  "text": "jan",
+  "text": "jan.",
   "en": "Jan"
  },
  "month_short.jul": {
-  "text": "jul",
+  "text": "jul.",
   "en": "Jul"
  },
  "month_short.jun": {
-  "text": "jun",
+  "text": "jun.",
   "en": "Jun"
  },
  "month_short.mar": {
-  "text": "mar",
+  "text": "mar.",
   "en": "Mar"
  },
  "month_short.may": {
-  "text": "mai",
+  "text": "mai.",
   "en": "May"
  },
  "month_short.nov": {
-  "text": "nov",
+  "text": "nov.",
   "en": "Nov"
  },
  "month_short.oct": {
-  "text": "out",
+  "text": "out.",
   "en": "Oct"
  },
  "month_short.sep": {
-  "text": "set",
+  "text": "set.",
   "en": "Sep"
  },
  "news.change_scenery_and_settings_new_scenery": {
@@ -2175,7 +2175,7 @@
    "other": "Sua floresta: <b>{trees}</b> &nbsp;({n} anteriores deixadas de fora)"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },

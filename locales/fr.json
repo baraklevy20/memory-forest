@@ -2175,7 +2175,7 @@
    "other": "Votre forêt : <b>{trees}</b> &nbsp;({n} arbres antérieurs exclus)"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },

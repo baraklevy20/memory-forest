@@ -2175,7 +2175,7 @@
    "other": "Tu bosque: <b>{trees}</b> &nbsp;({n} anteriores excluidos)"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },
@@ -2216,11 +2216,11 @@
   "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
-  "text": "Restablecer valores",
+  "text": "Restablecer valores predeterminados",
   "en": "Restore defaults"
  },
  "settings.dialog.restore_defaults_2": {
-  "text": "Restablecer valores…",
+  "text": "Restablecer valores predeterminados…",
   "en": "Restore defaults…"
  },
  "settings.dialog.scenery": {
@@ -2372,7 +2372,7 @@
   "en": "Every day the same size: a wider heatmap shows more months"
  },
  "settings.heatmap.fill_it_with": {
-  "text": "Llenarlo con",
+  "text": "Rellenar con",
   "en": "Fill it with"
  },
  "settings.heatmap.fixed": {

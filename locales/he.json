@@ -1083,9 +1083,9 @@
  },
  "heatmap.pass_your_second_longest_streak_n": {
   "text": {
-   "one": "ביום הזה הרצף השני הארוך ביותר שלך (יום אחד) ייעקף, אם לומדים כל יום עד אז",
-   "two": "ביום הזה הרצף השני הארוך ביותר שלך (יומיים) ייעקף, אם לומדים כל יום עד אז",
-   "other": "ביום הזה הרצף השני הארוך ביותר שלך ({n} ימים) ייעקף, אם לומדים כל יום עד אז"
+   "one": "ביום הזה אפשר לעקוף את הרצף השני באורכו שלך (יום אחד), אם לומדים כל יום עד אז",
+   "two": "ביום הזה אפשר לעקוף את הרצף השני באורכו שלך (יומיים), אם לומדים כל יום עד אז",
+   "other": "ביום הזה אפשר לעקוף את הרצף השני באורכו שלך ({n} ימים), אם לומדים כל יום עד אז"
   },
   "en": {
    "one": "Pass your second-longest streak ({n} day) on this day, studying every day until then",
@@ -1094,9 +1094,9 @@
  },
  "heatmap.pass_your_second_longest_streak_n_2": {
   "text": {
-   "one": "ביום הזה הרצף השני הארוך ביותר שלך (יום אחד) ייעקף",
-   "two": "ביום הזה הרצף השני הארוך ביותר שלך (יומיים) ייעקף",
-   "other": "ביום הזה הרצף השני הארוך ביותר שלך ({n} ימים) ייעקף"
+   "one": "ביום הזה אפשר לעקוף את הרצף השני באורכו שלך (יום אחד)",
+   "two": "ביום הזה אפשר לעקוף את הרצף השני באורכו שלך (יומיים)",
+   "other": "ביום הזה אפשר לעקוף את הרצף השני באורכו שלך ({n} ימים)"
   },
   "en": {
    "one": "Pass your second-longest streak ({n} day) on this day",
@@ -1105,9 +1105,9 @@
  },
  "heatmap.pass_your_third_longest_streak_n": {
   "text": {
-   "one": "ביום הזה הרצף השלישי הארוך ביותר שלך (יום אחד) ייעקף, אם לומדים כל יום עד אז",
-   "two": "ביום הזה הרצף השלישי הארוך ביותר שלך (יומיים) ייעקף, אם לומדים כל יום עד אז",
-   "other": "ביום הזה הרצף השלישי הארוך ביותר שלך ({n} ימים) ייעקף, אם לומדים כל יום עד אז"
+   "one": "ביום הזה אפשר לעקוף את הרצף השלישי באורכו שלך (יום אחד), אם לומדים כל יום עד אז",
+   "two": "ביום הזה אפשר לעקוף את הרצף השלישי באורכו שלך (יומיים), אם לומדים כל יום עד אז",
+   "other": "ביום הזה אפשר לעקוף את הרצף השלישי באורכו שלך ({n} ימים), אם לומדים כל יום עד אז"
   },
   "en": {
    "one": "Pass your third-longest streak ({n} day) on this day, studying every day until then",
@@ -1116,9 +1116,9 @@
  },
  "heatmap.pass_your_third_longest_streak_n_2": {
   "text": {
-   "one": "ביום הזה הרצף השלישי הארוך ביותר שלך (יום אחד) ייעקף",
-   "two": "ביום הזה הרצף השלישי הארוך ביותר שלך (יומיים) ייעקף",
-   "other": "ביום הזה הרצף השלישי הארוך ביותר שלך ({n} ימים) ייעקף"
+   "one": "ביום הזה אפשר לעקוף את הרצף השלישי באורכו שלך (יום אחד)",
+   "two": "ביום הזה אפשר לעקוף את הרצף השלישי באורכו שלך (יומיים)",
+   "other": "ביום הזה אפשר לעקוף את הרצף השלישי באורכו שלך ({n} ימים)"
   },
   "en": {
    "one": "Pass your third-longest streak ({n} day) on this day",
@@ -2209,7 +2209,7 @@
   "en": "d MMMM yyyy"
  },
  "settings.decks.days_before_date_grow_no_trees": {
-  "text": "בימים שלפני {date} לא צומחים עצים. מפת החום עדיין מציגה אותם (בלשונית ״מפת חום״).",
+  "text": "בימים שלפני {date} לא צומחים עצים. מפת החום עדיין מציגה אותם (בלשונית \"מפת חום\").",
   "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
  },
  "settings.decks.decks": {
@@ -2259,12 +2259,12 @@
    "other": "היער שלך: <b>{trees}</b> &nbsp;({n} עצים מוקדמים לא נכללו)"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "העצים שלך מלפני התאריך הזה נשארים. הבריכות, ״טבע״ ובעלי החיים נספרים מ־ {date}.",
+  "text": "העצים שלך מלפני התאריך הזה נשארים. הבריכות, \"טבע\" ובעלי החיים נספרים מ־ {date}.",
   "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
  },
  "settings.dialog.about": {
@@ -2296,7 +2296,7 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "מה מתאפס: הנוף, הנופים של ״התאמה אישית״ ושל ״הפתעה יומית״, ״טבע״ (ל״{nature}״), העיר שלך, איפה מוצגים היער ומפת החום (גם בחפיסות שהסתיימו) והפריסה שלהם, התצוגה של מפת החום, הרוחב שלה ומה שממלא אותה, תחילת השבוע, לפי מה נקבעים הגוונים, הצבעים (כולל ״ימים עמוסים יותר״) והסגנון, האנימציה והודעת השתילה.\n\nמה נשמר: החפיסות שהוצאת, תאריך ההתחלה (האם העצים שלפניו נשארים, ואיך מפת החום והרצף שלך מתייחסים אליו), ימי הרצף שלך בשבוע, כרטיסים מושהים, הימים שסימנת והיער בטלפון.\n\nהכפתור ״ביטול״ עדיין מחזיר את ההגדרות שהיו לפני כן.",
+  "text": "מה מתאפס: הנוף, הנופים של \"התאמה אישית\" ושל \"הפתעה יומית\", \"טבע\" (ל\"{nature}\"), העיר שלך, איפה מוצגים היער ומפת החום (גם בחפיסות שהסתיימו) והפריסה שלהם, התצוגה של מפת החום, הרוחב שלה ומה שממלא אותה, תחילת השבוע, לפי מה נקבעים הגוונים, הצבעים (כולל \"ימים עמוסים יותר\") והסגנון, האנימציה והודעת השתילה.\n\nמה נשמר: החפיסות שהוצאת, תאריך ההתחלה (האם העצים שלפניו נשארים, ואיך מפת החום והרצף שלך מתייחסים אליו), ימי הרצף שלך בשבוע, כרטיסים מושהים, הימים שסימנת והיער בטלפון.\n\nהכפתור \"ביטול\" עדיין מחזיר את ההגדרות שהיו לפני כן.",
   "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
@@ -2436,7 +2436,7 @@
   "en": "Bigger days"
  },
  "settings.heatmap.by_year_and_streak_always_fit": {
-  "text": "בתצוגות ״לפי שנה״ ו״רצף״, שנה שלמה תמיד מותאמת לרוחב.",
+  "text": "בתצוגות \"לפי שנה\" ו\"רצף\", שנה שלמה תמיד מותאמת לרוחב.",
   "en": "By year and Streak always fit a year to the width."
  },
  "settings.heatmap.colours": {
@@ -2456,7 +2456,7 @@
   "en": "Every day the same size: a wider heatmap shows more months"
  },
  "settings.heatmap.fill_it_with": {
-  "text": "למלא אותה ב",
+  "text": "מילוי",
   "en": "Fill it with"
  },
  "settings.heatmap.fixed": {
@@ -2564,7 +2564,7 @@
   "en": "Wednesday"
  },
  "settings.heatmap.week_starts_on": {
-  "text": "השבוע מתחיל ב",
+  "text": "תחילת השבוע",
   "en": "Week starts on"
  },
  "settings.heatmap.width": {
@@ -2576,7 +2576,7 @@
   "en": "Your first review"
  },
  "settings.heatmap.your_forests_start_date_is_set": {
-  "text": "את תאריך ההתחלה של היער קובעים בלשונית ״חפיסות״.",
+  "text": "את תאריך ההתחלה של היער קובעים בלשונית \"חפיסות\".",
   "en": "Your forest's start date is set on the Decks tab."
  },
  "settings.heatmap.your_streak_counts": {
@@ -2584,7 +2584,7 @@
   "en": "Your streak counts"
  },
  "settings.heatmap.your_streak_counts_from": {
-  "text": "הרצף שלך נספר מ",
+  "text": "תחילת הרצף",
   "en": "Your streak counts from"
  },
  "settings.heatmap.your_systems_first_day_of_the": {
@@ -2604,7 +2604,7 @@
   "en": "Busier days"
  },
  "settings.heatmap_look.busier_days_are_darker_in_ankis": {
-  "text": "ימים עמוסים יותר כהים יותר גם במצב הכהה של Anki, כמו במצב הבהיר, ולפי ״קצב״ – ימים מהירים יותר.",
+  "text": "ימים עמוסים יותר כהים יותר גם במצב הכהה של Anki, כמו במצב הבהיר, ולפי \"קצב\" – ימים מהירים יותר.",
   "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
  },
  "settings.heatmap_look.colours_you_pick_one_dim_to": {
@@ -2620,7 +2620,7 @@
   "en": "Custom"
  },
  "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
-  "text": "במצב הכהה של Anki, ימים עמוסים יותר בהירים יותר, ולפי ״קצב״ – ימים מהירים יותר. במצב הבהיר, תמיד כהים יותר.",
+  "text": "במצב הכהה של Anki, ימים עמוסים יותר בהירים יותר, ולפי \"קצב\" – ימים מהירים יותר. במצב הבהיר, תמיד כהים יותר.",
   "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
  },
  "settings.heatmap_look.lime_green_to_bright_lime": {
@@ -2807,7 +2807,7 @@
   "en": "Until {date}"
  },
  "settings.picker.your_own_mix_made_in_customize": {
-  "text": "שילוב משלך, שנוצר ב״התאמה אישית״. אפשר לבחור נוף כדי להתחיל ממנו מחדש.",
+  "text": "שילוב משלך, שנוצר ב\"התאמה אישית\". אפשר לבחור נוף כדי להתחיל ממנו מחדש.",
   "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
  },
  "settings.scenery.couldnt_find_this_city_check_the": {
@@ -2839,11 +2839,11 @@
   "en": "Only one ticked: the same scenery every day."
  },
  "settings.surprise.surprise_me_dailys_sceneries_all_n": {
-  "text": "הנופים של ״הפתעה יומית״ (כל ה־ {n}) ›",
+  "text": "הנופים של \"הפתעה יומית\" (כל ה־ {n}) ›",
   "en": "Surprise me daily's sceneries (all {n}) ›"
  },
  "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
-  "text": "הנופים של ״הפתעה יומית״ ({kept} מתוך {n}) ›",
+  "text": "הנופים של \"הפתעה יומית\" ({kept} מתוך {n}) ›",
   "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
  },
  "settings.surprise.untick_the_ones_youd_rather_not": {

@@ -232,7 +232,7 @@ def table_for(tag: str) -> dict:
     made from the English."""
     en = english()
     if tag in (PSEUDO, PSEUDO_RTL):
-        return {k: pseudo_entry(v) for k, v in en.items()}
+        return {k: pseudo_entry(v, rtl=tag == PSEUDO_RTL) for k, v in en.items()}
     return dict(en, **{k: v["text"] for k, v in translations(tag).items()})
 
 
@@ -373,14 +373,18 @@ _ACCENTS = dict(zip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 _KEEP = re.compile(r"(\{\w+\}|<[^>]+>|&\w+;)")
 
 
-def pseudo(text: str) -> str:
+def pseudo(text: str, rtl: bool = False) -> str:
     """English made to look foreign and a third longer, in brackets, its placeholders and tags kept:
     a wording the code forgot to translate shows up as plain English beside it."""
     parts = _KEEP.split(text)
-    out = "".join(p if i % 2 else "".join(_ACCENTS.get(c, c) for c in p) for i, p in enumerate(parts))
+    # (right to left, en-XB: each word's letters forced right to left, U+202E to U+202C, so they act as
+    # Hebrew's or Arabic's would round the numbers, dates and punctuation among them; left Latin, the
+    # words kept their own order, and a line read as English set flush right, "[·· ŧŕééš 608]")
+    word = (lambda s: re.sub(r"[^\W\d_]+", lambda m: "\u202e" + m.group() + "\u202c", s)) if rtl else (lambda s: s)
+    out = "".join(p if i % 2 else word("".join(_ACCENTS.get(c, c) for c in p)) for i, p in enumerate(parts))
     letters = sum(len(p) for p in parts[::2])
     return f"[{out} {'·' * max(1, letters // 3)}]"
 
 
-def pseudo_entry(en):
-    return {k: pseudo(v) for k, v in en.items()} if isinstance(en, dict) else pseudo(en)
+def pseudo_entry(en, rtl: bool = False):
+    return {k: pseudo(v, rtl) for k, v in en.items()} if isinstance(en, dict) else pseudo(en, rtl)

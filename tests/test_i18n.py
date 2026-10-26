@@ -98,7 +98,8 @@ class Speaking(unittest.TestCase):
     def test_pseudo_rtl_is_right_to_left(self):
         self.use(i18n.PSEUDO_RTL)
         self.assertEqual(i18n.direction(), "rtl")
-        self.assertTrue(i18n.t("x.your_forest").startswith("[Ýöûŕ"))
+        # each word's letters are forced right to left, as Hebrew's or Arabic's would be
+        self.assertTrue(i18n.t("x.your_forest").startswith("[\u202eÝöûŕ\u202c"))
 
     def test_anki_lang_reads_either_name(self):
         fake = mock.Mock(spec=["currentLang"], currentLang="pt_BR")

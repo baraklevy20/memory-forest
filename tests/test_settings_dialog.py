@@ -5,6 +5,7 @@ config: test_settings_dialog_controls.py.) Skipped without PyQt6: see settings_q
 
 from __future__ import annotations
 
+import sys
 import unittest
 
 import settings_qt as Q
@@ -85,6 +86,12 @@ class OpeningTests(QtCase):
 
     @needs_editions
     def test_the_debug_tabs_edition_changes_whats_new_at_once(self):
+        # (What's new lists the newest version only, and 1.5.0's notes are the same in both editions:
+        # 1.4.0's, one version back, are the ones that differ)
+        about = sys.modules[addon.s_dialog.AboutTab.__module__]
+        was = about.NEWS_VERSIONS
+        about.NEWS_VERSIONS = 2
+        self.addCleanup(setattr, about, "NEWS_VERSIONS", was)
         d = self.open_dialog({"debug": True, "debug_edition": "plus"})
         def news():
             return d.about.news.body.text()

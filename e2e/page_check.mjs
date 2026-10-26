@@ -567,7 +567,7 @@ const phoneReady = p => p.waitForFunction(() => document.getElementById('memory-
 
 check('phone: "Synced ... ago", the heatmap swiped along with Today, and no switches, editor or keyboard stops', async b => {
   const p = await open(b, 'phone', { viewport: PHONE }); await phoneReady(p); const f = [];
-  has(f, await p.evaluate(() => document.querySelector('.af-phone-note').textContent), [/^Synced (just now|\d+ minutes? ago)\. $/], 'the line under it');
+  has(f, await p.evaluate(() => document.querySelector('.af-phone-note').textContent), [/^Synced (just now|\d+ minutes? ago)\.$/], 'the line under it');
   eq(f, await p.evaluate(() => {
     const box = document.querySelector('.af-cal');
     return [box.classList.contains('af-cal-swiped'), box.querySelector('.af-cal-view').hidden, box.querySelector('.af-cal-shade').hidden, !!box.querySelector('[data-go="-1"]'), box.querySelector('.af-cal-canvas').tabIndex];
@@ -631,7 +631,7 @@ check('phone: a full screen the app refuses says so, and stays upright', async b
 
 check('phone: a forest synced days ago asks for a sync', async b => {
   const p = await open(b, 'phone-stale', { viewport: PHONE }); await phoneReady(p); const f = [];
-  has(f, await p.evaluate(() => document.querySelector('.af-phone-note').textContent), [/^Synced 3 days ago\. Sync Anki on your computer to bring it up to date\. $/], 'the line under it');
+  has(f, await p.evaluate(() => document.querySelector('.af-phone-note').textContent), [/^Synced 3 days ago\. Sync Anki on your computer to bring it up to date\.$/], 'the line under it');
   return [p, f];
 });
 

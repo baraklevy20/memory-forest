@@ -24,6 +24,9 @@ def turn_keys(offered) -> list:
     return [k for k in offered if k in specs and k != presets.DAILY]
 
 
+HEADER_BELOW = 8  # points between the header and the tiles
+
+
 class SurprisePage(QWidget):
     def __init__(self, cfg: dict, on_back, on_change, animate: bool):
         super().__init__()
@@ -46,6 +49,7 @@ class SurprisePage(QWidget):
         v = QVBoxLayout(self)
         v.setContentsMargins(0, 0, 0, 0)
         v.addLayout(header)
+        v.addSpacing(HEADER_BELOW)  # (as Customize's header has its note under it)
         v.addWidget(self.picker)
 
     def heightForWidth(self, width: int) -> int:

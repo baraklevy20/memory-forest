@@ -74,6 +74,8 @@
 }
 /* the room between them as margins, not gap: Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
 .af-journal { font-style: italic; margin-right: 16px; }
+/* (Chinese and Japanese have no italics: the browser slants them; their journal stands upright) */
+.af-panel:lang(ja) .af-journal, .af-panel:lang(zh) .af-journal, .af-panel:lang(ja) .af-cal-journal, .af-panel:lang(zh) .af-cal-journal { font-style: normal; }
 .af-caption[hidden] { display: none; }
 
 /* zooming in among the trees (web/visit.js): its button on the forest's corner, and while it is
@@ -162,6 +164,7 @@
   box-shadow: var(--af-tip-shadow);
 }
 .af-news b { display: block; font-size: 13px; margin-bottom: 3px; }
+.af-news-body { text-align: start; }  /* (news.js: its own direction, dir=auto) */
 .af-news-acts { display: flex; margin-top: 8px; }
 .af-news-acts button + button { margin-left: 14px; }  /* (not gap: Chromium 77 has no flex gap) */
 /* Anki's own button styles are more specific: these are plain links, as in the caption */
@@ -394,12 +397,16 @@ body.af-lay.af-lay-sticky:not(.af-lay-narrow) .af-slot-left, body.af-lay.af-lay-
 .af-rtl .af-has-cog .af-zoom { right: auto; left: 42px; }
 .af-rtl .af-news { left: auto; right: 10px; }
 .af-rtl .af-journal { margin-right: 0; margin-left: 16px; }
+/* (Hebrew and Arabic have no italics: the browser slants them, which reads as a smudge; the journal
+   and the heatmap's notes stand upright, set apart by their grey alone) */
+.af-rtl .af-journal, .af-rtl .af-cal-journal { font-style: normal; }
 .af-rtl .af-visit-about { margin: 3px 0 3px 16px; }
 .af-rtl .af-visit-btn { margin: 3px 6px 3px 0 !important; }
 .af-rtl .af-news { text-align: right; }
 .af-rtl .af-news-acts button + button { margin-left: 0; margin-right: 14px; }
 .af-rtl .af-cal { text-align: right; }
 .af-rtl .af-cal-journal { margin-right: 0; margin-left: 16px; }
+.af-rtl .af-cal-journal .af-journal { margin: 0; }  /* (as left to right: .af-rtl .af-journal's margin gave an empty journal a line of its own) */
 .af-rtl .af-cal-key { margin-left: 0; margin-right: auto; }
 .af-rtl .af-cal-key span { margin-right: 0; margin-left: 4px; }
 .af-rtl .af-cal-key span:last-child { margin-left: 0; }

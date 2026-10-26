@@ -1739,11 +1739,11 @@
   "en": "yesterday"
  },
  "phone.your_forest_arrives_with_the_next": {
-  "text": "您的森林将随电脑上 Anki 的下一次同步到来。",
+  "text": "电脑上的 Anki 下次同步后，您的森林就会出现在这里。",
   "en": "Your forest arrives with the next sync from Anki on your computer."
  },
  "phone.your_forest_arrives_with_the_next_sync": {
-  "text": "您的森林将随电脑上 Anki 的下一次同步到来。",
+  "text": "电脑上的 Anki 下次同步后，您的森林就会出现在这里。",
   "en": "Your forest arrives with the next sync from Anki on your computer."
  },
  "phone.your_forest_is_on_its_way": {
@@ -1979,19 +1979,19 @@
   "en": "Change anything here to make it your own mix."
  },
  "settings.customize.customize_scenery": {
-  "text": "自定义「{scenery}」›",
+  "text": "自定义“{scenery}”›",
   "en": "Customize {scenery} ›"
  },
  "settings.customize.customize_scenery_2": {
-  "text": "自定义「{scenery}」",
+  "text": "自定义“{scenery}”",
   "en": "Customize {scenery}"
  },
  "settings.customize.customize_your_own_mix_from_scenery": {
-  "text": "以「{scenery}」为基础自定义搭配 ›",
+  "text": "以“{scenery}”为基础自定义搭配 ›",
   "en": "Customize your own mix, from {scenery} ›"
  },
  "settings.customize.customize_your_own_mix_from_scenery_2": {
-  "text": "以「{scenery}」为基础自定义搭配",
+  "text": "以“{scenery}”为基础自定义搭配",
   "en": "Customize your own mix, from {scenery}"
  },
  "settings.customize.environment": {
@@ -2043,7 +2043,7 @@
   "en": "d MMMM yyyy"
  },
  "settings.decks.days_before_date_grow_no_trees": {
-  "text": "{date}之前的日子不会长出树。热力图仍会显示它们（「热力图」选项卡）。",
+  "text": "{date}之前的日子不会长出树。热力图仍会显示它们（“热力图”选项卡）。",
   "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
  },
  "settings.decks.decks": {
@@ -2091,7 +2091,7 @@
    "other": "您的森林：<b>{trees}</b> &nbsp;（未计入更早的 {n} 棵）"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },
@@ -2128,7 +2128,7 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "将重置：场景、「自定义」和「每日惊喜」的场景、自然（恢复为{nature}）、您的城市、森林和热力图的显示位置（包括已完成的牌组）及其布局、热力图的视图、宽度和填充方式、每周起始日、着色依据、颜色（包括「繁忙日」）和样式、动画以及种树提示。\n\n将保留：您排除的牌组、起始日期（包括是否保留此前的树，以及热力图和连续学习是否以它为准）、连续学习的每周天数、已暂停的卡片、您标记的日子，以及手机上的森林。\n\n点击「取消」仍会恢复您之前的设置。",
+  "text": "将重置：场景、“自定义”和“每日惊喜”的场景、自然（恢复为{nature}）、您的城市、森林和热力图的显示位置（包括已完成的牌组）及其布局、热力图的视图、宽度和填充方式、每周起始日、着色依据、颜色（包括“繁忙日”）和样式、动画以及种树提示。\n\n将保留：您排除的牌组、起始日期（包括是否保留此前的树，以及热力图和连续学习是否以它为准）、连续学习的每周天数、已暂停的卡片、您标记的日子，以及手机上的森林。\n\n点击“取消”仍会恢复您之前的设置。",
   "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
@@ -2148,7 +2148,7 @@
   "en": "A forest of that deck's own"
  },
  "settings.forest.adds_a_memory_forest_deck_with": {
-  "text": "添加一个「Memory Forest」牌组，其中的卡片会在同步时显示您的森林和热力图。",
+  "text": "添加一个“Memory Forest”牌组，其中的卡片会在同步时显示您的森林和热力图。",
   "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
  },
  "settings.forest.animate_the_forest": {
@@ -2268,7 +2268,7 @@
   "en": "Bigger days"
  },
  "settings.heatmap.by_year_and_streak_always_fit": {
-  "text": "「按年」和「连续学习」视图总是让一年正好占满宽度。",
+  "text": "“按年”和“连续学习”视图总是让一年正好占满宽度。",
   "en": "By year and Streak always fit a year to the width."
  },
  "settings.heatmap.colours": {
@@ -2408,7 +2408,7 @@
   "en": "Your first review"
  },
  "settings.heatmap.your_forests_start_date_is_set": {
-  "text": "森林的起始日期在「牌组」选项卡中设置。",
+  "text": "森林的起始日期在“牌组”选项卡中设置。",
   "en": "Your forest's start date is set on the Decks tab."
  },
  "settings.heatmap.your_streak_counts": {
@@ -2436,7 +2436,7 @@
   "en": "Busier days"
  },
  "settings.heatmap_look.busier_days_are_darker_in_ankis": {
-  "text": "在 Anki 的深色模式下，繁忙日也和浅色模式一样颜色更深；按「速度」着色时，则是速度更快的日子颜色更深。",
+  "text": "在 Anki 的深色模式下，繁忙日也和浅色模式一样颜色更深；按“速度”着色时，则是速度更快的日子颜色更深。",
   "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
  },
  "settings.heatmap_look.colours_you_pick_one_dim_to": {
@@ -2452,7 +2452,7 @@
   "en": "Custom"
  },
  "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
-  "text": "在 Anki 的深色模式下，繁忙日颜色更浅；按「速度」着色时，则是速度更快的日子颜色更浅。在浅色模式下，总是更深。",
+  "text": "在 Anki 的深色模式下，繁忙日颜色更浅；按“速度”着色时，则是速度更快的日子颜色更浅。在浅色模式下，总是更深。",
   "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
  },
  "settings.heatmap_look.lime_green_to_bright_lime": {
@@ -2460,19 +2460,19 @@
   "en": "Lime: green to bright lime"
  },
  "settings.heatmap_look.review_heatmaps_flame_bright_red_to": {
-  "text": "Review Heatmap 的「Flame」：亮红到黄",
+  "text": "Review Heatmap 的“Flame”：亮红到黄",
   "en": "Review Heatmap's Flame: bright red to yellow"
  },
  "settings.heatmap_look.review_heatmaps_ice_deep_blue_to": {
-  "text": "Review Heatmap 的「Ice」：深蓝到浅冰蓝",
+  "text": "Review Heatmap 的“Ice”：深蓝到浅冰蓝",
   "en": "Review Heatmap's Ice: deep blue to pale ice blue"
  },
  "settings.heatmap_look.review_heatmaps_magenta_deep_pink_to": {
-  "text": "Review Heatmap 的「Magenta」：深粉到浅粉",
+  "text": "Review Heatmap 的“Magenta”：深粉到浅粉",
   "en": "Review Heatmap's Magenta: deep pink to pale pink"
  },
  "settings.heatmap_look.review_heatmaps_olive_deep_olive_green": {
-  "text": "Review Heatmap 的「Olive」：深橄榄绿到浅黄绿",
+  "text": "Review Heatmap 的“Olive”：深橄榄绿到浅黄绿",
   "en": "Review Heatmap's Olive: deep olive green to pale yellow-green"
  },
  "settings.heatmap_look.scenery": {
@@ -2604,7 +2604,7 @@
   "en": "IMPROVED"
  },
  "settings.picker.label_is_in_memory_forest_plus": {
-  "text": "「{label}」收录于 Memory Forest Plus。<a href=\"{url}\">在 Patreon 上获取</a>",
+  "text": "“{label}”收录于 Memory Forest Plus。<a href=\"{url}\">在 Patreon 上获取</a>",
   "en": "{label} is in Memory Forest Plus. <a href=\"{url}\">Get it on Patreon</a>"
  },
  "settings.picker.new": {
@@ -2637,7 +2637,7 @@
   "en": "Until {date}"
  },
  "settings.picker.your_own_mix_made_in_customize": {
-  "text": "您自己的搭配，在「自定义」中创建。选择一个场景即可从它重新开始。",
+  "text": "您自己的搭配，在“自定义”中创建。选择一个场景即可从它重新开始。",
   "en": "Your own mix, made in Customize. Pick a scenery to start again from it."
  },
  "settings.scenery.couldnt_find_this_city_check_the": {
@@ -2669,11 +2669,11 @@
   "en": "Only one ticked: the same scenery every day."
  },
  "settings.surprise.surprise_me_dailys_sceneries_all_n": {
-  "text": "「每日惊喜」的场景（全部 {n} 个）›",
+  "text": "“每日惊喜”的场景（全部 {n} 个）›",
   "en": "Surprise me daily's sceneries (all {n}) ›"
  },
  "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
-  "text": "「每日惊喜」的场景（{n} 个中的 {kept} 个）›",
+  "text": "“每日惊喜”的场景（{n} 个中的 {kept} 个）›",
   "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
  },
  "settings.surprise.untick_the_ones_youd_rather_not": {

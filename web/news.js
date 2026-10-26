@@ -20,7 +20,9 @@ AF.news = function (root, data) {
   if (!n || !scene) return;  // (the calendar alone: no forest to put a note on)
   const card = document.createElement('div');
   card.className = 'af-news';
-  card.innerHTML = `<b>${esc(n.title)}</b>${esc(n.text)}<div class="af-news-acts">`
+  // (its title and text in their own direction: a note is English, as the release notes are, and in
+  // a right-to-left panel its full stop landed at the start of its last line, ".the heatmap's new Streak view")
+  card.innerHTML = `<div class="af-news-body" dir="auto"><b>${esc(n.title)}</b>${esc(n.text)}</div><div class="af-news-acts">`
     + (n.action ? `<button type="button" data-news="open">${esc(n.action)}</button>` : '')
     + `<button type="button" data-news="seen">${AF.t('news.got_it')}</button></div>`;
   card.addEventListener('click', e => {

@@ -304,6 +304,7 @@ class ForestTab(Tab):
         # here (layout_picker.py)
         self.layout_pick = LayoutControls(cfg)
         where.addRow(t("settings.forest.layout"), self.layout_pick.box)
+        self.layout_label = where.labelForField(self.layout_pick.box)  # (a note's NEW goes on it: news_targets)
         where.addRow(t("settings.forest.main_screen"), self.main_forest)
         finished = QWidget()  # (the box with its hint just under it, as heatmap_tab.with_hint has them)
         fv = QVBoxLayout(finished)
@@ -341,7 +342,7 @@ class ForestTab(Tab):
         """The settings here a note can point at (news.py): key -> (widget, name)."""
         return {"nature": (self.nature_group.title, "Nature"), "main_forest": (self.main_forest, "Main screen"),
                 "deck_forest_mode": (self.deck_mode, "Deck screens"), "finished_decks": (self.finished, "On finished decks too"),
-                "max_width": (self.max_width, "Forest width"), "layout": (self.layout_pick.choice, "Layout"),
+                "max_width": (self.max_width, "Forest width"), "layout": (self.layout_label, "Layout"),
                 "animations": (self.animations, "Animate the forest"), "planting_tooltip": (self.planting, "The planting message"),
                 "phone": (self.phone, "Your forest on your phone")}
 

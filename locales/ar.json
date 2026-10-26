@@ -741,12 +741,12 @@
  },
  "heatmap.day_day_of_a_n_day": {
   "text": {
-   "zero": "اليوم {day} من سلسلة {n} يوم",
-   "one": "اليوم {day} من سلسلة يوم واحد",
-   "two": "اليوم {day} من سلسلة يومين",
-   "few": "اليوم {day} من سلسلة {n} أيام",
-   "many": "اليوم {day} من سلسلة {n} يومًا",
-   "other": "اليوم {day} من سلسلة {n} يوم"
+   "zero": "اليوم رقم {day} من سلسلة {n} يوم",
+   "one": "اليوم رقم {day} من سلسلة يوم واحد",
+   "two": "اليوم رقم {day} من سلسلة يومين",
+   "few": "اليوم رقم {day} من سلسلة {n} أيام",
+   "many": "اليوم رقم {day} من سلسلة {n} يومًا",
+   "other": "اليوم رقم {day} من سلسلة {n} يوم"
   },
   "en": {
    "one": "Day {day} of a {n}-day streak",
@@ -755,12 +755,12 @@
  },
  "heatmap.day_day_of_n_in_a": {
   "text": {
-   "zero": "اليوم {day} من {n} يوم على التوالي",
-   "one": "اليوم {day} من يوم واحد على التوالي",
-   "two": "اليوم {day} من يومين على التوالي",
-   "few": "اليوم {day} من {n} أيام على التوالي",
-   "many": "اليوم {day} من {n} يومًا على التوالي",
-   "other": "اليوم {day} من {n} يوم على التوالي"
+   "zero": "اليوم رقم {day} من {n} يوم على التوالي",
+   "one": "اليوم رقم {day} من يوم واحد على التوالي",
+   "two": "اليوم رقم {day} من يومين على التوالي",
+   "few": "اليوم رقم {day} من {n} أيام على التوالي",
+   "many": "اليوم رقم {day} من {n} يومًا على التوالي",
+   "other": "اليوم رقم {day} من {n} يوم على التوالي"
   },
   "en": {
    "one": "Day {day} of {n} in a row",
@@ -769,12 +769,12 @@
  },
  "heatmap.day_day_of_your_n_day": {
   "text": {
-   "zero": "اليوم {day} من سلسلتك ({n} يوم)",
-   "one": "اليوم {day} من سلسلتك (يوم واحد)",
-   "two": "اليوم {day} من سلسلتك (يومان)",
-   "few": "اليوم {day} من سلسلتك ({n} أيام)",
-   "many": "اليوم {day} من سلسلتك ({n} يومًا)",
-   "other": "اليوم {day} من سلسلتك ({n} يوم)"
+   "zero": "اليوم رقم {day} من سلسلتك ({n} يوم)",
+   "one": "اليوم رقم {day} من سلسلتك (يوم واحد)",
+   "two": "اليوم رقم {day} من سلسلتك (يومان)",
+   "few": "اليوم رقم {day} من سلسلتك ({n} أيام)",
+   "many": "اليوم رقم {day} من سلسلتك ({n} يومًا)",
+   "other": "اليوم رقم {day} من سلسلتك ({n} يوم)"
   },
   "en": {
    "one": "Day {day} of your {n}-day streak",
@@ -782,7 +782,7 @@
   }
  },
  "heatmap.day_day_of_your_streak": {
-  "text": "اليوم {day} من سلسلتك",
+  "text": "اليوم رقم {day} من سلسلتك",
   "en": "Day {day} of your streak"
  },
  "heatmap.didnt_break_a_n_day_streak": {
@@ -2511,7 +2511,7 @@
    "other": "غابتك: <b>{trees}</b> &nbsp;({n} شجرة سابقة مستبعدة)"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },

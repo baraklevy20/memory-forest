@@ -168,7 +168,10 @@ const iso = ms => new Date(ms).toISOString().slice(0, 10);
 // reader's language as the rest; with its weekday ("Saturday, Oct 17, 2026", "Saturday, Oct 17")
 const fmt = ms => AF.u.fmtDate(iso(ms));
 const dayOnly = ms => AF.i18n.dayIn(ms, { month: 'short', day: 'numeric' });
-const withWeekday = (ms, year) => AF.i18n.dayIn(ms, year ? { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' } : { weekday: 'long', month: 'short', day: 'numeric' });
+// (Japanese writes the weekday short, in brackets after the date: "2026年8月7日(金)"; its long form ran
+// straight on, "2026年8月7日金曜日")
+const weekdayForm = () => (AF.i18n.lang() === 'ja' ? 'short' : 'long');
+const withWeekday = (ms, year) => AF.i18n.dayIn(ms, year ? { weekday: weekdayForm(), month: 'short', day: 'numeric', year: 'numeric' } : { weekday: weekdayForm(), month: 'short', day: 'numeric' });
 // a day's row: 0 on the day the weeks start (payload.WEEK_START_DAYS: Monday unless the system
 // or the setting says otherwise), as the page counts days (Sunday 0)
 let weekStart = 1;

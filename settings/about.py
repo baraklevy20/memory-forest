@@ -32,6 +32,10 @@ from .widgets import group
 # the newest versions the What's new group lists (the release notes link has the rest)
 NEWS_VERSIONS = 1
 NEWS_MIN_H = 120  # points: What's new asks for no more than this, and fills what the tab has spare
+# and at least this, two lines, on a short screen: at NEWS_MIN_H the About tab was the dialog's tallest
+# at its least, so in Anki's own style the dialog stayed 16-28 points taller than a 1280 x 720 screen
+# has room for (fit_screen gives up scenery rows only while the Scenery tab is the tallest)
+NEWS_LEAST_H = 48
 # the goats to thank (Patreon sponsors), written by dev/goats.py from Patreon before each release
 GOATS = os.path.join(ADDON_DIR, "goats.json")
 
@@ -205,7 +209,7 @@ class _Filler(QScrollArea):
         return QSize(super().sizeHint().width(), NEWS_MIN_H)
 
     def minimumSizeHint(self) -> QSize:
-        return QSize(super().minimumSizeHint().width(), NEWS_MIN_H)
+        return QSize(super().minimumSizeHint().width(), NEWS_LEAST_H)
 
 
 def news_html(cfg: dict) -> str:

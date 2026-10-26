@@ -67,39 +67,55 @@ FRONT = """<div id="memory-forest-phone" class="af-panel"></div>
   var root = document.getElementById('memory-forest-phone'), data = null;
   try { data = JSON.parse(document.getElementById('memory-forest-phone-data').textContent); } catch (e) {}
   var words = WAITING_WORDS, lang = String((data && data.i18n && data.i18n.lang) || navigator.language || 'en');
-  var say = words[lang] || words[lang.split('-')[0]] || words.en;
-  if (!data || !data.script) { root.textContent = say[0]; return; }
+  var tag = words[lang] ? lang : words[lang.split('-')[0]] ? lang.split('-')[0] : 'en', say = words[tag];
+  // (a line of its own, in its language's direction: a right-to-left one set left to right put its full stop first)
+  function wait(text) { root.textContent = text; root.className += ' af-phone-wait'; root.dir = /^(ar|fa|he|ug|ur|yi)$/.test(tag.split('-')[0]) ? 'rtl' : 'ltr'; }
+  if (!data || !data.script) { wait(say[0]); return; }
   var s = document.createElement('script');
   s.src = data.script;
   s.charset = 'utf-8';
   s.setAttribute('data-root', 'memory-forest-phone');
-  s.onerror = function () { root.textContent = say[1]; };
+  s.onerror = function () { wait(say[1]); };
   document.body.appendChild(s);
 })();
 </script>""".replace("WAITING_WORDS", json.dumps(_waiting_words(), ensure_ascii=True, separators=(",", ":")))
 BACK = "{{FrontSide}}"
 CSS = """.card { margin: 0; padding: 0; }
 .af-panel { margin-top: 12px; }
+/* the line the card shows while it has no forest to draw (the template, web/phone.js): quiet, off the screen's edges */
+.af-panel.af-phone-wait { margin: 0; padding: 32px 20px; font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; color: #676c69; text-align: center; }
+.night_mode .af-panel.af-phone-wait, .nightMode .af-panel.af-phone-wait { color: #a3a8a5; }
 /* the full-screen icons: on the forest's corner, and at the end of the calendar's footer (web/phone.js) */
 .af-turn.af-expand { position: absolute; z-index: 3; top: 8px; right: 8px; box-sizing: border-box; width: 36px; height: 36px; min-height: 0; margin: 0; padding: 0;
   display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(40, 42, 41, 0.5); color: rgba(255, 255, 255, 0.92);
   line-height: 0; -webkit-tap-highlight-color: transparent; }
+/* (in the forest's other corner in right to left, as the deck list's cog is: forest.css .af-rtl .af-scene .af-top) */
+.af-rtl .af-turn.af-expand:not(.af-expand-cal) { right: auto; left: 8px; }
 .af-turn.af-expand::after { content: ''; position: absolute; left: -4px; top: -4px; right: -4px; bottom: -4px; }
 .af-turn.af-expand-cal { position: relative; top: auto; right: auto; flex: none; order: 5; width: 30px; height: 30px; margin: 0 0 0 12px; background: rgba(128, 128, 128, 0.16); color: inherit; }
 .af-turn.af-expand-cal::after { left: -7px; top: -7px; right: -7px; bottom: -7px; }
 .af-phone-shell:fullscreen .af-panel, .af-phone-shell:fullscreen .af-cal { position: static; }
+/* (and without the panel's margins over and under it, which a phone held sideways has no room for: they pushed the forest off the screen's foot) */
+.af-phone-shell:fullscreen .af-panel { margin: 0 auto; }
+.af-phone-shell.af-full-cal:fullscreen .af-cal { margin-top: 0; }  /* (the calendar alone: no forest above to keep its 24px from) */
 .af-phone-shell:fullscreen .af-turn.af-expand-cal { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; margin: 0; }
 /* the calendar's footer: Today (only while today is off screen) and the key on one row, the journal its own last line */
 .af-cal-swiped .af-cal-foot { flex-wrap: wrap; align-items: center; min-height: 30px; margin-top: 4px; }
 .af-cal-swiped .af-cal-foot .af-cal-key { order: 2; flex-wrap: nowrap; white-space: nowrap; margin-left: auto; }
+/* (beside the icon, as in right to left: forest.css's .af-cal-shade + .af-cal-key, as specific and read later, had it centred) */
+.af-panel:not(.af-rtl) .af-cal-swiped .af-cal-foot > .af-cal-key { margin-left: auto; }
 .af-cal-swiped .af-cal-acts { order: 1; margin: 0; }
+.af-rtl .af-cal-swiped .af-cal-foot > .af-cal-acts { margin: 0; }  /* (at the row's start in right to left too: forest.css's desktop margins floated Today to the middle) */
 .af-cal-swiped .af-cal-journal { order: 9; flex: 1 0 100%; margin: 8px 0 0; }
+.af-rtl .af-cal-swiped .af-cal-journal { margin: 8px 0 0; }  /* (the whole row, as left to right) */
 .af-cal-swiped .af-cal-today { position: relative; height: 28px; line-height: 26px; padding: 0 12px !important; font-size: 12.5px; border-radius: 14px !important; }
 .af-cal-swiped .af-cal-today::after { content: ''; position: absolute; left: -4px; right: -4px; top: -8px; bottom: -8px; }
 /* the one line under it all, and the greys, readable on AnkiDroid's day and night cards */
 .af-phone-shell { --fg-subtle: #676c69; }
 .night_mode .af-phone-shell, .nightMode .af-phone-shell { --fg-subtle: #a3a8a5; }
-.af-phone-note { font: 11px/1.4 var(--af-font, -apple-system, "Segoe UI", system-ui, sans-serif); color: var(--fg-subtle, #8a8f8c); text-align: left; margin: 16px 12px 12px; }
+.af-phone-note { font: 11px/1.4 var(--af-font, -apple-system, "Segoe UI", system-ui, sans-serif); color: var(--fg-subtle, #8a8f8c); text-align: left; margin: 16px auto 12px; padding: 0 12px; width: 100%; box-sizing: border-box; }
+/* (as wide as the forest above it, web/phone.js: on its two edges however wide the screen) */
+.af-phone-note[style*="max-width"] { padding: 0; }
 .af-phone-shell .af-info { border-bottom-color: rgba(128, 128, 128, 0.45); }
 .af-turn[hidden] { display: none; }
 .af-sideways { position: fixed; top: 0; left: 0; transform-origin: top left; box-sizing: border-box;
@@ -227,6 +243,22 @@ def _note(col):
     if mine:
         _options(col, mine)
     return col.get_note(nids[0])
+
+
+def _about_now(note) -> bool:
+    """The note's About in the add-on's language now, where it still says what Memory Forest
+    wrote there in some language (never words of the user's own): a note made in English, as every
+    note before 1.5.0 was, reads in German once Anki does. True when it changed."""
+    want, have = tx(ABOUT), note["About"]
+    if have == want:
+        return False
+    en = i18n.english()[ABOUT]
+    known = {en, i18n.pseudo(en)} | {
+        t[ABOUT]["text"] for t in (i18n.translations(tag) for tag in i18n.available()[1:]) if ABOUT in t}
+    if have not in known:
+        return False
+    note["About"] = want
+    return True
 
 
 def _make(col) -> None:
@@ -399,8 +431,10 @@ def publish() -> None:
         days = phone_data.schedule(cfg, now, real, place, scene_name)
         script, parts = _scripts(col, days, ((page.get("calendar") or {}).get("look") or {}).get("files") or ())
         data = phone_data.phone_payload(page, cfg, now, script, real, place, scene_name, parts, days)
-        if not phone_data.same_forest(note["Forest"], data):
+        fresh = not phone_data.same_forest(note["Forest"], data)
+        if fresh:
             note["Forest"] = phone_data.encode(data)
+        if _about_now(note) or fresh:  # (the About in the language the forest speaks, as it changes with it)
             try:
                 col.update_note(note, skip_undo_entry=True)
             except TypeError:  # before Anki 2.1.50, which always leaves an undo entry

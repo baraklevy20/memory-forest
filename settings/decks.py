@@ -232,7 +232,6 @@ class DecksTab(Tab):
         total = study_log.tree_days(days, growing, since_ago, suspended)
         everything = study_log.tree_days(days, growing, None, suspended)
         trees, earlier = _trees_text(len(total)), len(everything) - len(total)
-        # (English says "ones" for one too, as it always has)
         self.summary.setText(tn("settings.decks.your_forest_trees_n_earlier_ones", earlier, trees=trees)
                              if earlier > 0 else t("settings.decks.your_forest_trees", trees=trees))
         self._show_first_day(max(everything) if everything else None)

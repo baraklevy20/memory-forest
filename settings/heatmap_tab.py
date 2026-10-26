@@ -137,11 +137,12 @@ class HeatmapTab(Tab):
         wv.addWidget(hint(tx(FILL_NOTE)))
         layout.addRow(t("settings.heatmap.width"), width_box)
         layout.addRow(t("settings.heatmap.week_starts_on"), self.week)
-        layout.addRow(self.record)
+        layout.addRow("", self.record)  # (in the fields' column, as every other field of the tab)
         streak = self.start_form = form()
         streak.addRow(t("settings.heatmap.your_streak_counts"), with_hint(self.streak_week, tx(STREAK_WEEK_NOTE)))
-        streak.addRow(t("settings.heatmap.your_streak_counts_from"), self.streak_from)
-        streak.addRow(hint(tx(START_NOTE)))
+        # (its hint just under it, in the fields' column, as the days a week have theirs)
+        self.streak_from_box = with_hint(self.streak_from, tx(START_NOTE))
+        streak.addRow(t("settings.heatmap.your_streak_counts_from"), self.streak_from_box)
         # (the groups' fields start on one line: one fixed width, which a NEW tag on any of them
         # grows for all, whats_new._tag_label)
         labels = [f.itemAt(r, f.ItemRole.LabelRole).widget() for f in (layout, streak) for r in range(f.rowCount())
@@ -215,7 +216,7 @@ class HeatmapTab(Tab):
             self.streak_from.set_quietly(True)
         self.streak_from.setEnabled(record)
         self._streak_free = record
-        label = self.start_form.labelForField(self.streak_from)
+        label = self.start_form.labelForField(self.streak_from_box)
         if label is not None:
             label.setEnabled(record)
         for g in (self.colours_group, self.tiles_group):

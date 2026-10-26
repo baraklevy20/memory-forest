@@ -253,7 +253,7 @@
  },
  "caption.your_trees_from_from_to_to": {
   "text": {
-   "other": "{from}～{to} の木は遠くにまとまって立ち、カードを {n} 枚持っています。1 本ずつ描くとデッキ一覧の表示が遅くなるためです。"
+   "other": "{from}～{to}の木は遠くにまとまって立ち、カードを {n} 枚持っています。1 本ずつ描くとデッキ一覧の表示が遅くなるためです。"
   },
   "en": {
    "one": "Your trees from {from} to {to} stand together in the distance, holding {n} card. Drawing every one of them individually would slow the deck list down.",
@@ -317,7 +317,7 @@
   "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
  "event.asteroid.asteroid_struck_date": {
-  "text": "{date} に小惑星が衝突",
+  "text": "{date}に小惑星が衝突",
   "en": "Asteroid struck {date}"
  },
  "event.asteroid.asteroid_tonight": {
@@ -339,7 +339,7 @@
  },
  "event.asteroid.n_trees_lost_on_date": {
   "text": {
-   "other": "{date} に {n} 本の木を失いました"
+   "other": "{date}に {n} 本の木を失いました"
   },
   "en": {
    "one": "{n} tree lost on {date}",
@@ -348,7 +348,7 @@
  },
  "event.asteroid.n_trees_lost_on_date_after": {
   "text": {
-   "other": "{streak} 日連続のあと、{date} に {n} 本の木を失いました"
+   "other": "{streak} 日連続のあと、{date}に {n} 本の木を失いました"
   },
   "en": {
    "one": "{n} tree lost on {date}, after a {streak}-day streak",
@@ -821,7 +821,7 @@
  },
  "heatmap.n_days_since_date": {
   "text": {
-   "other": "{n} 日 · {date} から"
+   "other": "{n} 日 · {date}から"
   },
   "en": {
    "one": "{n} day · Since {date}",
@@ -1106,7 +1106,7 @@
   "en": "Studied every day"
  },
  "heatmap.studied_every_day_since_date": {
-  "text": "{date} から毎日学習",
+  "text": "{date}から毎日学習",
   "en": "Studied every day since {date}"
  },
  "heatmap.studied_every_day_so_far": {
@@ -1133,7 +1133,7 @@
  },
  "heatmap.studied_studied_of_n_days_since": {
   "text": {
-   "other": "{date} から {n} 日中 {studied} 日学習 ({pct}%)"
+   "other": "{date}から {n} 日中 {studied} 日学習 ({pct}%)"
   },
   "en": {
    "one": "Studied {studied} of {n} day since {date} ({pct}%)",
@@ -1478,7 +1478,7 @@
  },
  "journal.the_tree_you_planted_on_date": {
   "text": {
-   "other": "{date} に植えた木が、今日で {n} 歳になりました。"
+   "other": "{date}に植えた木が、今日で {n} 歳になりました。"
   },
   "en": {
    "one": "The tree you planted on {date} turned {n} year old today.",
@@ -1486,7 +1486,7 @@
   }
  },
  "journal.the_tree_you_planted_on_date_2": {
-  "text": "{date} に植えた木が、今日で 1 歳になりました。",
+  "text": "{date}に植えた木が、今日で 1 歳になりました。",
   "en": "The tree you planted on {date} turned a year old today."
  },
  "journal.your_count_th_tree_planted_today": {
@@ -1652,11 +1652,11 @@
   "en": "Change scenery and settings"
  },
  "panel.seasonal_scenery_for_this_week_only": {
-  "text": "今週だけの季節の風景です。{date} にいつもの風景に戻ります。",
+  "text": "今週だけの季節の風景です。{date}にいつもの風景に戻ります。",
   "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
  },
  "panel.seasonal_scenery_here_until_date": {
-  "text": "季節の風景です ({date} まで)。",
+  "text": "季節の風景です ({date}まで)。",
   "en": "Seasonal scenery, here until {date}."
  },
  "panel.todays_scenery_from_surprise_me_daily": {
@@ -1731,7 +1731,7 @@
   "en": "Sync Anki on your computer to bring it up to date."
  },
  "phone.synced_when": {
-  "text": "{when}に同期しました。",
+  "text": "最終同期：{when}。",
   "en": "Synced {when}."
  },
  "phone.yesterday": {
@@ -2043,7 +2043,7 @@
   "en": "d MMMM yyyy"
  },
  "settings.decks.days_before_date_grow_no_trees": {
-  "text": "{date} より前の日には木が育ちません。ヒートマップには表示されます (「ヒートマップ」タブ)。",
+  "text": "{date}より前の日には木が育ちません。ヒートマップには表示されます（「ヒートマップ」タブ）。",
   "en": "Days before {date} grow no trees. The heatmap still shows them (Heatmap tab)."
  },
  "settings.decks.decks": {
@@ -2079,7 +2079,7 @@
   "en": "What counts"
  },
  "settings.decks.your_forest_starts_on_your_first": {
-  "text": "森は最初の学習日 ({first}) から始まります。",
+  "text": "森は最初の学習日（{first}）から始まります。",
   "en": "Your forest starts on your first day of study, {first}."
  },
  "settings.decks.your_forest_trees": {
@@ -2088,15 +2088,15 @@
  },
  "settings.decks.your_forest_trees_n_earlier_ones": {
   "text": {
-   "other": "森: <b>{trees}</b> &nbsp;(それより前の {n} 本は除外)"
+   "other": "森: <b>{trees}</b> &nbsp;（それより前の {n} 本は除外）"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "それより前の木は残ります。池、自然、動物は {date} から数えます。",
+  "text": "それより前の木は残ります。池、自然、動物は {date}から数えます。",
   "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
  },
  "settings.dialog.about": {
@@ -2128,7 +2128,7 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "リセットされるもの: 風景、「カスタマイズ」と「毎日おまかせ」の風景、自然 ({nature} に戻ります)、都市、森とヒートマップの表示場所 (完了したデッキでの表示も) とレイアウト、ヒートマップの表示、幅と埋め方、週の始まり、色分けの基準、色 (「学習量の多い日」も) とスタイル、アニメーション、植樹のメッセージ。\n\n保持されるもの: 外したデッキ、開始日 (それより前の木を残すか、ヒートマップと連続記録が開始日にどう従うか)、連続記録の数え方、休止中のカード、マークした日、スマートフォンの森。\n\n「キャンセル」を押すと、これまでの設定に戻ります。",
+  "text": "リセットされるもの: 風景、「カスタマイズ」と「毎日おまかせ」の風景、自然（{nature} に戻ります）、都市、森とヒートマップの表示場所（完了したデッキでの表示も）とレイアウト、ヒートマップの表示、幅と埋め方、週の始まり、色分けの基準、色（「学習量の多い日」も）とスタイル、アニメーション、植樹のメッセージ。\n\n保持されるもの: 外したデッキ、開始日（それより前の木を残すか、ヒートマップと連続記録が開始日にどう従うか）、連続記録の数え方、休止中のカード、マークした日、スマートフォンの森。\n\n「キャンセル」を押すと、これまでの設定に戻ります。",
   "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
@@ -2228,7 +2228,7 @@
   "en": "Your forest"
  },
  "settings.forest.your_forest_that_decks_trees_lit": {
-  "text": "全体の森 (そのデッキの木を強調)",
+  "text": "全体の森（そのデッキの木を強調）",
   "en": "Your forest, that deck's trees lit up"
  },
  "settings.heatmap.5_days_a_week": {
@@ -2236,7 +2236,7 @@
   "en": "5 days a week"
  },
  "settings.heatmap.680_px_or_less_where_there": {
-  "text": "680 px (狭い場所ではそれ以下)",
+  "text": "680 px（狭い場所ではそれ以下）",
   "en": "680 px, or less where there is less room"
  },
  "settings.heatmap.6_days_a_week": {
@@ -2260,7 +2260,7 @@
   "en": "Auto"
  },
  "settings.heatmap.auto_day": {
-  "text": "{auto} ({day})",
+  "text": "{auto}（{day}）",
   "en": "{auto} ({day})"
  },
  "settings.heatmap.bigger_days": {
@@ -2364,7 +2364,7 @@
   "en": "Sunday"
  },
  "settings.heatmap.ten_months_with_bigger_days_to": {
-  "text": "10 か月 (日を大きくして幅を埋める)",
+  "text": "10 か月（日を大きくして幅を埋める）",
   "en": "Ten months, with bigger days to fill the width"
  },
  "settings.heatmap.the_start_date": {
@@ -2436,11 +2436,11 @@
   "en": "Busier days"
  },
  "settings.heatmap_look.busier_days_are_darker_in_ankis": {
-  "text": "Anki のダークモードでも、ライトモードと同じく学習量の多い日ほど暗くなります (「ペース」では速い日ほど)。",
+  "text": "Anki のダークモードでも、ライトモードと同じく学習量の多い日ほど暗くなります（「ペース」では速い日ほど）。",
   "en": "Busier days are darker in Anki's dark mode too, as in light mode, and by Pace, faster days."
  },
  "settings.heatmap_look.colours_you_pick_one_dim_to": {
-  "text": "好きな色: 1 色 (淡い色から濃い色へ) か、2 色 (1 色目から 2 色目へのグラデーション)",
+  "text": "好きな色: 1 色（淡い色から濃い色へ）か、2 色（1 色目から 2 色目へのグラデーション）",
   "en": "Colours you pick: one, dim to full, or two, blending from the first to the second"
  },
  "settings.heatmap_look.current_scenery": {
@@ -2452,7 +2452,7 @@
   "en": "Custom"
  },
  "settings.heatmap_look.in_ankis_dark_mode_busier_days": {
-  "text": "Anki のダークモードでは、学習量の多い日ほど明るくなります (「ペース」では速い日ほど)。ライトモードでは常に暗くなります。",
+  "text": "Anki のダークモードでは、学習量の多い日ほど明るくなります（「ペース」では速い日ほど）。ライトモードでは常に暗くなります。",
   "en": "In Anki's dark mode, busier days are lighter, and by Pace, faster days. In light mode, always darker."
  },
  "settings.heatmap_look.lime_green_to_bright_lime": {
@@ -2504,15 +2504,15 @@
   "en": "Your colour"
  },
  "settings.heatmap_look.your_colour_with_a_blend_the": {
-  "text": "選んだ色 (グラデーションでは学習量が最も少ない日の色)",
+  "text": "選んだ色（グラデーションでは学習量が最も少ない日の色）",
   "en": "Your colour (with a blend: the quietest days')"
  },
  "settings.heatmap_look.your_current_scenerys_colours_or_another": {
-  "text": "現在の風景の色、またはほかの風景の色 (風景を変えてもそのまま)",
+  "text": "現在の風景の色、またはほかの風景の色（風景を変えてもそのまま）",
   "en": "Your current scenery's colours, or another scenery's, which stay when you change scenery"
  },
  "settings.heatmap_look.your_current_scenerys_tiles_or_another": {
-  "text": "現在の風景のタイル、またはほかの風景のタイル (風景を変えてもそのまま)",
+  "text": "現在の風景のタイル、またはほかの風景のタイル（風景を変えてもそのまま）",
   "en": "Your current scenery's tiles, or another scenery's, which stay when you change scenery"
  },
  "settings.layout.above_the_list": {
@@ -2633,7 +2633,7 @@
   "en": "This week only"
  },
  "settings.picker.until_date": {
-  "text": "{date} まで",
+  "text": "{date}まで",
   "en": "Until {date}"
  },
  "settings.picker.your_own_mix_made_in_customize": {
@@ -2661,7 +2661,7 @@
   "en": "Scenery"
  },
  "settings.scenery.your_city_e_g_berlin": {
-  "text": "都市 (例: 東京)",
+  "text": "都市（例: 東京）",
   "en": "Your city, e.g. Berlin"
  },
  "settings.surprise.only_one_ticked_the_same_scenery": {
@@ -2669,11 +2669,11 @@
   "en": "Only one ticked: the same scenery every day."
  },
  "settings.surprise.surprise_me_dailys_sceneries_all_n": {
-  "text": "「毎日おまかせ」の風景 (全 {n} 件) ›",
+  "text": "「毎日おまかせ」の風景（全 {n} 件） ›",
   "en": "Surprise me daily's sceneries (all {n}) ›"
  },
  "settings.surprise.surprise_me_dailys_sceneries_kept_of": {
-  "text": "「毎日おまかせ」の風景 ({n} 件中 {kept} 件) ›",
+  "text": "「毎日おまかせ」の風景（{n} 件中 {kept} 件） ›",
   "en": "Surprise me daily's sceneries ({kept} of {n}) ›"
  },
  "settings.surprise.untick_the_ones_youd_rather_not": {
@@ -3051,7 +3051,7 @@
   "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
  },
  "zoom.planted_date": {
-  "text": "{date} に植樹",
+  "text": "{date}に植樹",
   "en": "Planted {date}"
  },
  "zoom.previous_day": {

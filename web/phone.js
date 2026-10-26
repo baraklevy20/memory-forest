@@ -63,8 +63,18 @@ function ago(iso) {
   if (m < 60) return AF.tn('phone.n_minutes_ago', m);
   const h = Math.round(m / 60);
   if (h < 24) return AF.tn('phone.n_hours_ago', h);
-  const d = Math.round(h / 24);
-  return d === 1 ? AF.t('phone.yesterday') : AF.tn('phone.n_days_ago', d, { n: d });
+  // a day or more: counted by the calendar, as people count days (a sync yesterday morning is
+  // "yesterday" all evening, where 36 hours rounded said "2 days ago")
+  const then = new Date(iso), now = new Date();
+  const d = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(then.getFullYear(), then.getMonth(), then.getDate())) / (24 * 60 * MINUTE));
+  return d <= 1 ? AF.t('phone.yesterday') : AF.tn('phone.n_days_ago', d);
+}
+
+/* a line in place of the forest (none to draw, or it could not be): as the card's template shows its own (phone.py) */
+function say(text) {
+  root.textContent = text;
+  root.classList.add('af-phone-wait');
+  AF.i18n.dirOn(root);
 }
 
 let note;
@@ -72,7 +82,7 @@ try { note = JSON.parse(json.textContent); } catch { note = null; }
 json.remove();  // read once (the template read it first): its text would stay on the page as long as the card
 AF.i18n.use(note && note.i18n);  // (its words in Anki's language, before the first of them: AF.mount says it again)
 if (!note || !Array.isArray(note.days) || !note.days.length) {
-  root.textContent = AF.t('phone.your_forest_arrives_with_the_next');
+  say(AF.t('phone.your_forest_arrives_with_the_next'));
   return;
 }
 /* Sideways: on a phone held upright the forest is a thin strip across the top, so in full
@@ -109,13 +119,16 @@ stamp.className = 'af-phone-note';
 if (AF.i18n.rtl()) { stamp.dir = 'rtl'; stamp.style.textAlign = 'right'; }  // (phone.py's CSS sets it left, as English reads)
 const sentAt = new Date(note.updated || '');
 const stale = Date.now() - sentAt.getTime() > STALE_MS;
-stamp.textContent = (note.updated ? AF.t('phone.synced_when', { when: ago(note.updated) }) + ' ' : '')
-  + (stale ? AF.t('phone.sync_anki_on_your_computer_to') + ' ' : '');
+// (sentences one after the other, a space between them, but none after a full stop that has its
+// own room: Japanese and Chinese 。)
+const sentences = (...parts) => parts.filter(Boolean).join(' ').replace(/([。！？]) /g, '$1');
+stamp.textContent = sentences(note.updated && AF.t('phone.synced_when', { when: ago(note.updated) }),
+  stale && AF.t('phone.sync_anki_on_your_computer_to'));
 root.before(shell);
 shell.append(stage);
 stage.append(root, stamp);
 
-function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); root.textContent = AF.t('phone.memory_forest_could_not_draw_your'); }
+function drawFailed(e) { console.error('Memory Forest could not draw the forest:', e); say(AF.t('phone.memory_forest_could_not_draw_your')); }
 
 function layout() {
   const side = portrait() && (entering || !!document.fullscreenElement), [vw, vh] = screenRoom();
@@ -152,14 +165,19 @@ function layout() {
   return AF.loadScripts(scenery(data.mood, !!data.calendar)).then(() => {
     if (mine !== layouts) return;
     drawn = key;
+    root.classList.remove('af-phone-wait');  // (drawn after all, once a line had taken its place)
     // a zoomed-in view stays as it is through the new drawing (a turn in full screen), where the
     // new one zooms too
     const zoomed = zoom === 'always' && root.afVisits ? root.afVisits.state : null;
     AF.mount(root, data, { now: true, zoom });
     placeTurns();
+    // the line under it all on the forest's two edges, as everything else (UI_GUIDELINES): on a
+    // screen wider than the forest (a tablet, a phone on its side) it sat on the screen's left edge
+    const fig = root.querySelector('.af-scene') || root.querySelector('.af-cal');
+    stamp.style.maxWidth = fig && fig.offsetWidth ? fig.offsetWidth + 'px' : '';
     if (zoomed && root.afVisits) root.afVisits.resume(zoomed);
   }, () => {
-    if (mine === layouts) root.textContent = AF.t('phone.your_forest_is_on_its_way');
+    if (mine === layouts) say(AF.t('phone.your_forest_is_on_its_way'));
   }).catch(drawFailed);
 }
 let drawn = '', layouts = 0;
@@ -243,8 +261,8 @@ function leave() {
   try { window.screen.orientation.unlock(); } catch { /* never locked */ }
   document.exitFullscreen().catch(() => {});
 }
-const NOT_ALLOWED = AF.t('phone.full_screen_isnt_allowed_here') + ' ';
-const notAllowed = () => { if (!stamp.textContent.includes(NOT_ALLOWED)) stamp.textContent = NOT_ALLOWED + stamp.textContent; };
+const NOT_ALLOWED = AF.t('phone.full_screen_isnt_allowed_here');
+const notAllowed = () => { if (!stamp.textContent.includes(NOT_ALLOWED)) stamp.textContent = sentences(NOT_ALLOWED, stamp.textContent); };
 [[full, 'forest'], [fullCal, 'calendar']].forEach(([button, what]) => button.addEventListener('click', e => {
   e.stopPropagation();  // (not a tap on the forest or a day under it)
   if (document.fullscreenElement) { leave(); return; }

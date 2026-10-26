@@ -47,7 +47,9 @@ const word = key => key in L.strings ? L.strings[key] : AF.EN && key in AF.EN ? 
 // (in a right-to-left language, a value with digits or Latin letters in it - a date, a number, a
 // name - is isolated, U+2068 to U+2069, so its parts keep their order inside the sentence: "מאז 15 בנוב׳ 2024")
 const isolate = v => L.dir === 'rtl' && /[0-9A-Za-z]/.test(v) ? '\u2068' + v + '\u2069' : v;
-const fill = (text, values) => values ? text.replace(/\{(\w+)\}/g, (m, k) => k in values ? isolate(String(values[k])) : m) : text;
+// (a percent sign after a number goes into its isolate: left outside it, right to left, it is laid out
+// on its own and lands before the number, "%100" in a Hebrew or Arabic line that reads "100%")
+const fill = (text, values) => values ? text.replace(/\{(\w+)\}([\u00a0\u202f ]?%)?/g, (m, k, pct) => k in values ? isolate(String(values[k]) + (pct || '')) : m) : text;
 const t = (key, values) => { const s = word(key); return fill(typeof s === 'string' ? s : s.other || key, values); };
 function tn(key, n, values) {
   const s = word(key), v = Object.assign({ n: num(n) }, values || {});
@@ -83,6 +85,9 @@ const bdi = html => `<bdi>${html}</bdi>`;
 // asked: the add-on may speak another language than Anki's); left as it was for left to right
 function dirOn(el) {
   if (!el) return;
+  // (and its language: Anki's page says none, so Chinese and Japanese took whichever CJK font the
+  // system falls back to, the other language's forms of the same characters among them)
+  el.setAttribute('lang', L.lang);
   el.classList.toggle('af-rtl', rtl());
   if (rtl()) el.setAttribute('dir', 'rtl'); else if (el.getAttribute('dir') === 'rtl') el.removeAttribute('dir');
 }

@@ -53,7 +53,7 @@ SCENERY_LABEL = N_("settings.heatmap_look.scenery")
 # each grew with every scenery, and several looked alike: Aurora, Starry night and Frozen market)
 # the scenery's colours, as a dropdown first among the ready ones: the scenery's own (they follow
 # it), or any scenery's, kept when you change the scenery (2026-10-16: one button, no row of its own)
-PICK_LABEL = "{name} \u25be"
+PICK_LABEL = " {name} \u25be"  # (a space between the picture and the word, as option_button has)
 PICK_TIP = N_("settings.heatmap_look.your_current_scenerys_colours_or_another")
 FOLLOW_NAME = N_("settings.heatmap_look.current_scenery")  # (plain words: "This scenery's own" read as complex, 2026-10-16)
 # the sceneries' own tiles as one dropdown too, as the colours are (2026-10-23: a button each made one
@@ -587,6 +587,7 @@ class LookControls(QObject):
         # (no row labels: the group's name says what they are, and Custom says which are yours;
         # "Ready colours" read oddly, 2026-10-16)
         rows = form()
+        rows.setVerticalSpacing(BUTTON_GAP)  # (one gap between all the rows: macOS's form left a wider one above Custom)
         rows.addRow(ready)
         # (the note that your busiest colour is faint sits under your colours, not under Busier days)
         mine_box = QVBoxLayout()

@@ -606,7 +606,7 @@
  "settings.decks.your_forest_starts_on_your_first": "Your forest starts on your first day of study, {first}.",
  "settings.decks.your_forest_trees": "Your forest: <b>{trees}</b>",
  "settings.decks.your_forest_trees_n_earlier_ones": {
-  "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+  "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
  },
  "settings.decks.your_trees_from_before_it_stay": "Your trees from before it stay. Ponds, Nature and the animals count from {date}.",

@@ -1810,11 +1810,11 @@
   }
  },
  "phone.sync_anki_on_your_computer_to": {
-  "text": "Synchronisiere Anki auf deinem Computer, um ihn zu aktualisieren.",
+  "text": "Synchronisiere Anki auf deinem Computer, um den Wald zu aktualisieren.",
   "en": "Sync Anki on your computer to bring it up to date."
  },
  "phone.synced_when": {
-  "text": "Zuletzt synchronisiert {when}.",
+  "text": "Synchronisiert {when}.",
   "en": "Synced {when}."
  },
  "phone.yesterday": {
@@ -2134,7 +2134,7 @@
   "en": "Decks"
  },
  "settings.decks.keep_suspended_cards_in_their_trees": {
-  "text": "Ausgeschlossene Karten in ihren Bäumen behalten",
+  "text": "Ausgesetzte Karten in ihren Bäumen behalten",
   "en": "Keep suspended cards in their trees"
  },
  "settings.decks.keep_the_trees_from_before_it": {
@@ -2175,7 +2175,7 @@
    "other": "Dein Wald: <b>{trees}</b> &nbsp;({n} frühere Bäume ausgelassen)"
   },
   "en": {
-   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)",
+   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
    "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
   }
  },
@@ -2212,7 +2212,7 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "Zurückgesetzt werden: die Szenerie, die Szenerien von „Anpassen“ und „Täglich überraschen“, Natur (auf {nature}), deine Stadt, wo Wald und Heatmap erscheinen (auch bei fertigen Stapeln) und ihre Anordnung, die Ansicht der Heatmap, ihre Breite und was sie füllt, der Wochenbeginn, wonach sich ihre Abstufungen richten, ihre Farben (auch „Vollere Tage“) und ihr Stil, die Animation und die Meldung beim Pflanzen.\n\nBehalten werden: die ausgelassenen Stapel, das Startdatum (ob die Bäume von vorher bleiben und wie sich Heatmap und Serie danach richten), die Tage pro Woche deiner Serie, ausgeschlossene Karten, deine markierten Tage und der Wald auf deinem Handy.\n\nAbbrechen stellt weiterhin die Einstellungen wieder her, die du vorher hattest.",
+  "text": "Zurückgesetzt werden: die Szenerie, die Szenerien von „Anpassen“ und „Täglich überraschen“, Natur (auf {nature}), deine Stadt, wo Wald und Heatmap erscheinen (auch bei fertigen Stapeln) und ihre Anordnung, die Ansicht der Heatmap, ihre Breite und was sie füllt, der Wochenbeginn, wonach sich ihre Abstufungen richten, ihre Farben (auch „Vollere Tage“) und ihr Stil, die Animation und die Meldung beim Pflanzen.\n\nBehalten werden: die ausgelassenen Stapel, das Startdatum (ob die Bäume von vorher bleiben und wie sich Heatmap und Serie danach richten), die Tage pro Woche deiner Serie, ausgesetzte Karten, deine markierten Tage und der Wald auf deinem Handy.\n\nAbbrechen stellt weiterhin die Einstellungen wieder her, die du vorher hattest.",
   "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
@@ -2260,7 +2260,7 @@
   "en": "Layout"
  },
  "settings.forest.main_screen": {
-  "text": "Stapelübersicht",
+  "text": "Hauptbildschirm",
   "en": "Main screen"
  },
  "settings.forest.motion_and_messages": {
@@ -2400,7 +2400,7 @@
   "en": "Layout"
  },
  "settings.heatmap.main_screen": {
-  "text": "Stapelübersicht",
+  "text": "Hauptbildschirm",
   "en": "Main screen"
  },
  "settings.heatmap.mon": {
