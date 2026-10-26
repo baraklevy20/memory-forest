@@ -535,8 +535,8 @@
    "other": "Cerca de {n} revisões por dia de estudo"
   },
   "en": {
-   "one": "About {n} review a day studied",
-   "other": "About {n} reviews a day studied"
+   "one": "About {n} review per day studied",
+   "other": "About {n} reviews per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a": {
@@ -545,8 +545,8 @@
    "other": "Cerca de {n} revisões e {time} por dia de estudo"
   },
   "en": {
-   "one": "About {n} review and {time} a day studied",
-   "other": "About {n} reviews and {time} a day studied"
+   "one": "About {n} review and {time} per day studied",
+   "other": "About {n} reviews and {time} per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a_2": {
@@ -1117,6 +1117,10 @@
   "text": "{s}+ s por resposta",
   "en": "{s}+ s per answer"
  },
+ "heatmap.selected_what": {
+  "text": "Selecionado: {what}",
+  "en": "Selected: {what}"
+ },
  "heatmap.shade_each_day_by_how_long": {
   "text": "Colorir cada dia pelo tempo de estudo",
   "en": "Shade each day by how long you studied"
@@ -1132,6 +1136,10 @@
  "heatmap.shade_the_days_by": {
   "text": "Colorir os dias por",
   "en": "Shade the days by"
+ },
+ "heatmap.shift_click_another_day_to": {
+  "text": "Clique com Shift em outro dia para selecionar os dias entre eles",
+  "en": "Shift-click another day to select the days between"
  },
  "heatmap.sick": {
   "text": "Doente",
@@ -1360,8 +1368,8 @@
   }
  },
  "heatmap.your_streak_every_year_of_it": {
-  "text": "Sua sequência, ano a ano; as setas levam às sequências anteriores",
-  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+  "text": "Sua sequência, ano a ano",
+  "en": "Your streak, every year of it"
  },
  "heatmap.your_third_longest_streak": {
   "text": "Sua terceira maior sequência",
@@ -1450,7 +1458,7 @@
   "en": "Ice blocks"
  },
  "heatmap_style.ice.tip": {
-  "text": "O gelo de Feira no rio congelado, só na semana dele",
+  "text": "O gelo de “Feira no rio congelado”, só na semana dela",
   "en": "Frozen river market's ice, in its week only"
  },
  "heatmap_style.pumpkin": {

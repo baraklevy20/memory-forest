@@ -259,7 +259,7 @@ check('heatmap: a shade in the key, pointed at, gives its numbers and lights its
 check('heatmap: a month\'s label tells its days studied, or the cards due ahead', async b => {
   const p = await open(b, 'calendar'); await ready(p); const f = [];
   const month = async m => { await p.hover(`.af-cal-months span[data-m="${m}"]`); return p.evaluate(() => T.tip()); };
-  has(f, await month(8), [/^September 2026\nStudied \d+ of 30 days \(\d+%\)\n\d[\d,]* reviews in .+\nAbout \d+ reviews and .+ a day studied$/], 'September');
+  has(f, await month(8), [/^September 2026\nStudied \d+ of 30 days \(\d+%\)\n\d[\d,]* reviews in .+\nAbout \d+ reviews and .+ per day studied$/], 'September');
   has(f, await month(9), ['October 2026', /so far/, /cards due later this month/, 'Oct 25: Final exam', 'Oct 12: Star'], 'this month');
   has(f, await month(11), [/^December 2026\n[\d,]+ cards due$/], 'a month ahead');
   return [p, f];

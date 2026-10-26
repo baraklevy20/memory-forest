@@ -513,8 +513,8 @@
    "other": "每个学习日约 {n} 次复习"
   },
   "en": {
-   "one": "About {n} review a day studied",
-   "other": "About {n} reviews a day studied"
+   "one": "About {n} review per day studied",
+   "other": "About {n} reviews per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a": {
@@ -522,8 +522,8 @@
    "other": "每个学习日约 {n} 次复习，用时 {time}"
   },
   "en": {
-   "one": "About {n} review and {time} a day studied",
-   "other": "About {n} reviews and {time} a day studied"
+   "one": "About {n} review and {time} per day studied",
+   "other": "About {n} reviews and {time} per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a_2": {
@@ -1056,6 +1056,10 @@
   "text": "每次回答 {s}+ 秒",
   "en": "{s}+ s per answer"
  },
+ "heatmap.selected_what": {
+  "text": "已选：{what}",
+  "en": "Selected: {what}"
+ },
  "heatmap.shade_each_day_by_how_long": {
   "text": "按每天的学习时长着色",
   "en": "Shade each day by how long you studied"
@@ -1071,6 +1075,10 @@
  "heatmap.shade_the_days_by": {
   "text": "着色依据",
   "en": "Shade the days by"
+ },
+ "heatmap.shift_click_another_day_to": {
+  "text": "按住 Shift 点击另一天，即可选中两天之间的日子",
+  "en": "Shift-click another day to select the days between"
  },
  "heatmap.sick": {
   "text": "生病",
@@ -1286,8 +1294,8 @@
   }
  },
  "heatmap.your_streak_every_year_of_it": {
-  "text": "您的连续学习，逐年显示；箭头可查看之前的连续学习",
-  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+  "text": "您的连续学习，逐年显示",
+  "en": "Your streak, every year of it"
  },
  "heatmap.your_third_longest_streak": {
   "text": "第三长连续学习",
@@ -1375,7 +1383,7 @@
   "en": "Ice blocks"
  },
  "heatmap_style.ice.tip": {
-  "text": "「冰河市集」的冰块，仅在其所在的那一周可用",
+  "text": "“冰封河上的市集”的冰块，仅在它的那一周可用",
   "en": "Frozen river market's ice, in its week only"
  },
  "heatmap_style.pumpkin": {
@@ -1799,11 +1807,11 @@
   "en": "A different scenery every day, taking turns so each one comes round in order."
  },
  "preset.frozen_market": {
-  "text": "冰河市集",
+  "text": "冰封河上的市集",
   "en": "Frozen river market"
  },
  "preset.frozen_market.note": {
-  "text": "冰封河面上的圣诞市集：冰上有摊位和旋转木马，溜冰的人从灯笼映照的桥下滑过。",
+  "text": "冰封河面上的圣诞市集：冰上有摊位和旋转木马，溜冰的人从路灯映照的桥下滑过。",
   "en": "The Christmas market on the frozen river: stalls and a carousel on the ice, skaters under a lantern-lit bridge."
  },
  "preset.golden_lake": {

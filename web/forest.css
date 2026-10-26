@@ -11,6 +11,10 @@
 }
 /* the add-on's words right to left (data.i18n.dir, core.js AF.mount): the end of this file */
 .af-panel.af-rtl { direction: rtl; }
+/* in Onigiri's tile (a box of the height you gave it, its overflow hidden: e2e/onigiri_check.py): the
+   panel scrolls inside it, so a heatmap taller than the room left under the forest (Streak view's
+   rows, today's the last) can still be reached rather than cut off */
+.external-widget-container > .af-panel { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; margin-bottom: 0; }
 /* on a finished deck's congratulations page (panel.on_page_loaded): under its message */
 .af-finished { margin: 28px auto 0; padding: 0 16px 24px; }
 .af-scene {
@@ -74,6 +78,9 @@
 }
 /* the room between them as margins, not gap: Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
 .af-journal { font-style: italic; margin-right: 16px; }
+/* (no journal today: none at all, so the stats keep the left edge under the forest, as they do with
+   the journal in the heatmap's footer, rather than being pushed to the right edge by an empty one) */
+.af-caption > .af-journal:empty { display: none; }
 /* (Chinese and Japanese have no italics: the browser slants them; their journal stands upright) */
 .af-panel:lang(ja) .af-journal, .af-panel:lang(zh) .af-journal, .af-panel:lang(ja) .af-cal-journal, .af-panel:lang(zh) .af-cal-journal { font-style: normal; }
 .af-caption[hidden] { display: none; }
@@ -265,10 +272,10 @@
 .af-cal-grid { position: relative; padding-top: 16px; padding-bottom: 0; }
 /* Streak view's earlier rows (calendar.js past): above the last one, each with its months over it */
 /* (.af-cal-past is not positioned: its years are placed, and point, by the heatmap's own offsets, as the year in view is) */
-.af-cal-past-year { margin-top: 8px; }  /* (and the head's 18px: calendar.js PAST_GAP, PAST_HEAD) */
+.af-cal-past-year { margin-top: 4px; }  /* (calendar.js ROW_GAP: and as much over the last row; each row's months stand as far over its weeks as the last row's do, calendar.js monthsRoom) */
 .af-cal-past-year:first-child { margin-top: 0; }  /* (the first at the top: ‹ › stand in the gap over it, as over the months) */
 /* (each row's months over its weeks, as the months' row over the last one: calendar.js label) */
-.af-cal-past-head { position: relative; height: 18px; }
+.af-cal-past-head { position: relative; height: 15px; }  /* (calendar.js layPast: monthsRoom) */
 .af-cal-past-head span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; cursor: default; }
 /* on the phone: one long timeline, swiped along (calendar.js SWIPED_K) */
 .af-cal-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -364,6 +371,10 @@ body.af-lay .af-apart > .af-cal { width: auto !important; }  /* (calendar.js set
    first in the panel does: .af-cal-first) */
 body.af-lay .af-apart > .af-slot-above { order: 0; flex: 0 0 var(--af-row); min-width: 0; box-sizing: border-box; margin: 0 calc((100% - var(--af-row)) / 2) 28px; }
 body.af-lay .af-apart > .af-cal.af-slot-above { padding-top: 20px; }
+/* (and in a side column of its own, One beside with the heatmap first: without the band its view switch
+   and ‹ › » stood over the column's top, cut off by the window's edge, its months 20px above the
+   list's header; fallen under the list in a narrow window the 28px over it have room for them) */
+body.af-lay:not(.af-lay-narrow) .af-apart > .af-cal.af-slot-left, body.af-lay:not(.af-lay-narrow) .af-apart > .af-cal.af-slot-right { padding-top: 20px; }
 /* (the one part this screen shows, the other switched off: the panel itself over the list, as wide
    as core.js makes it, its padding inside that) */
 body.af-lay > center > .af-panel.af-slot-above { order: 0; flex: 0 0 var(--af-row); min-width: 0; padding: 0; margin: 0 calc((100% - var(--af-row)) / 2) 28px; }
@@ -391,7 +402,8 @@ body.af-lay.af-lay-sticky:not(.af-lay-narrow) .af-slot-left, body.af-lay.af-lay-
    right, the arrows at the left end of the months' row). The forest is a picture and never turns, but
    its cog and zoom button move to its top left corner, where the line starts (and the cog's line over a
    heatmap alone with them), and a note on it to the top right */
-.af-rtl .af-top { justify-content: flex-start; }
+/* (.af-top's flex-end is already the left end right to left, where its controls leave the cog room: calendar.js;
+   flex-start put the cog at the right, over the weekdays, the controls keeping an empty gap for it) */
 .af-rtl .af-scene .af-top { right: auto; left: 8px; }
 .af-rtl .af-zoom { right: auto; left: 8px; }
 .af-rtl .af-has-cog .af-zoom { right: auto; left: 42px; }

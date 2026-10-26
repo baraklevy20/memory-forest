@@ -309,6 +309,8 @@ function history(cal) {
     dueShade, dueToday: cal.due[0] || 0,
     look: cal.look || null,  // the Heatmap tab's colours and tiles (paletteOf)
     ahead: cal.due.length - 1,  // the last day ahead counted
+    // (and the last with cards due: Streak view pages on that far, no further into rows of nothing)
+    lastDue: Math.max(0, ...cal.due.map((v, o) => (v > 0 ? o : 0))),
     time
   });
 }
@@ -350,7 +352,7 @@ function openRows(H, W) {
 function streakRows(H, W, page, ahead = 0) {
   const open = openRows(H, W), n = open.length;
   if (ahead) {  // (› from your streak: pages on into the days ahead, up to the row with the last day due)
-    const last = open[n - 1].to, due = Math.max(1, Math.ceil((H.ahead - last) / (W * 7)));
+    const last = open[n - 1].to, due = Math.max(1, Math.ceil((H.lastDue - last) / (W * 7)));
     return rowsOf(H, last + Math.min(ahead * n, due) * W * 7, -Infinity, W).slice(-n);
   }
   return page == null ? open : rowsOf(H, page.end, page.from, W);
@@ -368,9 +370,10 @@ function pageBefore(H, W, n, top) {
 // the weeks a row holds at this width (css px): a year's at least; with More months as many as fit at
 // the days' own size (DAY_K), with Bigger days a year's, stretched
 const weeksPerRow = width => (BIGGER || !width ? 53 : Math.max(53, Math.floor((width / DAY_K - 1) / CELL)));
-// css px: an earlier row's month labels over its weeks, and the space between two rows (forest.css
-// .af-cal-past-head's height, .af-cal-past-year's margin), for the room kept for Streak view
-const PAST_HEAD = 18, PAST_GAP = 8;
+// css px between two of Streak view's rows (forest.css .af-cal-past-year's margin); an earlier row's
+// month labels stand over its weeks as the last row's do (monthsRoom): each row's weeks the same
+// distance under its labels' baseline, and the rows evenly apart, the last one too
+const ROW_GAP = 4;
 const NOTE_H = 11;  // css px: a streak's note line (forest.css .af-cal-note), centred on the brackets' lane
 const ACTS_ROOM = 20;  // (and forest.css's `.af-cal-grid > .af-cal-acts { top: -20px }`, before the row is laid out)
 
@@ -1176,6 +1179,13 @@ AF.calendarFit = (box, cal, view, forestW, inAnki) => {
   const want = AF.calendarWant(cal);
   box.style.width = typeof want === 'number' ? want + 'px' : '85%';
   box.style.maxWidth = '100%';
+  // (with no forest above, the settings cog's row over it as wide as it is, in the middle too: the cog
+  // on the heatmap's own corner, the controls left of it, not out at the panel's edge)
+  const top = box.previousElementSibling;
+  if (top && top.classList.contains('af-top')) {
+    top.style.width = box.style.width; top.style.maxWidth = box.style.maxWidth;
+    top.style.marginLeft = top.style.marginRight = 'auto';
+  }
 };
 /* how tall the footer will be: its row (FOOT_H), unless the forest's journal, which comes down into
  * it beside the shade's choice and the key, is long enough to wrap there. Measured on a stand-in
@@ -1237,7 +1247,7 @@ AF.calendarHeight = function (cal, width, root) {
   }
   const k = width > 0 ? width / W : 1;  // (all the width: By year its year, Timeline its months, countFor)
   const weeks = (TOP + ROWS * CELL + BRACKET) * k;
-  return Math.round(monthsRoom(k) + weeks + earlier * (PAST_HEAD + weeks) + Math.max(0, earlier - 1) * PAST_GAP + FOOT_GAP + foot);  // (rounded as the page rounds the drawn height)
+  return Math.round(monthsRoom(k) + weeks + earlier * (monthsRoom(k) + weeks + ROW_GAP) + FOOT_GAP + foot);  // (rounded as the page rounds the drawn height)
 };
 
 AF.calendar = function (root, data, env) {
@@ -1392,7 +1402,7 @@ AF.calendar = function (root, data, env) {
   box.classList.toggle('af-cal-on-light', !paper.dark);  // (a choice's chosen half: a white pill on a light page)
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
   // dimmed into the page, on a layer over the weeks
-  let spotCv = null;
+  let spotCvs = [];  // (a layer on each row of weeks shown: Streak view's earlier rows too)
   // the days selected, as Finder selects files: Cmd-click (Ctrl-click off a Mac) selects or drops one day,
   // Shift-click every day from the last one clicked (`anchor`) to this one, added to those selected
   // before it (`base`). `sel`, a Set of offsets: its days stay lit while nothing else is pointed
@@ -1458,26 +1468,32 @@ AF.calendar = function (root, data, env) {
   // while days are selected, every year shown dims its days not selected (a year with none of them
   // dims all over, so a selection reads as one, whichever years it spans): a layer a year, kept until
   // the selection or the year changes, hidden under a hover's own spot on the same year
-  let selCvs = [];
+  // (a day not selected, pointed at, is lit too while the pointer is on it: its ring round a dimmed
+  // tile hid its shade, the very thing a Cmd-click would add)
+  let selCvs = [], holeAt = null;
   const showPickDim = () => {
     const years = sel && drawn ? [drawn, ...pasts.filter(p => p.cv && p.cv.isConnected)] : [];
     selCvs = selCvs.filter(x => {
-      const ok = years.includes(x.d) && x.ver === selVer && x.cv.isConnected && x.d.cv.isConnected;
+      const ok = years.includes(x.d) && x.ver === selVer && x.hole === holeAt && x.cv.isConnected && x.d.cv.isConnected;
       if (!ok) x.cv.remove();
       return ok;
     });
-    for (const d of years) if (!selCvs.some(x => x.d === d)) selCvs.push({ d, ver: selVer, cv: dimLayer(d, inSel) });
-    for (const x of selCvs) x.cv.style.visibility = spotCv && spotCv.afOn === x.d ? 'hidden' : '';
+    for (const d of years) if (!selCvs.some(x => x.d === d)) selCvs.push({ d, ver: selVer, hole: holeAt, cv: dimLayer(d, x => inSel(x) || x.o === holeAt) });
+    for (const x of selCvs) x.cv.style.visibility = spotCvs.some(cv => cv.afOn === x.d) ? 'hidden' : '';
   };
   // a hover's days standing out (a shade in the key, a month, a streak): the others dimmed, on the
   // year pointed at (a streak's bracket on an earlier year lights that year's days); null: none
   const spot = (keep, lv) => {
-    if (spotCv) { spotCv.remove(); spotCv = null; }
-    if (keep && drawn) spotCv = dimLayer(pointed || drawn, keep, lv);
+    spotCvs.forEach(cv => cv.remove());
+    // (on every row shown, so a shade of the key, a streak or a month split over two rows lights its
+    // days in all of them, and the rest dim alike: on the row pointed at alone, Streak view's other
+    // rows stayed lit as if they were all of that shade)
+    spotCvs = keep && drawn ? [drawn, ...pasts.filter(p => p.cv && p.cv.isConnected)].map(d => dimLayer(d, keep, lv)) : [];
     showPickDim();
   };
   // the day under the pointer: ringed in today's frame colour, which shows on every shade
   const ring = c => {
+    holeAt = sel && c && !inSel(c) ? c.o : null;
     spot(null);
     if (!c && editing && drawn) c = drawn.cells.find(x => x.o === editing.o) || null;  // (a day being marked keeps it)
     hover.hidden = !c;
@@ -1509,7 +1525,7 @@ AF.calendar = function (root, data, env) {
   const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); last = undefined; warm = false; clearTimeout(waking); pointed = null; showSel(); };
   // how far you can page: back to the first day counted, on to the last day ahead counted (Streak
   // view: back while its top row starts after your first review, on as far as the days ahead go)
-  const can = win => (view === 'streak' ? { back: ahead > 0 || (rows.length ? rows[0] : win).from > H.first, on: pages.length > 0 || win.to < H.ahead }
+  const can = win => (view === 'streak' ? { back: ahead > 0 || (rows.length ? rows[0] : win).from > H.first, on: pages.length > 0 || win.to < H.lastDue }
     : { back: win.from > H.first, on: win.to < H.ahead });
 
   function draw() {
@@ -1594,6 +1610,9 @@ AF.calendar = function (root, data, env) {
     if (sel && (tip.hidden || selTip)) showSel(selTip); else if (sel) spot(null);
   }
   // a number of reviews, and the time they took where the review log kept it: "103 reviews in 19 min"
+  // a stretch's reviews and time together, the time first where the days are shaded by it, as a day's
+  // own tooltip has them: "8 hr 24 min, 3,432 reviews"
+  const totals = (n, secs) => (H.by === 'time' && secs ? cap(AF.tn('heatmap.time_n_reviews', n, { time: lasted(secs) })) : reviewsIn(n, secs));
   const reviewsIn = (n, secs) => (secs ? AF.tn('heatmap.n_reviews_in_time', n, { time: lasted(secs) })
     : AF.tn('heatmap.n_reviews', n));
   const due = n => AF.tn('heatmap.n_cards_due', n);
@@ -1629,7 +1648,7 @@ AF.calendar = function (root, data, env) {
     // only where some days were missed; the time where the review log kept it)
     return [studied === span ? (since ? AF.t('heatmap.studied_every_day_since_date', { date: since }) : sofar ? AF.t('heatmap.studied_every_day_so_far') : AF.t('heatmap.studied_every_day'))
       : studiedOf(studied, span, since, sofar),
-    reviewsIn(reviews, secs), perDay(reviews, studied, secs, studied < span)];
+    totals(reviews, secs), perDay(reviews, studied, secs, studied < span)];
   };
   // Streak view's earlier rows: those above the last one (drawn as the heatmap's own weeks), each
   // with its months over it, oldest at the top, so the picture reads down to now as a calendar does
@@ -1657,14 +1676,15 @@ AF.calendar = function (root, data, env) {
     for (const win of rows) {
       const d = paintPast(`${win.from}:${win.cols}`, win), el = document.createElement('div');
       el.className = 'af-cal-past-year';
-      el.innerHTML = '<div class="af-cal-past-head"></div>';  // (its months' labels: laid out with the weeks, layPast)
-      d.head = el.firstChild;
+      // (its months' labels, and its streaks' lengths: laid out with the weeks, layPast)
+      el.innerHTML = '<div class="af-cal-past-head"></div><div class="af-cal-notes"></div>';
+      d.head = el.firstChild; d.notes = el.lastChild;
       d.cv.className = 'af-cal-canvas af-cal-past-weeks';
       d.cv.setAttribute('role', 'img');
       d.cv.setAttribute('aria-label', described(win));
       d.above.className = 'af-cal-above';
-      el.appendChild(d.cv);
-      el.appendChild(d.above);
+      el.insertBefore(d.cv, d.notes);
+      el.insertBefore(d.above, d.notes);
       pastBox.appendChild(el);
       pasts.push(d);
     }
@@ -1674,6 +1694,13 @@ AF.calendar = function (root, data, env) {
   // touch (a narrow calendar), the one with a year stays and the other goes
   // (right to left, each label ends over its month's first week, at that week's right edge, and the
   // next one stands to its left)
+  // a row's first label, its month and year, the month written as the other labels write it (German's
+  // "Nov. 2023" and "März 2023" beside "Nov" and "Mär" read as two spellings); a form with more than
+  // the two (Portuguese's "nov. de 2023") or none apart (Japanese's "2023年11月") is kept as it is
+  const monthYear = (ms, m) => {
+    const s = AF.i18n.dayIn(ms, { month: 'short', year: 'numeric' }), rest = s.replace(AF.i18n.dayIn(ms, { year: 'numeric' }), '').trim();
+    return rest && !/\s/.test(rest) && s.trim().split(/\s+/).length === 2 ? s.replace(rest, AF.i18n.monthName(m, 'short')) : s;
+  };
   function label(into, d) {
     let html = '', lastM = -1;
     for (const c of d.cells) {
@@ -1681,14 +1708,25 @@ AF.calendar = function (root, data, env) {
       if (day.getUTCDate() > 7 || day.getUTCMonth() === lastM || (rtl ? (c.x + TILE) * k < LABEL_END : c.x * k > d.W * k - LABEL_END)) continue;
       lastM = day.getUTCMonth();
       const name = AF.i18n.monthName(lastM, 'short');
-      const text = lastM === 0 ? AF.i18n.dayIn(c.ms, { year: 'numeric' }) : view === 'streak' && !html ? AF.i18n.dayIn(c.ms, { month: 'short', year: 'numeric' }) : name;
-      html += `<span${text !== name ? ' class="af-cal-year"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
+      const first = view === 'streak' && !html;
+      const text = lastM === 0 ? AF.i18n.dayIn(c.ms, { year: 'numeric' }) : first ? monthYear(c.ms, lastM) : name;
+      html += `<span${text !== name ? ' class="af-cal-year"' : ''}${first ? ' data-first="1"' : ''} data-y="${day.getUTCFullYear()}" data-m="${lastM}" style="left:${c.x * k}px">${text}</span>`;
     }
     into.innerHTML = html;
     if (rtl) for (const s of into.children) s.style.left = parseFloat(s.style.left) + TILE * k - s.offsetWidth + 'px';
+    const touch = (a, b) => (rtl ? b.offsetLeft + b.offsetWidth + LABEL_GAP > a.offsetLeft : b.offsetLeft < a.offsetLeft + a.offsetWidth + LABEL_GAP);
     let prev = null;
     for (const s of into.children) {
-      if (prev && (rtl ? s.offsetLeft + s.offsetWidth + LABEL_GAP > prev.offsetLeft : s.offsetLeft < prev.offsetLeft + prev.offsetWidth + LABEL_GAP)) {
+      // (a row's first label meeting January's year, "Dec 2025" and "2026": its month's name alone, the
+      // year beside it saying which; dropped, a row begun in November or December had its first weeks
+      // unnamed)
+      if (prev && prev.dataset.first && s.dataset.m === '0' && touch(prev, s)) {
+        const right = prev.offsetLeft + prev.offsetWidth;
+        prev.textContent = AF.i18n.monthName(+prev.dataset.m, 'short');
+        prev.classList.remove('af-cal-year');
+        if (rtl) prev.style.left = right - prev.offsetWidth + 'px';
+      }
+      if (prev && touch(prev, s)) {
         const drop = prev.classList.contains('af-cal-year') && !s.classList.contains('af-cal-year') ? s : prev;
         drop.hidden = true;
         if (drop === s) continue;
@@ -1698,11 +1736,17 @@ AF.calendar = function (root, data, env) {
   }
   function layPast() {
     for (const d of pasts) {
+      d.head.style.height = monthsRoom(k) + 'px';  // (as the months' row over the last one)
       label(d.head, d);
       d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
       d.above.style.left = d.cv.offsetLeft + 'px'; d.above.style.top = d.cv.offsetTop + 'px';
       d.cv.style.imageRendering = d.above.style.imageRendering = k < sharpK() ? 'auto' : '';
       if (d.sharpen) d.sharpen(k * dpr());
+      // each streak ending in this row, its length under its bracket, as the last row's are (a
+      // streak going on into the next row says it there, once)
+      d.notes.style.top = d.cv.offsetTop + (d.band + ROWS * CELL + 3 + 7) * k - NOTE_H / 2 + 'px';
+      d.notes.innerHTML = d.brackets.filter(b => b.run.to <= d.win.to && (b.x1 - b.x0) * k >= NOTE_ROOM + 2 * (7 * k + 4))
+        .map(b => `<span class="af-cal-note${b.live ? ' af-cal-current' : ''}" style="left:${(b.x0 + b.x1) / 2 * k}px">${AF.tn('heatmap.n_days', b.len)}</span>`).join('');
     }
   }
   function go(where) {
@@ -1737,7 +1781,7 @@ AF.calendar = function (root, data, env) {
     k = swiped ? Math.round((data.swipedK || SWIPED_K) * dpr()) / dpr() : (grid.clientWidth || d.W * 2) / d.W;
     // (the room over the year in view's weeks for its months, under the earlier years if any)
     grid.style.paddingTop = '0px';
-    pastBox.style.paddingBottom = monthsRoom(k) + 'px';
+    pastBox.style.paddingBottom = monthsRoom(k) + (pasts.length ? ROW_GAP : 0) + 'px';
     d.cv.style.width = d.above.style.width = d.W * k + 'px'; d.cv.style.height = d.above.style.height = d.Hh * k + 'px';
     layPast();
     // (the layer placed once the earlier years above are laid out: their size moves the year in
@@ -1791,7 +1835,7 @@ AF.calendar = function (root, data, env) {
     // focus back, or the earlier years shown above moving the year in view down, they sat at the
     // canvas's own size, or where the weeks were)
     showPickDim();
-    for (const cv of [spotCv, ...selCvs.map(x => x.cv)]) {
+    for (const cv of [...spotCvs, ...selCvs.map(x => x.cv)]) {
       if (!cv || !cv.afOn) continue;
       const c = cv.afOn.cv;
       Object.assign(cv.style, { left: c.offsetLeft + 'px', top: c.offsetTop + 'px', width: c.style.width, height: c.style.height, imageRendering: c.style.imageRendering });
@@ -1956,11 +2000,16 @@ AF.calendar = function (root, data, env) {
     if (sel.size === 1) {
       const n = H.n(from), what = from < H.first ? AF.t('heatmap.before_your_first_review') : from > H.ahead ? AF.t('heatmap.too_far_ahead_to_count')
         : from > 0 ? (n ? due(n) : AF.t('heatmap.nothing_due_yet')) : n ? reviewsIn(n, H.time(from)) : from === 0 ? AF.t('heatmap.not_studied_yet') : AF.t('heatmap.not_studied');
-      return [`<b>${esc(withWeekday(H.today + from * DAY_MS, true))}</b>`, what, ...(H.marked.has(from) ? [markLine(H.marked.get(from), from)] : [])].join('<br>');
+      // (and how to go on from it, quietly: a Shift-click stretching from this day can't be guessed)
+      return [`<b>${esc(withWeekday(H.today + from * DAY_MS, true))}</b>`, what, ...(H.marked.has(from) ? [markLine(H.marked.get(from), from)] : []),
+        `<span class="af-hint">${AF.t('heatmap.shift_click_another_day_to')}</span>`].join('<br>');
     }
     if (runs.length === 1) {
       const span = from === to ? day(from) : to === 0 ? AF.t('heatmap.from_to_today', stretch) : AF.t('heatmap.from_to_to', stretch);
-      return [`<b>${span}</b>`, ...(from > 0 ? [] : studiedLines(from, to)), ...notesOf(from, to, 'after')].join('<br>');
+      // (a stretch counts its days where a month needn't: "Studied all of these 21 days", not "every day")
+      const studied = from > 0 ? [] : studiedLines(from, to);
+      if (studied[0] === AF.t('heatmap.studied_every_day')) studied[0] = AF.tn('heatmap.studied_all_of_these_n_days', to - from + 1);
+      return [`<b>${span}</b>`, ...studied, ...notesOf(from, to, 'after')].join('<br>');
     }
     const head = to === 0 ? AF.tn('heatmap.n_days_from_to_today', sel.size, stretch)
       : AF.tn('heatmap.n_days_from_to_to', sel.size, stretch);
@@ -1979,13 +2028,15 @@ AF.calendar = function (root, data, env) {
     const all = span === sel.size;
     return [studied === span ? (all ? AF.t('heatmap.studied_all_of_them') : AF.tn('heatmap.studied_all_of_these_n_days', span))
       : all ? AF.tn('heatmap.studied_n_of_them_pct', studied, { pct }) : studiedOf(studied, span, '', false),
-    reviewsIn(reviews, secs), perDay(reviews, studied, secs, studied < span)];
+    totals(reviews, secs), perDay(reviews, studied, secs, studied < span)];
   };
   // (the days selected open in the browser where one of them in the past was studied)
   // (or, ahead, has cards due: those open as a day ahead clicked opens them; today, before you
   // study, its cards due, as today clicked opens them)
   const dueToday = () => !!sel && sel.has(0) && !H.n(0) && H.dueToday > 0;
-  const selOpens = () => !!sel && !!cal.browse && (dueToday() || [...sel].some(o => o >= H.first && o <= H.ahead && H.n(o) > 0));
+  // (not days whose cards have all since been deleted, as a day clicked: the browser opened on none,
+  // or not at all, under a pointer that said it would)
+  const selOpens = () => !!sel && !!cal.browse && (dueToday() || [...sel].some(o => o >= H.first && o <= H.ahead && H.n(o) > 0 && !allGone(o)));
   // the days selected: lit, their trees in the forest; pointed at (`told`), their summary under their
   // days in view (as a streak's is under its bracket); at rest the lit days alone, so the footer
   // under them (the journal, the key) stays in view; none selected: all back as it was
@@ -1999,7 +2050,9 @@ AF.calendar = function (root, data, env) {
     if (!told) { if (sel) tip.hidden = true; return; }
     if (!sel || !drawn || editing) return;
     if (at) { selAt = sel.has(at.o) ? at.o : null; selOn = pointed || drawn; }
-    tip.innerHTML = selSummary();
+    // (and, where a click opens them, says so, quietly, as the forest's own tooltips do: that a
+    // click on one of them opens them all can't be guessed)
+    tip.innerHTML = selSummary() + (selOpens() && sel.size > 1 ? `<br><span class="af-hint">${AF.t('tooltip.click_to_see_these_cards')}</span>` : '');
     tip.hidden = false; tip.style.visibility = '';
     selTip = true;
     placeSel();
@@ -2026,10 +2079,13 @@ AF.calendar = function (root, data, env) {
       if (sel.has(o)) sel.delete(o); else sel.add(o);
       anchor = o; base = new Set(sel);
     }
-    if (!sel.size) { unpick(); return; }
+    const c = (pointed || drawn).cells.find(x => x.o === o) || null;
+    // (a day dropped, still pointed at, tells its own tooltip again, as any day not selected does;
+    // it went blank until the pointer moved on)
+    if (!sel.size) { unpick(); last = undefined; if (c) { last = c; tell(c); } return; }
     selVer++;
     last = undefined;
-    const c = (pointed || drawn).cells.find(x => x.o === o) || null;
+    if (c && !sel.has(o)) { showSel(); last = c; tell(c); return; }
     pointTree(null); ring(c);
     grid.classList.toggle('af-click', selOpens());
     showSel(sel.has(o), c);
@@ -2126,13 +2182,21 @@ AF.calendar = function (root, data, env) {
     if (editing) return;  // (no tooltips while a mark is named: its day keeps the ring)
     // (the footer: its key and switches answer for themselves)
     if (e.target && e.target.closest && e.target.closest('.af-cal-foot')) return;
-    const lab = e.target && e.target.closest ? e.target.closest('.af-cal-months span') : null;
-    if (lab) pointed = null;
+    // (a month's label: the last row's, or in Streak view an earlier row's, which tells its month too,
+    // its days standing out in its own row)
+    const lab = e.target && e.target.closest ? e.target.closest('.af-cal-months span, .af-cal-past-head span') : null;
+    if (lab) pointed = pasts.find(d => d.head === lab.parentElement) || null;
     if (lab) { if (lab !== last) { last = lab; pointMonth(lab); } return; }
     const c = cellAt(e), on = hit || c;
     if (on === last) return;  // (still on the same day, or mark: nothing changes)
     last = on;
     tell(c);
+    // (Shift held: the days a click would select stand out, from the day it would stretch from to
+    // this one, with those selected before it, so the stretch is seen before it is chosen)
+    if (c && e.shiftKey && anchor !== null && !swiped) {
+      const a = Math.min(anchor, c.o), b = Math.max(anchor, c.o);
+      spot(x => (!!base && base.has(x.o)) || (x.o >= a && x.o <= b));
+    }
   };
   // a day's tooltip and ring, for the pointer's day or the keyboard's
   const tell = c => {
@@ -2203,8 +2267,11 @@ AF.calendar = function (root, data, env) {
       ? `<br><i>${AF.t('heatmap.this_tree_is_outside_your_current')}</i>`
       : data.merged && tree.ago >= data.merged.to_ago && tree.ago <= data.merged.from_ago
         ? `<br><i>${AF.t('heatmap.this_day_s_tree_is_part')}</i>` : '';
+    // (days selected, none of them on this page: what they are, quietly, so a page dimmed all over says why)
+    const away = sel && !onScreen().some(d => d.cells.some(inSel))
+      ? `<br><span class="af-hint">${AF.t('heatmap.selected_what', { what: selSummary().split('<br>')[0].replace(/<\/?b>/g, '') })}</span>` : '';
     tip.innerHTML = trophy ? `${head}<br>${placeLine(hit.trophy, total)}`
-      : `${head}<br>${what}${planted}${location}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}`;
+      : `${head}<br>${what}${planted}${location}${gone}${where ? `<br><i>${where}</i>` : ''}${came}${marked}${away}`;
     reveal();
     // below the day, centred on it, so it never covers ‹ Today › and the months over the weeks
     // (above it when there is no room below in the window), kept inside the calendar's sides;
@@ -2238,17 +2305,41 @@ AF.calendar = function (root, data, env) {
     });
     grid.addEventListener('focusout', e => { if (e.target === drawn.cv) unpoint(); });
     grid.addEventListener('keydown', e => {
-      if (e.target !== drawn.cv || e.altKey || ((e.ctrlKey || e.metaKey) && e.key !== 'Enter')) return;
+      if (e.target !== drawn.cv || e.altKey) return;
+      // (Cmd+A, Ctrl+A off a Mac: every day studied or missed in view selected, up to today, as
+      // Finder selects a folder's files; it selected the deck list's words instead)
+      if ((MAC ? e.metaKey : e.ctrlKey) && !e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        const days = onScreen().flatMap(d => d.cells.map(x => x.o)).filter(o => o >= H.first && o <= 0);
+        if (!days.length) return;
+        sel = new Set(days); anchor = null; base = null; selVer++; last = undefined;
+        const c = curCell();
+        ring(c); grid.classList.toggle('af-click', selOpens());
+        showSel(true, c && sel.has(c.o) ? c : drawn.cells.find(x => sel.has(x.o)));
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key !== 'Enter') return;
       // (← → a week the way the weeks run on screen: right to left, ← is a week later)
       const step = { ArrowLeft: rtl ? 7 : -7, ArrowRight: rtl ? -7 : 7, ArrowUp: -1, ArrowDown: 1 }[e.key], pg = { PageUp: '-1', PageDown: '1' }[e.key];
       if (e.key === 'Escape') { if (!tip.hidden) { e.preventDefault(); e.stopPropagation(); unpoint(); } return; }
       if (e.key === 'Enter') { e.preventDefault(); const c = curCell(); if (c) dayClick(c, e); return; }
-      if (e.key === 'Home') { e.preventDefault(); cur = 0; if (!curCell()) go('0'); toCur(); return; }
+      // (Space selects or drops the keyboard's day, as Cmd+Enter does and as Space picks an item in a
+      // list; it scrolled the deck list under the heatmap instead)
+      if (e.key === ' ' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); const c = curCell(); if (c) pick(c.o, e.shiftKey); return; }
+      // (Shift and Home selects on up to today, Shift and PageUp or PageDown a page on: as Shift and an
+      // arrow does, as text is selected by the keyboard)
+      if (e.key === 'Home') {
+        e.preventDefault();
+        if (e.shiftKey && anchor === null) { anchor = cur; base = new Set(sel || []); }
+        cur = 0; if (!curCell()) go('0');
+        if (e.shiftKey) pick(0, true);
+        toCur(); return;
+      }
       if (!step && !pg) return;
       e.preventDefault();
       // (Shift and an arrow selects as it goes, from the day it set out from: as text and lists are
       // selected by the keyboard)
-      const stretch = !!step && e.shiftKey;
+      const stretch = !!(step || pg) && e.shiftKey;
       if (stretch && anchor === null) { anchor = cur; base = new Set(sel || []); }
       if (pg) { const along = cur - topDay(); go(pg); cur = topDay() + along; }
       else {
@@ -2322,11 +2413,22 @@ AF.calendar = function (root, data, env) {
   // from the file last clicked: one Shift-click selects a stretch)
   const anchorAt = c => { if (!swiped) { anchor = c.o; base = new Set(); } };
   // (Shift and a click would select the page's words on its way)
-  grid.addEventListener('mousedown', e => { if (e.shiftKey || toggles(e)) e.preventDefault(); });
+  // (which kept the keyboard off the days too: the days take it as a plain click gives it them, so
+  // Shift and an arrow then goes on from the day Shift-clicked)
+  grid.addEventListener('mousedown', e => {
+    if (!(e.shiftKey || toggles(e))) return;
+    e.preventDefault();
+    const c = !swiped && cellAt(e);
+    if (c && drawn && document.activeElement !== drawn.cv) { cur = c.o; drawn.cv.focus({ preventScroll: true }); }
+  });
   grid.addEventListener('click', e => {
     if (e.detail > 1) return;  // (a double-click opens the day once)
     const c = cellAt(e);
     if (c) dayClick(c, e);
+    // (a click between the days, on no day nor mark, lets the days selected go, as a click on a
+    // folder's empty space does in Finder; a modifier held keeps them, as a slip of the click)
+    // (on the weeks' own pictures only: the arrows and the view switch sit in the grid too)
+    else if (sel && !hit && e.target.tagName === 'CANVAS' && !e.shiftKey && !toggles(e)) { unpick(); unpoint(); }
   });
   // a right-click on a day marks it as important (an exam, say: marks.py) and opens a small editor
   // over it: the icons side by side, its own lit, its name, and × to take the mark away.

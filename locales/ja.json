@@ -513,8 +513,8 @@
    "other": "学習した日 1 日あたり約 {n} 回の復習"
   },
   "en": {
-   "one": "About {n} review a day studied",
-   "other": "About {n} reviews a day studied"
+   "one": "About {n} review per day studied",
+   "other": "About {n} reviews per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a": {
@@ -522,8 +522,8 @@
    "other": "学習した日 1 日あたり約 {n} 回の復習、{time}"
   },
   "en": {
-   "one": "About {n} review and {time} a day studied",
-   "other": "About {n} reviews and {time} a day studied"
+   "one": "About {n} review and {time} per day studied",
+   "other": "About {n} reviews and {time} per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a_2": {
@@ -1056,6 +1056,10 @@
   "text": "回答あたり {s} 秒以上",
   "en": "{s}+ s per answer"
  },
+ "heatmap.selected_what": {
+  "text": "選択中：{what}",
+  "en": "Selected: {what}"
+ },
  "heatmap.shade_each_day_by_how_long": {
   "text": "学習した時間で各日を色分け",
   "en": "Shade each day by how long you studied"
@@ -1071,6 +1075,10 @@
  "heatmap.shade_the_days_by": {
   "text": "色分けの基準",
   "en": "Shade the days by"
+ },
+ "heatmap.shift_click_another_day_to": {
+  "text": "別の日をShiftキーを押しながらクリックすると、その間の日を選択します",
+  "en": "Shift-click another day to select the days between"
  },
  "heatmap.sick": {
   "text": "病気",
@@ -1286,8 +1294,8 @@
   }
  },
  "heatmap.your_streak_every_year_of_it": {
-  "text": "連続記録の全期間を年ごとに表示。矢印で以前の連続記録へ移動します",
-  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+  "text": "連続記録の全期間を年ごとに表示",
+  "en": "Your streak, every year of it"
  },
  "heatmap.your_third_longest_streak": {
   "text": "3 番目に長い連続記録",
@@ -1375,7 +1383,7 @@
   "en": "Ice blocks"
  },
  "heatmap_style.ice.tip": {
-  "text": "「凍った川のマーケット」の氷 (その週のみ)",
+  "text": "「凍った川のマーケット」の氷（その週のみ）",
   "en": "Frozen river market's ice, in its week only"
  },
  "heatmap_style.pumpkin": {

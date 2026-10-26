@@ -107,12 +107,12 @@ window.AnkiForest.EN = {
   "other": "About {n} reviews a day"
  },
  "heatmap.about_n_reviews_a_day_studied": {
-  "one": "About {n} review a day studied",
-  "other": "About {n} reviews a day studied"
+  "one": "About {n} review per day studied",
+  "other": "About {n} reviews per day studied"
  },
  "heatmap.about_n_reviews_and_time_a": {
-  "one": "About {n} review and {time} a day studied",
-  "other": "About {n} reviews and {time} a day studied"
+  "one": "About {n} review and {time} per day studied",
+  "other": "About {n} reviews and {time} per day studied"
  },
  "heatmap.about_n_reviews_and_time_a_2": {
   "one": "About {n} review and {time} a day",
@@ -313,10 +313,12 @@ window.AnkiForest.EN = {
  "heatmap.remove_the_mark": "Remove the mark",
  "heatmap.reviews": "Reviews",
  "heatmap.s_s_per_answer": "{s}+ s per answer",
+ "heatmap.selected_what": "Selected: {what}",
  "heatmap.shade_each_day_by_how_long": "Shade each day by how long you studied",
  "heatmap.shade_each_day_by_how_many": "Shade each day by how many reviews you did",
  "heatmap.shade_each_day_by_its_median": "Shade each day by its median seconds per answer",
  "heatmap.shade_the_days_by": "Shade the days by",
+ "heatmap.shift_click_another_day_to": "Shift-click another day to select the days between",
  "heatmap.sick": "Sick",
  "heatmap.slow": "Slow",
  "heatmap.star": "Star",
@@ -393,7 +395,7 @@ window.AnkiForest.EN = {
   "one": "Your second-longest streak: {n} day",
   "other": "Your second-longest streak: {n} days"
  },
- "heatmap.your_streak_every_year_of_it": "Your streak, every year of it; the arrows go to the streaks before it",
+ "heatmap.your_streak_every_year_of_it": "Your streak, every year of it",
  "heatmap.your_third_longest_streak": "Your third-longest streak",
  "heatmap.your_third_longest_streak_n_days": {
   "one": "Your third-longest streak: {n} day",

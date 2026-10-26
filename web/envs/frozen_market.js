@@ -19,7 +19,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { hex, mix, rgb, rng, hashStr, layer, B4 } = AF.u;
+const { hex, mix, mixHex, rgb, rng, hashStr, layer, B4 } = AF.u;
 const H6 = a => a.map(hex);
 const dither = (x, y) => B4[(y & 3) * 4 + (x & 3)];
 const hourOf = t => t === 'night' ? 'night' : (t === 'dusk' || t === 'golden_hour') ? 'dusk' : t === 'dawn' ? 'dawn' : 'day';
@@ -56,6 +56,13 @@ const LOOKS = {
     water: '#a8c0dc', clouds: { n: 4, top: '#ffffff', bot: '#d8e2ee', a: 240 }, stars: 0, birdC: '#3d4a5a', shadow: 0.5 },
 };
 const clone = o => JSON.parse(JSON.stringify(o));
+// an overcast dusk, dawn or night in the market's own colours: the sky, its clouds and their deck
+// (plain daylight grey read as a day sky over the lit town)
+const OVERCAST = {
+  dusk: { sky: '#3a3660', top: '#7a7298', bot: '#4e4a78', deck: ['#5e5886', '#3e3a66'] },
+  dawn: { sky: '#8a88a8', top: '#e6dae2', bot: '#b2a6c2', deck: ['#c6bacc', '#a296b2'] },
+  night: { sky: '#141a2c', top: '#3a4262', bot: '#262c46', deck: ['#2a3048', '#1c2236'] },
+};
 const SNOW_SKY = {
   dusk: ['#1a1f4c', '#282c62', '#3c3a74', '#584884', '#7c5889', '#a2708e'],
   night: ['#04070f', '#08101f', '#0e182e', '#14213c', '#1c2a48', '#253454'],
@@ -272,7 +279,7 @@ const TC = {
   brick: ['#2c1618', '#9c4e3c'], brickL: ['#3a1e1e', '#b8664e'],
   snow: ['#848ebc', '#f6f8fc'], snowS: ['#555e8a', '#c6d2e6'],
   stone: ['#262434', '#b6ac9e'], stoneS: ['#18161f', '#8c8278'], stoneL: ['#34304a', '#d2c8b8'], stoneJ: ['#1e1c28', '#a09686'],
-  spire: ['#15232a', '#5e8e80'], spireS: ['#0b1317', '#436a5e'], spireL: ['#22363e', '#82b0a0'],
+  spire: ['#1a2c34', '#5e8e80'], spireS: ['#0b1317', '#436a5e'], spireL: ['#34505a', '#82b0a0'],  // (the moonlit side keeps the spires off the night sky)
   winD: ['#0c1020', '#44586e'], winR: ['#26304c', '#aac0d6'], door: ['#170c0c', '#4a2c22'], iron: ['#07070b', '#2a2a30'],
   wood: ['#2a1a16', '#7c5436'], woodS: ['#170e0c', '#583a26'], woodL: ['#402a20', '#9e6c46'],
   awnR: ['#7a1a26', '#cc323e'], awnG: ['#123e2a', '#2e7c4c'], awnW: ['#9a94ae', '#f2eee6'],
@@ -992,8 +999,9 @@ function town(env) {
 
 /* ---------- the sky: the town's glow over its roofs, the moon, stars, thin lit cloud ---------- */
 const MOONS = {
-  dusk: { x: 0.9, y: 0.2, r: 8, c: '#f4dcd4', lo: '#c8a4b4', glow: '#8a5a86', stars: 22 },
-  night: { x: 0.9, y: 0.14, r: 7, c: '#eef2fa', lo: '#b4bcd4', glow: '#34406e', stars: 80 },
+  // (on the right third, between the great tree and the carousel: at 0.9 it stood right over the carousel)
+  dusk: { x: 0.72, y: 0.2, r: 8, c: '#f4dcd4', lo: '#c8a4b4', glow: '#8a5a86', stars: 22 },
+  night: { x: 0.72, y: 0.14, r: 7, c: '#eef2fa', lo: '#b4bcd4', glow: '#34406e', stars: 80 },
   dawn: { x: 0.08, y: 0.18, r: 6, c: '#f4e6ea', lo: '#d0bcc8', glow: null, stars: 6 },
   day: null,
 };
@@ -1052,7 +1060,8 @@ function paintSky(env, g) {
   }
   // long thin clouds at dusk, their undersides lit rose by the sun gone down
   if (hr === 'dusk' && !th.rain && !th.snow && !th.fog) {
-    const body = hex('#4a3e74'), top = hex('#34305e'), lit = hex('#b86c8c'), lit2 = hex('#e29aa0');
+    // (at golden hour the sun is still up behind them: lilac, their undersides gold rather than rose)
+    const body = hex(th.xg ? '#7a6898' : '#4a3e74'), top = hex(th.xg ? '#655a8c' : '#34305e'), lit = hex(th.xg ? '#f2a684' : '#b86c8c'), lit2 = hex(th.xg ? '#ffd29a' : '#e29aa0');
     const banks = [[0.42, 0.12, 0.16, 7, 1.3], [0.75, 0.1, 0.1, 5, 2.2]];
     for (const [cq, yq, lq, tk, ph] of banks) {
       const cx = W * cq, half = W * lq, y0 = Math.round(H * yq);
@@ -1257,9 +1266,12 @@ const SLEIGH_W = 60, SLEIGH_H = 12;
 function sleighSprites(th) {
   const day = th.xh === 'day';
   const ink = th.xh === 'dawn' ? '#28304e' : '#080d20', edge = th.xh === 'night' ? '#4a5a94' : th.xh === 'dusk' ? '#4e4a82' : '#4a5480';
-  const C = day
-    ? { a: '#ece2cc', h: '#7a5438', n: '#e8283c', b: '#7a5438', t: '#e8dcc8', l: '#4a3222', H: '#d02838', W: '#f4f4f8', f: '#f0c8b0', S: '#c8243a', P: '#8a6a4c', K: '#b8203a', k: '#e8ecf4', r: '#b8c0cc', rein: '#4a3222' }
-    : { a: ink, h: ink, n: '#ff3a4a', b: ink, t: ink, l: ink, H: ink, W: ink, f: ink, S: ink, P: ink, K: ink, k: ink, r: ink, rein: ink };
+  const DAYC = { a: '#ece2cc', h: '#7a5438', n: '#e8283c', b: '#7a5438', t: '#e8dcc8', l: '#4a3222', H: '#d02838', W: '#f4f4f8', f: '#f0c8b0', S: '#c8243a', P: '#8a6a4c', K: '#b8203a', k: '#e8ecf4', r: '#b8c0cc', rein: '#4a3222' };
+  // after dark its own colours, deep in the evening's shadow (a plain silhouette was lost on the dark sky
+  // and showed only over the moon), Rudolph's nose still bright
+  const shadeK = { dusk: 0.5, night: 0.58, dawn: 0.42 }[th.xh] || 0.5;
+  const C = day ? DAYC : {};
+  if (!day) for (const q in DAYC) C[q] = q === 'n' ? '#ff3a4a' : mixHex(DAYC[q], ink, shadeK);
   return [0, 1].map(fr => {
     const grid = new Array(SLEIGH_W * SLEIGH_H).fill(null);
     const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < SLEIGH_W && y < SLEIGH_H) grid[y * SLEIGH_W + x] = c; };
@@ -1273,7 +1285,7 @@ function sleighSprites(th) {
     const px = [];
     for (let y = 0; y < SLEIGH_H; y++) for (let x = 0; x < SLEIGH_W; x++) {
       let c = grid[y * SLEIGH_W + x]; if (!c) continue;
-      if (!day && c === ink && (y === 0 || !grid[(y - 1) * SLEIGH_W + x])) c = edge;
+      if (!day && c !== C.n && (y === 0 || !grid[(y - 1) * SLEIGH_W + x])) c = mixHex(c, edge, 0.6);
       px.push([x, y, c]);
     }
     return px;
@@ -1351,8 +1363,10 @@ const ICE_SHINE = [255, 250, 235];
 function calendarTile(g, pal, edge, v, T) {
   const n = T - 1;  // (the last row and column: the gap between tiles)
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-    const d = x + y, corner = (x === 0 || x === n - 1) && (y === 0 || y === n - 1);
-    g.fillStyle = rgb(corner ? mix(pal[0], ICE_SHINE, 0.22) : d === 3 || d === 5 && v % 2 ? mix(pal[0], ICE_SHINE, 0.2) : d > 9 ? pal[1] : pal[0]);
+    const d = x + y;
+    // (a chip of light in the near corner and one clean streak: the two thin diagonals, with the frosted
+    // corners under the smooth rounding, read as a checker at true size)
+    g.fillStyle = rgb(d <= 1 ? mix(pal[0], ICE_SHINE, 0.3) : d === 3 + (v & 1) ? mix(pal[0], ICE_SHINE, 0.2) : d > 9 ? pal[1] : pal[0]);
     g.fillRect(x, y, 1, 1);
   }
 }
@@ -1365,7 +1379,7 @@ AF.env('frozen_market', {
   deepBands: 2,  // the far forest stops short of the ice, so the market stays on the river
   look: mood => clone(LOOKS[hourOf(mood.time)]),
   theme(th, mood) { th.xh = hourOf(mood.time); th.xg = mood.time === 'golden_hour'; },
-  after(th) {
+  after(th, mood) {
     th.orb = null;           // the moon is painted with the sky, clear of the town
     th.stars = 0;            // and so are the stars
     th.rim = null; th.rainbow = false;
@@ -1378,6 +1392,12 @@ AF.env('frozen_market', {
     if (th.snow && th.xh === 'dusk') th.clouds = { n: 3, top: '#7a7298', bot: '#5a5680', a: 235 };
     if (th.snow && th.xh === 'dawn') th.clouds = { n: 3, top: '#e8dce4', bot: '#b8aac4', a: 235 };
     if (th.xg && !th.rain && !th.fog && !th.deck) th.sky = (th.snow ? ['#5a6894', '#8884a8', '#b4949e', '#d8a89c', '#e8bea6', '#f0d0b4'] : ['#56649a', '#8a82ae', '#bc90a4', '#e8a690', '#f8c08e', '#ffd8a4']);
+    const ov = OVERCAST[th.xh], w = mood && mood.weather;
+    if (ov && w === 'cloudy') {
+      th.sky = LOOKS[th.xh].sky.map(c => mixHex(c, ov.sky, 0.45));
+      th.clouds = Object.assign({}, th.clouds, { top: ov.top, bot: ov.bot });
+    }
+    if (ov && th.deck && (w === 'cloudy' || w === 'deep_winter')) th.deck = Object.assign({}, th.deck, { top: ov.deck[0], bot: ov.deck[1] });
     if (th.snow && th.xh !== 'day') { th.g0 = th.xh === 'night' ? '#5c6c94' : '#9a98c4'; th.g1 = th.xh === 'night' ? '#36446a' : '#6a6a9a'; th.grass = th.xh === 'night' ? '#7c8cb4' : '#bab8dc'; }
   },
   pals: {
@@ -1391,6 +1411,18 @@ AF.env('frozen_market', {
   backdrop() { /* the town is the horizon: drawn in ground() */ },
   ground(env, lg) { drawTown(env, lg); },
   groundPixel(c, x, y, env) {
+    // a trodden path through the park's snow down to the river (a young forest's empty snow had nothing
+    // leading the eye to the market): bluer, packed, a footprint here and there; the trees cover it as they grow
+    const pq = (y - env.hor) / (env.H - env.hor);
+    if (pq > 0.04) {
+      const pc = env.W * (0.2 + 0.05 * Math.sin(pq * 5.2 + 0.8) + 0.06 * (1 - pq)), pw = (1.2 + pq * 4.5) * env.u;
+      const dd = Math.abs(x + 0.5 - pc);
+      if (dd < pw) {
+        const tr = mix(hex(env.theme.g1), [34, 38, 86], 0.3);  // (packed snow: a cool step below the darkest band)
+        if ((x * 7 + y * 3) % 11 === 0 && dd < pw - 1) return mix(c, tr, 0.8);
+        return dd > pw - 1 && dither(x, y) < 8 ? mix(c, tr, 0.25) : mix(c, tr, 0.42);
+      }
+    }
     // drifts: soft blue hollows in the snow, dithered
     const n = Math.sin(x * 0.07 + y * 0.29) + Math.sin(x * 0.023 - y * 0.17 + 1.3) + 0.6 * Math.sin((x + y * 2) * 0.05);
     if (n > 1.4 && dither(x, y) < 7) return mix(c, hex(env.theme.g1), 0.4);
@@ -1401,6 +1433,9 @@ AF.env('frozen_market', {
   groundDetail(env, lg, p, sw, R, x, y) {
     const t = p.it; if (t.fromFront > 6 || t.stage < 2) return;
     const kind = t.seed % 17, C = parkCols(env.theme), on = lampsOn(env.theme);
+    // they are drawn a pixel a pixel at any size: on a narrow panel (a phone) the trees shrink and a lamp
+    // post, a bench or a snowman stood as tall as they; only the presents stay there
+    if (env.u < 0.8 && kind !== 9) return;
     const gx = x + ((t.seed >> 4) & 1 ? -Math.round(sw / 2) - 4 : Math.round(sw / 2) + 3);
     const P = (col, a, b, w = 1, h = 1) => { lg.fillStyle = col; lg.fillRect(gx + a, y + b, w, h); };
     if (kind === 2) {  // a lamp post, its light pooled on the snow

@@ -68,7 +68,9 @@ AF.POND = { OVERHANG: POND_OVERHANG, BACK: POND_BACK, ROWS: POND_ROWS };  // for
 AF.drawPond = function (g, env, p) {
   if (!p.it.first) return;
   const th = env.theme, { cx, cy, w, h } = AF.pondBox(env, p);
-  const water = hex((th.frozen ? '#dfe8f0' : th.water) || DEFAULT_WATER);
+  // a frozen pond is ice in the hour's own colour (the scene's water, paled): a fixed daylight white
+  // glowed out of the market's dusk and night, as the lakes' ice once did (water.js)
+  const water = hex(th.frozen ? mixHex(th.water || '#dfe8f0', '#dfe8f0', 0.25) : th.water || DEFAULT_WATER);
   const hz = p.hz * (th.hzStep || 0.1) * 3, c0 = mix(water, hex(th.haze), hz), c1 = mix(c0, [255, 255, 255], 0.45), deep = mix(c0, [0, 0, 0], th.frozen ? 0.06 : 0.18), edge = mix(hex(th.g1), [0, 0, 0], 0.2);
   ellipseFill(g, cx, cy, w, h, (q, x, y) => q > 0.8 ? edge : y < cy - h * 0.2 ? deep : ((x * 3 + y * 7) % 11 === 0 ? c1 : c0));
   const R = rng(p.it.seed), reed = th.snow ? '#8a9a8a' : '#2f4a2a', tip = '#8a6a3a';

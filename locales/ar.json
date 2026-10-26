@@ -623,8 +623,8 @@
    "other": "نحو {n} مراجعة في كل يوم دراسة"
   },
   "en": {
-   "one": "About {n} review a day studied",
-   "other": "About {n} reviews a day studied"
+   "one": "About {n} review per day studied",
+   "other": "About {n} reviews per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a": {
@@ -637,8 +637,8 @@
    "other": "نحو {n} مراجعة و{time} في كل يوم دراسة"
   },
   "en": {
-   "one": "About {n} review and {time} a day studied",
-   "other": "About {n} reviews and {time} a day studied"
+   "one": "About {n} review and {time} per day studied",
+   "other": "About {n} reviews and {time} per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a_2": {
@@ -1361,6 +1361,10 @@
   "text": "{s}+ ث لكل إجابة",
   "en": "{s}+ s per answer"
  },
+ "heatmap.selected_what": {
+  "text": "المحدد: {what}",
+  "en": "Selected: {what}"
+ },
  "heatmap.shade_each_day_by_how_long": {
   "text": "تلوين كل يوم حسب مدة الدراسة",
   "en": "Shade each day by how long you studied"
@@ -1376,6 +1380,10 @@
  "heatmap.shade_the_days_by": {
   "text": "تلوين الأيام حسب",
   "en": "Shade the days by"
+ },
+ "heatmap.shift_click_another_day_to": {
+  "text": "انقر مع Shift على يوم آخر لتحديد الأيام بينهما",
+  "en": "Shift-click another day to select the days between"
  },
  "heatmap.sick": {
   "text": "مرض",
@@ -1656,8 +1664,8 @@
   }
  },
  "heatmap.your_streak_every_year_of_it": {
-  "text": "سلسلتك بكل سنواتها؛ تنتقل الأسهم إلى السلاسل التي سبقتها",
-  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+  "text": "سلسلتك بكل سنواتها",
+  "en": "Your streak, every year of it"
  },
  "heatmap.your_third_longest_streak": {
   "text": "ثالث أطول سلسلة لك",

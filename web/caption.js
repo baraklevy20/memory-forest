@@ -31,7 +31,8 @@ AF.caption = function (root, data) {
   if (data.testForest) items.push([AF.t('caption.test_forest'), AF.t('caption.made_up_trees_from_the_test')]);
   if (data.highlight) items.push([AF.tn('caption.deck_lit_of_n_trees', s.trees, { deck: (data.deckName || '').split('::').pop(), lit: data.litCount, n: s.trees }),
     AF.t('caption.trees_holding_cards_from_this_deck')]);
-  if (s.trees) items.push([AF.tn('caption.n_trees', s.trees), AF.t('caption.one_tree_for_each_day_you')]);
+  // (not on a deck's screen that lights its trees: "French: 30 of 150 trees" says how many already)
+  if (s.trees && !data.highlight) items.push([AF.tn('caption.n_trees', s.trees), AF.t('caption.one_tree_for_each_day_you')]);
   if (data.merged) {
     const mg = data.merged, v = { from: fmtDate(mg.from_date), to: fmtDate(mg.to_date) };
     items.push([AF.tn('caption.n_in_the_deep_forest', mg.count),
@@ -39,13 +40,13 @@ AF.caption = function (root, data) {
       + (canBrowse() && !data.testForest ? ' ' + AF.t('caption.click_to_see_their_cards') : ''),
       data.testForest ? '' : `${data.channel}:browse:${mg.from_ago}:${deckFor(data)}:${mg.to_ago}`]);
   }
-  if (s.ancient) items.push([AF.tn('caption.n_ancient', s.ancient, { n: s.ancient }), AF.t('caption.trees_whose_cards_you_will_likely')]);
+  if (s.ancient) items.push([AF.tn('caption.n_ancient', s.ancient), AF.t('caption.trees_whose_cards_you_will_likely')]);
   // (a click shows all of it in the heatmap under the forest: its Streak view, on today's streak)
   const byYear = r => r.afCalStreak && r.afCalStreak();
   byYear.hint = r => (r.afCalStreak && r.afCalStreak(true) ? `<br><span class="af-hint">${AF.t('caption.click_to_see_all_of_it')}</span>` : '');
   // (a streak of 6 or 5 days a week: a week's first missed days pass too, payload._days_off)
   const week = s.streak_week || 7;
-  if (s.streak) items.push([AF.tn('caption.n_day_streak', s.streak, { n: s.streak }), week === 7
+  if (s.streak) items.push([AF.tn('caption.n_day_streak', s.streak), week === 7
     ? AF.t('caption.days_you_studied_in_a_row')
     : week === 6 ? AF.t('caption.days_you_studied_in_a_row_2', { week })
       : AF.t('caption.days_you_studied_in_a_row_3', { week }), byYear]);

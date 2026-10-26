@@ -535,8 +535,8 @@
    "other": "Unos {n} repasos por día de estudio"
   },
   "en": {
-   "one": "About {n} review a day studied",
-   "other": "About {n} reviews a day studied"
+   "one": "About {n} review per day studied",
+   "other": "About {n} reviews per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a": {
@@ -545,8 +545,8 @@
    "other": "Unos {n} repasos y {time} por día de estudio"
   },
   "en": {
-   "one": "About {n} review and {time} a day studied",
-   "other": "About {n} reviews and {time} a day studied"
+   "one": "About {n} review and {time} per day studied",
+   "other": "About {n} reviews and {time} per day studied"
   }
  },
  "heatmap.about_n_reviews_and_time_a_2": {
@@ -1117,6 +1117,10 @@
   "text": "{s}+ s por respuesta",
   "en": "{s}+ s per answer"
  },
+ "heatmap.selected_what": {
+  "text": "Seleccionado: {what}",
+  "en": "Selected: {what}"
+ },
  "heatmap.shade_each_day_by_how_long": {
   "text": "Colorear cada día según cuánto tiempo estudiaste",
   "en": "Shade each day by how long you studied"
@@ -1132,6 +1136,10 @@
  "heatmap.shade_the_days_by": {
   "text": "Colorear los días según",
   "en": "Shade the days by"
+ },
+ "heatmap.shift_click_another_day_to": {
+  "text": "Haz clic con Mayús en otro día para seleccionar los días intermedios",
+  "en": "Shift-click another day to select the days between"
  },
  "heatmap.sick": {
   "text": "Enfermedad",
@@ -1360,8 +1368,8 @@
   }
  },
  "heatmap.your_streak_every_year_of_it": {
-  "text": "Tu racha, todos sus años; las flechas llevan a las rachas anteriores",
-  "en": "Your streak, every year of it; the arrows go to the streaks before it"
+  "text": "Tu racha, todos sus años",
+  "en": "Your streak, every year of it"
  },
  "heatmap.your_third_longest_streak": {
   "text": "Tu tercera racha más larga",

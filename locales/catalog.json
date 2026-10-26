@@ -1129,6 +1129,12 @@
    "web/calendar.js"
   ]
  },
+ "heatmap.selected_what": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
  "heatmap.shade_each_day_by_how_long": {
   "web": true,
   "where": [
@@ -1148,6 +1154,12 @@
   ]
  },
  "heatmap.shade_the_days_by": {
+  "web": true,
+  "where": [
+   "web/calendar.js"
+  ]
+ },
+ "heatmap.shift_click_another_day_to": {
   "web": true,
   "where": [
    "web/calendar.js"
@@ -3423,6 +3435,7 @@
  "tooltip.click_to_see_these_cards": {
   "web": true,
   "where": [
+   "web/calendar.js",
    "web/tooltips.js"
   ]
  },

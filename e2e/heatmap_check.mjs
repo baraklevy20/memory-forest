@@ -243,7 +243,7 @@ try {
       move(d9);
       if (tipEl.hidden || !/^[A-Z][a-z]{2} \d+ to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`pointing at a picked day did not give the summary: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       if (ring.hidden) fail('the day pointed at in a pick lost its ring');
-      if (!/Studied every day/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`the stretch's summary: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
+      if (!/Studied all of these \d+ days/.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, ''))) fail(`the stretch's summary: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       // paged away: still dimmed, no summary left behind; back: on its weeks
       grid.dispatchEvent(new MouseEvent('mouseleave'));
       root.querySelector('[data-go="-1"]').click();
