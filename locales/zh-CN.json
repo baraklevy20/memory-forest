@@ -75,11 +75,11 @@
   "en": "{heading}. {detail}"
  },
  "answer_column.median_seconds_per_answer_for_the": {
-  "text": "该卡片在所点日期每次回答用时的中位数（秒），包括重答。笔记显示其匹配卡片中最慢一张的中位数。",
+  "text": "该卡片在所点日期每次回答用时的中位数（秒），包括重复作答。笔记则显示其匹配卡片中用时最长的一张的中位数。",
   "en": "Median seconds per answer for the card on the clicked day, including retries. Notes show the slowest matching card's median."
  },
  "answer_column.number_of_answers_on_the_clicked": {
-  "text": "所点日期的回答次数，包括重答。笔记显示其所有卡片的总和。",
+  "text": "所点日期的回答次数，包括重复作答。笔记显示其所有卡片的总和。",
   "en": "Number of answers on the clicked day, including retries. Notes show the sum across their cards."
  },
  "answer_column.seconds_s": {
@@ -87,7 +87,7 @@
   "en": "{seconds} s"
  },
  "answer_column.total_seconds_spent_answering_on_the": {
-  "text": "所点日期回答所用的总秒数，包括重答。笔记显示其所有卡片的总和。",
+  "text": "所点日期回答所用的总秒数，包括重复作答。笔记显示其所有卡片的总和。",
   "en": "Total seconds spent answering on the clicked day, including retries. Notes show the sum across their cards."
  },
  "caption.after_the_rain": {
@@ -152,7 +152,7 @@
   "en": "Live weather unavailable"
  },
  "caption.made_up_trees_from_the_test": {
-  "text": "这些是「测试森林」设置生成的虚构树木。在森林设置中关闭它，即可看到您真实的森林。",
+  "text": "这些是“测试森林”设置生成的虚构树木。在森林设置中关闭它，即可看到您真实的森林。",
   "en": "Made-up trees from the Test forest setting. Turn it off in the forest settings to see your real one."
  },
  "caption.n_ancient": {
@@ -224,11 +224,11 @@
   "en": "thunderstorm"
  },
  "caption.trees_holding_cards_from_this_deck": {
-  "text": "含有此牌组卡片的树保持彩色，其余的树会淡去。可在森林设置的「牌组界面」中更改。",
+  "text": "含有此牌组卡片的树保持彩色，其余的树会淡去。可在森林设置的“牌组界面”中更改。",
   "en": "Trees holding cards from this deck stay in colour; the rest fade back. Change this with Deck screens in the forest settings."
  },
  "caption.trees_whose_cards_you_will_likely": {
-  "text": "这些树上的卡片您很可能会记住一年以上：它们的记忆强度中位数至少为 365 天。启用 FSRS 时为记忆稳定期，否则为复习间隔。",
+  "text": "这些树上的卡片您很可能会记住一年以上：它们的记忆强度中位数至少为 365 天。启用 FSRS 时取记忆稳定度，否则取复习间隔。",
   "en": "Trees whose cards you will likely remember for more than a year: their median memory strength is at least 365 days. That is FSRS stability where you have it, and the scheduling interval where you do not."
  },
  "caption.weather_by_met_norway": {
@@ -305,7 +305,7 @@
   "en": "Starry night"
  },
  "env.synthwave": {
-  "text": "Synthwave",
+  "text": "合成器浪潮",
   "en": "Synthwave"
  },
  "event.asteroid.a_crater": {
@@ -313,7 +313,7 @@
   "en": "A crater"
  },
  "event.asteroid.an_asteroid_strikes_when_ankis_day": {
-  "text": "Anki 的这一天结束时，小行星将会撞击，除非您在此之前复习。若它撞击，新的森林会从陨石坑中长出。",
+  "text": "到 Anki 的一天结束时，小行星就会撞击，除非您在此之前复习。若它撞击，新的森林会从陨石坑中长出。",
   "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
  "event.asteroid.asteroid_struck_date": {
@@ -356,7 +356,7 @@
   }
  },
  "event.asteroid.on_peaceful_or_wild_the_trees": {
-  "text": "在「平和」或「狂野」下，树木会重新出现",
+  "text": "在“平和”或“狂野”下，树木会重新出现",
   "en": "On Peaceful or Wild the trees stand again"
  },
  "event.asteroid.turn_on_animations_in_the_forest": {
@@ -364,7 +364,7 @@
   "en": "Turn on animations in the forest settings to watch it."
  },
  "event.asteroid.your_system_asks_for_less_motion": {
-  "text": "您的系统要求减少动态效果：将「森林动画」设为「开」即可观看。",
+  "text": "您的系统要求减少动态效果：将“森林动画”设为“开”即可观看。",
   "en": "Your system asks for less motion: set Animate the forest to On to watch it."
  },
  "event.fire.fire_n_trees": {
@@ -396,7 +396,7 @@
  },
  "event.fire.on_fire_it_caught_while_you": {
   "text": {
-   "other": "<b>着火</b>：在您离开期间着火 · 再学习 {n} 天后恢复绿色"
+   "other": "<b>着火</b>：您离开期间起火 · 再学习 {n} 天后恢复绿色"
   },
   "en": {
    "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
@@ -417,7 +417,7 @@
  },
  "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
   "text": {
-   "other": "<b>复习积压</b>：{n} 张复习卡片已逾期。复习完它们，风滚草就会被吹走。"
+   "other": "<b>复习积压</b>：已有 {n} 次复习逾期。清掉它们，风滚草就会被吹走。"
   },
   "en": {
    "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
@@ -426,7 +426,7 @@
  },
  "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
   "text": {
-   "other": "<b>复习积压</b>：{n} 张复习卡片已逾期，而平常一天只有 {usual} 张。复习完它们，风滚草就会被吹走。"
+   "other": "<b>复习积压</b>：已有 {n} 次复习逾期，而平常一天只有 {usual} 次。清掉它们，风滚草就会被吹走。"
   },
   "en": {
    "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
@@ -460,7 +460,7 @@
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
  "events.miss_a_day_of_reviews_an": {
-  "text": "错过一天复习：一颗小行星会悬在天空中，若您在 Anki 的这一天结束前仍未复习，它就会撞击。新的森林会从陨石坑中长出。坏习惯也会留下痕迹。",
+  "text": "错过一天复习：一颗小行星会悬在天空中，若您在 Anki 的一天结束前仍未复习，它就会撞击。新的森林会从陨石坑中长出。坏习惯也会留下痕迹。",
   "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
  },
  "events.miss_two_days_in_a_row": {
@@ -736,7 +736,7 @@
  },
  "heatmap.median_s_s_per_answer_n": {
   "text": {
-   "other": "每次回答中位数 {s} 秒，{n} 次复习，{due} 张仍待复习"
+   "other": "每次回答用时中位数 {s} 秒，{n} 次复习，{due} 张仍待复习"
   },
   "en": {
    "one": "Median {s} s per answer, {n} review, {due} still due",
@@ -745,7 +745,7 @@
  },
  "heatmap.median_s_s_per_answer_n_2": {
   "text": {
-   "other": "每次回答中位数 {s} 秒，{n} 次复习"
+   "other": "每次回答用时中位数 {s} 秒，{n} 次复习"
   },
   "en": {
    "one": "Median {s} s per answer, {n} review",
@@ -1343,7 +1343,7 @@
   "en": "Brush"
  },
  "heatmap_style.brush.tip": {
-  "text": "「星月夜」的笔触",
+  "text": "“星月夜”的笔触",
   "en": "Starry night's brushstrokes"
  },
  "heatmap_style.canes": {
@@ -1351,7 +1351,7 @@
   "en": "Canes"
  },
  "heatmap_style.canes.tip": {
-  "text": "「雨中竹林」的竹竿，每天两根",
+  "text": "“雨中竹林”的竹竿，每天两根",
   "en": "Bamboo grove's canes, two to a day"
  },
  "heatmap_style.chalk": {
@@ -1359,7 +1359,7 @@
   "en": "Chalk"
  },
  "heatmap_style.chalk.tip": {
-  "text": "「黑板」的粉笔排线",
+  "text": "“黑板”的粉笔排线",
   "en": "Chalkboard's chalk hatching"
  },
  "heatmap_style.contours": {
@@ -1367,7 +1367,7 @@
   "en": "Contours"
  },
  "heatmap_style.contours.tip": {
-  "text": "把学习过的日子连成一片，各色调分成平坦的色带，就像等高线地图",
+  "text": "把学习过的日子连成一片，用平坦的色带表示深浅，就像等高线地图",
   "en": "The days you studied as one shape, its shades in flat bands, like a contour map"
  },
  "heatmap_style.flat": {
@@ -1391,7 +1391,7 @@
   "en": "Pumpkins"
  },
  "heatmap_style.pumpkin.tip": {
-  "text": "「月下女巫」的南瓜纹，仅在其所在的那一周可用",
+  "text": "“月下女巫”的南瓜纹，仅在其所在的那一周可用",
   "en": "Witch across the moon's pumpkin ribs, in its week only"
  },
  "heatmap_style.rime": {
@@ -1399,7 +1399,7 @@
   "en": "Rime"
  },
  "heatmap_style.rime.tip": {
-  "text": "「云雾山谷」的霜，挂在每个色块的上沿",
+  "text": "“云雾山谷”的霜，挂在每个色块的上沿",
   "en": "Misty valley's frost along the top of each tile"
  },
  "heatmap_style.round": {
@@ -1415,7 +1415,7 @@
   "en": "Scanlines"
  },
  "heatmap_style.scanlines.tip": {
-  "text": "「Synthwave」的扫描线",
+  "text": "“合成器浪潮”的扫描线",
   "en": "Synthwave's scanlines"
  },
  "heatmap_style.scenery": {
@@ -1660,7 +1660,7 @@
   "en": "Change scenery and settings"
  },
  "panel.seasonal_scenery_for_this_week_only": {
-  "text": "季节限定场景，仅限本周。您的场景将于{date}回来。",
+  "text": "季节限定场景，仅限本周。您的场景将于{date}恢复。",
   "en": "Seasonal scenery, for this week only. Yours comes back on {date}."
  },
  "panel.seasonal_scenery_here_until_date": {
@@ -1668,11 +1668,11 @@
   "en": "Seasonal scenery, here until {date}."
  },
  "panel.todays_scenery_from_surprise_me_daily": {
-  "text": "今天的场景，来自「每日惊喜」。明天会换下一个。",
+  "text": "今天的场景，来自“每日惊喜”。明天会换下一个。",
   "en": "Today's scenery, from Surprise me daily. Tomorrow brings the next one."
  },
  "panel.your_own_mix_from_customize_in": {
-  "text": "您自己的搭配，来自森林设置中的「自定义」。",
+  "text": "您自己的搭配，来自森林设置中的“自定义”。",
   "en": "Your own mix, from Customize in the forest settings."
  },
  "panel.your_study_forest": {
@@ -1855,7 +1855,7 @@
   "en": "After Van Gogh: a sky of swirling brushstrokes over a sleeping village, cypresses burning dark against it."
  },
  "preset.synthwave": {
-  "text": "Synthwave",
+  "text": "合成器浪潮",
   "en": "Synthwave"
  },
  "preset.synthwave.note": {
@@ -2035,7 +2035,7 @@
   "en": "‹ Sceneries"
  },
  "settings.customize.time_of_day": {
-  "text": "时间",
+  "text": "时段",
   "en": "Time of day"
  },
  "settings.customize.weather": {
@@ -2156,7 +2156,7 @@
   "en": "A forest of that deck's own"
  },
  "settings.forest.adds_a_memory_forest_deck_with": {
-  "text": "添加一个“Memory Forest”牌组，其中的卡片会在同步时显示您的森林和热力图。",
+  "text": "添加一个“Memory Forest”牌组，其中一张卡片会在同步时显示您的森林和热力图。",
   "en": "Adds a \"Memory Forest\" deck with a card showing your forest and heatmap as you sync."
  },
  "settings.forest.animate_the_forest": {
@@ -2600,7 +2600,7 @@
   "en": "New sceneries arrive here first."
  },
  "settings.patreon.support_it_on_patreon_and_get": {
-  "text": "在 Patreon 上支持它，即可在 Memory Forest Plus 中\n抢先获得每个新场景",
+  "text": "在 Patreon 上支持它，即可抢先获得\nMemory Forest Plus 中的每个新场景",
   "en": "Support it on Patreon and get every new\nscenery first, in Memory Forest Plus"
  },
  "settings.patreon.thank_you_for_supporting_memory_forest": {
@@ -2690,7 +2690,7 @@
  },
  "tooltip.a_big_learning_day_n_new": {
   "text": {
-   "other": "<b>学习大日子</b>：{n} 张新卡片，平常是 {usual} 张"
+   "other": "<b>学习大爆发</b>：{n} 张新卡片，平常是 {usual} 张"
   },
   "en": {
    "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
@@ -2698,7 +2698,7 @@
   }
  },
  "tooltip.a_leech_here_mature_again_the": {
-  "text": "这里的一张记忆难点卡片已重新熟练：知更鸟会停留一周",
+  "text": "这里的一张记忆难点卡片已重新成熟：知更鸟会停留一周",
   "en": "A leech here mature again: the robin stays a week"
  },
  "tooltip.a_quiet_pond": {
@@ -2776,7 +2776,7 @@
  },
  "tooltip.n_leeches_here_mature_again_the": {
   "text": {
-   "other": "这里的 {n} 张记忆难点卡片已重新熟练：知更鸟会停留一周"
+   "other": "这里的 {n} 张记忆难点卡片已重新成熟：知更鸟会停留一周"
   },
   "en": {
    "one": "{n} leech here mature again: the robin stays a week",
@@ -2785,7 +2785,7 @@
  },
  "tooltip.n_leeches_here_the_crows_stay": {
   "text": {
-   "other": "这里有 {n} 张记忆难点卡片：乌鸦会一直停留，直到卡片重新熟练（间隔达到 21 天）"
+   "other": "这里有 {n} 张记忆难点卡片：乌鸦会一直停留，直到卡片重新成熟（间隔达到 21 天）"
   },
   "en": {
    "one": "{n} leech here: its crow stays until the card is mature again (21-day interval)",
