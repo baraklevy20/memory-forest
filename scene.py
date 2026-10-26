@@ -124,6 +124,10 @@ def choose_mood(cfg: dict, now: _dt.datetime, real: dict | None = None, place: d
         polar = real.get("polar")
         if sunrise and sunset and sunrise.tzinfo:
             clock = (now if now.tzinfo else now.astimezone()).astimezone(_dt.timezone.utc)
+            # the sun's times are for the real day: a debug date or timeline moves them onto its own
+            noon = sunrise + (sunset - sunrise) / 2
+            moved = _dt.timedelta(days=round((clock - noon) / _dt.timedelta(days=1)))
+            sunrise, sunset = sunrise + moved, sunset + moved
         else:
             sunrise = sunset = None
 

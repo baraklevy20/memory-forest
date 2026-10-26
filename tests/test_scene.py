@@ -55,6 +55,13 @@ class SceneTests(unittest.TestCase):
         self.assertEqual(scene.choose_mood({"weather": "auto", "time_of_day": "auto"},
                                            now - dt.timedelta(hours=12), real)["time"], "day")  # noon there
 
+    def test_a_debug_day_keeps_the_hour_of_the_real_sky(self):
+        # today's sun times, but the scenery's day moved 152 days on (a debug timeline): 15:38 is still afternoon
+        real = {"weather": "cloudy", "sunrise": "2026-10-26T03:52+00:00", "sunset": "2026-10-26T14:56+00:00",
+                "polar": None, "windy": False}
+        moved = dt.datetime(2027, 3, 27, 13, 38, tzinfo=dt.timezone.utc)
+        self.assertEqual(scene.choose_mood({"weather": "auto", "time_of_day": "auto"}, moved, real)["time"], "golden_hour")
+
     def test_midnight_sun_and_polar_night(self):
         for polar, time in (("day", "day"), ("night", "night")):
             real = {"weather": "clear", "sunrise": None, "sunset": None, "polar": polar, "windy": False}
