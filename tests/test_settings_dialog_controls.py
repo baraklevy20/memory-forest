@@ -653,18 +653,6 @@ class HeatmapTabTests(QtCase):
         d = self.open_dialog({"calendar_colours": "ready:pumpkin_patch"})
         self.assertEqual(d.heatmap.look.source.currentData(), "scenery")
 
-    def test_the_debug_switches_save_only_where_they_differ_from_the_style(self):
-        d = self.open_dialog({"debug": True})
-        lc = d.heatmap.look
-        lc.tile_buttons["flat"].click()
-        Q.settle()
-        smooth = lc.smooth.isChecked()
-        lc.smooth.click()
-        Q.let_save()
-        self.assertEqual(Q.current()["debug_smooth"], not smooth)
-        lc.tile_buttons["round"].click()  # (a style picked: its own corners back)
-        done_saves(self, d, {"calendar_tiles": "round"})
-
 
 class DecksTabTests(QtCase):
     def test_the_decks_are_listed_without_the_filtered_one(self):

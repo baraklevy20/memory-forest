@@ -3,7 +3,7 @@
  "label": "Giraffe coat",
  "tip": "Savanna sundown's giraffe patches",
  "env": "savanna_sundown",
- "gaps": true,
+ "gaps": false,
  "smooth": false,
  "phrase": "Giraffe-coat tiles"
 }

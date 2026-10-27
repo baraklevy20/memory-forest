@@ -75,9 +75,6 @@ class NoDebugTab:
     def values(self) -> dict:
         return {}
 
-    def offer_news(self, _targets) -> None:
-        pass
-
 
 def debug_tab(cfg: dict):
     """The Debug tab while debug is on and this copy has it (edition.debug_available); NoDebugTab otherwise."""
@@ -127,7 +124,6 @@ class SettingsDialog(QDialog):
         if not isinstance(self.debug, NoDebugTab):
             self.setMinimumWidth(DEBUG_MIN_WIDTH)
             shown.append((self.debug, "Debug"))  # (a developer's tool: stays English)
-        self.debug.offer_news(self.news_targets())
         # (the dialog's own timer, as below: a closed dialog is never called back)
         self._whole = QTimer(self); self._whole.setSingleShot(True); self._whole.setInterval(0)
         self._whole.timeout.connect(self._show_whole_step)

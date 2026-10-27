@@ -39,9 +39,7 @@ EDITION_NOTE = ("Which edition this copy acts as: the sceneries offered, the Plu
 NEWS_NOTE = ("What an update announces (release_notes.json): a note on the deck list's forest for a new "
              "feature, and a dot on the cog (NEW on its tile) for a new scenery, each only where the edition "
              "above has it. Answering one marks it seen. Replay the update to see the newest version's again, "
-             "exactly as someone updating from the version before sees it; a fresh install sees none. A note also goes by itself after 3 days: move the date above to see that. Show it as new "
-             "puts one note on the forest now: a real one, or a made-up one whose button opens any setting, "
-             "tagged NEW.")
+             "exactly as someone updating from the version before sees it; a fresh install sees none. A note also goes by itself after 3 days: move the date above to see that.")
 LANGUAGE_NOTE = ("The language the add-on speaks, rather than Anki's: the forest and the heatmap at once, this "
                  "dialog on reopening. The made-up ones show what is still English (it has no brackets) and what "
                  "clips (a third longer), and en-XB right to left as Hebrew or Arabic. Translations are in locales/; "
@@ -124,10 +122,6 @@ class DebugTab(QWidget):
         self.news_fresh = QPushButton("Replay as a fresh install")
         self.news_fresh.clicked.connect(lambda: self._replay_news(news.replay_fresh))
         self.news_label = hint("")
-        # one note shown as new now: a real announcement, or a made-up one at any setting
-        self.news_pick = QComboBox()
-        self.news_show = QPushButton("Show it as new")
-        self.news_show.clicked.connect(self._show_news)
         # a made-up study history on the test forest's heatmap, to try Streak view on
         self.streaks = QComboBox()
         self.streaks.addItem("The test forest's own", "")
@@ -182,8 +176,7 @@ class DebugTab(QWidget):
         lr = QHBoxLayout(); lr.addWidget(self.language); lr.addStretch(1)
         ltv = QVBoxLayout(); ltv.addLayout(lr); ltv.addWidget(hint(LANGUAGE_NOTE))
         nr = QHBoxLayout(); nr.addWidget(self.news_update); nr.addWidget(self.news_fresh); nr.addStretch(1)
-        pr = QHBoxLayout(); pr.addWidget(self.news_pick, 1); pr.addWidget(self.news_show)
-        ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addLayout(pr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
+        ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
         dv.addWidget(group("Language", ltv))
@@ -217,28 +210,6 @@ class DebugTab(QWidget):
 
     def _replay_seasons(self) -> None:
         forget_seasons()
-        if self._changed:
-            self._changed()
-
-    def offer_news(self, targets: dict) -> None:
-        """What Show it as new can show: the real announcements in release_notes.json, then
-        every setting a note can point at (the dialog's news_targets)."""
-        self.news_pick.clear()
-        for e in news.offered(dict(config(), debug_edition=self.edition.currentData() or "")):
-            if e["id"] != news.DEBUG_NOTE and e["kind"] == news.NOTE:
-                self.news_pick.addItem(f"Note: {e.get('title') or e['id']}", ("show", e["id"], ""))
-        for key, (_tab, _widget, name) in targets.items():
-            self.news_pick.addItem(f"A made-up note at: {name}", ("opens", key, name))
-
-    def _show_news(self) -> None:
-        pick = self.news_pick.currentData()
-        if not pick:
-            return
-        how, key, name = pick
-        if how == "show":
-            news.debug_show(show=key)
-        else:
-            news.debug_show(opens=key, name=name)
         if self._changed:
             self._changed()
 

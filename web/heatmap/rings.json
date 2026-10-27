@@ -3,7 +3,7 @@
  "label": "Poster rings",
  "tip": "1960s psychedelia's rippling rings",
  "env": "psychedelic",
- "gaps": true,
+ "gaps": false,
  "smooth": false,
  "phrase": "Poster-ring tiles"
 }

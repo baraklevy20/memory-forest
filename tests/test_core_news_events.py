@@ -59,9 +59,9 @@ class NoteLifeTests(unittest.TestCase):
 
     def test_a_news_file_hand_edited_into_nonsense_is_read_as_nothing_seen(self):
         with open(news.NEWS_PATH, "w", encoding="utf-8") as f:
-            json.dump({"seen": "newer_note", "shown": ["x"], "tags": {"bamboo": "new"}, "debug": 3}, f)
+            json.dump({"seen": "newer_note", "shown": ["x"], "tags": {"bamboo": "new"}}, f)
         with two_versions():
-            self.assertEqual(news._load(), {"seen": [], "shown": {}, "tags": {}, "debug": None})
+            self.assertEqual(news._load(), {"seen": [], "shown": {}, "tags": {}})
             self.assertEqual(news.note({}, DAY)["id"], "newer_note")
         with open(news.NEWS_PATH, "w", encoding="utf-8") as f:
             f.write("{not json")

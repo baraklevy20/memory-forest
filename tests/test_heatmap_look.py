@@ -100,16 +100,13 @@ class ChoiceTests(unittest.TestCase):
         self.assertFalse(HL.page_look(mine, GOLDEN)["flipLight"])  # (your own: as you picked them)
         self.assertFalse(HL.page_look({}, GOLDEN)["flipLight"])
 
-    def test_each_tile_style_has_its_own_spaces_and_corners_but_while_debugging(self):
+    def test_each_tile_style_has_its_own_spaces_and_corners(self):
         for style in HL.TILE_STYLE:
             # (each as the style it draws in: Scenery's, or one out of its week, Flat's here)
             gaps, smooth = HL.TILE_STYLE[HL.tile_style({"calendar_tiles": style})]
-            cfg = {"calendar_tiles": style, "debug_gaps": not gaps, "debug_smooth": not smooth}  # (debug off: ignored)
+            cfg = {"calendar_tiles": style, "debug": True}
             self.assertEqual((HL.gaps(cfg), HL.smooth(cfg)), (gaps, smooth), style)
         self.assertFalse(HL.gaps({"calendar_tiles": "contours"}))
-        debugging = addon.edition.debug_available({"debug": True})
-        self.assertEqual(HL.gaps({"debug": True, "debug_gaps": False}), not debugging)
-        self.assertTrue(HL.gaps({"debug": True, "debug_gaps": None}))  # (None: the style's own)
 
     def test_a_seasonal_scenery_s_colours_are_offered_only_in_its_week(self):
         out = {"debug_date": "2026-07-01", "debug": True}

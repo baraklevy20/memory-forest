@@ -69,7 +69,22 @@
  },
  "coral_reef": {
   "hours": {
-   "night": "#20bcd4"
+   "dawn": [
+    "#4a8cc8",
+    "#d896c0"
+   ],
+   "golden_hour": [
+    "#1e8c9c",
+    "#4cc0a0"
+   ],
+   "dusk": [
+    "#6a4ca8",
+    "#22a0b4"
+   ],
+   "night": [
+    "#1e2c64",
+    "#2a5c7a"
+   ]
   },
   "tint": "#14204a"
  },

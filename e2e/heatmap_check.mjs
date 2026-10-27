@@ -264,11 +264,17 @@ try {
       if (!/ to /.test(tipEl.textContent.replace(/[\u2066-\u2069]/g, '')) || dimAt(d5) !== 0) fail(`Shift+arrows did not pick: "${tipEl.textContent.replace(/[\u2066-\u2069]/g, '')}"`);
       done(); esc();
       // one day selected reads as that day; a stretch up to today says so
-      click(d9, cmd);
+      // (a day in the middle of its week, the median of seven days running: a day in the top or
+      // bottom row has no days above or below it, the layer's clear past the weeks' edge, and the
+      // walk below would run off into it. d9 alone failed on the Tuesdays and Wednesdays it was
+      // a Sunday or a Monday, 2026-10-27)
+      const mid = [9, 10, 11, 12, 13, 14, 15].map(dayAt).sort((a, b) => a[1] - b[1])[3];
+      done();
+      click(mid, cmd);
       // (its lit square sits evenly round its face: as much on the left as on the right, above as below)
       {
         const cv = weeks(), layerCv = spots()[0], r = cv.getBoundingClientRect();
-        const px = Math.floor((d9[0] - r.left) / r.width * cv.width), py = Math.floor((d9[1] - r.top) / r.height * cv.height);
+        const px = Math.floor((mid[0] - r.left) / r.width * cv.width), py = Math.floor((mid[1] - r.top) / r.height * cv.height);
         const face = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height), lit = layerCv.getContext('2d').getImageData(0, 0, cv.width, cv.height);
         const drawn = (x, y) => face.data[(y * cv.width + x) * 4 + 3] > 0, clear = (x, y) => lit.data[(y * cv.width + x) * 4 + 3] === 0;
         const reach = (test, x, y, dx, dy) => { while (test(x + dx, y + dy)) { x += dx; y += dy; } return dx ? x : y; };

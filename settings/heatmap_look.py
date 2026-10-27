@@ -556,7 +556,7 @@ class LookControls(QObject):
         # (the sceneries' own tiles: the current scenery's, or any scenery's, from one dropdown: _tile_choices)
         self.tile_pick = PickButton(self._tile_choices, self._tile_icons, tx(TILE_PICK_TIP), follow=HL.TILE_FOLLOW)
         self.tile_pick.setIconSize(QSize(PAIR_W, PAIR_H))
-        self.tile_pick.picked = lambda: self._tile_clicked(self.tile_pick.key)
+        self.tile_pick.picked = self._announce
         self.tile_choice.add(HL.TILE_FOLLOW, self.tile_pick)
         # then the basic styles, a button each
         self.tile_buttons = {}
@@ -567,18 +567,9 @@ class LookControls(QObject):
             self.tile_choice.add(key, b)
         self.tiles_grid = tiles_row
         self.tile_choice.set_quietly(HL.tiles_choice(cfg))
-        # (a style chosen, by a click, the arrow keys or the dropdown: its own corners and spaces back)
-        self.tile_choice.buttonToggled.connect(lambda _b, on: on and self._tile_clicked(self.tile_choice.currentData()))
-        # each style's smooth corners and spaces between the days are its own (heatmap_look.TILE_STYLE);
-        # while debugging, two switches can change them, and picking a style puts them back to its own
-        # (set by _seed_switches once the scenery in view is known: what each goes by is the style
-        # that scenery resolves to, not Flat's)
-        self.smooth = QCheckBox("Smooth corners (debug)")
-        self.smooth.setToolTip("Each day's tile with smooth, rounded corners, drawn at your screen's resolution. Not for the joined shapes.")
-        self.smooth.toggled.connect(lambda _on: self._announce())
-        self.gaps = QCheckBox("Spaces between days (debug)")
-        self.gaps.toggled.connect(lambda _on: self._announce())
-        self._seeded_for = None  # (the scenery and its style the switches were last seeded for)
+        # (a style chosen, by a click, the arrow keys or the dropdown; its smooth corners and spaces
+        # between the days are its own: heatmap_look.TILE_STYLE)
+        self.tile_choice.buttonToggled.connect(lambda _b, on: on and self._announce())
         for line in (self.faint,):
             line.setVisible(False)
 
@@ -599,15 +590,8 @@ class LookControls(QObject):
         self.colours.addLayout(rows)
         self.tiles_box = QVBoxLayout()
         self.tiles_box.addLayout(tiles_row)
-        # (debugging only, and not while the Debug tab pretends this is the base or Plus edition,
-        # which have neither: set_scenery shows or hides them as the edition changes)
-        if HL.debug_available(cfg):
-            self.tiles_box.addWidget(self.smooth)
-            self.tiles_box.addWidget(self.gaps)
-        self.debug_switches = HL.debug_available(cfg)
         self.source.buttonToggled.connect(lambda _b, on: on and self._announce())
         self.busier.on_change(self._announce)
-        # (a tile style announces once its switches are its own: _tile_clicked)
         self.source.set_quietly(HL.colours_choice(cfg))
         self._drawn = None  # (what the pictures were last drawn for)
         self._laid = None  # (the buttons last laid out: set_scenery)
@@ -639,17 +623,6 @@ class LookControls(QObject):
         else:
             self._announce()
 
-    def _tile_clicked(self, key: str) -> None:
-        """A tile style picked: its smooth corners and spaces back to its own (TILE_STYLE), so the
-        debug switches show what a user would see."""
-        if key in HL.TILE_STYLE:
-            gaps, smooth = self._own_style(key)
-            for box, on in ((self.gaps, gaps), (self.smooth, smooth)):
-                box.blockSignals(True)
-                box.setChecked(on)
-                box.blockSignals(False)
-            self._announce()
-
     def set_scenery(self, key: str, edition_cfg: dict) -> None:
         """The scenery on the Scenery tab now (Scenery shows its colours), and the edition the
         Debug tab pretends this is (whose Plus tiles are locked)."""
@@ -659,12 +632,6 @@ class LookControls(QObject):
         self.here = spec.key if spec else self.here
         self.edition_cfg = edition_cfg
         self.hour = forest_hour(edition_cfg)
-        # (the debug switches: not while the Debug tab pretends this is a release; set once they
-        # have a parent, or they would flash up as windows of their own)
-        if self.debug_switches:
-            for box in (self.smooth, self.gaps):
-                if box.parent() is not None:
-                    box.setVisible(not HL.debug_edition(edition_cfg))
         # (only what can be had: no Plus colours or tiles this copy lacks, a seasonal scenery's only
         # in its week; a choice no longer offered shows the default)
         colours = list(self.ready)
@@ -686,24 +653,7 @@ class LookControls(QObject):
         if self.tile_choice.currentData() not in tiles + own_tiles:
             self.tile_pick.set_key(HL.TILE_FOLLOW)
             self.tile_choice.set_quietly(HL.TILE_FOLLOW)
-        self._seed_switches(edition_cfg)
         self.refresh()
-
-    def _seed_switches(self, cfg: dict) -> None:
-        """The debug switches as the heatmap draws just now: a saved override (`debug_gaps`,
-        `debug_smooth` a bool), else the style's own for the scenery in view and the style chosen -
-        what style_values compares them to, so switches nobody touched never write anything. Seeded
-        again as the scenery or the style it draws in changes (a Debug edition or date can change
-        that too; a style picked puts them back itself: _tile_clicked)."""
-        own = self._own_style(self.tile_choice.currentData() or HL.TILE_FOLLOW)
-        if self._seeded_for == (self.here, own):
-            return
-        self._seeded_for = (self.here, own)
-        for box, key, theirs in ((self.gaps, "debug_gaps", own[0]), (self.smooth, "debug_smooth", own[1])):
-            saved = cfg.get(key)
-            box.blockSignals(True)
-            box.setChecked(saved if isinstance(saved, bool) else theirs)
-            box.blockSignals(False)
 
     def _scenery_choices(self) -> list:
         """The scenery dropdown's list: the scenery's own (they follow it), then every scenery's colours
@@ -781,20 +731,7 @@ class LookControls(QObject):
             "calendar_mine_two": self.blend.isChecked(),
             "calendar_tiles": self.tile_choice.currentData() or HL.TILE_FOLLOW,
             "calendar_busier": self.busier.currentData() or "lighter",
-            **self.style_values(),
         }
-
-    def _own_style(self, key: str) -> tuple:
-        """(spaces, smooth corners) of the style `key` draws in just now: Scenery's, the scenery's own."""
-        here_env = presets.by_key()[self.here].environment
-        return HL.TILE_STYLE[HL.tile_style(dict(self.edition_cfg, calendar_tiles=key), here_env)]
-
-    def style_values(self) -> dict:
-        """The debug switches, kept only where they differ from the tile style's own (None: as the
-        style has it), so a later change to a style still reaches anyone who never touched them."""
-        gaps, smooth = self._own_style(self.tile_choice.currentData() or HL.TILE_FOLLOW)
-        return {"debug_gaps": None if self.gaps.isChecked() == gaps else self.gaps.isChecked(),
-                "debug_smooth": None if self.smooth.isChecked() == smooth else self.smooth.isChecked()}
 
     def refresh(self) -> None:
         """Draw every picture again for the choices as they are now (and the theme)."""

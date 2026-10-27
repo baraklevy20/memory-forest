@@ -14,7 +14,7 @@ import math
 import os
 
 from . import catalog, presets
-from .edition import debug_available, debug_edition, edition_presets
+from .edition import debug_edition, edition_presets
 from .i18n import N_
 from .seasons import offer_day, today
 from .state import save_config
@@ -69,10 +69,8 @@ TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
 TILE_WORN = {env: k for k, v in TILE_SPECS.items() for env in v.get("sceneries", ())}
 # (Scenery has no style of its own: it is the scenery's, tile_style)  # whose calendarTile draws them
 TILE_SEASONS = {k: v["season"] for k, v in TILE_SPECS.items() if v.get("season")}  # by the preset whose week they come in
-# each style's spaces between the days and smooth corners (drawn at the screen's resolution), as a
-# release has them: neither is a setting of its own. While debugging, two switches under the tiles
-# can change them (`debug_gaps`, `debug_smooth`: None follows the style), and picking a style puts
-# them back to its own, so the switches show what a user would see
+# each style's spaces between the days and smooth corners (drawn at the screen's resolution):
+# neither is a setting of its own
 TILE_STYLE = {k: (v.get("gaps", True) is not False, v.get("smooth") is True) for k, v in TILE_SPECS.items()}
 
 # the ready ramps: Review Heatmap's five themes, by their names and in its order, each from its
@@ -253,25 +251,17 @@ def busier(cfg: dict) -> str:
     return "darker" if cfg.get("calendar_busier") == "darker" else "lighter"
 
 
-def _style(cfg: dict, key: str, i: int, here: str = "") -> bool:
-    value = cfg.get(key)
-    if isinstance(value, bool) and debug_available(cfg):
-        return value
-    return TILE_STYLE[tile_style(cfg, here)][i]
-
-
 def gaps(cfg: dict, here: str = "") -> bool:
-    """Whether the days keep the spaces between them: as the tile style has them (TILE_STYLE), or
-    while debugging, as "Spaces between days" says. For Round and Contours too: with spaces, each day
-    is a shape of its own."""
-    return _style(cfg, "debug_gaps", 0, here)
+    """Whether the days keep the spaces between them, as the tile style has them (TILE_STYLE). For
+    Round and Contours too: with spaces, each day is a shape of its own."""
+    return TILE_STYLE[tile_style(cfg, here)][0]
 
 
 def smooth(cfg: dict, here: str = "") -> bool:
-    """Whether the tiles are drawn as smooth rounded squares at the screen's resolution: as the tile
-    style has them (TILE_STYLE), or while debugging, as "Smooth corners" says. Not with the joined
-    shapes, which are no tiles; Round with spaces is a tile, so it can be."""
-    return _style(cfg, "debug_smooth", 1, here)
+    """Whether the tiles are drawn as smooth rounded squares at the screen's resolution, as the tile
+    style has them (TILE_STYLE). Not with the joined shapes, which are no tiles; Round with spaces
+    is a tile, so it can be."""
+    return TILE_STYLE[tile_style(cfg, here)][1]
 
 
 def tile_shown(key: str, cfg: dict) -> bool:
@@ -302,7 +292,8 @@ def page_look(cfg: dict, mood: dict) -> dict:
     `exact`, colours you picked (yours, a ready ramp), shown as picked on either page (exact_steps);
     `flipLight`, a ready ramp run the other way on a light page, its deep colour the busiest (as
     Review Heatmap's light mode: its ramps run pale to deep on a dark page);
-    `darker`, a dark page's busier days darker (busier); `smoothRadius`/`smoothGrow`, a style's
+    `darker`, a dark page's busier days darker (busier); `moving`, whether a moving style moves
+    (moving); `smoothRadius`/`smoothGrow`, a style's
     smooth corners (Round's, from its .json)."""
     here = mood.get("special") or "natural"
     choice = colours_choice(cfg)
@@ -674,55 +665,91 @@ def _rime(pal, _edge, v, T):  # misty_valley.js
     return out
 
 
-# a giraffe's coat: the shade in patches parted by a paler network, turned or mirrored per variant
-GIRAFFE_COAT = ("...#....", "...#....", "####....", "...#.###", "....##..", ".....#..", "###..#..", "..#..###")
-GIRAFFE_LINE, GIRAFFE_DARK = (255, 240, 214), (96, 52, 30)
+# a giraffe's hide (savanna_sundown.js hidePass, a drawn shape): each day four patches round its
+# middle, each point nudged by the day, parted by the coat's paler network. The Heatmap tab's sample
+# is a day alone, each variant one of SAMPLE_DAYS, drawn as the heatmap draws that day with no
+# neighbours (the patches of the days round it, which cross its border there, aren't in a sample)
+HIDE_POINTS, HIDE_NUDGE = ((0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)), 1.6
+COAT_LINE, COAT_DARK, COAT_LIFT = (255, 240, 214), (96, 52, 30), 0.16
+SAMPLE_DAYS = ("2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08")
 
 
-def _giraffe(pal, edge, v, T):  # savanna_sundown.js
-    # on the palest shades a paler line vanished, so there the network is a step darker
-    pale = pal[0][0] * 0.299 + pal[0][1] * 0.587 + pal[0][2] * 0.114 > 172
-    n, line, out = T - 1, mix(pal[0], GIRAFFE_DARK, 0.13) if pale else mix(pal[0], GIRAFFE_LINE, 0.16), {}
+def coat_line(c, k: float = 1):
+    pale = c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114 > 172
+    return mix(c, COAT_DARK, COAT_LIFT * 0.8 * k) if pale else mix(c, COAT_LINE, COAT_LIFT * k)
+
+
+def _hide(pal, _edge, v, T):  # savanna_sundown.js
+    pts = []
+    for k, (fx, fy) in enumerate(HIDE_POINTS):
+        h = hash_str(f"hide|{k}|{SAMPLE_DAYS[v]}")
+        pts.append((fx * T + ((h & 15) / 15 * 2 - 1) * HIDE_NUDGE, fy * T + (((h >> 4) & 15) / 15 * 2 - 1) * HIDE_NUDGE))
+    patch = {}
     for y in range(T):
         for x in range(T):
-            if x in (0, n) and y in (0, n):
-                continue
-            if x == n or y == n:
-                out[x, y] = edge
-                continue
-            cx, cy = x * 8 // n, y * 8 // n
-            if v & 1:
-                cx = 7 - cx
-            if v & 2:
-                cx, cy = cy, cx
-            out[x, y] = line if GIRAFFE_COAT[cy][cx] == "#" else pal[0]
+            best, bd = -1, math.inf
+            for j, (px, py) in enumerate(pts):
+                d = (px - x) ** 2 + (py - y) ** 2
+                if d < bd:
+                    best, bd = j, d
+            patch[x, y] = best
+    out = {}
+    for (x, y), j in patch.items():
+        r, b = patch.get((x + 1, y), j), patch.get((x, y + 1), j)
+        out[x, y] = coat_line(pal[0]) if r != j or b != j else pal[0]
     return out
 
 
-LAGOON_LIT = (255, 255, 255)
+# lagoon bubbles (coral_reef.js, calendarShaped): each day a round bubble, the sunlit ripple across
+# it, its lower right rim in its edge and a glint at its upper left; a pixel bigger with no spaces
+BUBBLE_LIT, BUBBLE_GLINT = (255, 255, 255), 0.5
 
 
-def _lagoon(pal, _edge, v, T):  # coral_reef.js
-    n, lit, out = T - 1, mix(pal[0], LAGOON_LIT, 0.15), {}
-    for y in range(n):
-        for x in range(n):
-            if x in (0, n - 1) and y in (0, n - 1):
+def _bubbles(pal, edge, v, T):  # coral_reef.js
+    S = T - 1 if T > 9 else T
+    h = S / 2
+    r2, lit, glint, out = h * h + 0.25, mix(pal[0], BUBBLE_LIT, 0.15), mix(pal[0], BUBBLE_LIT, BUBBLE_GLINT), {}
+    inside = lambda x, y: 0 <= x < S and 0 <= y < S and (x + 0.5 - h) * (x + 0.5 - h) + (y + 0.5 - h) * (y + 0.5 - h) <= r2  # noqa: E731
+    gx = gy = math.floor(S * 0.28)
+    for y in range(S):
+        for x in range(S):
+            if not inside(x, y):
                 continue
-            w = math.floor(math.sin(x * 0.8 + v * 1.9) * 1.1 + 0.5)  # (Math.round)
-            r = (y + w + v) % 4
-            out[x, y] = lit if r == 0 else pal[1] if r == 1 else pal[0]
+            if not inside(x + 1, y) or not inside(x, y + 1):
+                out[x, y] = edge
+            elif (x == gx and y in (gy, gy + 1)) or (y == gy and x == gx + 1):
+                out[x, y] = glint
+            else:
+                w = math.floor(math.sin(x * 0.8 + v * 1.9) * 1.1 + 0.5)  # (Math.round)
+                r = (y + w + v) % 4
+                out[x, y] = lit if r == 0 else pal[1] if r == 1 else pal[0]
     return out
 
 
 RINGS_DARK = (24, 8, 44)
 
 
-def _rings(pal, _edge, v, T):  # psychedelic.js
-    n, dark, out = T - 1, mix(pal[0], RINGS_DARK, 0.2), {}
-    cx = n + 0.5 if v & 1 else -0.5
-    for y in range(n):
-        for x in range(n):
-            out[x, y] = dark if math.floor(math.hypot(x + 0.5 - cx, y + 1) / 2.6) & 1 else pal[0]  # (Math.floor(d / 2.6): // rounds 13 / 2.6 down to 4)
+# heat haze (psychedelic.js hazeLive, a moving shape): the weeks seen through rippled glass. The
+# Heatmap tab's sample is still: a day alone, as the heatmap draws it at its first moment with no
+# day round it (ink on all four sides), the day at column 2v, row 3 of the weeks, T pixels a day
+HAZE_RING, HAZE_INK, HAZE_BEND, HAZE_RISE = 0.2, 0.28, 0.8, 1.4
+
+
+def _haze(pal, _edge, v, T):
+    x0, y0, out = 1 + 2 * v * T, 4 + 3 * T, {}
+    cx = T + 0.5 if v & 1 else -0.5
+    cols = (tuple(int(c) for c in pal[0]), tuple(int(c) for c in mix(pal[0], RINGS_DARK, HAZE_RING)), tuple(int(c) for c in mix(pal[0], RINGS_DARK, HAZE_INK)))
+    for ly in range(T):
+        for lx in range(T):
+            x, y = x0 + lx, y0 + ly
+            fx = math.floor(x + 0.5 + HAZE_BEND * math.sin(y * 0.16 + x * 0.05)) - x0
+            fy = math.floor(y + 0.5 + HAZE_RISE * math.sin(x * 0.14 + 1.3)) - y0
+            if not (0 <= fx < T and 0 <= fy < T):
+                continue
+            if fx in (0, T - 1) or fy in (0, T - 1):
+                out[lx, ly] = cols[2]
+            else:
+                out[lx, ly] = cols[math.floor(math.hypot(fx + 0.5 - cx, fy + 1) / 2.6) & 1]
     return out
 
 
@@ -732,8 +759,8 @@ def _flat(pal, edge, _v, T):
 
 # each environment that draws its tiles in a medium of its own (calendarTile), and how
 DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice, "chalkboard": _chalk,
-           "misty_valley": _rime, "bamboo": _canes, "savanna_sundown": _giraffe, "coral_reef": _lagoon,
-           "psychedelic": _rings}
+           "misty_valley": _rime, "bamboo": _canes, "savanna_sundown": _hide, "coral_reef": _bubbles,
+           "psychedelic": _haze}
 
 
 def tile_pixels(drawer: str, shade, v: int = 0) -> dict:

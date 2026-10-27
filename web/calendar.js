@@ -723,7 +723,16 @@ function paletteOf(H, sp, paper) {
   // each day keeps its square: at full strength, hatching's dropped pixels broke it up, and a ring
   // would read as a rest day's, 2026-10-19; Flat's are its plain squares)
   const blankPal = toned(blankOn(paper), dark), BLANK_TEXTURE = 0.5;
+  // (a tile of a shape of its own, `calendarShaped`: the grey only inside that shape, the same mix)
+  const shaped = !!(look && look.name === by && AF.ENVS[by] && AF.ENVS[by].calendarShaped);
   const blankLook = look && { name: look.name + '|blank', draw: (g, p, e, v, T) => {
+    if (shaped) {
+      look.draw(g, p, e, v, T);
+      g.globalCompositeOperation = 'source-atop'; g.globalAlpha = 1 - BLANK_TEXTURE;
+      g.fillStyle = rgb(p[0]); g.fillRect(0, 0, T, T);
+      g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+      return;
+    }
     g.fillStyle = rgb(p[0]); g.fillRect(0, 0, T - 1, T - 1);
     g.globalAlpha = BLANK_TEXTURE; look.draw(g, p, e, v, T); g.globalAlpha = 1;
   } };
@@ -732,7 +741,7 @@ function paletteOf(H, sp, paper) {
   // bands and Round's days are; the soil and the empty days say what they are; the hover's ring in
   // today's frame colours, which show on every shade, its inside clear, so the day and its mark
   // keep their colours)
-  return { tile, blankTile, shadeOf, gapless, roundTile, shapes, grass: S.grass, edge: S.edge,
+  return { tile, blankTile, shadeOf, gapless, roundTile, shapes, shaped, grass: S.grass, edge: S.edge,
     // (for the shapes: the soil's four shades, the empty days' grey as one colour, and the page)
     tills: [0, 1, 2, 3].map(lv => soil(lv)[0]), blank: blankOn(paper), page: paper.bg,
     key: [0, 1, 2, 3].map(lv => tilesOf(S.grass[lv], S.edge[lv], shapes ? flat : look)[0]), ring: rgb(dark ? P.today : P.todayOnLight) };
@@ -751,6 +760,31 @@ function frame(g, x, y, T, dark, bg) {
   // (and a line of the page's colour just inside it, so it never runs into a tile as dark as it is)
   g.fillStyle = rgb(bg);
   g.fillRect(x, y, T, 1); g.fillRect(x, y + T - 1, T, 1); g.fillRect(x, y, 1, T); g.fillRect(x + T - 1, y, 1, T);
+}
+
+/* a shaped day's outline: `inside(x, y)` says whether a heatmap pixel is the day's own (its tile's
+ * painted pixels, or its pane); today's frame round it, a line of the page's colour on its own rim
+ * and the light ring just outside it, and a rest day's ring on its rim, as the square ones are */
+const MASKS = new WeakMap();
+function maskOf(t) {
+  let m = MASKS.get(t);
+  if (m) return m;
+  const d = t.getContext('2d').getImageData(0, 0, t.width, t.height).data;
+  m = new Uint8Array(t.width * t.height);
+  for (let i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] ? 1 : 0;
+  MASKS.set(t, m);
+  return m;
+}
+const tileIn = (t, c) => { const m = maskOf(t); return (x, y) => { const lx = x - c.x, ly = y - c.y; return lx >= 0 && ly >= 0 && lx < t.width && ly < t.height && !!m[ly * t.width + lx]; }; };
+const rimOf = (inside, x, y) => inside(x, y) && N4.some(([dx, dy]) => !inside(x + dx, y + dy));
+function shapedFrame(g, inside, c, R, dark, bg) {
+  for (let y = c.y - R; y < c.y + 2 * R; y++) for (let x = c.x - R; x < c.x + 2 * R; x++) {
+    if (rimOf(inside, x, y)) { g.fillStyle = rgb(bg); g.fillRect(x, y, 1, 1); }
+    else if (!inside(x, y) && DIAG.concat(N4).some(([dx, dy]) => inside(x + dx, y + dy))) { g.fillStyle = rgb(dark ? P.today : P.todayOnLight); g.fillRect(x, y, 1, 1); }
+  }
+}
+function shapedRing(g, inside, c, R) {
+  for (let y = c.y - R; y < c.y + 2 * R; y++) for (let x = c.x - R; x < c.x + 2 * R; x++) if (rimOf(inside, x, y)) g.fillRect(x, y, 1, 1);
 }
 
 /* the days of a view in weeks, [offset, ms, column, row], its first day on top; Timeline starts each
@@ -783,6 +817,10 @@ function columns(H, win) {
  *    none) for the pointer, or null.
  * A scenery's own tiles (Brush, Scanlines, the seasonal ones) are its `calendarTile` instead. */
 AF.heatmapTiles = AF.heatmapTiles || {};
+// a moving style's clock, in seconds of motion, one for every heatmap on the page (each loop moves it
+// on by the time since any last did, so a redrawn heatmap carries on where it was), and how often it draws
+let liveClock = 0, liveClockAt = 0;
+const LIVE_MS = 66;  // (~15 frames a second, as the forest's own loop: core.js FRAME_MS)
 const isShape = k => { const t = AF.heatmapTiles[k]; return !!t && !t.draw; };
 const DIAG = [[-1, -1], [1, -1], [-1, 1], [1, 1]], N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const FIELD_SIGMA = 6, FIELD_REACH = 2;
@@ -806,6 +844,9 @@ function shapesPass(g, cells, at, W, Hh, H, pal, dark) {
   const get = (col, row) => (row >= 0 && row < rows ? at.get(col * ROWS + row) : undefined);
   const ctx = { g, cells, get, W, Hh, H, pal, rows, dark, TOP, CELL, TILE, FADE, DARK, layer, mix, hashStr, iso, fieldLv, outlineOf };
   if (style.pass) return { owner: style.pass(ctx), lvAt: null };
+  // (a moving shape: drawn now at the moving styles' clock, or its first moment where it stays
+  // still, and again each frame: AF.calendar's loop)
+  if (style.live) { const L = style.live(ctx); L.draw(g, H.still ? 0 : liveClock); return { owner: L.owner, lvAt: null, live: L }; }
   const [cv, rg] = layer(W, Hh), img = rg.createImageData(W, Hh), d = img.data;
   // (each pixel's day and shade, for a hover's highlight: a month, a streak, or a shade of the key
   // lit by the shape's own pixels, not by squares across it; `level` a style's own, Contours' bands)
@@ -820,7 +861,7 @@ function shapesPass(g, cells, at, W, Hh, H, pal, dark) {
     cells.forEach((c, i) => {
       if (!isIn(c)) return;
       put(c.x, c.y, TILE, TILE, i);
-      // (with "Spaces between days" on, no day joins another: each its own little shape)
+      // (with spaces between the days, no day joins another: each its own little shape)
       if (!pal.gapless) return;
       const R = isIn(get(c.col + 1, c.row)), D = isIn(get(c.col, c.row + 1));
       if (R) put(c.x + TILE, c.y, CELL - TILE, TILE, i);
@@ -988,7 +1029,8 @@ function paint(H, win, sp, paper) {
   const xOf = c => 1 + c.col * CELL, yOf = c => band + c.row * CELL + 1;
   const at = new Map();  // (each day by its column and row, for the pointer)
   for (const c of cells) { c.x = xOf(c); c.y = yOf(c); at.set(c.col * ROWS + c.row, c); }
-  const [cv, g] = layer(W, Hh);
+  const [cv, g0] = layer(W, Hh);
+  let g = g0;
   // the animals (and the forest's first seedling) on a layer of their own over it, shown while the
   // pointer is on the heatmap (forest.css): the forest's milestones, which the forest shows already
   const [above, ag] = layer(W, Hh);
@@ -1015,17 +1057,29 @@ function paint(H, win, sp, paper) {
   // (a joined shape: each pixel's day and shade, for the highlight; a drafted one's days also for the pointer)
   const joined = pal.shapes ? shapesPass(g, cells, at, W, Hh, H, pal, dark) : null;
   const pane = joined && !joined.lvAt ? joined.owner : null;
+  // (a moving shape: the days on the canvas's own layer, and all drawn over them from here on on a
+  // layer of their own, laid over the days each time they move)
+  const live = joined && joined.live, ov = live ? layer(W, Hh) : null;
+  if (live) g = ov[1];
   // (a day with nothing due, or a day off: inside a streak, a hollow tile, a ring in the heatmap's
   // faint shade round the empty grey (restShade), so the day reads as a slot the streak passed
   // through, unfilled, never as studied, and the week does not read as a gap; a single pixel was
   // too faint to see and a gold block read as a highlight, 2026-10-17. Not on today, whose frame
   // says it; outside any streak that pixel; over the shapes. Smooth tiles draw theirs in sharpen)
   const rest = restShade(pal, paper), face = pal.gapless ? CELL : TILE_FACE;
+  // (a day's own shape: a shaped tile's painted pixels, or a drawn shape's pane)
+  const index = new Map(cells.map((c, i) => [c, i]));
+  const shapeIn = c => {
+    if (pane) { const i = index.get(c); return (x, y) => x >= 0 && y >= 0 && x < W && y < Hh && pane[y * W + x] === i; }
+    if (!pal.shaped || smooth) return null;
+    const t = pal.tile(c) || pal.blankTile(c);
+    return t ? tileIn(t, c) : null;
+  };
   for (const c of cells) if (H.free.has(c.o) && !c.n) {
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
     const run = c.o < 0 ? H.runOf(c.o) : null, mid = TILE >> 1;
     if (run && smooth) c.rest = rest;
-    else if (run) { g.fillStyle = rgb(rest); restRing(g, c.x, c.y, face); }
+    else if (run) { g.fillStyle = rgb(rest); const inside = shapeIn(c); if (inside) shapedRing(g, inside, c, CELL); else restRing(g, c.x, c.y, face); }
     else if (c.o !== 0) { g.fillStyle = FREE_MARK; g.fillRect(c.x + mid, c.y + mid, 1, 1); }
     g.globalAlpha = 1;
   }
@@ -1042,7 +1096,9 @@ function paint(H, win, sp, paper) {
     drawAnimal(g, Object.assign({}, spr, { pal: markPalOf(sp, H.look) }), x0, y0, null, paper.bg);
   }
   const today = cells.find(c => c.o === 0);
-  if (today && !smooth) frame(g, today.x, today.y, TILE, dark, paper.bg);
+  const todayIn = today && !smooth ? shapeIn(today) : null;
+  if (todayIn) shapedFrame(g, todayIn, today, CELL, dark, paper.bg);
+  else if (today && !smooth) frame(g, today.x, today.y, TILE, dark, paper.bg);
   // the streaks: a bracket under the weeks each ran through, gold for the current one, cut at
   // the view's edges (with no end mark there)
   const by = band + ROWS * CELL + 3, brackets = [];
@@ -1113,6 +1169,12 @@ function paint(H, win, sp, paper) {
   }
   const radius = pal.roundTile ? H.look.smoothRadius : SMOOTH_R;  // (smooth: each tile's corners)
   const out = { cv, above, W, Hh, cells, at, pane, joined, brackets, band, marks, ring: pal.ring, key: pal.key, smooth, radius };
+  if (live) {
+    g0.drawImage(ov[0], 0, 0);
+    // (each frame: the days drawn whole over the last frame's - a moving style fills its every pixel - and the rest over them)
+    let was = null;
+    out.tick = t => { if (t === was) return; was = t; live.draw(g0, t); g0.drawImage(ov[0], 0, 0); };
+  }
   if (smooth) {
     // (shown on a canvas of its own at the screen's resolution, drawn again when the scale changes)
     const [hi] = layer(W, Hh);
@@ -1260,7 +1322,12 @@ AF.calendar = function (root, data, env) {
   if (!box) { box = document.createElement('div'); box.className = 'af-cal'; root.append(box); }
   weekStart = cal.weekStart == null ? 1 : cal.weekStart; CELL = cellOf(cal); BIGGER = biggerOf(cal);
   AF.calendarFit(box, cal, null, data.maxWidth, data.inAnki);
-  const H = cal.afHistory || history(cal), sp = sceneOf(data, env);  // (built already while measuring the room, AF.calendarHeight)
+  const H = cal.afHistory || history(cal), sp = sceneOf(data, env);
+  // a moving tile style moves with the forest's animations (off, or the system asking for less
+  // motion: still), and in Anki only (the phone's card is looked at for moments: still); still, it
+  // shows its first moment
+  const moving = animates(data) && !!data.inAnki;
+  H.still = !moving;  // (built already while measuring the room, AF.calendarHeight)
   delete cal.afHistory;
   const treesByDay = new Map((data.trees || []).map(t => [-t.ago, t]));
   for (const [ago, n] of cal.planted || []) if (!treesByDay.has(-ago)) treesByDay.set(-ago, { ago, n });
@@ -1398,6 +1465,7 @@ AF.calendar = function (root, data, env) {
   const notes = box.querySelector('.af-cal-notes'), tip = box.querySelector('.af-cal-tip'), hover = box.querySelector('.af-cal-hover');
   // (last: the day the pointer was last on; pointed: the year it is on, the one in view or an earlier one shown)
   let drawn = null, k = 2, last, pointed = null;
+  let wakeLive = null;  // (a moving style's loop, once set up below: a redraw starts it again)
   let paper = pageOf(box);
   box.classList.toggle('af-cal-on-light', !paper.dark);  // (a choice's chosen half: a white pill on a light page)
   // the days a hover is about stand out (a shade in the key, a month, a streak): the others
@@ -1606,6 +1674,7 @@ AF.calendar = function (root, data, env) {
       if (focused && focused.disabled) { const to = [btn(1), btn(-1)].find(b => b !== focused && !b.disabled); if (to) to.focus(); }
     }
     lay();
+    if (wakeLive) wakeLive();
     // (their summary goes with their days: under them on the new page, or away when none is on it)
     if (sel && (tip.hidden || selTip)) showSel(selTip); else if (sel) spot(null);
   }
@@ -1859,6 +1928,34 @@ AF.calendar = function (root, data, env) {
     for (const s of months.children) s.style.visibility = s.offsetLeft < grid.scrollLeft + 4 || s.offsetLeft + s.offsetWidth > grid.scrollLeft + grid.clientWidth - 4 ? 'hidden' : '';
   }
   draw();
+  // a moving style: drawn again every LIVE_MS while the heatmap is on screen and the page shown,
+  // from a timer as the forest's loop is (core.js), its earlier rows (Streak view) with it
+  // (AF.calendarSpeed: how fast its clock runs, 1 its own pace, 0 held; for studies)
+  let seen = true, ticking = false, liveTimer = 0;
+  const liveTick = () => {
+    liveTimer = 0;
+    if (!box.isConnected) { stop(); return; }
+    if (!seen || document.hidden || !drawn || !drawn.tick) { ticking = false; return; }
+    const now = performance.now(), speed = AF.calendarSpeed == null ? 1 : AF.calendarSpeed;
+    // (a long wait, a busy page, counts as at most three frames: the motion never jumps)
+    liveClock += Math.min(LIVE_MS * 3, Math.max(0, now - liveClockAt)) / 1000 * speed; liveClockAt = now;
+    try { drawn.tick(liveClock); for (const d of pasts) if (d.tick) d.tick(liveClock); }
+    finally { liveTimer = setTimeout(liveTick, Math.max(0, LIVE_MS - (performance.now() - now))); }
+  };
+  // (its watchers set up only once a moving style is drawn: a heatmap that never moves adds none)
+  let liveIo = null, watching = false;
+  const liveShown = () => { if (!document.hidden) liveWake(); };
+  function liveWake() {
+    if (!moving || !drawn || !drawn.tick) return;
+    if (!watching) {
+      watching = true;
+      document.addEventListener('visibilitychange', liveShown);
+      if (window.IntersectionObserver) { liveIo = new IntersectionObserver(es => { seen = es[es.length - 1].isIntersecting; if (seen) liveWake(); }); liveIo.observe(grid); }
+    }
+    if (ticking) return;
+    ticking = true; liveTick();
+  }
+  wakeLive = liveWake; liveWake();
   if (swiped) {
     toToday(false);
     // (a tooltip goes with a swipe: it would point at a day no longer under it)
@@ -1909,6 +2006,9 @@ AF.calendar = function (root, data, env) {
   const scheme = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   if (scheme && scheme.addListener) scheme.addListener(rethink);
   function stop() {
+    if (liveIo) liveIo.disconnect();
+    clearTimeout(liveTimer); ticking = false;
+    if (watching) document.removeEventListener('visibilitychange', liveShown);
     if (mo) mo.disconnect();
     if (ro) ro.disconnect();
     clearTimeout(relay);

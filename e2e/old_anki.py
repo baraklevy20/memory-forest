@@ -7,6 +7,8 @@
     python3 e2e/old_anki.py --check --all                  # in every Anki in RELEASE_ANKIS (what a release runs)
     python3 e2e/old_anki.py --check --all --package x.ankiaddon   # the built add-on rather than this folder
     python3 e2e/old_anki.py --check --show                 # with its windows in view (checks are headless by default)
+    python3 e2e/old_anki.py --check --package plus.ankiaddon --sceneries natural,bamboo
+                                                           # and each scenery named drawn with its heatmap, after the rest
 
 An Anki named by its key in ANKIS is downloaded from Anki's GitHub releases the first time
 and kept in CACHE. The Qt5 builds (every Anki before 2.1.50, and the builds for older
@@ -284,6 +286,12 @@ def main() -> None:
     if "--package" in args:
         i = args.index("--package")
         package = os.path.abspath(args[i + 1]) if i + 1 < len(args) else sys.exit("--package needs a .ankiaddon")
+        del args[i:i + 2]
+    if "--sceneries" in args:
+        # (e2e/old_anki_check.py sceneries: each one's forest and heatmap, a screenshot each; a
+        # Plus scenery needs a Plus build, --package)
+        i = args.index("--sceneries")
+        os.environ["MEMORY_FOREST_SCENERIES"] = args[i + 1] if i + 1 < len(args) else sys.exit("--sceneries needs keys, comma separated")
         del args[i:i + 2]
     names = [a for a in args if a not in ("--keep", "--check", "--all", "--show")]
     if every:

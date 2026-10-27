@@ -689,7 +689,64 @@ def real_ui():
     step("page messages", lambda: page_messages(forest))
     step("planting on the first answer", lambda: planting(forest))
     step("errors in slots fail the check", canaries)
+    if os.environ.get("MEMORY_FOREST_SCENERIES"):
+        step("sceneries asked for", sceneries)
     QTimer.singleShot(500, finish)
+
+
+# the heatmap's canvases: how much of them is painted, and a sum of their pixels (two sums apart
+# in time differ where a moving tile style moved), and which scenery the forest was built as
+HEAT_LOOK = """(() => {
+  const cvs = [...document.querySelectorAll('.af-cal canvas')].filter(c => c.width && c.height);
+  let painted = 0, all = 0, sum = 0;
+  for (const c of cvs) {
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    for (let i = 0; i < d.length; i += 4) { all++; if (d[i + 3]) painted++; sum = (sum * 31 + d[i] + 3 * d[i + 1] + 7 * d[i + 2]) % 1000000007; }
+  }
+  const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root && root.afEnv;
+  const cal = document.querySelector('.af-cal'), r = cal && cal.getBoundingClientRect();
+  return JSON.stringify({ canvases: cvs.length, painted: all ? Math.round(100 * painted / all) : 0, sum,
+                          inView: !!r && r.top >= 0 && r.bottom <= window.innerHeight,
+                          scenery: env && env.mood ? env.mood.environment : null });
+})()"""
+MOVE_GAP_MS = 1500  # between the two looks at a heatmap: several of a moving style's frames
+SCENERY_WINDOW = (1000, 1300)  # tall enough for the forest and the heatmap under it in one screenshot
+
+
+def sceneries() -> None:
+    """Each scenery in MEMORY_FOREST_SCENERIES (old_anki.py --sceneries) drawn on the deck list
+    with its own heatmap tiles: that the forest built as that scenery, its heatmap painted, and
+    whether the heatmap moved (a moving tile style should: animations are on); a screenshot of
+    each, deck-list-scenery-<key>.png. A moving style moves only while the heatmap is on
+    screen (calendar.js liveWake): the window is made tall and the heatmap scrolled into view.
+    The config and the window's size are put back after."""
+    web, before, size = mw.deckBrowser.web, config(), (mw.width(), mw.height())
+    mw.resize(*SCENERY_WINDOW)
+    try:
+        for key in [k for k in os.environ["MEMORY_FOREST_SCENERIES"].split(",") if k]:
+            note("scenery: " + key)
+            mw.addonManager.writeConfig(FOREST, dict(before, environment=key, calendar_tiles="scenery"))
+            web.eval(MARK)
+            mw.deckBrowser.refresh()
+            until(lambda: (lambda g: g.get("built") and not g.get("old") and g.get("painted"))(json.loads(ask(web, MEASURE))),
+                  WAIT_TRIES, f"the {key} forest")
+            web.eval("document.querySelector('.af-cal').scrollIntoView(false)")
+            pump(MOVE_GAP_MS)
+            first = json.loads(ask(web, HEAT_LOOK))
+            pump(MOVE_GAP_MS)
+            then = json.loads(ask(web, HEAT_LOOK))
+            shot("deck-list-scenery-" + key)
+            moved = first["sum"] != then["sum"]
+            if then["scenery"] != key:
+                result["problems"].append(f"asked for the {key} scenery, the forest was built as {then['scenery']}")
+            elif not then["canvases"] or not then["painted"]:
+                result["problems"].append(f"the {key} scenery's heatmap is blank: {then}")
+            else:
+                where = "" if then["inView"] else ", out of view"
+                result["steps"].append(f"{key}: heatmap {then['painted']}% painted, {'moving' if moved else 'still'}{where}")
+    finally:
+        mw.addonManager.writeConfig(FOREST, before)
+        mw.resize(*size)
 
 
 def _change_scenery(dialog) -> None:

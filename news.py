@@ -27,8 +27,7 @@ NOTE_DAYS = 3  # a note nobody answers goes by itself after this many days
 TAG_DAYS = 14  # a NEW or IMPROVED tile tag stays until that scenery is picked, or this many days
 
 NOTE, DOT, IMPROVED = "note", "dot", "improved"
-# made up, to try the note and the dot with the Debug tab's replays (only while debug is on).
-# The Debug tab's "Show it as new" points the note at any setting (debug_show).
+# made up, to try the note and the dot with the Debug tab's replays (only while debug is on)
 DEBUG_NOTE = "debug_note"
 DEBUG_SCENERY = "debug_scenery"
 DEBUG_NEWS = (
@@ -117,8 +116,7 @@ def _load() -> dict:
     tags = record.get("tags")
     return {"seen": [s for s in seen if isinstance(s, str)] if isinstance(seen, list) else [],
             "shown": shown if isinstance(shown, dict) else {},
-            "tags": {k: t for k, t in tags.items() if isinstance(t, dict)} if isinstance(tags, dict) else {},
-            "debug": record.get("debug") if isinstance(record.get("debug"), dict) else None}
+            "tags": {k: t for k, t in tags.items() if isinstance(t, dict)} if isinstance(tags, dict) else {}}
 
 
 def _save(record: dict) -> None:
@@ -143,7 +141,7 @@ def note(cfg: dict, day: _dt.date) -> dict | None:
     newer one is only ever listed in the About tab."""
     notes = [e for e in offered(cfg) if e["kind"] == NOTE]
     record = _load()
-    entry = _debug_pick(notes, record) or next((e for e in notes if e["id"] != DEBUG_NOTE), None)
+    entry = next((e for e in notes if e["id"] != DEBUG_NOTE), None)
     if entry is None:
         entry = next((e for e in notes if e["id"] == DEBUG_NOTE), None)  # (only while debug is on)
     if entry is None or entry["id"] in record["seen"]:
@@ -159,21 +157,6 @@ def note(cfg: dict, day: _dt.date) -> dict | None:
         mark_seen([entry["id"]])
         return None
     return {"id": entry["id"], "title": entry.get("title", ""), "text": entry.get("text", ""), "action": entry.get("action", "")}
-
-
-def _debug_pick(notes: list, record: dict) -> dict | None:
-    """The note the Debug tab's "Show it as new" asked for, if debug is on (the debug note
-    is only offered then): a real one again, or the made-up one pointing at a setting."""
-    pick = record.get("debug")
-    if not isinstance(pick, dict) or not any(e["id"] == DEBUG_NOTE for e in notes):
-        return None
-    if pick.get("show"):
-        return next((e for e in notes if e["id"] == pick["show"]), None)
-    if pick.get("opens"):
-        return {"id": DEBUG_NOTE, "kind": NOTE, "title": f"New: {pick.get('name') or pick['opens']}",
-                "text": "Made up, while debug is on. The button opens that setting, tagged NEW.",
-                "action": "Show me", "opens": pick["opens"]}
-    return None
 
 
 def _dots(cfg: dict) -> list:
@@ -282,9 +265,6 @@ def tried(key: str) -> None:
 def opens(news_id: str) -> str:
     """Where a note's button opens the settings: a tab ("scenery", "forest", "heatmap",
     "decks", "about"), a setting one of them names (their news_targets, e.g. "animations"), or ""."""
-    pick = _load().get("debug")
-    if news_id == DEBUG_NOTE and isinstance(pick, dict) and pick.get("opens"):
-        return pick["opens"]
     return next((e["announce"].get("opens", "") for e in _items() if e["announce"]["id"] == news_id), "")
 
 
@@ -331,13 +311,3 @@ def replay_fresh() -> None:
     """As a fresh install: everything seen."""
     _save({"seen": _all_ids(), "shown": {}})
 
-
-def debug_show(show: str = "", opens: str = "", name: str = "") -> None:
-    """Show one note as new again, ahead of any other: a real one by its id (`show`), or the
-    made-up one pointing at a setting (`opens`, called `name`)."""
-    record = _load()
-    shown_id = show or DEBUG_NOTE
-    record["seen"] = [i for i in record["seen"] if i != shown_id]
-    record["shown"].pop(shown_id, None)
-    record["debug"] = {"show": show} if show else {"opens": opens, "name": name}
-    _save(record)
