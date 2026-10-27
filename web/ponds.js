@@ -67,6 +67,9 @@ function flatBox(env, p, xs) {
 AF.POND = { OVERHANG: POND_OVERHANG, BACK: POND_BACK, ROWS: POND_ROWS };  // for a visit's ponds (web/visit.js)
 AF.drawPond = function (g, env, p) {
   if (!p.it.first) return;
+  // an environment may draw its own (under water a pond is a hollow in the sand, not a pool)
+  const own = AF.envOf(env).pond;
+  if (own && own(g, env, p, AF.pondBox(env, p))) { if (env.afterItem) env.afterItem(g, p); return; }
   const th = env.theme, { cx, cy, w, h } = AF.pondBox(env, p);
   // a frozen pond is ice in the hour's own colour (the scene's water, paled): a fixed daylight white
   // glowed out of the market's dusk and night, as the lakes' ice once did (water.js)

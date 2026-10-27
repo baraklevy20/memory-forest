@@ -152,6 +152,9 @@ function deepForest(env, lg) {
   const th = env.theme, { W, u } = env, d = env.deep, paint = painter(lg);
   const far = d.base;  // just beyond the horizon, so it reads as forest carrying on over the hill
   const EP = AF.envOf(env).pals || {};
+  // an environment may shape its distant crowns its own way (`deepLobes`: any of gap, r, rSpread,
+  // h and hSpread as above, and flat, 0 a dome .. 1 a flat top)
+  const LB = Object.assign({ gap: LOBE_GAP, r: LOBE_R, rSpread: LOBE_R_SPREAD, h: LOBE_H, hSpread: LOBE_H_SPREAD, flat: 0 }, AF.envOf(env).deepLobes);
   // `base` replaces an environment's tree colours wholesale; the distant bands are trees too
   const pal = crownPal(EP, th);
   const haze = hex(th.haze), tint = th.tint ? hex(th.tint) : null;
@@ -170,11 +173,11 @@ function deepForest(env, lg) {
       // a row of distant crowns: overlapping lobes, so the skyline reads as trees, not a hedge
       const top = new Float32Array(Math.max(1, Math.round(x1 - x0) + 1)).fill(base);
       // crowns have to sit closer together on a narrow panel, or the band comes apart
-      for (let cx = x0 - 2; cx <= x1 + 2; cx += Math.max(1, (LOBE_GAP + R() * LOBE_GAP) * u)) {
-        const r = (LOBE_R + R() * LOBE_R_SPREAD) * u, h = crown * (LOBE_H + R() * LOBE_H_SPREAD);
+      for (let cx = x0 - 2; cx <= x1 + 2; cx += Math.max(1, (LB.gap + R() * LB.gap) * u)) {
+        const r = (LB.r + R() * LB.rSpread) * u, h = crown * (LB.h + R() * LB.hSpread);
         for (let x = Math.ceil(cx - r); x <= cx + r; x++) {
           const i = Math.round(x - x0); if (i < 0 || i >= top.length) continue;
-          top[i] = Math.min(top[i], base - h * Math.sqrt(Math.max(0, 1 - ((x - cx) / r) ** 2)));
+          top[i] = Math.min(top[i], base - h * Math.min(1, (1 + LB.flat * 3) * Math.sqrt(Math.max(0, 1 - ((x - cx) / r) ** 2))));
         }
       }
       for (let i = 0; i < top.length; i++) {

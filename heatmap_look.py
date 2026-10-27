@@ -674,13 +674,66 @@ def _rime(pal, _edge, v, T):  # misty_valley.js
     return out
 
 
+# a giraffe's coat: the shade in patches parted by a paler network, turned or mirrored per variant
+GIRAFFE_COAT = ("...#....", "...#....", "####....", "...#.###", "....##..", ".....#..", "###..#..", "..#..###")
+GIRAFFE_LINE, GIRAFFE_DARK = (255, 240, 214), (96, 52, 30)
+
+
+def _giraffe(pal, edge, v, T):  # savanna_sundown.js
+    # on the palest shades a paler line vanished, so there the network is a step darker
+    pale = pal[0][0] * 0.299 + pal[0][1] * 0.587 + pal[0][2] * 0.114 > 172
+    n, line, out = T - 1, mix(pal[0], GIRAFFE_DARK, 0.13) if pale else mix(pal[0], GIRAFFE_LINE, 0.16), {}
+    for y in range(T):
+        for x in range(T):
+            if x in (0, n) and y in (0, n):
+                continue
+            if x == n or y == n:
+                out[x, y] = edge
+                continue
+            cx, cy = x * 8 // n, y * 8 // n
+            if v & 1:
+                cx = 7 - cx
+            if v & 2:
+                cx, cy = cy, cx
+            out[x, y] = line if GIRAFFE_COAT[cy][cx] == "#" else pal[0]
+    return out
+
+
+LAGOON_LIT = (255, 255, 255)
+
+
+def _lagoon(pal, _edge, v, T):  # coral_reef.js
+    n, lit, out = T - 1, mix(pal[0], LAGOON_LIT, 0.15), {}
+    for y in range(n):
+        for x in range(n):
+            if x in (0, n - 1) and y in (0, n - 1):
+                continue
+            w = math.floor(math.sin(x * 0.8 + v * 1.9) * 1.1 + 0.5)  # (Math.round)
+            r = (y + w + v) % 4
+            out[x, y] = lit if r == 0 else pal[1] if r == 1 else pal[0]
+    return out
+
+
+RINGS_DARK = (24, 8, 44)
+
+
+def _rings(pal, _edge, v, T):  # psychedelic.js
+    n, dark, out = T - 1, mix(pal[0], RINGS_DARK, 0.2), {}
+    cx = n + 0.5 if v & 1 else -0.5
+    for y in range(n):
+        for x in range(n):
+            out[x, y] = dark if math.floor(math.hypot(x + 0.5 - cx, y + 1) / 2.6) & 1 else pal[0]  # (Math.floor(d / 2.6): // rounds 13 / 2.6 down to 4)
+    return out
+
+
 def _flat(pal, edge, _v, T):
     return {(x, y): edge if x == T - 1 or y == T - 1 else pal[0] for y in range(T) for x in range(T)}
 
 
 # each environment that draws its tiles in a medium of its own (calendarTile), and how
 DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice, "chalkboard": _chalk,
-           "misty_valley": _rime, "bamboo": _canes}
+           "misty_valley": _rime, "bamboo": _canes, "savanna_sundown": _giraffe, "coral_reef": _lagoon,
+           "psychedelic": _rings}
 
 
 def tile_pixels(drawer: str, shade, v: int = 0) -> dict:

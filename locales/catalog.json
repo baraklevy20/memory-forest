@@ -1507,6 +1507,18 @@
    "web/heatmap/flat.json"
   ]
  },
+ "heatmap_style.giraffe": {
+  "web": false,
+  "where": [
+   "web/heatmap/giraffe.json"
+  ]
+ },
+ "heatmap_style.giraffe.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/giraffe.json"
+  ]
+ },
  "heatmap_style.ice": {
   "web": false,
   "where": [
@@ -1517,6 +1529,18 @@
   "web": false,
   "where": [
    "web/heatmap/ice.json"
+  ]
+ },
+ "heatmap_style.lagoon": {
+  "web": false,
+  "where": [
+   "web/heatmap/lagoon.json"
+  ]
+ },
+ "heatmap_style.lagoon.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/lagoon.json"
   ]
  },
  "heatmap_style.pumpkin": {
@@ -1541,6 +1565,18 @@
   "web": false,
   "where": [
    "web/heatmap/rime.json"
+  ]
+ },
+ "heatmap_style.rings": {
+  "web": false,
+  "where": [
+   "web/heatmap/rings.json"
+  ]
+ },
+ "heatmap_style.rings.tip": {
+  "web": false,
+  "where": [
+   "web/heatmap/rings.json"
   ]
  },
  "heatmap_style.round": {
@@ -2072,6 +2108,18 @@
    "presets"
   ]
  },
+ "preset.coral_reef": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.coral_reef.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
  "preset.custom": {
   "web": false,
   "where": [
@@ -2140,6 +2188,18 @@
    "presets"
   ]
  },
+ "preset.psychedelic": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.psychedelic.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
  "preset.pumpkin_patch": {
   "web": false,
   "where": [
@@ -2147,6 +2207,18 @@
   ]
  },
  "preset.pumpkin_patch.note": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.savanna_sundown": {
+  "web": false,
+  "where": [
+   "presets"
+  ]
+ },
+ "preset.savanna_sundown.note": {
   "web": false,
   "where": [
    "presets"

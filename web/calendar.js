@@ -1102,7 +1102,7 @@ function paint(H, win, sp, paper) {
   // here, besides the animals coming only after it). A day you marked keeps its mark in view.
   for (const c of cells) {
     if (H.marked.has(c.o)) continue;
-    const a = (animals.get(c.o) || [])[0], spr = a && (a.spr || (AF.VISITOR_SPRITES && AF.VISITOR_SPRITES[a.key]));
+    const a = (animals.get(c.o) || [])[0], spr = a && (a.spr || (AF.visitorSprite ? AF.visitorSprite(sp, a.key) : AF.VISITOR_SPRITES && AF.VISITOR_SPRITES[a.key]));
     if (spr) {
       const rows = spr.frames[0];
       drawAnimal(ag, spr, c.x + Math.floor((TILE - rows[0].length) / 2), c.y + Math.floor((TILE - rows.length) / 2), sp.visitorTint, paper.bg);

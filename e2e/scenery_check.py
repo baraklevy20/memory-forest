@@ -160,6 +160,9 @@ def payload(look: dict, trees: int = TREES, nature: str = "peaceful", timeline=(
     global _payload
     if _payload is None:
         from fake_anki import addon, reset
+        # each scene draws the scenery it asks for: in a holiday's week the seasonal one would
+        # stand in for every one of them (Pumpkin patch for Aurora, all of Halloween week)
+        addon.payload.follow_season = lambda cfg, day=None: cfg
         _payload = (addon, reset)
     addon, reset = _payload
     reset(CARDS if deck else (), dict({"debug": True, "test_forest": not deck, "test_trees": trees, "nature": nature,

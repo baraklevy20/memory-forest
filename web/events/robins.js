@@ -12,6 +12,9 @@ const ROBIN_PAL = { h: '#7a6452', w: '#5a4838', T: '#4a3a2e', o: '#e0602a', O: '
 
 AF.events.add('robins', {
   front(g, env, t) {
+    // a scenery may dress its robins (`birdSprite('robin', env)`: { rows, pal, ox, oy }, the same
+    // pose, ox/oy the columns and rows it adds left of and above the engine's); else the engine's own
+    const own = AF.envOf(env).birdSprite, S = (own && own('robin', env)) || { rows: ROBIN, pal: ROBIN_PAL, ox: 0, oy: 0 };
     for (const p of env.placed) {
       if (p.it.pond || !p.it.cured) continue;
       const h = AF.STAGE_H[p.it.stage] * env.u * p.s, crows = Math.min(3, p.it.leeches || 0);
@@ -21,9 +24,9 @@ AF.events.add('robins', {
       // standing on the crown's top (its leg, the sprite's bottom row, sixth column), left of any
       // crows still there for other leeches (crows.js puts them from the middle rightwards)
       const at = perch(env, p, Math.round(p.x) - (crows ? 10 : 0), Math.round(p.y - h + 1));
-      const x = at.x - (flip ? 3 : 5), y = at.y - ROBIN.length + 1 - hop;  // its leg stays put when it turns
+      const w = S.rows[0].length, x = at.x - (flip ? w - 1 - (5 + S.ox) : 5 + S.ox), y = at.y - S.rows.length + 1 - hop;  // its leg stays put when it turns
       // up close (a visit) it is as much bigger as its tree, perched where it was
-      AF.scaledAt(g, AF.visitK(p), at.x, at.y, () => ROBIN.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy, ROBIN_PAL[ch]); } }));
+      AF.scaledAt(g, AF.visitK(p), at.x, at.y, () => S.rows.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy, S.pal[ch]); } }));
     }
   },
 });

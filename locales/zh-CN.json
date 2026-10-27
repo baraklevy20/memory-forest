@@ -1378,6 +1378,14 @@
   "text": "方形色块，每块单一颜色，边角圆润",
   "en": "Square tiles, each one solid colour, their corners smooth"
  },
+ "heatmap_style.giraffe": {
+  "text": "长颈鹿斑纹",
+  "en": "Giraffe coat"
+ },
+ "heatmap_style.giraffe.tip": {
+  "text": "「稀树草原日落」的长颈鹿斑纹",
+  "en": "Savanna sundown's giraffe patches"
+ },
  "heatmap_style.ice": {
   "text": "冰块",
   "en": "Ice blocks"
@@ -1385,6 +1393,14 @@
  "heatmap_style.ice.tip": {
   "text": "“冰封河上的市集”的冰块，仅在它的那一周可用",
   "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.lagoon": {
+  "text": "泻湖之水",
+  "en": "Lagoon water"
+ },
+ "heatmap_style.lagoon.tip": {
+  "text": "「珊瑚礁」里洒满阳光的泻湖之水",
+  "en": "Coral reef's sunlit lagoon water"
  },
  "heatmap_style.pumpkin": {
   "text": "南瓜",
@@ -1401,6 +1417,14 @@
  "heatmap_style.rime.tip": {
   "text": "「云雾山谷」的霜，挂在每个色块的上沿",
   "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.rings": {
+  "text": "海报圆环",
+  "en": "Poster rings"
+ },
+ "heatmap_style.rings.tip": {
+  "text": "「60年代迷幻」里荡漾的圆环",
+  "en": "1960s psychedelia's rippling rings"
  },
  "heatmap_style.round": {
   "text": "圆点",
@@ -1794,6 +1818,14 @@
   "text": "富士山下赏樱：河畔樱花盛开，头顶挂着纸灯笼，花瓣随风飘落。",
   "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
  },
+ "preset.coral_reef": {
+  "text": "珊瑚礁",
+  "en": "Coral reef"
+ },
+ "preset.coral_reef.note": {
+  "text": "沙质海底上长的是珊瑚而不是树，礁壁上躺着一艘古老的沉船，光从水面荡漾着洒下来。",
+  "en": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+ },
  "preset.custom": {
   "text": "自定义",
   "en": "Custom"
@@ -1838,6 +1870,14 @@
   "text": "一座雪峰俯瞰着尚未醒来的山谷。",
   "en": "A snow-capped peak over a valley that has not woken up yet."
  },
+ "preset.psychedelic": {
+  "text": "60年代迷幻",
+  "en": "1960s psychedelia"
+ },
+ "preset.psychedelic.note": {
+  "text": "一张1967年的演唱会海报：波纹圆环中的花朵太阳、欧普艺术的地面、棒棒糖树，以及黑光灯下的夜晚。",
+  "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+ },
  "preset.pumpkin_patch": {
   "text": "月下女巫",
   "en": "Witch across the moon"
@@ -1845,6 +1885,14 @@
  "preset.pumpkin_patch.note": {
   "text": "女巫和她的猫飞过一轮初升的丰收月，下方是一片咧嘴偷笑的南瓜灯。",
   "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.savanna_sundown": {
+  "text": "稀树草原日落",
+  "en": "Savanna sundown"
+ },
+ "preset.savanna_sundown.note": {
+  "text": "平原上一轮低垂的巨大落日，长颈鹿缓缓从它前面走过。",
+  "en": "A huge low sun over the plains, giraffes walking slowly across it."
  },
  "preset.starry_night": {
   "text": "星月夜",

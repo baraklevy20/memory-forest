@@ -1453,6 +1453,14 @@
   "text": "Quadratische Kacheln, jede einfarbig, mit abgerundeten Ecken",
   "en": "Square tiles, each one solid colour, their corners smooth"
  },
+ "heatmap_style.giraffe": {
+  "text": "Giraffenfell",
+  "en": "Giraffe coat"
+ },
+ "heatmap_style.giraffe.tip": {
+  "text": "Die Giraffenflecken aus „Savanne bei Sonnenuntergang“",
+  "en": "Savanna sundown's giraffe patches"
+ },
  "heatmap_style.ice": {
   "text": "Eisblöcke",
   "en": "Ice blocks"
@@ -1460,6 +1468,14 @@
  "heatmap_style.ice.tip": {
   "text": "Das Eis aus „Markt auf dem gefrorenen Fluss“, nur in seiner Woche",
   "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.lagoon": {
+  "text": "Lagunenwasser",
+  "en": "Lagoon water"
+ },
+ "heatmap_style.lagoon.tip": {
+  "text": "Das sonnige Lagunenwasser aus „Korallenriff“",
+  "en": "Coral reef's sunlit lagoon water"
  },
  "heatmap_style.pumpkin": {
   "text": "Kürbisse",
@@ -1476,6 +1492,14 @@
  "heatmap_style.rime.tip": {
   "text": "Der Raureif aus „Nebliges Bergtal“ an der Oberkante jeder Kachel",
   "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.rings": {
+  "text": "Posterringe",
+  "en": "Poster rings"
+ },
+ "heatmap_style.rings.tip": {
+  "text": "Die wogenden Ringe aus „Psychedelische 60er“",
+  "en": "1960s psychedelia's rippling rings"
  },
  "heatmap_style.round": {
   "text": "Rund",
@@ -1877,6 +1901,14 @@
   "text": "Hanami am Fuji: blühende Kirschbäume am Fluss, Papierlaternen über dir und Blütenblätter im Wind.",
   "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
  },
+ "preset.coral_reef": {
+  "text": "Korallenriff",
+  "en": "Coral reef"
+ },
+ "preset.coral_reef.note": {
+  "text": "Korallen statt Bäume auf sandigem Meeresgrund, ein altes Wrack auf der Riffwand und Licht, das von der Oberfläche herabflimmert.",
+  "en": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+ },
  "preset.custom": {
   "text": "Eigene",
   "en": "Custom"
@@ -1921,6 +1953,14 @@
   "text": "Ein schneebedeckter Gipfel über einem Tal, das noch nicht erwacht ist.",
   "en": "A snow-capped peak over a valley that has not woken up yet."
  },
+ "preset.psychedelic": {
+  "text": "Psychedelische 60er",
+  "en": "1960s psychedelia"
+ },
+ "preset.psychedelic.note": {
+  "text": "Ein Konzertplakat von 1967: eine Blumensonne in wogenden Ringen, ein Op-Art-Boden, Lutscherbäume und eine Schwarzlichtnacht.",
+  "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+ },
  "preset.pumpkin_patch": {
   "text": "Hexe vor dem Mond",
   "en": "Witch across the moon"
@@ -1928,6 +1968,14 @@
  "preset.pumpkin_patch.note": {
   "text": "Eine Hexe und ihre Katze fliegen vor einem aufgehenden Erntemond über ein Feld grinsender, kichernder Kürbislaternen.",
   "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.savanna_sundown": {
+  "text": "Savanne bei Sonnenuntergang",
+  "en": "Savanna sundown"
+ },
+ "preset.savanna_sundown.note": {
+  "text": "Eine riesige tiefe Sonne über der Ebene, Giraffen ziehen langsam an ihr vorbei.",
+  "en": "A huge low sun over the plains, giraffes walking slowly across it."
  },
  "preset.starry_night": {
   "text": "Sternennacht",

@@ -1,0 +1,9 @@
+{
+ "order": 9,
+ "label": "Lagoon water",
+ "tip": "Coral reef's sunlit lagoon water",
+ "env": "coral_reef",
+ "gaps": true,
+ "smooth": false,
+ "phrase": "Lagoon-water tiles"
+}

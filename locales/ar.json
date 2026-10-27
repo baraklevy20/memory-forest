@@ -1753,6 +1753,14 @@
   "text": "خانات مربعة، كل منها بلون واحد، بزوايا ناعمة",
   "en": "Square tiles, each one solid colour, their corners smooth"
  },
+ "heatmap_style.giraffe": {
+  "text": "جلد الزرافة",
+  "en": "Giraffe coat"
+ },
+ "heatmap_style.giraffe.tip": {
+  "text": "بقع الزرافة من «غروب السافانا»",
+  "en": "Savanna sundown's giraffe patches"
+ },
  "heatmap_style.ice": {
   "text": "قوالب جليد",
   "en": "Ice blocks"
@@ -1760,6 +1768,14 @@
  "heatmap_style.ice.tip": {
   "text": "جليد «سوق على النهر المتجمد»، في أسبوعه فقط",
   "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.lagoon": {
+  "text": "مياه البحيرة",
+  "en": "Lagoon water"
+ },
+ "heatmap_style.lagoon.tip": {
+  "text": "مياه البحيرة المشمسة من «شعاب مرجانية»",
+  "en": "Coral reef's sunlit lagoon water"
  },
  "heatmap_style.pumpkin": {
   "text": "يقطين",
@@ -1776,6 +1792,14 @@
  "heatmap_style.rime.tip": {
   "text": "صقيع «وادٍ جبلي في الضباب» على طول أعلى كل خانة",
   "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.rings": {
+  "text": "حلقات الملصق",
+  "en": "Poster rings"
+ },
+ "heatmap_style.rings.tip": {
+  "text": "حلقات «سايكيديليا الستينيات» المتموّجة",
+  "en": "1960s psychedelia's rippling rings"
  },
  "heatmap_style.round": {
   "text": "دائري",
@@ -2209,6 +2233,14 @@
   "text": "هانامي عند سفح فوجي: أشجار كرز مزهرة على طول النهر، وفوانيس ورقية في الأعلى، وبتلات في النسيم.",
   "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
  },
+ "preset.coral_reef": {
+  "text": "شعاب مرجانية",
+  "en": "Coral reef"
+ },
+ "preset.coral_reef.note": {
+  "text": "مرجان بدل الأشجار على قاع رملي، وحطام سفينة قديمة على جدار الشعاب، وضوء يتموج نازلًا من السطح.",
+  "en": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+ },
  "preset.custom": {
   "text": "مخصّص",
   "en": "Custom"
@@ -2253,6 +2285,14 @@
   "text": "قمة مكسوّة بالثلج فوق وادٍ لم يستيقظ بعد.",
   "en": "A snow-capped peak over a valley that has not woken up yet."
  },
+ "preset.psychedelic": {
+  "text": "سايكيديليا الستينيات",
+  "en": "1960s psychedelia"
+ },
+ "preset.psychedelic.note": {
+  "text": "ملصق حفل من عام 1967: شمس على هيئة زهرة وسط حلقات متموّجة، وأرضية بفن الخداع البصري، وأشجار كالمصاصات، وليل بضوء الأشعة فوق البنفسجية.",
+  "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+ },
  "preset.pumpkin_patch": {
   "text": "ساحرة تعبر القمر",
   "en": "Witch across the moon"
@@ -2260,6 +2300,14 @@
  "preset.pumpkin_patch.note": {
   "text": "ساحرة وقطّتها تعبران قمر حصاد صاعدًا فوق حقل من فوانيس اليقطين المبتسمة الضاحكة.",
   "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.savanna_sundown": {
+  "text": "غروب السافانا",
+  "en": "Savanna sundown"
+ },
+ "preset.savanna_sundown.note": {
+  "text": "شمس هائلة منخفضة فوق السهول، وزرافات تعبر أمامها ببطء.",
+  "en": "A huge low sun over the plains, giraffes walking slowly across it."
  },
  "preset.starry_night": {
   "text": "ليلة النجوم",

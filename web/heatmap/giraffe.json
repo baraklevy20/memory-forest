@@ -1,0 +1,9 @@
+{
+ "order": 8,
+ "label": "Giraffe coat",
+ "tip": "Savanna sundown's giraffe patches",
+ "env": "savanna_sundown",
+ "gaps": true,
+ "smooth": false,
+ "phrase": "Giraffe-coat tiles"
+}

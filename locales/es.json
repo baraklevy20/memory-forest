@@ -1453,6 +1453,14 @@
   "text": "Casillas cuadradas, cada una de un color liso, con las esquinas suavizadas",
   "en": "Square tiles, each one solid colour, their corners smooth"
  },
+ "heatmap_style.giraffe": {
+  "text": "Piel de jirafa",
+  "en": "Giraffe coat"
+ },
+ "heatmap_style.giraffe.tip": {
+  "text": "Las manchas de jirafa de «Atardecer en la sabana»",
+  "en": "Savanna sundown's giraffe patches"
+ },
  "heatmap_style.ice": {
   "text": "Bloques de hielo",
   "en": "Ice blocks"
@@ -1460,6 +1468,14 @@
  "heatmap_style.ice.tip": {
   "text": "El hielo de «Mercado en el río helado», solo durante su semana",
   "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.lagoon": {
+  "text": "Agua de laguna",
+  "en": "Lagoon water"
+ },
+ "heatmap_style.lagoon.tip": {
+  "text": "El agua soleada de la laguna de «Arrecife de coral»",
+  "en": "Coral reef's sunlit lagoon water"
  },
  "heatmap_style.pumpkin": {
   "text": "Calabazas",
@@ -1476,6 +1492,14 @@
  "heatmap_style.rime.tip": {
   "text": "La escarcha de «Valle de montaña brumoso» en la parte superior de cada casilla",
   "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.rings": {
+  "text": "Anillos de póster",
+  "en": "Poster rings"
+ },
+ "heatmap_style.rings.tip": {
+  "text": "Los anillos ondulantes de «Psicodelia de los 60»",
+  "en": "1960s psychedelia's rippling rings"
  },
  "heatmap_style.round": {
   "text": "Redondo",
@@ -1877,6 +1901,14 @@
   "text": "Hanami al pie del Fuji: cerezos en flor junto al río, faroles de papel en lo alto y pétalos en la brisa.",
   "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
  },
+ "preset.coral_reef": {
+  "text": "Arrecife de coral",
+  "en": "Coral reef"
+ },
+ "preset.coral_reef.note": {
+  "text": "Corales en lugar de árboles sobre un fondo de arena, un viejo naufragio en la pared del arrecife y la luz que ondula desde la superficie.",
+  "en": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+ },
  "preset.custom": {
   "text": "Personalizado",
   "en": "Custom"
@@ -1921,6 +1953,14 @@
   "text": "Una cumbre nevada sobre un valle que aún no ha despertado.",
   "en": "A snow-capped peak over a valley that has not woken up yet."
  },
+ "preset.psychedelic": {
+  "text": "Psicodelia de los 60",
+  "en": "1960s psychedelia"
+ },
+ "preset.psychedelic.note": {
+  "text": "Un cartel de concierto de 1967: un sol en forma de flor entre anillos ondulantes, un suelo de op art, árboles de piruleta y una noche de luz negra.",
+  "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+ },
  "preset.pumpkin_patch": {
   "text": "Bruja ante la luna",
   "en": "Witch across the moon"
@@ -1928,6 +1968,14 @@
  "preset.pumpkin_patch.note": {
   "text": "Una bruja y su gato cruzan una luna de cosecha que asoma sobre un huerto de calabazas de Halloween que sonríen y se ríen por lo bajo.",
   "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.savanna_sundown": {
+  "text": "Atardecer en la sabana",
+  "en": "Savanna sundown"
+ },
+ "preset.savanna_sundown.note": {
+  "text": "Un sol enorme y bajo sobre la llanura, con jirafas que pasan despacio por delante.",
+  "en": "A huge low sun over the plains, giraffes walking slowly across it."
  },
  "preset.starry_night": {
   "text": "Noche estrellada",

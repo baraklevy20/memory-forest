@@ -21,5 +21,14 @@
  ],
  "frozen_market": "#6e92c8",
  "cherry_blossom": "#d8a6bc",
- "chalkboard": "#ffd99a"
+ "chalkboard": "#ffd99a",
+ "savanna_sundown": [
+  "#ac485a",
+  "#f6b05a"
+ ],
+ "coral_reef": "#22a6b8",
+ "psychedelic": [
+  "#3c45bb",
+  "#d46c99"
+ ]
 }

@@ -1378,6 +1378,14 @@
   "text": "角の丸い単色の正方形タイル",
   "en": "Square tiles, each one solid colour, their corners smooth"
  },
+ "heatmap_style.giraffe": {
+  "text": "キリンの模様",
+  "en": "Giraffe coat"
+ },
+ "heatmap_style.giraffe.tip": {
+  "text": "「サバンナの夕暮れ」のキリンの模様",
+  "en": "Savanna sundown's giraffe patches"
+ },
  "heatmap_style.ice": {
   "text": "氷のブロック",
   "en": "Ice blocks"
@@ -1385,6 +1393,14 @@
  "heatmap_style.ice.tip": {
   "text": "「凍った川のマーケット」の氷（その週のみ）",
   "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.lagoon": {
+  "text": "ラグーンの水",
+  "en": "Lagoon water"
+ },
+ "heatmap_style.lagoon.tip": {
+  "text": "「サンゴ礁」の日差しが揺れるラグーンの水",
+  "en": "Coral reef's sunlit lagoon water"
  },
  "heatmap_style.pumpkin": {
   "text": "かぼちゃ",
@@ -1401,6 +1417,14 @@
  "heatmap_style.rime.tip": {
   "text": "「霧の渓谷」の霜 (各タイルの上端に)",
   "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.rings": {
+  "text": "ポスターの輪",
+  "en": "Poster rings"
+ },
+ "heatmap_style.rings.tip": {
+  "text": "「60年代サイケデリア」のゆらめく輪",
+  "en": "1960s psychedelia's rippling rings"
  },
  "heatmap_style.round": {
   "text": "丸",
@@ -1794,6 +1818,14 @@
   "text": "富士山のふもとでお花見。川沿いに咲く桜、頭上の提灯、風に舞う花びら。",
   "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
  },
+ "preset.coral_reef": {
+  "text": "サンゴ礁",
+  "en": "Coral reef"
+ },
+ "preset.coral_reef.note": {
+  "text": "砂の海底に木の代わりにサンゴが育ち、礁の壁には古い沈没船、水面からは光がゆらめきながら差し込みます。",
+  "en": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+ },
  "preset.custom": {
   "text": "カスタム",
   "en": "Custom"
@@ -1838,6 +1870,14 @@
   "text": "まだ目覚めていない谷の上にそびえる、雪をかぶった峰。",
   "en": "A snow-capped peak over a valley that has not woken up yet."
  },
+ "preset.psychedelic": {
+  "text": "60年代サイケデリア",
+  "en": "1960s psychedelia"
+ },
+ "preset.psychedelic.note": {
+  "text": "1967年のコンサートポスター。波打つ輪の中の花のような太陽、オプアートの地面、ペロペロキャンディの木々、そしてブラックライトの夜。",
+  "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+ },
  "preset.pumpkin_patch": {
   "text": "月を横切る魔女",
   "en": "Witch across the moon"
@@ -1845,6 +1885,14 @@
  "preset.pumpkin_patch.note": {
   "text": "にやにや、くすくす笑うジャック・オー・ランタンの畑の上、昇る大きな満月を魔女と猫が横切ります。",
   "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.savanna_sundown": {
+  "text": "サバンナの夕暮れ",
+  "en": "Savanna sundown"
+ },
+ "preset.savanna_sundown.note": {
+  "text": "平原に低く大きな太陽、その前をキリンがゆっくりと歩いていく。",
+  "en": "A huge low sun over the plains, giraffes walking slowly across it."
  },
  "preset.starry_night": {
   "text": "星月夜",

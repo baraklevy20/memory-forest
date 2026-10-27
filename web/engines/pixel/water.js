@@ -101,6 +101,7 @@ AF.buildWater = function (env, o) {
   if (!env.pools && !env.theme.frozen) { env.pools = [];
     for (const f of [0.18, 0.5, 0.8]) for (let c = 0; c < 4; c++) env.pools.push({ x: Math.round(W * (c + 0.5) / 4), y: y0 + Math.round(lh * f), w: Math.round(W / 4 / 0.7), h: 2 }); }
   const lg = env.lg; lg.fillStyle = mixHex(env.theme.g1, '#000000', 0.25); lg.fillRect(0, y0 - 1, W, 1);
-  env.water = { y0, lh, rf, lit: orbShows(env) };
+  // (shore, step and tint too: a scenery whose sky moves can stain its reflection again from them)
+  env.water = { y0, lh, rf, lit: orbShows(env), shore, step: o.step, tint: o.tint };
 };
 })();

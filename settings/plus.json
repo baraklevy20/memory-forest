@@ -5,8 +5,23 @@
     "note": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
   },
   {
+    "key": "psychedelic",
+    "label": "1960s psychedelia",
+    "note": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+  },
+  {
+    "key": "coral_reef",
+    "label": "Coral reef",
+    "note": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+  },
+  {
     "key": "chalkboard",
     "label": "Chalkboard",
     "note": "The forest in coloured chalk on a green blackboard."
+  },
+  {
+    "key": "savanna_sundown",
+    "label": "Savanna sundown",
+    "note": "A huge low sun over the plains, giraffes walking slowly across it."
   }
 ]

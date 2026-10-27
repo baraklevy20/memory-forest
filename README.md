@@ -55,6 +55,13 @@ cabin appears at the edge of the woods.
     <td align="center"><img src="docs/animated/cherry_blossom.gif" alt="Cherry blossom, animated"><br><sub>Cherry blossom</sub></td>
     <td align="center"><img src="docs/animated/chalkboard.gif" alt="Chalkboard, animated"><br><sub>Chalkboard</sub></td>
   </tr>
+  <tr>
+    <td align="center"><img src="docs/animated/savanna_sundown.gif" alt="Savanna sundown, animated"><br><sub>Savanna sundown</sub></td>
+    <td align="center"><img src="docs/animated/coral_reef.gif" alt="Coral reef, animated"><br><sub>Coral reef</sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="docs/animated/psychedelic.gif" alt="1960s psychedelia, animated"><br><sub>1960s psychedelia</sub></td>
+  </tr>
 </table>
 
 These arrive in Memory Forest Plus first, and come to this version later on.

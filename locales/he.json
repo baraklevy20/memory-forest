@@ -1528,6 +1528,14 @@
   "text": "משבצות מרובעות, כל אחת בצבע אחיד, עם פינות מעוגלות",
   "en": "Square tiles, each one solid colour, their corners smooth"
  },
+ "heatmap_style.giraffe": {
+  "text": "פרוות ג׳ירפה",
+  "en": "Giraffe coat"
+ },
+ "heatmap_style.giraffe.tip": {
+  "text": "הכתמים של הג׳ירפות מ״שקיעה בסוואנה״",
+  "en": "Savanna sundown's giraffe patches"
+ },
  "heatmap_style.ice": {
   "text": "קוביות קרח",
   "en": "Ice blocks"
@@ -1535,6 +1543,14 @@
  "heatmap_style.ice.tip": {
   "text": "הקרח של ״שוק על נהר קפוא״, רק בשבוע שלו",
   "en": "Frozen river market's ice, in its week only"
+ },
+ "heatmap_style.lagoon": {
+  "text": "מי לגונה",
+  "en": "Lagoon water"
+ },
+ "heatmap_style.lagoon.tip": {
+  "text": "מי הלגונה המוארים בשמש של ״שונית אלמוגים״",
+  "en": "Coral reef's sunlit lagoon water"
  },
  "heatmap_style.pumpkin": {
   "text": "דלעות",
@@ -1551,6 +1567,14 @@
  "heatmap_style.rime.tip": {
   "text": "הכפור של ״עמק הרים בערפל״, לאורך החלק העליון של כל משבצת",
   "en": "Misty valley's frost along the top of each tile"
+ },
+ "heatmap_style.rings": {
+  "text": "טבעות פוסטר",
+  "en": "Poster rings"
+ },
+ "heatmap_style.rings.tip": {
+  "text": "הטבעות הגליות של ״פסיכדליה של שנות ה־ 60״",
+  "en": "1960s psychedelia's rippling rings"
  },
  "heatmap_style.round": {
   "text": "עגול",
@@ -1960,6 +1984,14 @@
   "text": "האנאמי למרגלות הר פוג׳י: עצי דובדבן פורחים לאורך הנהר, פנסי נייר מעל ועלי כותרת ברוח.",
   "en": "Hanami under Fuji: blossoming cherries along the river, paper lanterns overhead, and petals on the breeze."
  },
+ "preset.coral_reef": {
+  "text": "שונית אלמוגים",
+  "en": "Coral reef"
+ },
+ "preset.coral_reef.note": {
+  "text": "אלמוגים במקום עצים על קרקעית חולית, ספינה טרופה ישנה על קיר השונית, ואור שמרצד מטה מפני המים.",
+  "en": "Corals instead of trees on a sandy sea floor, an old wreck on the reef wall, and the light rippling down from the surface."
+ },
  "preset.custom": {
   "text": "מותאם אישית",
   "en": "Custom"
@@ -2004,6 +2036,14 @@
   "text": "פסגה מושלגת מעל עמק שעוד לא התעורר.",
   "en": "A snow-capped peak over a valley that has not woken up yet."
  },
+ "preset.psychedelic": {
+  "text": "פסיכדליה של שנות ה־ 60",
+  "en": "1960s psychedelia"
+ },
+ "preset.psychedelic.note": {
+  "text": "כרזת הופעה משנת 1967: שמש בצורת פרח בתוך טבעות גליות, רצפה בסגנון אופ ארט, עצי סוכרייה על מקל ולילה באור שחור.",
+  "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
+ },
  "preset.pumpkin_patch": {
   "text": "מכשפה על רקע הירח",
   "en": "Witch across the moon"
@@ -2011,6 +2051,14 @@
  "preset.pumpkin_patch.note": {
   "text": "מכשפה והחתול שלה חוצים את ירח הקציר העולה, מעל שדה של פנסי דלעת מחייכים ומצחקקים.",
   "en": "A witch and her cat cross a rising harvest moon over a patch of grinning, chuckling jack-o'-lanterns."
+ },
+ "preset.savanna_sundown": {
+  "text": "שקיעה בסוואנה",
+  "en": "Savanna sundown"
+ },
+ "preset.savanna_sundown.note": {
+  "text": "שמש ענקית ונמוכה מעל המישור, וג׳ירפות חוצות אותה לאט.",
+  "en": "A huge low sun over the plains, giraffes walking slowly across it."
  },
  "preset.starry_night": {
   "text": "ליל כוכבים",

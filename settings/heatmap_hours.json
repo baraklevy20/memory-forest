@@ -60,5 +60,38 @@
  },
  "cherry_blossom": {
   "tint": "#141a3c"
+ },
+ "savanna_sundown": {
+  "hours": {
+   "night": "#ffb04a"
+  },
+  "tint": "#0a1238"
+ },
+ "coral_reef": {
+  "hours": {
+   "night": "#20bcd4"
+  },
+  "tint": "#14204a"
+ },
+ "psychedelic": {
+  "hours": {
+   "dawn": [
+    "#8b8ad9",
+    "#f4a190"
+   ],
+   "golden_hour": [
+    "#923da7",
+    "#f06b67"
+   ],
+   "dusk": [
+    "#5842bc",
+    "#f1788f"
+   ],
+   "night": [
+    "#583dc2",
+    "#60d2d7"
+   ]
+  },
+  "tint": "#0a0830"
  }
 }
