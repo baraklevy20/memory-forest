@@ -1,13 +1,14 @@
-"""Draw the README's heatmap and layout pictures, docs/heatmap.png, docs/heatmap_sceneries.png and
-docs/layout.png, from this copy's scripts in headless Chrome. Uses made-up history unless
---collection is supplied.
+"""Draw the docs' panel, heatmap and layout pictures, docs/panel.png, docs/heatmap_sceneries.png and
+docs/layout.png, from this copy's scripts in headless Chrome, then the grid GIFs (dev/docs_grids.py).
+Uses made-up history unless --collection is supplied.
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
     python3 dev/docs_pictures.py --only layout
     python3 dev/docs_pictures.py --collection /path/to/collection.anki2
 
-heatmap.png: the forest by the lake with its heatmap under it, visible streak labels,
-the current streak's silver trophy, its next goal's flag, and an upcoming exam note.
+panel.png: the pages' first picture, the panel as Anki shows it: the forest by the lake, with the
+animals of its first year, and its heatmap under it, visible streak labels, the current streak's
+silver trophy, its next goal's flag, and an upcoming exam note.
 heatmap_sceneries.png: one heatmap in five sceneries, each beside its picker picture, with
 its current trophy and flag and no other streak markers.
 layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it
@@ -65,6 +66,8 @@ SEED = 20261016
 ROWS = (("golden_lake", None, "timeline"), ("starry_night", None, "timeline"), ("lanterns", None, "timeline"),
         ("aurora", "contours", "timeline"), ("synthwave", None, "timeline"))
 SCENERIES = tuple(key for key, _tiles, _view in ROWS)
+# the animals that take years, which the panel picture leaves out (as dev/make_gif.py HIDE does)
+YEARS_AWAY = ("bear", "squirrel", "eagle", "cabin")
 
 
 def history() -> dict:
@@ -337,13 +340,16 @@ def main() -> None:
             shoot(jobs)
             print("docs/layout.png")
             return
-        # the big picture: the forest and its heatmap, with the streak labels unobstructed
+        # the big picture: the forest and its heatmap, with the streak labels unobstructed, and the
+        # animals its numbers bring but those that take years (left for people to find, as in the GIFs)
         note = {"day": (dt.date.today() + dt.timedelta(days=18)).isoformat(), "icon": "exam", "name": "Exam"}
         big = dict(forest_data(lake), calendar=calendar(lake, [note]), showForest=True)
+        if REAL_DATA is None:
+            big["visitors"] = [v for v in milestones.for_page(fake_forest.visitors(big["stats"])) if v["key"] not in YEARS_AWAY]
         path = os.path.join(tmp, "big.html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(page(lake, big, 756, ".af-cog { display: none !important }"))
-        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "heatmap.png")})
+        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "panel.png")})
         # the sceneries: the heatmap alone, with only the current trophy and flag revealed
         shots = {}
         for key, tiles, view in ROWS:
@@ -359,7 +365,9 @@ def main() -> None:
                          "pad": 0 if tiles == "contours" else 2, "out": shots[key]})
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
-    print("docs/heatmap.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png"))
+    print("docs/panel.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png"))
+    if not args.only:
+        subprocess.run([sys.executable, os.path.join(HERE, "docs_grids.py")], check=True)
 
 
 if __name__ == "__main__":

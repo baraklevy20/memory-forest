@@ -73,7 +73,7 @@ class MadeFromItTests(unittest.TestCase):
         self.assertEqual((base[0]["new"], base[0]["plus"]), (["Free."], ["X", "the Y landscape"]))
         self.assertEqual(release_notes.plus_line(base[0]), "Also new in Memory Forest Plus: X and the Y landscape.")
         self.assertTrue(release_notes.to_markdown(base, "5.0.0").endswith("- Free.\n\nAlso new in Memory Forest Plus: X and the Y landscape.\n"))
-        self.assertNotIn("Plus", release_notes.to_html(base))  # (the AnkiWeb page's own pictures say it)
+        self.assertTrue(release_notes.to_html(base).endswith("</ul>\n<div>Also new in Memory Forest Plus: X and the Y landscape.</div>\n"))
         # (the base copy's file, filtered again by the add-on, keeps its names)
         self.assertEqual(release_notes.for_edition(base, {"scenery": {"other"}})[0]["plus"], ["X", "the Y landscape"])
         everything = release_notes.for_edition(versions, {"scenery": None})

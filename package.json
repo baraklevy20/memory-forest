@@ -35,6 +35,7 @@
     "nature-gifs": "python3 dev/nature_gifs.py",
     "heatmap-keys": "python3 dev/heatmap_keys.py",
     "docs-pictures": "python3 dev/docs_pictures.py",
+    "docs-grids": "python3 dev/docs_grids.py",
     "strings": "python3 dev/strings.py"
   },
   "devDependencies": {

@@ -98,8 +98,8 @@ def items(version: dict, sections=tuple(k for k, _h in SECTIONS)) -> list:
 
 
 def to_html(versions: list) -> str:
-    """The AnkiWeb page's What's new, between HTML_START and HTML_END (without the Plus line:
-    the page's own "New in Memory Forest Plus" pictures say it)."""
+    """The AnkiWeb page's What's new, between HTML_START and HTML_END, each version closing with
+    what Plus got more (plus_line), as the add-on's own notes do."""
     out = []
     for v in versions:
         out.append(f"<i>{v['version']}</i>")
@@ -112,6 +112,8 @@ def to_html(versions: list) -> str:
                 out.append("<ul>")
                 out += [f"<li>{item(e)['text']}</li>" for e in v[key]]
                 out.append("</ul>")
+        if plus_line(v):
+            out.append(f"<div>{plus_line(v)}</div>")
     return "\n".join(out) + "\n"
 
 
