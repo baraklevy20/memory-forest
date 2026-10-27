@@ -159,13 +159,14 @@ def script_tags(mood: dict, data: dict) -> str:
     return tags
 
 
-def page(mood: dict, data: dict, width: int, extra_css: str = "") -> str:
+def page(mood: dict, data: dict, width: int, extra_css: str = "", head: str = "", opts: dict | None = None) -> str:
+    """The panel on Anki's dark page; `head` goes first (dev/post_gifs.py: its clock), `opts` to mount."""
     css = open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8").read()
     tags = script_tags(mood, data)
-    return f"""<!doctype html><meta charset="utf-8"><style>body {{ margin: 0; padding: 0; background: {PAGE_BG}; color: {PAGE_FG};
+    return f"""<!doctype html><meta charset="utf-8">{head}<style>body {{ margin: 0; padding: 0; background: {PAGE_BG}; color: {PAGE_FG};
 --fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} .af-cal-tip {{ display: none !important }} .af-cal .af-cal-above {{ opacity: 1 }} {extra_css}</style>
 <div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}
-<script>AnkiForest.mount(document.getElementById('p'), {json.dumps(data)});</script>"""
+<script>AnkiForest.mount(document.getElementById('p'), {json.dumps(data)}{', ' + json.dumps(opts) if opts else ''});</script>"""
 
 
 def forest_data(mood: dict) -> dict:

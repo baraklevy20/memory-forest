@@ -51,6 +51,9 @@ HIDE = ("bear", "squirrel", "eagle", "cabin")
 SECONDS, FPS = 5, 15
 # the clock starts here (ms), past the moment a scene first draws, so nothing is mid-appearance
 START_MS = 20000
+# and runs this long (ms) before the first shot: a layer drawn a few times a second (a light, a
+# ripple) is missing from the first moments after the forest is built
+WARM_MS = 1000
 CHROME_TIMEOUT_SECS = 300
 # the clock is ours: animation frames and timers wait in a queue until pump(ms) runs them at a
 # time we choose, and performance.now() says that time too (the loop sleeps between frames on a
@@ -81,36 +84,46 @@ def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None)
     # last would be the first again; otherwise a little over a frame apart, so the loop's
     # frame timer never skips one
     step, first = (1000 / FPS, 0) if loop else (1000 / FPS + 0.5, 1)
+    # (a loop starts on one of its own first moments, where the clock wraps: anything that does
+    # not loop then jumps only where the GIF starts over, never in its middle)
+    start = -(-(START_MS + WARM_MS) // round(loop * 1000)) * round(loop * 1000) if loop else START_MS + WARM_MS
     return (f"<!doctype html><meta charset=utf-8><style>body{{margin:0}}.af-panel{{width:{PANEL_PX}px;margin:0;padding:0}}</style>"
             f"<script>{CLOCK_JS}</script>"  # (the clock is ours: CLOCK_JS)
             "<div class='af-panel' id=p></div><pre id=o></pre>"
             f"<script>{scripts()}</script><script>window.D = {json.dumps(data)};</script>"
-            f"<script>NOW_MS = {START_MS};"
+            f"<script>NOW_MS = {START_MS};"  # (mounted then: the loop's first shot is START_MS or later)
             "try { AnkiForest.mount(document.getElementById('p'), window.D, { now: true }); }"
             "catch (e) { window.ERRS.push('mount: ' + (e.stack || e)); }"
             "const shots = [], c = document.querySelector('canvas');"
+            f"for (let t = {START_MS} + {step}; t < {start}; t += {step}) pump(t);"  # (warming up: WARM_MS)
             # each pump is one frame: the loop draws when more than its frame time has passed
-            f"for (let i = {first}; i < {first} + {frames}; i++) {{ pump({START_MS} + i * {step}); shots.push(c.toDataURL()); }}"
+            f"for (let i = {first}; i < {first} + {frames}; i++) {{ pump({start} + i * {step}); shots.push(c.toDataURL()); }}"
             "document.getElementById('o').textContent = JSON.stringify({ errors: window.ERRS, w: c.width, h: c.height, shots });"
             "</script>")
 
 
-def record(key: str, cfg: dict, out: str, n: int, seconds: float, hide: tuple, loop: float | None = None) -> None:
-    frames = round((loop or seconds) * FPS)
+def shots(key: str, cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None) -> dict:
+    """The canvas's frames, one Chrome: {"w", "h", "shots": [PNG bytes]}, a canvas pixel a pixel."""
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "page.html")
         open(path, "w", encoding="utf-8").write(page(cfg, n, frames, hide, loop))
         dom = subprocess.run([CHROME, "--headless=new", "--disable-gpu", f"--window-size={PANEL_PX + 40},600",
                               "--virtual-time-budget=60000", "--dump-dom", "file://" + path],
                              capture_output=True, text=True, timeout=CHROME_TIMEOUT_SECS).stdout
-        m = re.search(r'<pre id="?o"?>(.*?)</pre>', dom, re.S)
-        if not m:
-            sys.exit(f"{key}: the page never reported back")
-        r = json.loads(html.unescape(m.group(1)))
-        if r["errors"]:
-            sys.exit(f"{key}: " + r["errors"][0])
+    m = re.search(r'<pre id="?o"?>(.*?)</pre>', dom, re.S)
+    if not m:
+        sys.exit(f"{key}: the page never reported back")
+    r = json.loads(html.unescape(m.group(1)))
+    if r["errors"]:
+        sys.exit(f"{key}: " + r["errors"][0])
+    return dict(r, shots=[base64.b64decode(s.split(",", 1)[1]) for s in r["shots"]])
+
+
+def record(key: str, cfg: dict, out: str, n: int, seconds: float, hide: tuple, loop: float | None = None) -> None:
+    r = shots(key, cfg, n, round((loop or seconds) * FPS), hide, loop)
+    with tempfile.TemporaryDirectory() as tmp:
         for i, shot in enumerate(r["shots"]):
-            open(os.path.join(tmp, f"f{i:04d}.png"), "wb").write(base64.b64decode(shot.split(",", 1)[1]))
+            open(os.path.join(tmp, f"f{i:04d}.png"), "wb").write(shot)
         # one palette for the whole loop, so colours don't flicker between frames
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", os.path.join(tmp, "f%04d.png"),
                         "-vf", f"scale=iw*{SCALE}:ih*{SCALE}:flags=neighbor,split[a][b];[a]palettegen=stats_mode=full[p];"
