@@ -62,8 +62,10 @@ SEED = 20261016
 # rows line up and show the same days, cropped to eight months, May to December (2026-10-17). Aurora
 # shows Contours here only, in Timeline like the rest (2026-10-19), not its own tiles: By year shifted
 # and squeezed a whole year against the others, and a wider By year made a taller row.
-# (Aurora's blue apart from Starry night's)
-ROWS = (("golden_lake", None, "timeline"), ("starry_night", None, "timeline"), ("lanterns", None, "timeline"),
+# (Aurora's blue apart from Starry night's). The third row shows off a Plus scenery's own heatmap
+# (2026-10-28) where this copy has it, Lanterns where it doesn't (the public repo)
+THIRD = "savanna_sundown" if os.path.exists(os.path.join(ADDON, "web", "envs", "savanna_sundown.js")) else "lanterns"
+ROWS = (("golden_lake", None, "timeline"), ("starry_night", None, "timeline"), (THIRD, None, "timeline"),
         ("aurora", "contours", "timeline"), ("synthwave", None, "timeline"))
 SCENERIES = tuple(key for key, _tiles, _view in ROWS)
 # the animals that take years, which the panel picture leaves out (as dev/make_gif.py HIDE does)
