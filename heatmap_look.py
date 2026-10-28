@@ -17,7 +17,7 @@ from . import catalog, presets
 from .edition import debug_edition, edition_presets
 from .i18n import N_
 from .seasons import offer_day, today
-from .state import save_config
+from .state import save_config, storage_writable
 
 # ---- the choices, as the config keeps them ----
 # whose colours: the scenery's ("scenery", today's look), a ready ramp ("ready:flame"), or your own
@@ -666,12 +666,17 @@ def _rime(pal, _edge, v, T):  # misty_valley.js
 
 
 # a giraffe's hide (savanna_sundown.js hidePass, a drawn shape): each day four patches round its
-# middle, each point nudged by the day, parted by the coat's paler network. The Heatmap tab's sample
-# is a day alone, each variant one of SAMPLE_DAYS, drawn as the heatmap draws that day with no
-# neighbours (the patches of the days round it, which cross its border there, aren't in a sample)
+# middle, each point nudged by the day, parted by the coat's paler network, the hide's own edge
+# following the patches (each reaching its own way round its point: bulging out or biting in). The
+# Heatmap tab's sample is a day alone, each variant one of SAMPLE_DAYS, drawn as the heatmap draws
+# that day with no days round it: its square, bitten where its patches fall short (what bulges out
+# of it is outside the sample); the patches of the days round it, which cross its border there,
+# aren't in a sample
 HIDE_POINTS, HIDE_NUDGE = ((0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)), 1.6
+HIDE_REACH, HIDE_EDGE_OUT, HIDE_EDGE_IN = (2.6, 1.6), 2, 2
 COAT_LINE, COAT_DARK, COAT_LIFT = (255, 240, 214), (96, 52, 30), 0.16
 SAMPLE_DAYS = ("2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08")
+_N4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
 
 def coat_line(c, k: float = 1):
@@ -683,20 +688,48 @@ def _hide(pal, _edge, v, T):  # savanna_sundown.js
     pts = []
     for k, (fx, fy) in enumerate(HIDE_POINTS):
         h = hash_str(f"hide|{k}|{SAMPLE_DAYS[v]}")
-        pts.append((fx * T + ((h & 15) / 15 * 2 - 1) * HIDE_NUDGE, fy * T + (((h >> 4) & 15) / 15 * 2 - 1) * HIDE_NUDGE))
+        pts.append((fx * T + ((h & 15) / 15 * 2 - 1) * HIDE_NUDGE, fy * T + (((h >> 4) & 15) / 15 * 2 - 1) * HIDE_NUDGE,
+                    (HIDE_REACH[0] + ((h >> 8) & 15) / 15 * HIDE_REACH[1]) ** 2))
+
+    def nearest(x, y):
+        best, bd = -1, math.inf
+        for j, (px, py, _r) in enumerate(pts):
+            d = (px - x) ** 2 + (py - y) ** 2
+            if d < bd:
+                best, bd = j, d
+        return best, bd
+    # (the square and the room round it a bulge can take: every side open, the day alone)
+    span = range(-HIDE_EDGE_OUT - 1, T + HIDE_EDGE_OUT + 1)
     patch = {}
-    for y in range(T):
-        for x in range(T):
-            best, bd = -1, math.inf
-            for j, (px, py) in enumerate(pts):
-                d = (px - x) ** 2 + (py - y) ** 2
-                if d < bd:
-                    best, bd = j, d
-            patch[x, y] = best
+    for y in span:
+        for x in span:
+            inx, iny = 0 <= x < T, 0 <= y < T
+            if inx and iny:
+                j, d = nearest(x, y)
+                edge = x < HIDE_EDGE_IN or x >= T - HIDE_EDGE_IN or y < HIDE_EDGE_IN or y >= T - HIDE_EDGE_IN
+                if not (edge and d > pts[j][2]):
+                    patch[x, y] = j
+            elif inx or iny:  # (over a side, not past a corner)
+                out = -x if x < 0 else x - T + 1 if x >= T else -y if y < 0 else y - T + 1
+                if 1 <= out <= HIDE_EDGE_OUT:
+                    j, d = nearest(x, y)
+                    if d <= pts[j][2]:
+                        patch[x, y] = j
+    # (the edge smoothed: a one-pixel notch filled, a lone pixel dropped)
+    for fill in (True, False):
+        was = dict(patch)
+        for y in span:
+            for x in span:
+                n = [(dx, dy) for dx, dy in _N4 if (x + dx, y + dy) in was]
+                if fill and (x, y) not in was and len(n) >= 3:
+                    patch[x, y] = was[x + n[0][0], y + n[0][1]]
+                elif not fill and (x, y) in was and len(n) <= 1:
+                    del patch[x, y]
     out = {}
     for (x, y), j in patch.items():
-        r, b = patch.get((x + 1, y), j), patch.get((x, y + 1), j)
-        out[x, y] = coat_line(pal[0]) if r != j or b != j else pal[0]
+        if 0 <= x < T and 0 <= y < T:
+            r, b = patch.get((x + 1, y), j), patch.get((x, y + 1), j)
+            out[x, y] = coat_line(pal[0]) if r != j or b != j else pal[0]
     return out
 
 
@@ -786,10 +819,12 @@ def out_of_season(cfg: dict) -> dict:
 
 def follow_season(cfg: dict) -> dict:
     """The config with a seasonal scenery's heatmap colours or tiles gone once its week is over
-    (out_of_season), saved if that changed it; as seasons.follow_season does for the scenery."""
+    (out_of_season), saved if that changed it - or only in memory where nothing can be saved
+    (state.storage_writable); as seasons.follow_season does for the scenery."""
     change = out_of_season(cfg)
     if not change:
         return cfg
     cfg = dict(cfg, **change)
-    save_config(cfg)
+    if storage_writable():
+        save_config(cfg)
     return cfg

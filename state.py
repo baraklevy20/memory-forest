@@ -45,6 +45,13 @@ def config() -> dict:
     return mw.addonManager.getConfig(MODULE) or {}
 
 
+def storage_writable() -> bool:
+    """Whether the add-on can keep anything. Under Nix its folder, user_files and all, is in the
+    read-only store, and Anki warns instead of saving the config: there what changes on its own
+    (a holiday's scenery) is applied in memory on each build, never saved."""
+    return os.access(USER_FILES if os.path.isdir(USER_FILES) else ADDON_DIR, os.W_OK)
+
+
 def save_config(cfg: dict) -> None:
     """Write the config, leaving out anything at its default (or no longer an option), so a
     better default in a later version still reaches people who never changed it."""

@@ -8,7 +8,7 @@ import os
 
 from . import events, presets
 from .edition import debug_available
-from .state import USER_FILES, config, log, save_config
+from .state import USER_FILES, config, log, save_config, storage_writable
 from .store import load_json, save_json
 
 # the seasonal scenery's record: shared by every profile, as the look settings are
@@ -44,18 +44,22 @@ def offer_day(cfg: dict | None = None) -> _dt.date | None:
 
 def follow_season(cfg: dict, day: _dt.date | None = None) -> dict:
     """The config, changed to a seasonal preset in its week and back after it (see
-    presets.follow_season), and saved if it changed."""
+    presets.follow_season), and saved if it changed. Where nothing can be saved (Nix), the
+    change is made in memory only: with no record kept, each build works it out from the day
+    again, so the holiday's scenery shows in its week and goes after it, with no warnings."""
     day = day or today(cfg)
+    writable = storage_writable()
     record = load_json(SEASON_PATH)
     change, kept = presets.follow_season(cfg, record, day, every_season=offer_day(cfg) is None)
-    if kept != record:
+    if writable and kept != record:
         try:
             save_json(SEASON_PATH, kept)
         except OSError:
             log(f"could not save {SEASON_PATH}")
     if change and any(cfg.get(k) != v for k, v in change.items()):
         cfg = dict(cfg, **change)
-        save_config(cfg)
+        if writable:
+            save_config(cfg)
     return cfg
 
 

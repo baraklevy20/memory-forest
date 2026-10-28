@@ -58,5 +58,42 @@ class OfferDayTests(unittest.TestCase):
         self.assertEqual(P.follow_season(look, {}, june, every_season=True)[0], {})
 
 
+class ReadOnlyTests(unittest.TestCase):
+    """Under Nix the add-on's folder is read-only and Anki warns instead of saving the config
+    (issue #15: a warning each time a forest screen was built in Halloween's week)."""
+
+    def setUp(self):
+        from fake_anki import reset
+        reset()
+        self.read_only = mock.patch.object(addon.state.os, "access", return_value=False)
+        self.read_only.start()
+        self.addCleanup(self.read_only.stop)
+        self.saves = mock.patch.object(addon.state.mw.addonManager, "writeConfig", side_effect=AssertionError("saved"))
+        self.saves.start()
+        self.addCleanup(self.saves.stop)
+
+    def test_a_folder_that_cannot_be_written_is_seen(self):
+        self.assertFalse(addon.state.storage_writable())
+        self.read_only.stop()
+        self.assertTrue(addon.state.storage_writable())
+        self.read_only.start()
+
+    def test_the_holiday_scenery_comes_and_goes_in_memory_without_saving(self):
+        P = addon.presets
+        pumpkin = P.by_key()["pumpkin_patch"]
+        first = dt.date(2026, *pumpkin.season[1])
+        yours = P.FOREST_PRESETS[0].values()
+        for _build in range(3):  # each build works it out again, never saving
+            self.assertEqual(P.match(seasons.follow_season(yours, first)), "pumpkin_patch")
+        after = first.replace(month=pumpkin.season[2][0], day=pumpkin.season[2][1]) + dt.timedelta(days=1)
+        self.assertEqual(seasons.follow_season(yours, after), yours)
+        self.assertFalse(seasons.os.path.exists(seasons.SEASON_PATH))
+
+    def test_the_heatmap_s_holiday_colours_go_in_memory_without_saving(self):
+        cfg = {"calendar_colours": "ready:pumpkin_patch"}
+        with mock.patch.object(addon.heatmap_look, "out_of_season", return_value={"calendar_colours": "match"}):
+            self.assertEqual(addon.heatmap_look.follow_season(cfg)["calendar_colours"], "match")
+
+
 if __name__ == "__main__":
     unittest.main()
