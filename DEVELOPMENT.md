@@ -125,7 +125,8 @@ dev/memory.mjs <preset>` does the same for memory.
 
 Build targets never run tests automatically. CI runs the checks separately: the unit tests,
 the render checks and, since a fresh checkout cannot tell what changed, the phone and heatmap
-checks every time. For an
+checks every time. Each check gets up to three tries (nick-fields/retry), since a slow runner can
+lose a click a second run doesn't; a retry shows as a warning on the run. For an
 explicit compatibility check of a particular build, run
 `python3 e2e/old_anki.py --check --all --package path/to/addon.ankiaddon`.
 The Anki checks use Qt's offscreen platform and do not activate native windows;
