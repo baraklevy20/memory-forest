@@ -80,8 +80,7 @@ Turn on "Show my forest on my phone" on the Forest tab. After your next sync, a 
 in AnkiDroid shows your forest and heatmap. Your computer draws this copy, so it updates whenever
 Anki syncs there.
 
-<details>
-<summary><b>Compatibility and privacy</b></summary>
+## Compatibility and privacy
 
 - Anki 2.1.45 or later, on a computer (Windows, macOS, Linux). AnkiDroid can show a copy
   of your forest that your computer sends it (see On your phone).
@@ -92,16 +91,13 @@ Anki syncs there.
   [Photon](https://photon.komoot.io) (OpenStreetMap, free, no account) to find the place, and its
   coordinates to [MET Norway](https://api.met.no) (free, no account) for the forecast. The copy of
   your forest for your phone goes through your own AnkiWeb sync, like any card.
-</details>
 
-<details>
-<summary><b>Languages</b></summary>
+## Languages
 
 Memory Forest follows your Anki's language: German, Spanish, French, Brazilian Portuguese,
 Japanese, Chinese (Simplified), Arabic and Hebrew, right to left where the language reads so. The
 translations were made with AI and no native speaker has read them yet, so they're probably bad
 in places: if something reads wrong in your language, please [tell me](TRANSLATING.md).
-</details>
 
 ## Support and feedback
 
@@ -111,8 +107,6 @@ and share it with friends who study with Anki. Want each new scenery first?
 
 Found a bug or have an idea? [Open an issue](https://github.com/baraklevy20/memory-forest/issues).
 
-<details>
-<summary><b>License and development</b></summary>
+## License and development
 
 [MIT](LICENSE). Developing it yourself? See [DEVELOPMENT.md](DEVELOPMENT.md).
-</details>
