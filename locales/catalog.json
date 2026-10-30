@@ -2344,6 +2344,12 @@
    "settings/about.py"
   ]
  },
+ "settings.about.language": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
  "settings.about.made_by_barak_levy": {
   "web": false,
   "where": [
@@ -2387,6 +2393,12 @@
   ]
  },
  "settings.about.report_a_bug_or_share_an": {
+  "web": false,
+  "where": [
+   "settings/about.py"
+  ]
+ },
+ "settings.about.same_as_anki": {
   "web": false,
   "where": [
    "settings/about.py"

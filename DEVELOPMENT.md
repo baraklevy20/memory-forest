@@ -164,6 +164,6 @@ To add a language, add `locales/<lang>.json`: each id with its translation, `{"t
 `"text"` is its forms), and run `npm run strings`, which marks each with the English it was made from;
 `check` then finds a lost placeholder or tag, a missing plural form or an id the code no longer has.
 The language's plural rule, if not English's, goes in `i18n.PLURAL_RULE` (and right to left in
-`i18n.RTL`). The Debug tab's Language shows the add-on
-in any of them, or in en-XA (made-up, a third longer: plain English left on screen is a wording the
-code forgot) and en-XB (the same, right to left).
+`i18n.RTL`), and its name in its own words in `i18n.NAMES`. The About tab's Language shows the add-on
+in any of them. The tests also use two made-up ones, en-XA (a third longer: plain English left in is a
+wording the code forgot) and en-XB (the same, right to left).

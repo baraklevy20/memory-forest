@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from aqt import mw
 
 from . import events_state, forest_data, heatmap_look, i18n, journal, live_weather, marks, milestones, news, presets, scene, study_log
-from .edition import debug_available, debug_edition, debug_language
+from .edition import debug_available, debug_edition, language
 from .phone_note import phone_cards
 from .scope import anki_today, changes, counts_since, day_cutoff, deck_ids, excluded_decks, since, trees_since
 from .seasons import follow_season, season_returns
@@ -194,7 +194,7 @@ def debug_tools(cfg: dict):
 
 def payload(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> dict:
     cfg = heatmap_look.follow_season(follow_season(config()))
-    i18n.set_override(debug_language(cfg))
+    i18n.set_override(language(cfg))
     # the test forest is a developer's tool, so it only exists while debug is on
     tools = debug_tools(cfg)
     test = bool(tools) and bool(cfg.get("test_forest", False))

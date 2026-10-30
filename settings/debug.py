@@ -8,7 +8,7 @@ import datetime as _dt
 
 from aqt.qt import QCheckBox, QComboBox, QDate, QFormLayout, QHBoxLayout, QPushButton, QSlider, QSpinBox, Qt, QVBoxLayout, QWidget
 
-from .. import i18n, news
+from .. import news
 from ..debug_events import DEBUG_BACKLOG_MAX, DEBUG_STREAK_MAX, DEBUG_STREAKS, new_timeline_run
 from ..edition import DEBUG_EDITIONS
 from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, timeline_steps
@@ -40,10 +40,6 @@ NEWS_NOTE = ("What an update announces (release_notes.json): a note on the deck 
              "feature, and a dot on the cog (NEW on its tile) for a new scenery, each only where the edition "
              "above has it. Answering one marks it seen. Replay the update to see the newest version's again, "
              "exactly as someone updating from the version before sees it; a fresh install sees none. A note also goes by itself after 3 days: move the date above to see that.")
-LANGUAGE_NOTE = ("The language the add-on speaks, rather than Anki's: the forest and the heatmap at once, this "
-                 "dialog on reopening. The made-up ones show what is still English (it has no brackets) and what "
-                 "clips (a third longer), and en-XB right to left as Hebrew or Arabic. Translations are in locales/; "
-                 "npm run strings lists and checks them.")
 STREAKS_NOTE = ("A made-up history of days studied on the test forest's heatmap, and its caption's streak, "
                 "to try the Streak view and its arrows on. The current streak, if set, replaces today's run "
                 "with one that long. Needs the test forest.")
@@ -136,12 +132,6 @@ class DebugTab(QWidget):
             self.edition.addItem(EDITION_LABELS[key], key)
         i = self.edition.findData(cfg.get("debug_edition") or "")
         self.edition.setCurrentIndex(max(0, i))
-        # the language the add-on speaks rather than Anki's (edition.debug_language)
-        self.language = QComboBox()
-        for key, label in [("", f"Anki's ({i18n.anki_lang()})")] + [(k, k) for k in i18n.available()] + [
-                (i18n.PSEUDO, f"{i18n.PSEUDO}: made-up, longer"), (i18n.PSEUDO_RTL, f"{i18n.PSEUDO_RTL}: made-up, right to left")]:
-            self.language.addItem(label, key)
-        self.language.setCurrentIndex(max(0, self.language.findData(cfg.get("debug_language") or "")))
         self._changed = None
         self._lay_out()
 
@@ -173,13 +163,10 @@ class DebugTab(QWidget):
         dtv = QVBoxLayout(); dtv.addLayout(dr); dtv.addWidget(self.date_label); dtv.addWidget(hint(DATE_NOTE))
         er = QHBoxLayout(); er.addWidget(self.edition); er.addStretch(1)
         etv = QVBoxLayout(); etv.addLayout(er); etv.addWidget(hint(EDITION_NOTE))
-        lr = QHBoxLayout(); lr.addWidget(self.language); lr.addStretch(1)
-        ltv = QVBoxLayout(); ltv.addLayout(lr); ltv.addWidget(hint(LANGUAGE_NOTE))
         nr = QHBoxLayout(); nr.addWidget(self.news_update); nr.addWidget(self.news_fresh); nr.addStretch(1)
         ntv = QVBoxLayout(); ntv.addLayout(nr); ntv.addWidget(self.news_label); ntv.addWidget(hint(NEWS_NOTE))
         dv = QVBoxLayout(self)
         dv.addWidget(group("Edition", etv))
-        dv.addWidget(group("Language", ltv))
         hf = QFormLayout()
         hf.addRow("Study history", self.streaks)
         hf.addRow("Current streak", self.streak_days)
@@ -237,7 +224,6 @@ class DebugTab(QWidget):
             box.toggled.connect(changed)
         self.date.dateChanged.connect(changed)
         self.edition.currentIndexChanged.connect(changed)
-        self.language.currentIndexChanged.connect(changed)
         self.streaks.currentIndexChanged.connect(changed)
         self.streak_days.valueChanged.connect(changed)
         for box in (self.trees_box, self.backlog):
@@ -281,7 +267,6 @@ class DebugTab(QWidget):
             "debug_big_days": self.big.isChecked(),
             "debug_date": self._date().isoformat() if self._date() else "",
             "debug_edition": self.edition.currentData() or "",
-            "debug_language": self.language.currentData() or "",
             "debug_streaks": self.streaks.currentData() or "",
             "debug_streak_days": self.streak_days.value(),
         }

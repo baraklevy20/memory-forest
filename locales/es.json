@@ -2057,6 +2057,10 @@
   "text": "Cómo funciona",
   "en": "How it works"
  },
+ "settings.about.language": {
+  "text": "Idioma",
+  "en": "Language"
+ },
  "settings.about.made_by_barak_levy": {
   "text": "Creado por Barak Levy",
   "en": "Made by Barak Levy"
@@ -2088,6 +2092,10 @@
  "settings.about.report_a_bug_or_share_an": {
   "text": "Informa de un error o comparte una idea",
   "en": "Report a bug or share an idea"
+ },
+ "settings.about.same_as_anki": {
+  "text": "Igual que Anki ({language})",
+  "en": "Same as Anki ({language})"
  },
  "settings.about.thank_you": {
   "text": "Gracias",
@@ -2268,8 +2276,8 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "Se restablece: el escenario, los escenarios de «Personalizar» y de «Sorpréndeme cada día», la Naturaleza (a «{nature}»), tu ciudad, dónde se muestran el bosque y el mapa de calor (también en mazos terminados) y su disposición, la vista del mapa de calor, su anchura y con qué se llena, el inicio de la semana, según qué se colorean sus tonos, sus colores (también «Días con más actividad») y su estilo, la animación y el mensaje al plantar.\n\nSe conserva: los mazos que excluiste, la fecha de inicio (si se quedan los árboles anteriores, y cómo la usan el mapa de calor y tu racha), los días por semana de tu racha, las tarjetas suspendidas, tus días marcados y el bosque en tu teléfono.\n\n«Cancelar» sigue recuperando los ajustes que tenías antes.",
-  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+  "text": "Se restablece: el escenario, los escenarios de «Personalizar» y de «Sorpréndeme cada día», la Naturaleza (a «{nature}»), tu ciudad, dónde se muestran el bosque y el mapa de calor (también en mazos terminados) y su disposición, la vista del mapa de calor, su anchura y con qué se llena, el inicio de la semana, según qué se colorean sus tonos, sus colores (también «Días con más actividad») y su estilo, la animación y el mensaje al plantar.\n\nSe conserva: los mazos que excluiste, la fecha de inicio (si se quedan los árboles anteriores, y cómo la usan el mapa de calor y tu racha), los días por semana de tu racha, las tarjetas suspendidas, tus días marcados, el bosque en tu teléfono y el idioma.\n\n«Cancelar» sigue recuperando los ajustes que tenías antes.",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days, the forest on your phone and the language.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
   "text": "Restablecer valores predeterminados",

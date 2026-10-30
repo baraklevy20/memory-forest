@@ -1,6 +1,6 @@
 # Translating Memory Forest
 
-Memory Forest follows your Anki's language. So far it supports German, Spanish, French, Brazilian
+Memory Forest follows your Anki's language, or the one picked on its About tab. So far it supports German, Spanish, French, Brazilian
 Portuguese, Japanese, Chinese (Simplified), Arabic and Hebrew.
 
 I want to be fully transparent: I don't speak most of these languages, so every translation was
@@ -32,8 +32,8 @@ Or change it yourself in a pull request:
 3. Run `npm run strings -- check`, which catches a lost placeholder, a missing plural form or a typo
    in an id (CI runs it too). A wording you add that wasn't translated before needs only its
    `"text"`: `npm run strings` fills in the `"en"` it was translated from.
-4. To see it, run the add-on from your clone (DEVELOPMENT.md) and set Anki to your language, or
-   turn on `debug` in the add-on's config and pick the language in the settings' Debug tab.
+4. To see it, run the add-on from your clone (DEVELOPMENT.md) and pick your language on the
+   settings' About tab (Language).
 
 Please use Anki's own words for Anki's things, as your language's Anki says them (they are in
 [Anki's translations](https://github.com/ankitects/anki-core-i18n)), and keep labels short: the
@@ -43,7 +43,8 @@ settings dialog is tight.
 
 Ask for it with a [new language](../../issues/new?template=new-language.yml) issue, or add it:
 copy any language's file to `locales/<your tag>.json` (the tag Anki uses for your language), replace
-each `"text"`, and run `npm run strings` and `npm run strings -- check`. If your language counts in
+each `"text"`, add its name in its own words to `NAMES` in `i18n.py` (the About tab's Language lists
+it so), and run `npm run strings` and `npm run strings -- check`. If your language counts in
 plural forms other than English's, add its rule to `PLURAL_RULE` in `i18n.py`; if it reads right to
 left, add it to `RTL` there too.
 

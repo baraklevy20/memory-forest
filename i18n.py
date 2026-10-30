@@ -40,11 +40,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LOCALES = os.path.join(HERE, "locales")
 ENGLISH = os.path.join(LOCALES, "en.json")
 CATALOG = os.path.join(LOCALES, "catalog.json")
-# the made-up languages (Debug tab, Language): longer English with accents, and the same right to left
+# the made-up languages (the tests' and the checks'): longer English with accents, and the same right to left
 PSEUDO, PSEUDO_RTL = "en-XA", "en-XB"
 RTL = ("ar", "fa", "he", "ug", "ur", "yi", PSEUDO_RTL)
 # the files under locales/ that are not a language
 NOT_LANGUAGES = ("en.json", "catalog.json")
+# each language by its own name, as the About tab's Language offers it (never translated: a
+# reader finds their own language in its own words)
+NAMES = {"en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "pt-BR": "Português (Brasil)",
+         "ja": "日本語", "zh-CN": "中文（简体）", "ar": "العربية", "he": "עברית"}
 
 # the plural forms each language has, as CLDR names them, and which one a whole number takes;
 # web/i18n.js has the same table (a Chromium as old as Anki 2.1.45's has older plural data)
@@ -101,7 +105,7 @@ DECIMAL = dict.fromkeys(("de", "es", "it", "nl", "pt", "da", "tr", "id", "fr", "
 GROUPING.update({k: "\u00a0" for k in ("hr", "sr", "bs", "lt", "lv", "sl", "hu", "be") if k not in GROUPING})
 GROUPING.update({"ro": ".", "el": "."})
 
-_override = None  # the Debug tab's language, while debug is on ("" for Anki's)
+_override = None  # the language picked over Anki's (edition.language), or None for Anki's
 _lang = None      # the language in use, once read
 _table = None     # its words: id -> text (a string, or a plural's forms)
 _english = None   # id -> English
@@ -121,7 +125,8 @@ def anki_lang() -> str:
 
 
 def set_override(tag: str | None) -> None:
-    """The Debug tab's Language: this one rather than Anki's ("" or None: Anki's)."""
+    """The language picked over Anki's (edition.language: the About tab's; a test's made-up one):
+    this one rather than Anki's ("" or None: Anki's)."""
     global _override, _lang, _table
     if (tag or None) != _override:
         _override, _lang, _table = tag or None, None, None
@@ -129,7 +134,7 @@ def set_override(tag: str | None) -> None:
 
 
 def lang() -> str:
-    """The language the add-on speaks: Anki's (or the Debug tab's), as a tag."""
+    """The language the add-on speaks: Anki's (or the one picked over it), as a tag."""
     global _lang
     if _lang is None:
         _lang = _override or anki_lang()

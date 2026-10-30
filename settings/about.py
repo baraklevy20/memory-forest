@@ -1,4 +1,5 @@
-"""The About tab: what this is, how it works, and who to thank."""
+"""The About tab: what this is, how it works, and who to thank - and the add-on's language, its
+one setting (SETTINGS_GUIDELINES.md)."""
 
 from __future__ import annotations
 
@@ -7,6 +8,7 @@ import json
 import os
 
 from aqt.qt import (
+    QComboBox,
     QFont,
     QFontMetrics,
     QFrame,
@@ -22,12 +24,12 @@ from aqt.qt import (
     QWidget,
 )
 
-from .. import news
+from .. import i18n, news
 from ..edition import is_plus, manifest
 from ..i18n import N_, t, tx
 from ..state import ADDON_DIR, config
 from .patreon import HEART, PATREON, TREE, pixel_label
-from .widgets import group
+from .widgets import combo, group
 
 # the newest versions the What's new group lists (the release notes link has the rest)
 NEWS_VERSIONS = 1
@@ -109,8 +111,31 @@ def link(url: str, words: str) -> str:
     return f'<a href="{url}">{words}</a>'
 
 
-def header(plus: bool) -> QWidget:
-    """The pixel tree, then the name, the version and the links beside it."""
+def language_options() -> list:
+    """Language's choices: Anki's (named after the language it gives the add-on: its own, or
+    English where there is no translation of it), then every language there is, in its own name."""
+    anki = next((c for c in i18n.candidates(i18n.anki_lang()) if c in i18n.available()), "en")
+    return [("", t("settings.about.same_as_anki", language=i18n.NAMES.get(anki, anki)))] + \
+        [(k, i18n.NAMES.get(k, k)) for k in i18n.available()]
+
+
+def language_box(language: QComboBox) -> QWidget:
+    """Language, its name over the dropdown: at the header's far end, so it takes no height of
+    its own (SETTINGS_GUIDELINES.md: the About tab's one setting)."""
+    box = QWidget()
+    lay = QVBoxLayout(box)
+    lay.setContentsMargins(0, 0, 0, 0)
+    lay.setSpacing(2)
+    name = QLabel(t("settings.about.language"))
+    name.setBuddy(language)
+    lay.addWidget(name)
+    lay.addWidget(language)
+    return box
+
+
+def header(plus: bool, beside: QWidget | None = None) -> QWidget:
+    """The pixel tree, then the name, the version and the links beside it, and `beside` (Language)
+    at the far end."""
     version = manifest().get("human_version", "")
     title = QLabel("Memory Forest Plus" if plus else "Memory Forest")
     title.setStyleSheet(TITLE_STYLE)
@@ -132,6 +157,8 @@ def header(plus: bool) -> QWidget:
     lay.setSpacing(14)
     lay.addWidget(pixel_label(TREE), 0, Qt.AlignmentFlag.AlignVCenter)
     lay.addLayout(words, 1)
+    if beside is not None:
+        lay.addWidget(beside, 0, Qt.AlignmentFlag.AlignVCenter)
     return row
 
 
@@ -247,19 +274,31 @@ def whats_new() -> QWidget:
 
 
 class AboutTab(QWidget):
-    def __init__(self):
+    def __init__(self, cfg: dict | None = None):
         super().__init__()
         plus = is_plus()
+        # the language it speaks rather than Anki's (edition.language): the dialog opens again in it
+        self.language = combo(language_options(), (cfg or {}).get("language") or "", "")
         how = QVBoxLayout()
         how.addWidget(text("<br><br>".join(tx(p) for p in HOW)))
         av = QVBoxLayout(self)
         av.setSpacing(12)
-        av.addWidget(header(plus))
+        av.addWidget(header(plus, language_box(self.language)))
         self.news = whats_new()
         av.addWidget(self.news, 1)  # (it takes the room to spare)
         av.addWidget(group(t("settings.about.how_it_works"), how))
         av.addWidget(thanks(goats(), plus))
         av.addWidget(text(credits(), small_style()))
+
+    def news_targets(self) -> dict:
+        """The settings here a note can point at (news.py): key -> (widget, name)."""
+        return {"language": (self.language, "Language")}
+
+    def connect(self, changed) -> None:
+        self.language.currentIndexChanged.connect(changed)
+
+    def values(self) -> dict:
+        return {"language": self.language.currentData() or ""}
 
     def show_news(self, cfg: dict) -> None:
         """What's new again, for the edition the Debug tab's choice makes this copy, at once."""

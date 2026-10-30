@@ -232,6 +232,31 @@ class OlderStateTests(unittest.TestCase):
         self.assertNotIn("new_ancient", payload.payload()["events"])
 
 
+class LanguageTests(unittest.TestCase):
+    """The About tab's Language reaches the page: its words, the journal's, the scenery's name."""
+
+    def setUp(self):
+        self.addCleanup(addon.i18n.set_override, None)
+
+    def test_the_page_speaks_the_language_picked(self):
+        start(language="de")
+        p = payload.payload()
+        self.assertEqual(p["i18n"]["lang"], "de")
+        self.assertTrue(p["i18n"]["strings"])  # (the page's own words, in German)
+        self.assertEqual(p["journal"], addon.i18n.translations("de")["journal.study_some_new_cards_and_your"]["text"])
+
+    def test_back_to_same_as_anki_speaks_anki_s_again(self):
+        start(language="de")
+        payload.payload()
+        mw.addonManager.config["language"] = ""
+        self.assertEqual(payload.payload()["i18n"]["lang"], "en")
+
+    def test_an_old_debug_language_left_in_the_config_never_hides_it(self):
+        # (as it was in a developer's Anki: Debug on, the Debug tab's Language, since removed, left at "en")
+        start(language="de", debug=True, debug_language="en")
+        self.assertEqual(payload.payload()["i18n"]["lang"], "de")
+
+
 class SceneNameTests(unittest.TestCase):
     DAY = dt.date(2026, 9, 19)
 

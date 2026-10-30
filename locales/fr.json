@@ -2057,6 +2057,10 @@
   "text": "Comment ça marche",
   "en": "How it works"
  },
+ "settings.about.language": {
+  "text": "Langue",
+  "en": "Language"
+ },
  "settings.about.made_by_barak_levy": {
   "text": "Créé par Barak Levy",
   "en": "Made by Barak Levy"
@@ -2088,6 +2092,10 @@
  "settings.about.report_a_bug_or_share_an": {
   "text": "Signaler un bug ou proposer une idée",
   "en": "Report a bug or share an idea"
+ },
+ "settings.about.same_as_anki": {
+  "text": "Comme Anki ({language})",
+  "en": "Same as Anki ({language})"
  },
  "settings.about.thank_you": {
   "text": "Merci",
@@ -2268,8 +2276,8 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "Réinitialise : le décor, les décors de « Personnaliser » et de « Surprise du jour », la Nature (sur {nature}), votre ville, l’endroit où s’affichent la forêt et le calendrier (paquets terminés compris) et leur disposition, la vue du calendrier, sa largeur et ce qui la remplit, le premier jour de la semaine, ce qui détermine ses nuances, ses couleurs (« Jours plus chargés » compris) et son style, l’animation et le message de plantation.\n\nConserve : les paquets exclus, la date de début (si les arbres d’avant restent, et comment le calendrier et votre série en tiennent compte), les jours par semaine de votre série, les cartes suspendues, vos jours marqués et la forêt sur votre téléphone.\n\n« Annuler » rétablit toujours les paramètres que vous aviez avant.",
-  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+  "text": "Réinitialise : le décor, les décors de « Personnaliser » et de « Surprise du jour », la Nature (sur {nature}), votre ville, l’endroit où s’affichent la forêt et le calendrier (paquets terminés compris) et leur disposition, la vue du calendrier, sa largeur et ce qui la remplit, le premier jour de la semaine, ce qui détermine ses nuances, ses couleurs (« Jours plus chargés » compris) et son style, l’animation et le message de plantation.\n\nConserve : les paquets exclus, la date de début (si les arbres d’avant restent, et comment le calendrier et votre série en tiennent compte), les jours par semaine de votre série, les cartes suspendues, vos jours marqués, la forêt sur votre téléphone et la langue.\n\n« Annuler » rétablit toujours les paramètres que vous aviez avant.",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days, the forest on your phone and the language.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
   "text": "Rétablir les valeurs par défaut",

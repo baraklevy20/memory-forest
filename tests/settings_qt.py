@@ -123,7 +123,7 @@ def _load():
     for name in ("state", "seasons", "news", "presets", "edition", "scope", "heatmap_look", "settings"):
         setattr(pkg, name, importlib.import_module(f"{PACKAGE}.{name}"))
     for name in ("dialog", "forest_tab", "heatmap_tab", "heatmap_look", "decks", "scenery_tab", "scenery_picker",
-                 "customize", "surprise_page", "widgets", "whats_new", "debug"):
+                 "customize", "surprise_page", "widgets", "whats_new", "debug", "about"):
         setattr(pkg, "s_" + name, importlib.import_module(f"{PACKAGE}.settings.{name}"))
     tmp = tempfile.mkdtemp(prefix="memory-forest-qt-test-")
     pkg.state.STATE_PATH = os.path.join(tmp, "state.json")

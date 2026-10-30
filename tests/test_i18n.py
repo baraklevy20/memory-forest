@@ -74,6 +74,10 @@ class Speaking(unittest.TestCase):
         self.assertEqual(i18n.num(3581), "3.581")
         self.assertEqual(i18n.tn("x.n_trees", 3581), "3.581 trees")
 
+    def test_every_language_has_its_own_name(self):
+        # (the Forest tab's Language lists each by it: i18n.NAMES)
+        self.assertEqual(set(i18n.available()) - set(i18n.NAMES), set())
+
     def test_a_regional_language_falls_back_to_its_base(self):
         self.assertEqual(i18n.candidates("zh-Hant-TW"), ["zh-Hant-TW", "zh-Hant", "zh"])
 

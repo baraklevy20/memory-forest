@@ -1974,6 +1974,10 @@
   "text": "しくみ",
   "en": "How it works"
  },
+ "settings.about.language": {
+  "text": "言語",
+  "en": "Language"
+ },
  "settings.about.made_by_barak_levy": {
   "text": "作者: Barak Levy",
   "en": "Made by Barak Levy"
@@ -2005,6 +2009,10 @@
  "settings.about.report_a_bug_or_share_an": {
   "text": "不具合を報告・アイデアを共有",
   "en": "Report a bug or share an idea"
+ },
+ "settings.about.same_as_anki": {
+  "text": "Anki と同じ（{language}）",
+  "en": "Same as Anki ({language})"
  },
  "settings.about.thank_you": {
   "text": "謝辞",
@@ -2184,8 +2192,8 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "リセットされるもの: 風景、「カスタマイズ」と「毎日おまかせ」の風景、自然（{nature} に戻ります）、都市、森とヒートマップの表示場所（完了したデッキでの表示も）とレイアウト、ヒートマップの表示、幅と埋め方、週の始まり、色分けの基準、色（「学習量の多い日」も）とスタイル、アニメーション、植樹のメッセージ。\n\n保持されるもの: 外したデッキ、開始日（それより前の木を残すか、ヒートマップと連続記録が開始日にどう従うか）、連続記録の数え方、休止中のカード、マークした日、スマートフォンの森。\n\n「キャンセル」を押すと、これまでの設定に戻ります。",
-  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+  "text": "リセットされるもの: 風景、「カスタマイズ」と「毎日おまかせ」の風景、自然（{nature} に戻ります）、都市、森とヒートマップの表示場所（完了したデッキでの表示も）とレイアウト、ヒートマップの表示、幅と埋め方、週の始まり、色分けの基準、色（「学習量の多い日」も）とスタイル、アニメーション、植樹のメッセージ。\n\n保持されるもの: 外したデッキ、開始日（それより前の木を残すか、ヒートマップと連続記録が開始日にどう従うか）、連続記録の数え方、休止中のカード、マークした日、スマートフォンの森、言語。\n\n「キャンセル」を押すと、これまでの設定に戻ります。",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days, the forest on your phone and the language.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
   "text": "既定値に戻す",

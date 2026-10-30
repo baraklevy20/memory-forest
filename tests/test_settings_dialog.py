@@ -394,6 +394,11 @@ class RestoreDefaultsTests(QtCase):
         self.done(self.dialog)
         self.assertEqual(saved(), {k: v for k, v in self.SETTINGS.items() if k in addon.s_dialog.DATA_KEYS})
 
+    def test_restore_defaults_keeps_the_language(self):
+        d = self.open_dialog({"language": "de", "nature": "wild"})
+        self.restore(d)
+        self.assertEqual(saved(), {"language": "de"})
+
     def test_restore_defaults_lets_go_of_the_theme_hook(self):
         d = self.open_dialog()
         self.restore(d)
@@ -433,6 +438,61 @@ class LastTabTests(QtCase):
         self.tab(d, "Debug")
         self.cancel(d)
         self.assertEqual(self.open_dialog({"debug": False}).tab_key(), "scenery")
+
+
+class LanguageTests(QtCase):
+    def pick(self, d, tag: str) -> None:
+        d.about.language.setCurrentIndex(d.about.language.findData(tag))
+        Q.settle()
+
+    def test_another_language_opens_the_dialog_again_in_it_on_the_about_tab(self):
+        d = self.open_dialog()
+        self.tab(d, "About")
+        self.pick(d, "de")
+        self.assertFalse(d.isVisible())
+        again = self.dialog
+        self.assertIsNot(again, d)
+        self.assertEqual(saved(), {"language": "de"})
+        self.assertEqual(again.tab_key(), "about")
+        self.assertEqual(again.tabs.tabText(1), "Wald")
+        self.assertEqual(again.about.language.currentData(), "de")
+
+    def test_the_dialog_opens_in_it_again_after_closing(self):
+        d = self.open_dialog()
+        self.pick(d, "de")
+        self.done(self.dialog)
+        again = self.open_dialog(saved())
+        self.assertEqual(again.tabs.tabText(1), "Wald")
+        self.assertEqual(again.about.language.currentData(), "de")
+        self.cancel(again)
+
+    def test_an_old_debug_language_left_in_the_config_never_hides_it(self):
+        # (his Anki on 2026-10-30: Debug on, the Debug tab's Language, since removed, left at "en", and
+        # Deutsch picked on About stayed English)
+        d = self.open_dialog({"debug": True, "debug_language": "en"})
+        self.pick(d, "de")
+        self.assertEqual(self.dialog.tabs.tabText(1), "Wald")
+        self.done(self.dialog)
+        self.assertEqual(self.open_dialog(saved()).tabs.tabText(1), "Wald")
+
+    def test_a_right_to_left_language_turns_the_dialog_round(self):
+        d = self.open_dialog()
+        self.pick(d, "he")
+        self.assertEqual(self.dialog.layoutDirection(), Qt.LayoutDirection.RightToLeft)
+        self.pick(self.dialog, "")
+        self.assertEqual(self.dialog.layoutDirection(), Qt.LayoutDirection.LeftToRight)
+        self.assertEqual(saved(), {})
+
+    def test_cancel_puts_the_language_back(self):
+        d = self.open_dialog({"language": "fr"})
+        self.pick(d, "de")
+        self.cancel(self.dialog)
+        self.assertEqual(saved(), {"language": "fr"})
+
+    def test_same_as_anki_names_the_language_anki_gives(self):
+        options = dict(addon.s_about.language_options())
+        self.assertIn("English", options[""])  # (an English Anki here)
+        self.assertEqual(options["ja"], "日本語")
 
 
 class ThemeHookTests(QtCase):

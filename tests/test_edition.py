@@ -23,6 +23,15 @@ class EditionTests(unittest.TestCase):
         with mock.patch.object(edition.os.path, "exists", return_value=False):  # a release
             self.assertEqual(edition.debug_edition(dict(on, debug_edition="base")), "")
 
+    def test_the_language_is_the_about_tabs(self):
+        self.assertEqual(edition.language({}), "")  # (Anki's)
+        self.assertEqual(edition.language({"language": "de"}), "de")
+        self.assertEqual(edition.language({"language": "xx"}), "")  # (one this copy has no words for)
+        # (a debug_language an older copy's Debug tab left in the config changes nothing)
+        on = {"language": "de", "debug": True}
+        for left in ("en", "he", "en-XB"):
+            self.assertEqual(edition.language(dict(on, debug_language=left)), "de")
+
     def test_an_edition_offers_only_the_presets_it_ships(self):
         self.assertIsNone(edition.edition_presets(""))
         base, plus = edition.edition_presets("base"), edition.edition_presets("plus")

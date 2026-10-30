@@ -66,13 +66,13 @@ class RestoreDefaultsTests(unittest.TestCase):
     def test_it_says_what_it_keeps(self):
         note = dialog.restore_note(mw.addonManager.addonConfigDefaults("x"))
         self.assertIn("Peaceful", note)
-        for kept in ("decks you left out", "start date", "suspended", "phone"):
+        for kept in ("decks you left out", "start date", "suspended", "phone", "language"):
             self.assertIn(kept, note)
         self.assertIn("its width and what fills it", note.split("Keeps:")[0])  # (the Heatmap tab's Width and Fill it with: reset)
 
     def test_what_it_says_it_keeps_is_what_it_keeps(self):
         self.assertEqual(set(dialog.DATA_KEYS), {"excluded_decks", "ignore_before", "keep_earlier_trees", "keep_suspended", "calendar_record",
-                                                  "streak_from_start", "streak_week", "streak_week_since"})
+                                                  "streak_from_start", "streak_week", "streak_week_since", "language"})
 
 
 class PaletteTests(unittest.TestCase):

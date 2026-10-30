@@ -2389,6 +2389,10 @@
   "text": "كيف تعمل",
   "en": "How it works"
  },
+ "settings.about.language": {
+  "text": "اللغة",
+  "en": "Language"
+ },
  "settings.about.made_by_barak_levy": {
   "text": "من صنع Barak Levy",
   "en": "Made by Barak Levy"
@@ -2420,6 +2424,10 @@
  "settings.about.report_a_bug_or_share_an": {
   "text": "الإبلاغ عن خلل أو مشاركة فكرة",
   "en": "Report a bug or share an idea"
+ },
+ "settings.about.same_as_anki": {
+  "text": "مثل Anki ({language})",
+  "en": "Same as Anki ({language})"
  },
  "settings.about.thank_you": {
   "text": "شكرًا",
@@ -2604,8 +2612,8 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "يُعاد تعيين: المنظر، ومناظر «تخصيص» و«مفاجأة كل يوم»، و«الطبيعة» (إلى «{nature}»)، ومدينتك، ومكان ظهور الغابة والخريطة الحرارية (في الرزم المنتهية أيضًا) وتخطيطهما، وطريقة عرض الخريطة الحرارية وعرضها وما يملؤها، وبداية الأسبوع، وأساس درجاتها اللونية، وألوانها (و«الأيام الأكثر نشاطًا» أيضًا) ونمطها، والتحريك، ورسالة الغرس.\n\nيُحتفظ بـ: الرزم التي استبعدتها، وتاريخ البدء (وهل تبقى الأشجار التي تسبقه، وكيف تتعامل معه الخريطة الحرارية وسلسلتك)، وأيام سلسلتك في الأسبوع، والبطاقات المعلّقة، وأيامك المعلَّمة، والغابة على هاتفك.\n\nولا يزال «إلغاء» يُرجع الإعدادات التي كانت لديك من قبل.",
-  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
+  "text": "يُعاد تعيين: المنظر، ومناظر «تخصيص» و«مفاجأة كل يوم»، و«الطبيعة» (إلى «{nature}»)، ومدينتك، ومكان ظهور الغابة والخريطة الحرارية (في الرزم المنتهية أيضًا) وتخطيطهما، وطريقة عرض الخريطة الحرارية وعرضها وما يملؤها، وبداية الأسبوع، وأساس درجاتها اللونية، وألوانها (و«الأيام الأكثر نشاطًا» أيضًا) ونمطها، والتحريك، ورسالة الغرس.\n\nيُحتفظ بـ: الرزم التي استبعدتها، وتاريخ البدء (وهل تبقى الأشجار التي تسبقه، وكيف تتعامل معه الخريطة الحرارية وسلسلتك)، وأيام سلسلتك في الأسبوع، والبطاقات المعلّقة، وأيامك المعلَّمة، والغابة على هاتفك، واللغة.\n\nولا يزال «إلغاء» يُرجع الإعدادات التي كانت لديك من قبل.",
+  "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days, the forest on your phone and the language.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
   "text": "استعادة الافتراضيات",

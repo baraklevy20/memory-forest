@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import os
 
-from . import presets
+from . import i18n, presets
 from .state import ADDON_DIR, config
 
 # Plus's package and its name as Anki shows it, and this folder's package in development
@@ -59,11 +59,12 @@ def debug_edition(cfg: dict | None = None) -> str:
     return edition if edition in DEBUG_EDITIONS and debug_available(cfg) else ""
 
 
-def debug_language(cfg: dict | None = None) -> str:
-    """While debug is on, the language the Debug tab picked over Anki's (i18n.set_override: a
-    translated one, or a made-up en-XA / en-XB), or "" for Anki's own."""
+def language(cfg: dict | None = None) -> str:
+    """The language the add-on speaks over Anki's (i18n.set_override): the About tab's Language if
+    this copy has it, or "" for Anki's own."""
     cfg = config() if cfg is None else cfg
-    return str(cfg.get("debug_language") or "") if debug_available(cfg) else ""
+    picked = str(cfg.get("language") or "")
+    return picked if picked in i18n.available() else ""
 
 
 def edition_presets(edition: str) -> set | None:

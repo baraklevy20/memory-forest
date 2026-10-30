@@ -94,8 +94,9 @@ Anki syncs there.
 
 ## Languages
 
-Memory Forest follows your Anki's language: German, Spanish, French, Brazilian Portuguese,
-Japanese, Chinese (Simplified), Arabic and Hebrew, right to left where the language reads so. The
+Memory Forest follows your Anki's language, or the one you pick on the About tab: German, Spanish,
+French, Brazilian Portuguese, Japanese, Chinese (Simplified), Arabic and Hebrew, right to left where
+the language reads so. The
 translations were made with AI and no native speaker has read them yet, so they're probably bad
 in places: if something reads wrong in your language, please [tell me](TRANSLATING.md).
 

@@ -10,7 +10,7 @@ from aqt import gui_hooks, mw
 from aqt.qt import QDialog, QDialogButtonBox, QEvent, QGuiApplication, QMessageBox, QTabWidget, QTimer, QVBoxLayout
 
 from .. import i18n, news, presets
-from ..edition import debug_available, debug_edition, debug_language, is_plus
+from ..edition import debug_available, debug_edition, is_plus, language
 from ..events import NATURE_LABELS, nature_level
 from ..i18n import N_, t, tx
 from ..seasons import offer_day, today
@@ -36,8 +36,9 @@ SHRINK_TRIES = 5
 SHOW_WHOLE_TRIES = 3  # turns of the event loop a scrolling tab may take to measure its help
 # choices about your study data rather than the forest's look: Restore defaults keeps them (and the
 # phone switch, which lives in the collection, it never touches)
+# (and the language: not the forest's look, and reset, the dialog would open again in another)
 DATA_KEYS = ("excluded_decks", "ignore_before", "keep_earlier_trees", "keep_suspended", "calendar_record", "streak_from_start",
-             "streak_week", "streak_week_since")
+             "streak_week", "streak_week_since", "language")
 # set on the heatmap itself (its Reviews | Time toggle, its Timeline | By year | Streak switch), maybe while
 # the dialog is open: saved as it is now, never as the dialog found it, and Cancel leaves it be (the
 # view had a row here too until 2026-10-16: the switch on the heatmap is where it is changed)
@@ -94,7 +95,7 @@ class SettingsDialog(QDialog):
         self.on_change, self.on_phone = on_change, on_phone
         self.reopen = reopen
         cfg = dict(mw.addonManager.getConfig(module) or {})
-        i18n.set_override(debug_language(cfg))  # (the Debug tab's Language, read on opening)
+        i18n.set_override(language(cfg))  # (the About tab's Language, read on opening)
         # the dialog reads the way its words do, not as Anki's own language does: a right-to-left one
         # (Hebrew, Arabic...) in an English Anki right to left, an English one in a right-to-left Anki
         # left to right (its children follow)
@@ -130,7 +131,7 @@ class SettingsDialog(QDialog):
         self._whole_tries = 0
         tabs = self.tabs = QTabWidget()
         tabs.currentChanged.connect(self._show_whole)
-        self.about = AboutTab()
+        self.about = AboutTab(cfg)
         # the Forest, Heatmap and Debug tabs scroll on a screen too short for them (widgets.Scrolled);
         # the others fit (Scenery by showing fewer rows of tiles: fit_screen)
         # (the Heatmap tab, the longest, asks for no more than Forest: shown, the dialog grows to
@@ -165,8 +166,10 @@ class SettingsDialog(QDialog):
         self.scenery.real_sky.toggled.connect(self._real_sky_toggled)
         # the tiles move unless the forest is still (Qt can't tell what the system asks for)
         self.forest.animations.on_change(lambda: self.scenery.picker.animate(self.forest.animations.currentData() != "off"))
-        for tab in (self.scenery, self.forest, self.heatmap, self.decks, self.debug):
+        for tab in (self.scenery, self.forest, self.heatmap, self.decks, self.about, self.debug):
             tab.connect(self._changed)
+        # another language: its words (and maybe its direction) are set as the dialog is built
+        self.about.language.currentIndexChanged.connect(lambda _i: QTimer.singleShot(0, self._reopen_here))
         # the dialog's own timer, so a closed (and deleted) dialog is never called back
         self._city_check = QTimer(self); self._city_check.setSingleShot(True); self._city_check.setInterval(CITY_RECHECK_MS)
         self._city_check.timeout.connect(self._sync)
@@ -280,7 +283,7 @@ class SettingsDialog(QDialog):
 
     def news_targets(self) -> dict:
         """Every setting a note can point at: key -> (its tab, the widget, its name)."""
-        return {key: (tab, widget, name) for tab in (self.scenery, self.forest, self.heatmap, self.decks)
+        return {key: (tab, widget, name) for tab in (self.scenery, self.forest, self.heatmap, self.decks, self.about)
                 for key, (widget, name) in tab.news_targets().items()}
 
     def show_news(self, focus: str) -> None:
@@ -350,7 +353,7 @@ class SettingsDialog(QDialog):
         known = mw.addonManager.addonConfigDefaults(self.module) or {}
         cfg = {k: v for k, v in self.opened.items() if k in known and k not in OUTSIDE_KEYS}
         cfg.update({k: v for k, v in self._current().items() if k in OUTSIDE_KEYS})
-        for tab in (self.scenery, self.forest, self.heatmap, self.debug):
+        for tab in (self.scenery, self.forest, self.heatmap, self.about, self.debug):
             cfg.update(tab.values())
         cfg.update(self.decks.values(self._current()))
         # anything still at its default stays unset, so a better default in a later
@@ -440,9 +443,11 @@ class SettingsDialog(QDialog):
         through them (its live list) would skip the one after this and run the new dialog's."""
         if not self._theme_pending:
             self._theme_pending = True
-            QTimer.singleShot(0, self._reopen_in_theme)
+            QTimer.singleShot(0, self._reopen_here)
 
-    def _reopen_in_theme(self) -> None:
+    def _reopen_here(self) -> None:
+        """Open again in its place, on the same tab, the changes saved: for a theme switch, or
+        another language picked on the About tab."""
         if not self.isVisible():  # (closed meanwhile)
             return
         if self._debounce.isActive():  # (a change not saved yet)

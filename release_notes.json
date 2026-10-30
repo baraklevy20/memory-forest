@@ -4,7 +4,7 @@
     {
       "version": "1.5.0",
       "new": [
-        "Memory Forest now speaks your Anki's language: German, Spanish, French, Brazilian Portuguese, Japanese, Chinese, Arabic and Hebrew, with right-to-left layouts for Arabic and Hebrew."
+        "Memory Forest now speaks your Anki's language: German, Spanish, French, Brazilian Portuguese, Japanese, Chinese, Arabic and Hebrew, with right-to-left layouts for Arabic and Hebrew; pick another on the About tab."
       ],
       "improved": [
         "The Streak view and the forest's layouts got a polish, and the Streak view now fits in an Onigiri tile.",

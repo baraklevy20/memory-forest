@@ -18,9 +18,9 @@ class DirectionTests(QtCase):
     def speak(self, lang: str):
         """Open the dialog in `lang`, as the Debug tab's Language does."""
         i18n = sys.modules[Q.PACKAGE + ".i18n"]
-        was = addon.s_dialog.debug_language
-        addon.s_dialog.debug_language = lambda _cfg: lang
-        self.addCleanup(setattr, addon.s_dialog, "debug_language", was)
+        was = addon.s_dialog.language
+        addon.s_dialog.language = lambda _cfg: lang
+        self.addCleanup(setattr, addon.s_dialog, "language", was)
         self.addCleanup(i18n.set_override, None)
         return self.open_dialog({})
 
