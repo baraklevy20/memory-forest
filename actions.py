@@ -70,8 +70,13 @@ def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = 
     (picked before you have studied: the cards its tile counts, as today clicked opens them)."""
     picked = sorted((min(a, b), max(a, b)) for a, b in runs)
     ahead = [d for a, b in picked for d in range(max(a, 1), b + 1)]
-    runs = [(a, min(b, 0)) for a, b in picked if a <= 0]
-    due = [t for d in ahead for t in study_log.calendar_search(mw.col.db, d, mw.col.sched.today)]
+    runs = []
+    for a, b in ((a, min(b, 0)) for a, b in picked if a <= 0):
+        if runs and a <= runs[-1][1] + 1:  # (overlapping or touching runs as one: no day counted twice)
+            runs[-1] = (runs[-1][0], max(runs[-1][1], b))
+        else:
+            runs.append((a, b))
+    due =[t for d in ahead for t in study_log.calendar_search(mw.col.db, d, mw.col.sched.today)]
     if due_today and any(a <= 0 <= b for a, b in picked):  # (its terms together: due, not suspended, not buried)
         due.insert(0, "(" + " ".join(study_log.calendar_search(mw.col.db, 0, mw.col.sched.today, True)) + ")")
     if not runs:

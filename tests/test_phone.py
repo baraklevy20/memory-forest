@@ -204,7 +204,7 @@ class PhoneTests(unittest.TestCase):
         self.assertTrue(addon.phone_note.phone_on())
         m = self.col.models.by_name(phone.PHONE_NOTETYPE)
         self.assertEqual([f["name"] for f in m["flds"]], list(phone.FIELDS))
-        self.assertEqual((m["tmpls"][0]["qfmt"], m["css"]), (phone.FRONT, phone.CSS))
+        self.assertEqual((m["tmpls"][0]["qfmt"], m["css"]), (phone.front(), phone.CSS))
         did = self.col.decks.id_for_name(phone.PHONE_DECK)
         self.assertEqual(self.cards(), [(did, 0, 0)])
         conf = self.col.decks.config_dict_for_deck_id(did)
@@ -396,7 +396,7 @@ class PhoneTests(unittest.TestCase):
         first = min(self.col.notes)
         phone.publish()
         self.assertEqual(list(self.col.notes), [first])
-        self.assertEqual(mm.get(dup["id"])["tmpls"][0]["qfmt"], phone.FRONT)  # both brought up to date
+        self.assertEqual(mm.get(dup["id"])["tmpls"][0]["qfmt"], phone.front())  # both brought up to date
         self.assertIn(other.id, addon.phone_note.phone_cards())
         # turning it off takes the notes of both away
         self.col.add_note(self.col.new_note(dup), self.col.decks.id_for_name(phone.PHONE_DECK))

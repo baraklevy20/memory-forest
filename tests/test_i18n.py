@@ -41,6 +41,7 @@ class Speaking(unittest.TestCase):
         self.assertEqual(i18n.t("x.day_day", day=3), "Day 3")
         self.assertEqual(i18n.tn("x.n_trees", 1), "1 tree")
         self.assertEqual(i18n.tn("x.n_trees", 3581), "3,581 trees")
+        self.assertEqual(i18n.tn("x.n_trees", 1.6), "1.6 trees")  # (its form by 2, rounded as web/i18n.js does)
         self.assertEqual(i18n.t("x.not_there"), "x.not_there")
         self.assertEqual(i18n.day_month_year(_dt.date(2026, 10, 17)), "17 October 2026")
         self.assertEqual(i18n.day_month(_dt.date(2026, 10, 17), short=True), "17 Oct")
@@ -79,7 +80,7 @@ class Speaking(unittest.TestCase):
     def test_the_page_gets_only_its_own_words_that_are_not_english(self):
         cat = {"x.your_forest": {"web": True}, "x.day_day": {"web": True}, "x.n_days": {"web": False}}
         self.use("de", {"x.your_forest": "Dein Wald", "x.n_days": {"one": "{n} Tag", "other": "{n} Tage"}})
-        with mock.patch.object(i18n, "catalog", return_value=cat):
+        with mock.patch.object(i18n, "catalog", return_value=cat), mock.patch.object(i18n, "_web_ids", None):
             self.assertEqual(i18n.page_strings()["strings"], {"x.your_forest": "Dein Wald"})
 
     def test_a_sceneries_words_come_from_its_json(self):

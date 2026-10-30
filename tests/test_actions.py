@@ -105,6 +105,10 @@ class ActionTests(unittest.TestCase):
             self.assertEqual(totals.call_args.args[2:], ([(-9, -7), (-3, -3)], "reviews"))
             self.assertIn("(4 days, ", opened.call_args.args[3])
             self.assertEqual(opened.call_args.args[0], ["(prop:rated=-9 OR prop:rated=-8 OR prop:rated=-7 OR prop:rated=-3)"])
+            # (runs that overlap or touch count as one: a day picked twice is one day)
+            actions.browse_calendar_days([(-10, -1), (-5, -3), (0, 0)])
+            self.assertEqual(totals.call_args.args[2:], ([(-10, 0)], "reviews"))
+            self.assertNotIn("days, ", opened.call_args.args[3])
         # (days ahead open their cards due, each day as a day ahead clicked; days with no answers
         # and none ahead open nothing)
         with mock.patch.object(actions.study_log, "days_card_totals", return_value={}) as totals, \

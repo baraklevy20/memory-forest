@@ -2190,7 +2190,7 @@
   "en": "Decks"
  },
  "settings.decks.keep_suspended_cards_in_their_trees": {
-  "text": "Ausgesetzte Karten in ihren Bäumen behalten",
+  "text": "Ausgeschlossene Karten in ihren Bäumen behalten",
   "en": "Keep suspended cards in their trees"
  },
  "settings.decks.keep_the_trees_from_before_it": {
@@ -2268,7 +2268,7 @@
   "en": "Put the settings back to their defaults?"
  },
  "settings.dialog.resets_the_scenery_customize_and_surprise": {
-  "text": "Zurückgesetzt werden: die Szenerie, die Szenerien von „Anpassen“ und „Täglich überraschen“, Natur (auf {nature}), deine Stadt, wo Wald und Heatmap erscheinen (auch bei fertigen Stapeln) und ihre Anordnung, die Ansicht der Heatmap, ihre Breite und was sie füllt, der Wochenbeginn, wonach sich ihre Abstufungen richten, ihre Farben (auch „Vollere Tage“) und ihr Stil, die Animation und die Meldung beim Pflanzen.\n\nBehalten werden: die ausgelassenen Stapel, das Startdatum (ob die Bäume von vorher bleiben und wie sich Heatmap und Serie danach richten), die Tage pro Woche deiner Serie, ausgesetzte Karten, deine markierten Tage und der Wald auf deinem Handy.\n\nAbbrechen stellt weiterhin die Einstellungen wieder her, die du vorher hattest.",
+  "text": "Zurückgesetzt werden: die Szenerie, die Szenerien von „Anpassen“ und „Täglich überraschen“, Natur (auf {nature}), deine Stadt, wo Wald und Heatmap erscheinen (auch bei fertigen Stapeln) und ihre Anordnung, die Ansicht der Heatmap, ihre Breite und was sie füllt, der Wochenbeginn, wonach sich ihre Abstufungen richten, ihre Farben (auch „Vollere Tage“) und ihr Stil, die Animation und die Meldung beim Pflanzen.\n\nBehalten werden: die ausgelassenen Stapel, das Startdatum (ob die Bäume von vorher bleiben und wie sich Heatmap und Serie danach richten), die Tage pro Woche deiner Serie, ausgeschlossene Karten, deine markierten Tage und der Wald auf deinem Handy.\n\nAbbrechen stellt weiterhin die Einstellungen wieder her, die du vorher hattest.",
   "en": "Resets: the scenery, Customize and Surprise me daily's sceneries, Nature (to {nature}), your city, where the forest and the heatmap show (finished decks too) and their layout, the heatmap's view, its width and what fills it, week start, what its shades go by, its colours (Busier days too) and style, animation and the planting message.\n\nKeeps: the decks you left out, the start date (whether the trees from before it stay, and how the heatmap and your streak go by it), your streak's days a week, suspended cards, your marked days and the forest on your phone.\n\nCancel still puts back the settings you had before."
  },
  "settings.dialog.restore_defaults": {
@@ -2841,8 +2841,8 @@
  },
  "tooltip.all_n_cards_suspended": {
   "text": {
-   "one": "Alle {n} Karten ausgesetzt",
-   "other": "Alle {n} Karten ausgesetzt"
+   "one": "Alle {n} Karten ausgeschlossen",
+   "other": "Alle {n} Karten ausgeschlossen"
   },
   "en": {
    "one": "All {n} cards suspended",
@@ -2862,7 +2862,7 @@
   "en": "{from} – {to}"
  },
  "tooltip.its_card_is_suspended": {
-  "text": "Seine Karte ist ausgesetzt",
+  "text": "Seine Karte ist ausgeschlossen",
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
@@ -2965,8 +2965,8 @@
  },
  "tooltip.n_of_total_suspended": {
   "text": {
-   "one": "{n} von {total} ausgesetzt",
-   "other": "{n} von {total} ausgesetzt"
+   "one": "{n} von {total} ausgeschlossen",
+   "other": "{n} von {total} ausgeschlossen"
   },
   "en": {
    "one": "{n} of {total} suspended",

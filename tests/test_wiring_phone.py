@@ -89,7 +89,7 @@ class PhoneAnkiTests(unittest.TestCase):
         mod = self.col.mod
         phone.publish()
         m = self.col.models.by_name(phone.PHONE_NOTETYPE)
-        self.assertEqual((m["tmpls"][0]["qfmt"], m["tmpls"][0]["afmt"], m["css"]), (phone.FRONT, phone.BACK, phone.CSS))
+        self.assertEqual((m["tmpls"][0]["qfmt"], m["tmpls"][0]["afmt"], m["css"]), (phone.front(), phone.BACK, phone.CSS))
         self.assertGreater(self.col.mod, mod)
         # and up to date, it is left as it is (a change to a note type is a change to sync)
         mod = self.col.mod

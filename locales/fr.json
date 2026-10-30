@@ -1808,7 +1808,7 @@
   "en": "Memory Forest could not draw your forest here."
  },
  "phone.memory_forest_keeps_your_forest_here": {
-  "text": "Memory Forest conserve votre forêt ici pour que votre téléphone puisse l’afficher. Étudiez ce paquet pour la voir, puis revenez en arrière sans répondre. Le module complémentaire réécrit cette note à chaque synchronisation.",
+  "text": "Memory Forest conserve votre forêt ici pour que votre téléphone puisse l’afficher. Étudiez ce paquet pour la voir, puis revenez en arrière sans répondre. Le greffon réécrit cette note à chaque synchronisation.",
   "en": "Memory Forest keeps your forest here, so your phone can show it. Study this deck to see it, and go back without answering. The add-on rewrites this note at every sync."
  },
  "phone.n_days_ago": {

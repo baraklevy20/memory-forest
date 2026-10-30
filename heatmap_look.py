@@ -16,7 +16,7 @@ import os
 from . import catalog, presets
 from .edition import debug_edition, edition_presets
 from .i18n import N_
-from .seasons import offer_day, today
+from .seasons import offer_day
 from .state import save_config, storage_writable
 
 # ---- the choices, as the config keeps them ----
@@ -140,7 +140,7 @@ def hour_of(env: str, time: str) -> dict | None:
     day, {"turn", "tint"} after dark for a day scenery, or None where its own colours stand. The
     scenery's own hour is its preset's (mood.home, scene.choose_mood)."""
     spec = own_hours().get(env) or {}
-    home = next((p.time for p in presets.FOREST_PRESETS if p.environment == env), "day")
+    home = presets.home_time(env)
     if spec.get("hours"):
         to = spec["hours"].get(time)
         return {"to": to, "share": 1} if to else None
@@ -168,11 +168,11 @@ def colours_choice(cfg: dict) -> str:
 
 def scenery_ready_shown(key: str, cfg: dict) -> bool:
     """Whether a scenery's colours are among the ready ones (SCENERY_READY) just now: KEYS_FILE
-    lists its colour, and a seasonal scenery's only in its week: today's, or the debug date's
-    (seasons.today; never every season at once, as the scenery picker offers them while debugging
-    with no date). A Plus one this copy lacks shows too, locked (scenery_ready_env)."""
+    lists its colour, and a seasonal scenery's only in its week: today's, or the debug date's (any
+    while debugging with no date, as its tiles and the scenery picker are: seasons.offer_day). A
+    Plus one this copy lacks shows too, locked (scenery_ready_env)."""
     spec = presets.by_key().get(key)
-    return key in SCENERY_READY and spec is not None and spec.environment in own_keys() and presets.unlocked(spec, today(cfg))
+    return key in SCENERY_READY and spec is not None and spec.environment in own_keys() and presets.unlocked(spec, offer_day(cfg))
 
 
 def scenery_ready_env(key: str, cfg: dict) -> str | None:
@@ -810,7 +810,7 @@ def out_of_season(cfg: dict) -> dict:
     choice = cfg.get("calendar_colours")
     if isinstance(choice, str) and choice.startswith(READY_PREFIX) and choice[len(READY_PREFIX):] in SCENERY_READY:
         spec = presets.by_key().get(choice[len(READY_PREFIX):])
-        if spec is not None and spec.season and not presets.unlocked(spec, today(cfg)):
+        if spec is not None and spec.season and not presets.unlocked(spec, offer_day(cfg)):
             change["calendar_colours"] = MATCH
     if cfg.get("calendar_tiles") in TILE_SEASONS and not tile_shown(cfg["calendar_tiles"], cfg):
         change["calendar_tiles"] = TILE_FOLLOW

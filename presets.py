@@ -103,6 +103,12 @@ def by_key(presets=FOREST_PRESETS) -> dict:
     return {p.key: p for p in presets}
 
 
+def home_time(environment: str) -> str:
+    """The environment's own hour: its preset's ("day" where none has it), which its heatmap
+    colours are made for (scene.choose_mood's mood.home, heatmap_look.hour_of)."""
+    return next((p.time for p in FOREST_PRESETS if p.environment == environment), "day")
+
+
 def unlocked(preset: Preset, date) -> bool:
     """Whether a preset can be had on `date`: a seasonal one only in its week, from the year
     it arrives. With no date (None: while debugging, seasons.offer_day) every one can."""

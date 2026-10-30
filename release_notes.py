@@ -12,8 +12,8 @@ lists, from 1.3.0 on), and its lists: "new", "improved", "fixed" (each under its
            that edition alone, e.g. "edition:base" for news of the free edition only;
   "plus": its name in the line that closes the version's notes in an edition without it, "Also
           new in Memory Forest Plus: Chalkboard and a new seaside landscape." (for_edition keeps those
-          names as the version's "plus"; the AnkiWeb page leaves the line out, its own "New in
-          Memory Forest Plus" pictures saying it);
+          names as the version's "plus"; the AnkiWeb page's What's new carries the line too, under
+          each version, as the add-on's own notes do);
   "announce": {"id", "kind": "note" (a card on the forest, once: "title", "text", and maybe a
               button, "action", that opens the settings where "opens" says, and "settings":
               the settings that wear NEW for two weeks, by the tabs' news_targets keys) or "dot" (the

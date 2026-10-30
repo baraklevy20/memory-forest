@@ -156,7 +156,7 @@ def choose_mood(cfg: dict, now: _dt.datetime, real: dict | None = None, place: d
     # `clock`: the hour is the real one, which the phone follows on its own clock
     # `home`: the scenery's own hour (its preset's), which its heatmap colours are made for: away from
     # it they follow the forest's hour (calendar.js hourOf)
-    home = next((p.time for p in presets_mod.FOREST_PRESETS if p.environment == environment), "day")
+    home = presets_mod.home_time(environment)
     mood = {"time": time, "home": home, "clock": time_cfg not in TIMES, "weather": weather, "special": environment, "wind": windy,
             "environment": environment, "landscape": landscape, "landmark": landmark,
             "moon": round(moon_phase(now), 3), "source": source}

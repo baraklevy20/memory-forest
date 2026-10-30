@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import math
 import os
 import re
 
@@ -105,6 +106,7 @@ _lang = None      # the language in use, once read
 _table = None     # its words: id -> text (a string, or a plural's forms)
 _english = None   # id -> English
 _translations = {}  # tag -> its file's translations, once read
+_web_ids = None   # the ids a page script uses, from the catalog
 
 
 def anki_lang() -> str:
@@ -215,6 +217,14 @@ def catalog() -> dict:
     return _read(CATALOG)
 
 
+def web_ids() -> set:
+    """The ids a page script uses (the catalog's "web" ones). Read once."""
+    global _web_ids
+    if _web_ids is None:
+        _web_ids = {k for k, e in catalog().items() if e.get("web")}
+    return _web_ids
+
+
 def translations(tag: str) -> dict:
     """id -> {"text": the translation, "en": the English it was translated from}, as a language's
     file keeps them: its own over its base language's ("pt-BR" over "pt"). Read once a language."""
@@ -311,7 +321,8 @@ def tn(key: str, n, **values) -> str:
     if isinstance(found, dict):
         # (a wording the language lacks is English, and takes English's forms: never "21 tree")
         own = key in translations(lang()) or lang() in (PSEUDO, PSEUDO_RTL)
-        form = PLURALS[plural_rule() if own else "one_other"](abs(int(n)))
+        # (rounded half up, as web/i18n.js's Math.round does, so the page and Qt pick alike)
+        form = PLURALS[plural_rule() if own else "one_other"](abs(math.floor(n + 0.5)))
         found = found.get(form) or found.get("other") or key
     return _fill(found, values)
 
@@ -359,7 +370,7 @@ def month_year(d: _dt.date) -> str:
 def page_strings() -> dict:
     """What the page (and the phone card) are sent: the language, its direction, how its dates and
     plurals go, and the words its scripts use (web/i18n.js), in the language or else in English."""
-    web, en = {k for k, e in catalog().items() if e.get("web")}, english()
+    web, en = web_ids(), english()
     # (the English the page has already, in web/strings_en.js)
     words = {k: v for k, v in table().items() if k in web and v != en.get(k)}
     return {"lang": lang(), "format": format_lang(), "dir": direction(), "plural": plural_rule(), "strings": words}

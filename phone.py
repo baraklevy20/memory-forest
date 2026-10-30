@@ -60,7 +60,7 @@ def _waiting_words() -> dict:
     return out
 
 
-FRONT = """<div id="memory-forest-phone" class="af-panel"></div>
+_FRONT = """<div id="memory-forest-phone" class="af-panel"></div>
 <script type="application/json" id="memory-forest-phone-data">{{Forest}}</script>
 <script>
 (function () {
@@ -78,7 +78,19 @@ FRONT = """<div id="memory-forest-phone" class="af-panel"></div>
   s.onerror = function () { wait(say[1]); };
   document.body.appendChild(s);
 })();
-</script>""".replace("WAITING_WORDS", json.dumps(_waiting_words(), ensure_ascii=True, separators=(",", ":")))
+</script>"""
+_front = None
+
+
+def front() -> str:
+    """The card's front, with its waiting lines in every language: built the first time it is
+    needed, so a startup without the phone card never reads every language's file."""
+    global _front
+    if _front is None:
+        _front = _FRONT.replace("WAITING_WORDS", json.dumps(_waiting_words(), ensure_ascii=True, separators=(",", ":")))
+    return _front
+
+
 BACK = "{{FrontSide}}"
 CSS = """.card { margin: 0; padding: 0; }
 .af-panel { margin-top: 12px; }
@@ -174,8 +186,8 @@ def _same_named(col) -> list:
 
 def _up_to_date(mm, m) -> None:
     t = m["tmpls"][0]
-    if (t["qfmt"], t["afmt"], m["css"]) != (FRONT, BACK, CSS):
-        t["qfmt"], t["afmt"], m["css"] = FRONT, BACK, CSS
+    if (t["qfmt"], t["afmt"], m["css"]) != (front(), BACK, CSS):
+        t["qfmt"], t["afmt"], m["css"] = front(), BACK, CSS
         mm.update_dict(m)
 
 
@@ -190,7 +202,7 @@ def _notetype(col) -> list:
         for name in FIELDS:
             mm.add_field(m, mm.new_field(name))
         t = mm.new_template("Forest")
-        t["qfmt"], t["afmt"] = FRONT, BACK
+        t["qfmt"], t["afmt"] = front(), BACK
         mm.add_template(m, t)
         m["css"] = CSS
         mm.add(m)
@@ -253,7 +265,7 @@ def _about_now(note) -> bool:
     if have == want:
         return False
     en = i18n.english()[ABOUT]
-    known = {en, i18n.pseudo(en)} | {
+    known = {en, i18n.pseudo(en), i18n.pseudo(en, rtl=True)} | {
         t[ABOUT]["text"] for t in (i18n.translations(tag) for tag in i18n.available()[1:]) if ABOUT in t}
     if have not in known:
         return False

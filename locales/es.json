@@ -795,8 +795,8 @@
  },
  "heatmap.n_cards_due": {
   "text": {
-   "one": "{n} tarjeta pendiente",
-   "other": "{n} tarjetas pendientes"
+   "one": "{n} tarjeta programada",
+   "other": "{n} tarjetas programadas"
   },
   "en": {
    "one": "{n} card due",
@@ -805,8 +805,8 @@
  },
  "heatmap.n_cards_due_after_today": {
   "text": {
-   "one": "{n} tarjeta pendiente después de hoy",
-   "other": "{n} tarjetas pendientes después de hoy"
+   "one": "{n} tarjeta programada después de hoy",
+   "other": "{n} tarjetas programadas después de hoy"
   },
   "en": {
    "one": "{n} card due after today",
@@ -815,8 +815,8 @@
  },
  "heatmap.n_cards_due_later_this_month": {
   "text": {
-   "one": "{n} tarjeta pendiente más adelante este mes",
-   "other": "{n} tarjetas pendientes más adelante este mes"
+   "one": "{n} tarjeta programada más adelante este mes",
+   "other": "{n} tarjetas programadas más adelante este mes"
   },
   "en": {
    "one": "{n} card due later this month",
@@ -1016,7 +1016,7 @@
   "en": "Nothing due today"
  },
  "heatmap.nothing_due_yet": {
-  "text": "Nada pendiente todavía",
+  "text": "Nada programado todavía",
   "en": "Nothing due yet"
  },
  "heatmap.nothing_was_due": {

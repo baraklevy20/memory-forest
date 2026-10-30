@@ -192,7 +192,7 @@
   }
  },
  "caption.one_tree_for_each_day_you": {
-  "text": "新しいカードを学習した日ごとに 1 本の木が育ちます。木にマウスを合わせるとその日を、クリックするとそのカードを表示します。",
+  "text": "新規カードを学習した日ごとに 1 本の木が育ちます。木にマウスを合わせるとその日を、クリックするとそのカードを表示します。",
   "en": "One tree for each day you learned new cards. Hover over one to see its day, click it to see its cards."
  },
  "caption.openstreetmap_does_not_know_that_city": {
@@ -330,7 +330,7 @@
  },
  "event.asteroid.n_trees_lost_after_a_day": {
   "text": {
-   "other": "復習のない日が続いたため、{n} 本の木を失いました。ここから新しい森が育ちます。"
+   "other": "1 日復習しなかったため、{n} 本の木を失いました。ここから新しい森が育ちます。"
   },
   "en": {
    "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
@@ -417,7 +417,7 @@
  },
  "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {
   "text": {
-   "other": "<b>復習地獄</b>: 期日を過ぎた復習カードが {n} 枚。片付けるとタンブルウィードが吹き飛びます。"
+   "other": "<b>復習地獄</b>: 延滞中の復習カードが {n} 枚。片付けるとタンブルウィードが吹き飛びます。"
   },
   "en": {
    "one": "<b>Review hell</b>: {n} review overdue. Clear them and the tumbleweeds blow away.",
@@ -426,7 +426,7 @@
  },
  "event.tumbleweeds.review_hell_n_reviews_overdue_where": {
   "text": {
-   "other": "<b>復習地獄</b>: 期日を過ぎた復習カードが {n} 枚 (普段は 1 日 {usual} 枚)。片付けるとタンブルウィードが吹き飛びます。"
+   "other": "<b>復習地獄</b>: 延滞中の復習カードが {n} 枚 (普段は 1 日 {usual} 枚)。片付けるとタンブルウィードが吹き飛びます。"
   },
   "en": {
    "one": "<b>Review hell</b>: {n} review overdue, where a usual day has {usual}. Clear them and the tumbleweeds blow away.",
@@ -488,11 +488,11 @@
   "en": "Wild"
  },
  "events.you_cleared_your_overdue_reviews": {
-  "text": "期日を過ぎた復習を片付けました。",
+  "text": "延滞中の復習カードを片付けました。",
   "en": "You cleared your overdue reviews."
  },
  "events.you_cleared_your_overdue_reviews_the": {
-  "text": "期日を過ぎた復習を片付けました。タンブルウィードが吹き飛んでいきました。",
+  "text": "延滞中の復習カードを片付けました。タンブルウィードが吹き飛んでいきました。",
   "en": "You cleared your overdue reviews. The tumbleweeds blew away."
  },
  "heatmap.a_minute": {
@@ -1492,12 +1492,12 @@
   "en": "One of your trees became ancient today. Watch for a shooting star."
  },
  "journal.study_some_new_cards_and_your": {
-  "text": "新しいカードを学習すると、最初の木がここに根を下ろします。",
+  "text": "新規カードを学習すると、最初の木がここに根を下ろします。",
   "en": "Study some new cards and your first tree will take root here."
  },
  "journal.the_grass_is_growing_tall_no": {
   "text": {
-   "other": "草が伸びています: {n} 週間、新しいカードを学習していません。"
+   "other": "草が伸びています: {n} 週間、新規カードを学習していません。"
   },
   "en": {
    "one": "The grass is growing tall: no new cards for {n} week.",
@@ -1505,7 +1505,7 @@
   }
  },
  "journal.the_grass_is_growing_tall_no_2": {
-  "text": "草が伸びています: 1 週間、新しいカードを学習していません。",
+  "text": "草が伸びています: 1 週間、新規カードを学習していません。",
   "en": "The grass is growing tall: no new cards for a week."
  },
  "journal.the_tree_you_planted_on_date": {
@@ -1991,7 +1991,7 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "新しいカードを学習した日ごとに 1 本の木が育ちます。今日の芽生えが手前に、いちばん古い木が奥にあります。木はカードが記憶に定着するにつれて育ち、いくつか忘れると黄色い葉が少し混じります。復習だけの日は木を植えませんが、木を元気に保ちます。",
+  "text": "新規カードを学習した日ごとに 1 本の木が育ちます。今日の芽生えが手前に、いちばん古い木が奥にあります。木はカードが記憶に定着するにつれて育ち、いくつか忘れると黄色い葉が少し混じります。復習だけの日は木を植えませんが、木を元気に保ちます。",
   "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
  },
  "settings.about.places_openstreetmap_contributors": {

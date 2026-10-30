@@ -116,9 +116,8 @@ class ChoiceTests(unittest.TestCase):
         self.assertFalse(HL.scenery_ready_shown("pumpkin_patch", out))
         self.assertTrue(HL.scenery_ready_shown("pumpkin_patch", inside))
         self.assertTrue(HL.scenery_ready_shown("aurora", out))
-        no_date = {"debug": True}  # (the real date: not every season at once)
-        in_week = HL.presets.unlocked(HL.presets.by_key()["pumpkin_patch"], HL.today(no_date))
-        self.assertEqual(HL.scenery_ready_shown("pumpkin_patch", no_date), in_week)
+        # (with no date, every season's, as its tiles and the scenery picker are: seasons.offer_day)
+        self.assertTrue(HL.scenery_ready_shown("pumpkin_patch", {"debug": True}))
         self.assertIsNone(HL.page_look(dict(out, calendar_colours="ready:pumpkin_patch"), GOLDEN)["colours"])
 
     def test_a_seasonal_scenery_s_choices_go_when_its_week_is_over(self):
@@ -132,6 +131,8 @@ class ChoiceTests(unittest.TestCase):
         # (the scenery's own, as Scenery is: Lanterns wears Round)
         self.assertEqual(HL.tile_env({"calendar_tiles": "pumpkin", "debug": True, "debug_date": "2026-07-01"}, "lanterns"), "round")
         self.assertEqual(HL.out_of_season({"calendar_colours": "ready:aurora", "calendar_tiles": "brush"}), {})  # (not seasonal)
+        # (and with no date, neither half goes: the colours stay with the tiles)
+        self.assertEqual(HL.out_of_season(chosen), {})
 
     def test_debugging_with_no_date_a_holiday_scenery_wears_its_own_tiles(self):
         # (its scenery is offered then whatever the day, seasons.offer_day: its pumpkins come with it,
