@@ -13,7 +13,8 @@
         "Frozen ponds now take on the colours of dusk and night."
       ],
       "fixed": [
-        "Your forest on your phone no longer gets cut off in landscape full screen, and says more plainly when it last synced."
+        "Your forest on your phone no longer gets cut off in landscape full screen, and says more plainly when it last synced.",
+        "No more \"tried to update its config\" warnings where Anki can't save the add-on's settings, like on NixOS."
       ],
       "plus": [
         "Savanna sundown",
