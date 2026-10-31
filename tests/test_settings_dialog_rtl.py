@@ -4,6 +4,7 @@ left to right in English even inside a right-to-left Anki. Skipped without PyQt6
 from __future__ import annotations
 
 import sys
+import types
 import unittest
 
 import settings_qt as Q
@@ -11,7 +12,8 @@ from settings_qt import QtCase, addon
 
 if Q.HAVE_QT:
     from PyQt6.QtCore import Qt
-    from PyQt6.QtWidgets import QApplication, QDialogButtonBox, QLabel
+    from PyQt6.QtGui import QColor, QIcon, QPixmap
+    from PyQt6.QtWidgets import QApplication, QDialogButtonBox, QLabel, QMenu
 
 
 class DirectionTests(QtCase):
@@ -68,6 +70,76 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(once, f"{w.RLE}one{w.PDF}\n{w.RLE}two{w.PDF}")
         self.assertEqual(w.bidi(once, True), once)
         self.assertEqual(w.bidi("one", False), "one")
+
+
+class MenuTests(QtCase):
+    """A right-to-left menu (the heatmap's Scenery and tile dropdowns) draws each picture on the right
+    and its name against it, on its left: macOS's style draws them left to right whatever the
+    menu's direction, and Qt's own does the words so in a left-to-right Anki."""
+
+    def rows(self, app_direction):
+        QApplication.instance().setLayoutDirection(app_direction)
+        self.addCleanup(QApplication.instance().setLayoutDirection, Qt.LayoutDirection.LeftToRight)
+        menu = QMenu()
+        menu.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        menu._style = addon.s_heatmap_look._MenuRightToLeft()
+        menu.setStyle(menu._style)
+        red = QPixmap(16, 16)
+        red.fill(QColor(255, 0, 0))
+        for name in ("Synthwave", "Lofi room"):
+            menu.addAction(QIcon(red), name).setIconVisibleInMenu(True)
+        menu.setAttribute(Qt.WidgetAttribute.WA_DontShowOnScreen)
+        menu.show()
+        img = menu.grab().toImage()
+        menu.close()
+        y = menu.actionGeometry(menu.actions()[0]).center().y() * img.height() // menu.height()
+        row = [img.pixelColor(x, y) for x in range(img.width())]
+        icon = [x for x, c in enumerate(row) if c.red() > 200 and c.green() < 60 and c.blue() < 60]
+        back = row[1]
+        words = [x for x, c in enumerate(row) if 4 <= x < len(row) - 4 and x not in icon and abs(c.lightness() - back.lightness()) > 60]
+        return img.width(), icon, words
+
+    def check(self, app_direction):
+        width, icon, words = self.rows(app_direction)
+        self.assertTrue(icon and words)
+        self.assertGreater(icon[0], width // 2)  # (the picture on the right)
+        self.assertLess(max(words), icon[0])  # (the name on its left,
+        self.assertLess(icon[0] - max(words), width // 6)  # against it)
+
+    def test_in_a_right_to_left_anki(self):
+        self.check(Qt.LayoutDirection.RightToLeft)
+
+    def test_in_a_left_to_right_anki(self):
+        self.check(Qt.LayoutDirection.LeftToRight)
+
+
+class StyleNameTests(QtCase):
+    """macOS's style is still known behind an app style sheet (Anki's hook lets add-ons add one), which
+    hides its name: the boxes' space and the dropdowns right to left went missing in a Hebrew Anki."""
+
+    def name_with(self, widget_style):
+        import enum
+        from unittest import mock
+
+        class WidgetStyle(enum.Enum):
+            ANKI, NATIVE = 0, 1
+        pm = types.SimpleNamespace(get_widget_style=lambda: getattr(WidgetStyle, widget_style))
+        app = QApplication.instance()
+        app.setStyleSheet("QToolTip { color: red; }")
+        self.addCleanup(app.setStyleSheet, "")
+        with mock.patch.object(sys, "platform", "darwin"), \
+                mock.patch.object(sys.modules["aqt"], "mw", types.SimpleNamespace(pm=pm), create=True), \
+                mock.patch.object(sys.modules["aqt.theme"], "WidgetStyle", WidgetStyle, create=True):
+            return addon.s_widgets.style_name()
+
+    def test_native_behind_a_style_sheet(self):
+        self.assertEqual(self.name_with("NATIVE"), "macos")
+
+    def test_ankis_own_look_behind_a_style_sheet(self):
+        self.assertEqual(self.name_with("ANKI"), "fusion")
+
+    def test_named_without_one(self):
+        self.assertEqual(addon.s_widgets.style_name(), QApplication.style().objectName().lower())
 
 
 class _Metrics:

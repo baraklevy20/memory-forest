@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import sys
 
 from aqt.qt import (
     QAbstractButton,
@@ -191,10 +192,25 @@ def mirror(root: QWidget) -> None:
             w.installEventFilter(_Bidi(w))
 
 
+def style_name() -> str:
+    """The name of the style Anki draws with ("macos", "fusion"...). An app style sheet (Anki's own
+    look's, or one an add-on adds through style_did_init) wraps the style and hides its name: then
+    Anki's own look is Fusion, and its native look on a Mac is macOS's."""
+    style = QApplication.style()
+    name = style.objectName().lower() if style is not None else ""
+    if name or sys.platform != "darwin":
+        return name or "fusion"
+    try:
+        import aqt
+        from aqt.theme import WidgetStyle
+        return "fusion" if aqt.mw.pm.get_widget_style() == WidgetStyle.ANKI else "macos"
+    except Exception:  # (an Anki before its own look: native only)
+        return "macos"
+
+
 def mac_native() -> bool:
     """Whether the dialog is drawn in macOS's own style (Anki's native look on a Mac)."""
-    style = QApplication.style()
-    return style is not None and style.objectName().lower() in ("macos", "macintosh")
+    return style_name() in ("macos", "macintosh")
 
 
 # macOS's own dropdown is drawn left to right whatever the widget's direction (its arrows on the right,

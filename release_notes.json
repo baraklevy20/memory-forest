@@ -5,6 +5,9 @@
       "version": "1.6.0",
       "new": [
         "A new layout, Background: the forest fills the window behind your decks, deck screens and finished decks too (Forest tab, Layout)."
+      ],
+      "fixed": [
+        "Right-to-left fixes in the settings for Hebrew and Arabic."
       ]
     },
     {

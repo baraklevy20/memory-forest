@@ -12,8 +12,6 @@ from aqt.qt import (
     QColor,
     QColorDialog,
     QEvent,
-    QFont,
-    QFontMetrics,
     QGridLayout,
     QHBoxLayout,
     QIcon,
@@ -23,12 +21,17 @@ from aqt.qt import (
     QObject,
     QPainter,
     QPainterPath,
+    QPalette,
     QPen,
     QPixmap,
     QPoint,
+    QProxyStyle,
     QPushButton,
+    QRect,
     QRectF,
     QSize,
+    QStyle,
+    QStyleOptionMenuItem,
     Qt,
     QVBoxLayout,
     QWidget,
@@ -40,7 +43,7 @@ from .. import presets, scene
 from ..i18n import N_, t, tx
 from ..live_weather import for_config
 from ..seasons import today
-from .widgets import JoinedChoice, app_rtl, bidi, follow_direction, form, forward, hint, picture_button_style, pixel_ratio, rtl
+from .widgets import JoinedChoice, bidi, follow_direction, form, forward, hint, picture_button_style, pixel_ratio, rtl, style_name
 
 # a strip: the four shades of a day studied as the heatmap's tiles, side by side, at 1 tile pixel a
 # point (as the heatmap is at about that size)
@@ -396,8 +399,9 @@ class PickButton(QPushButton):
             if self.isChecked() and key == self.key:  # (the one chosen in bold: a tick took the strip's place)
                 font = act.font(); font.setBold(True); act.setFont(font)
             act.triggered.connect(lambda _c=False, k=key: self._pick(k))
-        if menu.isRightToLeft() and not app_rtl():
-            _right_align(menu)
+        if menu.isRightToLeft():
+            menu._style = _MenuRightToLeft()  # (kept with the menu: setStyle doesn't own it)
+            menu.setStyle(menu._style)
         # (under the button, from the corner its words start at)
         at = self.rect().bottomLeft()
         if self.isRightToLeft():  # (its right edge under the button's)
@@ -412,24 +416,64 @@ class PickButton(QPushButton):
             self.picked()
 
 
-def _right_align(menu: QMenu) -> None:
-    """A menu's names against its pictures, on the right, right to left: Qt draws a menu's text on
-    the left of its room whatever the menu's direction (it goes by the app's), so each name is led
-    by no-break spaces up to the widest."""
-    menu.ensurePolished()  # (a menu's own font, the system's for menus, only once polished)
+class _MenuRightToLeft(QProxyStyle):
+    """A right-to-left menu's items drawn as their words read: the picture on the right, the name
+    against it. macOS's style (and Qt's own, for the words, in a left-to-right Anki) draws them
+    left to right whatever the menu's direction. The style's own room is mirrored: where it puts a
+    picture and a name, measured once on a test row; the highlight and the separators are its own."""
 
-    def metrics(act) -> QFontMetrics:
-        font = QFont(menu.font())
-        font.setBold(act.font().bold())  # (the chosen one's in bold)
-        return QFontMetrics(font)
-    acts = [a for a in menu.actions() if not a.isSeparator()]
-    widest = max((metrics(a).horizontalAdvance(a.text()) for a in acts), default=0)
-    for a in acts:
-        fm, text = metrics(a), a.text()
-        # (one at a time, the whole line measured: a lone space's width is rounded, a row of them isn't)
-        while fm.horizontalAdvance("\u00a0" + text) <= widest:
-            text = "\u00a0" + text
-        a.setText(text)
+    def __init__(self) -> None:
+        super().__init__(style_name())
+        # (a fresh copy by name: a proxy owns its base, and the app's must outlive the menu)
+        self._at: dict = {}
+
+    def _columns(self, opt, widget) -> tuple[int, int]:
+        """(the picture's left, the name's left) in a row laid out left to right."""
+        key = (opt.maxIconWidth, opt.rect.height())
+        if key not in self._at:
+            width, h = max(opt.rect.width(), 200), opt.rect.height()
+            img = QImage(width, h, QImage.Format.Format_ARGB32_Premultiplied)
+            img.fill(0)
+            red = QColor(255, 0, 0)
+            pm = QPixmap(max(opt.maxIconWidth, 1), max(opt.maxIconWidth, 1))
+            pm.fill(red)
+            o = QStyleOptionMenuItem(opt)
+            o.rect, o.direction = QRect(0, 0, width, h), Qt.LayoutDirection.LeftToRight
+            o.state, o.icon, o.text = QStyle.StateFlag.State_Enabled, QIcon(pm), "\u2588\u2588"
+            p = QPainter(img)
+            self.baseStyle().drawControl(QStyle.ControlElement.CE_MenuItem, o, p, widget)
+            p.end()
+            row = [img.pixelColor(x, h // 2) for x in range(width)]
+            icon = [x for x, c in enumerate(row) if c == red]
+            after = icon[-1] + 1 if icon else 0
+            words = [x for x in range(after, width) if row[x].alpha() > 100]
+            self._at[key] = (icon[0] if icon else 4, words[0] if words else after + 6)
+        return self._at[key]
+
+    def drawControl(self, element, opt, p, widget=None) -> None:
+        if (element != QStyle.ControlElement.CE_MenuItem or opt.direction != Qt.LayoutDirection.RightToLeft
+                or opt.menuItemType != QStyleOptionMenuItem.MenuItemType.Normal):
+            super().drawControl(element, opt, p, widget)
+            return
+        icon_x, words_x = self._columns(opt, widget)
+        bare = QStyleOptionMenuItem(opt)  # (the row and its highlight, without picture or name)
+        bare.icon, bare.text, bare.direction = QIcon(), "", Qt.LayoutDirection.LeftToRight
+        self.baseStyle().drawControl(element, bare, p, widget)
+        r = opt.rect
+        on = bool(opt.state & QStyle.StateFlag.State_Enabled)
+        if not opt.icon.isNull():
+            size = self.pixelMetric(QStyle.PixelMetric.PM_SmallIconSize, opt, widget)
+            pm = opt.icon.pixmap(QSize(size, size), QIcon.Mode.Normal if on else QIcon.Mode.Disabled)
+            w, h = round(pm.width() / pm.devicePixelRatio()), round(pm.height() / pm.devicePixelRatio())
+            p.drawPixmap(r.right() + 1 - icon_x - w, r.top() + (r.height() - h) // 2, pm)
+        selected = bool(opt.state & QStyle.StateFlag.State_Selected)
+        p.save()
+        p.setFont(opt.font)
+        align = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignAbsolute | Qt.AlignmentFlag.AlignVCenter
+        self.drawItemText(p, r.adjusted(0, 0, -words_x, 0), int(align | Qt.TextFlag.TextSingleLine), opt.palette,
+                          on, opt.text.split("\t")[0],
+                          QPalette.ColorRole.HighlightedText if selected else QPalette.ColorRole.Text)
+        p.restore()
 
 
 class OneOf(QButtonGroup):
