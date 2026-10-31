@@ -309,7 +309,8 @@ LAYOUT_AT = """(() => {
     behind: document.body.classList.contains('af-lay-behind'),
     // (Background: the deck table's card, its tint and whether this Chromium blurs behind it)
     tableBg: (t => t ? getComputedStyle(t).backgroundColor : null)(document.querySelector('center > table')),
-    tableBlur: (t => t ? (getComputedStyle(t).backdropFilter || getComputedStyle(t).webkitBackdropFilter || 'unsupported') : null)(document.querySelector('center > table')) });
+    tableBlur: (t => t ? (getComputedStyle(t).backdropFilter || getComputedStyle(t).webkitBackdropFilter || 'unsupported') : null)(document.querySelector('center > table')),
+    chromium: parseInt(navigator.userAgent.split('Chrome/')[1] || '0', 10) });
 })()"""
 BESIDE_WIDE, BESIDE_NARROW = (1500, 950), (760, 950)  # the main window: room beside the list, and none
 RESIZE_MS = 1500  # for the page to lay out again and the forest to be built at its new width
@@ -376,6 +377,9 @@ def beside():
     measure(lambda got, raw: QTimer.singleShot(RESIZE_MS, lambda: layout_at(wide)), old_ok=False)
 
 
+BLUR_FROM = 90  # (the first Chromium that blurs behind the cards right: core.js BLUR_FROM)
+
+
 def behind():
     """The forest behind the deck list (Forest tab, Layout: Background): it fills the window's
     width with its foot on the window's foot, painted, the deck table on a tinted card (and whether
@@ -398,9 +402,12 @@ def behind():
             result["problems"].append(f"Background: the heatmap should be under the deck table: {got}")
         elif not (got.get("forestPainted") and got.get("heatmapPainted")):
             result["problems"].append(f"Background: a canvas is blank: {got}")
-        elif got.get("tableBlur") not in ("none", "unsupported"):
+        elif got.get("chromium", 0) < BLUR_FROM and got.get("tableBlur") not in ("none", "unsupported"):
             # (Qt 5's Chromium drew a blurred card's content upside down: none there, core.js BLUR_FROM)
-            result["problems"].append(f"Background: the deck table is blurred in this old Chromium, which draws it upside down: {got.get('tableBlur')}")
+            result["problems"].append(f"Background: the deck table is blurred in this old Chromium ({got.get('chromium')}), which draws it upside down: {got.get('tableBlur')}")
+        elif got.get("chromium", 0) >= BLUR_FROM and got.get("tableBlur") in ("none", "unsupported"):
+            # (and from it on, the card is frosted, as it is meant to be: the check once failed every newer Anki here)
+            result["problems"].append(f"Background: the deck table is not blurred in Chromium {got.get('chromium')}: {got.get('tableBlur')}")
         elif not str(got.get("tableBg") or "").startswith("rgba("):
             result["problems"].append(f"Background: the deck table has no tinted card: {got.get('tableBg')}")
         else:
