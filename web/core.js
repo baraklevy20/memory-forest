@@ -390,13 +390,16 @@ const setVar = (el, name, value) => { if (el.style.getPropertyValue(name) !== va
 AF.cardTones = root => {
   const sky = root.afSky, body = document.body;
   if (!sky || !body) return;
-  const page = themed(['--canvas', '--window-bg'], () => pageBg([body]) || appBg());
+  // (in a themer's tile, the colour of the themer's own cards as it is, AF.pageCards: no sky's hue)
+  const own = root.afCardOwn, page = own || themed(['--canvas', '--window-bg'], () => pageBg([body]) || appBg());
   const fg = themed(['--fg', '--text-fg'], () => cssColor(window.getComputedStyle(body).color) || [0, 0, 0]);
   const p = oklab(page.slice(0, 3)), s = oklab(sky), side = p[0] < 0.6 ? 'dark' : 'light';
   const alpha = body.classList.contains('af-no-blur') ? NO_BLUR_ALPHA : CARD[side].alpha;
-  const want = fromOklab(p[0], p[1] + s[1] * CARD[side].sky, p[2] + s[2] * CARD[side].sky);
+  const hue = own ? 0 : CARD[side].sky, want = fromOklab(p[0], p[1] + s[1] * hue, p[2] + s[2] * hue);
   const tint = want.map((v, i) => Math.max(0, Math.min(255, (v - (1 - alpha) * sky[i]) / alpha)));
   const card = toward(sky, tint, alpha);  // (as it comes out over the sky)
+  root.afCardOut = card;
+  setVar(body, '--af-card-out', rgba(card, 1));
   setVar(body, '--af-card', rgba(tint, alpha));
   root.afCardTint = { tint, alpha };  // (the bottom bar wears it as it comes out at the window's foot: AF.barEdges)
   if (root.afBarsAgain) root.afBarsAgain();
@@ -516,6 +519,76 @@ AF.barEdges = (data, root, canvas) => {
     if (msg !== AF.barsSent) { AF.barsSent = msg; send(msg); }
   } catch { /* (a canvas that can't be read: Anki's bars stay as they are) */ }
 };
+/* A page that isn't the theme's own behind the panel: a picture under it (AnKing's Custom background,
+ * on body::before) or a page colour on the other side of light and dark from the theme's (Onigiri's
+ * light page in Anki's dark mode). The theme's words were lost on it, ours and Anki's (2026-10-31
+ * renders), so the panel stands on the Background layout's cards there, made the same way
+ * (AF.cardTones, forest.css .af-carded), the page colour in the sky's place. Looked for from the
+ * panel's parent up, until a box with a solid colour hides what is behind it; a picture on a box or
+ * on its ::before or ::after (shown: some content) counts. */
+const PSEUDOS = [null, '::before', '::after'];
+const offPage = root => {
+  for (let el = root.parentElement; el && el.nodeType === 1; el = el.parentElement) {
+    for (const p of PSEUDOS) {
+      const css = window.getComputedStyle(el, p);
+      if (p && (css.content === 'none' || css.content === 'normal')) continue;
+      if (css.backgroundImage && css.backgroundImage !== 'none' && css.display !== 'none' && css.visibility !== 'hidden' && +css.opacity > 0) {
+        return { page: pageBg([el]) || themed(['--canvas', '--window-bg'], appBg), picture: true };
+      }
+    }
+    const page = pageBg([el]);
+    if (page) return { page, picture: false };
+  }
+  return { page: appBg(), picture: false };
+};
+const sideOf = c => oklab(c.slice(0, 3))[0] < 0.6 ? 'dark' : 'light';
+/* In Onigiri's tile the card is Onigiri's own: the colour and corners of its cards beside ours (its
+ * stats, its heatmap), so the forest's card sits among them as one of them; with none of them shown,
+ * its card colour, --canvas-inset (Anki's own --canvas-inset is an input's, darker than the page: never
+ * taken outside Onigiri's tile). A navy card of Onigiri's beside our grey one looked like another
+ * add-on's (2026-10-31). */
+const ONIGIRI_CARDS = '.stat-card, #onigiri-heatmap-container, .onigiri-favorites-widget, .onigiri-ready-widget';
+const themerCard = root => {
+  if (!root.closest('.external-widget-container')) return null;
+  for (const el of document.querySelectorAll(ONIGIRI_CARDS)) {
+    const colour = el.offsetWidth ? pageBg([el]) : null;
+    if (colour) return { colour, radius: window.getComputedStyle(el).borderTopLeftRadius };
+  }
+  const inset = cssColor(window.getComputedStyle(document.body).getPropertyValue('--canvas-inset'));
+  return inset ? { colour: inset.slice(0, 3), radius: '' } : null;
+};
+/* (and there, on a flat page, the forest stands bare as it does behind the list, the heatmap alone on
+ * Onigiri's card, its caption in the card's colour: when that reads on the page, HEAT_ONLY_CAPTION;
+ * on a picture, which no one colour reads on, the whole panel keeps its card) */
+const HEAT_ONLY_CAPTION = 4.5;
+const BAND_ALPHA = 0.62;  // (the bands: the card's colour, this opaque, fading out round each line: forest.css .af-text-bands)
+AF.pageCards = (root, data) => {
+  let on = false, flat = null;
+  if (!root.afBehind && data.inAnki) {
+    const { page, picture } = offPage(root);
+    on = picture || sideOf(page) !== sideOf(themed(['--canvas', '--window-bg'], () => page));
+    if (on) root.afSky = page.slice(0, 3);
+    if (on && !picture) flat = page;
+  }
+  const own = on ? themerCard(root) : null;
+  root.afCardOwn = own ? own.colour : null;
+  if (own && own.radius && own.radius !== '0px') root.style.setProperty('--af-card-radius', own.radius);
+  else root.style.removeProperty('--af-card-radius');
+  root.afCarded = on;
+  root.classList.toggle('af-carded', on);
+  document.body.classList.toggle('af-page-cards', on);  // (Anki's studied-today line on a card too, forest.css)
+  document.body.classList.toggle('af-no-blur', (root.afBehind || on) && chromium() < BLUR_FROM);
+  // (on a picture: bands behind the words, as behind the list the caption has its band, the forest
+  // and the heatmap on the picture itself. Each colour set once, by AF.cardTones: one set twice,
+  // each change on <body> woke onTheme, which set it again, a loop at 100% CPU, 2026-10-31)
+  const bands = on && !own && !flat;
+  if (on) AF.cardTones(root);
+  root.classList.toggle('af-card-heat', !!(own && flat && root.afCardOut && contrast(root.afCardOut, flat) >= HEAT_ONLY_CAPTION));
+  root.classList.toggle('af-text-bands', bands);
+  if (bands && root.afCardOut) setVar(document.body, '--af-band', rgba(root.afCardOut, BAND_ALPHA));
+  // (again when Anki's theme or a themer's colours change: the page may now match, or no longer)
+  if (!root.afPageWatch && data.inAnki) root.afPageWatch = onTheme(() => { if (root.isConnected && !root.afBehind) AF.pageCards(root, data); });
+};
 /* (a line of another add-on's plain text in Anki's row, behind the list: on a card of its own,
  * forest.css .af-pill; anything with pictures, tables or controls in it is left as it draws itself) */
 const PILL_SKIP = /^(TABLE|BR|SCRIPT|STYLE|LINK|H3)$/, PILL_MAX_CHARS = 200;
@@ -541,7 +614,7 @@ AF.arrange = function (root, data) {
   root.afBehind = !!((table || finished) && forest && L && L.forest === 'behind');
   document.body.classList.toggle('af-lay-behind', root.afBehind);
   document.body.classList.toggle('af-behind-page', root.afBehind && finished);
-  document.body.classList.toggle('af-no-blur', root.afBehind && chromium() < BLUR_FROM);
+  AF.pageCards(root, data);
   if (center) {
     // (and what Anki puts before the table, a deck screen's name and description, stays over it)
     let before = !!table;
@@ -597,7 +670,7 @@ AF.arrange = function (root, data) {
       // on the page is (forest.css .af-slot-below, .af-slot-above))
       const lone = heatSide && !narrow;
       // (behind the list, less its card's reach each side, so the card keeps the window's gutter)
-      if (cal) size(parts[2], lone ? col : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room) - (root.afBehind ? 2 * CARD_REACH : 0)));
+      if (cal) size(parts[2], lone ? col - (root.afCarded ? 2 * CARD_REACH : 0) : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room) - (root.afBehind || root.afCarded ? 2 * CARD_REACH : 0)));
     }
   };
   // a side column that fits the window stays in view while a longer deck list scrolls by (forest.css

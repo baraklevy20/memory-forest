@@ -503,6 +503,59 @@ body.af-card-light.af-lay.af-lay-behind > center > h3.af-lay-before { box-shadow
 body.af-card-light.af-lay.af-lay-behind > center > table.af-titled {
   box-shadow: inset 1px -1px 0 var(--border-subtle, rgba(0, 0, 0, 0.1)), inset -1px 0 0 var(--border-subtle, rgba(0, 0, 0, 0.1)), 0 10px 16px -6px rgba(0, 0, 0, 0.18); }
 body.af-lay-behind > center > table { border-radius: var(--border-radius-medium, 12px); border: 0; }
+/* a page that isn't the theme's own behind the panel (a picture, or a light page in dark mode: core.js
+   AF.pageCards): the panel on the same cards, its words the same colours. Stacked, the panel is one
+   card (12px round the forest and the heatmap: its own padding at the sides); apart, the forest and
+   the heatmap a card each round them, the heatmap's as it has behind the list */
+.af-carded:not(.af-apart), .af-carded.af-apart > .af-forest::before, .af-carded.af-apart > .af-cal::before {
+  background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  border-radius: var(--af-card-radius, var(--border-radius-medium, 12px)); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18); }
+body.af-card-light .af-carded:not(.af-apart), body.af-card-light .af-carded.af-apart > .af-forest::before, body.af-card-light .af-carded.af-apart > .af-cal::before {
+  box-shadow: 0 0 0 1px var(--border-subtle, rgba(0, 0, 0, 0.1)), 0 4px 18px rgba(0, 0, 0, 0.18); }
+/* (and Anki's studied-today line, lost on the picture as our words were: on a card as behind the list) */
+body.af-page-cards #studiedToday > span {
+  display: inline-block; padding: 4px 12px; font-size: 13px; border-radius: var(--border-radius-medium, 12px);
+  background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18); }
+body.af-page-cards.af-card-light #studiedToday > span { box-shadow: 0 0 0 1px var(--border-subtle, rgba(0, 0, 0, 0.1)), 0 4px 18px rgba(0, 0, 0, 0.18); }
+body.af-page-cards.af-no-blur #studiedToday > span { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.af-carded:not(.af-apart) { padding-top: 12px; padding-bottom: 12px; }
+/* (in Onigiri's tile on a flat page, core.js HEAT_ONLY_CAPTION: the heatmap alone on the card, the
+   forest bare on the page as behind the list, its caption in the card's colour) */
+.af-carded.af-card-heat:not(.af-apart) { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none !important; padding-top: 0; padding-bottom: 12px; }
+.af-carded.af-card-heat .af-caption { color: var(--af-card-out, inherit); }
+.af-carded.af-card-heat .af-caption .af-info { border-bottom-color: var(--af-card-out, currentColor); }
+/* (the card as wide as the forest over it, the panel's width inside its padding: 50cqw each side of
+   the heatmap's middle; an older Chromium, without container units, the heatmap's own reach; over the
+   20px its view switch and arrows have on hover, 24px under the caption: as behind the list) */
+.af-carded.af-card-heat:not(.af-apart) { container-type: inline-size; }
+.af-carded.af-card-heat:not(.af-apart) .af-cal { isolation: isolate; margin-top: 54px; }
+.af-carded.af-card-heat:not(.af-apart) .af-cal::before { content: ""; position: absolute; z-index: -1; top: -30px; right: -36px; bottom: -12px; left: -36px;
+  left: calc(50% - 50cqw); right: calc(50% - 50cqw);
+  background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  border-radius: var(--af-card-radius, var(--border-radius-medium, 12px)); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18); }
+.af-carded.af-apart > .af-forest, .af-carded.af-apart > .af-cal { isolation: isolate; }
+.af-carded.af-apart > .af-forest::before { content: ""; position: absolute; z-index: -1; top: -12px; right: -12px; bottom: -12px; left: -12px; }
+.af-carded.af-apart > .af-cal::before { content: ""; position: absolute; z-index: -1; top: -30px; right: -36px; bottom: -12px; left: -36px; }
+/* (on a picture: no card, a band behind each line of words instead, the card's colour fading out all
+   round it, as the caption's band behind the list: core.js AF.pageCards, BAND_ALPHA) */
+body .af-carded.af-text-bands:not(.af-apart), body .af-carded.af-text-bands.af-apart > .af-forest::before, body .af-carded.af-text-bands.af-apart > .af-cal::before {
+  background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.af-carded.af-text-bands:not(.af-apart) { padding-top: 0; padding-bottom: 0; }
+/* (the footer's: its journal's words, and its switch and key at the right only while they show, on
+   hover, as the controls over the months are; never the row's empty middle) */
+.af-text-bands .af-caption > *, .af-text-bands .af-cal-months, .af-text-bands .af-cal-notes > *, .af-text-bands .af-cal-days span,
+.af-text-bands .af-cal-foot .af-journal:not(:empty), .af-text-bands .af-cal-foot > .af-cal-shade, .af-text-bands .af-cal-foot > .af-cal-key,
+.af-text-bands .af-cal-grid > .af-cal-acts {
+  background: var(--af-band, rgba(0, 0, 0, 0.5)); box-shadow: 0 0 12px 8px var(--af-band, rgba(0, 0, 0, 0.5)); border-radius: 8px; }
+/* (a heatmap in a side column of its own: its card's reach inside the column, core.js AF.arrange) */
+body.af-lay:not(.af-lay-narrow) .af-carded.af-apart > .af-cal.af-slot-left, body.af-lay:not(.af-lay-narrow) .af-carded.af-apart > .af-cal.af-slot-right { margin-left: 36px; margin-right: 36px; }
+.af-carded .af-cal, .af-carded .af-cal-days span, .af-carded .af-caption, .af-carded .af-visit { color: var(--af-text-2, var(--fg-subtle)); }
+.af-carded .af-caption .af-info { border-bottom-color: var(--af-text-2, currentColor); }
+.af-carded .af-cal-by button:not(.af-on) { color: var(--af-text-2, var(--fg-subtle)) !important; }
+.af-carded .af-cal-by button:not(.af-on):hover { color: var(--af-text, var(--fg)) !important; }
+body.af-no-blur .af-carded:not(.af-apart), body.af-no-blur .af-carded.af-apart > .af-forest::before, body.af-no-blur .af-carded.af-apart > .af-cal::before {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 /* (an older Chromium, Qt 5's, drew a blurred card's content upside down: the tint alone there, nearly
    solid, core.js BLUR_FROM and NO_BLUR_ALPHA) */
 body.af-no-blur.af-lay-behind > center > *, body.af-no-blur .af-slot-below.af-cal::before, body.af-no-blur #studiedToday > span,

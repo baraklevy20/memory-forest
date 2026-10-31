@@ -522,11 +522,18 @@ function hourOf(mood) {
 }
 /* The page the calendar sits on: its colour (the first background behind `el` with any, AF.u.pageBg;
  * on a phone's transparent card, the app's own, AF.u.appBg) and whether it is dark (Anki's dark mode). */
+const cardOut = () => {
+  const m = window.getComputedStyle(document.body).getPropertyValue('--af-card-out').match(/[\d.]+/g);
+  return m && m.length >= 3 ? [+m[0], +m[1], +m[2]] : null;
+};
 function pageOf(el) {
   const behind = [];
   for (let e = el; e && e.nodeType === 1; e = e.parentElement) behind.push(e);
-  const bg = AF.u.pageBg(behind) || AF.u.appBg();
-  return { bg, dark: bg[0] * 0.3 + bg[1] * 0.59 + bg[2] * 0.11 < 128 };
+  // (its card under it in Onigiri's tile, the forest bare on the page: forest.css .af-card-heat, its
+  // colour as it comes out, core.js AF.cardTones; the cream page round it gave a light page's shades)
+  const card = el.closest && el.closest('.af-card-heat') ? cardOut() : null;
+  const bg = card || AF.u.pageBg(behind) || AF.u.appBg();
+  return { bg, dark: bg[0] * 0.3 + bg[1] * 0.59 + bg[2] * 0.11 < 128, solid: !!(el.closest && el.closest('.af-text-bands')) };
 }
 /* the shades run towards the page's opposite, so a day stands out the more you studied: darker
  * for more on a light page, brighter for more on a dark one (a dark page's pale tiles would
@@ -598,6 +605,10 @@ const REST_APART = 0.10;
 const restShade = (pal, paper) => { const blank = blankOn(paper); let lv = 0; while (lv < 3 && apart(pal.grass[lv][0], blank) < REST_APART) lv++; return pal.grass[lv][0]; };
 /* a 1px ring just inside a tile's face, its four corners left off, as the pixel tiles round theirs */
 function restRing(g, x, y, F) { for (let i = 1; i < F - 1; i++) { g.fillRect(x + i, y, 1, 1); g.fillRect(x + i, y + F - 1, 1, 1); g.fillRect(x, y + i, 1, 1); g.fillRect(x + F - 1, y + i, 1, 1); } }
+/* a day with no reviews at all (before the first): the empty grey as a film over the page; on a
+ * picture (core.js AF.pageCards, .af-text-bands) the empty day's solid tile, as the empty days
+ * after it have: the film was lost on the picture, the weeks before the first review gone */
+const noReviews = paper => paper.solid ? rgb(blankOn(paper)) : paper.dark ? EMPTY : EMPTY_LIGHT;
 function empty(g, x, y, fill = EMPTY, T = TILE) { g.fillStyle = fill; g.fillRect(x, y, T, T); }
 // a drawn tile's face: the box of its pixels, [left, top, right, bottom] in it (Flat's 9 with its
 // edge, a scenery's own tile 8, its gap in its last row and column), measured once a tile
@@ -961,7 +972,7 @@ function sharpen(hi, lo, cells, H, dark, paper, s, F, R, G = 0) {
     if (c.t) {
       g.fillStyle = rgb(c.t.fill); g.fill();
       g.save(); g.clip(); g.drawImage(c.t, 0, 0, F, F, c.x, c.y, F, F); g.restore();
-    } else { g.fillStyle = dark ? EMPTY : EMPTY_LIGHT; g.fill(); }
+    } else { g.fillStyle = noReviews(paper); g.fill(); }
   };
   for (const c of cells) {
     g.globalAlpha = H.fs !== null && c.o < H.fs ? 1 - FADE : 1;
@@ -1036,7 +1047,7 @@ function paint(H, win, sp, paper) {
     c.face = smooth ? [0, 0, pal.gapless ? CELL : TILE_FACE, pal.gapless ? CELL : TILE_FACE] : t ? faceOf(t) : [0, 0, T, T];
     if (smooth) c.t = t;  // (drawn by sharpen)
     else if (t) g.drawImage(t, c.x, c.y);
-    else if (!c.shade) empty(g, c.x, c.y, dark ? EMPTY : EMPTY_LIGHT, pal.gapless ? CELL : TILE);
+    else if (!c.shade) empty(g, c.x, c.y, noReviews(paper), pal.gapless ? CELL : TILE);
     g.globalAlpha = 1;
   }
   // (a joined shape: each pixel's day and shade, for the highlight; a drafted one's days also for the pointer)
@@ -1978,7 +1989,7 @@ AF.calendar = function (root, data, env) {
   const repaper = () => {
     if (!box.isConnected) { stop(); return; }
     const p = pageOf(box);
-    if (p.bg.join() === paper.bg.join()) return;
+    if (p.bg.join() === paper.bg.join() && p.solid === paper.solid) return;
     paper = p; unpoint();
     box.classList.toggle('af-cal-on-light', !paper.dark);
     draw();
