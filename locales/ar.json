@@ -3003,6 +3003,10 @@
   "text": "فوق القائمة",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "خلفية",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "بجانبها",
   "en": "Beside it"
@@ -3054,6 +3058,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "الغابة والخريطة الحرارية تحت قائمة الرزم",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "الغابة خلفيةً للنافذة، والخريطة الحرارية تحت قائمة الرزم",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "الذي يوضع بجانب قائمة الرزم أو فوقها، ويأتي أولًا حين يظهران معًا. وتتبعه شاشات الرزم أيضًا.",

@@ -2667,6 +2667,10 @@
   "text": "Acima da lista",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "Plano de fundo",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "Ao lado",
   "en": "Beside it"
@@ -2718,6 +2722,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "A floresta e o mapa de calor abaixo da lista de baralhos",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "A floresta como fundo da janela, e o mapa de calor abaixo da lista de baralhos",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "O que fica ao lado ou acima da lista de baralhos e vem primeiro quando os dois ficam juntos. As telas de baralho também seguem isso.",

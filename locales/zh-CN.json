@@ -2583,6 +2583,10 @@
   "text": "列表上方",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "背景",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "列表旁边",
   "en": "Beside it"
@@ -2634,6 +2638,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "森林和热力图显示在牌组列表下方",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "森林作为窗口背景，热力图在牌组列表下方",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "放在牌组列表旁边或上方的那一个；两者在一起时排在前面。牌组界面也遵循此设置。",

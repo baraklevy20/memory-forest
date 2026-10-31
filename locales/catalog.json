@@ -3251,6 +3251,12 @@
    "settings/layout_picker.py"
   ]
  },
+ "settings.layout.background": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
  "settings.layout.beside_it": {
   "web": false,
   "where": [
@@ -3324,6 +3330,12 @@
   ]
  },
  "settings.layout.the_forest_and_the_heatmap_under": {
+  "web": false,
+  "where": [
+   "settings/layout_picker.py"
+  ]
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
   "web": false,
   "where": [
    "settings/layout_picker.py"

@@ -2667,6 +2667,10 @@
   "text": "Encima de la lista",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "Fondo",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "Al lado",
   "en": "Beside it"
@@ -2718,6 +2722,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "El bosque y el mapa de calor debajo de la lista de mazos",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "El bosque como fondo de la ventana, y el mapa de calor debajo de la lista de mazos",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "El que va al lado o encima de la lista de mazos, y el primero cuando están juntos. Las pantallas de mazo también lo siguen.",

@@ -5,7 +5,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { layer, send, animates, esc } = AF.u;
+const { layer, send, animates, esc, oklab, fromOklab, cssColor, contrast, onTheme, pageBg, appBg } = AF.u;
 const { HORIZON, GROUND_BOTTOM } = AF.GEOM;
 
 /* ---------- the scene runner ---------- */
@@ -50,6 +50,9 @@ AF.mount = function (root, data, opts) {
   root.innerHTML = '<div class="af-forest"><div class="af-scene' + (data.inAnki ? ' af-has-cog' : '') + '">' + cogHtml(data)
     + `<canvas class="af-canvas" aria-label="${esc(AF.t('panel.your_study_forest'))}"></canvas>`
     + '<div class="af-tip" hidden></div></div>'
+    // (the sky's colours, for the cards' over the forest, Layout's Background: AF.skyFill; after the
+    // scene, so the forest's canvas stays the panel's first)
+    + '<canvas class="af-sky-fill" aria-hidden="true"></canvas>'
     + '<div class="af-visit" aria-live="polite" hidden></div><div class="af-caption"><span class="af-journal"></span><span class="af-meta"></span></div></div>';
   const sceneEl = root.querySelector('.af-scene'), canvas = root.querySelector('canvas'), tip = root.querySelector('.af-tip');
   AF.panelWidth(root, data);
@@ -83,9 +86,18 @@ AF.mount = function (root, data, opts) {
 
   function build() {
     clearTimeout(refining);
-    const cssW = Math.max(MIN_CSS_W, Math.min(sceneEl.clientWidth || data.maxWidth, data.maxWidth));
-    const k = Math.max(MIN_PIXEL_SCALE, Math.floor(cssW / CSS_W_PER_SCALE)), W = Math.floor(cssW / k), H = Math.floor(W / ASPECT);
+    // (Layout's Background: the scene covers the window and Anki's bars, AF.cover; elsewhere the
+    // Forest width, or the room it has)
+    const cover = root.afBehind ? AF.cover(data) : null;
+    const cssW = cover ? cover.w : Math.max(MIN_CSS_W, Math.min(sceneEl.clientWidth || data.maxWidth, data.maxWidth));
+    const k = Math.max(MIN_PIXEL_SCALE, Math.floor(cssW / CSS_W_PER_SCALE));
+    const W = cover ? Math.ceil(cssW / k) : Math.floor(cssW / k), H = Math.floor(W / ASPECT);
     canvas.style.width = W * k + 'px'; canvas.style.height = H * k + 'px';
+    if (cover) {
+      // (its sides past the window's, for the buttons kept at the window's corner)
+      AF.coverVars(root, W * k, H * k);
+      root.afCover = cover.w;
+    }
     if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }  // (each frame clears it anyway)
     env = { W, H, u: W / BASE_W, hor: Math.round(H * HORIZON), mood: data.mood, data, layout, engine, bot: GROUND_BOTTOM };
     env.theme = AF.theme(data.mood, data.stats, data.events);
@@ -99,6 +111,7 @@ AF.mount = function (root, data, opts) {
     env.puddles = AF.findPuddles(env);
     AF.placeVisitors(env);
     env.sky = engine.sky(env);
+    if (root.afBehind) AF.skyFill(root, env.sky);
     const [land, lg] = layer(W, H); env.land = land; env.lg = lg;
     engine.steps(env).forEach(s => s(lg));
     engine.post(env);
@@ -111,6 +124,11 @@ AF.mount = function (root, data, opts) {
     if (data.calendar && !calendarDrawn) {
       calendarDrawn = true;
       try { AF.calendar(root, data, env); } catch (e) { console.error('Memory Forest calendar', e); }
+    }
+    // (Layout's Background: Anki's bars take the sky's and the scene's foot's colours, once it is drawn)
+    if (root.afBehind) {
+      root.afBarsAgain = () => { if (current() && root.afBehind) AF.barEdges(data, root, canvas); };  // (and on a theme change: AF.cardTones)
+      requestAnimationFrame(root.afBarsAgain);
     }
     // some trees stood in at another size (no time to draw them all): drawn again shortly
     if (env.spritesPending) refining = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, REFINE_MS);
@@ -237,9 +255,19 @@ AF.mount = function (root, data, opts) {
   let lastW = 0, rt;
   if ('ResizeObserver' in window) new ResizeObserver((_es, obs) => {
     if (!current()) { obs.disconnect(); return; }
+    if (root.afBehind) return;  // (its size is the window's: below)
     const w = sceneEl.clientWidth; if (!env || Math.abs(w - lastW) < RESIZE_MIN_PX) return; lastW = w;
     clearTimeout(rt); rt = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, RESIZE_DEBOUNCE_MS);  // (not after a swap: a retired build would take root.afEnv)
   }).observe(sceneEl);
+  // (Layout's Background: built again as the window's size changes the scene that covers it)
+  const onWindow = () => {
+    if (!current()) { window.removeEventListener('resize', onWindow); return; }
+    if (!root.afBehind || !env) return;
+    AF.coverVars(root, canvas.offsetWidth, canvas.offsetHeight);  // (a taller window, the same scene: the cog moves with its top)
+    if (Math.abs(AF.cover(data).w - (root.afCover || 0)) < RESIZE_MIN_PX) return;
+    clearTimeout(rt); rt = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, RESIZE_DEBOUNCE_MS);
+  };
+  window.addEventListener('resize', onWindow);
   // build after the deck list has painted, so the forest never delays it - unless this is a
   // swap, where the old forest was just cleared and waiting would show an empty panel
   if (opts && opts.now) { lastW = sceneEl.clientWidth; start(); return; }
@@ -285,6 +313,215 @@ AF.panelWidth = (root, data) => {
 // (a forest beside the list keeps at least SIDE_SHARE of its Forest width: at 360 px of 800 it read as a
 // thumbnail beside the list, smaller than it stands under it)
 const SIDE_GAP = 32, SIDE_MIN = 360, SIDE_SHARE = 0.6, HEAT_MIN = 480, EDGE = 12;
+/* Background: the cards over the forest take the colour of its sky (AF.cardTones): its average, read
+ * from SKY_FILL_COLS columns of the sky's top SKY_FILL_ROWS rows (.af-sky-fill, never shown: the
+ * scene covers the window, AF.cover) */
+/* Each column goes SKY_FLATTEN of the way to their average, so one bright spot in the sky's top rows
+ * (Starry night's swirl) isn't a lit pillar up the window; the average, and so the cards' colour,
+ * stays the same. */
+const SKY_FILL_COLS = 12, SKY_FILL_ROWS = 3, SKY_FLATTEN = 0.5;
+const CARD_REACH = 36;  // css px the heatmap's card reaches past it each side (forest.css .af-slot-below.af-cal::before)
+/* The cards' blur only where Chromium draws it right: Anki 2.1.45's (Chromium 77, Qt 5) drew each
+ * blurred card's content upside down (e2e/old_anki_check.py, 2026-10-31). Every Qt 5 Anki is before
+ * BLUR_FROM; there the cards are their tint alone, which is nearly solid anyway (forest.css af-no-blur) */
+const BLUR_FROM = 90;
+const chromium = () => { const m = /Chrome\/(\d+)/.exec(window.navigator.userAgent); return m ? +m[1] : 0; };
+AF.skyFill = (root, sky) => {
+  const fill = root.querySelector('.af-sky-fill');
+  if (!fill || !sky || !sky.width) return;
+  if (fill.width !== SKY_FILL_COLS) { fill.width = SKY_FILL_COLS; fill.height = 1; }
+  const g = fill.getContext('2d');
+  g.imageSmoothingEnabled = true;
+  g.clearRect(0, 0, SKY_FILL_COLS, 1);
+  g.drawImage(sky, 0, 0, sky.width, Math.min(SKY_FILL_ROWS, sky.height), 0, 0, SKY_FILL_COLS, 1);
+  const img = g.getImageData(0, 0, SKY_FILL_COLS, 1), px = img.data, avg = [0, 0, 0];
+  for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) avg[c] += px[i + c] / SKY_FILL_COLS;
+  for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) px[i + c] = Math.round(px[i + c] + (avg[c] - px[i + c]) * SKY_FLATTEN);
+  g.putImageData(img, 0, 0);
+  root.afSky = avg;
+  AF.cardTones(root);
+  // (again when Anki's theme or a themer's colours change: the cards and their words follow)
+  if (!root.afToneWatch) root.afToneWatch = onTheme(() => { if (root.isConnected && root.afBehind) AF.cardTones(root); });
+};
+/* The cards' colour and the words on them (forest.css, Background), all from the theme's own colours
+ * as the page has them (Anki's variables, or a themer's: Onigiri, AnKing's, ReColor), never fixed
+ * ones, and done again when they change (onTheme). The card: the theme's page colour (--canvas)
+ * at its lightness, its hue plus the sky's (CARD.sky of the sky's OKLab colour), so every scenery and
+ * hour gives the contrasts the theme was made for; CARD.alpha opaque, and set so that over the sky
+ * that shows through it the card comes out at that colour (mixed toward fixed near black and near
+ * white, a dawn sky made a mid-grey dark card and its counts fell to 2.7:1; a themer's page colour
+ * was lost, 2026-10-31). Where nothing blurs behind it (af-no-blur) nearly solid, NO_BLUR_ALPHA: the
+ * scene's stars and branches showed through sharp. On it: the secondary words (the heatmap's labels,
+ * the zoom's, a deck's description) the theme's text colour faded toward the card to TEXT_2 (Anki's
+ * --fg-subtle is a grey for its flat page: 2.8:1 on a dawn card), a count's 0 to ZERO, Anki's New,
+ * Learn and Due colours moved in lightness alone to COUNTS where they fall short (light Anki's green
+ * Due was 2.4:1 on a night sky's card), the current row's veil and the header's rule the text colour
+ * faint. */
+const CARD = { dark: { sky: 0.35, alpha: 0.9 }, light: { sky: 0.15, alpha: 0.95 } }, NO_BLUR_ALPHA = 0.97;
+const TEXT_2 = 5, ZERO = 2.3, COUNTS = 4.5, VEIL = { dark: 0.1, light: 0.07 }, RULE = 0.16;
+const COUNT_KINDS = ['new', 'learn', 'review'];
+const rgba = (c, a) => 'rgba(' + c.slice(0, 3).map(v => Math.round(v)).join(',') + ',' + a + ')';
+const toward = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+// the theme's colour for `name` (Anki 2.1.50+'s variable, or an older Anki's), or what the page shows
+const themed = (names, fallback) => {
+  const css = window.getComputedStyle(document.body);
+  for (const n of names) { const c = cssColor(css.getPropertyValue(n)); if (c) return c; }
+  return fallback();
+};
+// `from` faded toward `to` as far as it goes while still standing at `ratio` on `to`
+const fadedTo = (from, to, ratio) => {
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 16; i++) { const m = (lo + hi) / 2; if (contrast(toward(from, to, m), to) >= ratio) lo = m; else hi = m; }
+  return toward(from, to, lo);
+};
+// (a class set only when it changes: setting it again is a mutation onTheme would hear)
+const setClass = (el, name, on) => { if (el.classList.contains(name) !== on) el.classList.toggle(name, on); };
+const probes = {};
+const countProbe = kind => {
+  if (!probes[kind] || !probes[kind].isConnected) {
+    const s = probes[kind] = document.createElement('span');
+    s.className = kind + '-count'; s.setAttribute('aria-hidden', 'true');
+    s.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;left:-99px;top:0';
+    document.body.appendChild(s);
+  }
+  return probes[kind];
+};
+const setVar = (el, name, value) => { if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value); };  // (unchanged: no new mutation for onTheme)
+AF.cardTones = root => {
+  const sky = root.afSky, body = document.body;
+  if (!sky || !body) return;
+  const page = themed(['--canvas', '--window-bg'], () => pageBg([body]) || appBg());
+  const fg = themed(['--fg', '--text-fg'], () => cssColor(window.getComputedStyle(body).color) || [0, 0, 0]);
+  const p = oklab(page.slice(0, 3)), s = oklab(sky), side = p[0] < 0.6 ? 'dark' : 'light';
+  const alpha = body.classList.contains('af-no-blur') ? NO_BLUR_ALPHA : CARD[side].alpha;
+  const want = fromOklab(p[0], p[1] + s[1] * CARD[side].sky, p[2] + s[2] * CARD[side].sky);
+  const tint = want.map((v, i) => Math.max(0, Math.min(255, (v - (1 - alpha) * sky[i]) / alpha)));
+  const card = toward(sky, tint, alpha);  // (as it comes out over the sky)
+  setVar(body, '--af-card', rgba(tint, alpha));
+  root.afCardTint = { tint, alpha };  // (the bottom bar wears it as it comes out at the window's foot: AF.barEdges)
+  if (root.afBarsAgain) root.afBarsAgain();
+  setVar(body, '--af-card-clear', rgba(tint, 0));
+  setVar(body, '--af-text', rgba(fg, 1));
+  setVar(body, '--af-text-2', rgba(fadedTo(fg, card, TEXT_2), 1));
+  setVar(body, '--af-text-0', rgba(fadedTo(fg, card, ZERO), 1));
+  setVar(body, '--af-veil', rgba(fg, VEIL[side]));
+  setVar(body, '--af-rule', rgba(fg, RULE));
+  setClass(body, 'af-card-light', side === 'light');
+  // (Anki's counts: each read as Anki draws it, on a stand-in of ours outside the cards, then moved
+  // in lightness alone until it reads on the card)
+  COUNT_KINDS.forEach(kind => {
+    const c = cssColor(window.getComputedStyle(countProbe(kind)).color);
+    if (!c) { body.style.removeProperty(`--af-${kind}`); return; }
+    const k = oklab(c.slice(0, 3)), step = side === 'light' ? -0.01 : 0.01;
+    let moved = c;
+    for (let i = 1; i <= 60 && contrast(moved, card) < COUNTS; i++) moved = fromOklab(k[0] + step * i, k[1], k[2]);
+    setVar(body, `--af-${kind}`, rgba(moved, 1));
+  });
+  setClass(body, 'af-counts', true);
+};
+/* Background a tree's tooltip stands on a layer of its own, fixed over the scene and above our
+ * row (forest.css .af-tip-layer): inside the forest, behind the page, the cards and pills covered it.
+ * hover.js places it in the scene's own coordinates as ever: the layer has the scene's box. */
+AF.tipLayer = root => {
+  const scene = root.querySelector('.af-scene'), tip = scene && scene.querySelector(':scope > .af-tip');
+  let layer = root.afTipLayer;
+  if (root.afTipPlace) { window.removeEventListener('resize', root.afTipPlace); root.afTipPlace = null; }
+  if (!root.afBehind || !scene) {
+    if (layer) { layer.remove(); root.afTipLayer = null; }
+    return;
+  }
+  if (!layer) { layer = root.afTipLayer = document.createElement('div'); layer.className = 'af-tip-layer'; document.body.appendChild(layer); }
+  layer.textContent = '';  // (an earlier mount's tip)
+  AF.i18n.dirOn(layer);
+  if (tip) layer.appendChild(tip);
+  const place = () => { const r = scene.getBoundingClientRect(); layer.style.top = r.top + 'px'; layer.style.height = r.height + 'px'; };
+  root.afTipPlace = place;
+  window.addEventListener('resize', place);
+  scene.addEventListener('mouseenter', place);  // (drawn after the layout: its height is known by then)
+  place();
+};
+/* Background: the forest's caption, at the window's foot, steps aside (fades, forest.css
+ * af-caption-under) while any of the page's cards or lines lies over it: in a window just tall enough
+ * the last pill sat on the caption at first sight, two lines of words on each other; back once the
+ * page has scrolled past it. Asked again as the page scrolls and the window resizes. */
+AF.captionClear = root => {
+  if (root.afCaptionCheck) {
+    window.removeEventListener('scroll', root.afCaptionCheck); window.removeEventListener('resize', root.afCaptionCheck); root.afCaptionCheck = null;
+  }
+  const caption = root.querySelector('.af-caption'), center = root.parentElement;
+  if (caption) caption.classList.remove('af-caption-under');
+  if (!root.afBehind || !caption) return;
+  const check = () => {
+    const c = caption.getBoundingClientRect();
+    if (!c.height) return;
+    const parts = Array.prototype.filter.call(center ? center.children : [], el => el !== root).concat(Array.from(root.querySelectorAll('.af-slot-below')));
+    const over = parts.some(el => { const r = el.getBoundingClientRect(); return r.height && r.bottom > c.top - CAPTION_AIR && r.top < c.bottom && r.right > c.left && r.left < c.right; });
+    if (caption.classList.contains('af-caption-under') !== over) caption.classList.toggle('af-caption-under', over);
+  };
+  root.afCaptionCheck = check;
+  window.addEventListener('scroll', check, { passive: true });
+  window.addEventListener('resize', check);
+  requestAnimationFrame(check);
+};
+const CAPTION_AIR = 6;  // css px kept clear over the caption
+/* Layout's Background: the scene covers the window as a wallpaper does: as wide as the window, or
+ * wider and cut at both sides where the window is taller than half its width, its foot on the
+ * window's. So no stretched sky over it (2026-10-31: it looked smeared). The window only: laid out
+ * under Anki's bars as well it grew too large, and what walked there (a fox) was hidden. COVER_SLACK:
+ * a few px more, as the canvas is a whole number of its pixels. */
+const COVER_SLACK = 8;
+AF.cover = () => ({ w: Math.max(window.innerWidth, ASPECT * window.innerHeight + COVER_SLACK) });
+/* (how far the scene reaches past the window's sides, and over its top, for the cog and the zoom
+ * button kept at the window's top corner: forest.css) */
+AF.coverVars = (root, w, h) => {
+  const box = root.querySelector('.af-forest');
+  if (!box) return;
+  box.style.setProperty('--af-side', Math.max(0, (w - window.innerWidth) / 2) + 'px');
+  box.style.setProperty('--af-over', Math.max(0, h - window.innerHeight) + 'px');
+};
+/* Anki's toolbar over the page and its bottom bar under it, pages of their own, wear the scene's edge
+ * beside them, blurred and still (bars.py): the window's top BAR_ROWS rows of the scene, and its
+ * foot's, each squeezed to BAR_COLS columns and drawn smoothly across the bar, as a soft band of its
+ * colours, never its pictures (slices of the scene itself looked broken at the seam, 2026-10-31). Sent
+ * as the scene is drawn, when they change; the clear when the layout is no longer Background
+ * (AF.arrange). */
+const BAR_ROWS = 4, BAR_COLS = 16;
+const hex = rgb => '#' + rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+const rowsAverage = (c, y, rows) => {
+  const px = c.getContext('2d').getImageData(0, y, c.width, rows).data, avg = [0, 0, 0], n = px.length / 4;
+  for (let i = 0; i < px.length; i += 4) for (let k = 0; k < 3; k++) avg[k] += px[i + k] / n;
+  return avg;
+};
+AF.barEdges = (data, root, canvas) => {
+  if (!canvas || !canvas.width || !canvas.height) return;
+  try {
+    const r = canvas.getBoundingClientRect(), kx = canvas.width / r.width, ky = canvas.height / r.height;
+    // (the window's columns of the scene, its rows y0 (css px from the window's top) down BAR_ROWS
+    // of its pixels, squeezed to BAR_COLS columns smoothly: a soft band of their colours, as a PNG)
+    const edge = y0 => {
+      const sx = Math.max(0, -r.left * kx), sw = Math.min(canvas.width - sx, window.innerWidth * kx);
+      const sy = Math.min(canvas.height - BAR_ROWS, Math.max(0, (y0 - r.top) * ky));
+      const c = document.createElement('canvas'), g = c.getContext('2d');
+      c.width = BAR_COLS; c.height = 1;
+      g.imageSmoothingEnabled = true;
+      g.drawImage(canvas, sx, sy, sw, BAR_ROWS, 0, 0, BAR_COLS, 1);
+      return c.toDataURL('image/png');
+    };
+    // (the bottom bar the cards' colour, solid, as the caption's band darkens into it at the window's
+    // foot: one dim from the forest down into the bar, 2026-10-31; the scene's own colours there
+    // stood out as a lighter strip)
+    const ground = rowsAverage(canvas, canvas.height - BAR_ROWS, BAR_ROWS), c = root.afCardTint;
+    const foot = c ? ground.map((v, i) => v + (c.tint[i] - v) * c.alpha) : ground;
+    const msg = `${data.channel}:bars:` + JSON.stringify({ top: edge(0), bottom: '', topColour: hex(rowsAverage(canvas, 0, 1)), bottomColour: hex(foot) });
+    if (msg !== AF.barsSent) { AF.barsSent = msg; send(msg); }
+  } catch { /* (a canvas that can't be read: Anki's bars stay as they are) */ }
+};
+/* (a line of another add-on's plain text in Anki's row, behind the list: on a card of its own,
+ * forest.css .af-pill; anything with pictures, tables or controls in it is left as it draws itself) */
+const PILL_SKIP = /^(TABLE|BR|SCRIPT|STYLE|LINK|H3)$/, PILL_MAX_CHARS = 200;
+const pillRow = el => !PILL_SKIP.test(el.tagName) && el.id !== 'studiedToday' && !el.classList.contains('af-panel') && !el.classList.contains('description')
+  && !el.querySelector('img, canvas, svg, table, iframe, video, button, input, select')
+  && el.textContent.trim().length > 0 && el.textContent.length < PILL_MAX_CHARS;
 const SLOTS = /\s*af-(slot-\w+|apart)\b/g;
 AF.arrange = function (root, data) {
   const L = data.layout, center = root.parentElement;
@@ -296,15 +533,42 @@ AF.arrange = function (root, data) {
   const places = L ? [forest && L.forest, cal && L.heatmap].filter(Boolean) : [];
   const sides = places.filter(p => p === 'left' || p === 'right');
   const table = center && center.tagName === 'CENTER' && center.querySelector(':scope > table');
-  if (!sides.length && !places.includes('above') || !table) {
+  // (where Anki's <center> holds a table: the deck list, and a deck's screen, its counts and Study
+  // now; or on a finished deck's page, the panel in a box of its own under its message: AF.arrange
+  // leaves Anki's page as it is there, forest.css af-behind-page. Anywhere else, Onigiri's tile, the
+  // forest stays in the panel)
+  const finished = !table && !!root.closest('.af-finished');
+  root.afBehind = !!((table || finished) && forest && L && L.forest === 'behind');
+  document.body.classList.toggle('af-lay-behind', root.afBehind);
+  document.body.classList.toggle('af-behind-page', root.afBehind && finished);
+  document.body.classList.toggle('af-no-blur', root.afBehind && chromium() < BLUR_FROM);
+  if (center) {
+    // (and what Anki puts before the table, a deck screen's name and description, stays over it)
+    let before = !!table;
+    Array.prototype.forEach.call(center.children, el => {
+      if (el === table) before = false;
+      el.classList.toggle('af-pill', root.afBehind && pillRow(el));
+      el.classList.toggle('af-lay-before', root.afBehind && before);
+    });
+    // (a deck screen's name, the title of its counts' card, as wide as that card: forest.css)
+    const title = table && center.querySelector(':scope > h3');
+    if (title) title.style.width = root.afBehind ? table.offsetWidth + 'px' : '';
+    if (table) table.classList.toggle('af-titled', !!(root.afBehind && title));
+  }
+  AF.tipLayer(root);
+  AF.captionClear(root);
+  if (!root.afBehind) document.body.classList.remove('af-behind-zooming');
+  if (!root.afBehind && AF.barsSent) { AF.barsSent = null; send(`${data.channel}:bars`); }
+  if (!sides.length && !places.includes('above') && !root.afBehind || !(table || root.afBehind)) {
     if (root.afArranged) { document.body.classList.remove('af-lay', 'af-lay-narrow'); root.afArranged = false; }
     return;
   }
   root.afArranged = true;
   document.body.classList.add('af-lay');
   const put = (el, place) => el.classList.add('af-slot-' + place);
-  const apart = forest && cal && L.forest !== L.heatmap;
-  if (apart) { root.classList.add('af-apart'); put(parts[1], L.forest); put(parts[2], L.heatmap); } else put(root, places[0]);
+  // (behind the list the forest always stands apart, the heatmap shown or not: the panel steps aside)
+  const apart = forest && (cal && L.forest !== L.heatmap || root.afBehind);
+  if (apart) { root.classList.add('af-apart'); put(parts[1], L.forest); if (cal) put(parts[2], L.heatmap); } else put(root, places[0]);
   const cols = new Set(sides).size;
   const heatSide = apart && (L.heatmap === 'left' || L.heatmap === 'right');
   const size = (el, w) => el.style.setProperty('--af-row', Math.floor(w) + 'px');
@@ -332,7 +596,8 @@ AF.arrange = function (root, data) {
       // never more than the row (calendar.js AF.calendarWidthIn), in the row's middle as everything
       // on the page is (forest.css .af-slot-below, .af-slot-above))
       const lone = heatSide && !narrow;
-      size(parts[2], lone ? col : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room)));
+      // (behind the list, less its card's reach each side, so the card keeps the window's gutter)
+      if (cal) size(parts[2], lone ? col : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room) - (root.afBehind ? 2 * CARD_REACH : 0)));
     }
   };
   // a side column that fits the window stays in view while a longer deck list scrolls by (forest.css

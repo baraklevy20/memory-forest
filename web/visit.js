@@ -267,6 +267,8 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   function show() {
     caption.hidden = on; bar.hidden = !on;
     root.classList.toggle('af-visiting', on);
+    // (behind the deck list, the list and the heatmap fade away while you walk among the trees: forest.css)
+    document.body.classList.toggle('af-behind-zooming', on && !!root.afBehind);
     button.classList.toggle('af-zoom-on', on);
     button.setAttribute('aria-pressed', on ? 'true' : 'false');
     button.title = on ? AF.tx(BACK) : AF.t('zoom.zoom_in_among_the_trees');
@@ -493,6 +495,7 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
       // from the whole forest: the camera at its edge, which sees it just as the whole forest's view does
       if (!cam) { clearTimeout(fading); canvas.style.opacity = ''; cam = home(1); }
       root.classList.add('af-dragging');
+      if (root.afTipLayer) root.afTipLayer.classList.add('af-dragging');  // (its tooltip, behind the list, on a layer of its own)
       try { canvas.setPointerCapture(e.pointerId); } catch { /* the pointer is gone */ }
     }
     press.x = x; press.y = y;
@@ -516,6 +519,7 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     }
     if (dragged) setTimeout(() => { dragged = false; }, 0);
     root.classList.remove('af-dragging');
+    if (root.afTipLayer) root.afTipLayer.classList.remove('af-dragging');
   };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);

@@ -21,7 +21,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { hashStr, hex, rgb, layer, esc, mix, cap, send, animates } = AF.u;
+const { hashStr, hex, rgb, layer, esc, mix, cap, send, animates, oklab, fromOklab, lin, unlin, onTheme } = AF.u;
 const { SEEDLING } = AF.STAGE;
 
 // low-res pixels: a day's square, the tile drawn in it, a little room above the weeks under the
@@ -144,7 +144,6 @@ const SPOT_DIM = 0.72;  // the days a hover is not about: this far into the page
 const TIP_WAIT = 150;  // ms the first tooltip waits, the pointer just come onto the heatmap
 const SWIPE_PX = 40, SWIPE_QUIET = 250, SWIPE_AGAIN = 1.5;  // a trackpad's sideways swipe: css px to turn a page; ms still that ends it; how much faster than the last step a new swipe starts
 const DAYS_ROOM = 28, NOTE_ROOM = 44, SINCE_ROOM = 150;  // css px: room the weekdays need left of the forest; a streak's length under its bracket, and its "Since" date beside it
-const THEME_SETTLE_MS = 400;  // a page whose colour eases to the new theme has got there by then
 // low-res px round an animal, a pin or a trophy that a finger's tap still counts for; css px a tap may move
 const TOUCH_PAD = 6, TAP_SLOP = 10;
 const deep = v => Array.isArray(v) ? v.map(deep) : hex(v);
@@ -436,23 +435,9 @@ const LIGHT_STEPS = [0.82, 0.69, 0.56, 0.43], LIGHT_CHROMA = 0.08;  // (0.86 sat
 const DARK_STEPS = [0.45, 0.58, 0.72, 0.85], DARK_CHROMA = [0.6, 1.0, 1.0, 0.5];
 /* `t` of the way from colour `a` to `b`, through OKLab, where equal steps look equal (a plain mix
  * of a blue and a green dips muddy in the middle) */
-const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
-const unlin = v => 255 * Math.min(1, Math.max(0, v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055));
-function oklab(c) {
-  const [r, g, b] = c.map(lin);
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b),
-    s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
-    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
-}
 function blend(a, b, t) {
   const p = oklab(a), q = oklab(b);
   return fromOklab(...p.map((v, i) => v + (q[i] - v) * t));
-}
-function fromOklab(L, A, B) {
-  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
-  return [unlin(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), unlin(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
-    unlin(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
 }
 // whether an OKLab colour is one the screen can show (each channel, before it is clipped, in 0..1)
 function fits(L, A, B) {
@@ -1989,30 +1974,23 @@ AF.calendar = function (root, data, env) {
   const ro = window.ResizeObserver ? new ResizeObserver(() => { if (!relay) relay = setTimeout(relaid, 0); }) : null;
   if (ro) ro.observe(grid);
   // Anki switched between light and dark: the page's colour is read again and the days painted
-  // for it (their shades, the animals' outlines, today's frame). Anki marks the switch on the
-  // page's classes, and the system's own switch shows in the colour scheme; a moment later too,
-  // for a page whose colour eases across
+  // for it (their shades, the animals' outlines, today's frame): util.js onTheme
   const repaper = () => {
-    if (!box.isConnected) return;
+    if (!box.isConnected) { stop(); return; }
     const p = pageOf(box);
     if (p.bg.join() === paper.bg.join()) return;
     paper = p; unpoint();
     box.classList.toggle('af-cal-on-light', !paper.dark);
     draw();
   };
-  const rethink = () => { if (!box.isConnected) { stop(); return; } requestAnimationFrame(repaper); setTimeout(repaper, THEME_SETTLE_MS); };
-  const mo = window.MutationObserver ? new window.MutationObserver(rethink) : null;
-  for (const el of [document.documentElement, document.body]) if (mo && el) mo.observe(el, { attributes: true, attributeFilter: ['class', 'style', 'data-theme'] });
-  const scheme = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-  if (scheme && scheme.addListener) scheme.addListener(rethink);
+  const unheard = onTheme(repaper);
   function stop() {
     if (liveIo) liveIo.disconnect();
     clearTimeout(liveTimer); ticking = false;
     if (watching) document.removeEventListener('visibilitychange', liveShown);
-    if (mo) mo.disconnect();
+    unheard();
     if (ro) ro.disconnect();
     clearTimeout(relay);
-    if (scheme && scheme.removeListener) scheme.removeListener(rethink);
     if (root.afCalStop === stop) root.afCalStop = null;
   }
   root.afCalStop = stop;

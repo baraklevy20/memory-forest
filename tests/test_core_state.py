@@ -54,6 +54,7 @@ class SwitchTests(unittest.TestCase):
                 self.assertEqual(got["beside"], {"forest": side, "heatmap": side, "first": first})
                 other = "heatmap" if first == "forest" else "forest"
                 self.assertEqual(got["one_beside"], {first: side, other: "below", "first": first})
+                self.assertEqual(got["behind"], {"forest": "behind", "heatmap": "below", "first": first})
 
     def test_above_the_list_puts_the_first_over_it_and_the_other_under_it(self):
         state = addon.state
@@ -65,7 +66,8 @@ class SwitchTests(unittest.TestCase):
         for key in state.LAYOUTS:
             for first in state.LAYOUT_FIRST:
                 got = state.layout({"layout": key, "layout_side": "left", "layout_first": first}, deck_screen=True)
-                self.assertEqual(got, {"forest": "below", "heatmap": "below", "first": first}, key)
+                forest = "behind" if key == "behind" else "below"  # (the forest fills a deck's screen too)
+                self.assertEqual(got, {"forest": forest, "heatmap": "below", "first": first}, key)
 
     def test_a_hand_edited_layout_falls_back_to_the_defaults(self):
         state = addon.state

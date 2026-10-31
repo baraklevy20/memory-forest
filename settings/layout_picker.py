@@ -1,11 +1,13 @@
 """Layout (Forest tab, Where it shows): where the forest and the heatmap sit round the deck list,
 chosen by picture (state.LAYOUTS): both under it, both beside it, the First beside it and the other
-under it, or the First above it and the other under it. Then on one row the Side a column beside the
+under it, the First above it and the other under it, or the forest behind the list (filling the
+window, the list and the heatmap on frosted cards over it: web/core.js AF.arrange). Then on one row the Side a column beside the
 list stands on, and First: the one that gets the place beside or above the list, and comes first. Each picture is
 a small sketch of the deck list, drawn here in whole pixels in the theme's greys and a forest's
 greens, mirrored for the left side, the two in the order chosen. Only the deck list follows it: a
 deck's screen, the finished-deck page, Onigiri's tile and the phone keep the two stacked under what
-they have, in the First order (web/core.js AF.arrange)."""
+they have, in the First order (web/core.js AF.arrange); but Background, which a deck's screen and
+the finished-deck page follow too."""
 
 from __future__ import annotations
 
@@ -34,14 +36,16 @@ from .palette import readable
 from .widgets import Choice, JoinedChoice, hint, picture_button_style, pixel_ratio
 
 # the layouts, in the order shown: under the list as it always was, both beside it, one beside it,
-# one above it
+# one above it, the forest behind it
 LAYOUT_OPTIONS = [("under", N_("settings.layout.under_the_list")), ("beside", N_("settings.layout.beside_it")),
-                  ("one_beside", N_("settings.layout.one_beside")), ("above", N_("settings.layout.above_the_list"))]
+                  ("one_beside", N_("settings.layout.one_beside")), ("above", N_("settings.layout.above_the_list")),
+                  ("behind", N_("settings.layout.background"))]
 LAYOUT_TIPS = {
     "under": N_("settings.layout.the_forest_and_the_heatmap_under"),
     "beside": N_("settings.layout.the_forest_and_the_heatmap_beside"),
     "one_beside": N_("settings.layout.the_first_beside_the_deck_list"),
     "above": N_("settings.layout.the_first_above_the_deck_list"),
+    "behind": N_("settings.layout.the_forest_as_the_window_s_background"),
 }
 SIDE_OPTIONS = [("right", N_("settings.layout.right")), ("left", N_("settings.layout.left"))]
 # which comes first where the two stand together, and which goes above the list with Above the list
@@ -60,6 +64,8 @@ SKY = ("#a9cdea", "#5f86ad")
 GROUND = ("#7fb05a", "#5f9447")
 TREES = ("#3f7a34", "#3a6e30")
 SHADES = (("#cfe3b8", "#9ccc6b", "#4f8f3a"), ("#3c5a2f", "#6aa04a", "#a8d67e"))
+# Background's frosted card under the list's lines (the theme's page, a little see-through)
+CARD = ("#e4ece6", "#3a4148")
 
 
 def _rects(key: str, first: str = "forest") -> list:
@@ -73,6 +79,8 @@ def _rects(key: str, first: str = "forest") -> list:
         if first == "heatmap":
             return [("list", 3, 3, 28, 13), ("heat", 35, 3, 22, 3), ("forest", 3, 21, 54, 12)]
         return [("list", 3, 3, 28, 13), ("forest", 35, 3, 22, 13), ("heat", 3, 26, 54, 2)]
+    if key == "behind":  # the forest the whole picture, the list on its card over the sky, the heatmap under it
+        return [("forest", 0, 0, PIC_W, PIC_H), ("card", 14, 2, 32, 17), ("list", 16, 4, 28, 13), ("heat", 15, 22, 30, 2)]
     if key == "above":
         if first == "heatmap":
             return [("heat", 15, 1, 30, 2), ("list", 16, 8, 28, 13), ("forest", 12, 24, 36, 10)]
@@ -102,8 +110,10 @@ def picture(key: str, side: str = "right", first: str = "forest") -> QPixmap:
                 fill(x, y + i * 3, w - 8 if i else w, 1, INK)
                 if i:
                     fill(x + w - 5, y + i * 3, 5, 1, INK)
+        elif what == "card":
+            fill(x, y, w, h, CARD)
         elif what == "forest":  # a strip of sky, ground and a row of trees
-            sky = h * 2 // 5
+            sky = h * 2 // 5 if h < PIC_H else h * 7 // 10  # (behind the list: mostly sky, as the window is)
             fill(x, y, w, sky, SKY)
             fill(x, y + sky, w, h - sky, GROUND)
             for t in range(x + 2, x + w - 2, 4):

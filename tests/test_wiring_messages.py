@@ -187,7 +187,7 @@ class MessageFormatsTests(unittest.TestCase):
     """The messages the page's scripts write match what on_js_message reads: each command the
     page sends is one it handles."""
 
-    HANDLED = {"settings", "news", "struck", "strike", "deep", "mark", "unmark", "shade", "view", "typing", "day", "days", "browse"}
+    HANDLED = {"settings", "news", "struck", "strike", "deep", "mark", "unmark", "shade", "view", "typing", "day", "days", "browse", "bars"}
 
     def test_every_command_the_page_sends_is_handled(self):
         import re
@@ -205,3 +205,63 @@ class MessageFormatsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BarsTests(unittest.TestCase):
+    """Layout's Background: the page's bands of the scene's edges for Anki's toolbar and bottom bar (bars.py)."""
+
+    PNG = "data:image/png;base64,iVBORw0KGgo="
+
+    def setUp(self):
+        reset([(1, 10, 5)])
+        self.bars = addon.bars
+        self.evals = {"top": [], "bottom": []}
+        top = mock.Mock(eval=self.evals["top"].append)
+        bottom = mock.Mock(eval=self.evals["bottom"].append)
+        for name, value in (("toolbar", mock.Mock(web=top)), ("bottomWeb", bottom)):
+            patcher = mock.patch.object(mw, name, value, create=True)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.top, self.bottom = top, bottom
+        self.addCleanup(self.bars.tint, [])
+
+    def sent(self, **look):
+        import json
+        send(msg("bars", json.dumps(dict({"top": self.PNG, "bottom": self.PNG, "topColour": "#6c8cc2", "bottomColour": "#3a4a2e"}, **look))))
+
+    def test_each_bar_wears_its_band_over_its_colour(self):
+        self.sent()
+        self.assertIn('"#6c8cc2"', self.evals["top"][-1])
+        self.assertIn(self.PNG, self.evals["top"][-1])
+        self.assertIn('"#3a4a2e"', self.evals["bottom"][-1])
+        self.assertIn("true)", self.evals["top"][-1])  # (the toolbar only on Anki's pill)
+        self.assertIn("false)", self.evals["bottom"][-1])
+
+    def test_a_picture_that_is_not_a_png_is_left_out_and_its_colour_kept(self):
+        self.sent(top="javascript:alert(1)", bottom="data:image/svg+xml;base64,AAAA")
+        self.assertIn('"picture": ""', self.evals["top"][-1])
+        self.assertIn('"#3a4a2e"', self.evals["bottom"][-1])
+        self.assertNotIn("svg", self.evals["bottom"][-1])
+
+    def test_nothing_or_a_broken_colour_takes_them_away(self):
+        send(msg("bars"))
+        self.assertIn("(null, true)", self.evals["top"][-1])
+        self.sent(topColour="red")
+        self.assertIn("(null, true)", self.evals["top"][-1])
+        self.assertIn("(null, false)", self.evals["bottom"][-1])
+        send(msg("bars", "{not json"))
+        self.assertIn("(null, false)", self.evals["bottom"][-1])
+
+    def test_a_bar_drawn_again_shows_it_again_and_nothing_else(self):
+        self.sent()
+        before = len(self.evals["top"]), len(self.evals["bottom"])
+        self.bars.on_page_loaded(self.top)
+        self.bars.on_page_loaded(object())
+        self.assertEqual((len(self.evals["top"]), len(self.evals["bottom"])), (before[0] + 1, before[1]))
+
+    def test_a_review_takes_them_away_and_the_deck_screens_keep_them(self):
+        self.sent()
+        self.bars.on_state_change("overview", "deckBrowser")
+        self.assertIn('"#6c8cc2"', self.evals["top"][-1])
+        self.bars.on_state_change("review", "overview")
+        self.assertIn("(null, true)", self.evals["top"][-1])

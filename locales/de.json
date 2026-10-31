@@ -2667,6 +2667,10 @@
   "text": "Über der Liste",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "Hintergrund",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "Daneben",
   "en": "Beside it"
@@ -2718,6 +2722,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "Wald und Heatmap unter der Stapelliste",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "Der Wald als Hintergrund des Fensters, die Heatmap unter der Stapelliste",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "Was neben oder über die Stapelliste kommt; stehen beide zusammen, kommt es zuerst. Die Stapelansicht folgt dem ebenfalls.",

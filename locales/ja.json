@@ -2583,6 +2583,10 @@
   "text": "一覧の上",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "背景",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "横",
   "en": "Beside it"
@@ -2634,6 +2638,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "森とヒートマップをデッキ一覧の下に",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "森をウィンドウの背景にし、ヒートマップをデッキ一覧の下に",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "デッキ一覧の横か上に置くほうです。両方を並べるときは先に表示されます。デッキ画面もこれに従います。",

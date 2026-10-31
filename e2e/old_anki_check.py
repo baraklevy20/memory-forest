@@ -305,7 +305,11 @@ LAYOUT_AT = """(() => {
   const forest = document.querySelector('.af-canvas'), heat = document.querySelector('.af-cal-canvas');
   return JSON.stringify({ table: rect(document.querySelector('center > table')), forest: rect(forest), heatmap: rect(heat),
     arranged: document.body.classList.contains('af-lay'), narrow: document.body.classList.contains('af-lay-narrow'),
-    forestPainted: painted(forest), heatmapPainted: painted(heat), width: window.innerWidth });
+    forestPainted: painted(forest), heatmapPainted: painted(heat), width: window.innerWidth, height: window.innerHeight,
+    behind: document.body.classList.contains('af-lay-behind'),
+    // (Background: the deck table's card, its tint and whether this Chromium blurs behind it)
+    tableBg: (t => t ? getComputedStyle(t).backgroundColor : null)(document.querySelector('center > table')),
+    tableBlur: (t => t ? (getComputedStyle(t).backdropFilter || getComputedStyle(t).webkitBackdropFilter || 'unsupported') : null)(document.querySelector('center > table')) });
 })()"""
 BESIDE_WIDE, BESIDE_NARROW = (1500, 950), (760, 950)  # the main window: room beside the list, and none
 RESIZE_MS = 1500  # for the page to lay out again and the forest to be built at its new width
@@ -358,7 +362,7 @@ def beside():
     def back(got, _raw):
         if not got.get("built") or got.get("old") or not got.get("painted"):
             result["problems"].append(f"the forest was not drawn again after the layout went back: {got}")
-        QTimer.singleShot(0, visit)
+        QTimer.singleShot(0, behind)
 
     try:
         mw.addonManager.writeConfig(FOREST, dict(state["cfg"], layout="beside", layout_side="right"))
@@ -370,6 +374,51 @@ def beside():
         QTimer.singleShot(0, visit)
         return
     measure(lambda got, raw: QTimer.singleShot(RESIZE_MS, lambda: layout_at(wide)), old_ok=False)
+
+
+def behind():
+    """The forest behind the deck list (Forest tab, Layout: Background): it fills the window's
+    width with its foot on the window's foot, painted, the deck table on a tinted card (and whether
+    this Chromium blurs behind it, said in the step), the heatmap under the list, painted. Then the
+    layout goes back as it was."""
+    note("step: layout behind the deck list")
+    web, state = mw.deckBrowser.web, {"cfg": config()}
+
+    def check(got):
+        shot("deck-list-behind")
+        t, f, h = got.get("table"), got.get("forest"), got.get("heatmap")
+        if not (t and f and h):
+            result["problems"].append(f"Background: something is missing on the deck list: {got}")
+        elif not got.get("behind"):
+            result["problems"].append(f"Background: the page was not laid out behind the list: {got}")
+        elif f[0] > 2 or f[2] < got["width"] - 2 or f[1] > 2 or f[3] < got["height"] - 2:
+            # (it covers the window, and Anki's bars: its foot under the bottom bar's)
+            result["problems"].append(f"Background: the forest should cover the window: {got}")
+        elif h[1] < t[3]:
+            result["problems"].append(f"Background: the heatmap should be under the deck table: {got}")
+        elif not (got.get("forestPainted") and got.get("heatmapPainted")):
+            result["problems"].append(f"Background: a canvas is blank: {got}")
+        elif got.get("tableBlur") not in ("none", "unsupported"):
+            # (Qt 5's Chromium drew a blurred card's content upside down: none there, core.js BLUR_FROM)
+            result["problems"].append(f"Background: the deck table is blurred in this old Chromium, which draws it upside down: {got.get('tableBlur')}")
+        elif not str(got.get("tableBg") or "").startswith("rgba("):
+            result["problems"].append(f"Background: the deck table has no tinted card: {got.get('tableBg')}")
+        else:
+            result["steps"].append(f"the forest behind the deck list ({got['width']}x{got['height']}, card {got['tableBg']}, blur {got['tableBlur']})")
+        mw.addonManager.writeConfig(FOREST, state["cfg"])
+        web.eval(MARK)
+        mw.deckBrowser.refresh()
+        measure(lambda again, _raw: QTimer.singleShot(0, visit), old_ok=False)
+
+    try:
+        mw.addonManager.writeConfig(FOREST, dict(state["cfg"], layout="behind"))
+        web.eval(MARK)
+        mw.deckBrowser.refresh()
+    except Exception:
+        result["errors"].append(f"layout behind the deck list:\n{traceback.format_exc()}")
+        QTimer.singleShot(0, visit)
+        return
+    measure(lambda got, raw: QTimer.singleShot(RESIZE_MS, lambda: web.evalWithCallback(LAYOUT_AT, lambda r: check(json.loads(r or "{}")))), old_ok=False)
 
 
 def mouse(web, kind, x: float, y: float, button, held) -> None:

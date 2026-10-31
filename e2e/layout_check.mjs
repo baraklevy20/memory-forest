@@ -50,7 +50,10 @@ try {
         window: document.documentElement.clientWidth, table: rect(document.querySelector('center > table')),
         forest: rect(forest), heatmap: rect(heat), scene: rect(document.querySelector('.af-scene')), cal: rect(document.querySelector('.af-cal')),
         calPad: document.querySelector('.af-cal') ? parseFloat(getComputedStyle(document.querySelector('.af-cal')).paddingTop) : null, studied: rect(document.getElementById('studiedToday')),
-        forestColours: colours(forest), heatmapColours: colours(heat), arranged: document.body.classList.contains('af-lay')
+        forestColours: colours(forest), heatmapColours: colours(heat), arranged: document.body.classList.contains('af-lay'),
+        // (Background: the window's height and the scroll, the forest fixed to the window's foot, and whether it stands behind)
+        viewH: window.innerHeight, scrollY: window.scrollY, behind: document.body.classList.contains('af-lay-behind'),
+        forestZ: document.querySelector('.af-forest') ? getComputedStyle(document.querySelector('.af-forest')).zIndex : null
       };
     });
     if (job.shot) await p.screenshot({ path: job.shot, fullPage: true });
@@ -59,7 +62,8 @@ try {
     // window's edge in Anki 2.1.45)
     for (const w of [job.other, job.width]) {
       await p.setViewport({ width: w, height: 1000 }); await wait(SETTLE_MS);
-      const past = await p.evaluate(() => [...document.querySelectorAll('.af-canvas, .af-cal-canvas, .af-cal')]
+      // (but Background's forest, which covers the window and is cut at its sides on purpose)
+      const past = await p.evaluate(() => [...document.querySelectorAll('.af-canvas, .af-cal-canvas, .af-cal')].filter(e => !e.closest('.af-slot-behind'))
         .map(e => Math.round(e.getBoundingClientRect().right)).filter(r => r > document.documentElement.clientWidth + 1));
       if (past.length) errors.push(`at ${w} px after a resize, reaching past the window: ${past.join(', ')}`);
     }

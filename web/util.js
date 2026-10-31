@@ -62,6 +62,56 @@ function pageBg(els) {
   }
   return null;
 }
+/* Colours as the eye sees them: OKLab (equal steps look equal; the heatmap's shades, calendar.js,
+ * and the Background cards' colour, core.js), a CSS colour read as numbers, and contrast as WCAG
+ * counts it */
+const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+const unlin = v => 255 * Math.min(1, Math.max(0, v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055));
+function oklab(c) {
+  const [r, g, b] = c.map(lin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b),
+    s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
+}
+function fromOklab(L, A, B) {
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
+  return [unlin(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), unlin(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    unlin(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
+}
+// any CSS colour (a theme's variable: a name, #hex, rgb(), hsl()) as [r, g, b, a], or null for none
+let swatch = null;
+function cssColor(s) {
+  s = (s || '').trim();
+  if (!s) return null;
+  if (!swatch) { const c = document.createElement('canvas'); c.width = c.height = 1; swatch = c.getContext('2d', { willReadFrequently: true }); }
+  swatch.clearRect(0, 0, 1, 1);
+  swatch.fillStyle = 'rgba(0,0,0,0)'; swatch.fillStyle = s;  // (a colour it can't read leaves the clear one)
+  swatch.fillRect(0, 0, 1, 1);
+  const d = swatch.getImageData(0, 0, 1, 1).data;
+  return d[3] ? [d[0], d[1], d[2], d[3] / 255] : null;
+}
+const luminance = c => 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]);
+const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+/* Anki switched between light and dark, or a themer (Onigiri, ReColor) changed its colours: `f` is
+ * called once the page has its new colours, at the next frame and again a moment later for a page
+ * whose colour eases across. Anki marks the switch on the page's classes (and a themer on <html>'s
+ * style or data-theme), the system's own switch shows in the colour scheme. One watcher for all who
+ * ask (the heatmap, the Background cards); the function it gives back stops `f`'s calls. */
+const THEME_SETTLE_MS = 400;
+const themeHeard = new Set();
+let themeWatch = null;
+function onTheme(f) {
+  if (!themeWatch) {
+    const all = () => themeHeard.forEach(g => { requestAnimationFrame(g); setTimeout(g, THEME_SETTLE_MS); });
+    themeWatch = window.MutationObserver ? new window.MutationObserver(all) : { observe() {} };
+    for (const el of [document.documentElement, document.body]) if (el) themeWatch.observe(el, { attributes: true, attributeFilter: ['class', 'style', 'data-theme'] });
+    const scheme = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    if (scheme && scheme.addListener) scheme.addListener(all);
+  }
+  themeHeard.add(f);
+  return () => themeHeard.delete(f);
+}
 /* Where a pointer event on `el` is, in its own css pixels as the layout has them, [x, y]: from
  * the event's offset, which a turned element (the phone's sideways view) keeps in the element's
  * own frame, taken back out of any zoom an app puts on the page (AnkiDroid's card zoom), which
@@ -103,7 +153,8 @@ function along(values, at) {
   const n = values.length, i = Math.floor(at), f = at - i, a = values[((i % n) + n) % n], b = values[(((i + 1) % n) + n) % n];
   return a + (b - a) * f;
 }
-AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates, pageBg, appBg, pointIn };
+AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates, pageBg, appBg, pointIn,
+  oklab, fromOklab, lin, unlin, cssColor, contrast, onTheme };
 AF.STAGE_H = [4, 8, 13, 19, 27, 38];
 AF.STAGE_NAMES = ['seedling', 'sapling', 'young', 'mature', 'old', 'ancient'];
 AF.STAGE = { SEEDLING: 0, SAPLING: 1, YOUNG: 2, MATURE: 3, OLD: 4, ANCIENT: 5 };

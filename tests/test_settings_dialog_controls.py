@@ -260,9 +260,10 @@ class ForestTabTests(QtCase):
         lay = d.forest.layout_pick
         self.assertEqual(lay.choice.currentData(), "under")
         self.assertFalse(lay.side.isEnabled())  # (nothing beside the list)
-        lay.choice.buttons["above"].click()
-        Q.settle()
-        self.assertFalse(lay.side.isEnabled())
+        for key in ("above", "behind"):
+            lay.choice.buttons[key].click()
+            Q.settle()
+            self.assertFalse(lay.side.isEnabled(), key)
         lay.choice.buttons["under"].click()
         Q.settle()
         self.assertFalse(lay.side.isEnabled())

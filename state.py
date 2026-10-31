@@ -29,6 +29,8 @@ LAYOUTS = {
     "beside": ("side", "side"),
     "one_beside": ("side", "below"),
     "above": ("above", "below"),
+    # (the forest behind the deck list whichever is First, filling the window; the heatmap under the list)
+    "behind": ("behind", "below"),
 }
 LAYOUT_DEFAULT, LAYOUT_SIDES, LAYOUT_FIRST = "under", ("right", "left"), ("forest", "heatmap")
 # the heatmap's size (Heatmap tab, Layout: Width and Fill it with). Width: fixed (680 px, 85% of the
@@ -252,13 +254,19 @@ def layout(cfg: dict | None = None, deck_screen: bool = False) -> dict:
     place, and which comes first where they stand together. Their widths come from the Forest width
     and the Heatmap tab's Width (web/core.js). A deck's screen, the finished-deck page, Onigiri's tile
     and the phone keep them stacked under what they have, in the First order, so a deck screen is sent
-    no other place."""
+    no other place; but Background, which a deck's screen and its finished page have too."""
     cfg = cfg if cfg is not None else config()
     first = layout_first(cfg)
+    key = layout_key(cfg)
     if deck_screen:
+        # (Background fills a deck's screen and its finished page too: the forest behind, the
+        # heatmap under what the screen has)
+        if key == "behind":
+            return {"forest": "behind", "heatmap": "below", "first": first}
         return {"forest": "below", "heatmap": "below", "first": first}
-    places = [layout_side(cfg) if p == "side" else p for p in LAYOUTS[layout_key(cfg)]]
-    forest, heatmap = places if first == "forest" else places[::-1]
+    places = [layout_side(cfg) if p == "side" else p for p in LAYOUTS[key]]
+    # (Background: the forest is the one that can stand behind it, whichever comes first)
+    forest, heatmap = places if first == "forest" or key == "behind" else places[::-1]
     return {"forest": forest, "heatmap": heatmap, "first": first}
 
 

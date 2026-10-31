@@ -80,8 +80,9 @@ class RegistrationTests(unittest.TestCase):
         expected = {
             "deck_browser_will_render_content": [panel.on_deck_browser],
             "overview_will_render_content": [panel.on_overview],
-            "state_did_change": [panel.release_shortcuts],
-            "webview_did_inject_style_into_page": [panel.on_page_loaded],
+            # (Layout's Background: Anki's bars tinted again as they are redrawn, and not off its screens)
+            "state_did_change": [panel.release_shortcuts, addon.bars.on_state_change],
+            "webview_did_inject_style_into_page": [panel.on_page_loaded, addon.bars.on_page_loaded],
             "reviewer_did_answer_card": [planting.on_answer],
             "webview_did_receive_js_message": [actions.on_js_message],
             "deck_browser_will_show_options_menu": [actions.on_deck_options_menu],

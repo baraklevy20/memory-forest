@@ -2667,6 +2667,10 @@
   "text": "Au-dessus de la liste",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "Arrière-plan",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "À côté",
   "en": "Beside it"
@@ -2718,6 +2722,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "La forêt et le calendrier sous la liste des paquets",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "La forêt en arrière-plan de la fenêtre, et le calendrier sous la liste des paquets",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "Celui qui va à côté ou au-dessus de la liste des paquets, et vient en premier quand ils sont ensemble. Les écrans de paquet suivent aussi ce choix.",

@@ -11,7 +11,7 @@ from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 from aqt.utils import tooltip
 
-from . import answer_column, events_state, marks, news, payload, study_log
+from . import answer_column, bars, events_state, marks, news, payload, study_log
 from .i18n import N_, t, tn, tx
 from .panel import hold_shortcuts, refresh
 from .phone import publish as publish_for_phone
@@ -195,6 +195,8 @@ def on_js_message(handled, message, context):
             save_config(dict(config(), calendar_shade=cmd[1]))  # (the heatmap has drawn it already: no redraw)
         elif cmd[0] == "view" and len(cmd) > 1 and cmd[1] in CALENDAR_VIEWS:  # Timeline | By year | Streak, on the heatmap
             save_config(dict(config(), calendar=cmd[1]))  # (drawn already; the Heatmap tab's View follows it)
+        elif cmd[0] == "bars":  # Layout's Background: Anki's bars tinted from the scene, or not (bars.py)
+            bars.tint(cmd[1:])
         elif cmd[0] == "typing":  # a mark's name being typed on the page: Anki's one-key shortcuts wait
             hold_shortcuts(cmd[1:] == ["1"])
         elif cmd[0] == "day" and len(cmd) > 1:  # a study calendar day clicked

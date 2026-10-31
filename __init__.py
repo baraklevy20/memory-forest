@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from aqt import gui_hooks, mw
 
-from . import events_state, live_weather, news, payload
+from . import bars, events_state, live_weather, news, payload
 from .actions import on_deck_options_menu, on_js_message, open_settings, settings_changed
 from .panel import on_deck_browser, on_overview, on_page_loaded, refresh, release_shortcuts
 from .phone import after_sync as publish_after_sync
@@ -33,6 +33,10 @@ gui_hooks.deck_browser_will_render_content.append(on_deck_browser)
 gui_hooks.overview_will_render_content.append(on_overview)
 # a finished deck's congratulations page: the panel added once it has loaded
 gui_hooks.webview_did_inject_style_into_page.append(on_page_loaded)
+# Layout's Background: Anki's toolbar and bottom bar tinted from the scene, again as they are redrawn,
+# and not off the screens the forest stands behind (bars.py)
+gui_hooks.webview_did_inject_style_into_page.append(bars.on_page_loaded)
+gui_hooks.state_did_change.append(bars.on_state_change)
 gui_hooks.reviewer_did_answer_card.append(on_answer)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
 gui_hooks.deck_browser_will_show_options_menu.append(on_deck_options_menu)

@@ -2751,6 +2751,10 @@
   "text": "מעל הרשימה",
   "en": "Above the list"
  },
+ "settings.layout.background": {
+  "text": "רקע",
+  "en": "Background"
+ },
  "settings.layout.beside_it": {
   "text": "לצדה",
   "en": "Beside it"
@@ -2802,6 +2806,10 @@
  "settings.layout.the_forest_and_the_heatmap_under": {
   "text": "היער ומפת החום מתחת לרשימת החפיסות",
   "en": "The forest and the heatmap under the deck list"
+ },
+ "settings.layout.the_forest_as_the_window_s_background": {
+  "text": "היער כרקע של החלון, ומפת החום מתחת לרשימת החפיסות",
+  "en": "The forest as the window's background, and the heatmap under the deck list"
  },
  "settings.layout.the_one_that_goes_beside_or": {
   "text": "זה שמוצב לצד רשימת החפיסות או מעליה, ובא ראשון כשהם מוצגים יחד. גם מסכי החפיסות פועלים לפיו.",

@@ -86,11 +86,11 @@ class OpeningTests(QtCase):
 
     @needs_editions
     def test_the_debug_tabs_edition_changes_whats_new_at_once(self):
-        # (What's new lists the newest version only, and 1.5.0's notes are the same in both editions:
-        # 1.4.0's, one version back, are the ones that differ)
+        # (What's new lists the newest version only, and 1.6.0's and 1.5.0's notes are the same in both
+        # editions: 1.4.0's, two versions back, are the ones that differ)
         about = sys.modules[addon.s_dialog.AboutTab.__module__]
         was = about.NEWS_VERSIONS
-        about.NEWS_VERSIONS = 2
+        about.NEWS_VERSIONS = 3
         self.addCleanup(setattr, about, "NEWS_VERSIONS", was)
         d = self.open_dialog({"debug": True, "debug_edition": "plus"})
         def news():
