@@ -62,7 +62,7 @@ function pageBg(els) {
   }
   return null;
 }
-/* Colours as the eye sees them: OKLab (equal steps look equal; the heatmap's shades, calendar.js,
+/* Colours as the eye sees them: OKLab (equal steps look equal; the heatmap's shades, calendar/shades.js,
  * and the Background cards' colour, core.js), a CSS colour read as numbers, and contrast as WCAG
  * counts it */
 const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };

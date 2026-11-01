@@ -1,6 +1,6 @@
 """The heatmap's look (heatmap_look.py): the Heatmap tab's colours and tiles as the config keeps
 them, what the page is handed to draw with, and the sums the settings' pictures share with
-web/calendar.js."""
+web/calendar/."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ class ChoiceTests(unittest.TestCase):
         self.assertEqual(HL.gaps({}, "starry_night"), HL.TILE_STYLE["brush" if has_starry else "flat"][0])
 
     def test_the_space_between_tiles_is_the_style_s_own(self):
-        # (Round keeps its 2: its circles apart; the rest calendar.js's own)
+        # (Round keeps its 2: its circles apart; the rest calendar/base.js's own, GAP)
         self.assertEqual(HL.page_look({"calendar_tiles": "round"}, GOLDEN)["gap"], 2)
         self.assertIsNone(HL.page_look({"calendar_tiles": "flat"}, GOLDEN)["gap"])
         self.assertIsNone(HL.page_look({"debug": True, "debug_tile_gap": 4}, GOLDEN)["gap"])  # (no debug setting)
@@ -160,7 +160,7 @@ class TileFileTests(unittest.TestCase):
                     self.assertIn(f"AF.heatmapTiles.{key} =", f.read(), key)
 
     def test_a_style_s_smooth_corners_go_to_the_page_from_its_file(self):
-        # (round.json holds them alone; calendar.js reads them from the look)
+        # (round.json holds them alone; calendar/tiles.js reads them from the look)
         look = HL.page_look({"calendar_tiles": "round"}, GOLDEN)
         spec = HL.TILE_SPECS["round"]
         self.assertEqual((look["smoothRadius"], look["smoothGrow"]), (spec["smoothRadius"], spec["smoothGrow"]))
@@ -209,11 +209,11 @@ class SceneryColourTests(unittest.TestCase):
 
 
 class HourTests(unittest.TestCase):
-    """The Heatmap tab's pictures wear a scenery's colours at the forest's hour, as calendar.js
-    hourOf does (a check against calendar.js itself matched every shipped scenery at every hour)."""
+    """The Heatmap tab's pictures wear a scenery's colours at the forest's hour, as calendar/shades.js
+    hourOf does (a check against calendar/shades.js itself matched every shipped scenery at every hour)."""
 
     def test_the_hour_s_numbers_are_calendar_js_s(self):
-        with open(os.path.join(ADDON_DIR, "web", "calendar.js"), encoding="utf-8") as f:
+        with open(os.path.join(ADDON_DIR, "web", "calendar", "shades.js"), encoding="utf-8") as f:
             js = f.read()
         self.assertIn("HOUR_TURN = { dusk: 0.1, night: 0.35 }, AFTER_DARK = ['dusk', 'night']", js)
         self.assertIn("DAY_SHARE = { dawn: 0.5, day: 1, golden_hour: 0.5 }", js)
@@ -286,7 +286,7 @@ class ShadeTests(unittest.TestCase):
         self.assertEqual(HL.faint_on(["#1e6823", "#378f36"]), [])
 
     def test_the_shade_steps_are_calendar_js_s(self):
-        with open(os.path.join(ADDON_DIR, "web", "calendar.js"), encoding="utf-8") as f:
+        with open(os.path.join(ADDON_DIR, "web", "calendar", "shades.js"), encoding="utf-8") as f:
             js = f.read()
         for name in ("LIGHT_STEPS", "DARK_STEPS", "DARK_CHROMA"):
             self.assertIn(f"{name} = [{', '.join(str(v) for v in getattr(HL, name))}]", js, name)

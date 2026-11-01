@@ -32,7 +32,7 @@ function element(tag) {
   return el;
 }
 
-/* A fresh page with these scripts (paths under web/) run in order; `expose`: { 'calendar.js': [names] }
+/* A fresh page with these scripts (paths under web/) run in order; `expose`: { 'calendar/shades.js': [names] }
  * to hand the tests, as window.AnkiForest.__test[name]. `globals`: more for the page's window (pycmd).
  * Returns the page's window. */
 export function load(files, { expose = {}, globals = {}, edits = {} } = {}) {
@@ -71,7 +71,7 @@ export const SCRIPTS = (() => {
   const py = fs.readFileSync(path.join(WEB, '..', 'catalog.py'), 'utf8'), body = py.slice(py.indexOf('SCRIPTS = ('));
   return [...body.slice(0, body.indexOf('\n)')).matchAll(/"([^"]+\.js)"/g)].map(m => m[1]);
 })();
-export const BEFORE_CALENDAR = SCRIPTS.slice(0, SCRIPTS.indexOf('calendar.js'));
+export const BEFORE_CALENDAR = SCRIPTS.slice(0, SCRIPTS.indexOf('calendar/base.js'));
 
 const DAY_MS = 86400000;
 export const isoDay = ms => new Date(ms).toISOString().slice(0, 10);

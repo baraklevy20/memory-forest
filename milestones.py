@@ -103,7 +103,7 @@ STAYED = {
     "squirrel": N_("visitor.moved_in_when_you_knew_10"),
     "eagle": N_("visitor.moved_in_when_you_knew_25"),
 }
-# the heatmap's line on the day it came (web/calendar.js)
+# the heatmap's line on the day it came (web/calendar/tooltips.js)
 CAME = {
     "rabbit": N_("visitor.a_rabbit_came_your_forest_reached"),
     "deer": N_("visitor.a_deer_came_you_kept_a"),

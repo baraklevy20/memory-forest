@@ -269,7 +269,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "newDot": news.cog_dot(cfg),
         # the forest itself may be switched off on this screen while the study calendar is on
         "showForest": show_forest,
-        # the study calendar (web/calendar.js): the whole collection's on the main screen, the
+        # the study calendar (web/calendar/): the whole collection's on the main screen, the
         # deck's own on a deck's screen
         "calendar": _with_look(calendar, cfg, mood),
         **extras,
@@ -447,7 +447,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     else:  # (the forest's own days, and how long each took, read with it: nothing more to read)
         day_reviews, day_time = forest.get("day_reviews") or {}, forest.get("day_time")
     # with a start date (Ignore before), the reviews from before it too: the calendar shows your
-    # whole record as if there were none, but for the animals, the forest's own (web/calendar.js)
+    # whole record as if there were none, but for the animals, the forest's own (web/calendar/)
     begin, forest_start, own, animal_trees = since(cfg), None, day_reviews, trees  # (the animals' days stay the forest's own)
     hidden_before = None  # (with that record left out, the start date: the days before it say why they're empty)
     counted, counts_from = None if test else counts_since(cfg, cutoff), None

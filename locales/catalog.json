@@ -597,812 +597,820 @@
  "heatmap.a_minute": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/base.js"
   ]
  },
  "heatmap.about_n_reviews_a_day": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.about_n_reviews_a_day_studied": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.about_n_reviews_and_time_a": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.about_n_reviews_and_time_a_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.all_n_of_its_cards_have": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.and_n_more_marked": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.back_to_today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.beat_your_longest_streak_n_days": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.beat_your_longest_streak_n_days_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.before_your_first_review": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.before_your_forest_began": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.birthday": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.both_of_its_cards_have_since": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.by_year": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.date_name": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.day_day_of_a_n_day": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.day_day_of_n_in_a": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.day_day_of_your_n_day": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.day_day_of_your_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.didnt_break_a_n_day_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.doesnt_break_your_n_day_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.done": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.earlier": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.exam": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.fast": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.from_n_reviews": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.from_to": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.from_to_min": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.from_to_s_per_answer": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.from_to_to": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.from_to_today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.h_hr_m_min": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/base.js"
   ]
  },
  "heatmap.heart": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.its_card_has_since_been_deleted": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.january_to_december": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.last_day_of_a_n_day": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.later": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.less": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.mark_icon": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.mark_name": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.median_s_s_per_answer_n": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.median_s_s_per_answer_n_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.more": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.n_cards_due": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_cards_due_after_today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_cards_due_later_this_month": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_days": {
   "web": true,
   "where": [
-   "web/calendar.js",
-   "web/tooltips.js"
+   "web/tooltips.js",
+   "web/calendar/draw.js"
   ]
  },
  "heatmap.n_days_from_to_to": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js"
   ]
  },
  "heatmap.n_days_from_to_today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js"
   ]
  },
  "heatmap.n_days_in_a_row": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_days_since_date": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/draw.js"
   ]
  },
  "heatmap.n_hr": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/base.js"
   ]
  },
  "heatmap.n_min": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/base.js"
   ]
  },
  "heatmap.n_min_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_of_its_of_cards_have": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_reviews": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_reviews_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_reviews_in_time": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_reviews_no_time_kept": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_reviews_so_far_due_still": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.n_reviews_so_far_in_time": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.name_in_n_days": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.name_today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.name_tomorrow": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.near_date": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied_a_day_off": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied_a_pond_in_your": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied_since_date": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied_so_far": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied_yet": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.not_studied_yet_n_cards_due": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.nothing_due_today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.nothing_due_yet": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.nothing_was_due": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.pace": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.pass_your_second_longest_streak_n": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.pass_your_second_longest_streak_n_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.pass_your_third_longest_streak_n": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.pass_your_third_longest_streak_n_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.pin": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.planted_tree_n_new_cards": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.ponds_and_animals_count_from_here": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.reach_a_n_day_streak_on": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.reach_a_n_day_streak_on_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.remove_the_mark": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.reviews": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.s_s_per_answer": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.selected_what": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.shade_each_day_by_how_long": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.shade_each_day_by_how_many": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.shade_each_day_by_its_median": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.shade_the_days_by": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.shift_click_another_day_to": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js"
   ]
  },
  "heatmap.sick": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.slow": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.star": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.studied_all_of_them": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js"
   ]
  },
  "heatmap.studied_all_of_these_n_days": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js"
   ]
  },
  "heatmap.studied_every_day": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.studied_every_day_since_date": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.studied_every_day_so_far": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.studied_n_of_them_pct": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js"
   ]
  },
  "heatmap.studied_studied_of_n_days_pct": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.studied_studied_of_n_days_since": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.studied_studied_of_n_days_so": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.study_heatmap_from_to_to_n": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.study_heatmap_from_to_to_n_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.the_months_round_this_one_most": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.this_day_s_tree_is_part": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.this_tree_is_outside_your_current": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.time": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/size.js"
   ]
  },
  "heatmap.time_2": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.time_n_reviews": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.time_so_far_n_reviews_due": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.timeline": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.today": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.too_far_ahead_to_count": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/highlight.js",
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.trip": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/marks.js"
   ]
  },
  "heatmap.under_a_minute": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/base.js"
   ]
  },
  "heatmap.under_n_reviews": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.under_s_s_per_answer": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.under_time": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.view": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.your_forest_began": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_longest_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_longest_streak_n_days": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_n_day_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_second_longest_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_second_longest_streak_n_days": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_streak_every_year_of_it": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/calendar.js"
   ]
  },
  "heatmap.your_third_longest_streak": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap.your_third_longest_streak_n_days": {
   "web": true,
   "where": [
-   "web/calendar.js"
+   "web/calendar/tooltips.js"
   ]
  },
  "heatmap_look.darker": {
@@ -3531,8 +3539,8 @@
  "tooltip.click_to_see_these_cards": {
   "web": true,
   "where": [
-   "web/calendar.js",
-   "web/tooltips.js"
+   "web/tooltips.js",
+   "web/calendar/highlight.js"
   ]
  },
  "tooltip.from_to": {

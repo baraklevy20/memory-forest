@@ -1,5 +1,5 @@
 """Every message the forest's page sends back to Anki (pycmd, actions.on_js_message), written the
-way the page's scripts write them (web/core.js, caption.js, hover.js, calendar.js, news.js,
+way the page's scripts write them (web/core.js, caption.js, hover.js, calendar/*.js, news.js,
 visit.js, events/asteroid.js), and what each one does - in a stand-in Anki."""
 
 from __future__ import annotations
@@ -76,7 +76,7 @@ class MessageTests(unittest.TestCase):
 
     def test_a_calendar_day_click_opens_the_browser_on_that_day(self):
         with mock.patch.object(actions, "browse_calendar_day") as browse:
-            send(msg("day", -3, "", "reviews"))  # calendar.js: a past day, the main heatmap, shaded by reviews
+            send(msg("day", -3, "", "reviews"))  # calendar/input.js: a past day, the main heatmap, shaded by reviews
             send(msg("day", 2, 10, "due"))  # a day ahead, on a deck's screen
             send(msg("day", 0, "", "due"))  # today before studying: what is due
         self.assertEqual([c.args for c in browse.call_args_list],

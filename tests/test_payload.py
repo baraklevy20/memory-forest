@@ -20,7 +20,7 @@ class PayloadTests(unittest.TestCase):
         mood = {"special": "natural"}
         cal = payload._with_look({}, {"debug": True}, mood)
         self.assertIn("look", cal)
-        self.assertNotIn("width", cal)  # (its days' own size: web/calendar.js DAY_K)
+        self.assertNotIn("width", cal)  # (its days' own size: web/calendar/base.js DAY_K)
         self.assertEqual(cal["size"], {"width": "forest", "fill": "more"})
         cfg = {"calendar_width": "full", "calendar_fill": "bigger"}
         self.assertEqual(payload._with_look({}, cfg, mood)["size"], {"width": "full", "fill": "bigger"})

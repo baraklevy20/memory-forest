@@ -50,7 +50,7 @@ def browse_day(days_ago: int, did: int | None = None, until_days_ago: int | None
 
 
 def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, answer_mode: str = "") -> None:
-    """Open the browser on a study calendar day's cards (web/calendar.js): those reviewed that
+    """Open the browser on a study calendar day's cards (web/calendar/input.js): those reviewed that
     day, `offset` days before today (0: today), or those due that day, `offset` days ahead (or
     today, `due`, before you have studied: the cards its tile counts)."""
     values, label = None, ""
@@ -63,7 +63,7 @@ def browse_calendar_day(offset: int, did: int | None = None, due: bool = False, 
 
 
 def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = "", due_today: bool = False) -> None:
-    """Open the browser on the cards reviewed on the days picked on the heatmap (web/calendar.js:
+    """Open the browser on the cards reviewed on the days picked on the heatmap (web/calendar/input.js:
     Shift-click a stretch, Cmd/Ctrl-click a day), `runs` of them as (first, last) days from today
     (0: today), with their reviews, time or median answer time over those days beside them; days
     ahead open their cards due, as a day ahead clicked does, and so does today with `due_today`

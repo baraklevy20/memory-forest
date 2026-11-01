@@ -54,7 +54,14 @@ web/tooltips.js  what hovering says
 web/caption.js   the line of numbers under the forest
 web/hover.js     pointing at the forest: what is under the pointer, its tooltip, a click
 web/visit.js     the zoom button: the forest's older rows, brought up close and walked through
-web/calendar.js  the study heatmap under the forest: its views, streak, trophies, marks and tooltips
+web/calendar/    the study heatmap under the forest, in the order they load, sharing AF.cal (and one
+                 heatmap's state, `ui`, made by calendar.js):
+                 base.js (sizes, STATE, dates), history.js (the days, streaks and what each view shows),
+                 shades.js (colours), tiles.js (a day's tile, the joined shapes, sharpen),
+                 marks.js (marked days and their editor), paint.js (a view's canvas), size.js (widths,
+                 AF.calendarHeight), highlight.js (hover and selection), draw.js (draw, lay, paging,
+                 what keeps it up to date), tooltips.js, input.js (keys, taps, clicks),
+                 calendar.js (AF.calendar: its box, its controls, and the parts put together)
 web/heatmap/     the heatmap's tile styles, a .js and a .json each (flat, round, contours), and the
                  ready-made colour ramps' .json
 web/core.js      the scene runner: mount, draw each frame, swap

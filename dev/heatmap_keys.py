@@ -1,4 +1,4 @@
-"""Write settings/heatmap_keys.json: each shipped scenery's own heatmap colour, as web/calendar.js
+"""Write settings/heatmap_keys.json: each shipped scenery's own heatmap colour, as web/calendar/shades.js
 finds it (the scenery's `calendar` colour or colours, or its most colourful crown colour), read
 off the real scripts in headless Chrome. The Heatmap tab draws its pictures with these (the strips
 on the scenery tiles, Taken as, the tile samples); the heatmap itself reads the scenery.
@@ -9,7 +9,7 @@ Run it after adding a scenery to an edition, or after changing its trees' or its
 colours; the tests fail while a shipped scenery has no colour here. Needs Chrome.
 
 It writes settings/heatmap_hours.json too: what the forest's hour does to each scenery's colours
-(calendar.js hourOf), so the Heatmap tab's pictures follow the hour as the heatmap does: its day
+(calendar/shades.js hourOf), so the Heatmap tab's pictures follow the hour as the heatmap does: its day
 colours (`calendarDay`), its colours for each hour (`calendarHours`) and its night tint (the
 night sky's, which a day scenery's colours turn towards after dark), each only where it has one.
 """
@@ -37,7 +37,7 @@ import scene
 
 OUT = os.path.join(ADDON, "settings", "heatmap_keys.json")
 HOURS_OUT = os.path.join(ADDON, "settings", "heatmap_hours.json")
-NOON = _dt.datetime(2026, 6, 1, 12, 0)  # (the scene in plain light: calendar.js takes the hour's tint off anyway)
+NOON = _dt.datetime(2026, 6, 1, 12, 0)  # (the scene in plain light: calendar/tiles.js sceneOf takes the hour's tint off anyway)
 
 SCRIPT = r"""
 import puppeteer from '%(puppeteer)s';
@@ -81,7 +81,7 @@ for (const [env, mood] of Object.entries(MOODS)) {
   const sp = { mood, theme: Object.assign({}, AF.theme(mood, {}, []), { tint: null, tintAmt: 0 }), data: {} };
   const own = AF.envOf(sp).calendar;
   out[env] = own || hx(AF.foliage(sp).slice(1).reduce((a, c) => chroma(c) > chroma(a) ? c : a));
-  // (what the hour does to them, as calendar.js hourOf finds it: the night tint as it asks for it)
+  // (what the hour does to them, as calendar/shades.js hourOf finds it: the night tint as it asks for it)
   const spec = AF.envOf(sp), at = {};
   if (spec.calendarDay) at.day = spec.calendarDay;
   if (spec.calendarHours) at.hours = spec.calendarHours;

@@ -35,8 +35,10 @@ FOREST_TREES = 150  # the made-up forest's size
 # its look: golden hour by the lake, clear and still (so the tooltips' trees stay put)
 MOOD = {"time": "golden_hour", "clock": False, "weather": "clear", "special": "natural", "wind": False,
         "environment": "natural", "landscape": "lake", "landmark": "none", "moon": 0.631, "source": "manual"}
+# the study heatmap's parts (paths from this folder), which the other checks' lists name too
+CALENDAR_FILES = tuple(f"web/{s}" for s in catalog.SCRIPTS if s.startswith("calendar/"))
 # the files a phone card's taps go through (paths from this folder): a change to one runs this
-PHONE_FILES = ("phone.py", "phone_data.py", "phone_note.py", "web/phone.js", "web/calendar.js", "web/hover.js",
+PHONE_FILES = ("phone.py", "phone_data.py", "phone_note.py", "web/phone.js", *CALENDAR_FILES, "web/hover.js",
                "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "web/forest.css", "e2e/phone_check.py", "e2e/phone_check.mjs")  # the made-up calendar: days of history, days ahead
 # the browser's full screen, stubbed: the phone card's own full-screen code runs as on a phone
 FULLSCREEN_STUB = """<script>

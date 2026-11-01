@@ -143,7 +143,7 @@ def keeps_suspended(cfg: dict | None = None) -> bool:
     return (cfg if cfg is not None else config()).get("keep_suspended", True) not in OFF_VALUES
 
 
-# the study calendar (web/calendar.js): its view, and the screens it shows on, each its own setting
+# the study calendar (web/calendar/): its view, and the screens it shows on, each its own setting
 # (with or without the forest above it)
 CALENDAR_VIEWS = ("timeline", "by_year", "streak")
 CALENDAR_SCREENS = {"main": "calendar_main", "decks": "calendar_decks"}

@@ -1,4 +1,4 @@
-"""The study heatmap's hover layer (its animals, trophies and goal: calendar.js paint, the layer
+"""The study heatmap's hover layer (its animals, trophies and goal: calendar/paint.js paint, the layer
 shown while the pointer is on the heatmap) sits on its own year's weeks: in By year, with the
 earlier years shown above the year in view, and again once they are hidden. Run: python3
 e2e/heatmap_check.py; `npm test` runs it with --if-changed: only when the heatmap's files changed.
@@ -21,13 +21,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, HERE)
-from phone_check import CHROME, forest_page, phone_changed
+from phone_check import CALENDAR_FILES, CHROME, forest_page, phone_changed
 
 import catalog
 
 YEARS = 3  # (of made-up history: two earlier years for Streak view to show)
 # the files the heatmap's layers go through: a change to one runs this
-HEATMAP_FILES = ("web/calendar.js", "web/hover.js", "web/core.js", "web/engines/pixel/ground.js", "web/visit.js", "web/forest.css", "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "payload.py", "e2e/heatmap_check.py", "e2e/heatmap_check.mjs")
+HEATMAP_FILES = (*CALENDAR_FILES, "web/hover.js", "web/core.js", "web/engines/pixel/ground.js", "web/visit.js", "web/forest.css", "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "payload.py", "e2e/heatmap_check.py", "e2e/heatmap_check.mjs")
 
 
 def calendar() -> dict:

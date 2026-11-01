@@ -22,7 +22,7 @@ try {
     if (Math.abs(box.getBoundingClientRect().width / contentWidth - 0.85) > 0.01) failures.push('heatmap is not 85% of the forest over it (Follow the forest)');
     if (!box.querySelector('.af-cal-current')?.textContent.replace(/[\u2066-\u2069]/g, '').includes('days')) failures.push('current streak has no day-count label');
     box.querySelector('[data-view="timeline"]').click();
-    // (as many months as its width holds at its days' size, calendar.js DAY_K: labels for all but a month cut short at an end)
+    // (as many months as its width holds at its days' size, calendar/base.js DAY_K: labels for all but a month cut short at an end)
     const months = Math.max(3, Math.min(24, Math.round(10 * box.getBoundingClientRect().width / (541 * 1.25)))), shown = box.querySelectorAll('.af-cal-months span[data-m]').length;
     if (Math.abs(shown - months) > 1) failures.push(`Timeline showed ${shown} months, not the ${months} its width holds`);
     box.querySelector('[data-view="by_year"]').click();

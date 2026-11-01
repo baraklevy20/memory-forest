@@ -1,8 +1,8 @@
 """The study heatmap's look (the Heatmap tab's Colours and Tiles): whose colours its days take and
-how its tiles are drawn, kept when the scenery changes. payload.py hands web/calendar.js what to
+how its tiles are drawn, kept when the scenery changes. payload.py hands web/calendar/ what to
 draw with (`look`), through the route the sceneries already have: a scenery's `calendar` colours
 and its `calendarTile` (web/envs/*.js). The settings draw their pictures with the same sums as
-calendar.js (shades, tiles), so a strip in the dialog is the heatmap's own key.
+web/calendar/ (shades, tiles), so a strip in the dialog is the heatmap's own key.
 
 Nothing here imports Qt, so the tests run it as it is."""
 
@@ -26,7 +26,7 @@ from .state import save_config, storage_writable
 MATCH, MINE = "scenery", "mine"
 READY_PREFIX = "ready:"
 # the tile styles, each in a file of its own (web/heatmap/<key>.json, and .js where it draws itself:
-# calendar.js AF.heatmapTiles), in their `order`: Flat (the default), Round, Contours, and a scenery's
+# calendar/tiles.js AF.heatmapTiles), in their `order`: Flat (the default), Round, Contours, and a scenery's
 # own tiles (`env`: its calendarTile), a seasonal one's only in its week (`season`: its preset). Each
 # says its `label` and `tip` for the Heatmap tab, its spaces between the days and smooth corners
 # (`gaps`, `smooth`), whether it is a joined shape (`shape`) and how its sample is drawn (`sample`).
@@ -94,12 +94,12 @@ READY_LABELS = {"olive": N_("heatmap_look.olive"), "lime": N_("heatmap_look.lime
 SCENERY_READY = ("golden_lake", "misty_valley", "cherry_blossom", "starry_night", "aurora", "lanterns", "bamboo",
                  "synthwave", "chalkboard", "pumpkin_patch", "frozen_market")
 
-# each scenery's own colour(s) as calendar.js finds them (its `calendar`, or its most colourful
+# each scenery's own colour(s) as calendar/shades.js finds them (its `calendar`, or its most colourful
 # crown colour): for the settings' pictures, and for another scenery's colours on the heatmap
 # (page_look); a scenery's own the heatmap reads from the scenery itself. Written by
 # dev/heatmap_keys.py (npm run heatmap-keys) when a scenery is added or recoloured.
 KEYS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings", "heatmap_keys.json")
-# and what the forest's hour does to them (calendar.js hourOf), by the same script: each scenery's
+# and what the forest's hour does to them (calendar/shades.js hourOf), by the same script: each scenery's
 # day colours (`day`, its calendarDay), its colours for each hour (`hours`, its calendarHours) and
 # its night sky's tint (`tint`), each only where it has one
 HOURS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings", "heatmap_hours.json")
@@ -126,7 +126,7 @@ def own_hours() -> dict:
     return _read_json(HOURS_FILE)
 
 
-# what the forest's hour does to a scenery's own colours (calendar.js hourOf, HOUR_TURN and
+# what the forest's hour does to a scenery's own colours (calendar/shades.js hourOf, HOUR_TURN and
 # DAY_SHARE: keep the two in step): a day scenery's turn towards its night tint after dark; a night
 # scenery's meet its day colours by day, halfway at dawn and golden hour
 HOUR_TURN = {"dusk": 0.1, "night": 0.35}
@@ -136,7 +136,7 @@ DAY_SHARE = {"dawn": 0.5, "day": 1, "golden_hour": 0.5}
 
 def hour_of(env: str, time: str) -> dict | None:
     """What the hour `time` (the forest's: mood.time) does to the environment's own colours, as
-    calendar.js hourOf has it: {"to", "share"} towards the colours it names for that hour or for the
+    calendar/shades.js hourOf has it: {"to", "share"} towards the colours it names for that hour or for the
     day, {"turn", "tint"} after dark for a day scenery, or None where its own colours stand. The
     scenery's own hour is its preset's (mood.home, scene.choose_mood)."""
     spec = own_hours().get(env) or {}
@@ -191,13 +191,13 @@ def tiles_choice(cfg: dict) -> str:
     return value if value in TILES else TILE_FOLLOW
 
 
-# the space between the days' tiles, in the heatmap's pixels: calendar.js's GAP (1), or the style's
+# the space between the days' tiles, in the heatmap's pixels: calendar/base.js's GAP (1), or the style's
 # own (its file's "gap": Round keeps 2, its circles apart)
 GAP_MAX = 6
 
 
 def tile_gap(cfg: dict, here: str = "") -> int | None:
-    """The style's own space between tiles, or None: calendar.js's own."""
+    """The style's own space between tiles, or None: calendar/base.js's own (GAP)."""
     value = TILE_SPECS.get(tile_style(cfg, here), {}).get("gap")
     return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= GAP_MAX else None
 
@@ -286,7 +286,7 @@ def tile_env(cfg: dict, here: str = "") -> str:
 
 
 def page_look(cfg: dict, mood: dict) -> dict:
-    """What calendar.js draws the heatmap with (data.calendar.look): `colours` (a colour, or two
+    """What web/calendar/ draws the heatmap with (data.calendar.look): `colours` (a colour, or two
     for a ramp) in place of the scenery's own (None: the scenery's); `tile`, whose tiles ("flat", a shape such as "round", or an environment with calendarTile);
     `files`, the scenery files they need beyond today's (the page loads them, the phone too);
     `exact`, colours you picked (yours, a ready ramp), shown as picked on either page (exact_steps);
@@ -332,12 +332,12 @@ def scenery_own(env: str):
     return keys.get(env) or keys.get("natural") or "#8fb35e"
 
 
-# ---- calendar.js's sums, for the settings' pictures (keep the two in step) ----
+# ---- calendar/shades.js's sums, for the settings' pictures (keep the two in step) ----
 DARK = (16, 16, 16)
 LIGHT_STEPS, LIGHT_CHROMA = (0.82, 0.69, 0.56, 0.43), 0.08
 DARK_STEPS, DARK_CHROMA = (0.45, 0.58, 0.72, 0.85), (0.6, 1.0, 1.0, 0.5)
 KEY_L, KEY_S = (0.36, 0.56), 0.28
-# an empty day's grey, laid over the page (calendar.js EMPTY, EMPTY_LIGHT)
+# an empty day's grey, laid over the page (calendar/tiles.js EMPTY, EMPTY_LIGHT)
 EMPTY_GREY, EMPTY_ALPHA, EMPTY_ALPHA_LIGHT = (128, 128, 128), 0.11, 0.2
 # the least the faintest of your own colours must stand apart from an empty day (OKLab distance)
 EMPTY_APART = 0.06
@@ -384,7 +384,7 @@ def from_oklab(L: float, A: float, B: float) -> tuple:
 
 
 def fits(L: float, A: float, B: float) -> bool:
-    """Whether an OKLab colour is one the screen can show (calendar.js fits)."""
+    """Whether an OKLab colour is one the screen can show (calendar/shades.js fits)."""
     lo, mid, sh = ((L + 0.3963377774 * A + 0.2158037573 * B) ** 3, (L - 0.1055613458 * A - 0.0638541728 * B) ** 3,
                    (L - 0.0894841775 * A - 1.2914855480 * B) ** 3)
     rgb = (4.0767416621 * lo - 3.3077115913 * mid + 0.2309699292 * sh, -1.2684380046 * lo + 2.6097574011 * mid - 0.3413193965 * sh,
@@ -404,8 +404,8 @@ def apart(a, b) -> float:
 
 
 def readable(c) -> tuple:
-    """A colour kept within the lightness and saturation a tile can show (calendar.js readable;
-    by hand, as calendar.js does it: Anki 2.1.45's Python has no colorsys)."""
+    """A colour kept within the lightness and saturation a tile can show (calendar/shades.js readable;
+    by hand, as calendar/shades.js does it: Anki 2.1.45's Python has no colorsys)."""
     r, g, b = (v / 255 for v in c)
     hi, lo = max(r, g, b), min(r, g, b)
     hue, sat, light = 0.0, 0.0, (hi + lo) / 2
@@ -433,7 +433,7 @@ FAINT_FADE, FADE_STEP, DIM = 0.25, 0.05, (0.55, 0.36, 0.18, 0)
 
 
 def exact_steps(colours, bg, dark: bool) -> list:
-    """The four shades of colours you picked, the same on either page (calendar.js exactSteps): the
+    """The four shades of colours you picked, the same on either page (calendar/shades.js exactSteps): the
     busiest exactly the last colour, the others stepping to it from the first through OKLab; one
     colour runs from dim (into the page) to full. Only the faintest fades a little into the page,
     less where it would come too near an empty day."""
@@ -452,7 +452,7 @@ def exact_steps(colours, bg, dark: bool) -> list:
 
 
 def _keys_of(colours) -> list:
-    """A colour, or two for a ramp, as the four shades' key colours (calendar.js keysOf)."""
+    """A colour, or two for a ramp, as the four shades' key colours (calendar/shades.js keysOf)."""
     if isinstance(colours, (list, tuple)):
         return [readable(blend(hexc(colours[0]), hexc(colours[1]), i / 3)) for i in range(4)]
     return [readable(hexc(colours))] * 4
@@ -460,7 +460,7 @@ def _keys_of(colours) -> list:
 
 def hour_turn(c, hour: dict) -> tuple:
     """A colour's hue turned `hour["turn"]` of the way towards the night tint, the short way round,
-    its lightness kept (calendar.js hourTurn)."""
+    its lightness kept (calendar/shades.js hourTurn)."""
     k, t = oklab(c), oklab(hexc(hour["tint"]))
     h, to = math.atan2(k[2], k[1]), math.atan2(t[2], t[1])
     turned = h + math.atan2(math.sin(to - h), math.cos(to - h)) * hour["turn"]
@@ -472,7 +472,7 @@ def hour_turn(c, hour: dict) -> tuple:
 
 def day_blend(a, b, t: float) -> tuple:
     """`t` of the way from colour `a` to `b` by hue (the short way round) and colourfulness
-    (calendar.js dayBlend)."""
+    (calendar/shades.js dayBlend)."""
     if t >= 1:
         return b
     p, q = oklab(a), oklab(b)
@@ -488,7 +488,7 @@ def day_blend(a, b, t: float) -> tuple:
 def shades(colours, bg, dark: bool, exact: bool = False, flip_light: bool = False, darker: bool = False,
            hour: dict | None = None) -> list:
     """The four shades of a day studied, fewest reviews to most, each (its colour, its darker
-    tone, its edge), for `colours` (one, or two for a ramp) on a page of colour `bg` (calendar.js
+    tone, its edge), for `colours` (one, or two for a ramp) on a page of colour `bg` (calendar/shades.js
     shades). `exact`: colours you picked (exact_steps); `flip_light`: a ready ramp the other way
     round on a light page, its deep colour the busiest; `darker`: a dark page's run the other way (busier);
     `hour`: what the forest's hour does to a scenery's own colours (hour_of)."""
@@ -532,12 +532,12 @@ def faint_on(colours) -> list:
     return [page for page, bg in PAGES.items() if contrast(top, bg) < LOW_CONTRAST]
 
 
-# ---- the tiles' textures (calendar.js plainTile, and the sceneries' calendarTile) ----
+# ---- the tiles' textures (calendar/tiles.js plainTile, and the sceneries' calendarTile) ----
 TILE = 9
 
 
 def hash_str(s: str) -> int:
-    """calendar.js's hashStr (FNV-1a)."""
+    """web/util.js's hashStr (FNV-1a)."""
     h = 2166136261
     for ch in s:
         h ^= ord(ch)

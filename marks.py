@@ -1,6 +1,6 @@
 """The days you mark as important on the study heatmap (an exam, say): kept in the collection's
 own config, so they sync to your other computers with it, and drawn on their day with the icon
-you chose (web/calendar.js). Right-click a day to mark it, name it and pick its icon, or to take
+you chose (web/calendar/marks.js). Right-click a day to mark it, name it and pick its icon, or to take
 its mark away."""
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import datetime as _dt
 
 KEY = "memoryForestImportantDays"  # the collection config key (synced)
-# the icons a mark can wear (calendar.js MARK_ICONS draws them), the first the one a mark starts with
+# the icons a mark can wear (calendar/marks.js MARK_ICONS draws them), the first the one a mark starts with
 ICONS = ("pin", "exam", "trip", "birthday", "star", "heart", "done", "sick")
 NAME_MAX = 40  # characters a mark's name keeps
 

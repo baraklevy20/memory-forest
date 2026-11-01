@@ -114,7 +114,7 @@ def _pixmap(pixels: dict, w: int, h: int, scale: int = 1) -> QPixmap:
     return pm
 
 
-# smooth corners, as calendar.js sharpen draws them: each tile's face a rounded square at the screen's
+# smooth corners, as calendar/tiles.js sharpen draws them: each tile's face a rounded square at the screen's
 # resolution, its corners' radius (and a style's own, Round's, and how much bigger it is drawn)
 SMOOTH_R = 1.8
 
@@ -153,7 +153,7 @@ def _strip(look: dict, drawer: str = HL.TILE_DEFAULT, sample: bool = False, page
 def tile_sample(look: dict, key: str, cfg: dict, here_env: str) -> QPixmap:
     """The tile style `key`'s sample in `look`'s colours, as the heatmap draws it: its own spaces and
     smooth corners (TILE_STYLE); smooth Round is a Flat tile, rounder and a little bigger
-    (calendar.js paletteOf). Scenery's is the scenery's own (heatmap_look.tile_style)."""
+    (calendar/tiles.js paletteOf). Scenery's is the scenery's own (heatmap_look.tile_style)."""
     key = HL.tile_style(dict(cfg, calendar_tiles=key), here_env)
     gaps, smooth = HL.TILE_STYLE[key]
     spec = HL.TILE_SPECS[key]
@@ -257,7 +257,7 @@ def _strip_pixels(shades, drawer: str, dark: bool, gaps: bool = True) -> dict:
 
 def rounded_pixels(shades, dark: bool = True) -> dict:
     """Rounded's sample: the four shades as one shape, the gutters filled, its corners cut two
-    pixels round (calendar.js shapesPass)."""
+    pixels round (calendar/tiles.js shapesPass)."""
     w, h, pixels = ICON_W, HL.TILE - 1, {}
     for x in range(w):
         i = min(3, x // (HL.TILE + STRIP_GAP))
@@ -270,7 +270,7 @@ def rounded_pixels(shades, dark: bool = True) -> dict:
 
 
 def round_tiles(shades, outlined: bool = False, dark: bool = True) -> dict:
-    """Round's sample with spaces between the days (calendar.js shapesPass): each shade a tile of
+    """Round's sample with spaces between the days (calendar/tiles.js shapesPass): each shade a tile of
     its own in one colour, its corners cut round; Contours' (`outlined`), each a flat tile with its edge."""
     pixels, face = {}, HL.TILE - 1
     for i, (colour, _tone, _edge) in enumerate(shades):

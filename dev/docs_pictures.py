@@ -87,7 +87,7 @@ def history() -> dict:
         n = r.randint(90, 300) * (0.6 if weekday >= 5 else 1.0) * (1.8 if r.random() < 0.08 else 1.0)
         days.append(int(n))
         time.append(int(n * r.uniform(6, 11)))
-    # the cards due ahead, over the whole range the soil's four shades split (calendar.js dueShade,
+    # the cards due ahead, over the whole range the soil's four shades split (calendar/history.js dueShade,
     # by the log of the busiest day ahead): a backlog thinning out, light weekends, a heavy day now
     # and then, a near-empty one here and there
     due = [260]
@@ -150,7 +150,7 @@ def script_tags(mood: dict, data: dict) -> str:
     files += [os.path.join(catalog.WEB, f) for f in data["calendar"]["look"].get("files", [])]
     tags = ""
     for f in dict.fromkeys(files):
-        if os.path.basename(f) == "calendar.js":
+        if f == os.path.join(catalog.WEB, "calendar", "paint.js"):
             # Screenshot presentation only: keep the real ranking, show just the current streak.
             script = Path(f).read_text()
             script = script.replace("for (const r of H.runs) {", "for (const r of [H.current].filter(Boolean)) {")

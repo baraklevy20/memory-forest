@@ -1,4 +1,4 @@
-// The study heatmap's model (web/calendar.js): streaks and the days that pass over them, ponds, the
+// The study heatmap's model (web/calendar/): streaks and the days that pass over them, ponds, the
 // trophies and the goal, the four shades by Reviews, Time and Pace, the days each view shows, the
 // weeks they fall in, and the words its tooltips and key use. Made-up calendars only.
 import test from 'node:test';
@@ -7,10 +7,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { load, SCRIPTS, calendar, WEB } from './load.mjs';
 
-const EXPOSE = ['history', 'windowOf', 'columns', 'weeksWidth', 'streakRows', 'pageBefore', 'reachOf', 'lasted', 'markLine',
-  'countFor', 'widthOf', 'shades', 'hourOf', 'exactSteps', 'oklab', 'restShade', 'blankOn', 'cellOf', 'utc', 'MARK_ICONS', 'MARK_ORDER',
-  'setWeekStart: w => { weekStart = w; }', 'setCell: c => { CELL = c; }'];
-const AF = load(SCRIPTS, { expose: { 'calendar.js': EXPOSE } }).AnkiForest;
+const EXPOSE = {
+  'calendar/base.js': ['lasted', 'cellOf', 'utc', 'setWeekStart: w => { STATE.weekStart = w; }', 'setCell: c => { STATE.CELL = c; }'],
+  'calendar/history.js': ['history', 'windowOf', 'columns', 'weeksWidth', 'streakRows', 'pageBefore', 'reachOf'],
+  'calendar/shades.js': ['shades', 'hourOf', 'exactSteps', 'oklab', 'blankOn'],
+  'calendar/tiles.js': ['restShade'],
+  'calendar/marks.js': ['markLine', 'MARK_ICONS', 'MARK_ORDER'],
+  'calendar/size.js': ['countFor', 'widthOf'],
+};
+const AF = load(SCRIPTS, { expose: EXPOSE }).AnkiForest;
 const T = AF.__test;
 const TODAY = '2026-10-18';  // (a Sunday)
 const DAY = 86400000, today = T.utc(TODAY);
@@ -383,7 +388,7 @@ test('after dark a day scenery\'s shades cool with the forest, each keeping its 
 // the night sceneries, with their files (each names its day colours, `calendarDay`)
 // (Chalkboard is Plus only: the public repo has no file of it, so its check runs only where it is)
 const CHALK = fs.existsSync(path.join(WEB, 'envs', 'chalkboard.js'));
-const NIGHT = load([...SCRIPTS, 'envs/aurora.js', 'envs/pumpkin_patch.js', ...(CHALK ? ['envs/chalkboard.js'] : [])], { expose: { 'calendar.js': ['shades', 'hourOf', 'oklab'] } }).AnkiForest;
+const NIGHT = load([...SCRIPTS, 'envs/aurora.js', 'envs/pumpkin_patch.js', ...(CHALK ? ['envs/chalkboard.js'] : [])], { expose: { 'calendar/shades.js': ['shades', 'hourOf', 'oklab'] } }).AnkiForest;
 test('a night scenery keeps its colours after dark and wears its day colours by day, halfway at dawn and golden hour', () => {
   const N = NIGHT, own = (paper, key = 'aurora') => labs(N, { theme: {}, u: 1, mood: { special: key, time: 'night', home: 'night', weather: 'clear' } }, paper);
   for (const paper of PAGES) {

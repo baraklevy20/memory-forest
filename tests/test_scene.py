@@ -132,7 +132,7 @@ class SceneTests(unittest.TestCase):
 
 class HomeHourTests(unittest.TestCase):
     """The scenery's own hour goes with the mood, so the heatmap's colours follow the forest's hour
-    away from it (calendar.js hourOf), on the phone too: the clock's hour, or a fixed one."""
+    away from it (calendar/shades.js hourOf), on the phone too: the clock's hour, or a fixed one."""
 
     def test_each_scenerys_own_hour(self):
         now = dt.datetime(2026, 9, 19, 23, 0)

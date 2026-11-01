@@ -22,7 +22,11 @@ SCRIPTS = (
     "util.js", "i18n.js", "strings_en.js", "layout.js", "scenery.js", "theme.js", "visitors.js", "ponds.js", "tooltips.js",
     "caption.js", "news.js", "hover.js", "visit.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
-    "engines/pixel/water.js", "engines/pixel/engine.js", "calendar.js",
+    "engines/pixel/water.js", "engines/pixel/engine.js",
+    # the study heatmap, each part using the ones before it; the last, AF.calendar, puts them together
+    "calendar/base.js", "calendar/history.js", "calendar/shades.js", "calendar/tiles.js", "calendar/marks.js",
+    "calendar/paint.js", "calendar/size.js", "calendar/highlight.js", "calendar/draw.js", "calendar/tooltips.js",
+    "calendar/input.js", "calendar/calendar.js",
     # the heatmap's tile styles, each in a file of its own (and its .json, for the Heatmap tab)
     "heatmap/flat.js", "heatmap/round.js", "heatmap/contours.js",
     # the events, each drawing in the order it loads (see web/events.js)

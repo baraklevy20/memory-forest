@@ -25,14 +25,14 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, HERE)
 import phone_check
-from phone_check import CHROME, SIM, forest_page, phone_changed
+from phone_check import CALENDAR_FILES, CHROME, SIM, forest_page, phone_changed
 
 import catalog
 
 TODAY = dt.date(2026, 10, 18)  # (the fake forest's today: its trees and the calendar's days agree)
 FIRST = dt.date(2023, 3, 15)  # the made-up history's first day
 # the files the page's behaviour goes through: a change to one runs this
-PAGE_FILES = ("web/calendar.js", "web/caption.js", "web/core.js", "web/hover.js", "web/news.js", "web/phone.js",
+PAGE_FILES = (*CALENDAR_FILES, "web/caption.js", "web/core.js", "web/hover.js", "web/news.js", "web/phone.js",
               "web/tooltips.js", "web/util.js", "web/i18n.js", "web/strings_en.js", "i18n.py", "locales/en.json", "web/forest.css", "phone.py", "phone_data.py",
               "e2e/page_check.py", "e2e/page_check.mjs", "e2e/phone_check.py")
 

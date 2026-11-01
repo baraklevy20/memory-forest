@@ -23,7 +23,7 @@ AF.mount = function (root, data, opts) {
   // calendar alone must let go of it too)
   if (root.afShown) { document.removeEventListener('visibilitychange', root.afShown); root.afShown = null; }
   // the forest switched off on this screen, the study calendar on: only the calendar, drawn
-  // straight away in the scenery's colours (web/calendar.js)
+  // straight away in the scenery's colours (web/calendar/)
   if (data.showForest === false) {
     root.afToken = {};  // (a forest mounted here before stops drawing, and leaves nothing behind)
     root.afEnv = root.afVisits = null;
@@ -120,7 +120,7 @@ AF.mount = function (root, data, opts) {
     // anniversary trees, resolved once instead of scanned for on every frame
     env.glowing = (data.anniversaries || []).map(idx => env.placed.find(q => !q.it.pond && q.it.index === idx)).filter(Boolean);
     root.afEnv = env;  // for an animation laid over the forest (the asteroid's strike, web/events/asteroid.js)
-    // the study calendar under it (web/calendar.js), once a mount: it draws with this scene's trees
+    // the study calendar under it (web/calendar/), once a mount: it draws with this scene's trees
     if (data.calendar && !calendarDrawn) {
       calendarDrawn = true;
       try { AF.calendar(root, data, env); } catch (e) { console.error('Memory Forest calendar', e); }
@@ -302,7 +302,7 @@ AF.panelWidth = (root, data) => {
  * (forest.css, body.af-lay) and orders each of our parts round the deck table. Two parts in one
  * place stand as one box, the panel; apart, the panel steps aside (display: contents) and each is a
  * box of its own. Their widths: the forest's the Forest width (data.maxWidth); the heatmap's its
- * Width (85% of the forest by default, 85% of the room its place has, or 680 px: calendar.js
+ * Width (85% of the forest by default, 85% of the room its place has, or 680 px: calendar/size.js
  * AF.calendarWant) in the room it has: stacked, the panel; apart, the row under or over the list (the
  * list and its side column, or the window's whole room) or its column beside the list. Narrower than
  * that room, it stands in its middle. A side column takes the
@@ -647,7 +647,7 @@ AF.arrange = function (root, data) {
   const size = (el, w) => el.style.setProperty('--af-row', Math.floor(w) + 'px');
   const fit = () => {
     // (a side column's width and its least: the heatmap's alone the width it asks for, or all the
-    // room there is (calendar.js AF.calendarMost); the panel's, or the forest's, the Forest width)
+    // room there is (calendar/size.js AF.calendarMost); the panel's, or the forest's, the Forest width)
     const most = heatSide ? AF.calendarMost(data.calendar, data.maxWidth) : data.maxWidth;
     const least = Math.min(most, heatSide || !forest ? HEAT_MIN : Math.max(SIDE_MIN, SIDE_SHARE * data.maxWidth));
     const room = center.clientWidth - 2 * EDGE;
@@ -666,7 +666,7 @@ AF.arrange = function (root, data) {
     else {
       size(parts[1], forestW);
       // (the heatmap: its column beside the list, or in the row it stands in the width it asks for,
-      // never more than the row (calendar.js AF.calendarWidthIn), in the row's middle as everything
+      // never more than the row (calendar/size.js AF.calendarWidthIn), in the row's middle as everything
       // on the page is (forest.css .af-slot-below, .af-slot-above))
       const lone = heatSide && !narrow;
       // (behind the list, less its card's reach each side, so the card keeps the window's gutter)

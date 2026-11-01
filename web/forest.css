@@ -186,20 +186,20 @@
 .af-news-acts button:focus { outline: 2px solid currentColor; outline-offset: 2px; }
 .af-news-acts button:focus:not(:focus-visible) { outline: none; }
 
-/* the study calendar under the forest (web/calendar.js). Margins rather than gap throughout:
+/* the study calendar under the forest (web/calendar/). Margins rather than gap throughout:
    Chromium 77 (Anki 2.1.45-2.1.49) has no flex gap */
-/* Its Width (calendar.js AF.calendarFit), in the middle of where it stands */
+/* Its Width (calendar/size.js AF.calendarFit), in the middle of where it stands */
 .af-cal { position: relative; text-align: left; margin: 24px auto 0; font: 12.5px/1.4 var(--af-font); color: var(--fg-subtle, #8a8f8c); font-variant-numeric: tabular-nums; }
 /* the heatmap first (Layout's Heatmap first): 12px under its footer, which is the key's row alone,
    empty but on hover (the journal stays in the caption under the forest): about 37px from its
    streaks' lane to the forest at rest. Its top 20px are room for the view switch and ‹ › » over the
-   months' row (calendar.js ACTS_ROOM), which would otherwise stand over the panel's top edge, on the
+   months' row (calendar/history.js ACTS_ROOM), which would otherwise stand over the panel's top edge, on the
    deck list: the panel comes up by as much. The phone has no controls there. */
 .af-cal-first > .af-cal { margin: 0 auto 12px; padding-top: 20px; }
 .af-panel.af-cal-first { margin-top: 8px; }
 .af-cal-first > .af-cal-swiped { padding-top: 0; }
 /* the foot of the panel: the forest's journal, and a small key at the right (as GitHub's graph has it) */
-.af-cal-foot { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-top: 7px; }  /* (7px under the trophies' lane: calendar.js FOOT_GAP) */
+.af-cal-foot { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-top: 7px; }  /* (7px under the trophies' lane: calendar/base.js FOOT_GAP) */
 .af-cal-journal { font-style: italic; margin-right: 16px; flex: 1 1 auto; min-width: 0; }  /* (it wraps; the key never does) */
 .af-cal-journal .af-journal { margin: 0; }
 .af-cal-key { display: inline-flex; flex-wrap: nowrap; flex: none; white-space: nowrap; align-items: center; font-size: 11px; margin-left: auto; }
@@ -210,7 +210,7 @@
 /* a choice of two, drawn as one control: a track round both words, the chosen one lifted on it
    (a pill, white on a light page), the other its words alone, as macOS, Apple Calendar and GitHub
    draw theirs. Timeline | By year on the months' row left of the arrows; Reviews | Time in the
-   footer, left of the key it changes (calendar.js; neither on the phone, the second not with no
+   footer, left of the key it changes (calendar/calendar.js; neither on the phone, the second not with no
    study time kept). Plain filled words read as labels, "Shade by" as a third choice (2026-10-15) */
 .af-cal-by {
   display: inline-flex; flex: none; align-items: center; box-sizing: border-box; height: 18px; margin: 0 16px 0 0;
@@ -229,16 +229,16 @@
 .af-cal-by button:focus:not(:focus-visible) { outline: none; }
 /* (in the footer: Reviews | Time, then the key, both shown on hover) */
 .af-cal-foot > .af-cal-shade { margin: 0 12px 0 auto; }  /* (on the row's baseline, as the key: centred, it sank below the key once the journal wrapped) */
-/* Streak view's rows: oldest first, the last one the heatmap's own weeks (calendar.js past); the
+/* Streak view's rows: oldest first, the last one the heatmap's own weeks (calendar/draw.js past); the
  * page keeps the last row still itself */
 .af-cal { overflow-anchor: none; }
 .af-cal-foot > .af-cal-shade + .af-cal-key { margin-left: 0; }
-/* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar.js; on
+/* ‹ Today ›: on the months' row, at its right end, beside the period they change (calendar/calendar.js; on
    the phone Today alone, in the footer): plain, small, and with the key only there while the
    pointer is on the calendar (on the phone, where nothing hovers, always) */
 .af-cal-acts { display: inline-flex; align-items: center; align-self: center; margin-left: auto; margin-right: 12px; }
 .af-cal-acts + .af-cal-key { margin-left: 0; }
-.af-cal-grid > .af-cal-acts { position: absolute; top: -20px;  /* (ACTS_ROOM: calendar.js sets it again once the months' row is laid out) */ right: 0; height: 16px; padding-bottom: 4px; margin: 0; z-index: 1; }  /* (lifted over the months' row, in the gap above it: no label is ever under them; the padding keeps the pointer on the heatmap between them and the row) */
+.af-cal-grid > .af-cal-acts { position: absolute; top: -20px;  /* (ACTS_ROOM: calendar/draw.js sets it again once the months' row is laid out) */ right: 0; height: 16px; padding-bottom: 4px; margin: 0; z-index: 1; }  /* (lifted over the months' row, in the gap above it: no label is ever under them; the padding keeps the pointer on the heatmap between them and the row) */
 .af-cal-grid > .af-cal-acts.af-acts-low { top: 0; padding-bottom: 0; }  /* (where the forest's caption reaches them: back on the row) */
 .af-cal-grid > .af-cal-acts .af-cal-chev { height: 16px; line-height: 13px; padding-bottom: 3px !important; }  /* (the glyphs on the words' line: centred in the box, they sat 2px low) */
 /* a month's label under them (only when they are back on the row) makes way while they show */
@@ -270,21 +270,21 @@
    (dimmed on today's page); the phone keeps its Today pill (which scrolls to today) */
 .af-cal-now { font-size: 14px; }
 .af-cal-grid { position: relative; padding-top: 16px; padding-bottom: 0; }
-/* Streak view's earlier rows (calendar.js past): above the last one, each with its months over it */
+/* Streak view's earlier rows (calendar/draw.js past): above the last one, each with its months over it */
 /* (.af-cal-past is not positioned: its years are placed, and point, by the heatmap's own offsets, as the year in view is) */
-.af-cal-past-year { margin-top: 4px; }  /* (calendar.js ROW_GAP: and as much over the last row; each row's months stand as far over its weeks as the last row's do, calendar.js monthsRoom) */
+.af-cal-past-year { margin-top: 4px; }  /* (calendar/history.js ROW_GAP: and as much over the last row; each row's months stand as far over its weeks as the last row's do, calendar/size.js monthsRoom) */
 .af-cal-past-year:first-child { margin-top: 0; }  /* (the first at the top: ‹ › stand in the gap over it, as over the months) */
-/* (each row's months over its weeks, as the months' row over the last one: calendar.js label) */
-.af-cal-past-head { position: relative; height: 15px; }  /* (calendar.js layPast: monthsRoom) */
+/* (each row's months over its weeks, as the months' row over the last one: calendar/draw.js label) */
+.af-cal-past-head { position: relative; height: 15px; }  /* (calendar/draw.js layPast: monthsRoom) */
 .af-cal-past-head span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; cursor: default; }
-/* on the phone: one long timeline, swiped along (calendar.js SWIPED_K) */
+/* on the phone: one long timeline, swiped along (calendar/base.js SWIPED_K) */
 .af-cal-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .af-cal-scroll::-webkit-scrollbar { display: none; }  /* (swiped, never dragged by a bar) */
 /* both ends fade out, the usual sign that a strip goes on */
 .af-cal-scroll { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
                  mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); }
 .af-cal-acts [hidden] { display: none; }
-/* paging: the new stretch slides in from the side you went towards, briefly (calendar.js go) */
+/* paging: the new stretch slides in from the side you went towards, briefly (calendar/draw.js go) */
 @keyframes af-cal-from-left { from { opacity: 0.25; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
 @keyframes af-cal-from-right { from { opacity: 0.25; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 .af-cal-from-left .af-cal-canvas, .af-cal-from-left .af-cal-months, .af-cal-from-left .af-cal-notes, .af-cal-from-left .af-cal-spot { animation: af-cal-from-left 0.18s ease-out; }
@@ -292,20 +292,20 @@
 @media (prefers-reduced-motion: reduce) { .af-cal-from-left *, .af-cal-from-right * { animation: none !important; } }
 .af-cal-canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
 .af-cal-canvas:focus { outline: none; }
-.af-cal-gone { position: absolute; width: 0; height: 0; visibility: hidden; pointer-events: none; }  /* (the last weeks, kept for a swipe still on them: calendar.js draw) */  /* (the day the keyboard is on has the hover's ring and its tooltip) */
+.af-cal-gone { position: absolute; width: 0; height: 0; visibility: hidden; pointer-events: none; }  /* (the last weeks, kept for a swipe still on them: calendar/draw.js draw) */  /* (the day the keyboard is on has the hover's ring and its tooltip) */
 .af-cal-months { position: absolute; top: 0; left: 0; right: 0; height: 16px; }
 .af-cal-months span { position: absolute; top: 0; font-size: 11px; line-height: 16px; white-space: nowrap; }  /* (baseline about 12px down) */
 .af-cal-months .af-cal-year { color: inherit; }
 .af-cal-hover {
   position: absolute; z-index: 1; box-sizing: border-box; pointer-events: none;  /* (over a selection's dimmed days: under them its right and bottom sides were dimmed) */
-  border: 2px solid;  /* its colour: today's frame's, which shows on every shade (calendar.js) */
+  border: 2px solid;  /* its colour: today's frame's, which shows on every shade (calendar/highlight.js) */
   transition: left 0.06s ease-out, top 0.06s ease-out;  /* (square, flat and on the grid, as the pixels round it: a soft shadow and a lift blurred it off the tiles) */
 }
 .af-cal-hover[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .af-cal-hover { transition: none; } }
-.af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (in the trophies' lane: calendar.js lay; the pointer goes through to the trophies and the pennant under it) */
+.af-cal-notes { position: absolute; left: 0; right: 0; height: 11px; pointer-events: none; }  /* (in the trophies' lane: calendar/draw.js lay; the pointer goes through to the trophies and the pennant under it) */
 .af-cal-note { position: absolute; transform: translateX(-50%); font-size: 11px; line-height: 11px; white-space: nowrap; }
-/* a marked day's editor (calendar.js, on a right-click): the icons side by side, all in full colour,
+/* a marked day's editor (calendar/marks.js, on a right-click): the icons side by side, all in full colour,
  * the chosen one in a soft square (dimmed would read as disabled: UI_GUIDELINES.md), its name and ×, dressed as the tooltip is; margins rather than gap (Chromium 77) */
 .af-cal-pin { position: absolute; z-index: 3; display: flex; align-items: center; padding: 5px 6px; border-radius: 8px;
   background: var(--af-tip-panel); box-shadow: var(--af-tip-shadow); }  /* (solid: what you type must not sit on the month names) */
@@ -329,7 +329,7 @@
   padding: 0 4px !important; border: 0 !important; border-radius: 6px !important; background: transparent !important; box-shadow: none !important;
   color: var(--af-tip-soft) !important; font-size: 16px; line-height: 1; cursor: pointer; }
 .af-cal-pin-del:hover, .af-cal-pin-del:active, .af-cal-pin-del:focus { color: var(--af-tip-fg) !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
-/* a month's label tells its month on hover (calendar.js monthSummary) */
+/* a month's label tells its month on hover (calendar/tooltips.js monthSummary) */
 .af-cal-months span { cursor: default; }
 /* the weekdays beside the weeks, just outside the forest's edge, shown with the key on hover */
 .af-cal-days { position: absolute; top: 0; left: 0; width: 0; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
@@ -339,11 +339,11 @@
 .af-cal-swiped .af-cal-days { display: none; }
 @media (prefers-reduced-motion: reduce) { .af-cal-days { transition: none; } }
 /* the animals over the weeks (and the forest's first seedling), on a layer of their own: shown
- * while the pointer is on the heatmap, as the key is, and always on the phone (calendar.js paint) */
+ * while the pointer is on the heatmap, as the key is, and always on the phone (calendar/paint.js paint) */
 .af-cal-above { position: absolute; display: block; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges;
   opacity: 0; transition: opacity 0.2s; }
 .af-cal:hover .af-cal-above, .af-cal:focus-within .af-cal-above, .af-cal-swiped .af-cal-above { opacity: 1; }
-.af-cal-above.af-cal-spot { opacity: 1; transition: none; }  /* (the dimmed days round a hover's own: calendar.js spot) */
+.af-cal-above.af-cal-spot { opacity: 1; transition: none; }  /* (the dimmed days round a hover's own: calendar/highlight.js spot) */
 @media (prefers-reduced-motion: reduce) { .af-cal-above { transition: none; } }
 
 /* where the forest and the heatmap sit round the deck list (core.js AF.arrange): Anki's <center> as
@@ -365,7 +365,7 @@ body.af-lay .af-slot-right { order: 3; margin: 4px 0 0 32px; }
    the rest of the line; a max-width would let it fit beside the list), and never held wider by the
    canvas drawn for a wider window (min-width: 0: a flex item's own is its content's) */
 body.af-lay .af-apart > .af-slot-below { flex: 0 0 var(--af-row); min-width: 0; box-sizing: border-box; margin: 28px calc((100% - var(--af-row)) / 2) 0; }
-body.af-lay .af-apart > .af-cal { width: auto !important; }  /* (calendar.js sets its share of the panel's width) */
+body.af-lay .af-apart > .af-cal { width: auto !important; }  /* (calendar/size.js sets its share of the panel's width) */
 /* Above the list: the one on top a row of its own over the deck list, 28px over it as the one under
    it is under it; the heatmap keeps 20px at its top for the controls over its months (as the heatmap
    first in the panel does: .af-cal-first) */
@@ -469,7 +469,7 @@ body.af-lay.af-lay-behind > center > h3.af-lay-before { order: 1; align-self: ce
 body.af-lay.af-lay-behind > center > table.af-titled { border-radius: 0 0 var(--border-radius-medium, 12px) var(--border-radius-medium, 12px);
   box-shadow: 0 10px 16px -6px rgba(0, 0, 0, 0.18); }  /* (its shadow under it, not on its title) */
 /* (24px between the cards: the heatmap's card reaches 30px over it) */
-body.af-lay.af-lay-behind .af-apart > .af-slot-below { flex: none; margin: 54px calc((100% - var(--af-row)) / 2) 0; }  /* (stretched, its margins taking the rest: calendar.js holds its width at auto) */
+body.af-lay.af-lay-behind .af-apart > .af-slot-below { flex: none; margin: 54px calc((100% - var(--af-row)) / 2) 0; }  /* (stretched, its margins taking the rest: calendar/size.js holds its width at auto) */
 body.af-lay.af-lay-behind > center > .af-pill { align-self: center; margin-top: 8px; padding: 4px 12px; border-radius: var(--border-radius-medium, 12px); }
 /* (Anki's line and the pills under it one group: 24px over it (the heatmap's card reaches 10px under
    it), 8px between; 13px, a size under the deck names, so the list leads) */
@@ -600,11 +600,11 @@ body.af-behind-zooming > center > :not(.af-panel), body.af-behind-zooming .af-sl
 
 /* right to left (.af-rtl: the add-on's language reads so, core.js AF.mount; Anki's own <html dir>
    is not asked, the panel follows the add-on's words): the text runs from the right, each row's parts
-   mirrored, the heatmap's time too (calendar.js paint: today at the left end, the weekdays on the
+   mirrored, the heatmap's time too (calendar/paint.js paint: today at the left end, the weekdays on the
    right, the arrows at the left end of the months' row). The forest is a picture and never turns, but
    its cog and zoom button move to its top left corner, where the line starts (and the cog's line over a
    heatmap alone with them), and a note on it to the top right */
-/* (.af-top's flex-end is already the left end right to left, where its controls leave the cog room: calendar.js;
+/* (.af-top's flex-end is already the left end right to left, where its controls leave the cog room: calendar/size.js;
    flex-start put the cog at the right, over the weekdays, the controls keeping an empty gap for it) */
 .af-rtl .af-scene .af-top { right: auto; left: 8px; }
 .af-rtl .af-zoom { right: auto; left: 8px; }
@@ -633,7 +633,7 @@ body.af-behind-zooming > center > :not(.af-panel), body.af-behind-zooming .af-sl
 .af-rtl .af-cal-acts + .af-cal-key { margin-right: 0; }
 .af-rtl .af-cal-chev { margin: 0 2px 0 0 !important; }
 .af-rtl .af-cal-today { margin: 0 2px 0 6px !important; }
-/* (the weeks and their labels placed by calendar.js in the canvas's own pixels, from its left edge,
+/* (the weeks and their labels placed by calendar/draw.js in the canvas's own pixels, from its left edge,
    whatever the direction: the grid itself left to right, so the phone's swiped timeline scrolls as
    it always has; the words on it right to left) */
 .af-rtl .af-cal-grid { direction: ltr; }

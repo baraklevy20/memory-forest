@@ -69,7 +69,7 @@ MEASURE = """(() => {
   const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root && root.afEnv;
   const trees = env ? env.placed.filter(q => !q.it.pond).length : 0;
   const big = env ? env.placed.filter(q => q.it.big).length : 0, flowers = env && env.flowerCols ? env.flowerCols.size : 0;
-  // the study calendar under it (web/calendar.js): its box, and how many days its canvas holds
+  // the study calendar under it (web/calendar/): its box, and how many days its canvas holds
   const cal = document.querySelector('.af-cal'), calCanvas = cal && cal.querySelector('canvas');
   const calendar = cal ? { box: box(cal), canvas: calCanvas ? [calCanvas.width, calCanvas.height] : null } : null;
   return JSON.stringify({ plain, darkMac, built: !!env, trees, big, flowers, old: !!(env && env.checkMark), painted, calendar,
@@ -774,7 +774,7 @@ def sceneries() -> None:
     with its own heatmap tiles: that the forest built as that scenery, its heatmap painted, and
     whether the heatmap moved (a moving tile style should: animations are on); a screenshot of
     each, deck-list-scenery-<key>.png. A moving style moves only while the heatmap is on
-    screen (calendar.js liveWake): the window is made tall and the heatmap scrolled into view.
+    screen (calendar/draw.js liveWake): the window is made tall and the heatmap scrolled into view.
     The config and the window's size are put back after."""
     web, before, size = mw.deckBrowser.web, config(), (mw.width(), mw.height())
     mw.resize(*SCENERY_WINDOW)

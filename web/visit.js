@@ -541,7 +541,7 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     else if (b.dataset.act === 'back') leave();
   });
   // the keys, while zooming is on and nothing else on the page is being typed into (nor the
-  // heatmap under the forest, whose controls the arrow keys switch: web/calendar.js)
+  // heatmap under the forest, whose controls the arrow keys switch: web/calendar/)
   const onKey = e => {
     if (!current()) { document.removeEventListener('keydown', onKey); return; }
     if (!on || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) return;

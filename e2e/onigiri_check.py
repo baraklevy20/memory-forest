@@ -24,10 +24,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 sys.path.insert(0, HERE)
-from phone_check import CHROME, phone_changed
+from phone_check import CALENDAR_FILES, CHROME, phone_changed
 
 # the files the tile goes through: a change to one runs this
-ONIGIRI_FILES = ("__init__.py", "panel.py", "payload.py", "web/forest.js", "web/core.js", "web/calendar.js",
+ONIGIRI_FILES = ("__init__.py", "panel.py", "payload.py", "web/forest.js", "web/core.js", *CALENDAR_FILES,
                  "web/forest.css", "e2e/onigiri_check.py", "e2e/onigiri_check.mjs")
 # Onigiri 2.0.2's grid: 4 columns of 250 px, rows of 150, 15 apart; Memory Forest in 4 x 4 (its how-to)
 COLS, COL_W, ROW_H, GAP, SPAN = 4, 250, 150, 15, 4

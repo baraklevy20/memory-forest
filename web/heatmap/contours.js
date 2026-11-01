@@ -1,5 +1,5 @@
 /* Memory Forest - the heatmap's Contours tiles (the Heatmap tab's Tiles; contours.json; the blob study's
- * "Iso-bands"): a joined shape (calendar.js shapesPass) of the days studied, the days ahead and the
+ * "Iso-bands"): a joined shape (calendar/tiles.js shapesPass) of the days studied, the days ahead and the
  * empty days, each filled with flat bands of its days' shades, like a contour map: each pixel's shade
  * the days round it weighted by nearness (fieldLv), rounded to the four, a line in the higher band's
  * edge colour where a band rises, the shape outlined. Drawn with no spaces between the days, so the

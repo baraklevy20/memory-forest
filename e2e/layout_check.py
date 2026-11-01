@@ -31,10 +31,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 sys.path.insert(0, HERE)
-from phone_check import CHROME, phone_changed
+from phone_check import CALENDAR_FILES, CHROME, phone_changed
 
 # the files the layouts go through: a change to one runs this
-LAYOUT_FILES = ("panel.py", "payload.py", "state.py", "web/core.js", "web/caption.js", "web/calendar.js",
+LAYOUT_FILES = ("panel.py", "payload.py", "state.py", "web/core.js", "web/caption.js", *CALENDAR_FILES,
                 "web/forest.css", "e2e/layout_check.py", "e2e/layout_check.mjs")
 WIDE, NARROW = 1400, 720  # css px: a window with room beside the list, and one without
 # (and one without that still has room for more than the forest: a heatmap at Full width fallen under
@@ -43,7 +43,7 @@ MID = 900  # (the deck list is held at 400 px, whatever the fonts: so MID has no
 CARDS = [(i, 10, i % 90) for i in range(1, 400)]  # (a forest, and three months of heatmap)
 FOREST_W = 800  # the Forest width (config.json's max_width)
 CARD_REACH = 36  # css px Background's heatmap card reaches past it each side (core.js CARD_REACH)
-FIXED_W = 680  # the heatmap's Fixed width (calendar.js FIXED_W); Follow the forest and Full width are 85% of the forest and of the room
+FIXED_W = 680  # the heatmap's Fixed width (calendar/base.js FIXED_W); Follow the forest and Full width are 85% of the forest and of the room
 # Anki's deck list, in its own markup (a header, decks, the drag row), with made-up decks
 DECKS = [("Default", 0), ("German", 0), ("Verbs", 1), ("Vocabulary", 1), ("Japanese", 0), ("Kanji", 1), ("Geography", 0)]
 # where Anki's own stylesheets are, to look as it does when they are at hand (never needed)
