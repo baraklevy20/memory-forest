@@ -102,9 +102,11 @@ class ChoiceTests(unittest.TestCase):
 
     def test_each_tile_style_has_its_own_spaces_and_corners(self):
         for style in HL.TILE_STYLE:
-            # (each as the style it draws in: Scenery's, or one out of its week, Flat's here)
-            gaps, smooth = HL.TILE_STYLE[HL.tile_style({"calendar_tiles": style})]
+            # (each as the style it draws in: Scenery's, or one out of its week, Flat's here. The same
+            # config for both: with debug on every season's is offered, off it only this week's, so
+            # a seasonal style's answer would differ the day after its week ended)
             cfg = {"calendar_tiles": style, "debug": True}
+            gaps, smooth = HL.TILE_STYLE[HL.tile_style(cfg)]
             self.assertEqual((HL.gaps(cfg), HL.smooth(cfg)), (gaps, smooth), style)
         self.assertFalse(HL.gaps({"calendar_tiles": "contours"}))
 
