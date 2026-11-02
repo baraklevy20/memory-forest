@@ -1,7 +1,9 @@
 # Copied from addon_libs/anki_builds.py by addon_libs/sync.py: edit it there, not here.
 """Real Ankis to check an add-on in: downloaded from Anki's GitHub releases the first time and kept in CACHE, so no
-add-on downloads one twice. The Qt5 builds (every Anki before 2.1.50, and the builds for older computers after it) are
-Intel-only and run under Rosetta: the first start of each is slow. Each add-on's e2e/old_anki.py says which it checks."""
+add-on downloads one twice. On macOS the Qt5 builds (every Anki before 2.1.50, and the builds for older computers after
+it) are Intel-only and run under Rosetta: the first start of each is slow. On Windows each is unpacked rather than
+installed, so nothing on the computer changes (7-Zip for an .exe, msiexec's administrative install for an .msi). Each
+add-on's e2e/old_anki.py says which it checks."""
 
 from __future__ import annotations
 
@@ -21,7 +23,7 @@ CACHE = os.path.expanduser("~/Library/Caches/memory-forest/anki")
 RELEASES = "https://github.com/ankitects/anki/releases/download"
 
 # key -> the macOS download on Anki's GitHub releases
-ANKIS = {
+MAC_ANKIS = {
     "2.1.45": "2.1.45/anki-2.1.45-mac.dmg",
     "2.1.49": "2.1.49/anki-2.1.49-mac.dmg",
     "2.1.50": "2.1.50/anki-2.1.50-mac-apple-qt6.dmg",
@@ -32,10 +34,51 @@ ANKIS = {
     "26.09.3": "26.09.3/anki-26.09.3-mac-apple.dmg",
     "26.09.2": "26.09.2/anki-26.09.2-mac-apple.dmg",
 }
+# and the Windows one
+WINDOWS_ANKIS = {
+    "2.1.45": "2.1.45/anki-2.1.45-windows.exe",
+    "2.1.49": "2.1.49/anki-2.1.49-windows.exe",
+    "2.1.50": "2.1.50/anki-2.1.50-windows-qt6.exe",
+    "2.1.50-qt5": "2.1.50/anki-2.1.50-windows-qt5.exe",
+    "2.1.54": "2.1.54/anki-2.1.54-windows-qt6.exe",
+    "2.1.54-qt5": "2.1.54/anki-2.1.54-windows-qt5.exe",
+    "2.1.66-qt5": "2.1.66/anki-2.1.66-windows-qt5.exe",
+    "26.09.3": "26.09.3/anki-26.09.3-win-x64.msi",
+}
+WINDOWS = os.name == "nt"
+ANKIS = WINDOWS_ANKIS if WINDOWS else MAC_ANKIS
+# the program in a Windows build: the console one where there is one, whose output (tracebacks too) can be read
+WINDOWS_PROGRAMS = ("anki-console.exe", "anki.exe")
+
+
+def unpack_windows(file: str, into: str) -> None:
+    """A Windows build's files in the folder `into`, without installing it."""
+    if file.endswith(".msi"):
+        subprocess.run(["msiexec", "/a", file, "/qn", f"TARGETDIR={into}"], check=True)
+    else:
+        subprocess.run(["7z", "x", "-y", f"-o{into}", file], check=True, stdout=subprocess.DEVNULL)
+
+
+def fetch_windows(key: str) -> str:
+    """The folder of Anki `key`, downloaded and unpacked into CACHE the first time."""
+    folder = os.path.join(CACHE, key)
+    if os.path.exists(folder):
+        return folder
+    os.makedirs(CACHE, exist_ok=True)
+    url = f"{RELEASES}/{ANKIS[key]}"
+    print(f"downloading Anki {key} from {url}")
+    with tempfile.TemporaryDirectory() as tmp:
+        file = os.path.join(tmp, os.path.basename(ANKIS[key]))
+        urllib.request.urlretrieve(url, file)
+        unpack_windows(file, folder + ".part")  # (a temp name: one cut short never looks finished)
+    os.rename(folder + ".part", folder)
+    return folder
 
 
 def fetch(key: str) -> str:
-    """The Anki.app for `key` in ANKIS, downloaded and unpacked into CACHE the first time."""
+    """The Anki.app (on Windows, the folder) for `key` in ANKIS, downloaded and unpacked into CACHE the first time."""
+    if WINDOWS:
+        return fetch_windows(key)
     app = os.path.join(CACHE, key + ".app")
     if os.path.exists(app):
         return app
@@ -65,12 +108,20 @@ def resolve(name: str) -> tuple:
     if name in ANKIS:
         return name, fetch(name)
     if os.path.isdir(name):
-        return os.path.basename(name.rstrip("/")).removesuffix(".app"), name
-    sys.exit(f"no Anki {name!r}: name one of {', '.join(ANKIS)} or the path to an Anki.app")
+        return os.path.basename(name.rstrip("/\\")).removesuffix(".app"), name
+    sys.exit(f"no Anki {name!r}: name one of {', '.join(ANKIS)} or the path to an Anki")
+
+
+def windows_program(folder: str) -> str:
+    """The program in a Windows build's folder, "" if it has none."""
+    found = {name.lower(): os.path.join(root, name) for root, _dirs, names in os.walk(folder) for name in names}
+    return next((found[p] for p in WINDOWS_PROGRAMS if p in found), "")
 
 
 def executable(app: str) -> str:
-    """The program inside an Anki.app (anki, or AnkiMac before 2.1.50), from its Info.plist."""
+    """The program inside an Anki.app (anki, or AnkiMac before 2.1.50), from its Info.plist; on Windows, in its folder."""
+    if WINDOWS:
+        return windows_program(app)
     with open(os.path.join(app, "Contents", "Info.plist"), "rb") as f:
         return os.path.join(app, "Contents", "MacOS", os.path.basename(plistlib.load(f)["CFBundleExecutable"]))
 

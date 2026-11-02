@@ -174,3 +174,35 @@ jobs:
           name: anki-${{ matrix.anki }}
           path: ${{ steps.results.outputs.dir }}
           if-no-files-found: ignore
+
+  # the same check in Windows' builds of those Ankis: they are unpacked rather than installed (anki_builds.py).
+  # continue-on-error keeps a failure from turning the run red while this job is new: take it off once it has passed
+  anki-windows:
+    name: Anki ${{ matrix.anki }} (Windows)
+    needs: anki-versions
+    runs-on: windows-2025
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        anki: ${{ fromJSON(needs.anki-versions.outputs.list) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install
+      - uses: actions/cache@v6
+        with:
+          path: ~/Library/Caches/memory-forest/anki/${{ matrix.anki }}
+          key: anki-windows-${{ matrix.anki }}
+      - run: python e2e/old_anki.py --check ${{ matrix.anki }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: anki-windows-${{ matrix.anki }}
+          path: ~/AppData/Local/Temp/memory-forest-old-anki
+          if-no-files-found: ignore
