@@ -281,18 +281,8 @@ def opens(news_id: str) -> str:
 
 
 def about(cfg: dict) -> list:
-    """(version, its summary or "", [(heading, [lines])]) for the About tab, newest first: what
-    each version is about, its New, Improved and Fixed lines this edition has, under their
-    headings, and the line naming what Plus got more, under none ("")."""
-    out = []
-    for v in release_notes.for_edition(_versions(), view(cfg)):
-        sections = [(head, [e["text"] for e in release_notes.items(v, (key,))])
-                    for key, head in release_notes.SECTIONS if head]
-        # (and, where Plus got more, the line that names it, under no heading)
-        sections = [(head, lines) for head, lines in sections if lines] + [("", [release_notes.plus_line(v)])] * bool(release_notes.plus_line(v))
-        if sections:
-            out.append((v["version"], v.get("summary", ""), sections))
-    return out
+    """What's new for the About tab (release_notes.about): what this edition has, newest first."""
+    return release_notes.about(release_notes.for_edition(_versions(), view(cfg)))
 
 
 def unseen(cfg: dict) -> list:

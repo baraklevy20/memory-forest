@@ -1,3 +1,4 @@
+# Copied from addon_libs/release_notes.py by addon_libs/sync.py: edit it there, not here.
 """The release notes, kept in one place: release_notes.json. Everything else is made from it:
 the AnkiWeb page's "What's new" (docs/ankiweb.html, by dev/notes.py), the GitHub release's
 notes (dev/release.py), the About tab's What's new, and what an update announces in the
@@ -121,6 +122,18 @@ def in_page(page: str, versions: list) -> str:
     """The AnkiWeb page with its What's new made afresh from `versions`."""
     start = page.index(HTML_START) + len(HTML_START)
     return page[:start] + to_html(versions) + page[page.index(HTML_END, start):]
+
+
+def about(versions: list) -> list:
+    """(version, its summary or "", [(heading, [lines])]) for an About tab's What's new (about_page.notes_html), newest
+    first: its New, Improved and Fixed lines under their headings, and the line naming what Plus got more, under none."""
+    out = []
+    for v in versions:
+        sections = [(head, [e["text"] for e in items(v, (key,))]) for key, head in SECTIONS if head]
+        sections = [(head, lines) for head, lines in sections if lines] + [("", [plus_line(v)])] * bool(plus_line(v))
+        if sections:
+            out.append((v["version"], v.get("summary", ""), sections))
+    return out
 
 
 def _markdown(fragment: str) -> str:

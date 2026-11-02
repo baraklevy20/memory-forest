@@ -9,7 +9,7 @@
     npm run strings -- prune he         drop the ids the code no longer uses from locales/he.json
 
 Where the ids come from: calls with a literal id (t, tn, N_; AF.t, AF.tn, AF.N_ on the page) in web/
-(not web/drafts/) and the Python files (not dev/, e2e/ or tests/); the scenery's own (i18n.py
+(not web/drafts/) and the Python files (not dev/, e2e/ or tests/); the scenery's own (i18n_extra.py
 scenery_english) for every scenery an edition ships; and the dates i18n.py writes.
 
 A language's file keeps each translation with the English it was translated from,
@@ -30,6 +30,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
 sys.path.insert(0, ADDON)
 import i18n
+import i18n_extra
 
 SKIP_DIRS = {"dev", "e2e", "tests", "node_modules", "dist", "user_files", "__pycache__", "drafts", "locales", "docs"}
 FUNCS = ("t", "tn", "N_")
@@ -111,12 +112,12 @@ def _shipped():
 
 
 def scenery_ids() -> dict:
-    """id -> where, for the scenery words an edition ships (i18n.scenery_english)."""
+    """id -> where, for the scenery words an edition ships (i18n_extra.scenery_english)."""
     shipped = _shipped()
     kinds = {"env": "envs", "landscape": "landscapes", "landmark": "landmarks"}
     plus = {p["key"] for p in _read(os.path.join(ADDON, "settings", "plus.json"), [])}
     out = {}
-    for key in i18n.scenery_english():
+    for key in i18n_extra.scenery_english():
         kind, name = key.split(".")[:2]
         if kind in kinds:
             if shipped is None or name in shipped[kinds[kind]]:

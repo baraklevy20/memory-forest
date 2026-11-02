@@ -1,24 +1,24 @@
-"""The words in the reader's language: Anki's own interface language, its translations from
-locales/<lang>.json, and the plural forms, numbers and dates that go with them.
+# Copied from addon_libs/i18n.py by addon_libs/sync.py: edit it there, not here.
+"""The words in the reader's language: Anki's own interface language (or the one picked over it, set_override),
+translations from locales/<lang>.json beside this file, and the plural forms, numbers and dates that go with them.
 
-Every wording has an id, which never changes: `t("caption.click_to_see_their_cards")`. Its English
-is in locales/en.json, and each language's file gives its translation of that id, with the English
-it was translated from: an English wording changed since is still shown, and dev/strings.py lists
-it to translate again. A wording a language lacks shows in English, so a language half done reads
-half in English rather than not at all. Plurals are one id with a form for each number,
-`tn("heatmap.n_reviews", n)`. A constant read before the language is known holds its id, marked
-`N_("...")`, and is shown with `tx(CONSTANT)`. Placeholders are `{name}`, filled from the keywords;
-`tn`'s {n} is the number as the language writes it ("3.581" in German).
+Every wording has an id, which never changes: `t("settings.language")`. Its English is in locales/en.json, and
+each language's file gives its translation of that id, with the English it was translated from: an English wording
+changed since is still shown, and dev/strings.py lists it to translate again. A wording a language lacks shows in
+English, so a language half done reads half in English rather than not at all. Plurals are one id with a form for
+each number, `tn("n_reviews", n)`. A constant read before the language is known holds its id, marked `N_("...")`,
+and is shown with `tx(CONSTANT)`. Placeholders are `{name}`, filled from the keywords; `tn`'s {n} is the number as
+the language writes it ("3.581" in German).
 
-A scenery's words have ids of their own, from its .json (its label and note): env.<key>,
-landscape.<key>, landmark.<key>, preset.<key> and preset.<key>.note, heatmap_style.<key> and
-heatmap_style.<key>.tip, their English read from the .json itself. The release notes stay English:
-an update ships before its notes could be translated.
+A value set into a sentence that must keep its own left-to-right order (a size, "600 × 400", or "250 px") goes
+through `ltr()`, which isolates it between left-to-right marks: right to left, Hebrew's or Arabic's letters round
+it would otherwise turn it round ("400 × 600").
 
-The page is sent only the words its scripts use (page_strings, from locales/catalog.json, which
-dev/strings.py writes), the phone card the same in its synced note. Two made-up languages test it
-all without a translator: en-XA ("[Ŷöûŕ ƒöŕéšţ ····]", longer, to show the English left in and what
-clips) and en-XB (the same, right to left).
+An add-on with words of its own that aren't in en.json has an i18n_extra.py beside this file, whose english()
+gives them (Memory Forest's sceneries read theirs from each scenery's .json). A page is sent only the words its
+scripts use (page_strings, from locales/catalog.json, which dev/strings.py writes). Two made-up languages test it
+all without a translator: en-XA ("[Ŝåṽé ··]", longer, to show the English left in and what clips) and en-XB (the
+same, right to left). The Language setting never offers them.
 
 Nothing here imports aqt, so it also runs in the tests and the dev scripts.
 """
@@ -32,9 +32,12 @@ import os
 import re
 
 try:
-    from . import catalog as files
-except ImportError:  # the tests and dev scripts import these files as top-level modules
-    import catalog as files
+    from . import i18n_extra as extra
+except ImportError:  # (the tests and dev scripts import these files as top-level modules; most add-ons have none)
+    try:
+        import i18n_extra as extra
+    except ImportError:
+        extra = None
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCALES = os.path.join(HERE, "locales")
@@ -45,13 +48,13 @@ PSEUDO, PSEUDO_RTL = "en-XA", "en-XB"
 RTL = ("ar", "fa", "he", "ug", "ur", "yi", PSEUDO_RTL)
 # the files under locales/ that are not a language
 NOT_LANGUAGES = ("en.json", "catalog.json")
-# each language by its own name, as the About tab's Language offers it (never translated: a
+# each language by its own name, as the settings' Language offers it (never translated: a
 # reader finds their own language in its own words)
 NAMES = {"en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "pt-BR": "Português (Brasil)",
          "ja": "日本語", "zh-CN": "中文（简体）", "ar": "العربية", "he": "עברית"}
 
 # the plural forms each language has, as CLDR names them, and which one a whole number takes;
-# web/i18n.js has the same table (a Chromium as old as Anki 2.1.45's has older plural data)
+# a page's web/i18n.js has the same table (a Chromium as old as Anki 2.1.45's has older plural data)
 PLURALS = {
     "one_other": lambda n: "one" if n == 1 else "other",
     "zero_one_other": lambda n: "one" if n in (0, 1) else "other",
@@ -105,7 +108,14 @@ DECIMAL = dict.fromkeys(("de", "es", "it", "nl", "pt", "da", "tr", "id", "fr", "
 GROUPING.update({k: "\u00a0" for k in ("hr", "sr", "bs", "lt", "lv", "sl", "hu", "be") if k not in GROUPING})
 GROUPING.update({"ro": ".", "el": "."})
 
-_override = None  # the language picked over Anki's (edition.language), or None for Anki's
+# a value kept left to right between two left-to-right marks, the numbers and signs between them then
+# reading as Latin does, and those between right-to-left ones, so what is around it reads the sentence's
+# way: "45.2 MB ← 7.5 MB" read as one left-to-right run otherwise, its arrow pointing back. (Qt 6's text
+# layout, Anki's, keeps neither an isolate, LRI ... PDI, nor an embedding, LRE ... PDF, here: "600 × 400"
+# still came out "400 × 600" between Hebrew words; and marks are no embedding widgets.bidi takes for its own.)
+LRM, RLM = "\u200e", "\u200f"
+
+_override = None  # the language picked over Anki's (the settings' Language), or None for Anki's
 _lang = None      # the language in use, once read
 _table = None     # its words: id -> text (a string, or a plural's forms)
 _english = None   # id -> English
@@ -125,8 +135,8 @@ def anki_lang() -> str:
 
 
 def set_override(tag: str | None) -> None:
-    """The language picked over Anki's (edition.language: the About tab's; a test's made-up one):
-    this one rather than Anki's ("" or None: Anki's)."""
+    """The language picked over Anki's (the settings' Language; a test's made-up one): this one
+    rather than Anki's ("" or None: Anki's)."""
     global _override, _lang, _table
     if (tag or None) != _override:
         _override, _lang, _table = tag or None, None, None
@@ -167,52 +177,11 @@ def _read(path: str) -> dict:
         return {}
 
 
-def scenery_english(web: str | None = None) -> dict:
-    """id -> English for the scenery this copy has, read from each one's .json."""
-    web = web or files.WEB
-    out = {}
-    for kind, prefix in (("envs", "env"), ("landscapes", "landscape"), ("landmarks", "landmark")):
-        folder = os.path.join(web, kind)
-        for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else ():
-            if not name.endswith(".json"):
-                continue
-            spec, key = _read(os.path.join(folder, name)), name[:-5]
-            if spec.get("label"):
-                out[f"{prefix}.{key}"] = spec["label"]
-            preset = spec.get("preset")
-            if isinstance(preset, dict) and preset.get("label"):
-                pk = preset.get("key", key)
-                out[f"preset.{pk}"] = preset["label"]
-                if preset.get("note"):
-                    out[f"preset.{pk}.note"] = preset["note"]
-    # the Plus sceneries the base edition's picker shows locked
-    plus = os.path.join(HERE, "settings", "plus.json")
-    if os.path.exists(plus):
-        try:
-            with open(plus, encoding="utf-8") as f:
-                for spec in json.load(f):
-                    out.setdefault(f"preset.{spec['key']}", spec["label"])
-                    if spec.get("note"):
-                        out.setdefault(f"preset.{spec['key']}.note", spec["note"])
-        except (OSError, ValueError, KeyError, TypeError):
-            pass
-    # (and the tile styles still in the works, in web/drafts/heatmap/ where this copy has them: never collected)
-    for folder in (os.path.join(web, "heatmap"), os.path.join(web, "drafts", "heatmap")):
-        for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else ():
-            if name.endswith(".json"):
-                spec, key = _read(os.path.join(folder, name)), name[:-5]
-                if spec.get("label"):
-                    out.setdefault(f"heatmap_style.{key}", spec["label"])
-                if spec.get("tip"):
-                    out.setdefault(f"heatmap_style.{key}.tip", spec["tip"])
-    return out
-
-
 def english() -> dict:
-    """id -> English: locales/en.json, and the scenery's words."""
+    """id -> English: locales/en.json, and any words of the add-on's own (i18n_extra.py)."""
     global _english
     if _english is None:
-        _english = dict(scenery_english(), **_read(ENGLISH))
+        _english = dict(extra.english() if extra else {}, **_read(ENGLISH))
     return _english
 
 
@@ -238,7 +207,8 @@ def translations(tag: str) -> dict:
         for name in reversed(candidates(tag)):
             if name != "en":  # (English is en.json)
                 out.update(_read(os.path.join(LOCALES, f"{name}.json")))
-        _translations[tag] = {k: v for k, v in out.items() if isinstance(v, dict) and v.get("text")}
+        # (an empty text is one too: Japanese and Chinese join sentences with nothing between them)
+        _translations[tag] = {k: v for k, v in out.items() if isinstance(v, dict) and (v.get("text") or v.get("text") == "")}
     return _translations[tag]
 
 
@@ -305,6 +275,29 @@ def dec(x: float, digits: int = 1) -> str:
     return f"{x:,.{digits}f}".replace(",", "\0").replace(".", point).replace("\0", group)
 
 
+def ltr(text: str) -> str:
+    """A value that reads left to right ("600 × 400", "250 px", "4.6 MB"), kept so inside a
+    right-to-left sentence; as it is otherwise (English stays exactly as it was)."""
+    return f"{RLM}{LRM}{text}{LRM}{RLM}" if direction() == "rtl" and text else text
+
+
+def size(w, h) -> str:
+    """A width by a height, "600 × 400" (∞ for no limit), kept left to right (ltr)."""
+    return ltr(f"{w or '∞'} × {h or '∞'}")
+
+
+def px(n) -> str:
+    """CSS pixels on the card, "250 px", kept left to right (ltr)."""
+    return ltr(f"{n} px")
+
+
+def is_mac_keys() -> bool:
+    """Whether the platform writes Ctrl as ⌘ (from Python's own platform name: no aqt here)."""
+    import sys
+
+    return sys.platform == "darwin"
+
+
 def _fill(text: str, values: dict) -> str:
     if not values:
         return text
@@ -326,7 +319,7 @@ def tn(key: str, n, **values) -> str:
     if isinstance(found, dict):
         # (a wording the language lacks is English, and takes English's forms: never "21 tree")
         own = key in translations(lang()) or lang() in (PSEUDO, PSEUDO_RTL)
-        # (rounded half up, as web/i18n.js's Math.round does, so the page and Qt pick alike)
+        # (rounded half up, as a page's Math.round does, so the page and Qt pick alike)
         form = PLURALS[plural_rule() if own else "one_other"](abs(math.floor(n + 0.5)))
         found = found.get(form) or found.get("other") or key
     return _fill(found, values)
@@ -344,7 +337,7 @@ def tx(key: str, **values) -> str:
 
 
 def scenery(kind: str, key: str, field: str = "") -> str:
-    """A scenery's word: scenery("env", "aurora"), scenery("preset", "aurora", "note")."""
+    """The word of a thing with a dotted id: scenery("env", "aurora"), scenery("preset", "aurora", "note")."""
     return t(f"{kind}.{key}" + (f".{field}" if field else ""))
 
 

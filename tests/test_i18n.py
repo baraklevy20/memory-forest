@@ -10,6 +10,7 @@ import unittest
 from unittest import mock
 
 import i18n
+import i18n_extra
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ADDON, "dev"))
@@ -88,7 +89,7 @@ class Speaking(unittest.TestCase):
             self.assertEqual(i18n.page_strings()["strings"], {"x.your_forest": "Dein Wald"})
 
     def test_a_sceneries_words_come_from_its_json(self):
-        en = i18n.scenery_english()
+        en = i18n_extra.scenery_english()
         self.assertEqual(en["env.natural"], "Natural")
         self.assertIn("preset.aurora", en)
         self.assertIn("heatmap_style.flat", en)

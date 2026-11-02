@@ -9,7 +9,8 @@ ignore = [
   "E702",    # the Qt dialog builds widgets two to a line on purpose; it reads better
   "SIM108",  # a ternary is not always clearer than an if
   "SIM105",  # an explicit try/except says more than contextlib.suppress here
-  "RUF001",  # the add-on's text uses typographic characters on purpose
+  "RUF001",
+  "RUF002",  # the add-on's text uses typographic characters on purpose
   "RUF003",
   "RUF005",  # list + list is clearer than unpacking for short option lists
 ]
