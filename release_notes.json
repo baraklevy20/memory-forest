@@ -4,7 +4,20 @@
     {
       "version": "1.6.0",
       "new": [
-        "A new layout, Background: the forest fills the window behind your decks, deck screens and finished decks too (Forest tab, Layout)."
+        {
+          "text": "A new layout, Background: the forest fills the window behind your decks, deck screens and finished decks too (Forest tab, Layout).",
+          "announce": {
+            "id": "background-1.6",
+            "kind": "note",
+            "title": "New: the forest as your background",
+            "text": "Your forest can now fill the whole window, behind your decks.",
+            "action": "Choose a layout",
+            "opens": "layout",
+            "settings": [
+              "layout"
+            ]
+          }
+        }
       ],
       "improved": [
         "Forests with lots of short breaks are no longer crowded with ponds: about one per 20 trees.",
@@ -13,6 +26,7 @@
         "Ponds look more like water at golden hour."
       ],
       "fixed": [
+        "The heatmap's words stay readable on a background picture, or on an Onigiri page that doesn't match Anki's mode.",
         "Right-to-left fixes in the settings for Hebrew and Arabic."
       ]
     },
