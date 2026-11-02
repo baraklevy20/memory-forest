@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import unittest
+from unittest import mock
 
 from helpers import CUTOFF, DAY, TODAY, card, ms, rows
 
@@ -154,8 +155,28 @@ class StatsTests(unittest.TestCase):
         cards = [card(i, s=30) for i in range(1, 5)]
         fl = {1: (ms(80), ms(1)), 2: (ms(60), ms(1)), 3: (ms(59), ms(1)), 4: (ms(40), ms(1))}
         review_days = {80, 60, 59} | set(range(0, 41))
-        trees = fd.build_forest(rows(cards, fl, review_days=review_days), CUTOFF, TODAY)["trees"]
+        with mock.patch.object(fd, "TREES_PER_POND", 1):  # (room for them both)
+            trees = fd.build_forest(rows(cards, fl, review_days=review_days), CUTOFF, TODAY)["trees"]
         self.assertEqual([t.get("gap") for t in trees], [None, 19, None, 18])
+
+    def test_a_break_makes_a_pond_only_with_enough_trees_for_it(self):
+        trees = [{"ago": 100 - k} for k in range(40)]
+        # (resumed days ago, days away) after 2, 5, 25 and 41 trees: the second has 5 trees and one pond already
+        breaks = [(98, 9), (95, 9), (75, 9), (0, 9)]
+        fd._ponds(trees, breaks, str)
+        self.assertEqual([k for k, t in enumerate(trees) if t.get("gap")], [2, 39])
+
+    def test_no_pond_comes_or_goes_as_the_forest_grows(self):
+        # no tree ever moves: a pond takes slots in the planting, so one changing moves those after it
+        breaks = [(95 - 10 * b, 9) for b in range(9)]
+        before = []
+        for n in range(1, 91):
+            trees = [{"ago": 99 - k} for k in range(n)]
+            fd._ponds(trees, [b for b in breaks if b[0] >= 99 - n], str)
+            ponds = [k for k, t in enumerate(trees) if t.get("gap") and k < n - 1]  # (not the latest tree's)
+            self.assertEqual([k for k in ponds if k < n - 2], before, n)
+            before = ponds
+        self.assertGreater(len(before), 1)
 
     def test_visitors_and_arrivals(self):
         s = {"trees": 50, "longest_streak": 30, "streak": 30, "reviews": 10_020, "today_reviews": 40,

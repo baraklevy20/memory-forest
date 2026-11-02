@@ -301,7 +301,7 @@ window.AnkiForest.EN = {
   "one": "Planted tree: {n} new card",
   "other": "Planted tree: {n} new cards"
  },
- "heatmap.ponds_and_animals_count_from_here": "Ponds and animals count from here",
+ "heatmap.ponds_and_animals_count_from_here": "Ponds count from here",
  "heatmap.reach_a_n_day_streak_on": {
   "one": "Reach a {n}-day streak on this day, studying every day until then",
   "other": "Reach a {n}-day streak on this day, studying every day until then"
@@ -447,7 +447,7 @@ window.AnkiForest.EN = {
  "tooltip.click_to_see_these_cards": "Click to see these cards",
  "tooltip.from_to": "{from} – {to}",
  "tooltip.its_card_is_suspended": "Its card is suspended",
- "tooltip.lasts_time": "lasts ~{time}",
+ "tooltip.lasts_time": "in memory ~{time}",
  "tooltip.mature": "mature",
  "tooltip.n_cards": {
   "one": "{n} card",
@@ -494,6 +494,7 @@ window.AnkiForest.EN = {
   "other": "{n} older trees"
  },
  "tooltip.n_years": "{n} years",
+ "tooltip.no_ponds_decks_tab": "Rather have trees? Decks tab: Start the forest on, Keep the trees.",
  "tooltip.old": "old",
  "tooltip.pct_remembered": "~{pct}% remembered",
  "tooltip.pct_still_going_well": "{pct}% still going well",

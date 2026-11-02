@@ -102,7 +102,7 @@ test('tooltips: a tree\'s lines say what is known, and no more', () => {
   let html = AF.tips.tree(tree);
   assert.match(html, /<b>Oct 10, 2026<\/b> · planted 8 days ago/);
   assert.match(html, /12 cards · mature/);
-  assert.match(html, /~91% remembered · lasts ~3 months/);
+  assert.match(html, /~91% remembered · in memory ~3 months/);
   assert.match(html, /Click to see these cards/);
   // (no forgetting curve behind it: only how it is going)
   html = AF.tips.tree(Object.assign({}, tree, { measured: false }));

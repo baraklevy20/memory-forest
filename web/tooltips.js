@@ -54,7 +54,8 @@ function pondLine(p) {
   return AF.tn('tooltip.n_days_without_reviews_from_from', p.days,
     Object.assign(n, { from: month(a, a.slice(0, 4) !== b.slice(0, 4)), to: month(b, true) }));
 }
-function pondHtml(p) { return `<b>${AF.t('tooltip.a_quiet_pond')}</b><br>${esc(pondLine(p))}`; }
+// (how to do without them can't be guessed: Decks tab, a start date keeping its trees; only in Anki)
+function pondHtml(p) { return `<b>${AF.t('tooltip.a_quiet_pond')}</b><br>${esc(pondLine(p))}` + (canBrowse() ? `<br><span class="af-hint">${AF.t('tooltip.no_ponds_decks_tab')}</span>` : ''); }
 function deepHtml(m) {
   const lines = [`<b>${AF.t('tooltip.the_deep_forest')}</b>`,
     `${esc(AF.tn('tooltip.n_older_trees', m.count))} · ${esc(AF.tn('tooltip.n_cards', m.cards))}`,

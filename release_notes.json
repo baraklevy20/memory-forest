@@ -6,6 +6,12 @@
       "new": [
         "A new layout, Background: the forest fills the window behind your decks, deck screens and finished decks too (Forest tab, Layout)."
       ],
+      "improved": [
+        "Forests with lots of short breaks are no longer crowded with ponds: about one per 20 trees.",
+        "Keeping your earlier trees now keeps their animals and cabin too.",
+        "Young trees grow a little each day in their first weeks.",
+        "Ponds look more like water at golden hour."
+      ],
       "fixed": [
         "Right-to-left fixes in the settings for Hebrew and Arabic."
       ]

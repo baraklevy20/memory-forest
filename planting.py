@@ -14,6 +14,7 @@ from .scope import day_cutoff, excluded_decks
 from .state import config, load_state, log, save_state
 
 PLANTING_TOOLTIP_MS = 3500
+FIRST_TREE_MS = 7000  # (one that says where to look and how to get another takes longer to read)
 
 _planted_today: str | None = None
 
@@ -40,6 +41,9 @@ def on_answer(reviewer, card, ease) -> None:
         state["last_planted"] = today
         save_state(state)
         _planted_today = today
-        tooltip("🌱 " + t("planting.a_new_tree_was_planted_in"), period=PLANTING_TOOLTIP_MS)
+        # (nothing from before today: there is no forest yet to have grown)
+        first = not mw.col.db.scalar("select exists (select 1 from revlog where id < ?)", study_log.day_start(study_log.day_date(0, day_cutoff(mw.col)), day_cutoff(mw.col)) * 1000)
+        tooltip("🌱 " + t("planting.your_first_tree_was_planted") if first else "🌱 " + t("planting.a_new_tree_was_planted_in"),
+                period=FIRST_TREE_MS if first else PLANTING_TOOLTIP_MS)
     except Exception:
         log("planting tooltip failed:\n" + traceback.format_exc())

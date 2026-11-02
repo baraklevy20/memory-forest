@@ -31,6 +31,8 @@ AF.news = function (root, data) {
     card.remove();
     send(`${data.channel}:news:${b.dataset.news}:${n.id}`);
   });
-  scene.append(card);
+  // (Layout's Background: on the layer over the page, at the window's corner: in the scene it was cut
+  // off by the window's side, gone over its top in a wide window, and under the cards in a narrow one)
+  (root.afTipLayer || scene).append(card);
 };
 })();

@@ -153,6 +153,12 @@ AF.deepForest = function (merged, env) {
   return { merged, bands, base, h, u, boxes: [] };
 };
 
+/* A young tree still growing into its stage, up to the three weeks that make it mature (on the curve
+ * of its cards' strength): a tree stood at its full young height the day after its seedling and then
+ * not a pixel taller for weeks, so the first week showed new trees, never a tree growing. */
+const YOUTH_FROM = 0.7, YOUNG_UNTIL = 21;
+const youth = it => (it.stage === AF.STAGE.YOUNG && it.strength < YOUNG_UNTIL ? YOUTH_FROM + (1 - YOUTH_FROM) * Math.sqrt(Math.max(0, it.strength) / YOUNG_UNTIL) : 1);
+
 AF.place = (it, W, H, env) => it.view ? AF.visitPlace(it, W, H, env) : AF.placeFlat(it, W, H, env);  // a visit's close-up: web/visit.js
 /* where a tree stands in the whole forest's view (a visit eases from it: its layout keeps the
  * whole forest's zoom in flatZoom) */
@@ -162,7 +168,7 @@ AF.placeFlat = function (it, W, H, env) {
   const x = land.placeX ? land.placeX(it, env) : it.x;  // a landscape may squeeze the rows onto its own ground
   // on a deck screen in "lit" mode, trees without that deck's cards recede into the haze
   // a tree drifts off its row, but never up onto the hills nor off the bottom
-  return { x: (SLOT_MARGIN + SLOT_SPAN * x) * W, y: top + (bot - top) * clamp(Math.pow(it.depth, 1.1) + it.jy * it.rowGap, 0, 1), s: (FAR_SCALE + NEAR_GAIN * it.depth) * z, hz: it.dim ? DIM_HAZE : 1 - it.depth };
+  return { x: (SLOT_MARGIN + SLOT_SPAN * x) * W, y: top + (bot - top) * clamp(Math.pow(it.depth, 1.1) + it.jy * it.rowGap, 0, 1), s: (FAR_SCALE + NEAR_GAIN * it.depth) * z * youth(it), hz: it.dim ? DIM_HAZE : 1 - it.depth };
 };
 
 /* Where the top of the forest stands: the deep-forest bands and the back rows. A few

@@ -196,13 +196,17 @@ class LayoutControls:
         row.addWidget(self.side_label)
         row.addWidget(self.side)
         row.addSpacing(18)
-        first = QLabel(tx(FIRST_LABEL))
+        first = self.first_label = QLabel(tx(FIRST_LABEL))
         first.setToolTip(tx(FIRST_TIP))
         row.addWidget(first)
         row.addWidget(self.order)
         row.addStretch(1)
         v.addLayout(row)
-        v.addWidget(hint(tx(LAYOUT_NOTE)))
+        self.note = hint(tx(LAYOUT_NOTE))
+        keep = self.note.sizePolicy()
+        keep.setRetainSizeWhenHidden(True)  # (its row keeps its place: the rows under it don't jump as the layout is chosen)
+        self.note.setSizePolicy(keep)
+        v.addWidget(self.note)
         self.side.on_change(self.sync)
         self.order.on_change(self.sync)
         self.choice.on_change(self.sync)
@@ -218,6 +222,11 @@ class LayoutControls:
         beside = "side" in LAYOUTS[self.choice.currentData()]
         for w in (self.side_label, self.side):
             w.setEnabled(beside)
+        # (Background: the forest behind, the heatmap under the list, on every screen it takes)
+        for w in (self.first_label, self.order):
+            w.setEnabled(self.choice.currentData() != "behind")
+        # (it says deck screens keep them under the list: Background's don't)
+        self.note.setVisible(self.choice.currentData() != "behind")
         self.choice.draw(self.side.currentData(), self.order.currentData())
 
     def values(self) -> dict:

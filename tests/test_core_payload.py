@@ -48,7 +48,7 @@ class FirstDaysTests(unittest.TestCase):
         self.assertEqual([(t["ago"], t["stage"], t["n"]) for t in p["trees"]], [(0, addon.forest_data.SEEDLING, 1)])
         self.assertTrue(p["stats"]["planted_today"])
         self.assertEqual(p["stats"]["streak"], 1)
-        self.assertEqual(p["journal"], "Your first tree. It holds 1 card.")
+        self.assertEqual(p["journal"], "Your first tree. It holds 1 card. Another grows each day you learn new cards.")
         self.assertEqual(p["calendar"]["days"], [1])
 
     def test_the_first_look_at_a_deck_with_nothing_studied(self):
@@ -97,6 +97,23 @@ class AnniversaryTests(unittest.TestCase):
         start(self.CARDS)
         with at(dt.datetime(2026, 9, 20, 0, 30)):  # Anki's day still 19 Sep until 04:00
             self.assertEqual(payload.payload()["anniversaries"], [0])
+
+    def glow_on_day(self, *agos):
+        start([(i + 1, 10, ago) for i, ago in enumerate(agos)])
+        with at(dt.datetime(2026, 9, 19, 15, 0)):
+            return payload.payload()["anniversaries"]
+
+    def test_in_a_forest_s_first_week_only_today_s_new_tree_glows(self):
+        self.assertEqual(self.glow_on_day(0), [0])
+        self.assertEqual(self.glow_on_day(1, 0), [1])
+        self.assertEqual(self.glow_on_day(6, 3, 0), [2])
+
+    def test_a_day_without_a_new_tree_has_no_glow(self):
+        self.assertEqual(self.glow_on_day(1), [])
+        self.assertEqual(self.glow_on_day(6, 2), [])
+
+    def test_after_the_first_week_a_new_tree_does_not_glow(self):
+        self.assertEqual(self.glow_on_day(7, 0), [])
 
 
 class SyncAndUndoTests(unittest.TestCase):

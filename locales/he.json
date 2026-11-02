@@ -1141,8 +1141,8 @@
   }
  },
  "heatmap.ponds_and_animals_count_from_here": {
-  "text": "מכאן נספרים הבריכות ובעלי החיים",
-  "en": "Ponds and animals count from here"
+  "text": "בריכות נספרות מכאן",
+  "en": "Ponds count from here"
  },
  "heatmap.reach_a_n_day_streak_on": {
   "text": {
@@ -1631,6 +1631,10 @@
    "other": "{days} days in a row. The forest has not missed one."
   }
  },
+ "journal.grown_from_your_reviews_since": {
+  "text": "היער שלך, שצמח מהחזרות שלך מאז {date}.",
+  "en": "Your forest, grown from your reviews since {date}."
+ },
  "journal.meteors_are_falling_tonight": {
   "text": "מטאורים נופלים הלילה.",
   "en": "Meteors are falling tonight."
@@ -1690,13 +1694,13 @@
  },
  "journal.your_first_tree_it_holds_n": {
   "text": {
-   "one": "העץ הראשון שלך. יש בו כרטיס אחד.",
-   "two": "העץ הראשון שלך. יש בו {cards} כרטיסים.",
-   "other": "העץ הראשון שלך. יש בו {cards} כרטיסים."
+   "one": "העץ הראשון שלך. יש בו כרטיס אחד. עץ נוסף יצמח בכל יום שבו לומדים כרטיסים חדשים.",
+   "two": "העץ הראשון שלך. יש בו {cards} כרטיסים. עץ נוסף יצמח בכל יום שבו לומדים כרטיסים חדשים.",
+   "other": "העץ הראשון שלך. יש בו {cards} כרטיסים. עץ נוסף יצמח בכל יום שבו לומדים כרטיסים חדשים."
   },
   "en": {
-   "one": "Your first tree. It holds {cards} card.",
-   "other": "Your first tree. It holds {cards} cards."
+   "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+   "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
   }
  },
  "landmark.moon_bridge": {
@@ -1952,6 +1956,10 @@
   "text": "עץ חדש נשתל היום ביער שלך.",
   "en": "A new tree was planted in your forest today."
  },
+ "planting.your_first_tree_was_planted": {
+  "text": "העץ הראשון שלך נשתל, מתחת לרשימת החפיסות. עץ נוסף יצמח בכל יום שבו לומדים כרטיסים חדשים.",
+  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+ },
  "preset.aurora": {
   "text": "ליל זוהר צפוני",
   "en": "Aurora night"
@@ -2161,8 +2169,8 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "עץ אחד לכל יום שבו למדת כרטיסים חדשים. הנבט של היום נמצא בחזית, והעץ הוותיק ביותר מאחור. העצים גדלים ככל שהכרטיסים האלה נקלטים בזיכרון, ומקבלים כמה עלים צהובים כשחלק מהם נשכחים. בימים של חזרות בלבד לא נשתל עץ, אבל הם שומרים על העצים שלך בריאים.",
-  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+  "text": "עץ אחד לכל יום שבו לומדים כרטיסים חדשים. העצים גדלים ככל שהכרטיסים האלה מתקבעים בזיכרון, ומקבלים כמה עלים צהובים כשחלק מהם נשכחים. ימים של חזרות בלבד לא שותלים עץ, אבל שומרים על בריאות העצים שלך. שבוע של הפסקה משאיר בריכה, וככל שממשיכים חיות עוברות לגור ביער.",
+  "en": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going."
  },
  "settings.about.places_openstreetmap_contributors": {
   "text": "מקומות © <a href=\"{osm}\">התורמים של OpenStreetMap</a>",
@@ -2328,8 +2336,8 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "העצים שלך מלפני התאריך הזה נשארים. הבריכות, \"טבע\" ובעלי החיים נספרים מ־ {date}.",
-  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+  "text": "העצים שלך מלפני כן נשארים, וגם החיות שהם הביאו. בריכות וטבע נספרים מ־{date}.",
+  "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
   "text": "אודות",
@@ -2970,7 +2978,7 @@
  },
  "tooltip.lasts_time": {
   "text": "נשמר בזיכרון ~{time}",
-  "en": "lasts ~{time}"
+  "en": "in memory ~{time}"
  },
  "tooltip.mature": {
   "text": "בוגר",
@@ -3100,6 +3108,10 @@
  "tooltip.n_years": {
   "text": "{n} שנים",
   "en": "{n} years"
+ },
+ "tooltip.no_ponds_decks_tab": {
+  "text": "מעדיפים עצים? לשונית חפיסות: תחילת היער, לשמור את העצים.",
+  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
  },
  "tooltip.old": {
   "text": "ותיק",

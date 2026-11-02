@@ -66,6 +66,14 @@
   -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
 }
 .af-tip i { color: var(--af-tip-soft); font-style: normal; }
+/* the line before the first tree, on the meadow it will stand on (caption.js) */
+.af-first {
+  position: absolute; z-index: 1; left: 50%; top: 64%; transform: translate(-50%, -50%);
+  width: max-content; max-width: calc(100% - 40px);
+  padding: 8px 12px; border-radius: 8px; text-align: center;
+  background: var(--af-tip-bg); color: var(--af-tip-fg);
+  font: 12.5px/1.45 var(--af-font); pointer-events: none; box-shadow: var(--af-tip-shadow);
+}
 .af-tip[hidden] { display: none; }
 
 .af-caption {
@@ -116,8 +124,8 @@
   box-sizing: border-box; width: 28px; height: 28px; padding: 0 !important; border: 0 !important; border-radius: 50% !important;
   cursor: pointer; box-shadow: none !important;
 }
-.af-zoom, .af-scene .af-cog { border-radius: 50% !important; background: rgba(70, 72, 71, 0.45) !important; color: rgba(255, 255, 255, 0.82) !important; }
-.af-zoom:hover, .af-zoom:active, .af-scene .af-cog:hover, .af-scene .af-cog:active {
+.af-zoom, .af-scene .af-cog, .af-tip-layer .af-cog { border-radius: 50% !important; background: rgba(70, 72, 71, 0.45) !important; color: rgba(255, 255, 255, 0.82) !important; }
+.af-zoom:hover, .af-zoom:active, .af-scene .af-cog:hover, .af-scene .af-cog:active, .af-tip-layer .af-cog:hover, .af-tip-layer .af-cog:active {
   background: rgba(40, 42, 41, 0.8) !important; color: #fff !important; border: 0 !important; box-shadow: none !important;
 }
 .af-zoom svg { flex: none; }
@@ -414,7 +422,7 @@ body.af-lay-behind > center > * { pointer-events: auto; }
 body.af-lay .af-slot-behind { position: fixed; z-index: -1; top: 0; right: 0; bottom: 0; left: 0; margin: 0; padding: 0;
   max-width: none !important; overflow: hidden; }
 /* (the scene as wide as core.js makes it, in the window's middle, its foot on the window's) */
-body.af-lay .af-slot-behind .af-scene { position: absolute; left: 50%; bottom: 0; border-radius: 0;
+body.af-lay .af-slot-behind .af-scene { position: absolute; left: 50%; bottom: calc(-1 * var(--af-foot, 0px)); border-radius: 0;
   -webkit-transform: translateX(-50%); transform: translateX(-50%); }
 body.af-lay .af-slot-behind .af-canvas { max-width: none; }
 /* (its caption, and the zoom's bar in its place, on the trees at the window's foot; the cog and the
@@ -446,10 +454,10 @@ body.af-lay .af-slot-behind .af-caption.af-caption-under { opacity: 0; pointer-e
 @media (prefers-reduced-motion: reduce) { body.af-lay .af-slot-behind .af-caption { transition: none; } }
 /* (the cog and the zoom button frosted as the cards are, in the theme's text colour: a fixed grey
    glass with white beside the caption read as another material; on, the theme's raised colour) */
-body.af-lay .af-slot-behind .af-zoom, body.af-lay .af-slot-behind .af-scene .af-cog {
+body.af-lay .af-slot-behind .af-zoom, body.af-lay .af-tip-layer .af-cog {
   background: var(--af-card, rgba(70, 72, 71, 0.45)) !important; color: var(--af-text, #fff) !important;
   -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-body.af-lay .af-slot-behind .af-zoom:hover, body.af-lay .af-slot-behind .af-scene .af-cog:hover,
+body.af-lay .af-slot-behind .af-zoom:hover, body.af-lay .af-tip-layer .af-cog:hover,
 body.af-lay .af-slot-behind .af-zoom.af-zoom-on, body.af-lay .af-slot-behind .af-zoom.af-zoom-on:hover {
   background: var(--canvas-elevated, var(--af-card, rgba(40, 42, 41, 0.8))) !important; color: var(--af-text, #fff) !important; }
 body.af-lay .af-slot-behind .af-zoom.af-zoom-on, body.af-lay .af-slot-behind .af-zoom.af-zoom-on:hover { box-shadow: inset 0 0 0 2px var(--af-text, #141615) !important; }
@@ -458,6 +466,7 @@ body.af-lay .af-slot-behind .af-visit-btn { color: var(--af-text, inherit) !impo
 /* the row as a column: the list in the middle, the heatmap its width under it, the rest full width */
 body.af-lay.af-lay-behind > center { flex-direction: column; flex-wrap: nowrap; align-items: stretch; padding-bottom: 40px; }  /* (the page ends above the caption) */
 body.af-lay.af-lay-behind > center > * { flex: none; }
+body.af-lay-behind .af-cal-first > .af-cal { padding-top: 0; }  /* (First means nothing here: the heatmap keeps its height, its band being the card's) */
 body.af-lay.af-lay-behind > center > table { align-self: center; }
 body.af-lay.af-lay-behind:not(.fancy) > center > table { padding: 10px 12px; }  /* (an older Anki's, without its card style's 1rem: the header touched the card's edge) */
 /* a deck screen: its name the title of its counts' card (one card: the name, the counts, Study now, as
@@ -469,11 +478,15 @@ body.af-lay.af-lay-behind > center > h3.af-lay-before { order: 1; align-self: ce
 body.af-lay.af-lay-behind > center > table.af-titled { border-radius: 0 0 var(--border-radius-medium, 12px) var(--border-radius-medium, 12px);
   box-shadow: 0 10px 16px -6px rgba(0, 0, 0, 0.18); }  /* (its shadow under it, not on its title) */
 /* (24px between the cards: the heatmap's card reaches 30px over it) */
-body.af-lay.af-lay-behind .af-apart > .af-slot-below { flex: none; margin: 54px calc((100% - var(--af-row)) / 2) 0; }  /* (stretched, its margins taking the rest: calendar/size.js holds its width at auto) */
+/* (and with room to spare the heatmap stands at the window's foot, over the caption, the list at the top:
+   the middle of the window, where a scenery has its centrepiece, stays open) */
+body.af-lay.af-lay-behind > center { box-sizing: border-box; min-height: calc(100vh - 60px); }
+body.af-lay.af-lay-behind > center > table { margin-bottom: 54px; }
+body.af-lay.af-lay-behind .af-apart > .af-slot-below { flex: none; margin: auto calc((100% - var(--af-row)) / 2) 0; }  /* (stretched, its margins taking the rest: calendar/size.js holds its width at auto) */
 body.af-lay.af-lay-behind > center > .af-pill { align-self: center; margin-top: 8px; padding: 4px 12px; border-radius: var(--border-radius-medium, 12px); }
 /* (Anki's line and the pills under it one group: 24px over it (the heatmap's card reaches 10px under
    it), 8px between; 13px, a size under the deck names, so the list leads) */
-body.af-lay-behind > center > #studiedToday { margin: 34px 0 0; }
+body.af-lay-behind > center > #studiedToday { margin: 34px 0 0; align-self: center; }  /* (its own width: a row across the window took the pointer off the trees either side) */
 body.af-lay-behind #studiedToday > span, body.af-lay-behind > center > .af-pill { font-size: 13px; }
 /* a finished deck's page (Anki's congratulations, our panel in its box under it): the page a
    stacking context over the forest, so the pointer reaches the trees and the cog below its words;
@@ -514,7 +527,7 @@ body.af-card-light .af-carded:not(.af-apart), body.af-card-light .af-carded.af-a
   box-shadow: 0 0 0 1px var(--border-subtle, rgba(0, 0, 0, 0.1)), 0 4px 18px rgba(0, 0, 0, 0.18); }
 /* (and Anki's studied-today line, lost on the picture as our words were: on a card as behind the list) */
 body.af-page-cards #studiedToday > span {
-  display: inline-block; padding: 4px 12px; font-size: 13px; border-radius: var(--border-radius-medium, 12px);
+  color: var(--af-text, inherit); display: inline-block; padding: 4px 12px; font-size: 13px; border-radius: var(--border-radius-medium, 12px);
   background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18); }
 body.af-page-cards.af-card-light #studiedToday > span { box-shadow: 0 0 0 1px var(--border-subtle, rgba(0, 0, 0, 0.1)), 0 4px 18px rgba(0, 0, 0, 0.18); }
@@ -548,19 +561,23 @@ body .af-carded.af-text-bands:not(.af-apart), body .af-carded.af-text-bands.af-a
 .af-text-bands .af-cal-foot .af-journal:not(:empty), .af-text-bands .af-cal-foot > .af-cal-shade, .af-text-bands .af-cal-foot > .af-cal-key,
 .af-text-bands .af-cal-grid > .af-cal-acts {
   background: var(--af-band, rgba(0, 0, 0, 0.5)); box-shadow: 0 0 12px 8px var(--af-band, rgba(0, 0, 0, 0.5)); border-radius: 8px; }
+/* (a card reaching 30px over the heatmap, under its row's 28px, lay over the card above it: 24px between, as behind the list) */
+body.af-lay .af-carded.af-apart:not(.af-text-bands) > .af-cal.af-slot-below { margin-top: 54px; }
 /* (a heatmap in a side column of its own: its card's reach inside the column, core.js AF.arrange) */
 body.af-lay:not(.af-lay-narrow) .af-carded.af-apart > .af-cal.af-slot-left, body.af-lay:not(.af-lay-narrow) .af-carded.af-apart > .af-cal.af-slot-right { margin-left: 36px; margin-right: 36px; }
 .af-carded .af-cal, .af-carded .af-cal-days span, .af-carded .af-caption, .af-carded .af-visit { color: var(--af-text-2, var(--fg-subtle)); }
 .af-carded .af-caption .af-info { border-bottom-color: var(--af-text-2, currentColor); }
 .af-carded .af-cal-by button:not(.af-on) { color: var(--af-text-2, var(--fg-subtle)) !important; }
 .af-carded .af-cal-by button:not(.af-on):hover { color: var(--af-text, var(--fg)) !important; }
+/* (and the chosen one and the arrows, or on a card from the other side of light and dark their words are the card's colour) */
+.af-carded .af-cal-by button.af-on, .af-carded .af-cal-by button.af-on:hover, .af-carded .af-cal-chev:hover:not([disabled]) { color: var(--af-text, var(--fg)) !important; }
 body.af-no-blur .af-carded:not(.af-apart), body.af-no-blur .af-carded.af-apart > .af-forest::before, body.af-no-blur .af-carded.af-apart > .af-cal::before {
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 /* (an older Chromium, Qt 5's, drew a blurred card's content upside down: the tint alone there, nearly
    solid, core.js BLUR_FROM and NO_BLUR_ALPHA) */
 body.af-no-blur.af-lay-behind > center > *, body.af-no-blur .af-slot-below.af-cal::before, body.af-no-blur #studiedToday > span,
 body.af-no-blur .af-slot-behind .af-caption, body.af-no-blur .af-slot-behind .af-visit, body.af-no-blur .congrats,
-body.af-no-blur .af-slot-behind .af-zoom, body.af-no-blur .af-slot-behind .af-cog {
+body.af-no-blur .af-slot-behind .af-zoom, body.af-no-blur .af-tip-layer .af-cog {
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 body.af-lay-behind #studiedToday > span { display: inline-block; padding: 4px 12px; border-radius: var(--border-radius-medium, 12px); }
 /* (the heatmap's card round it, not padding in it: its width is the one core.js worked out, less its
@@ -593,6 +610,10 @@ body.af-lay-behind > center > table a:focus { outline: 2px solid var(--border-fo
 body.af-lay-behind > center > table tr.top-level-drag-row td { height: 10px; padding: 0; font-size: 0; line-height: 0; }
 /* a tree's tooltip on its layer over our row (core.js AF.tipLayer) */
 .af-tip-layer { position: fixed; z-index: 2; left: 0; right: 0; pointer-events: none; line-height: normal; }
+.af-tip-layer > .af-top { position: fixed; top: 10px; right: 8px; margin: 0; pointer-events: auto; }
+.af-rtl.af-tip-layer > .af-top { right: auto; left: 8px; }
+.af-tip-layer > .af-news { position: fixed; top: 10px; left: 10px; pointer-events: auto; max-width: calc(100% - 20px); max-width: min(290px, calc(100vw - 20px)); }
+.af-rtl.af-tip-layer > .af-news { left: auto; right: 10px; }
 /* walking among the trees (the zoom): our row's parts fade away, and come back after */
 body.af-lay-behind > center > :not(.af-panel), body.af-lay-behind .af-slot-below { transition: opacity 0.25s; }
 body.af-behind-zooming > center > :not(.af-panel), body.af-behind-zooming .af-slot-below { opacity: 0; pointer-events: none; }

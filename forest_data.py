@@ -47,6 +47,10 @@ HEALTH_MIN_STAGE = MATURE
 # A break has to be long enough to be worth marking: a week away shows as a pond and a
 # gap in the planting, a long weekend does not.
 BREAK_DAYS = 7
+# ... and a break makes a pond only while the forest has this many trees for each of its ponds (one
+# pond at least): a few trees and forty breaks read as a lake district with a forest somewhere behind
+# it (a review, 2026-10-18)
+TREES_PER_POND = 20
 
 # Trees drawn one by one. Older ones become the deep forest at the back: a few receding
 # bands of canopy instead of hundreds of sprites. At a tree a day this keeps two years
@@ -214,7 +218,13 @@ def _ponds(trees: list, breaks: list, date_of) -> None:
             ponds[-1][3] = resumed + 1
         else:
             ponds.append([i, length, resumed + length, resumed + 1])
+    # Oldest first, each by the trees planted before it, so that what comes later never changes it: a
+    # pond takes slots in the planting, so one that came or went later would move every tree after it.
+    kept = 0
     for i, days, began, ended in ponds:
+        if kept >= max(1, i // TREES_PER_POND):
+            continue
+        kept += 1
         tree = trees[min(i, len(trees) - 1)]
         tree.update(gap=days, gap_from=date_of(began), gap_to=date_of(ended))
 

@@ -124,7 +124,7 @@ class NatureTests(unittest.TestCase):
                 mw.col.db.con.execute("insert into revlog (id, cid, ease, type) values (?, 102, 3, 0)", (ms(0),))
                 p = payload.payload()
                 self.assertEqual((p["stats"]["trees"], p["fire"], p["craters"], p["strike"]), (1, None, [], None))
-                self.assertEqual(p["journal"], "Your first tree. It holds 1 card.")
+                self.assertEqual(p["journal"], "Your first tree. It holds 1 card. Another grows each day you learn new cards.")
 
     def test_the_day_the_fire_goes_out(self):
         studied_every_day_but({7, 8, 9}, nature="wild")  # back for seven days, today the seventh
@@ -243,7 +243,7 @@ class StrikeJournalTests(unittest.TestCase):
         state.save_state(dict(s, strike_seen_day=TODAY - 1))  # seen yesterday
         p = payload.payload()
         self.assertEqual(addon.events_state.strike_line(p), "")
-        self.assertEqual(p["journal"], "Your first tree. It holds 1 card.")
+        self.assertEqual(p["journal"], "Your first tree. It holds 1 card. Another grows each day you learn new cards.")
 
 
 class AnimalTests(unittest.TestCase):

@@ -1023,8 +1023,8 @@
   }
  },
  "heatmap.ponds_and_animals_count_from_here": {
-  "text": "池と動物はここから数えます",
-  "en": "Ponds and animals count from here"
+  "text": "池はここから数えます",
+  "en": "Ponds count from here"
  },
  "heatmap.reach_a_n_day_streak_on": {
   "text": {
@@ -1479,6 +1479,10 @@
    "other": "{days} days in a row. The forest has not missed one."
   }
  },
+ "journal.grown_from_your_reviews_since": {
+  "text": "{date}からの復習で育った森です。",
+  "en": "Your forest, grown from your reviews since {date}."
+ },
  "journal.meteors_are_falling_tonight": {
   "text": "今夜は流れ星が降っています。",
   "en": "Meteors are falling tonight."
@@ -1532,11 +1536,11 @@
  },
  "journal.your_first_tree_it_holds_n": {
   "text": {
-   "other": "最初の木です。カードを {cards} 枚持っています。"
+   "other": "最初の木です。カードを {cards} 枚持っています。新規カードを学習した日ごとに、もう 1 本育ちます。"
   },
   "en": {
-   "one": "Your first tree. It holds {cards} card.",
-   "other": "Your first tree. It holds {cards} cards."
+   "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+   "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
   }
  },
  "landmark.moon_bridge": {
@@ -1786,6 +1790,10 @@
   "text": "今日、森に新しい木が植えられました。",
   "en": "A new tree was planted in your forest today."
  },
+ "planting.your_first_tree_was_planted": {
+  "text": "最初の木を植えました。デッキ一覧の下にあります。新規カードを学習した日ごとに、もう 1 本育ちます。",
+  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+ },
  "preset.aurora": {
   "text": "オーロラの夜",
   "en": "Aurora night"
@@ -1995,8 +2003,8 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "新規カードを学習した日ごとに 1 本の木が育ちます。今日の芽生えが手前に、いちばん古い木が奥にあります。木はカードが記憶に定着するにつれて育ち、いくつか忘れると黄色い葉が少し混じります。復習だけの日は木を植えませんが、木を元気に保ちます。",
-  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+  "text": "新規カードを学習した日ごとに 1 本の木が育ちます。木はカードが記憶に定着するにつれて育ち、いくつか忘れると黄色い葉が少し混じります。復習だけの日は木を植えませんが、木を元気に保ちます。1 週間離れると池ができ、続けるうちに動物が住みつきます。",
+  "en": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going."
  },
  "settings.about.places_openstreetmap_contributors": {
   "text": "地名 © <a href=\"{osm}\">OpenStreetMap の貢献者</a>",
@@ -2160,8 +2168,8 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "それより前の木は残ります。池、自然、動物は {date}から数えます。",
-  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+  "text": "それより前の木と、木に集まった動物は残ります。池と自然は {date}から数えます。",
+  "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
   "text": "情報",
@@ -2795,8 +2803,8 @@
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
-  "text": "約 {time} もつ",
-  "en": "lasts ~{time}"
+  "text": "記憶に約 {time}",
+  "en": "in memory ~{time}"
  },
  "tooltip.mature": {
   "text": "成木",
@@ -2904,6 +2912,10 @@
  "tooltip.n_years": {
   "text": "{n} 年",
   "en": "{n} years"
+ },
+ "tooltip.no_ponds_decks_tab": {
+  "text": "木のほうがいいですか？ デッキタブ：森の開始日、それより前の木を残す。",
+  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
  },
  "tooltip.old": {
   "text": "老木",

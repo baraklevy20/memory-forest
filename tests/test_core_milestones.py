@@ -104,7 +104,7 @@ class JournalEdgeTests(unittest.TestCase):
                          "A little cabin now stands at the edge of your forest: a year since your first tree.")
 
     def test_the_first_tree_and_the_tenth_count_their_cards(self):
-        self.assertEqual(self.say(trees=1, planted_today=True, today_cards=1), "Your first tree. It holds 1 card.")
+        self.assertEqual(self.say(trees=1, planted_today=True, today_cards=1), "Your first tree. It holds 1 card. Another grows each day you learn new cards.")
         self.assertEqual(self.say(trees=10, planted_today=True, today_cards=1), "Your 10th tree, planted today with 1 new card.")
         self.assertEqual(self.say(trees=25, planted_today=True, today_cards=7), "Your 25th tree, planted today with 7 new cards.")
 

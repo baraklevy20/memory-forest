@@ -285,8 +285,9 @@ class AboutTab(QWidget):
         av.setSpacing(12)
         av.addWidget(header(plus, language_box(self.language)))
         self.news = whats_new()
-        av.addWidget(self.news, 1)  # (it takes the room to spare)
+        # (how it works first: it's what someone new opens this tab for; what's new means little yet)
         av.addWidget(group(t("settings.about.how_it_works"), how))
+        av.addWidget(self.news, 1)  # (it takes the room to spare)
         av.addWidget(thanks(goats(), plus))
         av.addWidget(text(credits(), small_style()))
 

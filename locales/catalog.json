@@ -1659,6 +1659,12 @@
    "journal.py"
   ]
  },
+ "journal.grown_from_your_reviews_since": {
+  "web": false,
+  "where": [
+   "payload.py"
+  ]
+ },
  "journal.meteors_are_falling_tonight": {
   "web": false,
   "where": [
@@ -2063,6 +2069,12 @@
   ]
  },
  "planting.a_new_tree_was_planted_in": {
+  "web": false,
+  "where": [
+   "planting.py"
+  ]
+ },
+ "planting.your_first_tree_was_planted": {
   "web": false,
   "where": [
    "planting.py"
@@ -3635,6 +3647,12 @@
   ]
  },
  "tooltip.n_years": {
+  "web": true,
+  "where": [
+   "web/tooltips.js"
+  ]
+ },
+ "tooltip.no_ponds_decks_tab": {
   "web": true,
   "where": [
    "web/tooltips.js"

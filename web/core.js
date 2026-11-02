@@ -264,7 +264,14 @@ AF.mount = function (root, data, opts) {
     if (!current()) { window.removeEventListener('resize', onWindow); return; }
     if (!root.afBehind || !env) return;
     AF.coverVars(root, canvas.offsetWidth, canvas.offsetHeight);  // (a taller window, the same scene: the cog moves with its top)
-    if (Math.abs(AF.cover(data).w - (root.afCover || 0)) < RESIZE_MIN_PX) return;
+    // (and the window's top is another row of the scene now: the toolbar's band follows)
+    clearTimeout(root.afBarsSoon); root.afBarsSoon = setTimeout(() => { if (current() && root.afBarsAgain) root.afBarsAgain(); }, RESIZE_DEBOUNCE_MS);
+    const coverW = AF.cover(data).w;
+    if (Math.abs(coverW - (root.afCover || 0)) < RESIZE_MIN_PX) return;
+    // (the picture stretched to the window at once, drawn afresh when the drag stops: the drawn
+    // scene alone left the page's flat colour round it for the whole drag)
+    canvas.style.width = coverW + 'px'; canvas.style.height = coverW / ASPECT + 'px';
+    AF.coverVars(root, coverW, coverW / ASPECT);
     clearTimeout(rt); rt = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, RESIZE_DEBOUNCE_MS);
   };
   window.addEventListener('resize', onWindow);
@@ -323,7 +330,8 @@ const SKY_FILL_COLS = 12, SKY_FILL_ROWS = 3, SKY_FLATTEN = 0.5;
 const CARD_REACH = 36;  // css px the heatmap's card reaches past it each side (forest.css .af-slot-below.af-cal::before)
 /* The cards' blur only where Chromium draws it right: Anki 2.1.45's (Chromium 77, Qt 5) drew each
  * blurred card's content upside down (e2e/old_anki_check.py, 2026-10-31). Every Qt 5 Anki is before
- * BLUR_FROM; there the cards are their tint alone, which is nearly solid anyway (forest.css af-no-blur) */
+ * BLUR_FROM; there the cards are their tint alone, which is nearly solid anyway (forest.css af-no-blur).
+ * Background never blurs, on any Chromium (AF.pageCards' cards still do from BLUR_FROM on). */
 const BLUR_FROM = 90;
 const chromium = () => { const m = /Chrome\/(\d+)/.exec(window.navigator.userAgent); return m ? +m[1] : 0; };
 AF.skyFill = (root, sky) => {
@@ -392,12 +400,16 @@ AF.cardTones = root => {
   if (!sky || !body) return;
   // (in a themer's tile, the colour of the themer's own cards as it is, AF.pageCards: no sky's hue)
   const own = root.afCardOwn, page = own || themed(['--canvas', '--window-bg'], () => pageBg([body]) || appBg());
-  const fg = themed(['--fg', '--text-fg'], () => cssColor(window.getComputedStyle(body).color) || [0, 0, 0]);
+  const themeFg = themed(['--fg', '--text-fg'], () => cssColor(window.getComputedStyle(body).color) || [0, 0, 0]);
   const p = oklab(page.slice(0, 3)), s = oklab(sky), side = p[0] < 0.6 ? 'dark' : 'light';
   const alpha = body.classList.contains('af-no-blur') ? NO_BLUR_ALPHA : CARD[side].alpha;
   const hue = own ? 0 : CARD[side].sky, want = fromOklab(p[0], p[1] + s[1] * hue, p[2] + s[2] * hue);
   const tint = want.map((v, i) => Math.max(0, Math.min(255, (v - (1 - alpha) * sky[i]) / alpha)));
   const card = toward(sky, tint, alpha);  // (as it comes out over the sky)
+  // (the theme's text colour where it reads on the card; on a card from the other side of light and
+  // dark, Onigiri's white one in Anki's dark mode, near black or near white: fading it could never
+  // reach TEXT_2, and the months and the caption were white on white, review of 2026-10-30)
+  const fg = contrast(themeFg, card) >= COUNTS ? themeFg : side === 'light' ? [24, 24, 24] : [245, 245, 245];
   root.afCardOut = card;
   setVar(body, '--af-card-out', rgba(card, 1));
   setVar(body, '--af-card', rgba(tint, alpha));
@@ -437,7 +449,8 @@ AF.tipLayer = root => {
   layer.textContent = '';  // (an earlier mount's tip)
   AF.i18n.dirOn(layer);
   if (tip) layer.appendChild(tip);
-  const place = () => { const r = scene.getBoundingClientRect(); layer.style.top = r.top + 'px'; layer.style.height = r.height + 'px'; };
+  // (the layer has the scene's box, its sides past the window's too: hover.js places the tip in it)
+  const place = () => { const r = scene.getBoundingClientRect(); layer.style.top = r.top + 'px'; layer.style.height = r.height + 'px'; layer.style.left = r.left + 'px'; layer.style.right = 'auto'; layer.style.width = r.width + 'px'; };
   root.afTipPlace = place;
   window.addEventListener('resize', place);
   scene.addEventListener('mouseenter', place);  // (drawn after the layout: its height is known by then)
@@ -472,7 +485,7 @@ const CAPTION_AIR = 6;  // css px kept clear over the caption
  * window's. So no stretched sky over it (2026-10-31: it looked smeared). The window only: laid out
  * under Anki's bars as well it grew too large, and what walked there (a fox) was hidden. COVER_SLACK:
  * a few px more, as the canvas is a whole number of its pixels. */
-const COVER_SLACK = 8;
+const COVER_SLACK = 8, FOOT_SHARE = 0.5, FOOT_MOST = 0.16;
 AF.cover = () => ({ w: Math.max(window.innerWidth, ASPECT * window.innerHeight + COVER_SLACK) });
 /* (how far the scene reaches past the window's sides, and over its top, for the cog and the zoom
  * button kept at the window's top corner: forest.css) */
@@ -480,7 +493,11 @@ AF.coverVars = (root, w, h) => {
   const box = root.querySelector('.af-forest');
   if (!box) return;
   box.style.setProperty('--af-side', Math.max(0, (w - window.innerWidth) / 2) + 'px');
-  box.style.setProperty('--af-over', Math.max(0, h - window.innerHeight) + 'px');
+  // (a window wider than twice its height: part of what doesn't fit comes off the foot, so the sky and
+  // the sun aren't all that goes; the caption stays at the window's foot)
+  const over = Math.max(0, h - window.innerHeight), foot = Math.round(Math.min(over * FOOT_SHARE, h * FOOT_MOST));
+  box.style.setProperty('--af-foot', foot + 'px');
+  box.style.setProperty('--af-over', over - foot + 'px');
 };
 /* Anki's toolbar over the page and its bottom bar under it, pages of their own, wear the scene's edge
  * beside them, blurred and still (bars.py): the window's top BAR_ROWS rows of the scene, and its
@@ -488,7 +505,7 @@ AF.coverVars = (root, w, h) => {
  * colours, never its pictures (slices of the scene itself looked broken at the seam, 2026-10-31). Sent
  * as the scene is drawn, when they change; the clear when the layout is no longer Background
  * (AF.arrange). */
-const BAR_ROWS = 4, BAR_COLS = 16;
+const BAR_ROWS = 4, BAR_COLS = 16, BAR_FLATTEN = 0.7;
 const hex = rgb => '#' + rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
 const rowsAverage = (c, y, rows) => {
   const px = c.getContext('2d').getImageData(0, y, c.width, rows).data, avg = [0, 0, 0], n = px.length / 4;
@@ -508,6 +525,12 @@ AF.barEdges = (data, root, canvas) => {
       c.width = BAR_COLS; c.height = 1;
       g.imageSmoothingEnabled = true;
       g.drawImage(canvas, sx, sy, sw, BAR_ROWS, 0, 0, BAR_COLS, 1);
+      // (each column most of the way to their average: a star or a blossom in those rows was a lit
+      // smear on the bar, away from anything drawn under it)
+      const img = g.getImageData(0, 0, BAR_COLS, 1), px = img.data, avg = [0, 0, 0];
+      for (let i = 0; i < px.length; i += 4) for (let k = 0; k < 3; k++) avg[k] += px[i + k] / BAR_COLS;
+      for (let i = 0; i < px.length; i += 4) for (let k = 0; k < 3; k++) px[i + k] = Math.round(px[i + k] + (avg[k] - px[i + k]) * BAR_FLATTEN);
+      g.putImageData(img, 0, 0);
       return c.toDataURL('image/png');
     };
     // (the bottom bar the cards' colour, solid, as the caption's band darkens into it at the window's
@@ -577,7 +600,9 @@ AF.pageCards = (root, data) => {
   root.afCarded = on;
   root.classList.toggle('af-carded', on);
   document.body.classList.toggle('af-page-cards', on);  // (Anki's studied-today line on a card too, forest.css)
-  document.body.classList.toggle('af-no-blur', (root.afBehind || on) && chromium() < BLUR_FROM);
+  // (Background never blurs: re-blurring a moving scene behind each card every frame doubled what the
+  // whole panel costs, 50 to 101M instructions a second, for a blur seen through 5-10% of the card)
+  document.body.classList.toggle('af-no-blur', root.afBehind || (on && chromium() < BLUR_FROM));
   // (on a picture: bands behind the words, as behind the list the caption has its band, the forest
   // and the heatmap on the picture itself. Each colour set once, by AF.cardTones: one set twice,
   // each change on <body> woke onTheme, which set it again, a loop at 100% CPU, 2026-10-31)
@@ -617,16 +642,25 @@ AF.arrange = function (root, data) {
   AF.pageCards(root, data);
   if (center) {
     // (and what Anki puts before the table, a deck screen's name and description, stays over it)
-    let before = !!table;
-    Array.prototype.forEach.call(center.children, el => {
-      if (el === table) before = false;
-      el.classList.toggle('af-pill', root.afBehind && pillRow(el));
-      el.classList.toggle('af-lay-before', root.afBehind && before);
-    });
+    const mark = () => {
+      let before = !!table;
+      Array.prototype.forEach.call(center.children, el => {
+        if (el === table) before = false;
+        el.classList.toggle('af-pill', root.afBehind && pillRow(el));
+        el.classList.toggle('af-lay-before', root.afBehind && before);
+      });
+    };
+    mark();
+    // (the page is still being read when the panel mounts, and what stands after the panel, another
+    // add-on's lines, isn't there yet: only a settings change, a swap, ever gave them their pills)
+    if (root.afBehind && document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { if (root.isConnected && root.afBehind) { mark(); if (root.afCaptionCheck) root.afCaptionCheck(); } }, { once: true });
     // (a deck screen's name, the title of its counts' card, as wide as that card: forest.css)
     const title = table && center.querySelector(':scope > h3');
     if (title) title.style.width = root.afBehind ? table.offsetWidth + 'px' : '';
     if (table) table.classList.toggle('af-titled', !!(root.afBehind && title));
+    // (a deck's description as wide as its counts' card over it, not a third width)
+    const desc = table && center.querySelector(':scope > .description');
+    if (desc) { desc.style.maxWidth = root.afBehind ? table.offsetWidth + 'px' : ''; desc.style.boxSizing = root.afBehind ? 'border-box' : ''; }
   }
   AF.tipLayer(root);
   AF.captionClear(root);
@@ -774,6 +808,10 @@ function hookCog(root, data) {
   const cog = root.querySelector('.af-cog');
   if (cog) cog.addEventListener('click', () => send(`${data.channel}:settings`));
   AF.news(root, data);
+  // (Layout's Background: the cog on the layer over the page: in the scene, behind it, a wide deck
+  // list covered it and took its clicks)
+  const top = root.afTipLayer && root.querySelector('.af-scene > .af-top');
+  if (top) root.afTipLayer.appendChild(top);
 }
 const COG = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6c-.6.3-1.2.6-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.3.4.5.4h4c.2 0 .5-.2.5-.4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>';
 })();

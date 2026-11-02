@@ -108,15 +108,27 @@ def _load() -> dict:
     if not os.path.exists(NEWS_PATH):
         fresh = _fresh_at_start if _fresh_at_start is not None else not load_json(state.STATE_PATH)
         record = {"seen": _all_ids() if fresh else [], "shown": {}, "tags": {}}
+        if fresh:  # (the day it came, for settling_in)
+            record["installed"] = _dt.date.today().isoformat()
         _save(record)
         return record
     record = load_json(NEWS_PATH)
     seen = record.get("seen")
     shown = record.get("shown")
     tags = record.get("tags")
-    return {"seen": [s for s in seen if isinstance(s, str)] if isinstance(seen, list) else [],
+    return {**({"installed": record["installed"]} if record.get("installed") else {}),
+            "seen": [s for s in seen if isinstance(s, str)] if isinstance(seen, list) else [],
             "shown": shown if isinstance(shown, dict) else {},
             "tags": {k: t for k, t in tags.items() if isinstance(t, dict)} if isinstance(tags, dict) else {}}
+
+
+def settling_in(days: int) -> bool:
+    """Whether this install is younger than `days` days. An install from before this was kept, or
+    that kept nothing of its own, never is."""
+    try:
+        return (_dt.date.today() - _dt.date.fromisoformat(_load().get("installed") or "")).days < days
+    except ValueError:
+        return False
 
 
 def _save(record: dict) -> None:

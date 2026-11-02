@@ -188,10 +188,13 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       tip.hidden = false;
       // the pointer within the scene, which holds the canvas and the tip
       const at = AF.u.pointIn(e, canvas), x = canvas.offsetLeft + at[0], y = canvas.offsetTop + at[1];
+      // (inside what shows of the scene: Layout's Background cuts it at the window's sides and top)
+      const box = sceneEl.getBoundingClientRect(), minX = Math.max(0, -box.left) + TIP_MARGIN, minY = Math.max(0, -box.top) + TIP_MARGIN;
+      const maxX = Math.min(sceneEl.clientWidth, window.innerWidth - box.left) - TIP_MARGIN;
       let left = x + TIP_OFFSET, top = y + TIP_OFFSET;
-      if (left + tip.offsetWidth > sceneEl.clientWidth - TIP_MARGIN) left = x - tip.offsetWidth - TIP_OFFSET;
+      if (left + tip.offsetWidth > maxX) left = x - tip.offsetWidth - TIP_OFFSET;
       if (top + tip.offsetHeight > sceneEl.clientHeight - TIP_MARGIN) top = y - tip.offsetHeight - TIP_OFFSET;
-      tip.style.left = Math.max(TIP_MARGIN, left) + 'px'; tip.style.top = Math.max(TIP_MARGIN, top) + 'px';
+      tip.style.left = Math.max(minX, left) + 'px'; tip.style.top = Math.max(minY, top) + 'px';
       if (changed) redraw();  // a still forest redraws the same moment, only the marker moves
     });
     canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });

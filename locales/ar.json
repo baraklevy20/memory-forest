@@ -1318,8 +1318,8 @@
   }
  },
  "heatmap.ponds_and_animals_count_from_here": {
-  "text": "من هنا تُحتسب البرك والحيوانات",
-  "en": "Ponds and animals count from here"
+  "text": "من هنا تُحتسب البرك",
+  "en": "Ponds count from here"
  },
  "heatmap.reach_a_n_day_streak_on": {
   "text": {
@@ -1859,6 +1859,10 @@
    "other": "{days} days in a row. The forest has not missed one."
   }
  },
+ "journal.grown_from_your_reviews_since": {
+  "text": "غابتك، نمت من مراجعاتك منذ {date}.",
+  "en": "Your forest, grown from your reviews since {date}."
+ },
  "journal.meteors_are_falling_tonight": {
   "text": "تتساقط الشهب الليلة.",
   "en": "Meteors are falling tonight."
@@ -1927,16 +1931,16 @@
  },
  "journal.your_first_tree_it_holds_n": {
   "text": {
-   "zero": "شجرتك الأولى. تحمل {cards} بطاقة.",
-   "one": "شجرتك الأولى. تحمل بطاقة واحدة.",
-   "two": "شجرتك الأولى. تحمل بطاقتين.",
-   "few": "شجرتك الأولى. تحمل {cards} بطاقات.",
-   "many": "شجرتك الأولى. تحمل {cards} بطاقة.",
-   "other": "شجرتك الأولى. تحمل {cards} بطاقة."
+   "zero": "شجرتك الأولى. تحمل {cards} بطاقة. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+   "one": "شجرتك الأولى. تحمل بطاقة واحدة. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+   "two": "شجرتك الأولى. تحمل بطاقتين. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+   "few": "شجرتك الأولى. تحمل {cards} بطاقات. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+   "many": "شجرتك الأولى. تحمل {cards} بطاقة. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+   "other": "شجرتك الأولى. تحمل {cards} بطاقة. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة."
   },
   "en": {
-   "one": "Your first tree. It holds {cards} card.",
-   "other": "Your first tree. It holds {cards} cards."
+   "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+   "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
   }
  },
  "landmark.moon_bridge": {
@@ -2201,6 +2205,10 @@
   "text": "غُرست شجرة جديدة في غابتك اليوم.",
   "en": "A new tree was planted in your forest today."
  },
+ "planting.your_first_tree_was_planted": {
+  "text": "غُرست شجرتك الأولى، تحت قائمة الرزم. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+ },
  "preset.aurora": {
   "text": "ليلة الشفق القطبي",
   "en": "Aurora night"
@@ -2410,8 +2418,8 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "شجرة واحدة عن كل يوم تُتعلَّم فيه بطاقات جديدة. بادرة اليوم في المقدمة، وأقدم شجرة في الخلف. تنمو الأشجار كلما رسخت تلك البطاقات في الذاكرة، وتظهر عليها بضع أوراق صفراء حين يُنسى بعضها. أيام المراجعة وحدها لا تغرس شجرة، لكنها تحافظ على صحة أشجارك.",
-  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+  "text": "شجرة واحدة عن كل يوم تُتعلَّم فيه بطاقات جديدة. تنمو الأشجار كلما رسخت تلك البطاقات في الذاكرة، وتظهر عليها بضع أوراق صفراء حين يُنسى بعضها. أيام المراجعة وحدها لا تغرس شجرة، لكنها تحافظ على صحة أشجارك. أسبوع من الغياب يترك بركة، وتأتي الحيوانات كلما واصلت.",
+  "en": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going."
  },
  "settings.about.places_openstreetmap_contributors": {
   "text": "الأماكن © <a href=\"{osm}\">المساهمون في OpenStreetMap</a>",
@@ -2580,8 +2588,8 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "تبقى أشجارك التي تسبقه. أما البرك و«الطبيعة» والحيوانات فتُحتسب من {date}.",
-  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+  "text": "تبقى أشجارك التي تسبقه، والحيوانات التي جلبتها. أما البرك و«الطبيعة» فتُحتسب من {date}.",
+  "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
   "text": "حول",
@@ -3230,8 +3238,8 @@
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
-  "text": "تبقى في الذاكرة ~{time}",
-  "en": "lasts ~{time}"
+  "text": "في الذاكرة ~{time}",
+  "en": "in memory ~{time}"
  },
  "tooltip.mature": {
   "text": "ناضجة",
@@ -3394,6 +3402,10 @@
  "tooltip.n_years": {
   "text": "{n} سنة",
   "en": "{n} years"
+ },
+ "tooltip.no_ponds_decks_tab": {
+  "text": "تفضّل الأشجار؟ تبويب الرزم: بدء الغابة في، إبقاء الأشجار التي تسبقه.",
+  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
  },
  "tooltip.old": {
   "text": "مُسنّة",

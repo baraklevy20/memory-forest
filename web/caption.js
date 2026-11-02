@@ -6,6 +6,7 @@ const AF = window.AnkiForest;
 const { fmtDate, esc, canBrowse, send, animates } = AF.u;
 // the caption's tooltip sits this far above what it explains
 const TIP_MARGIN = 6;
+const STREAK_TO_SEE = 14;  // days a streak needs before its click, to Streak view, shows more
 
 // (each goes into the caption's "Weather: rain in Oslo, 5°")
 const WEATHER_NAMES = { clear: AF.N_('caption.clear_sky'), cloudy: AF.N_('caption.cloudy'), fog: AF.N_('caption.fog'), rain: AF.N_('caption.rain'),
@@ -26,10 +27,17 @@ AF.deckFor = deckFor;
 
 AF.caption = function (root, data) {
   const s = data.stats, m = data.mood;
-  root.querySelector('.af-journal').textContent = data.journal || '';
+  // (no tree yet: the first line stands where the first tree will, not under the heatmap, below the fold)
+  const waiting = data.trees && !data.trees.length && !!data.journal && !data.strike && root.querySelector('.af-scene');
+  root.querySelector('.af-journal').textContent = waiting ? '' : data.journal || '';
+  if (waiting) {
+    const first = document.createElement('div');
+    first.className = 'af-first'; first.textContent = data.journal;
+    waiting.append(first);
+  }
   const items = [];
   if (data.testForest) items.push([AF.t('caption.test_forest'), AF.t('caption.made_up_trees_from_the_test')]);
-  if (data.highlight) items.push([AF.tn('caption.deck_lit_of_n_trees', s.trees, { deck: (data.deckName || '').split('::').pop(), lit: data.litCount, n: s.trees }),
+  if (data.highlight && s.trees) items.push([AF.tn('caption.deck_lit_of_n_trees', s.trees, { deck: (data.deckName || '').split('::').pop(), lit: data.litCount, n: s.trees }),
     AF.t('caption.trees_holding_cards_from_this_deck')]);
   // (not on a deck's screen that lights its trees: "French: 30 of 150 trees" says how many already)
   if (s.trees && !data.highlight) items.push([AF.tn('caption.n_trees', s.trees), AF.t('caption.one_tree_for_each_day_you')]);
@@ -42,11 +50,13 @@ AF.caption = function (root, data) {
   }
   if (s.ancient) items.push([AF.tn('caption.n_ancient', s.ancient), AF.t('caption.trees_whose_cards_you_will_likely')]);
   // (a click shows all of it in the heatmap under the forest: its Streak view, on today's streak)
-  const byYear = r => r.afCalStreak && r.afCalStreak();
-  byYear.hint = r => (r.afCalStreak && r.afCalStreak(true) ? `<br><span class="af-hint">${AF.t('caption.click_to_see_all_of_it')}</span>` : '');
+  // (a streak of a few days is all in view already: nothing to go and see)
+  const byYear = r => s.streak >= STREAK_TO_SEE && r.afCalStreak && r.afCalStreak();
+  byYear.hint = r => (s.streak >= STREAK_TO_SEE && r.afCalStreak && r.afCalStreak(true) ? `<br><span class="af-hint">${AF.t('caption.click_to_see_all_of_it')}</span>` : '');
   // (a streak of 6 or 5 days a week: a week's first missed days pass too, payload._days_off)
   const week = s.streak_week || 7;
-  if (s.streak) items.push([AF.tn('caption.n_day_streak', s.streak), week === 7
+  // (from two days: "1 tree · 1-day streak" says one thing twice)
+  if (s.streak > 1) items.push([AF.tn('caption.n_day_streak', s.streak), week === 7
     ? AF.t('caption.days_you_studied_in_a_row')
     : week === 6 ? AF.t('caption.days_you_studied_in_a_row_2', { week })
       : AF.t('caption.days_you_studied_in_a_row_3', { week }), byYear]);

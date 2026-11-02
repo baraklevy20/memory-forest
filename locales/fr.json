@@ -1082,8 +1082,8 @@
   }
  },
  "heatmap.ponds_and_animals_count_from_here": {
-  "text": "Les étangs et les animaux comptent à partir d’ici",
-  "en": "Ponds and animals count from here"
+  "text": "Les étangs comptent à partir d’ici",
+  "en": "Ponds count from here"
  },
  "heatmap.reach_a_n_day_streak_on": {
   "text": {
@@ -1555,6 +1555,10 @@
    "other": "{days} days in a row. The forest has not missed one."
   }
  },
+ "journal.grown_from_your_reviews_since": {
+  "text": "Votre forêt, née de vos révisions depuis le {date}.",
+  "en": "Your forest, grown from your reviews since {date}."
+ },
  "journal.meteors_are_falling_tonight": {
   "text": "Des étoiles filantes tombent ce soir.",
   "en": "Meteors are falling tonight."
@@ -1611,12 +1615,12 @@
  },
  "journal.your_first_tree_it_holds_n": {
   "text": {
-   "one": "Votre premier arbre. Il porte {cards} carte.",
-   "other": "Votre premier arbre. Il porte {cards} cartes."
+   "one": "Votre premier arbre. Il porte {cards} carte. Un autre pousse chaque jour où vous apprenez de nouvelles cartes.",
+   "other": "Votre premier arbre. Il porte {cards} cartes. Un autre pousse chaque jour où vous apprenez de nouvelles cartes."
   },
   "en": {
-   "one": "Your first tree. It holds {cards} card.",
-   "other": "Your first tree. It holds {cards} cards."
+   "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+   "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
   }
  },
  "landmark.moon_bridge": {
@@ -1869,6 +1873,10 @@
   "text": "Un nouvel arbre a été planté dans votre forêt aujourd’hui.",
   "en": "A new tree was planted in your forest today."
  },
+ "planting.your_first_tree_was_planted": {
+  "text": "Votre premier arbre est planté, sous la liste des paquets. Un autre pousse chaque jour où vous apprenez de nouvelles cartes.",
+  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+ },
  "preset.aurora": {
   "text": "Nuit boréale",
   "en": "Aurora night"
@@ -2078,8 +2086,8 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "Un arbre pour chaque jour où vous apprenez de nouvelles cartes. La pousse du jour est devant, l’arbre le plus ancien au fond. Les arbres grandissent à mesure que ces cartes s’ancrent dans votre mémoire, et prennent quelques feuilles jaunes quand certaines vous échappent. Les jours avec seulement des révisions ne plantent pas d’arbre, mais gardent les vôtres en bonne santé.",
-  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+  "text": "Un arbre pour chaque jour où vous apprenez de nouvelles cartes. Les arbres grandissent à mesure que ces cartes s’ancrent dans votre mémoire, et prennent quelques feuilles jaunes quand certaines vous échappent. Les jours avec seulement des révisions ne plantent pas d’arbre, mais gardent les vôtres en bonne santé. Une semaine d’absence laisse un étang, et les animaux s’installent à mesure que vous continuez.",
+  "en": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going."
  },
  "settings.about.places_openstreetmap_contributors": {
   "text": "Lieux © <a href=\"{osm}\">contributeurs d’OpenStreetMap</a>",
@@ -2244,8 +2252,8 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "Vos arbres d’avant cette date restent. Les étangs, la Nature et les animaux comptent à partir du {date}.",
-  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+  "text": "Vos arbres d’avant cette date restent, avec les animaux qu’ils ont amenés. Les étangs et la Nature comptent à partir du {date}.",
+  "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
   "text": "À propos",
@@ -2882,8 +2890,8 @@
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
-  "text": "dure ~{time}",
-  "en": "lasts ~{time}"
+  "text": "en mémoire ~{time}",
+  "en": "in memory ~{time}"
  },
  "tooltip.mature": {
   "text": "adulte",
@@ -3002,6 +3010,10 @@
  "tooltip.n_years": {
   "text": "{n} ans",
   "en": "{n} years"
+ },
+ "tooltip.no_ponds_decks_tab": {
+  "text": "Plutôt des arbres ? Onglet Paquets : Début de la forêt, Garder les arbres d’avant cette date.",
+  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
  },
  "tooltip.old": {
   "text": "vieux",

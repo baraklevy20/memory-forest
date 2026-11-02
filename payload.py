@@ -55,6 +55,7 @@ PAGE_LEAVES_OUT = ("mature", "day")
 ZOOM_RELEASED = False
 # the study calendar shows the cards due this many days ahead (today first)
 CALENDAR_DUE_DAYS = 800  # (time enough for the next whole year)
+NEW_TREE_GLOW_DAYS = 7  # how long from its first tree a forest's new trees glow on their day
 # the test forest's reviews in the calendar: a few for each card a day learned, or a day's worth
 TEST_REVIEWS_PER_CARD, TEST_DAY_REVIEWS = 4, 40
 # the made-up forest's days' time: seconds a review, from a quick day to a slow one, by the day
@@ -222,6 +223,9 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         _deep[str(did or "")] = all_trees[:merged_count]
     # the page can only glow trees it draws; the journal still names any of them
     ann = [i - merged_count for i in ann_all if i >= merged_count]
+    # (in a forest's first week the day's new tree is a sprout that's easy to miss: the same glow finds it)
+    if all_trees and all_trees[0]["ago"] < NEW_TREE_GLOW_DAYS and all_trees[-1]["ago"] == 0:
+        ann = [len(all_trees) - 1]
 
     real, place, weather_error = live_weather.for_config(cfg)
 
@@ -229,6 +233,12 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     mood = scene.choose_mood(cfg, _dt.datetime.combine(day, now.time()), real, place)
     evs = scene.events(forest["stats"], today, new_ancient)
     calendar = _calendar(forest, all_trees, cfg, test, changed, did, highlight)
+
+    # (a new install's first day on years of history: nothing else says where all these trees came from)
+    if not did and len(all_trees) > 1 and news.settling_in(1):
+        welcome = i18n.t("journal.grown_from_your_reviews_since", date=i18n.day_month_year(_dt.date.fromisoformat(all_trees[0]["date"])))
+    else:
+        welcome = ""
 
     return {
         # each tree's count of cards known well only adds up to the animals' milestones, and
@@ -239,7 +249,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "anniversaries": ann,
         "mood": mood,
         "journal": events_state.news_line(extras) or journal.journal(dict(forest, trees=all_trees), mood, today, ann_all, evs,
-                                                                     extras.get("stagnation", 0.0)),
+                                                                     extras.get("stagnation", 0.0)) or welcome,
         "events": evs,
         "merged": forest.get("merged"),
         "forestSeed": forest["forest_seed"],
@@ -454,7 +464,6 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     if counted is not None:  # the trees from before it kept: every day is the forest's, the animals' from the start date
         counts_from = study_log.day_date(counted, cutoff).isoformat()
         own = {a: n for a, n in day_reviews.items() if a <= counted}
-        animal_trees = [t for t in trees if t["ago"] <= counted]
     elif begin and not test and shows_record(cfg):
         forest_start = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
         day_reviews, day_time = _day_reviews(cutoff, dids, excluded, None, skip, changed), None
@@ -467,7 +476,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             # Compact planting dates survive the drawing limit, without sending old sprites.
             "planted": [[t["ago"], t["n"]] for t in trees],
-            "animals": milestones.for_page(milestones.animal_days(forest.get("visitors") or [], animal_trees, own, col.sched.today, test))
+            "animals": milestones.for_page(milestones.animal_days(forest.get("visitors") or [], animal_trees, day_reviews, col.sched.today, test))
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)

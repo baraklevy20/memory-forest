@@ -180,8 +180,7 @@ def _animals(forest: dict, struck: int | None, did: int | None = None, start: st
     """The forest with every animal that has come to it, remembered per profile for each
     forest there has been (the whole of it, and the one that grew since each asteroid -
     `struck`, the day it began again - the same for each deck's own forest, `did`, and all of
-    them again for each start date, `start`: a forest begun later earns its own, and one that
-    keeps the trees from before it earns them as that forest would, from its `counted` stats): once
+    them again for each start date, `start`: a forest begun later earns its own): once
     come, an animal stays, and is new on the day it came. The first look at a forest
     remembers the animals it already has without announcing them all at once - so changing
     the Nature setting back and forth announces nothing - and nothing the settings dialog
@@ -198,7 +197,9 @@ def _animals(forest: dict, struck: int | None, did: int | None = None, start: st
     known = every.get(key)
     first = known is None
     known = {k: v for k, v in (known or {}).items() if v is None or type(v) is int}
-    stats = forest.get("counted") or forest["stats"]
+    # (with the trees from before a start date kept, the whole of what stands earns them: forty old
+    # trees and no rabbit, a four-year-old forest and no cabin, was the price of losing its ponds)
+    stats = forest["stats"]
     arrived = milestones.arrivals(stats, known, None if first or settings_open() else today)
     if not settings_open() and arrived != every.get(key):
         state["animals"] = dict(every, **{key: arrived})

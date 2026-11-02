@@ -1023,8 +1023,8 @@
   }
  },
  "heatmap.ponds_and_animals_count_from_here": {
-  "text": "池塘和动物从这里开始计算",
-  "en": "Ponds and animals count from here"
+  "text": "池塘从这里开始计算",
+  "en": "Ponds count from here"
  },
  "heatmap.reach_a_n_day_streak_on": {
   "text": {
@@ -1479,6 +1479,10 @@
    "other": "{days} days in a row. The forest has not missed one."
   }
  },
+ "journal.grown_from_your_reviews_since": {
+  "text": "您的森林，由 {date}以来的复习长成。",
+  "en": "Your forest, grown from your reviews since {date}."
+ },
  "journal.meteors_are_falling_tonight": {
   "text": "今晚有流星雨。",
   "en": "Meteors are falling tonight."
@@ -1532,11 +1536,11 @@
  },
  "journal.your_first_tree_it_holds_n": {
   "text": {
-   "other": "您的第一棵树，上面有 {cards} 张卡片。"
+   "other": "您的第一棵树，上面有 {cards} 张卡片。每个学习新卡片的日子都会再长出一棵。"
   },
   "en": {
-   "one": "Your first tree. It holds {cards} card.",
-   "other": "Your first tree. It holds {cards} cards."
+   "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+   "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
   }
  },
  "landmark.moon_bridge": {
@@ -1786,6 +1790,10 @@
   "text": "今天，您的森林里种下了一棵新树。",
   "en": "A new tree was planted in your forest today."
  },
+ "planting.your_first_tree_was_planted": {
+  "text": "您的第一棵树已经种下，就在牌组列表下方。每个学习新卡片的日子都会再长出一棵。",
+  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+ },
  "preset.aurora": {
   "text": "极光之夜",
   "en": "Aurora night"
@@ -1995,8 +2003,8 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "每个学习新卡片的日子都会种下一棵树。今天的幼苗在最前面，最老的树在最后面。随着这些卡片在记忆中扎根，树会逐渐长大；有些卡片忘记时，树上会出现几片黄叶。只复习的日子不会种树，但能让您的树保持健康。",
-  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+  "text": "每个学习新卡片的日子都会种下一棵树。随着这些卡片在记忆中扎根，树会逐渐长大；有些卡片忘记时，树上会出现几片黄叶。只复习的日子不会种树，但能让您的树保持健康。离开一周会留下一个池塘，坚持下去，动物就会搬进来。",
+  "en": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going."
  },
  "settings.about.places_openstreetmap_contributors": {
   "text": "地点 © <a href=\"{osm}\">OpenStreetMap 贡献者</a>",
@@ -2160,8 +2168,8 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "此前的树会保留。池塘、自然和动物从{date}开始计算。",
-  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+  "text": "此前的树和它们带来的动物会保留。池塘和自然从{date}开始计算。",
+  "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
   "text": "关于",
@@ -2795,8 +2803,8 @@
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
-  "text": "约可维持 {time}",
-  "en": "lasts ~{time}"
+  "text": "记忆约可维持 {time}",
+  "en": "in memory ~{time}"
  },
  "tooltip.mature": {
   "text": "成树",
@@ -2904,6 +2912,10 @@
  "tooltip.n_years": {
   "text": "{n} 年",
   "en": "{n} years"
+ },
+ "tooltip.no_ponds_decks_tab": {
+  "text": "更想要树？“牌组”选项卡：森林起始日期、保留此日期之前的树。",
+  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
  },
  "tooltip.old": {
   "text": "老树",

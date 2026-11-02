@@ -349,7 +349,7 @@
   "one": "Planted tree: {n} new card",
   "other": "Planted tree: {n} new cards"
  },
- "heatmap.ponds_and_animals_count_from_here": "Ponds and animals count from here",
+ "heatmap.ponds_and_animals_count_from_here": "Ponds count from here",
  "heatmap.reach_a_n_day_streak_on": {
   "one": "Reach a {n}-day streak on this day, studying every day until then",
   "other": "Reach a {n}-day streak on this day, studying every day until then"
@@ -465,6 +465,7 @@
   "one": "{days} day in a row. The forest has not missed one.",
   "other": "{days} days in a row. The forest has not missed one."
  },
+ "journal.grown_from_your_reviews_since": "Your forest, grown from your reviews since {date}.",
  "journal.meteors_are_falling_tonight": "Meteors are falling tonight.",
  "journal.one_of_your_trees_became_ancient": "One of your trees became ancient today.",
  "journal.one_of_your_trees_became_ancient_2": "One of your trees became ancient today. Watch for a shooting star.",
@@ -484,8 +485,8 @@
   "other": "Your {count}th tree, planted today with {cards} new cards."
  },
  "journal.your_first_tree_it_holds_n": {
-  "one": "Your first tree. It holds {cards} card.",
-  "other": "Your first tree. It holds {cards} cards."
+  "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+  "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
  },
  "month.april": "April",
  "month.august": "August",
@@ -546,6 +547,7 @@
  "phone.your_forest_arrives_with_the_next_sync": "Your forest arrives with the next sync from Anki on your computer.",
  "phone.your_forest_is_on_its_way": "Your forest is on its way: sync once more to fetch its drawing.",
  "planting.a_new_tree_was_planted_in": "A new tree was planted in your forest today.",
+ "planting.your_first_tree_was_planted": "Your first tree was planted, under your deck list. Another grows each day you learn new cards.",
  "preset.custom": "Custom",
  "preset.daily": "Surprise me daily",
  "preset.daily.note": "A different scenery every day, taking turns so each one comes round in order.",
@@ -570,7 +572,7 @@
  "settings.about.memory_forest_grows_thanks_to_everyone": "Memory Forest grows thanks to everyone who rates it, shares it, sends ideas or reports a bug. Thank you!",
  "settings.about.mit_licence": "MIT licence",
  "settings.about.new_scenery_arrives_in_memory_forest": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>",
- "settings.about.one_tree_for_every_day_you": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy.",
+ "settings.about.one_tree_for_every_day_you": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going.",
  "settings.about.places_openstreetmap_contributors": "Places © <a href=\"{osm}\">OpenStreetMap contributors</a>",
  "settings.about.rate_it_on_ankiweb": "Rate it on AnkiWeb",
  "settings.about.report_a_bug_or_share_an": "Report a bug or share an idea",
@@ -613,7 +615,7 @@
   "one": "Your forest: <b>{trees}</b> &nbsp;({n} earlier one left out)",
   "other": "Your forest: <b>{trees}</b> &nbsp;({n} earlier ones left out)"
  },
- "settings.decks.your_trees_from_before_it_stay": "Your trees from before it stay. Ponds, Nature and the animals count from {date}.",
+ "settings.decks.your_trees_from_before_it_stay": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}.",
  "settings.dialog.about": "About",
  "settings.dialog.cancel": "Cancel",
  "settings.dialog.decks": "Decks",
@@ -777,7 +779,7 @@
  "tooltip.click_to_see_these_cards": "Click to see these cards",
  "tooltip.from_to": "{from} – {to}",
  "tooltip.its_card_is_suspended": "Its card is suspended",
- "tooltip.lasts_time": "lasts ~{time}",
+ "tooltip.lasts_time": "in memory ~{time}",
  "tooltip.mature": "mature",
  "tooltip.n_cards": {
   "one": "{n} card",
@@ -824,6 +826,7 @@
   "other": "{n} older trees"
  },
  "tooltip.n_years": "{n} years",
+ "tooltip.no_ponds_decks_tab": "Rather have trees? Decks tab: Start the forest on, Keep the trees.",
  "tooltip.old": "old",
  "tooltip.pct_remembered": "~{pct}% remembered",
  "tooltip.pct_still_going_well": "{pct}% still going well",

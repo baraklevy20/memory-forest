@@ -7,6 +7,7 @@ const { GROUND_BOTTOM, ROWS_TOP } = AF.GEOM;
 const colWidth = AF.colWidth;
 
 const DEFAULT_WATER = '#8fbcd8';
+const POND_SKY = 0.6;
 // a pond spans its slots and a little more, never smaller than POND_MIN_W (in env.u) by
 // POND_MIN_H pixels, and is POND_ASPECT as deep as it is wide; reeds stand at its edge
 const POND_OVERHANG = 1.05, POND_MIN_W = 8, POND_MIN_H = 5, POND_ASPECT = 0.34, POND_REEDS = 5;
@@ -74,7 +75,9 @@ AF.drawPond = function (g, env, p) {
   // a frozen pond is ice in the hour's own colour (the scene's water, paled): a fixed daylight white
   // glowed out of the market's dusk and night, as the lakes' ice once did (water.js)
   const water = hex(th.frozen ? mixHex(th.water || '#dfe8f0', '#dfe8f0', 0.25) : th.water || DEFAULT_WATER);
-  const hz = p.hz * (th.hzStep || 0.1) * 3, c0 = mix(water, hex(th.haze), hz), c1 = mix(c0, [255, 255, 255], 0.45), deep = mix(c0, [0, 0, 0], th.frozen ? 0.06 : 0.18), edge = mix(hex(th.g1), [0, 0, 0], 0.2);
+  // (a pond holds the sky over it: in the hour's beige `water` alone, a golden hour's read as a concrete slab)
+  const held = th.frozen || !th.sky ? water : mix(water, hex(th.sky[0]), POND_SKY);
+  const hz = p.hz * (th.hzStep || 0.1) * 3, c0 = mix(held, hex(th.haze), hz), c1 = mix(c0, [255, 255, 255], 0.45), deep = mix(c0, [0, 0, 0], th.frozen ? 0.06 : 0.18), edge = mix(hex(th.g1), [0, 0, 0], 0.2);
   ellipseFill(g, cx, cy, w, h, (q, x, y) => q > 0.8 ? edge : y < cy - h * 0.2 ? deep : ((x * 3 + y * 7) % 11 === 0 ? c1 : c0));
   const R = rng(p.it.seed), reed = th.snow ? '#8a9a8a' : '#2f4a2a', tip = '#8a6a3a';
   for (let k = 0; k < POND_REEDS; k++) { const side = k % 2 ? 1 : -1, x = Math.round(cx + side * (w / 2 - 1 - R() * w * 0.15)), y = Math.round(cy + R() * h * 0.2), hh = 2 + (R() * 3 | 0);

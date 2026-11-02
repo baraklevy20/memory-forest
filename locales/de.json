@@ -1082,8 +1082,8 @@
   }
  },
  "heatmap.ponds_and_animals_count_from_here": {
-  "text": "Teiche und Tiere zählen ab hier",
-  "en": "Ponds and animals count from here"
+  "text": "Teiche zählen ab hier",
+  "en": "Ponds count from here"
  },
  "heatmap.reach_a_n_day_streak_on": {
   "text": {
@@ -1555,6 +1555,10 @@
    "other": "{days} days in a row. The forest has not missed one."
   }
  },
+ "journal.grown_from_your_reviews_since": {
+  "text": "Dein Wald, gewachsen aus deinen Wiederholungen seit {date}.",
+  "en": "Your forest, grown from your reviews since {date}."
+ },
  "journal.meteors_are_falling_tonight": {
   "text": "Heute Nacht fallen Sternschnuppen.",
   "en": "Meteors are falling tonight."
@@ -1611,12 +1615,12 @@
  },
  "journal.your_first_tree_it_holds_n": {
   "text": {
-   "one": "Dein erster Baum. Er trägt {cards} Karte.",
-   "other": "Dein erster Baum. Er trägt {cards} Karten."
+   "one": "Dein erster Baum. Er trägt {cards} Karte. Jeden Tag, an dem du neue Karten lernst, wächst ein weiterer.",
+   "other": "Dein erster Baum. Er trägt {cards} Karten. Jeden Tag, an dem du neue Karten lernst, wächst ein weiterer."
   },
   "en": {
-   "one": "Your first tree. It holds {cards} card.",
-   "other": "Your first tree. It holds {cards} cards."
+   "one": "Your first tree. It holds {cards} card. Another grows each day you learn new cards.",
+   "other": "Your first tree. It holds {cards} cards. Another grows each day you learn new cards."
   }
  },
  "landmark.moon_bridge": {
@@ -1869,6 +1873,10 @@
   "text": "Heute wurde ein neuer Baum in deinem Wald gepflanzt.",
   "en": "A new tree was planted in your forest today."
  },
+ "planting.your_first_tree_was_planted": {
+  "text": "Dein erster Baum wurde gepflanzt, unter deiner Stapelliste. Jeden Tag, an dem du neue Karten lernst, wächst ein weiterer.",
+  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+ },
  "preset.aurora": {
   "text": "Polarlichtnacht",
   "en": "Aurora night"
@@ -2078,8 +2086,8 @@
   "en": "New scenery arrives in Memory Forest Plus first, and comes to this version too. <a href=\"{url}\">Join on Patreon</a>"
  },
  "settings.about.one_tree_for_every_day_you": {
-  "text": "Ein Baum für jeden Tag, an dem du neue Karten lernst. Der Keimling von heute steht vorn, der älteste Baum hinten. Bäume wachsen, während sich diese Karten im Gedächtnis festigen, und bekommen ein paar gelbe Blätter, wenn du einige davon vergisst. Tage nur mit Wiederholungen pflanzen keinen Baum, halten deine Bäume aber gesund.",
-  "en": "One tree for every day you learn new cards. Today's seedling is at the front, the oldest tree at the back. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy."
+  "text": "Ein Baum für jeden Tag, an dem du neue Karten lernst. Bäume wachsen, wenn sich diese Karten im Gedächtnis festigen, und bekommen ein paar gelbe Blätter, wenn einige verloren gehen. Tage nur mit Wiederholungen pflanzen keinen Baum, halten deine aber gesund. Eine Woche Pause hinterlässt einen Teich, und wenn du dranbleibst, ziehen Tiere ein.",
+  "en": "One tree for every day you learn new cards. Trees grow as those cards settle into memory and get a few yellow leaves when some slip. Review-only days plant no tree, but keep yours healthy. A week away leaves a pond, and animals move in as you keep going."
  },
  "settings.about.places_openstreetmap_contributors": {
   "text": "Orte © <a href=\"{osm}\">OpenStreetMap-Mitwirkende</a>",
@@ -2244,8 +2252,8 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "Deine Bäume von vorher bleiben. Teiche, Natur und die Tiere zählen ab dem {date}.",
-  "en": "Your trees from before it stay. Ponds, Nature and the animals count from {date}."
+  "text": "Deine Bäume von davor bleiben, auch die Tiere, die sie gebracht haben. Teiche und Natur zählen ab {date}.",
+  "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
   "text": "Info",
@@ -2882,8 +2890,8 @@
   "en": "Its card is suspended"
  },
  "tooltip.lasts_time": {
-  "text": "hält ~{time}",
-  "en": "lasts ~{time}"
+  "text": "im Gedächtnis ~{time}",
+  "en": "in memory ~{time}"
  },
  "tooltip.mature": {
   "text": "ausgewachsen",
@@ -3002,6 +3010,10 @@
  "tooltip.n_years": {
   "text": "{n} Jahre",
   "en": "{n} years"
+ },
+ "tooltip.no_ponds_decks_tab": {
+  "text": "Lieber Bäume? Tab „Stapel“: Wald beginnt am, Frühere Bäume behalten.",
+  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
  },
  "tooltip.old": {
   "text": "alt",

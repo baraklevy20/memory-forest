@@ -345,14 +345,14 @@ class PayloadTests(unittest.TestCase):
         reset(cards, {"ignore_before": "", "keep_earlier_trees": True})  # without a start date it changes nothing
         self.assertEqual(payload.payload()["stats"]["ponds"], 1)
 
-    def test_kept_trees_count_the_animals_from_the_start_date(self):
+    def test_kept_trees_keep_their_animals(self):
         cards = [(i, 10, 120 - i) for i in range(1, 61)] + [(100, 10, 0)]  # 60 trees long ago, and today's
         reset(cards)
         self.assertIn("rabbit", [v["key"] for v in payload.payload()["visitors"]])
         reset(cards, {"ignore_before": "2026-09-01", "keep_earlier_trees": True})
         p = payload.payload()
         self.assertEqual(p["stats"]["trees"], 61)
-        self.assertNotIn("rabbit", [v["key"] for v in p["visitors"]])  # 50 trees grown since: not yet
+        self.assertIn("rabbit", [v["key"] for v in p["visitors"]])  # the kept trees bring their animals with them
 
     def test_a_hand_edited_width_stays_in_range(self):
         reset(CARDS, {"max_width": "wide"})
