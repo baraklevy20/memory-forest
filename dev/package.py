@@ -18,6 +18,7 @@ study history) and __pycache__ - the first two of which AnkiWeb rejects outright
 from __future__ import annotations
 
 import ast
+import glob
 import io
 import json
 import os
@@ -54,6 +55,16 @@ DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py")
 # (phone_data.bundle). Each file is minified on its own: each is one self-contained function
 # that shares nothing but window.AnkiForest. This copy (and the public repo) keeps them readable.
 ESBUILD = os.path.join(ADDON, "node_modules", ".bin", "esbuild")
+
+
+def esbuild_program(modules: str = os.path.join(ADDON, "node_modules")) -> str:
+    """esbuild itself. On Windows, its own .exe: .bin's is a shell script there, and its .cmd is limited to 8191
+    characters, too few for the paths of every script."""
+    if os.name != "nt":
+        return ESBUILD
+    return next(iter(glob.glob(os.path.join(modules, "@esbuild", "win32-*", "esbuild.exe"))), ESBUILD)
+
+
 # The oldest browser that draws the forest: the Mac builds of Anki before 2.1.50, and its
 # Qt5 builds for older Macs up to 2.1.66, have Qt 5.14's web view, Chromium 77. esbuild rewrites newer syntax (`??`,
 # `?.`) into what it knows, and refuses what it cannot rewrite; newer built-in functions
@@ -85,7 +96,7 @@ def files(keep: dict | None = None) -> list:
                 if n.startswith(".") or (d == "locales" and not n.endswith(".json")):  # (not a list made for a translator)
                     continue
                 path = os.path.join(root, n)
-                rel = os.path.relpath(path, ADDON)
+                rel = os.path.relpath(path, ADDON).replace(os.sep, "/")  # (a zip's names, and DEBUG_ONLY's, use / everywhere)
                 if rel in DEBUG_ONLY:
                     continue
                 if keep is None or editions.keeps(rel, keep):
@@ -98,11 +109,12 @@ def minified(shipping: list) -> dict:
     scripts = [(path, name) for path, name in shipping if name.startswith("web/") and name.endswith(".js")]
     if not scripts:
         return {}
-    if not os.path.exists(ESBUILD):
+    program = esbuild_program()
+    if not os.path.exists(program):
         sys.exit("esbuild is missing: run npm install in this folder")
     web = os.path.join(ADDON, "web")
     with tempfile.TemporaryDirectory() as out:
-        subprocess.run([ESBUILD, *(path for path, _name in scripts), "--minify", f"--target={OLDEST_BROWSER}", f"--outbase={web}",
+        subprocess.run([program, *(path for path, _name in scripts), "--minify", f"--target={OLDEST_BROWSER}", f"--outbase={web}",
                         f"--outdir={out}", "--log-level=warning"], check=True)
         texts = {}
         for path, name in scripts:

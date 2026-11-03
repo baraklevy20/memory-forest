@@ -47,7 +47,7 @@ import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from anki_builds import ANKIS, CACHE, RELEASES, executable, fetch, no_first_run, resolve  # noqa: F401
+from anki_builds import ANKIS, CACHE, RELEASES, executable, fetch, needs_window, no_first_run, resolve, windows_env  # noqa: F401
 
 ADDON = os.path.dirname(HERE)
 BASE = os.path.join(tempfile.gettempdir(), "memory-forest-try-anki")
@@ -103,6 +103,8 @@ def run_check(binary: str, folder: str) -> tuple:
         f.write(OFFSCREEN_SCRIPT)
     out, log = os.path.join(BASE, "check.json"), os.path.join(BASE, "anki.log")
     env = dict(os.environ, MEMORY_FOREST_FOLDER=folder, USER=CHECK_USER, LOGNAME=CHECK_USER)
+    if needs_window(binary):
+        env["MEMORY_FOREST_SHOW"] = "1"
     if env.get("MEMORY_FOREST_SHOW") != "1":
         # Qt's offscreen platform creates no native windows and cannot activate an
         # application. Never steal focus and then try to hand it back with `open`.
@@ -111,8 +113,10 @@ def run_check(binary: str, folder: str) -> tuple:
         env["QT_STYLE_OVERRIDE"] = "Fusion"
         flags = "--disable-gpu --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-background-timer-throttling"
         env["QTWEBENGINE_CHROMIUM_FLAGS"] = (env.get("QTWEBENGINE_CHROMIUM_FLAGS", "") + " " + flags).strip()
+    windows_env(env)
     with open(log, "w") as f:
         anki = subprocess.Popen([binary, "-b", BASE, "-l", "en"], env=env, stdout=f, stderr=subprocess.STDOUT)
+    started = time.time()
     deadline, reported = time.time() + CHECK_TIMEOUT_SECS, None
     while anki.poll() is None and time.time() < deadline:
         if reported is None and os.path.exists(out):
@@ -121,6 +125,7 @@ def run_check(binary: str, folder: str) -> tuple:
             break
         time.sleep(0.5)
     quit_by_itself = anki.poll() is not None
+    print(f"Anki {'quit with code ' + str(anki.returncode) if quit_by_itself else 'was still running'} after {time.time() - started:.0f} s", flush=True)
     if not quit_by_itself:
         anki.kill()
         anki.wait()
@@ -163,7 +168,7 @@ def check(label: str, app: str, package: str | None) -> bool:
     if "Already running" in log:
         sys.exit("another check's Anki is still open: close it and run this again")
     if r is None:
-        print(f"FAILED: the check never reported back\n{progress()}{log[-3000:]}")
+        print(f"FAILED: the check never reported back ({'Anki quit' if quit_by_itself else 'stopped Anki'})\n{progress()}{log[-3000:]}")
         return False
     shots = os.path.join(RESULTS, label)
     shutil.rmtree(shots, ignore_errors=True)

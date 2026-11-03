@@ -19,7 +19,7 @@ import time
 import urllib.request
 
 DARK = 2  # aqt.theme.Theme.DARK: where 2.1.50's own button styles squeezed the cog
-CACHE = os.path.expanduser("~/Library/Caches/memory-forest/anki")
+CACHE = os.path.normpath(os.path.expanduser("~/Library/Caches/memory-forest/anki"))  # (one kind of slash: msiexec needs it)
 RELEASES = "https://github.com/ankitects/anki/releases/download"
 
 # key -> the macOS download on Anki's GitHub releases
@@ -124,6 +124,20 @@ def executable(app: str) -> str:
         return windows_program(app)
     with open(os.path.join(app, "Contents", "Info.plist"), "rb") as f:
         return os.path.join(app, "Contents", "MacOS", os.path.basename(plistlib.load(f)["CFBundleExecutable"]))
+
+
+def needs_window(program: str) -> bool:
+    """Whether this Anki can't use Qt's offscreen platform: on Windows, a Qt5 build crashes on it at startup, so its
+    check opens a real window (on a CI runner, nobody's desktop)."""
+    return os.name == "nt" and any(os.path.isdir(os.path.join(os.path.dirname(program), *p)) for p in (("PyQt5",), ("lib", "PyQt5")))
+
+
+def windows_env(env: dict) -> None:
+    """Keep the web view off the GPU on Windows: a CI runner has none, and its older Chromiums crash reaching for one."""
+    if os.name == "nt":
+        env["QT_OPENGL"] = "software"
+        flags = "--disable-gpu --disable-gpu-compositing --no-sandbox"
+        env["QTWEBENGINE_CHROMIUM_FLAGS"] = (env.get("QTWEBENGINE_CHROMIUM_FLAGS", "") + " " + flags).strip()
 
 
 def no_first_run(base: str) -> None:

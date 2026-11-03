@@ -175,13 +175,12 @@ jobs:
           path: ${{ steps.results.outputs.dir }}
           if-no-files-found: ignore
 
-  # the same check in Windows' builds of those Ankis: they are unpacked rather than installed (anki_builds.py).
-  # continue-on-error keeps a failure from turning the run red while this job is new: take it off once it has passed
+  # the same check in Windows' builds of those Ankis, unpacked rather than installed (e2e/anki_builds.py): offscreen,
+  # or a real window on the runner for the Qt5 builds, whose offscreen platform crashes there
   anki-windows:
     name: Anki ${{ matrix.anki }} (Windows)
     needs: anki-versions
     runs-on: windows-2025
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -204,5 +203,5 @@ jobs:
         if: always()
         with:
           name: anki-windows-${{ matrix.anki }}
-          path: ~/AppData/Local/Temp/memory-forest-old-anki
+          path: ~/AppData/Local/Temp/memory-forest-try-anki/*.log
           if-no-files-found: ignore
