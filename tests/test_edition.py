@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import unittest
 from unittest import mock
 
@@ -31,6 +32,23 @@ class EditionTests(unittest.TestCase):
         on = {"language": "de", "debug": True}
         for left in ("en", "he", "en-XB"):
             self.assertEqual(edition.language(dict(on, debug_language=left)), "de")
+
+    def test_surprise_me_daily_takes_turns_only_with_the_editions_sceneries(self):
+        days = [dt.date(2027, 1, 10) + dt.timedelta(days=n) for n in range(400)]
+        daily = edition.presets.apply(edition.presets.DAILY, {})
+        for name in ("base", "plus"):
+            ships = edition.edition_presets(name)
+            if ships is None:
+                self.skipTest("no editions.json: the public repo is one edition")
+            cfg = dict(daily, debug=True, debug_edition=name)
+            envs = {p.environment for p in edition.presets.FOREST_PRESETS if p.key in ships}
+            drawn = {addon.scene.choose_mood(cfg, dt.datetime(d.year, d.month, d.day, 12))["environment"] for d in days}
+            self.assertLessEqual(drawn, envs, name)
+            self.assertEqual({addon.payload._scene_name(cfg, d)["sceneName"] for d in days} - {p.label for p in edition.presets.FOREST_PRESETS if p.key in ships}, set(), name)
+        # (no edition pretended, or debug off: every scenery here, as before)
+        plain = {edition.presets.todays(dict(daily, debug=True), d) for d in days}
+        self.assertEqual(plain, {edition.presets.of_the_day(d) for d in days})
+        self.assertEqual(edition.presets.todays(dict(daily, debug_edition="base"), days[0]), edition.presets.of_the_day(days[0]))
 
     def test_an_edition_offers_only_the_presets_it_ships(self):
         self.assertIsNone(edition.edition_presets(""))

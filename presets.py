@@ -178,6 +178,16 @@ def of_the_day(date, presets=FOREST_PRESETS, leave_out=()) -> Preset:
     return turn[(date.toordinal() + shift) % len(turn)]
 
 
+#: The presets a config has for Surprise me daily: all of them, unless the Debug tab pretends this
+#: copy is an edition with fewer (edition.py sets this, as nothing here can read the edition).
+surprise_catalogue = lambda cfg: FOREST_PRESETS
+
+
+def todays(cfg: dict, date) -> Preset:
+    """Today's preset for Surprise me daily under this config: its edition's, less those left out."""
+    return of_the_day(date, surprise_catalogue(cfg), left_out(cfg))
+
+
 def in_season(date, presets=FOREST_PRESETS) -> Preset | None:
     """The preset whose week `date` falls in, if any."""
     for p in available(date, presets):

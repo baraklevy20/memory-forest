@@ -79,3 +79,12 @@ def edition_presets(edition: str) -> set | None:
         return None
     return {p.key for p in presets.FOREST_PRESETS
             if envs == "*" or p.environment in envs or p.key == presets.DAILY}
+
+
+def _surprise_catalogue(cfg: dict) -> tuple:
+    """The presets Surprise me daily takes turns with: only the pretended edition's, if any."""
+    ships = edition_presets(debug_edition(cfg))
+    return presets.FOREST_PRESETS if ships is None else tuple(p for p in presets.FOREST_PRESETS if p.key in ships)
+
+
+presets.surprise_catalogue = _surprise_catalogue

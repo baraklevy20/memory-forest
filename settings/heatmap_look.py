@@ -672,7 +672,7 @@ class LookControls(QObject):
         Debug tab pretends this is (whose Plus tiles are locked)."""
         spec = presets.by_key().get(key)
         if key == presets.DAILY:
-            spec = presets.of_the_day(today(edition_cfg), leave_out=presets.left_out(edition_cfg))
+            spec = presets.todays(edition_cfg, today(edition_cfg))
         self.here = spec.key if spec else self.here
         self.edition_cfg = edition_cfg
         self.hour = forest_hour(edition_cfg)

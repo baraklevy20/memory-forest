@@ -966,6 +966,12 @@ class SurpriseTests(QtCase):
         Q.let_save()
         self.assertEqual([k for k in saved()["surprise_left_out"] if k in page.offered], ["synthwave"])
 
+    def test_the_mosaic_shows_only_the_sceneries_on_offer(self):
+        sp = addon.settings.scenery_picker
+        offered = {"aurora", "bamboo", "golden_lake"}
+        shown = sp.mosaic_keys({"bamboo"}, datetime.date(2027, 1, 10), offered)
+        self.assertLessEqual(set(shown), offered - {"bamboo"})
+
     def test_the_mosaic_shows_no_holiday_out_of_its_week(self):
         # (all but one left out, bar the holidays, so the next ones take the others' place)
         sp, specs = addon.settings.scenery_picker, addon.presets.by_key()
