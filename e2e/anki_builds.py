@@ -31,6 +31,7 @@ MAC_ANKIS = {
     "2.1.54": "2.1.54/anki-2.1.54-mac-apple-qt6.dmg",
     "2.1.54-qt5": "2.1.54/anki-2.1.54-mac-intel-qt5.dmg",
     "2.1.66-qt5": "2.1.66/anki-2.1.66-mac-intel-qt5.dmg",
+    "26.09.4": "26.09.4/anki-26.09.4-mac-apple.dmg",
     "26.09.3": "26.09.3/anki-26.09.3-mac-apple.dmg",
     "26.09.2": "26.09.2/anki-26.09.2-mac-apple.dmg",
 }
@@ -43,6 +44,7 @@ WINDOWS_ANKIS = {
     "2.1.54": "2.1.54/anki-2.1.54-windows-qt6.exe",
     "2.1.54-qt5": "2.1.54/anki-2.1.54-windows-qt5.exe",
     "2.1.66-qt5": "2.1.66/anki-2.1.66-windows-qt5.exe",
+    "26.09.4": "26.09.4/anki-26.09.4-win-x64.msi",
     "26.09.3": "26.09.3/anki-26.09.3-win-x64.msi",
 }
 WINDOWS = os.name == "nt"
@@ -145,7 +147,7 @@ def no_first_run(base: str) -> None:
     dialog that waits for a click), so the profile opens by itself: with none in it, Anki
     makes "User 1" and opens that."""
     meta = {"ver": 0, "updates": False, "created": int(time.time()), "id": random.randrange(0, 2**63), "lastMsg": -1,
-            "suppressUpdate": True, "firstRun": True, "defaultLang": "en_US", "theme": DARK}
+            "suppressUpdate": True, "check_for_updates": False, "firstRun": True, "defaultLang": "en_US", "theme": DARK}
     db = sqlite3.connect(os.path.join(base, "prefs21.db"))
     db.execute("create table if not exists profiles (name text primary key, data blob not null)")
     db.execute("insert or replace into profiles values ('_global', ?)", (pickle.dumps(meta, protocol=4),))
