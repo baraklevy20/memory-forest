@@ -1420,6 +1420,22 @@ def heatmap_browser_metrics():
         time.time = real_time
     forest.actions.answer_column._session()
     result["steps"].append("heatmap column arriving in one clock tick")
+    # While a background operation runs, Anki serves the rows it has without asking if they are stale, on any computer.
+    note("heatmap browser: the column arrives while updates are blocked")
+    data.mark_cache_stale()
+    for i in range(data.rowCount()):
+        data.get_row(data.index(i, 0))
+    data.begin_blocking()
+    try:
+        forest.actions.answer_column.show(browser, {}, "Blocked", browser.current_search(), "reviews")
+        section = data.active_column_index(forest.actions.answer_column.KEY)
+        for i in range(data.rowCount()):
+            data.get_cell(data.index(i, section))
+    finally:
+        data.end_blocking()
+    forest.actions.answer_column._session()
+    settle()
+    result["steps"].append("heatmap column arriving while updates are blocked")
     close_browser(browser)
 
 
