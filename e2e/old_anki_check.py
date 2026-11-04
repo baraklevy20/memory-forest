@@ -1401,6 +1401,25 @@ def heatmap_browser_metrics():
     cleanup()
     cleanup()
     result["steps"].append("heatmap browser cleanup twice")
+    # Anki calls a row stale by the clock, and Windows' clock moves every 16 ms or so: a row fetched in the tick the
+    # column arrives still counted as fresh, one cell short of it (one run in several, on CI's Windows only).
+    # The tick is held here, so the check catches it everywhere and every time.
+    note("heatmap browser: the column arrives in one clock tick")
+    data = browser.table._model
+    real_time, tick = time.time, time.time()
+    time.time = lambda: tick
+    try:
+        data.mark_cache_stale()
+        for i in range(data.rowCount()):
+            data.get_row(data.index(i, 0))
+        forest.actions.answer_column.show(browser, {}, "One tick", browser.current_search(), "reviews")
+        section = data.active_column_index(forest.actions.answer_column.KEY)
+        for i in range(data.rowCount()):
+            data.get_cell(data.index(i, section))
+    finally:
+        time.time = real_time
+    forest.actions.answer_column._session()
+    result["steps"].append("heatmap column arriving in one clock tick")
     close_browser(browser)
 
 

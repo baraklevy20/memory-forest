@@ -97,6 +97,15 @@ class AnswerColumnTests(unittest.TestCase):
         self.assertEqual(self.value(10, True), "4.7 s")
         self.assertEqual(self.value(99), "—")
 
+    def test_cached_rows_are_gone_before_the_column_changes(self):
+        """A row cached in the clock tick the column arrives would count as fresh, one cell short."""
+        rows = {1: "a row without the column"}
+        self.model._rows = rows
+        seen = []
+        self.browser.table._on_column_toggled.side_effect = lambda on, key: (seen.append(dict(rows)), setattr(self, "active", 1 if on else None))
+        self.show()
+        self.assertEqual(seen, [{}])
+
     def test_modern_column_sorting_and_tooltips_are_set_when_available(self):
         def modern_column(**kwargs):
             return types.SimpleNamespace(**kwargs, sorting_cards=99, sorting_notes=99,

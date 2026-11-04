@@ -15,6 +15,9 @@ def _toggle_column(table, on: bool) -> None:
     # Anki resets the model when toggling columns, but its menu handler does not
     # restore the cached selection. Keep row indexes valid for editor callbacks.
     table._save_selection()
+    # Anki calls a row stale by the clock, which on Windows moves every 16 ms or so: a row fetched in this
+    # same tick would count as fresh, and be drawn one cell short of the new column (IndexError).
+    table._model._rows.clear()
     try:
         table._on_column_toggled(on, KEY)
     finally:
