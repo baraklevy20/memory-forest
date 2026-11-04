@@ -127,7 +127,10 @@ def mosaic_keys(leave_out=(), day=None, offered=None) -> list:
     none it leaves out (the next it has in their place, and the same again when it has fewer),
     no holiday's out of its week, and with `offered`, only those (the edition's)."""
     known = presets.by_key()
-    has = lambda k: k not in leave_out and (offered is None or k in offered)
+
+    def has(k: str) -> bool:
+        return k not in leave_out and (offered is None or k in offered)
+
     turns = [p.key for p in presets.surprise_turns(day) if has(p.key)]
     shown = [k for k in DAILY_MOSAIC if k in known and has(k)]
     shown += [k for k in turns if k not in shown and os.path.exists(os.path.join(PICTURES, f"{k}.png"))]
