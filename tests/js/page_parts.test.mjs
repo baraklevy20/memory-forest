@@ -205,7 +205,7 @@ test('caption: one tree, a test forest, a deck\'s highlight, live weather and it
   AF.caption(root, { stats, mood: Object.assign({}, mood, { source: 'real', city: 'Oslo', temp: 4.6 }), highlight: true, deckName: 'Lang::German', litCount: 30, deckId: 5, credit: true });
   html = root.made['.af-meta'].innerHTML;
   assert.match(html, />German: 30 of 120 trees</);
-  assert.match(html, />Weather: rain in Oslo, 5°</);
+  assert.match(html, />Weather: rain in \u2066Oslo\u2069, 5°</);
   assert.match(html, /weather by MET Norway/);
   root = fakeRoot();
   AF.caption(root, { stats, mood, weatherError: 'city not found: Atlantis' });

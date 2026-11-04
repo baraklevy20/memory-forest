@@ -18,6 +18,7 @@ import json
 import math
 import os
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -31,6 +32,9 @@ except ImportError:  # tests and dev scripts import this file as a top-level mod
 # Places only, a few of them: Photon files some big cities as districts, which its city
 # layer leaves out (Mexico City, Lima and Auckland came back as other places)
 GEOCODE_URL = "https://photon.komoot.io/api/?limit=6&lang=en&osm_tag=place&q={name}"
+# the place's name where it is, once it is found: lang=default ranks too badly to find it with
+# ("jerusalem" came back in the US, "munich" in Colombia), so this one looks round the place found
+LOCAL_NAME_URL = "https://photon.komoot.io/api/?limit=6&lang=default&osm_tag=place&q={name}&lat={lat}&lon={lon}"
 TOWNS = ("city", "town", "village", "hamlet", "municipality")
 REGIONS = ("state", "province", "county", "region", "country")
 # MET asks for at most 4 decimals, so nearby users share its cache
@@ -50,7 +54,7 @@ def _version() -> str:
 # MET and Photon both ask to be told who is calling, and how to reach them
 VERSION = _version()
 USER_AGENT = f"MemoryForest{'/' + VERSION if VERSION else ''} (Anki add-on; https://github.com/baraklevy20/memory-forest)"
-CACHE_VERSION = 2  # caches from before it have none: they are refetched
+CACHE_VERSION = 3  # caches from before it have none: they are refetched
 # How long a forecast is kept when MET's reply has no Expires we can read. MET's Expires
 # (about 20-30 minutes after each fetch) always rules when it has one.
 MAX_AGE_SECS = 15 * 60
@@ -242,6 +246,39 @@ def _twice(fetch, sleep=time.sleep):
         return fetch()
 
 
+def _fold(text: str) -> str:
+    """For comparing names: case and accents apart ("sao paulo" is São Paulo)."""
+    return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c)).casefold()
+
+
+def _local_name(city: str, found: dict, get) -> str:
+    """The place's own name where it is, or "": only a nicety, never worth failing the weather."""
+    props = found["properties"]
+    lon, lat = found["geometry"]["coordinates"]
+    try:
+        js = get(LOCAL_NAME_URL.format(name=urllib.parse.quote(city.strip()), lat=lat, lon=lon), timeout=GEOCODE_TIMEOUT_SECS).body or {}
+    except Exception:
+        return ""
+    for f in js.get("features") or []:
+        other = f.get("properties") or {}
+        if props.get("osm_id") and (other.get("osm_type"), other.get("osm_id")) == (props.get("osm_type"), props.get("osm_id")):
+            return other.get("name") or ""
+    return ""
+
+
+def shown_name(typed: str, english: str, local: str) -> str:
+    """The city as typed, with its local name after it where that says something new:
+    "Jerusalem (ירושלים)", "ירושלים", "Munich (München)". Only the typed text's capitals and
+    accents are tidied, from the name it matches, the local one first ("sao paulo": São Paulo;
+    "zurich": Zürich, and Zürich never loses its dots to the English name)."""
+    typed = typed.strip()
+    name = next((n for n in (local, english) if n and _fold(n) == _fold(typed)), typed)
+    # (either way round: "Paris, Texas" is in Paris, and 東京 is 東京都)
+    if local and _fold(local) not in _fold(typed) and _fold(typed) not in _fold(local):
+        return f"{name} ({local})"
+    return name
+
+
 def geocode(city: str, get=_get) -> dict | None:
     js = get(GEOCODE_URL.format(name=urllib.parse.quote(city.strip())), timeout=GEOCODE_TIMEOUT_SECS).body or {}
     # a neighbourhood, suburb or island of the same name is not where anyone means
@@ -257,7 +294,8 @@ def geocode(city: str, get=_get) -> dict | None:
                      and (f["properties"].get("name"), f["properties"].get("countrycode")) == key), best)
     props = best["properties"]
     lon, lat = best["geometry"]["coordinates"]
-    return {"name": props.get("name") or city, "lat": lat, "lon": lon, "country": props.get("countrycode")}
+    name = shown_name(city, props.get("name") or "", _local_name(city, best, get))
+    return {"name": name, "lat": lat, "lon": lon, "country": props.get("countrycode")}
 
 
 class CityNotFound(ValueError):

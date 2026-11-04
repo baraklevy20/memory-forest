@@ -13,7 +13,10 @@ const WEATHER_NAMES = { clear: AF.N_('caption.clear_sky'), cloudy: AF.N_('captio
   storm: AF.N_('caption.thunderstorm'), snow: AF.N_('caption.snow'), deep_winter: AF.N_('caption.deep_winter'), after_rain: AF.N_('caption.after_the_rain') };
 // the live weather's line: its name, and the city and temperature where they are known
 function weatherLine(m) {
-  const v = { weather: WEATHER_NAMES[m.weather] ? AF.tx(WEATHER_NAMES[m.weather]) : m.weather, city: m.city, temp: m.temp != null ? Math.round(m.temp) : null };
+  // (the city isolated, in the line's direction: a Hebrew name in an English line pulled the ", 5°"
+  // after it to its left, and "Munich (München)" in a Hebrew line pulled the weather into it)
+  const city = `${AF.i18n.rtl() ? '\u2067' : '\u2066'}${m.city}\u2069`;
+  const v = { weather: WEATHER_NAMES[m.weather] ? AF.tx(WEATHER_NAMES[m.weather]) : m.weather, city, temp: m.temp != null ? Math.round(m.temp) : null };
   if (m.city && v.temp != null) return AF.t('caption.weather_weather_in_city_temp', v);
   if (m.city) return AF.t('caption.weather_weather_in_city', v);
   if (v.temp != null) return AF.t('caption.weather_weather_temp', v);

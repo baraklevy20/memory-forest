@@ -125,7 +125,7 @@ class WeatherTests(unittest.TestCase):
         w = cache.refresh("Berlin", self.network(calls, status=304, expires="Sat, 19 Sep 2026 16:20:00 GMT"), now=later)
         self.assertEqual(w["weather"], "rain")
         self.assertEqual(calls[-1][1], {"If-Modified-Since": "Sat, 19 Sep 2026 15:10:00 GMT"})
-        self.assertEqual(sum("photon" in u for u, _ in calls), 1)  # the place is looked up once
+        self.assertEqual(sum("photon" in u and "lang=en" in u for u, _ in calls), 1)  # the place is looked up once
         self.assertFalse(cache.needs_refresh("Berlin", now=at("2026-09-19T16:10")))  # the new Expires
 
     def test_caches_without_a_version_are_refetched(self):
@@ -148,10 +148,46 @@ class WeatherTests(unittest.TestCase):
         tokyo = weather.geocode("東京", photon(("東京", "JP", "neighbourhood", 36.69, 137.97),
                                               ("Tokyo", "JP", "province", 35.68, 139.76),
                                               ("Tokyo", "PG", "hamlet", -5.8, 142.84)))
-        self.assertEqual((tokyo["name"], tokyo["country"]), ("Tokyo", "JP"))
+        self.assertEqual((tokyo["name"], tokyo["country"]), ("東京", "JP"))
         # a town ranked first is kept, even with a bigger city of the name further down
         paris = weather.geocode("Paris, Texas", photon(("Paris", "US", "town", 33.66, -95.56), ("Paris", "FR", "city", 48.85, 2.35)))
         self.assertEqual(paris["country"], "US")
+
+    def test_the_city_shows_as_typed_with_its_local_name(self):
+        def show(typed, english, local):
+            return weather.shown_name(typed, english, local)
+        self.assertEqual(show("jerusalem", "Jerusalem", "ירושלים"), "Jerusalem (ירושלים)")
+        self.assertEqual(show("ירושלים", "Jerusalem", "ירושלים"), "ירושלים")
+        self.assertEqual(show("  München ", "Munich", "München"), "München")
+        self.assertEqual(show("MÜNCHEN", "Munich", "München"), "München")  # the same name, whatever its case
+        self.assertEqual(show("Zürich", "Zurich", "Zürich"), "Zürich")  # its accents never lost to the English name
+        self.assertEqual(show("zurich", "Zurich", "Zürich"), "Zürich")
+        self.assertEqual(show("LONDON", "London", "London"), "London")
+        self.assertEqual(show("munich", "Munich", "München"), "Munich (München)")
+        self.assertEqual(show("sao paulo", "São Paulo", "São Paulo"), "São Paulo")
+        self.assertEqual(show("Paris, Texas", "Paris", "Paris"), "Paris, Texas")
+        self.assertEqual(show("東京", "Tokyo", "東京都"), "東京")
+        self.assertEqual(show("jerusalem", "Jerusalem", ""), "Jerusalem")
+
+    def test_the_local_name_comes_from_the_place_found(self):
+        def feature(name, osm_id, lat, lon):
+            return {"geometry": {"coordinates": [lon, lat]},
+                    "properties": {"name": name, "countrycode": "IL", "osm_value": "city", "osm_type": "R", "osm_id": osm_id}}
+
+        def photon(url, headers=None, timeout=None):
+            if "lang=default" not in url:
+                return weather.Reply(200, {"features": [feature("Jerusalem", 1, 31.77, 35.22)]}, {})
+            self.assertIn("lat=31.77", url)
+            return weather.Reply(200, {"features": [feature("Jerusalem", 2, 40.0, -73.0), feature("ירושלים", 1, 31.77, 35.22)]}, {})
+        self.assertEqual(weather.geocode("jerusalem", photon)["name"], "Jerusalem (ירושלים)")
+
+        def failing(url, headers=None, timeout=None):
+            if "lang=default" in url:
+                raise OSError("offline")
+            return photon(url)
+        # the second question failing costs the name in brackets, never the weather
+        place = weather.geocode("jerusalem", failing)
+        self.assertEqual((place["name"], place["lat"]), ("Jerusalem", 31.77))
 
     def test_a_blip_is_tried_again_straight_away(self):
         cache, calls = self.cache(), []

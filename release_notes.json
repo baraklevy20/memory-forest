@@ -23,7 +23,8 @@
         "Forests with lots of short breaks are no longer crowded with ponds: about one per 20 trees.",
         "Keeping your earlier trees now keeps their animals and cabin too.",
         "Young trees grow a little each day in their first weeks.",
-        "Ponds look more like water at golden hour."
+        "Ponds look more like water at golden hour.",
+        "The weather line shows your city as you typed it, with its local name in brackets."
       ],
       "fixed": [
         "The heatmap's words stay readable on a background picture, or on an Onigiri page that doesn't match Anki's mode.",
