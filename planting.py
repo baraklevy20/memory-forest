@@ -30,7 +30,7 @@ def on_answer(reviewer, card, ease) -> None:
     if _planted_today == today:  # already shown this session, no need to touch the disk
         return
     try:
-        if mw.col.db.scalar("select count() from revlog where cid = ?", card.id) != 1:
+        if not study_log.first_study(mw.col.db, card.id):
             return
         if (card.odid or card.did) in excluded_decks(cfg) or card.id in phone_cards():  # plants nothing in the forest
             return
@@ -42,7 +42,7 @@ def on_answer(reviewer, card, ease) -> None:
         save_state(state)
         _planted_today = today
         # (nothing from before today: there is no forest yet to have grown)
-        first = not mw.col.db.scalar("select exists (select 1 from revlog where id < ?)", study_log.day_start(study_log.day_date(0, day_cutoff(mw.col)), day_cutoff(mw.col)) * 1000)
+        first = not mw.col.db.scalar(f"select exists (select 1 from revlog where id < ? and {study_log.TREE_ANSWER})", study_log.day_start(study_log.day_date(0, day_cutoff(mw.col)), day_cutoff(mw.col)) * 1000)
         tooltip("🌱 " + t("planting.your_first_tree_was_planted") if first else "🌱 " + t("planting.a_new_tree_was_planted_in"),
                 period=FIRST_TREE_MS if first else PLANTING_TOOLTIP_MS)
     except Exception:

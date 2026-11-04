@@ -17,7 +17,7 @@ from .panel import hold_shortcuts, refresh
 from .phone import publish as publish_for_phone
 from .phone import switch
 from .phone_note import PHONE_NOTETYPE, phone_decks
-from .scope import day_cutoff, excluded_decks
+from .scope import borrowed_from_elsewhere, day_cutoff, excluded_decks
 from .settings import open_settings as open_dialog
 from .state import CALENDAR_SHADES, CALENDAR_VIEWS, MODULE, config, keeps_suspended, log, save_config
 
@@ -98,6 +98,11 @@ def browse_calendar_days(runs: list, did: int | None = None, answer_mode: str = 
     _open_browser([study_log._any_of(terms + due)] if due else terms, did, values, label, mode)
 
 
+def _not_cards(cids: list) -> list:
+    """A search term leaving out these cards, if any."""
+    return ["-cid:" + ",".join(str(int(c)) for c in cids)] if cids else []
+
+
 def _column_label(mode: str, first: str, last: str = "", days: int = 0) -> str:
     """The browser column's heading for the days clicked or picked on the heatmap: "Reviews
     (2026-10-12)", "Reviews (2026-10-01 to 2026-10-05)", or for days apart, "Reviews (3 days,
@@ -130,6 +135,7 @@ def _open_browser(terms: list, did: int | None = None, answer_times: dict | None
     name = mw.col.decks.name_if_exists(did) if did else None
     if name:  # deck names can hold quotes and colons, so let Anki quote it
         terms.insert(0, mw.col.build_search_string(SearchNode(deck=name)))
+        terms += _not_cards(borrowed_from_elsewhere(did))  # (the deck: search finds these, its tiles don't count them)
     # the decks left out of the forest planted none of its trees (a deck: search takes
     # their subdecks with them)
     for out in config().get("excluded_decks") or []:

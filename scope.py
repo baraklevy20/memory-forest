@@ -83,6 +83,27 @@ def counts_since(cfg: dict, cutoff: int) -> int | None:
     return None if begin is None else study_log.days_ago(begin, cutoff)
 
 
+def _filtered_subdecks(did: int) -> tuple:
+    """A deck and its subdecks, and those of them that are filtered decks."""
+    family = mw.col.decks.deck_and_child_ids(did)
+    if len(family) == 1:
+        return family, set()
+    real = {d.id for d in mw.col.decks.all_names_and_ids(include_filtered=False)}
+    return family, {d for d in family if d != did and d not in real}
+
+
 def deck_ids(did: int, excluded: set) -> list:
-    """A deck and its subdecks, less those left out of the forest."""
-    return [d for d in mw.col.decks.deck_and_child_ids(did) if d not in excluded]
+    """A deck and its subdecks, less those left out of the forest and the filtered ones: a card
+    counts for its home deck, not a deck that has it on loan (its home's id finds it there)."""
+    family, filtered = _filtered_subdecks(did)
+    return [d for d in family if d not in excluded and d not in filtered]
+
+
+def borrowed_from_elsewhere(did: int) -> list:
+    """The cards that filtered subdecks of the deck `did` have on loan from outside it: Anki's
+    deck: search finds them under `did`, but they count for their own home decks."""
+    family, filtered = _filtered_subdecks(did)
+    if not filtered:
+        return []
+    inside, lent = ",".join(str(int(d)) for d in family), ",".join(str(int(d)) for d in filtered)
+    return [cid for (cid,) in mw.col.db.all(f"select id from cards where did in ({lent}) and odid not in ({inside}) order by id")]

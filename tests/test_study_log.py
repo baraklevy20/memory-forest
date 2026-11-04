@@ -20,7 +20,7 @@ class DeckFilterTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
             create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck (odid != 0 means a filtered deck borrowed it), day
@@ -77,7 +77,7 @@ class SuspendedTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
             create table notes (id integer, tags text);
         """)
         for cid, queue in ((1, 2), (2, -1)):
@@ -103,7 +103,7 @@ class HistoryFilterTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
             create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck, the days it was reviewed on (first one first)
@@ -191,7 +191,7 @@ class TreeCountTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
             create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck, type, queue (-1 suspended), the days it was reviewed on
@@ -318,20 +318,20 @@ class DayTimeTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer, lastIvl integer default 0);
         """)
         con.execute("insert into cards values (1, 10, 0)")
         for days, ease, rtype, ms_taken in ((3, 3, 1, 40000), (3, 1, 1, 20000), (3, 0, 4, 9000), (1, 3, 0, 5500)):
-            con.execute("insert into revlog values (?, 1, ?, ?, ?)", (ms(days) + ms_taken, ease, rtype, ms_taken))
+            con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, ?, ?, ?)", (ms(days) + ms_taken, ease, rtype, ms_taken))
 
         class DB:
             def all(self, q, *a): return con.execute(q, a).fetchall()
         self.assertEqual(study_log.load_day_time(DB(), CUTOFF, None), {3: 60, 1: 5})
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None), {3: 30, 1: 5.5})
-        con.execute("insert into revlog values (?, 1, 3, 2, 120000)", (ms(3) + 120000,))
+        con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 2, 120000)", (ms(3) + 120000,))
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, [10])[3], 40)
         self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 40000})
-        con.execute("insert into revlog values (?, 1, 3, 1, 1500)", (ms(3) + 130000,))
+        con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, 1500)", (ms(3) + 130000,))
         self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -3), {1: 30000})
         self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -3, "reviews"), {1: 4})
         self.assertEqual(study_log.day_card_totals(DB(), CUTOFF, -3, "time"), {1: 181500})
@@ -340,7 +340,7 @@ class DayTimeTests(unittest.TestCase):
         self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -2), {})
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None, [10]), {})
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None, skip=[1]), {})
-        con.execute("insert into revlog values (?, 1, 3, 1, 0)", (ms(1) + 1,))
+        con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, 0)", (ms(1) + 1,))
         self.assertEqual(study_log.load_day_answer_time(DB(), CUTOFF, None)[1], 2.75)
         self.assertEqual(study_log.day_answer_times(DB(), CUTOFF, -1), {1: 2750})
         # days picked on the heatmap: their answers together, a stretch or days apart; searched by day
@@ -388,8 +388,9 @@ class DayTimeTests(unittest.TestCase):
         con.execute("alter table revlog add column ease integer")
         con.execute("alter table revlog add column type integer")
         con.execute("alter table revlog add column time integer")
-        con.execute("insert into revlog values (?, 1, 3, 1, 4000)", (ms(4),))
-        con.execute("insert into revlog values (?, 1, 3, 1, 6000)", (ms(5),))  # (a day between two picked)
+        con.execute("alter table revlog add column lastIvl integer default 0")
+        con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, 4000)", (ms(4),))
+        con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, 6000)", (ms(5),))  # (a day between two picked)
 
         class DB:
             def all(self, q, *a): return con.execute(q, a).fetchall()
@@ -409,11 +410,11 @@ class DayTimeTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer, lastIvl integer default 0);
         """)
         con.execute("insert into cards values (1, 10, 0)")
         for days, ms_taken in ((3, 4000), (3, 8000), (1, 2000)):
-            con.execute("insert into revlog values (?, 1, 3, 1, ?)", (ms(days) + ms_taken, ms_taken))
+            con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, ?)", (ms(days) + ms_taken, ms_taken))
         reads = []
 
         class DB:
@@ -426,7 +427,7 @@ class DayTimeTests(unittest.TestCase):
         self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 2})
         self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 2})
         self.assertEqual(len(reads), 1)  # (nothing new: nothing read)
-        con.execute("insert into revlog values (?, 1, 3, 1, 6000)", (ms(1) + 9000,))
+        con.execute("insert into revlog (id, cid, ease, type, time) values (?, 1, 3, 1, 6000)", (ms(1) + 9000,))
         self.assertEqual(times.read(DB(), CUTOFF, None), {3: 6, 1: 4})
         self.assertIn(f"id >= {(CUTOFF - 2 * study_log.DAY_SECS) * 1000}", reads[-1])  # (yesterday's on)
         con.execute("delete from revlog where time = 6000")  # (an undo: read whole again)
@@ -527,3 +528,110 @@ class EventQueryTests(unittest.TestCase):
             con.execute("insert into revlog values (?, ?, 3, 1, 25, 12)", (ms(matured), cid))
         # only card 1: card 2 was cured a month ago, 3 was never a leech, 4 has lapsed again since
         self.assertEqual(study_log.load_cured(db, CUTOFF, 7), {41: 1})
+
+
+class PreviewTests(unittest.TestCase):
+    """Answers in a filtered deck that doesn't reschedule, logged as Anki 26.09.3 logs them: type 3
+    with the preview's delay in lastIvl. An early review with rescheduling on is type 3 as well, with
+    the card's interval there."""
+
+    def setUp(self):
+        import sqlite3
+        con = self.con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
+        con.executescript("""
+            create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
+                                due integer, odue integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer, time integer default 0);
+            create table notes (id integer, tags text);
+        """)
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+            def scalar(self, q, *a): return con.execute(q, a).fetchone()[0]
+        self.db = DB()
+
+    def card(self, cid, did=10, odid=0, ctype=2, queue=2, due=0, odue=0):
+        self.con.execute("insert into cards values (?, ?, ?, ?, ?, ?, 30, '{}', ?, ?)", (cid, cid, did, odid, ctype, queue, due, odue))
+        self.con.execute("insert into notes values (?, '')", (cid,))
+
+    def answer(self, cid, days, rtype=1, ivl=30, last=30, at=0):
+        self.con.execute("insert into revlog values (?, ?, 3, ?, ?, ?, 5000)", (ms(days) + at, cid, rtype, ivl, last))
+
+    def preview(self, cid, days, at=0):
+        self.answer(cid, days, 3, 0, -60, at)
+
+    def test_a_preview_is_a_review_on_the_heatmap_and_the_streak(self):
+        self.card(1)
+        self.preview(1, 3)
+        self.answer(1, 2, 3, 40, 30)  # early, rescheduling on
+        self.assertEqual(study_log.load_review_days(self.db, CUTOFF), {2, 3})
+        self.assertEqual(study_log.load_day_reviews(self.db, CUTOFF, None), {2: 1, 3: 1})
+        self.assertEqual(study_log.load_day_time(self.db, CUTOFF, None), {2: 5, 3: 5})
+        self.assertEqual(study_log.days_card_totals(self.db, CUTOFF, [(-3, -3)], "reviews"), {1: 1})
+
+    def test_the_review_log_kept_between_reads_dates_by_the_real_answers_only(self):
+        self.card(1)
+        self.preview(1, 9)
+        log = study_log.ReviewLog()
+        self.answer(1, 2, 0, 1, 0)
+        self.preview(1, 1)
+        rows = study_log.load_rows(self.db, CUTOFF, log=log)
+        for _again in range(2):
+            self.assertEqual(rows.first_last[1], (ms(2), ms(2)))
+            self.assertEqual(rows.day_reviews, {1: 1, 2: 1, 9: 1})
+            rows = study_log.load_rows(self.db, CUTOFF, log=log)
+        self.preview(1, 0)  # (read since: added to what the log kept)
+        rows = study_log.load_rows(self.db, CUTOFF, log=log)
+        self.assertEqual(rows.first_last[1], (ms(2), ms(2)))
+        self.assertEqual(rows.day_reviews[0], 1)
+
+    def test_a_preview_dates_no_tree(self):
+        self.card(1)
+        self.preview(1, 9)
+        self.answer(1, 2, 0, 1, 0)
+        self.assertEqual(study_log.load_tree_days(self.db, CUTOFF), {10: {2: True}})
+        self.assertEqual(study_log.load_deck_days(self.db, CUTOFF, [10]), {2})
+
+    def test_a_preview_leaves_a_card_due_and_its_own_day_is_no_free_day(self):
+        self.card(1, due=TODAY - 10)
+        self.answer(1, 20, 1, 10, 0)
+        self.assertEqual(study_log.load_free_days(self.db, CUTOFF, [10]), [[19, 11]])
+        self.preview(1, 15)
+        # nothing is free after the card fell due, preview or not; the preview's day was studied
+        self.assertEqual(study_log.load_free_days(self.db, CUTOFF, [10]), [[19, 16], [14, 11]])
+
+    def test_only_the_first_answer_that_counts_plants(self):
+        self.card(1, ctype=0, queue=0)
+        self.preview(1, 3)
+        self.assertFalse(study_log.first_study(self.db, 1))
+        self.answer(1, 2, 0, 1, 0)
+        self.assertTrue(study_log.first_study(self.db, 1))
+        self.preview(1, 1)  # still its one real answer, but this one is not it
+        self.assertFalse(study_log.first_study(self.db, 1))
+        self.answer(1, 0, 1, 3, 1)
+        self.assertFalse(study_log.first_study(self.db, 1))
+
+    def test_a_new_card_in_a_filter_is_neither_due_nor_overdue(self):
+        # queue 2, its place among the new cards in odue; in queue 4 after Again
+        self.card(1, did=30, odid=10, ctype=0, queue=2, due=-100000, odue=80)
+        self.card(2, did=30, odid=10, ctype=0, queue=4, due=99, odue=81)
+        self.assertEqual(study_log.load_backlog(self.db, TODAY, CUTOFF, 30)[0], 0)
+        self.assertEqual(study_log.load_due(self.db, TODAY, 5), [0] * 5)
+        self.assertEqual(study_log.calendar_search(self.db, 0, TODAY, True)[0], "is:due -deck:filtered")
+        self.assertTrue(study_log.has_new_cards(self.db))
+
+    def test_a_review_card_previewed_keeps_its_home_due_day(self):
+        self.card(1, did=30, odid=10, queue=2, due=-100000, odue=TODAY - 2)
+        self.card(2, did=30, odid=10, queue=4, due=99, odue=TODAY - 1)  # answered Again in the preview
+        self.card(3, did=30, odid=10, queue=4, due=99, odue=TODAY + 2)
+        self.card(4, did=30, odid=10, ctype=1, queue=2, due=-99999, odue=2_000_000_000)  # a learning step
+        self.assertEqual(study_log.load_backlog(self.db, TODAY, CUTOFF, 30)[0], 2)
+        self.assertEqual(study_log.load_due(self.db, TODAY, 4), [3, 0, 1, 0])
+        self.assertEqual(study_log.calendar_search(self.db, 2, TODAY), ["(prop:due=2 OR cid:3)"])
+        self.assertEqual(study_log.calendar_search(self.db, 0, TODAY, True)[0], "((is:due -deck:filtered) OR cid:1,2,4)")
+
+    def test_a_day_ahead_leaves_out_a_new_card_whose_place_reads_as_that_day(self):
+        self.card(1, did=30, odid=10, ctype=0, queue=2, due=-100000, odue=TODAY + 5)
+        self.assertEqual(study_log.load_due(self.db, TODAY, 6)[5], 0)
+        self.assertEqual(study_log.calendar_search(self.db, 5, TODAY), ["prop:due=5", "-cid:1"])

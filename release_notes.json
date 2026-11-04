@@ -27,7 +27,8 @@
       ],
       "fixed": [
         "The heatmap's words stay readable on a background picture, or on an Onigiri page that doesn't match Anki's mode.",
-        "Right-to-left fixes in the settings for Hebrew and Arabic."
+        "Right-to-left fixes in the settings for Hebrew and Arabic.",
+        "Filtered decks: previewing a card no longer plants a tree, and new cards in a filter that doesn't reschedule no longer show as overdue."
       ]
     },
     {
