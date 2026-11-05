@@ -55,7 +55,7 @@ RESULTS = os.path.join(tempfile.gettempdir(), "memory-forest-old-anki")  # scree
 # what a release is checked in: the oldest Anki it claims (manifest.json's
 # min_point_version), the oldest with Qt6 (PyQt6 and a new build), the Qt5 build a report
 # came from (the oldest web view since 2.1.50), and the newest
-RELEASE_ANKIS = ("2.1.45", "2.1.50", "2.1.54-qt5", "26.09.3")
+RELEASE_ANKIS = ("2.1.45", "2.1.50", "2.1.54-qt5", "26.09.4")
 DEFAULT_ANKI = "2.1.45"
 SKIP = shutil.ignore_patterns("meta.json", "user_files", "__pycache__", "node_modules", "dist", "*.ankiaddon", ".*")
 CHECK_ADDON = "0_memory_forest_check"  # Anki loads add-ons in folder order: this one first

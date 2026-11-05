@@ -32,8 +32,6 @@ MAC_ANKIS = {
     "2.1.54-qt5": "2.1.54/anki-2.1.54-mac-intel-qt5.dmg",
     "2.1.66-qt5": "2.1.66/anki-2.1.66-mac-intel-qt5.dmg",
     "26.09.4": "26.09.4/anki-26.09.4-mac-apple.dmg",
-    "26.09.3": "26.09.3/anki-26.09.3-mac-apple.dmg",
-    "26.09.2": "26.09.2/anki-26.09.2-mac-apple.dmg",
 }
 # and the Windows one
 WINDOWS_ANKIS = {
@@ -45,7 +43,6 @@ WINDOWS_ANKIS = {
     "2.1.54-qt5": "2.1.54/anki-2.1.54-windows-qt5.exe",
     "2.1.66-qt5": "2.1.66/anki-2.1.66-windows-qt5.exe",
     "26.09.4": "26.09.4/anki-26.09.4-win-x64.msi",
-    "26.09.3": "26.09.3/anki-26.09.3-win-x64.msi",
 }
 WINDOWS = os.name == "nt"
 ANKIS = WINDOWS_ANKIS if WINDOWS else MAC_ANKIS
