@@ -108,7 +108,8 @@ class PanelTests(unittest.TestCase):
         self.assertIsNone(data["calendar"])
 
     def test_the_study_calendar_moves_to_its_own_onigiri_tile_once_that_is_placed(self):
-        content = lambda: types.SimpleNamespace(stats="")
+        def content():
+            return types.SimpleNamespace(stats="")
         for placed, split in (((), False), (("on_deck_browser",), False), (("on_deck_browser", "on_deck_browser_calendar"), True),
                               (("on_deck_browser_calendar",), True)):
             with self.subTest(placed=placed), onigiri_grid(*placed):

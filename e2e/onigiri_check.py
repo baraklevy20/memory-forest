@@ -73,7 +73,9 @@ def page(htmls: list) -> str:
     """An Onigiri deck list: the tiles in its grid, on Anki's dark page, with Onigiri's wrapper on
     canvas.getContext (its WebGL tracker) in place before anything else."""
     w = SPAN * COL_W + (SPAN - 1) * GAP
-    size = lambda rows: (rows * ROW_H + (rows - 1) * GAP)
+
+    def size(rows: int) -> int:
+        return rows * ROW_H + (rows - 1) * GAP
     rows = SPLIT_ROWS if len(htmls) > 1 else SPAN
     tiles = f'<div class="external-widget-container" id="tile" style="grid-area: 1 / 1 / span {rows} / span {SPAN}; width: {w}px; height: {size(rows)}px">{htmls[0]}</div>'
     if len(htmls) > 1:
