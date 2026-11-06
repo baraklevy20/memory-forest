@@ -10,6 +10,7 @@ import traceback
 from aqt import mw
 from aqt.qt import QShortcut
 
+from . import onigiri
 from .catalog import core_scripts, draft_scripts, scenery_files
 from .payload import payload
 from .scope import excluded_decks
@@ -21,6 +22,8 @@ BOOT = "forest.js"  # mounts straight away, so it goes last of all
 # the panel and its data are named after this add-on's folder, so a second copy of it
 # (the public edition installed beside this one) draws its own forest, not over this one
 ROOT = f"memory-forest-{MODULE}"
+# the study calendar in a tile of its own on Onigiri's grid (on_deck_browser_calendar)
+CALENDAR_ROOT = ROOT + "-calendar"
 
 
 def _url(rel: str) -> str:
@@ -60,9 +63,13 @@ def _deck_panel(deck: dict) -> tuple | None:
     return deck["id"], mode != "own", forest
 
 
-def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> tuple:
-    """(element id, data as JSON, scripts before the boot script) for one forest panel."""
+def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: bool = True,
+                 show_calendar: bool = True, root: str = ROOT) -> tuple:
+    """(element id, data as JSON, scripts before the boot script) for one forest panel; without
+    its study calendar when that has a tile of its own (_split)."""
     info = payload(did, highlight, show_forest)
+    if not show_calendar:
+        info = dict(info, calendar=None)
     mood = info["mood"]
     data = json.dumps(info, ensure_ascii=False).replace("</", "<\\/")
     # only the pieces this scene actually needs are loaded, and each lives in one file of its own
@@ -71,11 +78,12 @@ def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: b
     srcs = ([_url(s) for s in core_scripts() + draft_scripts()] + [_url(rel) for rel in scenery_files(mood)]
             + [_url(rel) for rel in look.get("files") or [] if rel not in scenery_files(mood)] + [_url(BOOT)])
     srcs.pop()  # the boot script: the page adds it last, and a swap has no need of it
-    return ROOT, data, srcs
+    return root, data, srcs
 
 
-def _panel_html(did: int | None = None, highlight: bool = False, show_forest: bool = True) -> str:
-    root, data, srcs = _panel_parts(did, highlight, show_forest)
+def _panel_html(did: int | None = None, highlight: bool = False, show_forest: bool = True,
+                show_calendar: bool = True, root: str = ROOT) -> str:
+    root, data, srcs = _panel_parts(did, highlight, show_forest, show_calendar, root)
     boot = _url(BOOT)
     return (
         f'<link rel="stylesheet" href="{_url("forest.css")}">'
@@ -87,19 +95,53 @@ def _panel_html(did: int | None = None, highlight: bool = False, show_forest: bo
 
 
 def on_deck_browser(deck_browser, content) -> None:
-    """The panel under the deck list. The add-on's only callback on this hook, and its name is
-    kept: Onigiri, which draws the deck list as a grid of widgets, lists each callback there as a
-    widget named after the add-on and keeps a placed one by its module and name."""
+    """The panel under the deck list. Its name is kept: Onigiri, which draws the deck list as a
+    grid of widgets, lists each callback there as a widget named after the add-on and keeps a
+    placed one by its module and name. There it is the forest's tile, with the study calendar
+    under it until the calendar's own tile is on the grid too (on_deck_browser_calendar)."""
     release_shortcuts()  # (first: a mark being named is gone with the page, whatever fails below)
     shows = _main_panel()
     if shows is None:  # both switched off: only the deck screens have one
         return
+    split = _split()
+    if split and not shows[0]:  # (the calendar alone, in its own tile: this one is left out)
+        return
     try:
         # content.tree renders inside a <table>, so a block there would be hoisted above
         # the decks; the start of the stats section sits directly below the deck list.
-        content.stats = _panel_html(show_forest=shows[0]) + content.stats
+        content.stats = _panel_html(show_forest=shows[0], show_calendar=not split) + content.stats
     except Exception:
         log("could not render the forest:\n" + traceback.format_exc())
+
+
+def on_deck_browser_calendar(deck_browser, content) -> None:
+    """The study calendar's own tile on Onigiri's grid, Memory Forest Heatmap there
+    (CALENDAR_TILE). Once on the grid it draws the calendar, and the forest's tile no longer
+    does; until then, and on Anki's own deck list, it adds nothing."""
+    if not _split():
+        return
+    shows = _main_panel()
+    if shows is None or not shows[1]:
+        return
+    try:
+        content.stats = _panel_html(show_forest=False, root=CALENDAR_ROOT) + content.stats
+    except Exception:
+        log("could not render the study calendar:\n" + traceback.format_exc())
+
+
+# Onigiri names a widget after the first part of its callback's module, which Anki takes for an
+# add-on's folder: a folder of this name has none, so Anki names it by the folder, and the gallery
+# lists the calendar's tile under a name of its own, beside Memory Forest, rather than as a second
+# Memory Forest (offered only once the first was placed). The name is kept: a placed tile is kept
+# by it ("<module>.<name>"). (no " - " in it: Onigiri's gallery takes a name up to one as the
+# add-on's, and offers one of each.) Only Onigiri reads it; the callback is still this module's
+CALENDAR_TILE = "Memory Forest Heatmap"
+on_deck_browser_calendar.__module__ = CALENDAR_TILE
+
+
+def _split() -> bool:
+    """Whether the study calendar has a tile of its own on Onigiri's grid."""
+    return onigiri.is_placed(on_deck_browser_calendar)
 
 
 def on_overview(overview, content) -> None:
@@ -198,12 +240,16 @@ def refresh() -> None:
         return
     release_shortcuts()  # (the swap takes a mark being named away without a word from the page)
     if mw.state == "deckBrowser":
-        shows = _main_panel()
-        if shows is not None:
-            _swap_or_reload(mw.deckBrowser.web, mw.deckBrowser.refresh, show_forest=shows[0])
+        shows, web = _main_panel(), mw.deckBrowser.web
+        if shows is not None and _split():
+            # Onigiri's two tiles, each swapped on its own; one that should now be there, or gone,
+            # draws the list again
+            _swap_tiles(web, shows)
+        elif shows is not None:
+            _swap_or_reload(web, mw.deckBrowser.refresh, show_forest=shows[0])
         else:  # a forest just switched off is still on the page: draw the list again without it
-            js = f"!!document.getElementById({json.dumps(ROOT)})"
-            mw.deckBrowser.web.evalWithCallback(js, lambda there: mw.deckBrowser.refresh() if there else None)
+            js = f"!!(document.getElementById({json.dumps(ROOT)}) || document.getElementById({json.dumps(CALENDAR_ROOT)}))"
+            web.evalWithCallback(js, lambda there: mw.deckBrowser.refresh() if there else None)
     elif mw.state == "overview":
         shows = _deck_panel(mw.col.decks.current())
         web = mw.overview.web
@@ -221,9 +267,29 @@ def refresh() -> None:
             web.evalWithCallback(js, lambda there: mw.overview.refresh() if there else None)
 
 
-def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False, show_forest: bool = True) -> None:
+def _swap_tiles(web, shows: tuple) -> None:
+    """The deck list's forest and study calendar in Onigiri's tiles of their own (_split), each
+    swapped in place; the list drawn again when one should come or go."""
+    reload = mw.deckBrowser.refresh
+    want = {ROOT: shows[0], CALENDAR_ROOT: shows[1]}
+    js = f"[{json.dumps(ROOT)}, {json.dumps(CALENDAR_ROOT)}].map(id => !!document.getElementById(id))"
+
+    def swap(there) -> None:
+        if not isinstance(there, list) or [bool(t) for t in there] != list(want.values()):
+            reload()
+            return
+        if shows[0]:
+            _swap_or_reload(web, reload, show_forest=True, show_calendar=False)
+        if shows[1]:
+            _swap_or_reload(web, reload, show_forest=False, root=CALENDAR_ROOT)
+
+    web.evalWithCallback(js, swap)
+
+
+def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False, show_forest: bool = True,
+                    show_calendar: bool = True, root: str = ROOT) -> None:
     try:
-        root, data, srcs = _panel_parts(did, highlight, show_forest)
+        root, data, srcs = _panel_parts(did, highlight, show_forest, show_calendar, root)
     except Exception:
         log("could not rebuild the forest:\n" + traceback.format_exc())
         return

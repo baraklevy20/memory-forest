@@ -17,7 +17,8 @@
               "layout"
             ]
           }
-        }
+        },
+        "With Onigiri, the heatmap can have a tile of its own: add Memory Forest Heatmap beside Memory Forest."
       ],
       "improved": [
         "Forests with lots of short breaks are no longer crowded with ponds: about one per 20 trees.",

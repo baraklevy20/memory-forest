@@ -35,8 +35,14 @@ class NoModels:
 
 def ours(hook) -> list:
     """The callbacks this copy of the add-on put on `hook`, in the order Anki calls them (the
-    hook may also hold other copies', loaded by other tests)."""
-    return [cb for cb in list.__iter__(hook) if (getattr(cb, "__module__", "") or "").startswith(PACKAGE)]
+    hook may also hold other copies', loaded by other tests). By the module each is in: the study
+    calendar's tile goes by another name for Onigiri (panel.CALENDAR_TILE)."""
+    return [cb for cb in list.__iter__(hook) if home(cb).startswith(PACKAGE)]
+
+
+def home(cb) -> str:
+    """The module a callback is defined in, whatever its __module__ says."""
+    return (getattr(cb, "__globals__", None) or {}).get("__name__") or getattr(cb, "__module__", "") or ""
 
 
 class FakeHooksBehaveLikeAnkisTests(unittest.TestCase):
@@ -78,7 +84,7 @@ class RegistrationTests(unittest.TestCase):
 
     def test_every_hook_has_exactly_the_add_ons_callbacks_in_order(self):
         expected = {
-            "deck_browser_will_render_content": [panel.on_deck_browser],
+            "deck_browser_will_render_content": [panel.on_deck_browser, panel.on_deck_browser_calendar],
             "overview_will_render_content": [panel.on_overview],
             # (Layout's Background: Anki's bars tinted again as they are redrawn, and not off its screens)
             "state_did_change": [panel.release_shortcuts, addon.bars.on_state_change],
@@ -109,14 +115,17 @@ class RegistrationTests(unittest.TestCase):
                 hook(object(), content)
                 release.assert_called_once_with()
 
-    def test_onigiri_finds_one_memory_forest_widget_and_it_draws_the_panel(self):
+    def test_onigiri_finds_the_forest_widget_first_and_it_draws_the_panel(self):
         # Onigiri (AnkiWeb 1011095603) lists every deck list callback as a widget named after
-        # the add-on, keeps a placed one as "<module>.<name>", offers only the first of an add-on's
-        # in its gallery, and hands it an object with nothing but `stats` (1.3.0's blank tile)
+        # the first part of its module, keeps a placed one as "<module>.<name>", offers one of a
+        # name at a time in its gallery, and hands it an object with nothing but `stats` (1.3.0's
+        # blank tile). The second is the study calendar's own tile, under a name of its own, which
+        # draws nothing until it is placed
         reset(CARDS)
         mw.col.models = NoModels()
         on = ours(hooks.deck_browser_will_render_content)
-        self.assertEqual([f"{cb.__module__}.{cb.__name__}" for cb in on], [f"{PACKAGE}.panel.on_deck_browser"])
+        self.assertEqual([f"{cb.__module__}.{cb.__name__}" for cb in on],
+                         [f"{PACKAGE}.panel.on_deck_browser", "Memory Forest Heatmap.on_deck_browser_calendar"])
 
         class OnigiriContent:
             stats = ""
@@ -129,6 +138,10 @@ class RegistrationTests(unittest.TestCase):
         self.assertTrue(data["showForest"])
         self.assertTrue(data["trees"])
         self.assertTrue(data["calendar"] and data["calendar"]["days"])
+        # the study calendar's own tile, not placed: nothing (Onigiri never draws it till then)
+        content = OnigiriContent()
+        on[1](object(), content)
+        self.assertEqual(content.stats, "")
 
     def test_the_config_button_opens_the_settings_and_an_edited_config_redraws(self):
         self.assertIs(mw.addonManager.config_actions[PACKAGE], actions.open_settings)

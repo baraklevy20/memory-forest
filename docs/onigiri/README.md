@@ -20,28 +20,33 @@ Settings opens on **Main Menu → Organize Widgets**. Click **+ Add Widget**.
 
 ![Organize Widgets, with the Add Widget button](02-settings-organize-widgets.png)
 
-## 3. Add Memory Forest
+## 3. Add Memory Forest and its heatmap
 
-Scroll to **External Add-ons** at the bottom of the list and click **Memory Forest**.
+Scroll to **External Add-ons** at the bottom of the list. Memory Forest has two tiles there:
+**Memory Forest** for the forest, and **Memory Forest Heatmap** for the study heatmap.
+Click **Memory Forest**. The list closes, so click **+ Add Widget** again and click
+**Memory Forest Heatmap**.
 
-![The Add Widget list, with Memory Forest under External Add-ons](03-add-widget-gallery.png)
+![The Add Widget list, with Memory Forest and Memory Forest Heatmap under External Add-ons](03-add-widget-gallery.png)
 
-## 4. Make the tile bigger
+## 4. Make the tiles bigger
 
-Memory Forest is now on the grid, at the bottom, as a small tile one column wide.
-Right-click the tile.
+Both tiles are now on the grid, at the bottom, each one column wide.
 
-![The new Memory Forest tile](04-forest-tile-added.png)
+![The two new tiles](04-forest-tile-added.png)
 
-Use the **+** buttons to set **Columns** to the full width of your grid (4 by default)
-and **Rows** to 4. A narrow tile shows a very small forest, and a lower one cuts off the
-study heatmap under it.
+Right-click the Memory Forest tile and use the **+** buttons to set **Columns** to the full
+width of your grid (4 by default) and **Rows** to 3. A narrow tile shows a very small forest.
+Then set the Memory Forest Heatmap tile to the same **Columns**, and **Rows** to 2.
 
 ![The tile's menu, with Columns and Rows](05-tile-menu-resize.png)
 
-The tile now spans the whole grid. You can drag it to another place if you like.
+The tiles now span the whole grid. You can drag them to other places if you like.
 
-![The resized tile](06-forest-tile-resized.png)
+![The resized tiles](06-forest-tile-resized.png)
+
+You can also skip the heatmap's tile: the heatmap then stays in the forest's tile, under the
+forest. That tile needs **Rows** 4, or the heatmap is cut off.
 
 ## 5. Click Done
 
@@ -51,9 +56,11 @@ Changes are saved straight away. Click **Done** to close the settings.
 
 ## That's it
 
-The forest is back on the deck list, inside Onigiri's grid, and grows as usual.
+The forest and its heatmap are back on the deck list, inside Onigiri's grid, and grow as usual.
 
 ![The forest in Onigiri's deck list](08-forest-on-onigiri.png)
+
+To put the heatmap back under the forest, remove the Memory Forest Heatmap tile.
 
 ## On a deck's own screen
 
@@ -66,5 +73,5 @@ under Study Now. Click it to show the forest. Click **Click to hide** to put it 
 
 ## Notes
 
-- 4 rows is the most a tile can have. If the bottom is still cut off, raise Onigiri's
-  **Widget Height** at the top of Organize Widgets, which makes every row taller.
+- 4 rows is the most a tile can have. If the bottom of a tile is still cut off, raise
+  Onigiri's **Widget Height** at the top of Organize Widgets, which makes every row taller.

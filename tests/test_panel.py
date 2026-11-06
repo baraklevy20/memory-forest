@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
+import sys
 import types
 import unittest
 from unittest import mock
@@ -22,6 +24,30 @@ NO_DECKS = {"deck_forest_mode": "off", "calendar_decks": False}
 def shown(html: str) -> dict:
     """The data a panel's HTML carries."""
     return json.loads(re.search(r'-data">(.*?)</script>', html, re.S).group(1))
+
+
+@contextlib.contextmanager
+def onigiri_grid(*names):
+    """Onigiri running, with these of the panel's callbacks placed on its grid, as Onigiri names them (its settings
+    module as Onigiri 2.0.2 has it: core/config.py)."""
+    module = types.ModuleType("onigiri_test.core.config")
+    grid = {f"{getattr(panel, n).__module__}.{n}": {"grid_position": 0, "row_span": 4, "column_span": 4} for n in names}
+    module.get_config_readonly = lambda: {"externalWidgetLayout": {"grid": grid, "archive": {}}}
+    module._place_external_widgets = lambda *a: None
+    with mock.patch.dict(sys.modules, {module.__name__: module}):
+        yield
+
+
+class TilesWeb(Web):
+    """A deck list in Onigiri: which of the panel's two tiles the page has."""
+
+    def __init__(self, there):
+        super().__init__()
+        self.there = there
+
+    def evalWithCallback(self, js, callback):
+        self.evaluated.append(js)
+        callback(self.there if js.startswith("[") else True)
 
 
 class PanelTests(unittest.TestCase):
@@ -80,6 +106,65 @@ class PanelTests(unittest.TestCase):
         data = shown(content.stats)
         self.assertTrue(data["showForest"])
         self.assertIsNone(data["calendar"])
+
+    def test_the_study_calendar_moves_to_its_own_onigiri_tile_once_that_is_placed(self):
+        content = lambda: types.SimpleNamespace(stats="")
+        for placed, split in (((), False), (("on_deck_browser",), False), (("on_deck_browser", "on_deck_browser_calendar"), True),
+                              (("on_deck_browser_calendar",), True)):
+            with self.subTest(placed=placed), onigiri_grid(*placed):
+                forest, cal = content(), content()
+                panel.on_deck_browser(None, forest)
+                panel.on_deck_browser_calendar(None, cal)
+                self.assertIn(f'id="{panel.ROOT}"', forest.stats)
+                self.assertTrue(shown(forest.stats)["showForest"])
+                # until it is placed the calendar stays under the forest, and its tile draws nothing
+                self.assertEqual(shown(forest.stats)["calendar"] is None, split)
+                if not split:
+                    self.assertEqual(cal.stats, "")
+                    continue
+                self.assertIn(f'id="{panel.CALENDAR_ROOT}"', cal.stats)
+                self.assertNotIn(f'id="{panel.ROOT}"', cal.stats)
+                self.assertFalse(shown(cal.stats)["showForest"])
+                self.assertIsNotNone(shown(cal.stats)["calendar"])
+
+    def test_the_split_tiles_follow_the_deck_list_settings(self):
+        with onigiri_grid("on_deck_browser", "on_deck_browser_calendar"):
+            for cfg, forest_tile, cal_tile in (({"main_forest": False}, False, True), ({"calendar_main": False}, True, False),
+                                               (NO_MAIN, False, False)):
+                reset(CARDS, cfg)
+                forest, cal = types.SimpleNamespace(stats=""), types.SimpleNamespace(stats="")
+                panel.on_deck_browser(None, forest)
+                panel.on_deck_browser_calendar(None, cal)
+                # (an empty one Onigiri leaves out)
+                self.assertEqual((bool(forest.stats), bool(cal.stats)), (forest_tile, cal_tile), cfg)
+
+    def test_onigiri_s_settings_that_cannot_be_read_keep_the_one_tile(self):
+        broken = types.ModuleType("onigiri_test.core.config")
+        broken.get_config_readonly = lambda: (_ for _ in ()).throw(RuntimeError("no settings"))
+        broken._place_external_widgets = lambda *a: None
+        with mock.patch.dict(sys.modules, {broken.__name__: broken}):
+            self.assertEqual(addon.onigiri.placed(), set())
+            content = types.SimpleNamespace(stats="")
+            panel.on_deck_browser(None, content)
+            self.assertIsNotNone(shown(content.stats)["calendar"])
+
+    def test_a_redraw_swaps_both_onigiri_tiles_in_place(self):
+        with onigiri_grid("on_deck_browser", "on_deck_browser_calendar"):
+            web = TilesWeb([True, True])
+            mw.deckBrowser = types.SimpleNamespace(web=web, refresh=lambda: setattr(web, "reloads", web.reloads + 1))
+            panel.refresh()
+            self.assertEqual(web.reloads, 0)
+            swaps = [js for js in web.evaluated if "afSwap(" in js]
+            self.assertEqual(len(swaps), 2)
+            self.assertIn(f"getElementById({json.dumps(panel.ROOT)})", swaps[0])
+            self.assertIn('"calendar": null', swaps[0])
+            self.assertIn(f"getElementById({json.dumps(panel.CALENDAR_ROOT)})", swaps[1])
+            # a tile still to come (the calendar just placed, its page not yet drawn): the list again
+            web = TilesWeb([True, False])
+            mw.deckBrowser = types.SimpleNamespace(web=web, refresh=lambda: setattr(web, "reloads", web.reloads + 1))
+            panel.refresh()
+            self.assertEqual(web.reloads, 1)
+            self.assertFalse([js for js in web.evaluated if "afSwap(" in js])
 
     def test_switching_the_deck_list_forest_off_takes_it_away_at_once(self):
         reset(CARDS, NO_MAIN)
