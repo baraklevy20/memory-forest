@@ -62,9 +62,10 @@ AF.engines.pixel = {
       steps.push(lg => { lg.save(); lg.globalAlpha = env.deepAlpha; deepForest(env, lg); lg.restore(); });
     }
     const kept = keptSprites(env);
-    let nextFog = th.fog ? FOG_VEIL_FROM : Infinity;
+    let nextFog = th.fog ? FOG_VEIL_FROM : Infinity, veils = 0;
     for (const p of env.placed) {
-      if (th.fog && p.it.depth >= nextFog && nextFog < FOG_VEIL_TO) { steps.push(lg => fogVeil(lg, W, H, p.y, th.fog, th.fogAmt || FOG_VEIL_AMT)); nextFog += FOG_VEIL_STEP; }
+      if (th.fog && p.it.depth >= nextFog && nextFog < FOG_VEIL_TO) { steps.push(lg => fogVeil(lg, W, H, p.y, th.fog, th.fogAmt || FOG_VEIL_AMT)); nextFog += FOG_VEIL_STEP; veils++; }
+      p.veilsBefore = veils;  // (the veils after it, which fog it too, are counted once all are: AF.events.birdColor)
       if (p.it.pond) { steps.push(lg => AF.drawPond(lg, env, p)); continue; }
       steps.push(lg => {
         const { h, hzq } = sizeOf(p, env), got = kept && kept.get(p);
@@ -82,6 +83,7 @@ AF.engines.pixel = {
         if (env.afterItem) env.afterItem(lg, p);
       });
     }
+    env.fogVeils = { n: veils, amt: th.fogAmt || FOG_VEIL_AMT };
     return steps;
   },
   post(env) {

@@ -252,5 +252,5 @@ AF.spriteCache = function () {
   return { find, near, make, clear, get size() { return kept.size; } };
 };
 
-AF.pixel = { PXT, SNOW_L, H6, sprite, sizeOf, HAZE_STEPS };
+AF.pixel = { PXT, SNOW_L, H6, sprite, sizeOf, HAZE_STEPS, FADED_HZQ };
 })();

@@ -30,7 +30,8 @@
         "The heatmap's words stay readable on a background picture, or on an Onigiri page that doesn't match Anki's mode.",
         "Right-to-left fixes in the settings for Hebrew and Arabic.",
         "Filtered decks: previewing a card no longer plants a tree, and new cards in a filter that doesn't reschedule no longer show as overdue.",
-        "Clicking a heatmap day no longer sometimes shows an error when the browser opens."
+        "Clicking a heatmap day no longer sometimes shows an error when the browser opens.",
+        "Crows and robins on far trees fade into the fog with their tree instead of floating in front of it."
       ]
     },
     {

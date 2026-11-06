@@ -63,6 +63,31 @@ AF.events.crownTop = (env, p, x) => {
   const top = cx >= 0 && cx < spr.tops.length ? spr.tops[cx] : null;
   return top === null ? null : y0 + top;
 };
+/* A bird's colours as its tree's are: tinted, hazed with distance (or faded out, on a deck
+ * screen) and veiled by the fog in front of it, as trees.js and the engine's fog veils do. A bird
+ * painted in its own colours on a far tree in fog stood out like something floating there.
+ * BIRD_FADE of the tree's fading: all of it lost a far crow in fog entirely, and a crow is news
+ * (a leech). Worked out once a scene per tree and colour: the birds are drawn every frame. */
+const BIRD_FADE = 0.6;
+const birdColors = new WeakMap();  // placed tree -> colour -> 'rgb(...)'
+AF.events.birdColor = (env, p) => {
+  let seen = birdColors.get(p);
+  if (!seen) birdColors.set(p, seen = new Map());
+  return col => {
+    let out = seen.get(col);
+    if (out !== undefined) return out;
+    const th = env.theme, pxl = AF.pixel || {}, { hex, mix, rgb } = AF.u;
+    const hzq = pxl.sizeOf ? pxl.sizeOf(p, env).hzq : 0, haze = hex(th.haze);
+    let c = hex(col);
+    if (th.tint) c = mix(c, hex(th.tint), th.tintAmt);
+    if (hzq >= (pxl.FADED_HZQ || Infinity)) { const l = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11; c = mix(c, mix(mix([l, l, l], [142, 152, 168], 0.45), haze, 0.2), BIRD_FADE); }
+    else if (hzq) c = mix(c, haze, BIRD_FADE * hzq * th.hzStep);
+    const fog = env.fogVeils, after = fog && th.fog ? fog.n - (p.veilsBefore || 0) : 0;
+    if (after > 0) c = mix(c, hex(th.fog), BIRD_FADE * (1 - Math.pow(1 - fog.amt, after)));
+    seen.set(col, out = rgb(c));
+    return out;
+  };
+};
 /* where a bird with its feet at column x stands: on the crown there, or, past its edge, as
  * near there as the crown reaches; `fallback` when the crown can't be read */
 AF.events.perch = (env, p, x, fallback) => {

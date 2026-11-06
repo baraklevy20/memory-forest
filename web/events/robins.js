@@ -17,7 +17,7 @@ AF.events.add('robins', {
     const own = AF.envOf(env).birdSprite, S = (own && own('robin', env)) || { rows: ROBIN, pal: ROBIN_PAL, ox: 0, oy: 0 };
     for (const p of env.placed) {
       if (p.it.pond || !p.it.cured) continue;
-      const h = AF.STAGE_H[p.it.stage] * env.u * p.s, crows = Math.min(3, p.it.leeches || 0);
+      const h = AF.STAGE_H[p.it.stage] * env.u * p.s, crows = Math.min(3, p.it.leeches || 0), col = AF.events.birdColor(env, p);
       // now and then it hops, or turns to look the other way
       const hop = !env.still && noise(p.it.seed + 7, Math.floor(t * 1.6)) < 0.12 ? 1 : 0;
       const flip = !env.still && noise(p.it.seed + 9, Math.floor(t / 3.5)) < 0.35;
@@ -26,7 +26,7 @@ AF.events.add('robins', {
       const at = perch(env, p, Math.round(p.x) - (crows ? 10 : 0), Math.round(p.y - h + 1));
       const w = S.rows[0].length, x = at.x - (flip ? w - 1 - (5 + S.ox) : 5 + S.ox), y = at.y - S.rows.length + 1 - hop;  // its leg stays put when it turns
       // up close (a visit) it is as much bigger as its tree, perched where it was
-      AF.scaledAt(g, AF.visitK(p), at.x, at.y, () => S.rows.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy, S.pal[ch]); } }));
+      AF.scaledAt(g, AF.visitK(p), at.x, at.y, () => S.rows.forEach((row, yy) => { for (let xx = 0; xx < row.length; xx++) { const ch = row[xx]; if (ch !== '.') px(g, x + (flip ? row.length - 1 - xx : xx), y + yy, col(S.pal[ch])); } }));
     }
   },
 });
