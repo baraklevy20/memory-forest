@@ -32,7 +32,7 @@ from phone_check import CALENDAR_FILES, CHROME, phone_changed
 
 # the files the tile goes through: a change to one runs this
 ONIGIRI_FILES = ("__init__.py", "panel.py", "onigiri.py", "payload.py", "web/forest.js", "web/core.js", *CALENDAR_FILES,
-                 "web/forest.css", "e2e/onigiri_check.py", "e2e/onigiri_check.mjs")
+                 "web/forest.css", "e2e/onigiri_check.py", "e2e/onigiri_check.mjs", "e2e/onigiri_swap.mjs")
 # Onigiri 2.0.2's grid: 4 columns of 250 px, rows of 150, 15 apart; Memory Forest with the heatmap in it
 # in 4 x 4, or each in a tile of its own, the forest's 4 x SPLIT_ROWS and the heatmap's 4 x HEAT_ROWS (its how-to)
 COLS, COL_W, ROW_H, GAP, SPAN, SPLIT_ROWS, HEAT_ROWS = 4, 250, 150, 15, 4, 3, 2
@@ -107,6 +107,7 @@ def main() -> int:
     for config in (None, {"layout": "beside", "layout_side": "left"}):
         fails += check(config)
     fails += check(None, split=True)  # (the study calendar in its own tile)
+    fails += swap_check()
     for f in fails:
         print("FAIL", f)
     print("onigiri check: " + ("ok" if not fails else f"{len(fails)} failed"))
@@ -151,6 +152,43 @@ def check(config: dict | None, split: bool = False) -> list:
             fails.append(f"{got['strays']} forest or heatmap in the other's tile")
         fails += [f"error: {e}" for e in got["errors"]]
     return [f + where for f in fails]
+
+
+
+def swap_check() -> list:
+    """A scenery changed in the settings with the study calendar in its own tile: both tiles swapped
+    in place (panel._swap_tiles), the heatmap's colours the new scenery's, as a page drawn afresh has
+    them. Each tile boots a copy of the add-on of its own, and the heatmap's took a scenery the forest's
+    had just loaded for its own copy as there already: it kept the default green (2026-11-07)."""
+    from importlib import import_module
+
+    import fake_anki
+    before, after = {"environment": "natural"}, {"environment": "synthwave"}
+    _names, old = tile_html(before, split=True)
+    _names, fresh = tile_html(after, split=True)  # (and the config left as the swap's data is made)
+    panel = import_module(f"{fake_anki.PACKAGE}.panel")
+    def fix(s: str) -> str:  # (the add-on's files as Anki serves them, from this copy)
+        return s.replace(f"/_addons/{fake_anki.PACKAGE}/", f"file://{ROOT}/")
+    swaps = [{"root": root, "data": json.loads(data), "srcs": [fix(src) for src in srcs]} for root, data, srcs in (
+        panel._panel_parts(show_forest=True, show_calendar=False), panel._panel_parts(show_forest=False, root=panel.CALENDAR_ROOT))]
+    with tempfile.TemporaryDirectory() as tmp:
+        paths = [os.path.join(tmp, n) for n in ("before.html", "swaps.json", "fresh.html")]
+        for path, text in zip(paths, (page(old), json.dumps(swaps), page(fresh))):
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(text)
+        run = subprocess.run(["node", os.path.join(HERE, "onigiri_swap.mjs"), *paths, CHROME], capture_output=True, text=True, cwd=ROOT, timeout=120)
+    if not run.stdout.strip().startswith("{"):
+        return [f"the scenery swap didn't run: {run.stdout + run.stderr}"]
+    got = json.loads(run.stdout)
+    fails = [f"error in the scenery swap: {e}" for e in got["errors"]]
+    if not (got.get("swapped") and got.get("fresh") and got.get("before")):
+        return fails + [f"the heatmap's colours couldn't be read: {got}"]
+    def far(a: list, b: list) -> int:
+        return sum(abs(x - y) for x, y in zip(a, b))
+    if far(got["swapped"], got["fresh"]) > far(got["swapped"], got["before"]):
+        fails.append(f"a scenery changed with the heatmap in its own tile: the heatmap kept the old one's colours "
+                     f"{got['swapped']} (before {got['before']}, the new scenery's {got['fresh']})")
+    return fails
 
 
 if __name__ == "__main__":
