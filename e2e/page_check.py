@@ -80,7 +80,9 @@ def calendar(first: dt.date = FIRST, **more) -> dict:
 # a spy on the page's listeners, before any script: how many 'visibilitychange' listeners the
 # document holds, and how many of each kind (a remount must let go of the forest and heatmap before),
 # and every message sent to Anki
-SPY = """<script>window.__sent = []; window.pycmd = (msg, cb) => { window.__sent.push(msg); };
+SPY = """<script>window.__sent = []; (() => { const pycmd = (msg, cb) => { window.__sent.push(msg); };
+  // (as Anki has it, when a check asks: no pycmd until the page is ready and its channel open, aqt/webview.py)
+  if (window.__latePycmd) setTimeout(() => { window.pycmd = pycmd; }, window.__latePycmd); else window.pycmd = pycmd; })();
 window.__vis = 0; window.__on = {};
 const _add = document.addEventListener.bind(document), _rm = document.removeEventListener.bind(document);
 document.addEventListener = (t, f, o) => { if (t === 'visibilitychange') window.__vis++; window.__on[t] = (window.__on[t] || 0) + 1; return _add(t, f, o); };

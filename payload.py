@@ -204,9 +204,10 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
               else _forest(None if highlight else did, cfg, changed))
     if highlight and did:
         forest = _lit_by_deck(forest, did, test, cfg, changed)
-    # a forest's first week is the main forest's, as it grew: not begun again by an asteroid, nor by
-    # a deck's own forest (whose first tree may be this week's in a collection years old)
-    first = (forest if test or not did or highlight else _forest(None, cfg, changed))["trees"]
+    # a forest's first week, as it grew: not begun again by an asteroid. A deck's own forest has one
+    # of its own (its first tree this week, in a collection years old); the main forest, that deck lit
+    # on its screen, the main forest's
+    first = forest["trees"]
     first_week = bool(first) and first[0]["ago"] < NEW_TREE_GLOW_DAYS
     # Nature and the other study events, on every forest: a deck's screen acts as the main one
     forest, extras = events_state.apply(forest, cfg, test, changed, did if did and not highlight else None)

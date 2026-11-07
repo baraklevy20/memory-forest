@@ -372,12 +372,13 @@ class PayloadTests(unittest.TestCase):
         self.assertFalse([v["key"] for v in p["visitors"] if v.get("new")])  # each had come long ago, not today
         self.assertNotIn("rabbit", p["journal"].lower())
 
-    def test_the_first_week_s_glow_is_the_main_forest_s(self):
+    def test_the_first_week_s_glow_is_the_forest_s_own(self):
         def glows(p):
             return p["anniversaries"] == [len(p["trees"]) - 1]
 
         reset([(i, 10, 90 - i) for i in range(91)] + [(500, 20, 2), (501, 20, 0)])  # German begun this week
-        self.assertFalse(glows(payload.payload(20)))  # its own forest is new, the collection is not
+        self.assertTrue(glows(payload.payload(20)))  # its own forest is in its first week
+        self.assertFalse(glows(payload.payload(20, highlight=True)))  # the main forest, German lit, is not
         reset([(i, 10, 60 - i) for i in range(61) if 60 - i != 3], {"nature": "merciless"})  # an asteroid 3 days ago
         self.assertFalse(glows(payload.payload()))
         reset([(1, 10, 2), (2, 10, 0)])  # a forest begun this week

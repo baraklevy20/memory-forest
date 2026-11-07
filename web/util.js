@@ -53,6 +53,9 @@ function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const canBrowse = () => typeof pycmd === 'function';  // Anki's bridge may not be a window property
 const send = msg => { if (canBrowse()) pycmd(msg); };
+// (said as the page is drawn: Anki's bridge, pycmd, only comes once the page is ready and its channel
+// open, so a word sent before then went nowhere; it waits for it, a few seconds at most)
+const sendSoon = (msg, tries = 100) => { if (canBrowse()) pycmd(msg); else if (tries > 0) setTimeout(() => sendSoon(msg, tries - 1), 50); };
 // the colour behind a page: the first of `els` with a background you can see, as [r, g, b], or
 // null (read as it is drawn, so any theme and any Anki version answers alike)
 function pageBg(els) {
@@ -153,7 +156,7 @@ function along(values, at) {
   const n = values.length, i = Math.floor(at), f = at - i, a = values[((i % n) + n) % n], b = values[(((i + 1) % n) + n) % n];
   return a + (b - a) * f;
 }
-AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, animates, pageBg, appBg, pointIn,
+AF.u = { cyc, per, drift, trip, handover, along, rng, hashStr, hex, mix, toHex, mixHex, rgb, px, ellipseFill, layer, B4, clamp, pxLine, TAU, fmtDate, esc, cap, canBrowse, send, sendSoon, animates, pageBg, appBg, pointIn,
   oklab, fromOklab, lin, unlin, cssColor, contrast, onTheme };
 AF.STAGE_H = [4, 8, 13, 19, 27, 38];
 AF.STAGE_NAMES = ['seedling', 'sapling', 'young', 'mature', 'old', 'ancient'];

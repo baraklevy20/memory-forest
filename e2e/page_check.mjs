@@ -566,6 +566,16 @@ check('mount: a remount lets go of the forest before: one listener, one loop, on
   return [p, f];
 });
 
+check('bars: a page with no forest behind it gives Anki\'s bars back, though Anki\'s bridge comes only once the page is ready', async b => {
+  // (a deck screen after a Background deck list kept the scene's colours on the toolbar: the word went
+  // out as the panel was drawn, before Anki's pycmd was there to take it)
+  const p = await open(b, 'live', { before: () => { window.__latePycmd = 600; } }); await forestReady(p); const f = [];
+  await wait(1200);
+  const sent = await p.evaluate(() => window.__sent.filter(c => c === 'forest:bars').length);
+  if (sent !== 1) f.push(`${sent} words to Anki\'s bars once its bridge came, wanted 1`);
+  return [p, f];
+});
+
 /* ---------- the phone card ---------- */
 const phoneReady = p => p.waitForFunction(() => document.getElementById('memory-forest-phone').afEnv && document.querySelector('.af-cal-canvas'), { timeout: 15000 }).then(() => wait(800));
 

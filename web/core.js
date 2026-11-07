@@ -5,7 +5,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { layer, send, animates, esc, oklab, fromOklab, cssColor, contrast, onTheme, pageBg, appBg } = AF.u;
+const { layer, send, sendSoon, animates, esc, oklab, fromOklab, cssColor, contrast, onTheme, pageBg, appBg } = AF.u;
 const { HORIZON, GROUND_BOTTOM } = AF.GEOM;
 
 /* ---------- the scene runner ---------- */
@@ -542,7 +542,7 @@ AF.barEdges = (data, root, canvas) => {
     const ground = rowsAverage(canvas, canvas.height - BAR_ROWS, BAR_ROWS), c = root.afCardTint;
     const foot = c ? ground.map((v, i) => v + (c.tint[i] - v) * c.alpha) : ground;
     const msg = `${data.channel}:bars:` + JSON.stringify({ top: edge(0), bottom: '', topColour: hex(rowsAverage(canvas, 0, 1)), bottomColour: hex(foot) });
-    if (msg !== AF.barsSent) { AF.barsSent = msg; send(msg); }
+    if (msg !== AF.barsSent) { AF.barsSent = msg; sendSoon(msg); }
   } catch { /* (a canvas that can't be read: Anki's bars stay as they are) */ }
 };
 /* A page that isn't the theme's own behind the panel: a picture under it (AnKing's Custom background,
@@ -669,7 +669,7 @@ AF.arrange = function (root, data) {
   AF.captionClear(root);
   if (!root.afBehind) document.body.classList.remove('af-behind-zooming');
   // (and once on each page with none behind it: the page before may have left them tinted, bars.py)
-  if (!root.afBehind && AF.barsSent !== null) { AF.barsSent = null; send(`${data.channel}:bars`); }
+  if (!root.afBehind && AF.barsSent !== null) { AF.barsSent = null; sendSoon(`${data.channel}:bars`); }
   if (!sides.length && !places.includes('above') && !root.afBehind || !(table || root.afBehind)) {
     if (root.afArranged) { document.body.classList.remove('af-lay', 'af-lay-narrow'); root.afArranged = false; }
     return;
