@@ -181,13 +181,16 @@ def swap_check() -> list:
         return [f"the scenery swap didn't run: {run.stdout + run.stderr}"]
     got = json.loads(run.stdout)
     fails = [f"error in the scenery swap: {e}" for e in got["errors"]]
-    if not (got.get("swapped") and got.get("fresh") and got.get("before")):
-        return fails + [f"the heatmap's colours couldn't be read: {got}"]
+
     def far(a: list, b: list) -> int:
         return sum(abs(x - y) for x, y in zip(a, b))
-    if far(got["swapped"], got["fresh"]) > far(got["swapped"], got["before"]):
-        fails.append(f"a scenery changed with the heatmap in its own tile: the heatmap kept the old one's colours "
-                     f"{got['swapped']} (before {got['before']}, the new scenery's {got['fresh']})")
+    for tile in ("heatmap", "forest"):
+        seen = [(got.get(k) or {}).get(tile) for k in ("swapped", "fresh", "before")]
+        if not all(seen):
+            fails.append(f"the {tile}'s colours couldn't be read: {seen}")
+        elif far(seen[0], seen[1]) > far(seen[0], seen[2]):
+            fails.append(f"a scenery changed with the heatmap in its own tile: the {tile} kept the old one's colours "
+                         f"{seen[0]} (before {seen[2]}, the new scenery's {seen[1]})")
     return fails
 
 

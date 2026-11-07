@@ -748,13 +748,18 @@ AF.busy = env => {
 /* Load scripts onto this copy of the add-on - a scene's environment, landscape and landmark -
  * one at a time and each once, however many ask: a scene's file registers itself on whatever
  * object window.AnkiForest is while it runs, so that is this copy until they are all in, and
- * whatever it was before after. A promise, rejected if one could not be loaded. */
+ * whatever it was before after. A promise, rejected if one could not be loaded.
+ * One at a time on the whole page, not only in this copy: Onigiri's two tiles each boot a copy of
+ * their own, and both loading a new scenery at once, the heatmap's took window.AnkiForest while the
+ * forest's file was still on its way, which then registered on the heatmap's copy (the forest kept
+ * its old sky and plain trees). The queue is the page's (QUEUE), shared by every copy. */
 const loads = new Map();  // src -> its promise
-let queue = Promise.resolve(), waiting = 0, outside;
+const QUEUE = '__memoryForestScripts';
+let waiting = 0, outside;
 AF.loadScripts = srcs => Promise.all(srcs.map(src => {
   if (!loads.has(src)) {
     if (waiting++ === 0) outside = window.AnkiForest;
-    const p = queue.catch(() => {}).then(() => new Promise((ok, fail) => {
+    const p = (window[QUEUE] || Promise.resolve()).catch(() => {}).then(() => new Promise((ok, fail) => {
       const el = document.createElement('script');
       el.src = src;
       el.charset = 'utf-8';
@@ -765,7 +770,7 @@ AF.loadScripts = srcs => Promise.all(srcs.map(src => {
       document.head.appendChild(el);
     })).finally(() => { if (--waiting === 0) window.AnkiForest = outside; });
     loads.set(src, p);
-    queue = p;
+    window[QUEUE] = p;
   }
   return loads.get(src);
 }));
