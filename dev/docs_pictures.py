@@ -73,20 +73,24 @@ YEARS_AWAY = ("bear", "squirrel", "eagle", "cabin")
 
 
 def history() -> dict:
-    """The calendar's made-up days: reviews and time, oldest first, and the cards due ahead."""
+    """The calendar's made-up days: reviews, time and each day's median seconds an answer (so Pace is
+    there to pick, as in the add-on), oldest first, and the cards due ahead."""
     r = random.Random(SEED)
     today = dt.date.today()
-    days, time = [], []
+    days, time, pace = [], [], []
+    pr = random.Random(SEED + 1)  # (the paces' own: the days' reviews and the cards due stay as they were)
     for ago in range(HISTORY - 1, -1, -1):
         studied = any(a <= ago <= b for a, b in STREAKS) or (ago > STREAKS[0][1] + 10 and r.random() < SCATTER)
         if not studied:
             days.append(0)
             time.append(0)
+            pace.append(None)
             continue
         weekday = (today - dt.timedelta(days=ago)).weekday()
         n = r.randint(90, 300) * (0.6 if weekday >= 5 else 1.0) * (1.8 if r.random() < 0.08 else 1.0)
         days.append(int(n))
         time.append(int(n * r.uniform(6, 11)))
+        pace.append(round(time[-1] / max(1, days[-1]) * pr.uniform(0.75, 0.9), 1))  # (a median under the mean, as answers' times run)
     # the cards due ahead, over the whole range the soil's four shades split (calendar/history.js dueShade,
     # by the log of the busiest day ahead): a backlog thinning out, light weekends, a heavy day now
     # and then, a near-empty one here and there
@@ -99,7 +103,7 @@ def history() -> dict:
             base *= 3.2
         n = r.randint(1, 3) if r.random() < 0.08 else int(base * r.uniform(0.6, 1.4))
         due.append(max(1, n))
-    return {"start": (today - dt.timedelta(days=HISTORY - 1)).isoformat(), "days": days, "time": time, "due": due}
+    return {"start": (today - dt.timedelta(days=HISTORY - 1)).isoformat(), "days": days, "time": time, "answerTime": pace, "due": due}
 
 
 REAL_DATA = None
@@ -167,7 +171,7 @@ def page(mood: dict, data: dict, width: int, extra_css: str = "", head: str = ""
     tags = script_tags(mood, data)
     return f"""<!doctype html><meta charset="utf-8">{head}<style>body {{ margin: 0; padding: 0; background: {PAGE_BG}; color: {PAGE_FG};
 --fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} .af-cal-tip {{ display: none !important }} body.af-shot-tip .af-cal-tip:not([hidden]) {{ display: block !important; z-index: 9 }} .af-cal .af-cal-above {{ opacity: 1 }} {extra_css}</style>
-<div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}
+<body class="nightMode night_mode"><div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}
 <script>AnkiForest.mount(document.getElementById('p'), {json.dumps(data)}{', ' + json.dumps(opts) if opts else ''});</script>"""
 
 
