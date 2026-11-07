@@ -22,7 +22,8 @@ const colour = ([id, sel]) => {
     if (!px[i + 3] || Math.max(px[i], px[i + 1], px[i + 2]) - Math.min(px[i], px[i + 1], px[i + 2]) < 40) continue;
     sum[0] += px[i]; sum[1] += px[i + 1]; sum[2] += px[i + 2]; n++;
   }
-  return n ? sum.map(v => Math.round(v / n)) : null;
+  // (and the canvas as a whole, to set beside a fresh page's: with no animations the two are drawn alike)
+  return n ? { mean: sum.map(v => Math.round(v / n)), whole: cv.toDataURL() } : null;
 };
 
 const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', args: ['--disable-gpu', '--allow-file-access-from-files'] });

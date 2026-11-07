@@ -155,18 +155,51 @@ def check(config: dict | None, split: bool = False) -> list:
 
 
 
+# the scenery changes swap_check makes in the settings, from the first config to the second: a free
+# scenery, a Plus one where this copy has it (the public repo doesn't), a landscape, and back again
+SWAPS = [({"environment": "natural"}, {"environment": "synthwave"}),
+         ({"environment": "natural"}, {"environment": "psychedelic"}),
+         ({"environment": "natural", "landscape": "lake"}, {"environment": "natural", "landscape": "river"}),
+         ({"environment": "synthwave"}, {"environment": "natural"})]
+
+
 def swap_check() -> list:
-    """A scenery changed in the settings with the study calendar in its own tile: both tiles swapped
-    in place (panel._swap_tiles), the heatmap's colours the new scenery's, as a page drawn afresh has
-    them. Each tile boots a copy of the add-on of its own, and the heatmap's took a scenery the forest's
-    had just loaded for its own copy as there already: it kept the default green (2026-11-07)."""
+    """Sceneries changed in the settings with the study calendar in its own tile (SWAPS): both tiles
+    swapped in place (panel._swap_tiles), each then drawn as a page drawn afresh draws it. Each tile
+    boots a copy of the add-on of its own: the heatmap's took a scenery the forest's had loaded for its
+    own copy as there already, and kept the default green; and two copies loading a scenery at once,
+    the forest's file registered on the heatmap's copy, and the forest kept its old sky (2026-11-07)."""
+    fails = []
+    for before, after in SWAPS:
+        if not os.path.exists(os.path.join(ROOT, "web", "envs", after["environment"] + ".js")):
+            continue  # (a Plus scenery, in the public repo)
+        fails += [f + f" ({before} to {after})" for f in swap_once(dict(before, animations=False), dict(after, animations=False))]
+    return fails
+
+
+SWAP_APART = 0.08  # the share of a swapped tile's pixels that may differ from a page drawn afresh (clouds, a bird, the water's shimmer: on the clock even with no animations)
+
+
+def apart(a: str, b: str) -> float:
+    """The share of pixels two canvases (data: URLs) differ in; 1 for different sizes."""
+    import base64
+    import io
+
+    from PIL import Image, ImageChops
+    x, y = (Image.open(io.BytesIO(base64.b64decode(u.split(",", 1)[1]))).convert("RGB") for u in (a, b))
+    if x.size != y.size:
+        return 1.0
+    return ImageChops.difference(x, y).convert("L").point(lambda v: 255 if v > 8 else 0).histogram()[255] / (x.width * x.height)
+
+
+def swap_once(before: dict, after: dict) -> list:
     from importlib import import_module
 
     import fake_anki
-    before, after = {"environment": "natural"}, {"environment": "synthwave"}
     _names, old = tile_html(before, split=True)
     _names, fresh = tile_html(after, split=True)  # (and the config left as the swap's data is made)
     panel = import_module(f"{fake_anki.PACKAGE}.panel")
+
     def fix(s: str) -> str:  # (the add-on's files as Anki serves them, from this copy)
         return s.replace(f"/_addons/{fake_anki.PACKAGE}/", f"file://{ROOT}/")
     swaps = [{"root": root, "data": json.loads(data), "srcs": [fix(src) for src in srcs]} for root, data, srcs in (
@@ -181,18 +214,18 @@ def swap_check() -> list:
         return [f"the scenery swap didn't run: {run.stdout + run.stderr}"]
     got = json.loads(run.stdout)
     fails = [f"error in the scenery swap: {e}" for e in got["errors"]]
-
-    def far(a: list, b: list) -> int:
-        return sum(abs(x - y) for x, y in zip(a, b))
     for tile in ("heatmap", "forest"):
         seen = [(got.get(k) or {}).get(tile) for k in ("swapped", "fresh", "before")]
         if not all(seen):
-            fails.append(f"the {tile}'s colours couldn't be read: {seen}")
-        elif far(seen[0], seen[1]) > far(seen[0], seen[2]):
-            fails.append(f"a scenery changed with the heatmap in its own tile: the {tile} kept the old one's colours "
-                         f"{seen[0]} (before {seen[2]}, the new scenery's {seen[1]})")
+            fails.append(f"the {tile}'s canvas couldn't be read: {[bool(x) for x in seen]}")
+        else:
+            to_fresh, to_before = apart(seen[0]["whole"], seen[1]["whole"]), apart(seen[0]["whole"], seen[2]["whole"])
+            # (a flyer or two drawn a moment apart: nearly all of it as drawn afresh, and nearer that than the old)
+            if to_fresh > SWAP_APART or to_fresh >= to_before:
+                fails.append(f"the {tile}'s tile, swapped, isn't drawn as the new scenery: {to_fresh:.1%} of it apart from a page "
+                             f"drawn afresh, {to_before:.1%} from the old scenery (colours {seen[0]['mean']}, afresh {seen[1]['mean']}, "
+                             f"before {seen[2]['mean']})")
     return fails
-
 
 if __name__ == "__main__":
     sys.exit(main())
