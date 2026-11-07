@@ -8,7 +8,7 @@ Uses made-up history unless --collection is supplied.
 
 panel.png: the pages' first picture, the panel as Anki shows it: the forest by the lake, with the
 animals of its first year, and its heatmap under it, visible streak labels, the current streak's
-silver trophy, its next goal's flag, and an upcoming exam note.
+silver trophy, its next goal's flag, and an upcoming exam with its tooltip open (the countdown to it).
 heatmap_sceneries.png: one heatmap in five sceneries, each beside its picker picture, with
 its current trophy and flag and no other streak markers.
 layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it
@@ -166,7 +166,7 @@ def page(mood: dict, data: dict, width: int, extra_css: str = "", head: str = ""
     css = open(os.path.join(catalog.WEB, "forest.css"), encoding="utf-8").read()
     tags = script_tags(mood, data)
     return f"""<!doctype html><meta charset="utf-8">{head}<style>body {{ margin: 0; padding: 0; background: {PAGE_BG}; color: {PAGE_FG};
---fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} .af-cal-tip {{ display: none !important }} .af-cal .af-cal-above {{ opacity: 1 }} {extra_css}</style>
+--fg: {PAGE_FG}; --fg-subtle: #999 }} #p {{ width: {width}px; padding: 24px 22px 10px }} {css} .af-cal-tip {{ display: none !important }} body.af-shot-tip .af-cal-tip:not([hidden]) {{ display: block !important; z-index: 9 }} .af-cal .af-cal-above {{ opacity: 1 }} {extra_css}</style>
 <div class="af-panel" id="p"></div><script>window.pycmd = () => false;</script>{tags}
 <script>AnkiForest.mount(document.getElementById('p'), {json.dumps(data)}{', ' + json.dumps(opts) if opts else ''});</script>"""
 
@@ -257,6 +257,16 @@ for (const j of jobs) {
   await p.waitForSelector('.af-cal-canvas', { timeout: 15000 });
   await new Promise(r => setTimeout(r, 1500));
   const el = await p.$(j.shoot);
+  if (j.tipDays !== undefined) {
+    // (a day's tooltip open in the shot: that day by the keyboard, as page_check does, today and then
+    // a day on per press; the pointer's hover didn't last until the shot)
+    await p.evaluate(() => { document.body.classList.add('af-shot-tip'); document.querySelector('.af-cal-canvas:not(.af-cal-past-weeks)').focus(); });
+    await p.keyboard.press('Home');
+    for (let i = 0; i < j.tipDays; i++) await p.keyboard.press('ArrowDown');
+    await new Promise(r => setTimeout(r, 1200));
+    if (!(await p.evaluate(m => { const t = document.querySelector('.af-cal-tip'); return !!t && !t.hidden && t.textContent.includes(m); }, j.tipHas)))
+      throw new Error('no tooltip saying ' + j.tipHas);
+  }
   if (j.fromMonth !== undefined) {
     const clip = await el.evaluate((e, month, pad) => {
       const r = e.getBoundingClientRect();
@@ -345,14 +355,18 @@ def main() -> None:
             return
         # the big picture: the forest and its heatmap, with the streak labels unobstructed, and the
         # animals its numbers bring but those that take years (left for people to find, as in the GIFs)
-        note = {"day": (dt.date.today() + dt.timedelta(days=18)).isoformat(), "icon": "exam", "name": "Exam"}
+        # (its exam on a Monday two weeks ahead, the heatmap's top row, its tooltip open with the countdown:
+        # under the top row it covers only days to come, and leaves the trophy and the flag in view)
+        monday = dt.date.today() + dt.timedelta(days=(7 - dt.date.today().weekday()) % 7 or 7)
+        note = {"day": (monday + dt.timedelta(days=14)).isoformat(), "icon": "exam", "name": "Exam"}
         big = dict(forest_data(lake), calendar=calendar(lake, [note]), showForest=True)
         if REAL_DATA is None:
             big["visitors"] = [v for v in milestones.for_page(fake_forest.visitors(big["stats"])) if v["key"] not in YEARS_AWAY]
         path = os.path.join(tmp, "big.html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(page(lake, big, 756, ".af-cog { display: none !important }"))
-        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "panel.png")})
+        jobs.append({"page": path, "width": 800, "shoot": "#p", "tipDays": (dt.date.fromisoformat(note["day"]) - dt.date.today()).days,
+                     "tipHas": note["name"], "out": os.path.join(DOCS, "panel.png")})
         # the sceneries: the heatmap alone, with only the current trophy and flag revealed
         shots = {}
         for key, tiles, view in ROWS:

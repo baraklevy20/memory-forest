@@ -5,7 +5,7 @@ cards plants a tree below your deck list, and the heatmap under it shows the day
 your streak and the reviews ahead. There is nothing to click and nothing to manage: just study,
 and watch it grow.
 
-<p align="center"><img src="docs/panel.png" alt="The forest by the lake at golden hour, with its study heatmap under it: days studied in green, a silver streak trophy, a goal flag, an exam marker, and cards coming due in brown"></p>
+<p align="center"><img src="docs/panel.png" alt="The forest by the lake at golden hour, with its study heatmap under it: days studied in green, a silver streak trophy, a goal flag, an exam marker with its tooltip open (Exam in 16 days), and cards coming due in brown"></p>
 
 **[Get it on AnkiWeb](https://ankiweb.net/shared/info/1255432496)** · add-on code `1255432496`
 
