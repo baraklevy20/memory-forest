@@ -180,18 +180,6 @@ def swap_check() -> list:
 SWAP_APART = 0.08  # the share of a swapped tile's pixels that may differ from a page drawn afresh (clouds, a bird, the water's shimmer: on the clock even with no animations)
 
 
-def apart(a: str, b: str) -> float:
-    """The share of pixels two canvases (data: URLs) differ in; 1 for different sizes."""
-    import base64
-    import io
-
-    from PIL import Image, ImageChops
-    x, y = (Image.open(io.BytesIO(base64.b64decode(u.split(",", 1)[1]))).convert("RGB") for u in (a, b))
-    if x.size != y.size:
-        return 1.0
-    return ImageChops.difference(x, y).convert("L").point(lambda v: 255 if v > 8 else 0).histogram()[255] / (x.width * x.height)
-
-
 def swap_once(before: dict, after: dict) -> list:
     from importlib import import_module
 
@@ -215,16 +203,16 @@ def swap_once(before: dict, after: dict) -> list:
     got = json.loads(run.stdout)
     fails = [f"error in the scenery swap: {e}" for e in got["errors"]]
     for tile in ("heatmap", "forest"):
-        seen = [(got.get(k) or {}).get(tile) for k in ("swapped", "fresh", "before")]
-        if not all(seen):
+        seen, gap = [(got.get(k) or {}).get(tile) for k in ("swapped", "fresh", "before")], (got.get("apart") or {}).get(tile)
+        if not all(seen) or not gap:
             fails.append(f"the {tile}'s canvas couldn't be read: {[bool(x) for x in seen]}")
-        else:
-            to_fresh, to_before = apart(seen[0]["whole"], seen[1]["whole"]), apart(seen[0]["whole"], seen[2]["whole"])
-            # (a flyer or two drawn a moment apart: nearly all of it as drawn afresh, and nearer that than the old)
-            if to_fresh > SWAP_APART or to_fresh >= to_before:
-                fails.append(f"the {tile}'s tile, swapped, isn't drawn as the new scenery: {to_fresh:.1%} of it apart from a page "
-                             f"drawn afresh, {to_before:.1%} from the old scenery (colours {seen[0]['mean']}, afresh {seen[1]['mean']}, "
-                             f"before {seen[2]['mean']})")
+            continue
+        to_fresh, to_before = gap
+        # (a flyer or two drawn a moment apart: nearly all of it as drawn afresh, and nearer that than the old)
+        if to_fresh > SWAP_APART or to_fresh >= to_before:
+            fails.append(f"the {tile}'s tile, swapped, isn't drawn as the new scenery: {to_fresh:.1%} of it apart from a page "
+                         f"drawn afresh, {to_before:.1%} from the old scenery (colours {seen[0]['mean']}, afresh {seen[1]['mean']}, "
+                         f"before {seen[2]['mean']})")
     return fails
 
 if __name__ == "__main__":

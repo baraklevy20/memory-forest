@@ -26,6 +26,21 @@ const colour = ([id, sel]) => {
   return n ? { mean: sum.map(v => Math.round(v / n)), whole: cv.toDataURL() } : null;
 };
 
+// (in the page) [to the fresh page's, to the old one's]: the share of pixels the swapped canvas differs in, 1 for other sizes
+const apart = async (a, f, b) => {
+  const pixels = url => new Promise(ok => { const im = document.createElement('img'); im.onload = () => {
+    const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+    const g = c.getContext('2d'); g.drawImage(im, 0, 0); ok(g.getImageData(0, 0, c.width, c.height)); }; im.src = url; });
+  const [x, y, z] = await Promise.all([a, f, b].map(pixels));
+  const share = (p, q) => {
+    if (p.width !== q.width || p.height !== q.height) return 1;
+    let n = 0;
+    for (let i = 0; i < p.data.length; i += 4) if (Math.max(Math.abs(p.data[i] - q.data[i]), Math.abs(p.data[i + 1] - q.data[i + 1]), Math.abs(p.data[i + 2] - q.data[i + 2])) > 8) n++;
+    return n / (p.width * p.height);
+  };
+  return [share(x, y), share(x, z)];
+};
+
 const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', args: ['--disable-gpu', '--allow-file-access-from-files'] });
 const out = { errors: [] };
 try {
@@ -48,7 +63,16 @@ try {
   ok.forEach((done, i) => { if (!done) out.errors.push(`no swap on ${swaps[i].root}`); });
   await wait(SETTLE_MS * 2);
   out.swapped = await both(p);
-  out.fresh = await both(await open(freshHtml));
+  const freshPage = await open(freshHtml);
+  out.fresh = await both(freshPage);
+  // (the share of pixels a swapped tile differs in from the fresh page's, and from the old one's: in
+  // the page, so the check needs nothing but Chrome)
+  out.apart = {};
+  for (const tile of ['heatmap', 'forest']) {
+    const [a, f, b] = ['swapped', 'fresh', 'before'].map(k => out[k] && out[k][tile] && out[k][tile].whole);
+    if (a && f && b) out.apart[tile] = await freshPage.evaluate(apart, a, f, b);
+  }
+  for (const k of ['swapped', 'fresh', 'before']) for (const tile of ['heatmap', 'forest']) if (out[k] && out[k][tile]) delete out[k][tile].whole;
 } catch (e) {
   out.errors.push(String(e && e.message || e));
 } finally {
