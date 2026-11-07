@@ -5,7 +5,7 @@ cards plants a tree below your deck list, and the heatmap under it shows the day
 your streak and the reviews ahead. There is nothing to click and nothing to manage: just study,
 and watch it grow.
 
-<p align="center"><img src="docs/panel.png" alt="The forest by the lake at golden hour, with its study heatmap under it: days studied in green, a silver streak trophy, a goal flag, an exam marker with its tooltip open (Exam in 16 days), and cards coming due in brown"></p>
+<p align="center"><img src="docs/panel.png" alt="The forest by the lake at golden hour, with its study heatmap under it: days studied in green, a silver streak trophy, a goal flag, and cards coming due in brown"></p>
 
 **[Get it on AnkiWeb](https://ankiweb.net/shared/info/1255432496)** · add-on code `1255432496`
 
@@ -27,6 +27,8 @@ studying and animals move in, and after a year a little cabin appears at the edg
 
 Your study days, streaks and upcoming reviews, in your scenery's colours. Hover for details;
 click a day to open its cards.
+
+<p align="center"><img src="docs/heatmap_features.png" width="640" alt="Six parts of the heatmap: days selected with Shift-click and their trees lit up in the forest, Streak view with one streak across three years, the days shaded by pace, the day a rabbit came, the flag for the next goal, and an exam's tooltip counting down the days to it"></p>
 
 - **Views**: a rolling timeline, a full year, or your whole streak at once.
 - **Select days**: Shift-click or Ctrl/Cmd-click days to light up their trees, then click one to open all their cards.

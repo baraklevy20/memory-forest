@@ -1,15 +1,22 @@
-"""Draw the docs' panel, heatmap and layout pictures, docs/panel.png, docs/heatmap_sceneries.png and
-docs/layout.png, from this copy's scripts in headless Chrome, then the grid GIFs (dev/docs_grids.py).
+"""Draw the docs' panel, heatmap and layout pictures, docs/panel.png, docs/heatmap_features.png,
+docs/heatmap_sceneries.png and docs/layout.png, from this copy's scripts in headless Chrome, then the grid GIFs (dev/docs_grids.py).
 Uses made-up history unless --collection is supplied.
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
     python3 dev/docs_pictures.py --only layout
+    python3 dev/docs_pictures.py --only features
     python3 dev/docs_pictures.py --collection /path/to/collection.anki2
 
-panel.png: the pages' first picture, the panel as Anki shows it: the forest by the lake, with the
-animals of its first year, and its heatmap under it, visible streak labels, the current streak's
-silver trophy, its next goal's flag, and an upcoming exam with its tooltip open (the countdown to it).
-heatmap_sceneries.png: one heatmap in five sceneries, each beside its picker picture, with
+panel.png: the pages' first picture, the panel as Anki shows it, kept basic: the forest by the lake,
+with the animals of its first year, and its heatmap under it, visible streak labels, the current
+streak's silver trophy and its next goal's flag; no tooltip open and no marked day (the feature
+sheet shows those).
+heatmap_features.png: the heatmap section's first picture, six labelled crops of the real panel, each
+showing a feature: days Shift-selected and their trees lit, Streak view (one unbroken streak of almost
+three years over its rows), the days shaded by pace with the shade's switch and key, the day an animal
+came, the goal's flag, and a marked exam's countdown. Always on its own made-up history
+(FEATURES_HISTORY, even with --collection): the crops need its long streak.
+heatmap_sceneries.png: under it, one heatmap in five sceneries, each beside its picker picture, with
 its current trophy and flag and no other streak markers.
 layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it
 on the right and the heatmap Full width under them (Layout: One beside), arranged by the add-on's own web/core.js AF.arrange, at
@@ -72,15 +79,17 @@ SCENERIES = tuple(key for key, _tiles, _view in ROWS)
 YEARS_AWAY = ("bear", "squirrel", "eagle", "cabin")
 
 
-def history() -> dict:
+def history(length: int | None = None, streaks: tuple | None = None) -> dict:
     """The calendar's made-up days: reviews, time and each day's median seconds an answer (so Pace is
-    there to pick, as in the add-on), oldest first, and the cards due ahead."""
+    there to pick, as in the add-on), oldest first, and the cards due ahead; `length` days of them
+    with `streaks` (HISTORY and STREAKS unless given)."""
+    length, streaks = length or HISTORY, streaks or STREAKS
     r = random.Random(SEED)
     today = dt.date.today()
     days, time, pace = [], [], []
     pr = random.Random(SEED + 1)  # (the paces' own: the days' reviews and the cards due stay as they were)
-    for ago in range(HISTORY - 1, -1, -1):
-        studied = any(a <= ago <= b for a, b in STREAKS) or (ago > STREAKS[0][1] + 10 and r.random() < SCATTER)
+    for ago in range(length - 1, -1, -1):
+        studied = any(a <= ago <= b for a, b in streaks) or (ago > streaks[0][1] + 10 and r.random() < SCATTER)
         if not studied:
             days.append(0)
             time.append(0)
@@ -103,7 +112,7 @@ def history() -> dict:
             base *= 3.2
         n = r.randint(1, 3) if r.random() < 0.08 else int(base * r.uniform(0.6, 1.4))
         due.append(max(1, n))
-    return {"start": (today - dt.timedelta(days=HISTORY - 1)).isoformat(), "days": days, "time": time, "answerTime": pace, "due": due}
+    return {"start": (today - dt.timedelta(days=length - 1)).isoformat(), "days": days, "time": time, "answerTime": pace, "due": due}
 
 
 REAL_DATA = None
@@ -261,16 +270,6 @@ for (const j of jobs) {
   await p.waitForSelector('.af-cal-canvas', { timeout: 15000 });
   await new Promise(r => setTimeout(r, 1500));
   const el = await p.$(j.shoot);
-  if (j.tipDays !== undefined) {
-    // (a day's tooltip open in the shot: that day by the keyboard, as page_check does, today and then
-    // a day on per press; the pointer's hover didn't last until the shot)
-    await p.evaluate(() => { document.body.classList.add('af-shot-tip'); document.querySelector('.af-cal-canvas:not(.af-cal-past-weeks)').focus(); });
-    await p.keyboard.press('Home');
-    for (let i = 0; i < j.tipDays; i++) await p.keyboard.press('ArrowDown');
-    await new Promise(r => setTimeout(r, 1200));
-    if (!(await p.evaluate(m => { const t = document.querySelector('.af-cal-tip'); return !!t && !t.hidden && t.textContent.includes(m); }, j.tipHas)))
-      throw new Error('no tooltip saying ' + j.tipHas);
-  }
   if (j.fromMonth !== undefined) {
     const clip = await el.evaluate((e, month, pad) => {
       const r = e.getBoundingClientRect();
@@ -330,16 +329,230 @@ def sceneries_picture(shots: dict, out: str) -> None:
     sheet.save(out, optimize=True)
 
 
+# the heatmap section's feature sheet (heatmap_features.png): its own made-up history, a current streak
+# of almost three years unbroken (Streak view's rows), the second-longest (silver under today), and,
+# two months before it, an older and longer one (gold, so the flag waits ahead, two months on). Over
+# a month apart (calendar/history.js BROKE_LATELY), so Streak view shows the current one alone
+FEATURES_HISTORY = 2260
+FEATURES_STREAKS = ((0, 1040), (1100, 2200))
+# its forest: a tree on each day studied in the last FEATURES_TREES days, so the days selected light
+# trees that are there
+FEATURES_TREES = 230
+# each crop is this wide, at the panel's own pixels (two to a row, as wide as the panel); its edges
+# fade into the page this far, so what they cut reads as cut on purpose
+CROP_W, CROP_FADE = 370, 22
+# the sheet: its margin, the gap between crops, a label's line over each, in Nunito Bold (dev/fonts/,
+# as the grid GIFs have it) in a soft white
+SHEET_PAD, SHEET_GAP, LABEL_LINE, LABEL_PX, LABEL_FG = 12, 16, 26, 15, (236, 234, 228)
+FONT = os.path.join(HERE, "fonts", "Nunito", "Nunito[wght].ttf")
+# the panel's controls shown (they come with the pointer), and room under it for a tooltip
+SHOWN_CSS = (".af-cog { display: none !important } .af-cal-acts, .af-cal-key, .af-cal-foot > .af-cal-shade { opacity: 1 !important;"
+             " transition: none !important }")
+FEATURES_CSS = SHOWN_CSS + " #p { padding-bottom: 110px } body.af-shot-tip .af-cal-tip:not([hidden]) { display: block !important }"
+
+FEATURES_SHOOT = r"""
+import puppeteer from '%(puppeteer)s';
+import fs from 'fs';
+const job = %(job)s;
+const b = await puppeteer.launch({ executablePath: %(chrome)s, headless: 'new', args: ['--disable-gpu', '--allow-file-access-from-files'] });
+const p = await b.newPage();
+p.on('pageerror', e => console.log('ERR', e.message));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+await p.setViewport({ width: 800, height: 1400 });
+await p.goto('file://' + job.page);
+await p.waitForSelector('.af-cal-canvas', { timeout: 15000 });
+await wait(1500);
+await p.evaluate(() => document.body.classList.add('af-shot-tip'));
+// each step: a click by script (the view, the shade), the days by the keyboard (as page_check does),
+// then the panel shot, with where its tooltip, the day's ring, the weeks and the footer are
+for (const s of job.steps) {
+  await p.evaluate(() => { if (document.activeElement) document.activeElement.blur(); });
+  await p.keyboard.press('Escape');
+  if (s.click) { await p.evaluate(q => document.querySelector(q).click(), s.click); await wait(500); }
+  if (s.keys) {
+    await p.evaluate(() => document.querySelector('.af-cal-canvas:not(.af-cal-past-weeks)').focus());
+    for (const k of s.keys) {
+      const [mod, key] = k.includes('+') ? k.split('+') : [null, k];
+      if (mod) await p.keyboard.down(mod);
+      await p.keyboard.press(key);
+      if (mod) await p.keyboard.up(mod);
+    }
+    await wait(800);
+    if (s.tipHas && !(await p.evaluate(m => { const t = document.querySelector('.af-cal-tip'); return !!t && !t.hidden && t.textContent.includes(m); }, s.tipHas)))
+      throw new Error(s.out + ': no tooltip saying ' + s.tipHas);
+  }
+  const el = await p.$('#p');
+  await el.screenshot({ path: s.out });
+  const rects = await p.evaluate(() => {
+    const base = document.querySelector('#p').getBoundingClientRect(), out = {};
+    for (const [k, q] of Object.entries({ tip: '.af-cal-tip', ring: '.af-cal-hover', grid: '.af-cal-grid', foot: '.af-cal-foot', scene: '.af-scene' })) {
+      const e = document.querySelector(q);
+      if (!e || e.hidden || !e.getClientRects().length) continue;
+      const r = e.getBoundingClientRect();
+      out[k] = [r.left - base.left, r.top - base.top, r.right - base.left, r.bottom - base.top];
+    }
+    return out;
+  });
+  fs.writeFileSync(s.out + '.json', JSON.stringify(rects));
+}
+await b.close();
+"""
+
+
+def features_data(mood: dict) -> dict:
+    """The panel on the feature sheet's history (FEATURES_*): a forest of a tree a day studied, its
+    animals each on its day, and an exam on a Monday two weeks ahead."""
+    hist = history(FEATURES_HISTORY, FEATURES_STREAKS)
+    n = len(hist["days"])
+    reviews = {n - 1 - i: v for i, v in enumerate(hist["days"])}
+    r = random.Random(SEED)
+    trees, prev = [], None
+    for ago in sorted((a for a in range(FEATURES_TREES) if reviews[a]), reverse=True):
+        t = fake_forest.tree(r, fake_forest.FAKE_TODAY - ago, ago)
+        if prev is not None and prev - ago > fake_forest.BREAK_DAYS:
+            t["gap"] = prev - ago - 1
+        prev = ago
+        trees.append(t)
+    streak = FEATURES_STREAKS[0][1] + 1
+    longest = FEATURES_STREAKS[1][1] - FEATURES_STREAKS[1][0] + 1
+    forest = fake_forest.make_forest(trees, streak, longest, len(trees) * fake_forest.FAKE_REVIEWS_PER_TREE, 186)
+    stats = dict(forest["stats"], streak=streak, longest_streak=longest)
+    visitors = [v for v in fake_forest.visitors(stats) if v["key"] not in YEARS_AWAY]
+    animals = milestones.for_page(milestones.animal_days(visitors, trees, reviews, fake_forest.FAKE_TODAY, True))
+    monday = dt.date.today() + dt.timedelta(days=(7 - dt.date.today().weekday()) % 7 or 7)
+    exam = {"day": (monday + dt.timedelta(days=14)).isoformat(), "icon": "exam", "name": "Exam"}
+    look = HL.page_look({}, mood)
+    cal = dict(hist, view="timeline", weekStart=1, shadeBy="reviews", animals=animals, browse=False, marks=[exam],
+               free=[], daysOff=[], streakFromStart=False, look=look)
+    data = dict(forest_data(mood), trees=trees, stats=stats, forestSeed=forest["forest_seed"],
+                visitors=milestones.for_page(visitors), calendar=cal, showForest=True)
+    data.pop("merged", None)
+    return data
+
+
+def features_steps(data: dict, tmp: str) -> list:
+    """The panel's states the sheet crops: (name, step), each shot to tmp/<name>.png."""
+    cal = data["calendar"]
+    rabbit = next(a["ago"] for a in cal["animals"] if a["key"] == "rabbit")
+    exam = (dt.date.fromisoformat(cal["marks"][0]["day"]) - dt.date.today()).days
+    # (today's weekday's row, counted from the week's first day: up to Monday's, the top row)
+    to_monday = (dt.date.today().weekday() - cal["weekStart"] + 1) % 7
+    steps = {
+        "rest": {},
+        "streak": {"click": '[data-view="streak"]'},
+        # (five weeks of August, their trees standing mid-forest, lit; the summary hidden in the crop)
+        "select": {"click": '[data-view="timeline"]', "keys": ["Home"] + ["ArrowLeft"] * 10 + ["ArrowUp"] * 2 + ["Shift+ArrowLeft"] * 4},
+        # (a Monday a week back: its tooltip over the weeks, clear of the footer's switch and key)
+        "pace": {"click": '[data-by="median"]', "keys": ["Home", "ArrowLeft"] + ["ArrowUp"] * to_monday, "tipHas": "per answer"},
+        "animal": {"click": '[data-by="reviews"]', "keys": ["Home"] + ["ArrowLeft"] * (rabbit // 7) + ["ArrowUp"] * (rabbit % 7), "tipHas": "rabbit"},
+        "exam": {"keys": ["Home"] + ["ArrowDown"] * exam, "tipHas": "Exam in"},
+    }
+    return [dict(s, name=k, out=os.path.join(tmp, k + ".png")) for k, s in steps.items()]
+
+
+def features_picture(tmp: str, out: str) -> None:
+    """Six labelled crops of the panel's shots, three rows of two, on Anki's dark page."""
+    from PIL import Image, ImageDraw, ImageFont
+    shot = {k: Image.open(os.path.join(tmp, k + ".png")).convert("RGB") for k in ("rest", "streak", "select", "pace", "animal", "exam")}
+    at = {k: json.load(open(os.path.join(tmp, k + ".png.json"), encoding="utf-8")) for k in shot}
+    W = shot["rest"].width
+    right = lambda k: int(min(W, at[k]["grid"][2] + 8))  # noqa: E731  (the weeks' right end, and a little)
+
+    def around(k: str) -> tuple:
+        """A crop round the tooltip and the day it is about, from the months' row down past the tooltip."""
+        tip, ring, grid = at[k]["tip"], at[k]["ring"], at[k]["grid"]
+        x0 = int(max(0, min(W - CROP_W, (min(tip[0], ring[0]) + max(tip[2], ring[2])) / 2 - CROP_W / 2)))
+        return (x0, int(grid[1]) - 2, x0 + CROP_W, int(max(tip[3], grid[3])) + 6)
+
+    g = at["rest"]["grid"]
+    scene = at["select"]["scene"]
+    sel_x0 = int(max(0, min(W - CROP_W, scene[0] + (scene[2] - scene[0]) * 0.18)))
+    cells = [
+        ("Shift-click days to light up their trees",
+         [("select", (sel_x0, int(scene[1] + (scene[3] - scene[1]) * 0.33), sel_x0 + CROP_W, int(scene[1] + (scene[3] - scene[1]) * 0.71))),
+          ("select", (sel_x0, int(g[1]) - 2, sel_x0 + CROP_W, int(g[3]) - 10))]),
+        ("Streak view: your whole streak at once",
+         # (from the rows' left end: each row's year, and the streak's length under the last)
+         [("streak", (int(at["streak"]["grid"][0]) - 4, int(at["streak"]["grid"][1]) - 2,
+                      int(at["streak"]["grid"][0]) - 4 + CROP_W, int(at["streak"]["grid"][3]) + 5))]),
+        ("Shade the days by reviews, time or pace",
+         [("pace", (int(min(W, at["pace"]["foot"][2] + 20)) - CROP_W, int(g[1]) - 2, int(min(W, at["pace"]["foot"][2] + 20)), int(at["pace"]["foot"][3]) + 4))]),
+        ("The day each animal came", [("animal", around("animal"))]),
+        ("A flag for your next goal", [("rest", (right("rest") - CROP_W, int(g[1]) - 2, right("rest"), int(g[3]) + 5))]),
+        ("Right-click a day to mark an exam or a trip", [("exam", around("exam"))]),
+    ]
+    bg = PAGE_BG
+
+    def cell(parts: list):
+        ims = [shot[k].crop(box) for k, box in parts]
+        h = sum(i.height for i in ims) + 6 * (len(ims) - 1)
+        im = Image.new("RGB", (CROP_W, h), bg)
+        y = 0
+        for i in ims:
+            im.paste(i, (0, y))
+            y += i.height + 6
+        mask = Image.new("L", im.size, 255)
+        d = ImageDraw.Draw(mask)
+        for x in range(CROP_FADE):
+            a = int(255 * (x + 1) / (CROP_FADE + 1))
+            d.line([(x, 0), (x, im.height)], fill=a)
+            d.line([(im.width - 1 - x, 0), (im.width - 1 - x, im.height)], fill=a)
+        return Image.composite(im, Image.new("RGB", im.size, bg), mask)
+
+    crops = [cell(parts) for _label, parts in cells]
+    rows = [crops[i:i + 2] for i in range(0, len(crops), 2)]
+    row_h = [max(c.height for c in r) for r in rows]
+    width = 2 * SHEET_PAD + 2 * CROP_W + SHEET_GAP
+    sheet = Image.new("RGB", (width, 2 * SHEET_PAD + sum(row_h) + len(rows) * LABEL_LINE + (len(rows) - 1) * SHEET_GAP), bg)
+    draw = ImageDraw.Draw(sheet)
+    font = ImageFont.truetype(FONT, LABEL_PX)
+    font.set_variation_by_axes([700])
+    y = SHEET_PAD
+    for r, row in enumerate(rows):
+        for k, im in enumerate(row):
+            x = SHEET_PAD + k * (CROP_W + SHEET_GAP)
+            draw.text((x + 4, y + 17), cells[2 * r + k][0], fill=LABEL_FG, font=font, anchor="ls")
+            # (each crop in the middle of its row's height: the taller one sets it)
+            sheet.paste(im, (x, y + LABEL_LINE + (row_h[r] - im.height) // 2))
+        y += LABEL_LINE + row_h[r] + SHEET_GAP
+    sheet.save(out, optimize=True)
+
+
+def features_shoot(tmp: str) -> None:
+    """The feature sheet's shots, in one Chrome, then the sheet (docs/heatmap_features.png)."""
+    lake = mood_of("golden_lake")
+    data = features_data(lake)
+    path = os.path.join(tmp, "features.html")
+    with open(path, "w", encoding="utf-8") as f:
+        # (the current streak's bracket and trophy alone, as on the panel picture: script_tags)
+        f.write(page(lake, data, 756, FEATURES_CSS))
+    job = {"page": path, "steps": features_steps(data, tmp)}
+    with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False, encoding="utf-8") as f:
+        f.write(FEATURES_SHOOT % {"puppeteer": PUPPETEER, "job": json.dumps(job), "chrome": json.dumps(CHROME)})
+    try:
+        run = subprocess.run(["node", f.name], capture_output=True, text=True, timeout=600)
+    finally:
+        os.unlink(f.name)
+    print(run.stdout + run.stderr, end="")
+    if run.returncode:
+        raise SystemExit(run.returncode)
+    features_picture(tmp, os.path.join(DOCS, "heatmap_features.png"))
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--collection", help="Use your own review history and forest (read-only)")
-    parser.add_argument("--only", choices=("heatmap", "layout"), help="Draw only the heatmap pictures, or only the layout one")
+    parser.add_argument("--only", choices=("heatmap", "features", "layout"),
+                        help="Draw only the panel and the heatmap pictures, only the feature sheet, or only the layout picture")
     args = parser.parse_args()
     if args.collection:
         collection_data(args.collection)
     lake = mood_of("golden_lake")
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
+        if args.only == "features":
+            features_shoot(tmp)
+            print("docs/heatmap_features.png")
+            return
         if args.only != "heatmap":
             # the layout: Chalkboard beside the deck list and its heatmap Full width under it (One beside), the page shot whole
             # with its margins, down to Anki's studied-today line
@@ -357,20 +570,17 @@ def main() -> None:
             shoot(jobs)
             print("docs/layout.png")
             return
-        # the big picture: the forest and its heatmap, with the streak labels unobstructed, and the
-        # animals its numbers bring but those that take years (left for people to find, as in the GIFs)
-        # (its exam on a Monday two weeks ahead, the heatmap's top row, its tooltip open with the countdown:
-        # under the top row it covers only days to come, and leaves the trophy and the flag in view)
-        monday = dt.date.today() + dt.timedelta(days=(7 - dt.date.today().weekday()) % 7 or 7)
-        note = {"day": (monday + dt.timedelta(days=14)).isoformat(), "icon": "exam", "name": "Exam"}
-        big = dict(forest_data(lake), calendar=calendar(lake, [note]), showForest=True)
+        # the big picture, kept basic: the forest and its heatmap, with the streak labels unobstructed,
+        # the heatmap's switches and key shown (they come with the pointer), and the animals its numbers
+        # bring but those that take years (left for people to find, as in the GIFs); no tooltip and no
+        # marked day (the feature sheet shows those)
+        big = dict(forest_data(lake), calendar=calendar(lake, []), showForest=True)
         if REAL_DATA is None:
             big["visitors"] = [v for v in milestones.for_page(fake_forest.visitors(big["stats"])) if v["key"] not in YEARS_AWAY]
         path = os.path.join(tmp, "big.html")
         with open(path, "w", encoding="utf-8") as f:
-            f.write(page(lake, big, 756, ".af-cog { display: none !important }"))
-        jobs.append({"page": path, "width": 800, "shoot": "#p", "tipDays": (dt.date.fromisoformat(note["day"]) - dt.date.today()).days,
-                     "tipHas": note["name"], "out": os.path.join(DOCS, "panel.png")})
+            f.write(page(lake, big, 756, SHOWN_CSS))
+        jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "panel.png")})
         # the sceneries: the heatmap alone, with only the current trophy and flag revealed
         shots = {}
         for key, tiles, view in ROWS:
@@ -386,7 +596,8 @@ def main() -> None:
                          "pad": 0 if tiles == "contours" else 2, "out": shots[key]})
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
-    print("docs/panel.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png"))
+        features_shoot(tmp)
+    print("docs/panel.png, docs/heatmap_features.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png"))
     if not args.only:
         subprocess.run([sys.executable, os.path.join(HERE, "docs_grids.py")], check=True)
 
