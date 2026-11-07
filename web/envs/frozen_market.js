@@ -263,11 +263,12 @@ const ICE = {
   dusk: { far: '#3c4a86', near: '#6e86c0', gloss: '#b2caee', crack: '#d6e4fa', crackD: '#2a3264', trail: '#9cb4e0' },
   night: { far: '#101a3a', near: '#243a6a', gloss: '#5e7cb4', crack: '#8eaad6', crackD: '#080e22', trail: '#46628e' },
   dawn: { far: '#6c78a8', near: '#9eb2d6', gloss: '#e4ecf8', crack: '#f4f6fc', crackD: '#4c5484', trail: '#c8d6ee' },
+  golden: { far: '#44508a', near: '#8a9ccc', gloss: '#f6dcdc', crack: '#fbe8e6', crackD: '#2c3262', trail: '#b8c2e2' },  // (still blue, the low sun glinting on it)
   day: { far: '#6e9ac4', near: '#a4c8e6', gloss: '#e8f4fc', crack: '#f8fcff', crackD: '#4a78a8', trail: '#cfe4f4' },
 };
 const ICEP = {};
 function icePal(th) {
-  const h = ICE[th.xh] ? th.xh : 'dusk';
+  const h = th.xg ? 'golden' : ICE[th.xh] ? th.xh : 'dusk';
   if (!ICEP[h]) { ICEP[h] = {}; for (const k in ICE[h]) ICEP[h][k] = hex(ICE[h][k]); }
   return ICEP[h];
 }
@@ -332,11 +333,12 @@ function townPlan(T, th) {
   // the quay: its snowy top, two rows of wall, then the ice; the stalls stand a few rows out on it
   const I0 = B + 4, SB = Math.min(VE - 3, I0 + Math.max(3, Math.min(6, Math.round((VL - I0) * 0.4))));
   const big = VB >= 48;
-  const out = { chimneys: [], stalls: [], lights: [], I0, SB };
+  const out = { chimneys: [], stalls: [], lights: [], wins: [], I0, SB };
 
   /* a window of w x h panes-worth, lit or dark, with a sill */
   const win = (x, y, w, h, on) => {
     rect(x, y, x + w - 1, y + h - 1, on ? M.WL : M.WD);
+    if (!depth && w === 2 && h === 3) out.wins.push([x, y, on]);  // (a front-row window, for the ones that change)
     if (!on) set(x, y, M.WD, 1);  // a glint of sky in the top corner
   };
   /* a front-gabled half-timbered house */
@@ -560,6 +562,10 @@ function townPlan(T, th) {
     if (get(x, y) === M.FIR) set(x, y, M.GL, 8 + (i % 3));
   }
   rect(treeX - 1, B - 3, treeX + 1, B, M.WOOD, 0);
+  // presents under it, either side of the trunk: a red one, a blue one, a little green one, their ribbons in snow-white
+  rect(treeX - 5, B - 1, treeX - 3, B, M.SIGN, 0); set(treeX - 4, B - 1, M.SNOW); set(treeX - 4, B, M.SNOW); set(treeX - 4, B - 2, M.SNOW, 1);
+  rect(treeX + 2, B - 2, treeX + 4, B, M.SIGN, 2); rect(treeX + 2, B - 1, treeX + 4, B - 1, M.SNOW); set(treeX + 3, B - 3, M.SNOW, 1);
+  rect(treeX + 5, B - 1, treeX + 6, B, M.SIGN, 1); set(treeX + 5, B - 1, M.SNOW, 1);
   const star = [[0, -3], [0, -2], [-1, -1], [0, -1], [1, -1], [-3, 0], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [3, 0], [-1, 1], [0, 1], [1, 1], [-1, 2], [1, 2], [0, 4], [0, 3]];
   for (const [dx, dy] of star) set(treeX + dx, gTop + 1 + dy, M.STAR, dx === 0 && dy === 0 ? 1 : 0);
   out.tree = { x: treeX, top: gTop - 2, star: [treeX, gTop + 1] };
@@ -649,7 +655,7 @@ function townPlan(T, th) {
       for (let s2 = 1; s2 < n; s2++) {
         const q = s2 / n, x = x0 + side * s2, y = Math.round(y0 + (y1 - y0) * q + sag * 4 * q * (1 - q));
         const m = get(x, y); if (m === M.FIR || m === M.GL || m === M.STAR) continue;
-        if (s2 % 2 === 0) set(x, y, M.BULB, s2 % 4 === 0 ? 1 : 0); else set(x, y, M.IRON, 1);
+        if (s2 % 2 === 0) { set(x, y, M.BULB, s2 % 4 === 0 ? 1 : 0); (out.strings || (out.strings = [])).push([x, y, s2]); } else set(x, y, M.IRON, 1);
       }
     }
   }
@@ -658,7 +664,7 @@ function townPlan(T, th) {
   /* ---- the carousel out on the ice (drawn live through a hole: its shape is fixed, its content turns) ---- */
   const CB = Math.min(VE - 2, SB + 1);
   obj = CB;
-  const cw = 25, ch = S(23), cTop = CB - ch;
+  const cw = 25, ch = Math.max(18, S(23)), cTop = CB - ch;  // (a big forest squeezes the town: still taller than the stalls)
   const car = { x: carX, top: cTop, w: cw, h: ch, pts: [], base: CB };
   const cone = Math.round(ch * 0.44), val = 2, plat = 2;
   for (let y = cTop; y <= CB; y++) {
@@ -945,22 +951,22 @@ function carouselFrames(env, T, car, C) {
       else if (j < car.cone) {  // the canopy: red and cream panels converging on the top, turning
         const hw = 1 + (car.w / 2 - 1) * Math.pow((j - 3) / (car.cone - 3), 0.8);
         const a = Math.asin(Math.max(-1, Math.min(1, dx / (hw + 0.5))));
-        const s = Math.floor((a / Math.PI + 0.5) * 6 + ph * 3) & 1;
+        const s = Math.floor((a / Math.PI + 0.5) * 6 + ph * 2) & 1;  // (two panels a sixth of a turn: with the horses, and seamless)
         c = s ? red : cream;
         if (dx > hw * 0.5) c = mix(c, C.timber, 0.35);
         else if (dx < -hw * 0.55 && rimC) c = mix(c, rimC, 0.3);
         if (j === car.cone - 1 || (Math.abs(dx) > hw - 1 && j > 4)) c = mix(c, C.timber, 0.2);
       } else if (j < car.cone + car.val) {  // the valance: scallops and chasing bulbs
         const a = Math.asin(Math.max(-1, Math.min(1, dx / (car.w / 2 + 0.5))));
-        const s = Math.floor((a / Math.PI + 0.5) * 12 + ph * 6) & 1;
-        if (j === car.cone) c = on && ((x + f) % 3 === 0) ? bulbOn : green;
+        const s = Math.floor((a / Math.PI + 0.5) * 12 + ph * 4) & 1;
+        if (j === car.cone) c = (x + f) % 3 === 0 ? bulbOn : green;  // (lit by day too, as the stalls' bulbs are)
         else c = s ? green : mix(green, C.timber, 0.5);
       } else if (j > car.h - car.plat) {  // the platform, bulbs chasing round its rim
-        c = j === car.h - car.plat + 1 ? (on && ((x - f) % 4 === 0) ? bulbWarm : C.woodL) : C.wood;
+        c = j === car.h - car.plat + 1 ? ((x - f) % 4 === 0 ? bulbWarm : C.woodL) : C.wood;
       } else {  // inside: the lit drum with its mirrors, warm dusk behind
         const q = (y - yTop) / Math.max(1, yBot - yTop);
         c = on ? mix(hex('#b4583a'), hex('#5a2a2a'), q) : mix(C.woodS, C.wood, q);
-        if (Math.abs(dx) < 2.5) c = on ? ((y & 1) ? LIT.core : LIT.edge) : C.woodL;  // the drum, lit mirrors
+        if (Math.abs(dx) < 2.5) c = on ? ((y & 1) ? LIT.core : LIT.edge) : mix(C.woodL, (y & 1) ? LIT.core : LIT.edge, 0.55);  // the drum, lit mirrors (by day, a softer glow)
         if (Math.abs(dx) >= car.w / 2 - 1.5) c = C.woodS;
       }
       P(c, x, y);
@@ -968,13 +974,13 @@ function carouselFrames(env, T, car, C) {
     // the horses on their brass-less silver poles: going round, rising and falling
     const list = [];
     for (let n = 0; n < 6; n++) {
-      const a = (n / 6 + ph / 6) * Math.PI * 2, z = Math.cos(a), xx = car.x + Math.sin(a) * (car.w / 2 - 4);
+      const a = (n / 6 - ph / 6) * Math.PI * 2, z = Math.cos(a), xx = car.x + Math.sin(a) * (car.w / 2 - 4);  // (the front ones going left, as the canopy does)
       list.push({ a, z, xx, n });
     }
     list.sort((p, q) => p.z - q.z);
     for (const hs of list) {
       if (hs.z < -0.15) continue;
-      const bob = Math.round(Math.sin(hs.a * 3 + hs.n * 2)), hx = Math.round(hs.xx), hy = Math.round(yTop + (yBot - yTop) / 2 - 2 + bob);
+      const bob = Math.round(Math.sin(hs.a * 3)), hx = Math.round(hs.xx), hy = Math.round(yTop + (yBot - yTop) / 2 - 2 + bob);
       for (let y = yTop; y < yBot; y++) P(on ? hex('#dce0ea') : hex('#9aa0aa'), hx, y);
       const dir = Math.cos(hs.a) >= 0 ? -1 : 1;  // the front ones run left, as it turns
       HORSE.forEach((row, ry) => { for (let rx = 0; rx < 6; rx++) { const ch = row[rx]; if (ch === '.') continue; P(hC[ch], hx + (dir > 0 ? rx - 2 : 2 - rx), hy + ry); } });
@@ -1030,6 +1036,7 @@ function paintSky(env, g) {
     for (let i = 0; i < n; i++) {
       const x = Math.floor(R() * W), y = Math.floor(Math.pow(R(), 1.5) * T.base * 0.7), b = R();
       set(x, y, mix(get(x, y), hex('#f4f0ff'), b > 0.85 ? 0.95 : b > 0.5 ? 0.6 : 0.35));
+      if (b > 0.85) (env.marketStars || (env.marketStars = [])).push([x, y, (hashStr('st' + x + ',' + y) % 628) / 100]);  // (the bright ones twinkle)
       if (b > 0.97) { for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) set(x + dx, y + dy, mix(get(x + dx, y + dy), hex('#c8d0ff'), 0.4)); }
     }
     // the moon, nearly full, with a dithered halo and a darker lower limb
@@ -1194,7 +1201,7 @@ const POSES = {
   fallen: ['p......', 'hf.....', 'sc....b', 'ccclll.'],
   kneel: ['..p..', '.hh..', '.fs..', '.ccl.', 'cc.lb'],
 };
-const SKATE_COATS = ['#b8202e', '#1e3a78', '#1e5a3a', '#6a2a5a', '#e8e2d6', '#2a6a8a', '#8a1a2a'];
+const SKATE_COATS = ['#b8202e', '#1e3a78', '#1e5a3a', '#6a2a5a', '#d8303e', '#2a6a8a', '#e8e2d6'];  // (the fifth: the beginner, in red to be seen on the ice)
 const SKATE_HATS = ['#e8e4dc', '#c02838', '#2e5ad0', '#1e5a3a', '#f0f0f4', '#c02838'];
 const SKATERS = {};
 /* each pose as a list of [dx, dy, colour], for one outfit and one hour, facing either way */
@@ -1202,7 +1209,7 @@ function skaterSprites(th, n) {
   const key = th.xh + '|' + n;
   if (SKATERS[key]) return SKATERS[key];
   const k = dk(th), night = hex('#0e1430');
-  const shade = c => rgb(mix(hex(c), night, (1 - k) * 0.4));
+  const shade = c => rgb(mix(hex(c), night, (1 - k) * 0.22));  // (lit by the market round the rink: they keep their colours after dark)
   const pal = { p: shade('#f6f6fa'), h: shade(SKATE_HATS[n % SKATE_HATS.length]), f: rgb(mix(hex('#6a4a48'), hex('#eac4ac'), Math.max(k, 0.55))),
     s: shade(n % 2 ? '#e8e4dc' : '#c02838'), c: shade(SKATE_COATS[n % SKATE_COATS.length]), l: shade('#1c1a2a'), b: k > 0.5 ? '#46546e' : '#d4deee' };
   const out = {};
@@ -1213,15 +1220,23 @@ function skaterSprites(th, n) {
   }
   return (SKATERS[key] = out);
 }
+/* how far round its loop a skater has come at angle a (signed): the loop's arc, worked out once */
+const SKATE_STRIDE = 7;  // pixels skated a push: the legs change once a stride, gliding through the slow turns
+function arcAt(s, a) {
+  const n = 64, TAU = Math.PI * 2;
+  if (!s.arc) { const A = s.arc = new Float32Array(n + 1); for (let i = 1; i <= n; i++) { const q = (i - 0.5) / n * TAU; A[i] = A[i - 1] + Math.hypot(s.rx * Math.sin(q), s.ry * Math.cos(q)) * TAU / n; } }
+  const b = Math.abs(a) / TAU, turns = Math.floor(b), f = (b - turns) * n, i = Math.min(n - 1, Math.floor(f));
+  return Math.sign(a) * (turns * s.arc[n] + s.arc[i] + (s.arc[i + 1] - s.arc[i]) * (f - i));
+}
 /* where a skater is at time t, and how it stands: { x, y (feet), pose, right } */
 function skaterAt(s, t) {
   if (s.kind === 'loop' || s.kind === 'pair') {
     const a = s.w * t + s.ph, x = s.cx + s.rx * Math.cos(a), y = s.cy + s.ry * Math.sin(a), right = -Math.sin(a) * s.w > 0;
-    return { x, y, right, pose: (Math.floor(t * 1.6 + s.ph) & 1) ? 'glideA' : 'glideB' };
+    return { x, y, right, pose: (Math.floor(arcAt(s, a) / SKATE_STRIDE + s.ph) & 1) ? 'glideA' : 'glideB' };
   }
   if (s.kind === 'line') {  // straight across and round again
     const span = s.x1 - s.x0, x = s.x0 + (((t * s.v + s.ph * span) % span) + span) % span;
-    return { x, y: s.cy, right: s.v > 0, pose: (Math.floor(t * 1.4 + s.ph * 5) & 1) ? 'glideA' : 'glideB' };
+    return { x, y: s.cy, right: s.v > 0, pose: (Math.floor(t * s.v / SKATE_STRIDE + s.ph * 5) & 1) ? 'glideA' : 'glideB' };
   }
   if (s.kind === 'twirl') {  // spins on the spot, then glides a little arc
     const c = (t + s.ph * 10) % 10;
@@ -1230,15 +1245,23 @@ function skaterAt(s, t) {
     return { x: s.cx + Math.sin(a) * s.rx, y: s.cy - (1 - Math.cos(a)) * 0.8, right: Math.cos(a) > 0, pose: 'glideA' };
   }
   // the beginner: wobbles along, arms going, and every so often sits down hard on the ice
-  const c = (t + s.ph * s.period) % s.period, fall = s.period - 2.6;
-  const x = s.cx + Math.sin(Math.min(c, fall) * 0.55) * s.rx;
+  const c = (t + s.ph * s.period) % s.period, fall = s.period - 2.6, wv = Math.PI * 2 / fall;  // (one wobble out and back between falls: he gets up where he sat down)
+  const x = s.cx + Math.sin(Math.min(c, fall) * wv) * s.rx;
   if (c > fall + 1.7) return { x, y: s.cy, right: true, pose: 'kneel' };
-  if (c > fall) return { x, y: s.cy, right: true, pose: 'fallen' };
-  return { x, y: s.cy, right: Math.cos(c * 0.55) > 0, pose: (Math.floor(t * 3.3) & 1) ? 'wobA' : 'wobB' };
+  if (c > fall) return { x, y: s.cy, right: true, pose: 'fallen', hit: c - fall };
+  return { x, y: s.cy, right: Math.cos(c * wv) > 0, pose: (Math.floor(t * 3.3) & 1) ? 'wobA' : 'wobB' };
 }
 function drawSkater(g, spr, st, ok) {
   const X = Math.round(st.x), Y = Math.round(st.y), px = spr[st.pose][st.right ? 'R' : 'L'];
+  if (st.hit < 0.6) {  // the beginner just down: a spray of snow off the ice, up and falling back
+    g.fillStyle = '#f4f8ff';
+    for (const [dx, v] of [[-4, 9], [-2, 13], [1, 11], [3, 14], [5, 8]]) { const x = X + dx + Math.round(dx * st.hit * 2), y = Y - Math.round(v * st.hit - 16 * st.hit * st.hit); if (y <= Y && ok(x, y, Y)) g.fillRect(x, y, 1, 1); }
+  }
   for (const [dx, dy, c] of px) { const x = X + dx, y = Y + dy; if (!ok(x, y, Y)) continue; g.fillStyle = c; g.fillRect(x, y, 1, 1); }
+  // and mirrored in the ice under the blades, faintly: the blades, the legs and the coat
+  g.globalAlpha = 0.45;
+  for (const [dx, dy, c] of px) { if (dy < -3) continue; const x = X + dx, y = Y + 1 - dy; if (!ok(x, y, Y)) continue; g.fillStyle = c; g.fillRect(x, y, 1, 1); }
+  g.globalAlpha = 1;
 }
 
 /* ---------- Santa's sleigh: four reindeer and a laden sleigh, two frames, built once per hour ---------- */
@@ -1399,6 +1422,8 @@ AF.env('frozen_market', {
     }
     if (ov && th.deck && (w === 'cloudy' || w === 'deep_winter')) th.deck = Object.assign({}, th.deck, { top: ov.deck[0], bot: ov.deck[1] });
     if (th.snow && th.xh !== 'day') { th.g0 = th.xh === 'night' ? '#5c6c94' : '#9a98c4'; th.g1 = th.xh === 'night' ? '#36446a' : '#6a6a9a'; th.grass = th.xh === 'night' ? '#7c8cb4' : '#bab8dc'; }
+    // golden hour: the low sun warms the snow (it kept the cold dusk lilac under a peach sky)
+    if (th.xg && !th.rain && !th.fog) { th.g0 = th.snow ? '#a896b8' : '#b098b8'; th.g1 = th.snow ? '#726890' : '#746490'; th.grass = th.snow ? '#ccb6c8' : '#e0bcc4'; th.water = '#8a9ccc'; }
   },
   pals: {
     rounds: [YEW_N], pine: FIR_N, roundAt: th => palsFor(th).fir,
@@ -1545,6 +1570,16 @@ AF.env('frozen_market', {
         const kk = keys.get(land[j] + ',' + land[j + 1] + ',' + land[j + 2]);
         if (kk != null && A() < 0.6) st.tw.push([x, y + hor, kk, A() * 6.28, 0.8 + A() * 2]);
       }
+      // a few windows in the town that now and then light up, or go dark, each on its own slow round
+      st.wins = [];
+      if (T.live) {
+        const ws = T.paint.plan.out.wins, C = T.paint.C, dawn = env.theme.xh === 'dawn';
+        st.winC = { dark: rgb(C.winD), core: rgb(dawn ? mix(LIT.core, C.winD, 0.25) : LIT.core), edge: rgb(dawn ? mix(LIT.edge, C.winD, 0.25) : LIT.edge) };
+        for (let k = 0; k < 60 && st.wins.length < 8 && ws.length; k++) {
+          const [x, y, on] = ws[Math.floor(A() * ws.length)];
+          if (!st.wins.some(q => q.x === x && q.y === y + T.y0)) st.wins.push({ x, y: y + T.y0, on, ph: A() * 120, per: 60 + A() * 80 });
+        }
+      }
     },
     back(g, env, t) {
       const T = env.market; if (!T || !T.live) return;
@@ -1625,6 +1660,14 @@ AF.env('frozen_market', {
         g.fillStyle = 'rgba(255,190,120,.5)'; g.fill(st.fogGlow[0]);
         g.fillStyle = 'rgba(255,200,140,.22)'; g.fill(st.fogGlow[1]);
       }
+      // the windows that have changed, for a while (only where the town shows)
+      for (const wn of st.wins || []) {
+        if ((t + wn.ph) % wn.per > wn.per * 0.4) continue;
+        for (let yy = 0; yy < 3; yy++) for (let xx = 0; xx < 2; xx++) {
+          const X = wn.x + xx, Y = wn.y + yy; if (X >= W || Y >= M2.h || M2.a[Y * W + X] !== 2) continue;
+          g.fillStyle = wn.on ? st.winC.dark : xx === 0 || yy === 0 ? st.winC.edge : st.winC.core; g.fillRect(X, Y, 1, 1);
+        }
+      }
       // Santa's sleigh crossing the sky every few minutes, a trail of sparkles behind; only on open sky
       if (st.sleigh) {
         const dur = SLEIGH_SECS, pAt = (W + 8 + SLEIGH_W / 2 - W * SLEIGH_AT) / (W + 80);
@@ -1641,6 +1684,14 @@ AF.env('frozen_market', {
           }
           const X = Math.round(sx), Y = Math.round(sy);
           for (const [dx, dy, c] of st.sleigh.spr[Math.floor(t * 7) & 1]) { const x = X + dx, y = Y + dy; if (sky(x, y)) { g.fillStyle = c; g.fillRect(x, y, 1, 1); } }
+        }
+      }
+      // the brightest stars twinkle, each in its own time: a little cross of light, on open sky only
+      if (env.marketStars) {
+        g.fillStyle = 'rgba(214,222,255,.7)';
+        for (const [x, y, ph] of env.marketStars) {
+          if (Math.sin(t * 0.7 + ph * 3) < 0.94) continue;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X >= 0 && X < W && Y >= 0 && Y < M2.h && M2.a[Y * W + X] === 1) g.fillRect(X, Y, 1, 1); }
         }
       }
       // steam off the mulled wine and smoke from the chimneys, a pixel at a time
@@ -1681,7 +1732,7 @@ AF.env('frozen_market', {
             const at2 = { x: at.x + (at.right ? -4 : 4), y: at.y + 1, right: at.right, pose: at.pose === 'glideA' ? 'glideB' : 'glideA' };
             drawSkater(g, skaterSprites(env.theme, sk.n + 3), at2, ok);
             const hx = Math.round((at.x + at2.x) / 2), hy = Math.round(at.y) - 3;
-            if (ok(hx, hy, hy + 3)) { g.fillStyle = rgb(mix(hex(SKATE_COATS[sk.n % SKATE_COATS.length]), hex('#0e1430'), (1 - dk(env.theme)) * 0.4)); g.fillRect(hx, hy, 1, 1); }
+            if (ok(hx, hy, hy + 3)) { g.fillStyle = rgb(mix(hex(SKATE_COATS[sk.n % SKATE_COATS.length]), hex('#0e1430'), (1 - dk(env.theme)) * 0.22)); g.fillRect(hx, hy, 1, 1); }
           }
         }
       }
@@ -1702,6 +1753,15 @@ AF.env('frozen_market', {
           px(f.hat, 0, h); px(f.hat, 1, h); if (!f.kid) px(f.hat, 0, h + 1);
           if (warm) { px(warm, f.v < 0 ? 0 : 1, h - 2); }
         }
+      }
+      // the strings of lights from the great tree: a slow wave of bulbs dimming runs out along them
+      if (T.live && lampsOn(env.theme) && T.paint.plan.out.strings) {
+        const dim = new window.Path2D();
+        for (const [x, y, s2] of T.paint.plan.out.strings) {
+          const Y = y + T.y0; if (Y >= M2.h || M2.a[Y * W + x] !== 2 || Math.sin(t * 1.2 - s2 * 0.35) > -0.45) continue;
+          dim.rect(x, Y, 1, 1);
+        }
+        g.fillStyle = '#9a6a48'; g.fill(dim);
       }
       // the star on the great tree glints now and then
       if (T.star && T.live) {
