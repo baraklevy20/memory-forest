@@ -136,8 +136,10 @@ function pageOf(el) {
   const behind = [];
   for (let e = el; e && e.nodeType === 1; e = e.parentElement) behind.push(e);
   // (its card under it in Onigiri's tile, the forest bare on the page: forest.css .af-card-heat, its
-  // colour as it comes out, core.js AF.cardTones; the cream page round it gave a light page's shades)
-  const card = el.closest && el.closest('.af-card-heat') ? cardOut() : null;
+  // colour as it comes out, core.js AF.cardTones; the cream page round it gave a light page's shades.
+  // So on any of our cards on an off-mode page, AF.pageCards: apart, each card is a ::before, which the
+  // walk up never sees, and it found the page instead)
+  const card = el.closest && el.closest('.af-card-heat, .af-carded:not(.af-text-bands)') ? cardOut() : null;
   const bg = card || AF.u.pageBg(behind) || AF.u.appBg();
   return { bg, dark: bg[0] * 0.3 + bg[1] * 0.59 + bg[2] * 0.11 < 128, solid: !!(el.closest && el.closest('.af-text-bands')) };
 }

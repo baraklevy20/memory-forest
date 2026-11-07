@@ -5,6 +5,7 @@
 const AF = window.AnkiForest, Cal = AF.cal;
 const { rgb, layer, esc } = AF.u;
 const { STATE, TILE, ROWS, BRACKET, markLine, DAY_MS, TIP_GAP, SPOT_DIM, TIP_WAIT, fmt, dayOnly, withWeekday, yearOf, DIAG } = Cal;
+const CAL_TILE = '-calendar';  // (the heatmap's own tile's root: its forest's id and this, panel.CALENDAR_ROOT)
 
 Cal.highlighting = ui => {
   const { root, data, cal, box, H, swiped, grid, notes, tip, hover } = ui;
@@ -119,7 +120,13 @@ Cal.highlighting = ui => {
     clearTimeout(waking);
     waking = setTimeout(() => { tip.style.visibility = ''; warm = true; }, TIP_WAIT);
   };
-  const pointTree = c => { if (root.afPointTreeDay) root.afPointTreeDay(c ? -c.o : null); };
+  // (the heatmap in Onigiri's tile of its own, panel.CALENDAR_ROOT: its trees are the forest's tile's
+  // beside it, the root of the same id without "-calendar", so a day pointed at lights them there)
+  const forestRoot = () => {
+    if (root.afPointTreeDay || !root.id.endsWith(CAL_TILE)) return root;
+    return document.getElementById(root.id.slice(0, -CAL_TILE.length)) || root;
+  };
+  const pointTree = c => { const f = forestRoot(); if (f.afPointTreeDay) f.afPointTreeDay(c ? -c.o : null); };
   // (the tip shown again straight away, by the key or a streak, must not stay invisible from a day brushed too briefly to wake it)
   const unpoint = () => { pointTree(null); tip.hidden = true; tip.style.visibility = ''; ring(null); ui.last = undefined; warm = false; clearTimeout(waking); ui.pointed = null; showSel(); };
   // how far you can page: back to the first day counted, on to the last day ahead counted (Streak
@@ -194,7 +201,8 @@ Cal.highlighting = ui => {
   // the pointer is on, `at`, not halfway between the first and the last, over days not selected;
   // `selAt` and `selOn` keep it for the summary placed again)
   function showSel(told = false, at = null) {
-    if (root.afLightTreeDays) root.afLightTreeDays(ui.sel && data.showForest !== false ? [...ui.sel].map(o => -o) : null);
+    const f = forestRoot();
+    if (f.afLightTreeDays) f.afLightTreeDays(ui.sel && (data.showForest !== false || f !== root) ? [...ui.sel].map(o => -o) : null);
     spot(null);
     ui.selTip = false;
     if (!told) { if (ui.sel) tip.hidden = true; return; }
@@ -253,7 +261,10 @@ Cal.highlighting = ui => {
     if (!ui.sel || ui.editing) return;
     if (e.type === 'keydown' ? e.key === 'Escape' : !box.contains(e.target)) { if (unpick() && e.type === 'keydown') { e.preventDefault(); e.stopPropagation(); } }
   };
-  if (!swiped) { document.addEventListener('keydown', offSel, true); document.addEventListener('mousedown', offSel, true); }
+  // (a heatmap before this one's on the same panel goes at once: left for its next key or click, each
+  // one kept its heatmap and forest alive, one more at every swap)
+  if (root.afOffSel) { document.removeEventListener('keydown', root.afOffSel, true); document.removeEventListener('mousedown', root.afOffSel, true); root.afOffSel = null; }
+  if (!swiped) { document.addEventListener('keydown', offSel, true); document.addEventListener('mousedown', offSel, true); root.afOffSel = offSel; }
   Object.assign(ui, { inSel, showPickDim, spot, ring, reveal, pointTree, unpoint, can, runsOf, selSummary, dueToday, selOpens, showSel, placeSel, pick, unpick });
 };
 })();

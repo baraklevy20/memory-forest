@@ -14,7 +14,7 @@ AF.TIMES = {
     far: '#9ab0c4', near: '#7c9c96', g0: '#6f9a58', g1: '#446c3c', grass: '#86b068', haze: '#c6d8dc', hzStep: 0.12, water: '#8fbcd8',
     clouds: { n: 5, top: '#ffffff', bot: '#dfe8ef', a: 240 }, birdC: '#3d4a55' },
   golden_hour: { sky: ['#6f93c0', '#9aaec4', '#d4bca0', '#efc48c', '#f7d49a', '#fbe2b0'], orb: { kind: 'sun', x: 0.78, y: 0.15, r: 7, c: '#fff0c8', glow: '#ffd99a', halo: 5 },
-    far: '#a898a6', near: '#8a8c84', g0: '#7f9c50', g1: '#4d6a36', grass: '#a0b460', haze: '#ead2ac', hzStep: 0.12, water: '#b0a890',
+    far: '#a898a6', near: '#8a8c84', g0: '#7f9c50', g1: '#4d6a36', grass: '#a0b460', haze: '#ead2ac', hzStep: 0.12, water: '#b0a890', pondSky: 0.6,
     tint: '#e0a060', tintAmt: 0.06, rim: '#ffac8a', shadow: 0.9, clouds: { n: 4, top: '#fff0d8', bot: '#e8c0a0', a: 235 }, birdC: '#4a3a30' },
   dusk: { sky: ['#1f2b47', '#34436a', '#5e5f86', '#9a7a93', '#d49a8a', '#eebf98'], orb: { kind: 'sun', x: 0.72, y: 0.35, r: 7, c: '#f8dca8', glow: '#f6d3a0', halo: 4 },
     far: '#6c6a8e', near: '#4b5670', g0: '#4a6448', g1: '#2a4230', grass: '#3f6446', haze: '#9a93ad', hzStep: 0.12, water: '#7d78a0',

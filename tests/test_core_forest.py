@@ -4,6 +4,8 @@ crown sizes, health steps, saplings, ponds at the ends, streaks and days off."""
 from __future__ import annotations
 
 import datetime as dt
+import os
+import re
 import unittest
 
 from helpers import CUTOFF, TODAY, card, ms, rows
@@ -61,6 +63,13 @@ class StageTests(unittest.TestCase):
     def test_the_stage_steps_at_three_weeks_half_a_year_and_a_year(self):
         for s, stage in ((20.9, fd.YOUNG), (21, fd.MATURE), (179, fd.MATURE), (180, fd.OLD), (364, fd.OLD), (365, fd.ANCIENT)):
             self.assertEqual(tree_of([card(1, s=s)])["stage"], stage, s)
+
+    def test_a_young_tree_is_grown_on_the_page_the_day_it_turns_mature(self):
+        # web/layout.js grows a young tree into its stage until YOUNG_UNTIL days' strength: any other
+        # number than the one it turns mature at, and it jumps (or stalls) on that day
+        with open(os.path.join(os.path.dirname(fd.__file__), "web", "layout.js"), encoding="utf-8") as f:
+            young_until = int(re.search(r"\bYOUNG_UNTIL = (\d+)", f.read()).group(1))
+        self.assertEqual(young_until, fd.MATURE_DAYS)
 
     def test_the_cards_known_well_are_counted_per_tree_and_in_all(self):
         cards = [card(1, s=21), card(2, s=20), card(3, ivl=100), card(4, ctype=1)]

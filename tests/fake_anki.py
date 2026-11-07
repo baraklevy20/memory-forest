@@ -46,7 +46,7 @@ class DB:
         self.con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer default 0, mod integer default 0);
-            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer default 0, lastIvl integer default 0, time integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer default 0, lastIvl integer default 0, time integer default 0, factor integer default 2500);
             create table notes (id integer, tags text, mod integer default 0);
         """)
 
@@ -241,7 +241,7 @@ FILTER_HOOKS = ("webview_did_receive_js_message",)
 hooks = types.SimpleNamespace(**{name: (_FilterHook() if name in FILTER_HOOKS else _Hook()) for name in (
     "deck_browser_will_render_content", "overview_will_render_content", "reviewer_did_answer_card",
     "webview_did_receive_js_message", "webview_did_inject_style_into_page", "deck_browser_will_show_options_menu",
-    "sync_will_start", "sync_did_finish", "collection_did_load", "state_did_change", "theme_did_change",
+    "sync_will_start", "sync_did_finish", "collection_did_load", "state_did_change", "theme_did_change", "webview_will_set_content",
     # added to, and taken off again, only while the browser is open on a heatmap day (actions, answer_column)
     "browser_did_search", "browser_did_fetch_row", "browser_will_search")})
 

@@ -2206,8 +2206,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "غُرست شجرتك الأولى، تحت قائمة الرزم. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "غُرست شجرتك الأولى. تنمو أخرى كل يوم تتعلم فيه بطاقات جديدة.",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "ليلة الشفق القطبي",
@@ -3404,8 +3404,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "تفضّل الأشجار؟ تبويب الرزم: بدء الغابة في، إبقاء الأشجار التي تسبقه.",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "تفضّل الأشجار؟ في تبويب الرزم، فعّل «بدء الغابة في» و«إبقاء الأشجار التي تسبقه».",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "مُسنّة",

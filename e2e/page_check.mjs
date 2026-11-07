@@ -33,7 +33,8 @@ const HELPERS = () => {
       d.innerHTML = t.innerHTML.replace(/<br\s*\/?>/g, '\n');
       return d.textContent.trim();
     },
-    sent: () => { const s = window.__sent.slice(); window.__sent.length = 0; return s; },
+    // (what a click or a key sends: not the page's own word to Anki's bars as it is drawn, web/core.js AF.arrange)
+    sent: () => { const s = window.__sent.filter(c => c !== 'forest:bars'); window.__sent.length = 0; return s; },
     btn: go => box().querySelector(`[data-go="${go}"]`),
     // the middle of the day `o` days from today in By year's weeks or Timeline's, by the page's own
     // offsets: the cell (1 + col * 10, 3 + row * 10 + 1) of the canvas's low-res pixels
@@ -543,12 +544,15 @@ check('mount: a remount lets go of the forest before: one listener, one loop, on
   const p = await open(b, 'live'); await forestReady(p); const f = [];
   await p.evaluate(COUNT);
   const one = await framesIn(p, 1000);
+  const held = await p.evaluate(() => [window.__on.keydown, window.__on.mousedown]);
   await p.evaluate(() => { for (let i = 0; i < 4; i++) AnkiForest.mount(document.getElementById('p'), JSON.parse(JSON.stringify(window.TEST_DATA)), { now: true }); });
   await wait(500);
   const five = await framesIn(p, 1000);
   if (five > one * 1.6 + 2) f.push(`after 4 remounts ${five} frames a second, ${one} before: old loops still running`);
   eq(f, await p.evaluate(() => [window.__vis, document.querySelectorAll('.af-scene').length, document.querySelectorAll('.af-cal').length, document.querySelectorAll('.af-cal-canvas:not(.af-cal-past-weeks)').length]),
     [1, 1, 1, 1], 'visibility listeners, scenes, heatmaps, weeks');
+  // (the heatmap's Esc and click-away for its picked days: each one left behind kept its heatmap and forest)
+  eq(f, await p.evaluate(() => [window.__on.keydown, window.__on.mousedown]), held, 'the document\'s keydown and mousedown listeners, as before the remounts');
   // the heatmap alone on the same root: the forest stops, its cog stays, its listener goes
   await p.evaluate(() => AnkiForest.mount(document.getElementById('p'), Object.assign(JSON.parse(JSON.stringify(window.TEST_DATA)), { showForest: false })));
   await wait(300);

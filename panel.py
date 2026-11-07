@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import traceback
 
 from aqt import mw
 from aqt.qt import QShortcut
 
-from . import onigiri
+from . import bars, onigiri
 from .catalog import core_scripts, draft_scripts, scenery_files
+from .edition import manifest
 from .payload import payload
 from .scope import excluded_decks
 from .state import MODULE, calendar_on, config, log, shows_on_deck_list, shows_on_finished
@@ -63,11 +65,31 @@ def _deck_panel(deck: dict) -> tuple | None:
     return deck["id"], mode != "own", forest
 
 
+# Onigiri's two tiles in one drawing of the deck list: what the first worked out, handed to the
+# second rather than worked out again (the whole forest, its events and its heatmap, twice a drawing).
+# Taken once, and only a moment after: the next drawing works it out afresh
+_shared: dict = {}
+SHARE_S = 2.0
+
+
+def _info(did: int | None, highlight: bool, show_forest: bool, share: bool) -> dict:
+    """payload(); with `share`, the other tile drawn in the same pass takes what this one worked out."""
+    kept = _shared.pop((did, highlight), None)
+    if kept and time.monotonic() - kept[0] < SHARE_S:
+        info = kept[1]
+    else:
+        info = payload(did, highlight, show_forest or share)
+        if share:
+            _shared[(did, highlight)] = (time.monotonic(), info)
+    # (as payload() has it for the heatmap alone: no forest, and no what's-new note on it)
+    return info if show_forest or info.get("showForest") is False else dict(info, showForest=False, news=None)
+
+
 def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: bool = True,
-                 show_calendar: bool = True, root: str = ROOT) -> tuple:
+                 show_calendar: bool = True, root: str = ROOT, share: bool = False) -> tuple:
     """(element id, data as JSON, scripts before the boot script) for one forest panel; without
-    its study calendar when that has a tile of its own (_split)."""
-    info = payload(did, highlight, show_forest)
+    its study calendar when that has a tile of its own (_split); `share`, _info."""
+    info = _info(did, highlight, show_forest, share)
     if not show_calendar:
         info = dict(info, calendar=None)
     mood = info["mood"]
@@ -82,8 +104,8 @@ def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: b
 
 
 def _panel_html(did: int | None = None, highlight: bool = False, show_forest: bool = True,
-                show_calendar: bool = True, root: str = ROOT) -> str:
-    root, data, srcs = _panel_parts(did, highlight, show_forest, show_calendar, root)
+                show_calendar: bool = True, root: str = ROOT, share: bool = False) -> str:
+    root, data, srcs = _panel_parts(did, highlight, show_forest, show_calendar, root, share)
     boot = _url(BOOT)
     return (
         f'<link rel="stylesheet" href="{_url("forest.css")}">'
@@ -109,7 +131,7 @@ def on_deck_browser(deck_browser, content) -> None:
     try:
         # content.tree renders inside a <table>, so a block there would be hoisted above
         # the decks; the start of the stats section sits directly below the deck list.
-        content.stats = _panel_html(show_forest=shows[0], show_calendar=not split) + content.stats
+        content.stats = _panel_html(show_forest=shows[0], show_calendar=not split, share=_both_tiles(shows)) + content.stats
     except Exception:
         log("could not render the forest:\n" + traceback.format_exc())
 
@@ -124,7 +146,7 @@ def on_deck_browser_calendar(deck_browser, content) -> None:
     if shows is None or not shows[1]:
         return
     try:
-        content.stats = _panel_html(show_forest=False, root=CALENDAR_ROOT) + content.stats
+        content.stats = _panel_html(show_forest=False, root=CALENDAR_ROOT, share=_both_tiles(shows)) + content.stats
     except Exception:
         log("could not render the study calendar:\n" + traceback.format_exc())
 
@@ -134,14 +156,28 @@ def on_deck_browser_calendar(deck_browser, content) -> None:
 # lists the calendar's tile under a name of its own, beside Memory Forest, rather than as a second
 # Memory Forest (offered only once the first was placed). The name is kept: a placed tile is kept
 # by it ("<module>.<name>"). (no " - " in it: Onigiri's gallery takes a name up to one as the
-# add-on's, and offers one of each.) Only Onigiri reads it; the callback is still this module's
-CALENDAR_TILE = "Memory Forest Heatmap"
+# add-on's, and offers one of each.) Only Onigiri reads it; the callback is still this module's.
+# Named after this copy's edition, Memory Forest Plus Heatmap beside Memory Forest Plus: with both
+# editions installed, one name for both was one tile, which Onigiri gave the last one loaded
+
+
+def tile_name(name: str | None) -> str:
+    """The calendar's tile name for an edition named `name` (its manifest's)."""
+    return f"{name or 'Memory Forest'} Heatmap"
+
+
+CALENDAR_TILE = tile_name(manifest().get("name"))
 on_deck_browser_calendar.__module__ = CALENDAR_TILE
 
 
 def _split() -> bool:
     """Whether the study calendar has a tile of its own on Onigiri's grid."""
     return onigiri.is_placed(on_deck_browser_calendar)
+
+
+def _both_tiles(shows: tuple) -> bool:
+    """Whether Onigiri draws both tiles, the forest's and the calendar's, in each drawing (_info)."""
+    return bool(shows[0] and shows[1]) and _split() and onigiri.is_placed(on_deck_browser)
 
 
 def on_overview(overview, content) -> None:
@@ -168,13 +204,14 @@ def on_page_loaded(web) -> None:
     # a page of the main window loaded afresh (the congratulations page after a sync, or after
     # an unbury) takes a mark being named with it, and no render hook says so (release_shortcuts)
     release_shortcuts()
-    if mw.state != "overview" or mw.col is None or not shows_on_finished():
+    if mw.state != "overview" or mw.col is None:
         return
     if not _on_congrats(web):  # (the usual screen, with its panel already: nothing to build)
         return
     try:
-        shows = _deck_panel(mw.col.decks.current())
-        if shows is None:
+        shows = _deck_panel(mw.col.decks.current()) if shows_on_finished() else None
+        if shows is None:  # (and no forest behind it: Anki's own bars, bars.py)
+            bars.tint([])
             return
         root, data, srcs = _panel_parts(*shows)
     except Exception:
@@ -271,25 +308,28 @@ def _swap_tiles(web, shows: tuple) -> None:
     """The deck list's forest and study calendar in Onigiri's tiles of their own (_split), each
     swapped in place; the list drawn again when one should come or go."""
     reload = mw.deckBrowser.refresh
-    want = {ROOT: shows[0], CALENDAR_ROOT: shows[1]}
+    # (the forest's only where its tile is on the grid too: Onigiri draws no other, so one left off
+    # it is never there to swap, and wanting it drew the whole list again on every change)
+    want = {ROOT: shows[0] and onigiri.is_placed(on_deck_browser), CALENDAR_ROOT: shows[1]}
     js = f"[{json.dumps(ROOT)}, {json.dumps(CALENDAR_ROOT)}].map(id => !!document.getElementById(id))"
 
     def swap(there) -> None:
         if not isinstance(there, list) or [bool(t) for t in there] != list(want.values()):
             reload()
             return
-        if shows[0]:
-            _swap_or_reload(web, reload, show_forest=True, show_calendar=False)
+        share = _both_tiles(shows)
+        if want[ROOT]:
+            _swap_or_reload(web, reload, show_forest=True, show_calendar=False, share=share)
         if shows[1]:
-            _swap_or_reload(web, reload, show_forest=False, root=CALENDAR_ROOT)
+            _swap_or_reload(web, reload, show_forest=False, root=CALENDAR_ROOT, share=share)
 
     web.evalWithCallback(js, swap)
 
 
 def _swap_or_reload(web, reload, did: int | None = None, highlight: bool = False, show_forest: bool = True,
-                    show_calendar: bool = True, root: str = ROOT) -> None:
+                    show_calendar: bool = True, root: str = ROOT, share: bool = False) -> None:
     try:
-        root, data, srcs = _panel_parts(did, highlight, show_forest, show_calendar, root)
+        root, data, srcs = _panel_parts(did, highlight, show_forest, show_calendar, root, share)
     except Exception:
         log("could not rebuild the forest:\n" + traceback.format_exc())
         return

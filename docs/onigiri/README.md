@@ -23,7 +23,8 @@ Settings opens on **Main Menu → Organize Widgets**. Click **+ Add Widget**.
 ## 3. Add Memory Forest and its heatmap
 
 Scroll to **External Add-ons** at the bottom of the list. Memory Forest has two tiles there:
-**Memory Forest** for the forest, and **Memory Forest Heatmap** for the study heatmap.
+**Memory Forest** for the forest, and **Memory Forest Heatmap** for the study heatmap
+(with Memory Forest Plus: **Memory Forest Plus** and **Memory Forest Plus Heatmap**).
 Click **Memory Forest**. The list closes, so click **+ Add Widget** again and click
 **Memory Forest Heatmap**.
 

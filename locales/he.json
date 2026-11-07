@@ -1957,8 +1957,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "העץ הראשון שלך נשתל, מתחת לרשימת החפיסות. עץ נוסף יצמח בכל יום שבו לומדים כרטיסים חדשים.",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "העץ הראשון שלך נשתל. עץ נוסף יצמח בכל יום שבו לומדים כרטיסים חדשים.",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "ליל זוהר צפוני",
@@ -2141,7 +2141,7 @@
   "en": "All release notes"
  },
  "settings.about.and_a_special_thank_you_to": {
-  "text": "ותודה גדולה לכל מי שתומך בי ב־ Patreon, ובמיוחד ל־ Sponsors שלי:",
+  "text": "ותודה גדולה לכל מי שתומך בי ב־ Patreon, ובמיוחד לספונסרים שלי:",
   "en": "And a big thank-you to everyone on Patreon, especially my Sponsors:"
  },
  "settings.about.how_it_works": {
@@ -2336,7 +2336,7 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "העצים שלך מלפני כן נשארים, וגם החיות שהם הביאו. בריכות וטבע נספרים מ־{date}.",
+  "text": "העצים שלך מלפני כן נשארים, וגם החיות שהם הביאו. בריכות ו\"טבע\" נספרים מ־ {date}.",
   "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
@@ -3110,8 +3110,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "מעדיפים עצים? לשונית חפיסות: תחילת היער, לשמור את העצים.",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "מעדיפים עצים? בלשונית חפיסות, מסמנים את \"תחילת היער\" ואת \"לשמור את העצים מלפני התאריך הזה\".",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "ותיק",

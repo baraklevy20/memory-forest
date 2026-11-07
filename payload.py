@@ -204,6 +204,10 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
               else _forest(None if highlight else did, cfg, changed))
     if highlight and did:
         forest = _lit_by_deck(forest, did, test, cfg, changed)
+    # a forest's first week is the main forest's, as it grew: not begun again by an asteroid, nor by
+    # a deck's own forest (whose first tree may be this week's in a collection years old)
+    first = (forest if test or not did or highlight else _forest(None, cfg, changed))["trees"]
+    first_week = bool(first) and first[0]["ago"] < NEW_TREE_GLOW_DAYS
     # Nature and the other study events, on every forest: a deck's screen acts as the main one
     forest, extras = events_state.apply(forest, cfg, test, changed, did if did and not highlight else None)
     if tools:
@@ -224,7 +228,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     # the page can only glow trees it draws; the journal still names any of them
     ann = [i - merged_count for i in ann_all if i >= merged_count]
     # (in a forest's first week the day's new tree is a sprout that's easy to miss: the same glow finds it)
-    if all_trees and all_trees[0]["ago"] < NEW_TREE_GLOW_DAYS and all_trees[-1]["ago"] == 0:
+    if first_week and all_trees and all_trees[-1]["ago"] == 0:
         ann = [len(all_trees) - 1]
 
     real, place, weather_error = live_weather.for_config(cfg)
@@ -458,12 +462,11 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
         day_reviews, day_time = forest.get("day_reviews") or {}, forest.get("day_time")
     # with a start date (Ignore before), the reviews from before it too: the calendar shows your
     # whole record as if there were none, but for the animals, the forest's own (web/calendar/)
-    begin, forest_start, own, animal_trees = since(cfg), None, day_reviews, trees  # (the animals' days stay the forest's own)
+    begin, forest_start, own = since(cfg), None, day_reviews  # (the animals' days stay the forest's own)
     hidden_before = None  # (with that record left out, the start date: the days before it say why they're empty)
     counted, counts_from = None if test else counts_since(cfg, cutoff), None
-    if counted is not None:  # the trees from before it kept: every day is the forest's, the animals' from the start date
+    if counted is not None:  # the trees from before it kept: every day is the forest's, and so its animals' (from all of them)
         counts_from = study_log.day_date(counted, cutoff).isoformat()
-        own = {a: n for a, n in day_reviews.items() if a <= counted}
     elif begin and not test and shows_record(cfg):
         forest_start = study_log.day_date((cutoff - 1 - begin) // study_log.DAY_SECS, cutoff).isoformat()
         day_reviews, day_time = _day_reviews(cutoff, dids, excluded, None, skip, changed), None
@@ -476,7 +479,7 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
     return {"view": calendar_view(cfg), "shadeBy": calendar_shade(cfg), "weekStart": week_start_day(cfg), "start": study_log.day_date(oldest, cutoff).isoformat(), "days": days, "due": due,
             # Compact planting dates survive the drawing limit, without sending old sprites.
             "planted": [[t["ago"], t["n"]] for t in trees],
-            "animals": milestones.for_page(milestones.animal_days(forest.get("visitors") or [], animal_trees, day_reviews, col.sched.today, test))
+            "animals": milestones.for_page(milestones.animal_days(forest.get("visitors") or [], trees, own, col.sched.today, test))
                        if animals else [],
             # the time each day's reviews took, in seconds, day by day as `days` (made up for a made-up
             # day, so Reviews | Time and its key can be tried on the test forest too)

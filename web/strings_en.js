@@ -494,7 +494,7 @@ window.AnkiForest.EN = {
   "other": "{n} older trees"
  },
  "tooltip.n_years": "{n} years",
- "tooltip.no_ponds_decks_tab": "Rather have trees? Decks tab: Start the forest on, Keep the trees.",
+ "tooltip.no_ponds_decks_tab": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\".",
  "tooltip.old": "old",
  "tooltip.pct_remembered": "~{pct}% remembered",
  "tooltip.pct_still_going_well": "{pct}% still going well",

@@ -547,7 +547,7 @@
  "phone.your_forest_arrives_with_the_next_sync": "Your forest arrives with the next sync from Anki on your computer.",
  "phone.your_forest_is_on_its_way": "Your forest is on its way: sync once more to fetch its drawing.",
  "planting.a_new_tree_was_planted_in": "A new tree was planted in your forest today.",
- "planting.your_first_tree_was_planted": "Your first tree was planted, under your deck list. Another grows each day you learn new cards.",
+ "planting.your_first_tree_was_planted": "Your first tree was planted. Another grows each day you learn new cards.",
  "preset.custom": "Custom",
  "preset.daily": "Surprise me daily",
  "preset.daily.note": "A different scenery every day, taking turns so each one comes round in order.",
@@ -826,7 +826,7 @@
   "other": "{n} older trees"
  },
  "tooltip.n_years": "{n} years",
- "tooltip.no_ponds_decks_tab": "Rather have trees? Decks tab: Start the forest on, Keep the trees.",
+ "tooltip.no_ponds_decks_tab": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\".",
  "tooltip.old": "old",
  "tooltip.pct_remembered": "~{pct}% remembered",
  "tooltip.pct_still_going_well": "{pct}% still going well",

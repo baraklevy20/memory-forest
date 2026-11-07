@@ -21,9 +21,10 @@
         "With Onigiri, the heatmap can have a tile of its own: add Memory Forest Heatmap beside Memory Forest."
       ],
       "improved": [
-        "Forests with lots of short breaks are no longer crowded with ponds: about one per 20 trees.",
-        "Keeping your earlier trees now keeps their animals and cabin too.",
-        "Young trees grow a little each day in their first weeks.",
+        "Forests with lots of short breaks are no longer crowded with ponds: at most one for every 20 trees.",
+        "Keeping your earlier trees now keeps everything they brought, animals too.",
+        "Young trees now grow over their first weeks, as you review their cards.",
+        "A new forest's first week is easier to follow: the day's new tree glows, and the first messages say how it grows.",
         "Ponds look more like water at golden hour.",
         "The weather line shows your city as you typed it, with its local name in brackets."
       ],
@@ -32,7 +33,8 @@
         "Right-to-left fixes in the settings for Hebrew and Arabic.",
         "Filtered decks: previewing a card no longer plants a tree, and new cards in a filter that doesn't reschedule no longer show as overdue.",
         "Clicking a heatmap day no longer sometimes shows an error when the browser opens.",
-        "Crows and robins on far trees fade into the fog with their tree instead of floating in front of it."
+        "Crows and robins on far trees fade into the fog with their tree instead of floating in front of it.",
+        "Trees by a river no longer shift a little as they grow."
       ]
     },
     {

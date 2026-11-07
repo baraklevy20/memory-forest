@@ -115,6 +115,13 @@ class RegistrationTests(unittest.TestCase):
                 hook(object(), content)
                 release.assert_called_once_with()
 
+    def test_each_edition_s_heatmap_tile_has_a_name_of_its_own(self):
+        # (both installed: one name was one tile in Onigiri, the last loaded; no " - " in either,
+        # which Onigiri's gallery would cut the name at)
+        names = [panel.tile_name(n) for n in ("Memory Forest", "Memory Forest Plus")]
+        self.assertEqual(names, ["Memory Forest Heatmap", "Memory Forest Plus Heatmap"])
+        self.assertFalse([n for n in names if " - " in n])
+
     def test_onigiri_finds_the_forest_widget_first_and_it_draws_the_panel(self):
         # Onigiri (AnkiWeb 1011095603) lists every deck list callback as a widget named after
         # the first part of its module, keeps a placed one as "<module>.<name>", offers one of a

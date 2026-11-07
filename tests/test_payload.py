@@ -354,6 +354,35 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(p["stats"]["trees"], 61)
         self.assertIn("rabbit", [v["key"] for v in p["visitors"]])  # the kept trees bring their animals with them
 
+    def test_with_a_start_date_the_heatmap_s_animals_come_on_the_forest_s_own_days(self):
+        # a 40-day streak long ago, then the start date 50 days ago and a 32-day streak since
+        days = list(range(160, 120, -1)) + list(range(31, -1, -1))
+        reset([(i, 10, d) for i, d in enumerate(days, 1)], {"ignore_before": "2026-07-31"})
+        cal = payload.payload()["calendar"]
+        self.assertEqual(cal["forestStart"], "2026-07-31")  # the record before it shown
+        self.assertEqual([(a["key"], a["ago"]) for a in cal["animals"]], [("deer", 2)])  # the 30th day since, not the old streak's
+
+    def test_keeping_the_trees_after_1_5_0_announces_no_animal(self):
+        cards = [(i, 10, 120 - i) for i in range(1, 61)] + [(100, 10, 0)]  # 60 trees long ago, and today's
+        reset(cards, {"ignore_before": "2026-09-01", "keep_earlier_trees": True})
+        state = addon.state.load_state()
+        addon.state.save_state(dict(state, animals={"from 2026-09-01 all": {}}))  # 1.5.0's, from the start date's one tree
+        p = payload.payload()
+        self.assertIn("rabbit", [v["key"] for v in p["visitors"]])
+        self.assertFalse([v["key"] for v in p["visitors"] if v.get("new")])  # each had come long ago, not today
+        self.assertNotIn("rabbit", p["journal"].lower())
+
+    def test_the_first_week_s_glow_is_the_main_forest_s(self):
+        def glows(p):
+            return p["anniversaries"] == [len(p["trees"]) - 1]
+
+        reset([(i, 10, 90 - i) for i in range(91)] + [(500, 20, 2), (501, 20, 0)])  # German begun this week
+        self.assertFalse(glows(payload.payload(20)))  # its own forest is new, the collection is not
+        reset([(i, 10, 60 - i) for i in range(61) if 60 - i != 3], {"nature": "merciless"})  # an asteroid 3 days ago
+        self.assertFalse(glows(payload.payload()))
+        reset([(1, 10, 2), (2, 10, 0)])  # a forest begun this week
+        self.assertTrue(glows(payload.payload()))
+
     def test_a_hand_edited_width_stays_in_range(self):
         reset(CARDS, {"max_width": "wide"})
         self.assertEqual(payload.payload()["maxWidth"], addon.state.MAX_WIDTH_DEFAULT)

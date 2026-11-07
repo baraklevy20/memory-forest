@@ -78,12 +78,13 @@ def calendar(first: dt.date = FIRST, **more) -> dict:
 
 
 # a spy on the page's listeners, before any script: how many 'visibilitychange' listeners the
-# document holds (a remount must let go of the forest before), and every message sent to Anki
+# document holds, and how many of each kind (a remount must let go of the forest and heatmap before),
+# and every message sent to Anki
 SPY = """<script>window.__sent = []; window.pycmd = (msg, cb) => { window.__sent.push(msg); };
-window.__vis = 0;
+window.__vis = 0; window.__on = {};
 const _add = document.addEventListener.bind(document), _rm = document.removeEventListener.bind(document);
-document.addEventListener = (t, f, o) => { if (t === 'visibilitychange') window.__vis++; return _add(t, f, o); };
-document.removeEventListener = (t, f, o) => { if (t === 'visibilitychange') window.__vis--; return _rm(t, f, o); };</script>"""
+document.addEventListener = (t, f, o) => { if (t === 'visibilitychange') window.__vis++; window.__on[t] = (window.__on[t] || 0) + 1; return _add(t, f, o); };
+document.removeEventListener = (t, f, o) => { if (t === 'visibilitychange') window.__vis--; window.__on[t] = (window.__on[t] || 0) - 1; return _rm(t, f, o); };</script>"""
 
 
 def desk(data: dict, bg: str = "#2c2c2c") -> str:

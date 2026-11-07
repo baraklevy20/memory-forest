@@ -1874,8 +1874,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "Has plantado tu primer árbol, bajo la lista de mazos. Crece otro cada día en que aprendes tarjetas nuevas.",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "Has plantado tu primer árbol. Crece otro cada día en que aprendes tarjetas nuevas.",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "Noche de aurora",
@@ -2058,7 +2058,7 @@
   "en": "All release notes"
  },
  "settings.about.and_a_special_thank_you_to": {
-  "text": "Y un gran agradecimiento a todos en Patreon, especialmente a mis Sponsors:",
+  "text": "Y un gran agradecimiento a todos en Patreon, especialmente a mis patrocinadores:",
   "en": "And a big thank-you to everyone on Patreon, especially my Sponsors:"
  },
  "settings.about.how_it_works": {
@@ -3012,8 +3012,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "¿Prefieres árboles? Pestaña Mazos: Empezar el bosque el, Conservar los árboles anteriores.",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "¿Prefieres árboles? En la pestaña Mazos, marca «Empezar el bosque el» y «Conservar los árboles anteriores».",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "viejo",

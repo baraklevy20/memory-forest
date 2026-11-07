@@ -42,7 +42,7 @@ class PlantingTests(unittest.TestCase):
     def test_a_preview_plants_nothing_and_learning_the_card_later_does(self):
         reset([(1, 10, 0)])
         con = mw.col.db.con
-        con.execute("update revlog set type = 3, ivl = 0, lastIvl = -60 where cid = 1")  # as 26.09.3 logs it
+        con.execute("update revlog set type = 3, ivl = 0, lastIvl = -60, factor = 0 where cid = 1")  # as 26.09.3 logs it
         answer(1)
         self.assertEqual(tooltips, [])
         con.execute("insert into revlog (id, cid, ease, type) values (?, 1, 3, 0)", (ms(0) + 1000,))

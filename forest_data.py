@@ -138,7 +138,6 @@ def rebuild(forest: dict, trees: list, review_days: set | None = None, reviews: 
     streak, longest = _streaks(set(days))
     s = forest["stats"]
     out = dict(forest, **make_forest(trees, streak, longest, s["reviews"] if reviews is None else reviews, s["today_reviews"]))
-    out.pop("counted", None)  # (what stands now is all counted: an asteroid's forest grew after the start date)
     if "lit_count" in forest:  # a deck's trees lit in the main forest: count what still stands
         out["lit_count"] = sum(1 for t in trees if not t.get("dim"))
     return out
@@ -245,8 +244,7 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
 
     `today` is the scheduler's day number (sched.today); trees are keyed by absolute
     day number so their seed and position never change. With `counts_from` (days ago: a start
-    date whose trees from before it are kept), the ponds are only the breaks from then on, and
-    `counted` holds the stats of the forest grown since, which its animals go by.
+    date whose trees from before it are kept), the ponds are only the breaks from then on.
     """
     now_ts = now_ts if now_ts is not None else day_cutoff - DAY_SECS / 2
     cohorts: dict = {}
@@ -312,11 +310,6 @@ def build_forest(rows: Rows, day_cutoff: int, today: int, now_ts: float | None =
 
     current, longest = _streaks(rows.review_days)
     forest = make_forest(trees, current, longest, rows.total_reviews, rows.today_reviews)
-    if counts_from is not None:
-        since = [t for t in trees if t["ago"] <= counts_from]
-        s_current, s_longest = _streaks({d for d in rows.review_days if d <= counts_from})
-        s_reviews = sum(n for d, n in rows.day_reviews.items() if d <= counts_from)
-        forest["counted"] = make_forest(since, s_current, s_longest, s_reviews, rows.today_reviews)["stats"]
     forest["review_days"] = rows.review_days  # for the events; never sent to the page
     forest["day_reviews"] = rows.day_reviews  # (and how many each day, to count again from a strike)
     forest["day_time"] = rows.day_time  # (and how long each day took: the heatmap's, read with the rest)

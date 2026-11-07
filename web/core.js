@@ -22,6 +22,8 @@ AF.mount = function (root, data, opts) {
   // kept each retired forest - and its canvas - alive, one more at every swap; a swap to the
   // calendar alone must let go of it too)
   if (root.afShown) { document.removeEventListener('visibilitychange', root.afShown); root.afShown = null; }
+  // (and so with the window's resize listener: left until the window was next resized, it kept them too)
+  if (root.afOnWindow) { window.removeEventListener('resize', root.afOnWindow); root.afOnWindow = null; }
   // the forest switched off on this screen, the study calendar on: only the calendar, drawn
   // straight away in the scenery's colours (web/calendar/)
   if (data.showForest === false) {
@@ -88,7 +90,7 @@ AF.mount = function (root, data, opts) {
     clearTimeout(refining);
     // (Layout's Background: the scene covers the window and Anki's bars, AF.cover; elsewhere the
     // Forest width, or the room it has)
-    const cover = root.afBehind ? AF.cover(data) : null;
+    const cover = root.afBehind ? AF.cover() : null;
     const cssW = cover ? cover.w : Math.max(MIN_CSS_W, Math.min(sceneEl.clientWidth || data.maxWidth, data.maxWidth));
     const k = Math.max(MIN_PIXEL_SCALE, Math.floor(cssW / CSS_W_PER_SCALE));
     const W = cover ? Math.ceil(cssW / k) : Math.floor(cssW / k), H = Math.floor(W / ASPECT);
@@ -266,7 +268,7 @@ AF.mount = function (root, data, opts) {
     AF.coverVars(root, canvas.offsetWidth, canvas.offsetHeight);  // (a taller window, the same scene: the cog moves with its top)
     // (and the window's top is another row of the scene now: the toolbar's band follows)
     clearTimeout(root.afBarsSoon); root.afBarsSoon = setTimeout(() => { if (current() && root.afBarsAgain) root.afBarsAgain(); }, RESIZE_DEBOUNCE_MS);
-    const coverW = AF.cover(data).w;
+    const coverW = AF.cover().w;
     if (Math.abs(coverW - (root.afCover || 0)) < RESIZE_MIN_PX) return;
     // (the picture stretched to the window at once, drawn afresh when the drag stops: the drawn
     // scene alone left the page's flat colour round it for the whole drag)
@@ -274,6 +276,7 @@ AF.mount = function (root, data, opts) {
     AF.coverVars(root, coverW, coverW / ASPECT);
     clearTimeout(rt); rt = setTimeout(() => { if (current()) { build(); frame(animate ? performance.now() : stillAt); } }, RESIZE_DEBOUNCE_MS);
   };
+  root.afOnWindow = onWindow;
   window.addEventListener('resize', onWindow);
   // build after the deck list has painted, so the forest never delays it - unless this is a
   // swap, where the old forest was just cleared and waiting would show an empty panel
@@ -355,10 +358,10 @@ AF.skyFill = (root, sky) => {
  * as the page has them (Anki's variables, or a themer's: Onigiri, AnKing's, ReColor), never fixed
  * ones, and done again when they change (onTheme). The card: the theme's page colour (--canvas)
  * at its lightness, its hue plus the sky's (CARD.sky of the sky's OKLab colour), so every scenery and
- * hour gives the contrasts the theme was made for; CARD.alpha opaque, and set so that over the sky
+ * hour gives the contrasts the theme was made for; CARD.alpha opaque (AF.pageCards' cards, from Chromium 90), and set so that over the sky
  * that shows through it the card comes out at that colour (mixed toward fixed near black and near
  * white, a dawn sky made a mid-grey dark card and its counts fell to 2.7:1; a themer's page colour
- * was lost, 2026-10-31). Where nothing blurs behind it (af-no-blur) nearly solid, NO_BLUR_ALPHA: the
+ * was lost, 2026-10-31). Where nothing blurs behind it (af-no-blur, always behind the list) nearly solid, NO_BLUR_ALPHA: the
  * scene's stars and branches showed through sharp. On it: the secondary words (the heatmap's labels,
  * the zoom's, a deck's description) the theme's text colour faded toward the card to TEXT_2 (Anki's
  * --fg-subtle is a grey for its flat page: 2.8:1 on a dawn card), a count's 0 to ZERO, Anki's New,
@@ -665,7 +668,8 @@ AF.arrange = function (root, data) {
   AF.tipLayer(root);
   AF.captionClear(root);
   if (!root.afBehind) document.body.classList.remove('af-behind-zooming');
-  if (!root.afBehind && AF.barsSent) { AF.barsSent = null; send(`${data.channel}:bars`); }
+  // (and once on each page with none behind it: the page before may have left them tinted, bars.py)
+  if (!root.afBehind && AF.barsSent !== null) { AF.barsSent = null; send(`${data.channel}:bars`); }
   if (!sides.length && !places.includes('above') && !root.afBehind || !(table || root.afBehind)) {
     if (root.afArranged) { document.body.classList.remove('af-lay', 'af-lay-narrow'); root.afArranged = false; }
     return;

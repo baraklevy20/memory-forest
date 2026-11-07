@@ -259,6 +259,19 @@ class BarsTests(unittest.TestCase):
         self.bars.on_page_loaded(object())
         self.assertEqual((len(self.evals["top"]), len(self.evals["bottom"])), (before[0] + 1, before[1]))
 
+    def test_a_screen_drawn_without_a_forest_takes_them_away(self):
+        import types
+
+        from aqt.deckbrowser import DeckBrowser
+        from aqt.overview import Overview
+        self.sent()
+        self.bars.on_will_set_content(types.SimpleNamespace(body='<div class="af-panel"></div>'), DeckBrowser())
+        self.assertIn('"#6c8cc2"', self.evals["top"][-1])  # (a forest's page: it says for itself)
+        self.bars.on_will_set_content(types.SimpleNamespace(body="<center>a filtered deck</center>"), object())
+        self.assertIn('"#6c8cc2"', self.evals["top"][-1])  # (not the deck list or a deck's screen)
+        self.bars.on_will_set_content(types.SimpleNamespace(body="<center>a filtered deck</center>"), Overview())
+        self.assertIn("(null, true)", self.evals["top"][-1])
+
     def test_a_review_takes_them_away_and_the_deck_screens_keep_them(self):
         self.sent()
         self.bars.on_state_change("overview", "deckBrowser")

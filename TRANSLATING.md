@@ -43,9 +43,9 @@ settings dialog is tight.
 
 Ask for it with a [new language](../../issues/new?template=new-language.yml) issue, or add it:
 copy any language's file to `locales/<your tag>.json` (the tag Anki uses for your language), replace
-each `"text"`, add its name in its own words to `NAMES` in `i18n.py` (the About tab's Language lists
-it so), and run `npm run strings` and `npm run strings -- check`. If your language counts in
-plural forms other than English's, add its rule to `PLURAL_RULE` in `i18n.py`; if it reads right to
-left, add it to `RTL` there too.
+each `"text"`, and run `npm run strings` and `npm run strings -- check`. In the pull request, say
+what your language is called in its own words (the About tab's Language lists it so), whether it
+counts in plural forms other than English's, and whether it reads right to left. Please don't change
+`i18n.py` for these: it is shared with my other add-ons, so I add them there myself.
 
 The release notes stay in English: every update ships before its notes could be translated.

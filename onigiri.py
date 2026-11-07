@@ -8,18 +8,24 @@ import sys
 # Onigiri's settings module: found by what it holds, so a copy in a folder of another name is found too
 _SETTINGS = ".core.config"
 _found = None
+# (without Onigiri, how many modules there were when it was last looked for: looked for again only
+# once more have loaded, not on every ask, three a drawing of the deck list)
+_missed_at = -1
 
 
 def _settings():
-    global _found
+    global _found, _missed_at
     if _found is not None and sys.modules.get(_found.__name__) is _found:
         return _found
+    if _found is None and len(sys.modules) == _missed_at:
+        return None
     _found = None
     for name, module in list(sys.modules.items()):
         if (name.endswith(_SETTINGS) and module is not None and hasattr(module, "get_config_readonly")
                 and hasattr(module, "_place_external_widgets")):
             _found = module
             break
+    _missed_at = -1 if _found is not None else len(sys.modules)
     return _found
 
 

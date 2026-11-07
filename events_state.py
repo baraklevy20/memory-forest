@@ -302,6 +302,10 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
             if kind is None or _shows(kind, ago_date(fire["began"]), live):
                 forest, extras["fire"] = dict(forest, trees=trees), fire
         start = str(cfg.get("ignore_before")) if since(cfg) is not None else None
+        if start and counts_since(cfg, day_cutoff(mw.col)) is not None:
+            # (the kept trees earn them from all that stands, since 1.6.0: remembered apart from the
+            # ones earned from the start date alone, so the first look under it announces nothing)
+            start += " kept"
         forest = _animals(forest, struck, did, start)
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
     extras["stagnation"] = events.stagnation(forest["trees"], reviewing)

@@ -85,7 +85,9 @@ AF.landscape('river', {
     // where AF.place will stand it, nudge within its row and all, or the curve moves under it
     const bot = env.bot || GROUND_BOTTOM, top = HORIZON + ROWS_TOP;
     const p = depth(top + (bot - top) * clamp(Math.pow(it.depth, 1.1) + (it.jy || 0) * (it.rowGap || 0), 0, 1), 1);
-    const size = it.pond ? POND_SIZE : AF.STAGE_H[it.stage] * (0.82 + 0.18 * it.depth) * env.layout.zoom * 0.45 / 320;
+    // (kept clear by a grown tree's size, whatever this one's stage: by its own, a tree
+    // moved each time it grew a stage, some across to the other bank)
+    const size = it.pond ? POND_SIZE : AF.STAGE_H[AF.STAGE.MATURE] * (0.82 + 0.18 * it.depth) * env.layout.zoom * 0.45 / 320;
     const a = clamp(flatCenter(p) - flatHalf(p, env.W) - size - TREE_GAP - (it.pond || it.fromFront > GRAZER_ROWS ? 0 : GRAZER_GAP), 0, 1);
     const b = clamp(flatCenter(p) + flatHalf(p, env.W) + size + TREE_GAP, 0, 1), gap = b - a;
     let sx = (0.02 + 0.96 * it.x) * (1 - gap);

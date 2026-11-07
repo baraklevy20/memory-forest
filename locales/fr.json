@@ -1118,7 +1118,7 @@
   "en": "{s}+ s per answer"
  },
  "heatmap.selected_what": {
-  "text": "Sélection : {what}",
+  "text": "Sélection : {what}",
   "en": "Selected: {what}"
  },
  "heatmap.shade_each_day_by_how_long": {
@@ -1874,8 +1874,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "Votre premier arbre est planté, sous la liste des paquets. Un autre pousse chaque jour où vous apprenez de nouvelles cartes.",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "Votre premier arbre est planté. Un autre pousse chaque jour où vous apprenez de nouvelles cartes.",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "Nuit boréale",
@@ -1966,7 +1966,7 @@
   "en": "1960s psychedelia"
  },
  "preset.psychedelic.note": {
-  "text": "Une affiche de concert de 1967 : un soleil-fleur dans des anneaux ondulants, un sol op art, des arbres-sucettes et une nuit en lumière noire.",
+  "text": "Une affiche de concert de 1967 : un soleil-fleur dans des anneaux ondulants, un sol op art, des arbres-sucettes et une nuit en lumière noire.",
   "en": "A 1967 concert poster: a flower of a sun in rippling rings, an op-art floor, lollipop trees, and a blacklight night."
  },
  "preset.pumpkin_patch": {
@@ -3012,8 +3012,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "Plutôt des arbres ? Onglet Paquets : Début de la forêt, Garder les arbres d’avant cette date.",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "Plutôt des arbres ? Dans l’onglet Paquets, cochez « Début de la forêt » et « Garder les arbres d’avant cette date ».",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "vieux",

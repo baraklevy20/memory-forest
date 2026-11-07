@@ -166,7 +166,7 @@ AF.env('aurora', {
     if (th.clouds) th.clouds.n = 0;  // nothing drifting across the lights
   },
   // the study calendar after dark runs from the polar blue to the curtains' green; by day, from
-  // the spruces' green to the polar sky (calendar.js hourOf)
+  // the spruces' green to the polar sky (calendar/shades.js hourOf)
   calendar: ['#4a80c4', '#58b48a'],
   calendarDay: ['#2f6e58', '#4a80c4'],
   /* the last word, once the weather and the moon are settled */

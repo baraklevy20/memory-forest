@@ -1874,8 +1874,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "Dein erster Baum wurde gepflanzt, unter deiner Stapelliste. Jeden Tag, an dem du neue Karten lernst, wächst ein weiterer.",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "Dein erster Baum wurde gepflanzt. Jeden Tag, an dem du neue Karten lernst, wächst ein weiterer.",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "Polarlichtnacht",
@@ -3012,8 +3012,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "Lieber Bäume? Tab „Stapel“: Wald beginnt am, Frühere Bäume behalten.",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "Lieber Bäume? Im Tab „Stapel“ „Wald beginnt am“ und „Frühere Bäume behalten“ ankreuzen.",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "alt",

@@ -117,7 +117,7 @@ class StyleNameTests(QtCase):
     """macOS's style is still known behind an app style sheet (Anki's hook lets add-ons add one), which
     hides its name: the boxes' space and the dropdowns right to left went missing in a Hebrew Anki."""
 
-    def name_with(self, widget_style):
+    def name_with(self, widget_style, qt="6.9.1"):
         import enum
         from unittest import mock
 
@@ -129,11 +129,34 @@ class StyleNameTests(QtCase):
         self.addCleanup(app.setStyleSheet, "")
         with mock.patch.object(sys, "platform", "darwin"), \
                 mock.patch.object(sys.modules["aqt"], "mw", types.SimpleNamespace(pm=pm), create=True), \
-                mock.patch.object(sys.modules["aqt.theme"], "WidgetStyle", WidgetStyle, create=True):
+                mock.patch.object(sys.modules["aqt.theme"], "WidgetStyle", WidgetStyle, create=True), \
+                mock.patch.object(addon.s_widgets, "QT_VERSION_STR", qt):
             return addon.s_widgets.style_name()
 
     def test_native_behind_a_style_sheet(self):
         self.assertEqual(self.name_with("NATIVE"), "macos")
+
+    def test_native_behind_a_style_sheet_in_qt5(self):
+        # (Qt 5 names macOS's style "macintosh": QProxyStyle("macos") there would be Qt's default)
+        self.assertEqual(self.name_with("NATIVE", qt="5.15.2"), "macintosh")
+        self.assertEqual(self.name_with("ANKI", qt="5.15.2"), "fusion")
+
+    def test_native_off_a_mac_behind_a_style_sheet_is_the_style_anki_started_with(self):
+        import enum
+        from unittest import mock
+
+        class WidgetStyle(enum.Enum):
+            ANKI, NATIVE = 0, 1
+        app = QApplication.instance()
+        app.setStyleSheet("QMenuBar { border-bottom: 1px solid #aaa; }")
+        self.addCleanup(app.setStyleSheet, "")
+        for look, want in (("NATIVE", "windowsvista"), ("ANKI", "fusion")):
+            pm = types.SimpleNamespace(get_widget_style=lambda look=look: getattr(WidgetStyle, look))
+            with self.subTest(look=look), mock.patch.object(sys, "platform", "win32"), \
+                    mock.patch.object(sys.modules["aqt"], "mw", types.SimpleNamespace(pm=pm), create=True), \
+                    mock.patch.object(sys.modules["aqt.theme"], "WidgetStyle", WidgetStyle, create=True), \
+                    mock.patch.object(sys.modules["aqt.theme"], "theme_manager", types.SimpleNamespace(_default_style="windowsvista"), create=True):
+                self.assertEqual(addon.s_widgets.style_name(), want)
 
     def test_ankis_own_look_behind_a_style_sheet(self):
         self.assertEqual(self.name_with("ANKI"), "fusion")

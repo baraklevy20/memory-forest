@@ -1791,8 +1791,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "最初の木を植えました。デッキ一覧の下にあります。新規カードを学習した日ごとに、もう 1 本育ちます。",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "最初の木を植えました。新規カードを学習した日ごとに、もう 1 本育ちます。",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "オーロラの夜",
@@ -2168,7 +2168,7 @@
   }
  },
  "settings.decks.your_trees_from_before_it_stay": {
-  "text": "それより前の木と、木に集まった動物は残ります。池と自然は {date}から数えます。",
+  "text": "それより前の木と、木に集まった動物は残ります。池と自然は{date}から数えます。",
   "en": "Your trees from before it stay, and the animals they brought. Ponds and Nature count from {date}."
  },
  "settings.dialog.about": {
@@ -2914,8 +2914,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "木のほうがいいですか？ デッキタブ：森の開始日、それより前の木を残す。",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "木のほうがいいですか？ デッキタブで「森の開始日」と「それより前の木を残す」をオンにします。",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "老木",

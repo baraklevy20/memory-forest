@@ -1874,8 +1874,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "Sua primeira árvore foi plantada, abaixo da lista de baralhos. Outra cresce a cada dia em que você aprende cartões novos.",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "Sua primeira árvore foi plantada. Outra cresce a cada dia em que você aprende cartões novos.",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "Noite de aurora boreal",
@@ -2058,7 +2058,7 @@
   "en": "All release notes"
  },
  "settings.about.and_a_special_thank_you_to": {
-  "text": "E um grande agradecimento a todos no Patreon, especialmente aos meus Sponsors:",
+  "text": "E um grande agradecimento a todos no Patreon, especialmente aos meus patrocinadores:",
   "en": "And a big thank-you to everyone on Patreon, especially my Sponsors:"
  },
  "settings.about.how_it_works": {
@@ -3012,8 +3012,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "Prefere árvores? Aba Baralhos: Começar a floresta em, Manter as árvores de antes.",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "Prefere árvores? Na aba Baralhos, marque \"Começar a floresta em\" e \"Manter as árvores de antes\".",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "velha",

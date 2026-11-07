@@ -139,6 +139,17 @@ class PanelTests(unittest.TestCase):
                 # (an empty one Onigiri leaves out)
                 self.assertEqual((bool(forest.stats), bool(cal.stats)), (forest_tile, cal_tile), cfg)
 
+    def test_the_two_tiles_work_the_forest_out_once_a_drawing(self):
+        with onigiri_grid("on_deck_browser", "on_deck_browser_calendar"), mock.patch.object(panel, "payload", wraps=panel.payload) as made:
+            for _ in range(2):  # (and afresh for the next drawing)
+                forest, cal = types.SimpleNamespace(stats=""), types.SimpleNamespace(stats="")
+                panel.on_deck_browser(None, forest)
+                panel.on_deck_browser_calendar(None, cal)
+                self.assertTrue(shown(forest.stats)["showForest"])
+                self.assertFalse(shown(cal.stats)["showForest"])
+                self.assertIsNone(shown(cal.stats)["news"])
+            self.assertEqual(made.call_count, 2)
+
     def test_onigiri_s_settings_that_cannot_be_read_keep_the_one_tile(self):
         broken = types.ModuleType("onigiri_test.core.config")
         broken.get_config_readonly = lambda: (_ for _ in ()).throw(RuntimeError("no settings"))
@@ -166,6 +177,17 @@ class PanelTests(unittest.TestCase):
             panel.refresh()
             self.assertEqual(web.reloads, 1)
             self.assertFalse([js for js in web.evaluated if "afSwap(" in js])
+
+    def test_a_redraw_with_only_the_heatmap_s_tile_placed_swaps_it_in_place(self):
+        # (the forest's tile off the grid: Onigiri never draws it, so it is never there to swap)
+        with onigiri_grid("on_deck_browser_calendar"):
+            web = TilesWeb([False, True])
+            mw.deckBrowser = types.SimpleNamespace(web=web, refresh=lambda: setattr(web, "reloads", web.reloads + 1))
+            panel.refresh()
+            self.assertEqual(web.reloads, 0)
+            swaps = [js for js in web.evaluated if "afSwap(" in js]
+            self.assertEqual(len(swaps), 1)
+            self.assertIn(f"getElementById({json.dumps(panel.CALENDAR_ROOT)})", swaps[0])
 
     def test_switching_the_deck_list_forest_off_takes_it_away_at_once(self):
         reset(CARDS, NO_MAIN)

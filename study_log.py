@@ -28,13 +28,20 @@ STUDY_TYPES = "(0, 1, 2, 3)"
 ANSWERED = f"ease > 0 and type in {STUDY_TYPES}"
 # An answer in a filtered deck that doesn't reschedule (a preview) is real work, so it is one of
 # those, but it learns nothing and moves no due date: it plants and dates no tree, and says nothing
-# about when a card is due. The v3 scheduler logs it as type 3 with the preview's delay in lastIvl,
-# as negative seconds; an early review with rescheduling on, also type 3, has the card's interval
-# there. Earlier schedulers don't log previews at all.
-PREVIEW = "(type = 3 and lastIvl < 0)"
+# about when a card is due. The v3 scheduler logs it as type 3 with factor 0, and the preview's delay
+# in lastIvl, as negative seconds; but a delay of 0 (the card goes home) logs lastIvl 0, and one past
+# the rollover a number of days. An early review with rescheduling on, also type 3, has the card's
+# interval there and its ease (or FSRS difficulty) in factor, never 0. Earlier schedulers don't log
+# previews at all.
+def _preview(r: str = "") -> str:
+    """The test for a preview, on the review log as it is named in the query (`r`: "r.")."""
+    return f"({r}type = 3 and ({r}lastIvl < 0 or {r}factor = 0))"
+
+
+PREVIEW = _preview()
 # an answer that can plant or date a tree (TREE_ANSWER_R: on the review log as r)
 TREE_ANSWER = f"{ANSWERED} and not {PREVIEW}"
-TREE_ANSWER_R = f"r.ease > 0 and r.type in {STUDY_TYPES} and not (r.type = 3 and r.lastIvl < 0)"
+TREE_ANSWER_R = f"r.ease > 0 and r.type in {STUDY_TYPES} and not {_preview('r.')}"
 # where a borrowed card stands in its home deck, on the cards as c, and which cards are due at
 # all: a new card has no due day, though a filter that doesn't reschedule puts it in queue 2 with
 # its place among the new cards in odue (and one answered Again there waits in queue 4)

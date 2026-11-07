@@ -156,7 +156,8 @@ AF.visitPondBox = function (env, p) {
 /* where a visited forest's tree stands (AF.place hands these here) */
 AF.visitPlace = function (it, W, H, env) {
   const v = it.view, hor = H * HORIZON, bot = H * (env.bot || GROUND_BOTTOM);
-  const near = { x: W / 2 + v.dx * W, y: hor + (bot - hor) * v.g, s: v.s, hz: it.dim ? DIM_HAZE : Math.min(MAX_HAZE, v.dd * HAZE_PER_ROW) };
+  // (a young tree as far grown into its stage as in the whole forest's view: without it, it swelled as the camera eased in)
+  const near = { x: W / 2 + v.dx * W, y: hor + (bot - hor) * v.g, s: v.s * AF.youth(it), hz: it.dim ? DIM_HAZE : Math.min(MAX_HAZE, v.dd * HAZE_PER_ROW) };
   if (v.b >= 1) return near;
   const far = AF.placeFlat(it, W, H, env);  // easing out of the whole forest's view
   return { x: lerp(far.x, near.x, v.b), y: lerp(far.y, near.y, v.b), s: lerp(far.s, near.s, v.b), hz: lerp(far.hz, near.hz, v.b) };

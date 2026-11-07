@@ -1480,7 +1480,7 @@
   }
  },
  "journal.grown_from_your_reviews_since": {
-  "text": "您的森林，由 {date}以来的复习长成。",
+  "text": "您的森林，由{date}以来的复习长成。",
   "en": "Your forest, grown from your reviews since {date}."
  },
  "journal.meteors_are_falling_tonight": {
@@ -1791,8 +1791,8 @@
   "en": "A new tree was planted in your forest today."
  },
  "planting.your_first_tree_was_planted": {
-  "text": "您的第一棵树已经种下，就在牌组列表下方。每个学习新卡片的日子都会再长出一棵。",
-  "en": "Your first tree was planted, under your deck list. Another grows each day you learn new cards."
+  "text": "您的第一棵树已经种下。每个学习新卡片的日子都会再长出一棵。",
+  "en": "Your first tree was planted. Another grows each day you learn new cards."
  },
  "preset.aurora": {
   "text": "极光之夜",
@@ -2914,8 +2914,8 @@
   "en": "{n} years"
  },
  "tooltip.no_ponds_decks_tab": {
-  "text": "更想要树？“牌组”选项卡：森林起始日期、保留此日期之前的树。",
-  "en": "Rather have trees? Decks tab: Start the forest on, Keep the trees."
+  "text": "更想要树？在“牌组”选项卡中勾选“森林起始日期”和“保留此日期之前的树”。",
+  "en": "Rather have trees? On the Decks tab, tick \"Start the forest on\" and \"Keep the trees from before it\"."
  },
  "tooltip.old": {
   "text": "老树",

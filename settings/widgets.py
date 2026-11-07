@@ -6,6 +6,7 @@ import re
 import sys
 
 from aqt.qt import (
+    QT_VERSION_STR,
     QAbstractButton,
     QApplication,
     QButtonGroup,
@@ -195,17 +196,28 @@ def mirror(root: QWidget) -> None:
 def style_name() -> str:
     """The name of the style Anki draws with ("macos", "fusion"...). An app style sheet (Anki's own
     look's, or one an add-on adds through style_did_init) wraps the style and hides its name: then
-    Anki's own look is Fusion, and its native look on a Mac is macOS's."""
+    Anki's own look is Fusion, its native look on a Mac is macOS's ("macintosh" in Qt 5), and elsewhere
+    the style Anki started with (theme_manager._default_style: "windowsvista" on Windows)."""
     style = QApplication.style()
     name = style.objectName().lower() if style is not None else ""
-    if name or sys.platform != "darwin":
-        return name or "fusion"
+    if name:
+        return name
+    if sys.platform != "darwin":
+        try:
+            import aqt
+            from aqt.theme import WidgetStyle, theme_manager
+            if aqt.mw.pm.get_widget_style() != WidgetStyle.ANKI:
+                return (getattr(theme_manager, "_default_style", None) or "fusion").lower()
+        except Exception:  # (an Anki before its own look)
+            pass
+        return "fusion"
+    mac = "macintosh" if QT_VERSION_STR.startswith("5.") else "macos"
     try:
         import aqt
         from aqt.theme import WidgetStyle
-        return "fusion" if aqt.mw.pm.get_widget_style() == WidgetStyle.ANKI else "macos"
+        return "fusion" if aqt.mw.pm.get_widget_style() == WidgetStyle.ANKI else mac
     except Exception:  # (an Anki before its own look: native only)
-        return "macos"
+        return mac
 
 
 def mac_native() -> bool:

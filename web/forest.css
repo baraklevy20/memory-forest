@@ -408,7 +408,8 @@ body.af-lay.af-lay-sticky:not(.af-lay-narrow) .af-slot-left, body.af-lay.af-lay-
    wallpaper does, fixed as the list scrolls over it: as wide as the window, or wider
    and cut at both sides where the window is taller than half its width; its foot on the window's
    (Anki's bars wear its edges' colours, blurred: bars.py); a window wider than twice its height loses
-   the top of the sky, never the trees. Our row (Anki's <center>)
+   the top of the sky and some of its foot, half the excess each, the foot at most 16% of the scene
+   (core.js FOOT_SHARE, FOOT_MOST), never the trees. Our row (Anki's <center>)
    stands over it: its own box lets the pointer through to the forest, its parts take it. The deck table,
    the heatmap and Anki's studied-today line stand on frosted cards tinted by the scene's sky, so they
    read over any scenery (a study of three ways, 2026-10-31: on the bare sky Anki's dark text was lost
@@ -425,8 +426,8 @@ body.af-lay .af-slot-behind { position: fixed; z-index: -1; top: 0; right: 0; bo
 body.af-lay .af-slot-behind .af-scene { position: absolute; left: 50%; bottom: calc(-1 * var(--af-foot, 0px)); border-radius: 0;
   -webkit-transform: translateX(-50%); transform: translateX(-50%); }
 body.af-lay .af-slot-behind .af-canvas { max-width: none; }
-/* (its caption, and the zoom's bar in its place, on the trees at the window's foot; the cog and the
-   zoom button at the foot's right, never in a sky the list covers or a window cuts off) */
+/* (its caption, and the zoom's bar in its place, on the trees at the window's foot, never in a sky
+   the list covers or a window cuts off) */
 body.af-lay .af-slot-behind .af-caption, body.af-lay .af-slot-behind .af-visit {
   position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 140px); margin: 0;
   padding: 4px 12px; border-radius: var(--border-radius-medium, 12px); box-sizing: border-box; justify-content: center;
@@ -435,11 +436,10 @@ body.af-lay .af-slot-behind .af-visit { padding-top: 2px; padding-bottom: 2px; }
 /* (the cog and the zoom button at the window's top corner, not the scene's: it reaches past the
    window's sides by --af-side and over its top by --af-over. At the foot they stood in the caption's
    band, 2026-10-31) */
-body.af-lay .af-slot-behind .af-scene .af-top, body.af-lay .af-slot-behind .af-zoom { top: calc(10px + var(--af-over, 0px)); bottom: auto; }
-body.af-lay .af-slot-behind .af-scene .af-top { right: calc(8px + var(--af-side, 0px)); }
+body.af-lay .af-slot-behind .af-zoom { top: calc(10px + var(--af-over, 0px)); bottom: auto; }
 body.af-lay .af-slot-behind .af-has-cog .af-zoom { right: calc(42px + var(--af-side, 0px)); }
 /* (right to left at the window's left corner, as .af-rtl has them on the scene's) */
-body.af-lay .af-rtl > .af-slot-behind .af-scene .af-top, body.af-lay .af-rtl > .af-slot-behind .af-zoom { right: auto; left: calc(8px + var(--af-side, 0px)); }
+body.af-lay .af-rtl > .af-slot-behind .af-zoom { right: auto; left: calc(8px + var(--af-side, 0px)); }
 body.af-lay .af-rtl > .af-slot-behind .af-has-cog .af-zoom { right: auto; left: calc(42px + var(--af-side, 0px)); }
 /* (the caption is words alone over a band of the cards' colour rising from the window's foot, as
    iOS's bars are, not a third pill under the page's two (2026-10-31); its stats' dotted lines in the
@@ -455,8 +455,7 @@ body.af-lay .af-slot-behind .af-caption.af-caption-under { opacity: 0; pointer-e
 /* (the cog and the zoom button frosted as the cards are, in the theme's text colour: a fixed grey
    glass with white beside the caption read as another material; on, the theme's raised colour) */
 body.af-lay .af-slot-behind .af-zoom, body.af-lay .af-tip-layer .af-cog {
-  background: var(--af-card, rgba(70, 72, 71, 0.45)) !important; color: var(--af-text, #fff) !important;
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  background: var(--af-card, rgba(70, 72, 71, 0.45)) !important; color: var(--af-text, #fff) !important; }
 body.af-lay .af-slot-behind .af-zoom:hover, body.af-lay .af-tip-layer .af-cog:hover,
 body.af-lay .af-slot-behind .af-zoom.af-zoom-on, body.af-lay .af-slot-behind .af-zoom.af-zoom-on:hover {
   background: var(--canvas-elevated, var(--af-card, rgba(40, 42, 41, 0.8))) !important; color: var(--af-text, #fff) !important; }
@@ -503,7 +502,7 @@ body.af-lay-behind > center > .description { align-self: center; padding: 10px 1
 body.af-lay-behind > center > table, body.af-lay-behind .af-slot-below.af-cal::before, body.af-lay-behind > center > .af-pill,
 body.af-lay-behind #studiedToday > span, body.af-lay .af-slot-behind .af-visit,
 body.af-lay-behind > center > .description, body.af-behind-page .congrats, body.af-lay-behind > center > h3.af-lay-before {
-  background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); }
+  background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); }  /* (no blur: Background is always af-no-blur, core.js AF.pageCards) */
 body.af-lay-behind > center > table:not(.af-titled), body.af-lay-behind .af-slot-below.af-cal::before, body.af-lay-behind > center > .af-pill,
 body.af-lay-behind #studiedToday > span, body.af-lay .af-slot-behind .af-visit, body.af-lay-behind > center > .description, body.af-behind-page .congrats {
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18); }
@@ -542,7 +541,12 @@ body.af-page-cards.af-no-blur #studiedToday > span { -webkit-backdrop-filter: no
    the heatmap's middle; an older Chromium, without container units, the heatmap's own reach; over the
    20px its view switch and arrows have on hover, 24px under the caption: as behind the list) */
 .af-carded.af-card-heat:not(.af-apart) { container-type: inline-size; }
-.af-carded.af-card-heat:not(.af-apart) .af-cal { isolation: isolate; margin-top: 54px; }
+/* (54px under the forest; first, the card's 30px reach over it and 24px past its card's foot to the
+   forest; alone in its tile, 6px under the cog over it, as .af-top stands over anything) */
+.af-carded.af-card-heat:not(.af-apart) .af-cal { isolation: isolate; margin-top: 30px; }
+.af-carded.af-card-heat:not(.af-apart) .af-forest ~ .af-cal { margin-top: 54px; }
+.af-carded.af-card-heat.af-cal-first:not(.af-apart) > .af-cal { margin-bottom: 36px; }
+.af-carded.af-card-heat:not(.af-apart) > .af-top + .af-cal { margin-top: 36px; }
 .af-carded.af-card-heat:not(.af-apart) .af-cal::before { content: ""; position: absolute; z-index: -1; top: -30px; right: -36px; bottom: -12px; left: -36px;
   left: calc(50% - 50cqw); right: calc(50% - 50cqw);
   background: var(--af-card, var(--canvas, rgba(128, 128, 128, 0.85))); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
@@ -609,7 +613,9 @@ body.af-lay-behind > center > table a:focus { outline: 2px solid var(--border-fo
 /* (Anki's empty drag row, a target for making a deck top-level: 10px, not a 42px band under the last deck) */
 body.af-lay-behind > center > table tr.top-level-drag-row td { height: 10px; padding: 0; font-size: 0; line-height: 0; }
 /* a tree's tooltip on its layer over our row (core.js AF.tipLayer) */
-.af-tip-layer { position: fixed; z-index: 2; left: 0; right: 0; pointer-events: none; line-height: normal; }
+/* (its direction its own, as the panel's: on <body>, it took a right-to-left Anki's with the add-on in English) */
+.af-tip-layer { position: fixed; z-index: 2; left: 0; right: 0; pointer-events: none; line-height: normal; direction: ltr; }
+.af-rtl.af-tip-layer { direction: rtl; }
 .af-tip-layer > .af-top { position: fixed; top: 10px; right: 8px; margin: 0; pointer-events: auto; }
 .af-rtl.af-tip-layer > .af-top { right: auto; left: 8px; }
 .af-tip-layer > .af-news { position: fixed; top: 10px; left: 10px; pointer-events: auto; max-width: calc(100% - 20px); max-width: min(290px, calc(100vw - 20px)); }

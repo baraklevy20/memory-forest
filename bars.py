@@ -92,6 +92,19 @@ def on_page_loaded(web) -> None:
             _apply(web, look, pill)
 
 
+def on_will_set_content(web_content, context) -> None:
+    """The deck list or a deck's screen drawn afresh without a forest of ours on it (a filtered deck's
+    screen, a deck left out, or both switched off): Anki's own bars. The page that set them only takes
+    them away while it is there, and a page with no panel never says a word. One with the panel says
+    for itself as it is drawn (web/core.js AF.arrange), so a Background page after another keeps them."""
+    if _looks is None:
+        return
+    from aqt.deckbrowser import DeckBrowser
+    from aqt.overview import Overview
+    if isinstance(context, (DeckBrowser, Overview)) and "af-panel" not in (getattr(web_content, "body", "") or ""):
+        tint([])
+
+
 def on_state_change(new_state: str, _old_state: str) -> None:
     """Off the screens the forest stands behind (a review, say): Anki's own bars. Back on them, the
     forest's page sends its bands again as it is drawn."""

@@ -156,8 +156,8 @@ AF.deepForest = function (merged, env) {
 /* A young tree still growing into its stage, up to the three weeks that make it mature (on the curve
  * of its cards' strength): a tree stood at its full young height the day after its seedling and then
  * not a pixel taller for weeks, so the first week showed new trees, never a tree growing. */
-const YOUTH_FROM = 0.7, YOUNG_UNTIL = 21;
-const youth = it => (it.stage === AF.STAGE.YOUNG && it.strength < YOUNG_UNTIL ? YOUTH_FROM + (1 - YOUTH_FROM) * Math.sqrt(Math.max(0, it.strength) / YOUNG_UNTIL) : 1);
+const YOUTH_FROM = 0.7, YOUNG_UNTIL = 21;  // (forest_data.MATURE_DAYS, which tests/test_core_forest.py holds it to)
+const youth = AF.youth = it => (it.stage === AF.STAGE.YOUNG && it.strength < YOUNG_UNTIL ? YOUTH_FROM + (1 - YOUTH_FROM) * Math.sqrt(Math.max(0, it.strength) / YOUNG_UNTIL) : 1);  // (and up close: web/visit.js)
 
 AF.place = (it, W, H, env) => it.view ? AF.visitPlace(it, W, H, env) : AF.placeFlat(it, W, H, env);  // a visit's close-up: web/visit.js
 /* where a tree stands in the whole forest's view (a visit eases from it: its layout keeps the

@@ -1,6 +1,7 @@
 // The page's small parts, in node: the shared helpers (web/util.js), the tooltips' words
 // (web/tooltips.js), the caption (web/caption.js), the phone card's clock and "Synced ... ago"
 // (web/phone.js), what's new (web/news.js) and the scene runner's script loading (web/core.js).
+import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load, SCRIPTS } from './load.mjs';
@@ -352,4 +353,22 @@ test('core: a scene is busy (15 frames a second) only while something fast is in
 test('core: AF.busy answers for a scene whose build stopped part way', () => {
   const AF = page().AnkiForest;
   assert.equal(AF.busy({ mood: { special: 'natural', landscape: 'none', landmark: 'none' }, data: {} }), false);
+});
+
+// "no tree ever moves": by the water (a river, and every landscape here that places its trees by it),
+// a tree keeps its place as it grows stage by stage
+test('landscapes: a tree by the water stays where it stands as it grows', () => {
+  const dir = new URL('../../web/landscapes/', import.meta.url);
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.js')).map(f => `landscapes/${f}`);
+  const AF = load([...SCRIPTS, ...files]).AnkiForest;
+  const env = { W: 400, H: 200, layout: { zoom: 1 }, u: 1 };
+  const keys = Object.keys(AF.LANDSCAPES).filter(key => AF.LANDSCAPES[key].placeX);
+  assert.ok(keys.includes('river'));
+  for (const key of keys) {
+    for (let k = 0; k < 500; k++) {
+      const it = { x: (k * 0.6180339) % 1, depth: (k * 0.37) % 1, jy: 0, rowGap: 0.1, fromFront: 5 };
+      const xs = AF.STAGE_H.map((_, stage) => AF.LANDSCAPES[key].placeX(Object.assign({}, it, { stage }), env));
+      assert.ok(xs.every(x => x === xs[0]), `${key}: tree ${k} moves as it grows`);
+    }
+  }
 });

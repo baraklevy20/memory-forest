@@ -20,7 +20,7 @@ class DeckFilterTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0, factor integer default 2500);
             create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck (odid != 0 means a filtered deck borrowed it), day
@@ -77,7 +77,7 @@ class SuspendedTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0, factor integer default 2500);
             create table notes (id integer, tags text);
         """)
         for cid, queue in ((1, 2), (2, -1)):
@@ -103,7 +103,7 @@ class HistoryFilterTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0, factor integer default 2500);
             create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck, the days it was reviewed on (first one first)
@@ -191,7 +191,7 @@ class TreeCountTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text, due integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer default 0, lastIvl integer default 0, factor integer default 2500);
             create table notes (id integer, tags text);
         """)
         # cid, current deck, home deck, type, queue (-1 suspended), the days it was reviewed on
@@ -259,16 +259,16 @@ class FreeDayTests(unittest.TestCase):
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer, factor integer default 2500);
         """)
         if card:
             con.execute("insert into cards values (1, 1, 10, 0, 2, ?, 30, '{}', 0, 0)", (queue,))
         for days, ivl, *hour in reviews:
-            con.execute("insert into revlog values (?, 1, 3, 1, ?, 0)", (ms(days, *hour), ivl))
+            con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, 1, 3, 1, ?, 0)", (ms(days, *hour), ivl))
         if others:
             con.execute("insert into cards values (2, 2, 10, 0, 0, -1, 0, '{}', 0, 0)")
         for days in others:
-            con.execute("insert into revlog values (?, 2, 3, 1, 0, 0)", (ms(days),))
+            con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, 2, 3, 1, 0, 0)", (ms(days),))
 
         class DB:
             def all(self, q, *a): return con.execute(q, a).fetchall()
@@ -318,7 +318,7 @@ class DayTimeTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer, lastIvl integer default 0, factor integer default 2500);
         """)
         con.execute("insert into cards values (1, 10, 0)")
         for days, ease, rtype, ms_taken in ((3, 3, 1, 40000), (3, 1, 1, 20000), (3, 0, 4, 9000), (1, 3, 0, 5500)):
@@ -410,7 +410,7 @@ class DayTimeTests(unittest.TestCase):
         self.addCleanup(con.close)
         con.executescript("""
             create table cards (id integer, did integer, odid integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, time integer, lastIvl integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, time integer, lastIvl integer default 0, factor integer default 2500);
         """)
         con.execute("insert into cards values (1, 10, 0)")
         for days, ms_taken in ((3, 4000), (3, 8000), (1, 2000)):
@@ -452,7 +452,7 @@ class EventQueryTests(unittest.TestCase):
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer, factor integer default 2500);
             create table notes (id integer, tags text);
         """)
 
@@ -469,7 +469,7 @@ class EventQueryTests(unittest.TestCase):
             con.execute("insert into cards values (?, ?, ?, ?, 2, ?, 30, '{}', ?, ?)", (row[0], row[0], *row[1:]))
         for days, n in ((1, 4), (2, 6), (0, 50), (40, 99)):  # today's, and those before the window, don't count
             for i in range(n):
-                con.execute("insert into revlog values (?, 1, 3, 1, 30, 30)", (ms(days) + i,))
+                con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, 1, 3, 1, 30, 30)", (ms(days) + i,))
         # due before today: 1, the filtered deck's 4 (by its home deck's due) and 5 (relearning)
         overdue, counts = study_log.load_backlog(db, TODAY, CUTOFF, 30)
         self.assertEqual((overdue, sorted(counts)), (3, [4, 6]))
@@ -492,7 +492,7 @@ class EventQueryTests(unittest.TestCase):
         for cid, deck in ((1, 10), (2, 20), (3, 30)):  # 3 is in a filtered deck, borrowed from 10
             con.execute("insert into cards values (?, ?, ?, ?, 2, 2, 30, '{}', ?, 0)", (cid, cid, deck, 10 if deck == 30 else 0, TODAY + 1))
         for cid, days in ((1, 2), (1, 0), (2, 2), (3, 2)):
-            con.execute("insert into revlog values (?, ?, 3, 1, 30, 30)", (ms(days) + cid, cid))
+            con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, ?, 3, 1, 30, 30)", (ms(days) + cid, cid))
         self.assertEqual(study_log.load_day_reviews(db, CUTOFF, [10]), {2: 2, 0: 1})
         self.assertEqual(study_log.load_due(db, TODAY, 3, dids=[10]), [0, 2, 0])  # 1, and 3 by its home deck
 
@@ -524,16 +524,16 @@ class EventQueryTests(unittest.TestCase):
         for cid, ivl, tagged, matured in ((1, 25, True, 2), (2, 25, True, 30), (3, 25, False, 2), (4, 8, True, 2)):
             con.execute("insert into cards values (?, ?, 10, 0, 2, 2, ?, '{}', 0, 0)", (cid, cid, ivl))
             con.execute("insert into notes values (?, ?)", (cid, " leech " if tagged else ""))
-            con.execute("insert into revlog values (?, ?, 3, 0, 1, 0)", (ms(40 + cid), cid))  # first studied
-            con.execute("insert into revlog values (?, ?, 3, 1, 25, 12)", (ms(matured), cid))
+            con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, ?, 3, 0, 1, 0)", (ms(40 + cid), cid))  # first studied
+            con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl) values (?, ?, 3, 1, 25, 12)", (ms(matured), cid))
         # only card 1: card 2 was cured a month ago, 3 was never a leech, 4 has lapsed again since
         self.assertEqual(study_log.load_cured(db, CUTOFF, 7), {41: 1})
 
 
 class PreviewTests(unittest.TestCase):
     """Answers in a filtered deck that doesn't reschedule, logged as Anki 26.09.3 logs them: type 3
-    with the preview's delay in lastIvl. An early review with rescheduling on is type 3 as well, with
-    the card's interval there."""
+    and factor 0, with the preview's delay in lastIvl. An early review with rescheduling on is type 3
+    as well, with the card's interval there and its ease in factor."""
 
     def setUp(self):
         import sqlite3
@@ -542,7 +542,7 @@ class PreviewTests(unittest.TestCase):
         con.executescript("""
             create table cards (id integer, nid integer, did integer, odid integer, type integer, queue integer, ivl integer, data text,
                                 due integer, odue integer);
-            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer, time integer default 0);
+            create table revlog (id integer, cid integer, ease integer, type integer, ivl integer, lastIvl integer, time integer default 0, factor integer default 2500);
             create table notes (id integer, tags text);
         """)
 
@@ -555,11 +555,11 @@ class PreviewTests(unittest.TestCase):
         self.con.execute("insert into cards values (?, ?, ?, ?, ?, ?, 30, '{}', ?, ?)", (cid, cid, did, odid, ctype, queue, due, odue))
         self.con.execute("insert into notes values (?, '')", (cid,))
 
-    def answer(self, cid, days, rtype=1, ivl=30, last=30, at=0):
-        self.con.execute("insert into revlog values (?, ?, 3, ?, ?, ?, 5000)", (ms(days) + at, cid, rtype, ivl, last))
+    def answer(self, cid, days, rtype=1, ivl=30, last=30, at=0, factor=2500):
+        self.con.execute("insert into revlog (id, cid, ease, type, ivl, lastIvl, time, factor) values (?, ?, 3, ?, ?, ?, 5000, ?)", (ms(days) + at, cid, rtype, ivl, last, factor))
 
-    def preview(self, cid, days, at=0):
-        self.answer(cid, days, 3, 0, -60, at)
+    def preview(self, cid, days, at=0, last=-60):
+        self.answer(cid, days, 3, 0, last, at, factor=0)
 
     def test_a_preview_is_a_review_on_the_heatmap_and_the_streak(self):
         self.card(1)
@@ -592,6 +592,25 @@ class PreviewTests(unittest.TestCase):
         self.answer(1, 2, 0, 1, 0)
         self.assertEqual(study_log.load_tree_days(self.db, CUTOFF), {10: {2: True}})
         self.assertEqual(study_log.load_deck_days(self.db, CUTOFF, [10]), {2})
+
+    def test_a_preview_with_no_again_delay_or_one_past_the_rollover_plants_and_dates_no_tree(self):
+        # (a 0-second delay logs lastIvl 0; one that runs past the rollover, a number of days)
+        for last in (0, 1):
+            with self.subTest(lastIvl=last):
+                self.con.execute("delete from revlog")
+                self.con.execute("delete from cards")
+                self.card(1)
+                self.preview(1, 9, last=last)
+                self.assertFalse(study_log.first_study(self.db, 1))
+                self.assertEqual(study_log.load_review_days(self.db, CUTOFF), {9})  # (still a review)
+                self.answer(1, 2, 0, 1, 0)
+                self.assertTrue(study_log.first_study(self.db, 1))
+                self.assertEqual(study_log.load_tree_days(self.db, CUTOFF), {10: {2: True}})  # (not day 9's preview)
+
+    def test_an_early_review_that_reschedules_still_dates_its_tree(self):
+        self.card(1)
+        self.answer(1, 2, 3, 40, 30, factor=2500)
+        self.assertEqual(study_log.load_tree_days(self.db, CUTOFF), {10: {2: True}})
 
     def test_a_preview_leaves_a_card_due_and_its_own_day_is_no_free_day(self):
         self.card(1, due=TODAY - 10)
