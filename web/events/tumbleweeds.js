@@ -41,7 +41,7 @@ function weed(g, cx, cy, rot, pal) {
 // where they roll: the front of the ground, or what a landscape names instead (as the tall grass)
 function lanes(env) {
   const bot = Math.round(env.H * env.bot), land = AF.landOf(env);
-  return land.grassRows ? land.grassRows(env) : [[0, env.W - 1, bot, bot + 1]];
+  return land.rollRows ? land.rollRows(env) : land.grassRows ? land.grassRows(env) : [[0, env.W - 1, bot, bot + 1]];
 }
 
 // how many roll at this depth of review hell

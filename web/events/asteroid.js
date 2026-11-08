@@ -230,7 +230,7 @@ AF.events.add('asteroid', {
     if (doom) {
       const k = clamp(doom.missed / doom.grace, 0, 1), f = Math.floor(t * 12);
       if (k > 0.3) { g.fillStyle = `rgba(150,40,20,${((k - 0.3) * 0.22).toFixed(3)})`; g.fillRect(0, 0, W, Math.round(H * 0.5)); }  // the sky reddens
-      const x = Math.round(W * (0.78 - 0.2 * k)), y = Math.round(H * (0.07 + 0.2 * k)), r = Math.round(1 + k * 6);
+      const [x, y] = AF.envOf(env).doomAt ? AF.envOf(env).doomAt(env, k) : [Math.round(W * (0.78 - 0.2 * k)), Math.round(H * (0.07 + 0.2 * k))], r = Math.round(1 + k * 6);
       for (let i = 1; i < 6 + k * 30; i++) if (noise(i, f) < 1 - i / (8 + k * 32)) px(g, x + i * 1.2, y - i * 0.9, FIRE[Math.max(0, 5 - Math.floor(i / (2 + k * 5)))]);
       const disc = (rr, c) => { for (let dy = -rr; dy <= rr; dy++) for (let dx = -rr; dx <= rr; dx++) if (dx * dx + dy * dy <= rr * rr + rr * 0.6) px(g, x + dx, y + dy, c); };
       if (r >= 2) disc(r + 1, `rgba(255,170,80,${(0.25 + 0.3 * k).toFixed(2)})`);
