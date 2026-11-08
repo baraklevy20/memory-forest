@@ -9,6 +9,9 @@
       "improved": [
         "When the asteroid waits more than a day, it comes closer each day you miss.",
         "The tree under the pointer is now outlined."
+      ],
+      "fixed": [
+        "Pointing at a tree no longer sometimes picks the one next to it."
       ]
     },
     {

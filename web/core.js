@@ -170,6 +170,7 @@ AF.mount = function (root, data, opts) {
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
     if (root.afVisits && root.afVisits.picked != null) AF.drawVisitMarker(g, env, root.afVisits.picked);
+    pointer.drawLifted(g, t);  // the tree pointed at, outlined: under its crows and flames
     AF.events.run('front', g, env, t);  // crows, a fresh crater's smoke, the fire
     if (env.fx) AF.fx.front(g, env, t);
     if (env.quantize) env.quantize(g, env.W, env.H);

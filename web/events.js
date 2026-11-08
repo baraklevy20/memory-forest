@@ -23,6 +23,8 @@ AF.events = {
   add(key, spec) { list.push(Object.assign({ key }, spec)); },
   /* every event that has this hook, in order */
   run(hook, ...args) { for (const e of list) if (e[hook]) e[hook](...args); },
+  /* only these events' hook (keys), in order: the birds of one tree, for its outline (hover.js) */
+  runOnly(keys, hook, ...args) { for (const e of list) if (e[hook] && keys.includes(e.key)) e[hook](...args); },
   /* the first event whose hook answers */
   first(hook, ...args) {
     for (const e of list) { const r = e[hook] && e[hook](...args); if (r) return r; }

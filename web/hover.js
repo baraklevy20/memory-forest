@@ -75,14 +75,38 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     }
     g.restore();
   }
+  // the tree marked: its day pointed at on the heatmap, else the tree pointed at here (one a scenery
+  // draws elsewhere than it stands, turned say, keeps only the arrow over the box it left)
+  function marked(env) {
+    if (!env) return null;
+    if (linkedAgo !== null) {
+      const p = env.placed.find(p => !p.it.pond && p.it.ago === linkedAgo);
+      if (p || deepLinked(env)) return p || null;
+    }
+    return hover && hover.p && !hover.p.hitBox && env.placed.includes(hover.p) ? hover.p : null;
+  }
+  // the heatmap points at a day merged into the distant canopy
+  function deepLinked(env) {
+    const deep = env.deep, merged = data.merged;
+    return linkedAgo !== null && merged && plantedDays.has(linkedAgo) && linkedAgo >= merged.to_ago && linkedAgo <= merged.from_ago
+      && deep && deep.boxes.length && !(root.afVisits && root.afVisits.on);
+  }
+  /* Before the crows, robins and flames (core.js): the marked tree drawn again over what stands
+   * before it, with a light outline round it and the birds on it, which then perch on it as ever.
+   * With days selected on the heatmap it all goes on top at the end instead (drawMarker), over the
+   * dimmed forest. */
+  let liftedTop = null;
+  function drawLifted(g, t) {
+    const env = current(), p = !litDays && marked(env);
+    liftedTop = p ? lift(g, env, p, t) : null;
+  }
   function drawMarker(g) {
     const env = current();
     drawLit(g, env);
-    const p = env && linkedAgo !== null && env.placed.find(p => !p.it.pond && p.it.ago === linkedAgo);
-    if (p) { marker(g, p.x, outlined(g, env, p)); return; }
-    const deep = env && env.deep, merged = data.merged;
-    if (linkedAgo !== null && merged && plantedDays.has(linkedAgo) && linkedAgo >= merged.to_ago && linkedAgo <= merged.from_ago
-        && deep && deep.boxes.length && !(root.afVisits && root.afVisits.on)) {
+    const p = marked(env);
+    if (p) { marker(g, p.x, litDays ? lift(g, env, p, env.t) : liftedTop !== null ? liftedTop : p.y); return; }
+    if (env && deepLinked(env)) {
+      const deep = env.deep;
       g.save(); g.fillStyle = '#fff8e0'; g.globalAlpha = 0.6;
       for (const [x, y] of deep.rims || []) g.fillRect(x, y - 1, 1, 1);
       g.restore();
@@ -92,28 +116,44 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       return;
     }
     if (!hover) return;
-    // a tree drawn where it stands wears the same outline as one pointed at on the heatmap (one
-    // drawn elsewhere, turned say, keeps only the arrow over the box it left)
-    if (hover.p && !hover.p.hitBox && env && env.placed.includes(hover.p)) { marker(g, hover.p.x, outlined(g, env, hover.p)); return; }
     marker(g, hover.x, hover.top);
   }
-  // the tree drawn again with a light outline around it; returns the outline's top
-  function outlined(g, env, p) {
-    // sprite() borrows a scratch canvas: keep one outlined copy until the scene or the tree changes.
+  // the birds a tree's outline goes round, as events draw them on it
+  const BIRDS = ['crows', 'robins'], BIRD_ROOM = 8;  // (the room they take above and beside the crown)
+  /* the tree and its outline drawn; returns the outline's top, for the arrow */
+  function lift(g, env, p, t) {
+    // sprite() borrows a scratch canvas: keep a copy of the tree until the scene or the tree changes
     if (!lifted || lifted.env !== env || lifted.p !== p) {
       const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
-      const [cv, cg] = AF.u.layer(spr.width + 2, spr.height + 2);
-      for (const [x, y] of [[0, 1], [2, 1], [1, 0], [1, 2]]) cg.drawImage(spr, x, y);
-      cg.globalCompositeOperation = 'source-in'; cg.fillStyle = '#fff8e0'; cg.fillRect(0, 0, cv.width, cv.height);
-      cg.globalCompositeOperation = 'source-over'; cg.drawImage(spr, 1, 1);
-      lifted = { env, p, cv };
+      const [tree, tg] = AF.u.layer(spr.width, spr.height);
+      if (env.flipLight) { tg.translate(spr.width, 0); tg.scale(-1, 1); }
+      tg.drawImage(spr, 0, 0);
+      lifted = { env, p, tree, x: Math.round(p.x - spr.width / 2), y: Math.round(p.y - spr.height + 1), ring: null };
     }
-    const cv = lifted.cv, x = Math.round(p.x - (cv.width - 2) / 2) - 1, y = Math.round(p.y - (cv.height - 2) + 1) - 1;
-    g.save();
-    if (env.flipLight) { g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); }
-    else g.drawImage(cv, x, y);
-    g.restore();
-    return y;
+    const L = lifted, birds = p.it.leeches || p.it.cured, R = BIRD_ROOM + 1;
+    // the outline: round the tree and (drawn on a copy of the scene holding this tree alone) its
+    // birds, which flap and hop: theirs is made again each frame
+    if (!L.ring || birds) {
+      const W = L.tree.width + 2 * R, H = L.tree.height + R + 1, ox = L.x - R, oy = L.y - R;
+      const [m, mg] = AF.u.layer(W, H);
+      mg.drawImage(L.tree, R, R);
+      if (birds) {
+        mg.save(); mg.translate(-ox, -oy);
+        AF.events.runOnly(BIRDS, 'front', mg, Object.create(env, { placed: { value: [p] } }), t || 0);
+        mg.restore();
+      }
+      const [ring, rg] = AF.u.layer(W, H);
+      for (const [x, y] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) rg.drawImage(m, x, y);
+      rg.globalCompositeOperation = 'source-in'; rg.fillStyle = '#fff8e0'; rg.fillRect(0, 0, W, H);
+      rg.globalCompositeOperation = 'destination-out'; rg.drawImage(m, 0, 0);
+      let top = H;
+      const d = rg.getImageData(0, 0, W, H).data;
+      for (let i = 3; i < d.length; i += 4) if (d[i]) { top = Math.floor(i / 4 / W); break; }
+      L.ring = { cv: ring, ox, oy, top: oy + top };
+    }
+    g.drawImage(L.tree, L.x, L.y);
+    g.drawImage(L.ring.cv, L.ring.ox, L.ring.oy);
+    return L.ring.top;
   }
   function marker(g, cx, top) {
     const x = Math.round(cx), y = Math.round(top - 3);
@@ -141,9 +181,43 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         continue;
       }
       const b = boxOf(env, p);
-      if (mx >= b.x0 && mx <= b.x1 && my >= b.y0 && my <= b.y1) return { p, b };
+      if (p.hitBox || !AF.pixel.sprite) { if (inBox(b)) return { p, b }; continue; }
+      if (drawnAt(env, p, mx, my, 0)) return { p, b };
+    }
+    // nothing drawn right there: a tree drawn within a pixel or two (a sapling is thin)
+    for (let i = env.placed.length - 1; i >= 0; i--) {
+      const p = env.placed[i];
+      if (!p.it.pond && !p.hitBox && AF.pixel.sprite && drawnAt(env, p, mx, my, NEAR)) return { p, b: boxOf(env, p) };
     }
     return deepPick(env, mx, my);
+  }
+  /* Is tree p drawn at (mx, my), or within `near` pixels of it? What its sprite covers, not a box
+   * round it: a box had the pointer on one tree pick another in front of it, one point in seven
+   * across a full forest, and bare ground pick a tree half the time. */
+  const NEAR = 2, masks = new WeakMap();  // placed tree -> its sprite's drawn pixels
+  function drawnAt(env, p, mx, my, near) {
+    const { h, hzq } = AF.pixel.sizeOf(p, env);
+    // (far from it, its sprite isn't read: no scenery's tree is as wide as one and a half times its
+    // height, and a seedling's is 9 pixels whatever its height)
+    const r = Math.max(h, 9);
+    if (Math.abs(mx - p.x) > 1.5 * r + 6 + near || my > p.y + 2 + near || my < p.y - r - 4 - near) return false;
+    let m = masks.get(p);
+    if (!m || m.env !== env || m.th !== h) {
+      const spr = AF.pixel.sprite(p.it, h, hzq, env), w = spr.width, sh = spr.height;
+      const d = spr.getContext('2d').getImageData(0, 0, w, sh).data, a = new Uint8Array(w * sh);
+      for (let i = 0; i < a.length; i++) a[i] = d[i * 4 + 3] > 0 ? 1 : 0;
+      masks.set(p, m = { env, th: h, w, h: sh, x0: Math.round(p.x - w / 2), y0: Math.round(p.y - sh + 1), a });
+    }
+    const X = Math.floor(mx) - m.x0, Y = Math.floor(my) - m.y0;
+    for (let dy = -near; dy <= near; dy++) for (let dx = -near; dx <= near; dx++) {
+      if (dx * dx + dy * dy > near * near) continue;
+      let cx = X + dx;
+      const cy = Y + dy;
+      if (cx < 0 || cy < 0 || cx >= m.w || cy >= m.h) continue;
+      if (env.flipLight) cx = m.w - 1 - cx;  // drawn mirrored
+      if (m.a[cy * m.w + cx]) return true;
+    }
+    return false;
   }
   function deepPick(env, mx, my) {  // the distant canopy, wherever the engine actually drew it
     for (const b of (env.deep && env.deep.boxes) || []) {
@@ -222,6 +296,6 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
   }
   /* the scene was rebuilt under the pointer (zooming in): what it pointed at is gone */
   function clear() { linkedAgo = null; lifted = null; litTrees = null; hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
-  return { drawMarker, clear };
+  return { drawLifted, drawMarker, clear };
 };
 })();
