@@ -35,16 +35,16 @@ NATURE_LABELS = {"peaceful": N_("events.peaceful"), "wild": N_("events.wild"), "
 DEFAULT_NATURE = "peaceful"
 
 # what each level means, for the settings dialog (what it costs, by name; the rest each
-# level brings only as a hint: it is for the forest to show)
+# level brings only as a hint: it is for the forest to show). Wild's and Merciless's words are
+# plurals of their numbers (settings/forest_tab.nature_note), whatever Customize made of them;
+# Peaceful's have none. The bad habits are spoken of only while one of them is on.
 NATURE_NOTES = {
     "peaceful": N_("events.miss_a_day_nothing_is_lost"),
-    "wild": N_("events.miss_two_days_in_a_row"),
-    "merciless": N_("events.miss_a_day_of_reviews_an"),
+    "wild": N_("events.miss_n_days_in_a_row_smoke"),
+    "merciless": N_("events.miss_n_days_of_reviews_an_asteroid"),
 }
 # said once, on its own line under Wild's and Merciless's, rather than in each of them
 NATURE_SWITCH_NOTE = N_("events.switch_back_any_time_and_every")
-# for a level changed in Customize (settings/forest_tab.nature_note): each number its own, and the
-# bad habits spoken of only while one of them is on. (The level's own keeps NATURE_NOTES, word for word.)
 BAD_HABITS_NOTE = N_("events.bad_habits_leave_marks_too")
 
 

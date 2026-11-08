@@ -96,22 +96,20 @@ def shown(options) -> list:
 
 
 def nature_note(level: str, rules: dict | None = None) -> str:
-    """What a Nature level does, and for a level that takes trees away, that switching back
-    brings them again (two sentences, each its own). With `rules` (events.rules) changed in
-    Customize, the numbers are its own, and the bad habits are spoken of only while one is on."""
-    if rules is None or rules == own_rules(level):
-        note = tx(NATURE_NOTES.get(level, ""))
+    """What a Nature level does, its numbers as `rules` (events.rules) has them, the level's own
+    if not given, and for a level that takes trees away, that switching back brings them again
+    (each sentence its own). The bad habits are spoken of only while one of them is on."""
+    rules = rules or own_rules(level)
+    if level == "wild":
+        parts = [tn("events.miss_n_days_in_a_row_smoke", rules["fire_from"] - 1),
+                 tn("events.miss_one_more_a_fire_spreads_until", rules["fire_heal"])]
+    elif level == "merciless":
+        parts = [tn("events.miss_n_days_of_reviews_an_asteroid", rules["strike_after"])]
     else:
-        if level == "wild":
-            parts = [tn("events.miss_n_days_in_a_row_smoke", rules["fire_from"] - 1),
-                     tn("events.miss_one_more_a_fire_spreads_until", rules["fire_heal"])]
-        elif level == "merciless":
-            parts = [tn("events.miss_n_days_of_reviews_an_asteroid", rules["strike_after"])]
-        else:
-            parts = [tx(NATURE_NOTES[level])]
-        if any(rules[m] for m in MARKS):
-            parts.append(tx(BAD_HABITS_NOTE))
-        note = " ".join(parts)
+        parts = [tx(NATURE_NOTES[level])]
+    if any(rules[m] for m in MARKS):
+        parts.append(tx(BAD_HABITS_NOTE))
+    note = " ".join(parts)
     return note if calm(level) else f"{note} {tx(NATURE_SWITCH_NOTE)}"
 
 
@@ -384,13 +382,6 @@ class ForestTab(Tab):
     def customizing_nature(self) -> bool:
         return self.nature_page.isVisibleTo(self)
 
-    def _level_picked(self, level: str) -> None:
-        """A level's tile clicked, the chosen one too: that level with its own marks and numbers,
-        whatever Customize had made of the last one."""
-        self.nature_page.set_level(level)
-        if self._changed:
-            self._changed()
-
     def put_phone_back(self) -> None:
         """Cancel puts the phone setting back as the dialog found it, as it does the add-on
         config."""
@@ -415,11 +406,13 @@ class ForestTab(Tab):
         self.nature.on_change(changed)
         self._changed = changed
         self.nature_page.connect(changed)
-        self.nature.group.buttonClicked.connect(lambda b: self._level_picked(b.key))
 
     def sync(self) -> None:
         level = self.nature.currentData()
-        if self.nature_page.level != level:  # (chosen by the keys: the arrow keys pick as a click does)
+        if self.nature_page.level != level:
+            # another level picked (a click, or the arrow keys): that level with its own marks and
+            # numbers, as a scenery tile picks its own five. The chosen one clicked again changes
+            # nothing, the mix made from it kept (SETTINGS_GUIDELINES.md: clicking the chosen option keeps it)
             self.nature_page.set_level(level)
         self.nature_page.sync()
         self.nature_note.setText(nature_note(level, self.nature_page.rules()))

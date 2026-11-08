@@ -491,10 +491,6 @@
    "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
   }
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "text": "עשן עולה אחרי יומיים בלי חזרות. אם לא לומדים היום, מחר היער יעלה באש.",
-  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
- },
  "event.fire.smoke_study_today": {
   "text": "עשן: ללמוד היום",
   "en": "Smoke: study today"
@@ -559,10 +555,6 @@
   "text": "פספוס של יום: שום דבר לא אובד. היעדרות של שבוע או יותר משאירה בריכה ביער.",
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
- "events.miss_a_day_of_reviews_an": {
-  "text": "פספוס של יום חזרות: אסטרואיד ממתין בשמיים ופוגע כשהיום של Anki נגמר, אלא אם עושים חזרות לפני כן. מהמכתש שלו צומח יער חדש. גם הרגלים רעים משאירים סימנים.",
-  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
- },
  "events.miss_n_days_in_a_row_smoke": {
   "text": {
    "one": "פספוס של יום: עשן עולה כאזהרה.",
@@ -596,17 +588,9 @@
    "other": "Miss one more: a fire spreads until {n} days of study put it out."
   }
  },
- "events.miss_two_days_in_a_row": {
-  "text": "פספוס של יומיים ברצף: עשן עולה כאזהרה. פספוס של יום שלישי: שריפה מתפשטת עד ששבעה ימי לימוד מכבים אותה. גם הרגלים רעים משאירים סימנים.",
-  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
- },
  "events.peaceful": {
   "text": "שליו",
   "en": "Peaceful"
- },
- "events.smoke_is_rising_from_your_forest": {
-  "text": "עשן עולה מהיער שלך אחרי יומיים בלי חזרות. אם לא לומדים היום, הוא יעלה באש.",
-  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
  },
  "events.smoke_is_rising_from_your_forest_n": {
   "text": {
@@ -3024,6 +3008,10 @@
  "settings.nature.smoke_rises_the_day_before_as": {
   "text": "יום לפני כן עולה עשן, כאזהרה.",
   "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.start_again_from_level": {
+  "text": "להתחיל מחדש מ־ {level}",
+  "en": "Start again from {level}"
  },
  "settings.nature.strikes_after": {
   "text": "פוגע אחרי",

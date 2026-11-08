@@ -528,12 +528,6 @@
    "web/events/fire.js"
   ]
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "web": true,
-  "where": [
-   "web/events/fire.js"
-  ]
- },
  "event.fire.smoke_study_today": {
   "web": true,
   "where": [
@@ -588,21 +582,17 @@
    "events.py"
   ]
  },
- "events.miss_a_day_of_reviews_an": {
-  "web": false,
-  "where": [
-   "events.py"
-  ]
- },
  "events.miss_n_days_in_a_row_smoke": {
   "web": false,
   "where": [
+   "events.py",
    "settings/forest_tab.py"
   ]
  },
  "events.miss_n_days_of_reviews_an_asteroid": {
   "web": false,
   "where": [
+   "events.py",
    "settings/forest_tab.py"
   ]
  },
@@ -612,22 +602,10 @@
    "settings/forest_tab.py"
   ]
  },
- "events.miss_two_days_in_a_row": {
-  "web": false,
-  "where": [
-   "events.py"
-  ]
- },
  "events.peaceful": {
   "web": false,
   "where": [
    "events.py"
-  ]
- },
- "events.smoke_is_rising_from_your_forest": {
-  "web": false,
-  "where": [
-   "events_state.py"
   ]
  },
  "events.smoke_is_rising_from_your_forest_n": {
@@ -3561,6 +3539,12 @@
   ]
  },
  "settings.nature.smoke_rises_the_day_before_as": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.start_again_from_level": {
   "web": false,
   "where": [
    "settings/nature_page.py"

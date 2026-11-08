@@ -471,10 +471,6 @@
    "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
   }
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "text": "Nach zwei Tagen ohne Wiederholungen steigt Rauch auf. Lerne heute, sonst fängt der Wald morgen Feuer.",
-  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
- },
  "event.fire.smoke_study_today": {
   "text": "Rauch: heute lernen",
   "en": "Smoke: study today"
@@ -535,10 +531,6 @@
   "text": "Einen Tag verpasst: Nichts geht verloren. Bist du eine Woche oder länger weg, entsteht ein Teich im Wald.",
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
- "events.miss_a_day_of_reviews_an": {
-  "text": "Ein Tag ohne Wiederholungen: Ein Asteroid wartet am Himmel und schlägt ein, wenn Ankis Tag endet, es sei denn, du wiederholst vorher. Aus seinem Krater wächst ein neuer Wald. Schlechte Gewohnheiten hinterlassen ebenfalls Spuren.",
-  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
- },
  "events.miss_n_days_in_a_row_smoke": {
   "text": {
    "one": "Einen Tag verpasst: Rauch steigt als Warnung auf.",
@@ -569,17 +561,9 @@
    "other": "Miss one more: a fire spreads until {n} days of study put it out."
   }
  },
- "events.miss_two_days_in_a_row": {
-  "text": "Zwei Tage hintereinander verpasst: Rauch steigt als Warnung auf. Auch den dritten verpasst: Ein Feuer breitet sich aus, bis sieben Lerntage es löschen. Schlechte Gewohnheiten hinterlassen ebenfalls Spuren.",
-  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
- },
  "events.peaceful": {
   "text": "Friedlich",
   "en": "Peaceful"
- },
- "events.smoke_is_rising_from_your_forest": {
-  "text": "Nach zwei Tagen ohne Wiederholungen steigt Rauch aus deinem Wald auf. Lerne heute, sonst fängt er Feuer.",
-  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
  },
  "events.smoke_is_rising_from_your_forest_n": {
   "text": {
@@ -2930,6 +2914,10 @@
  "settings.nature.smoke_rises_the_day_before_as": {
   "text": "Am Tag davor steigt Rauch auf, als Warnung.",
   "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.start_again_from_level": {
+  "text": "Von {level} aus neu beginnen",
+  "en": "Start again from {level}"
  },
  "settings.nature.strikes_after": {
   "text": "Schlägt ein nach",

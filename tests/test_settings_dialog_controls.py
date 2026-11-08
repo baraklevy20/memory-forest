@@ -921,23 +921,49 @@ class NatureCustomizeTests(QtCase):
         self.assertEqual(d.forest.nature_link.text(), "Customize Merciless ›")
         done_saves(self, d, {"nature": "merciless"})
 
-    def test_a_level_clicked_starts_again_from_its_own(self):
+    def test_the_chosen_level_clicked_again_keeps_the_mix(self):
+        mix = {"tumbleweeds": False, "strike_after": 2}
+        d = self.open_dialog({"nature": "merciless", "nature_custom": mix})
+        d.forest.nature.buttons["merciless"].click()  # the chosen one: still chosen, and nothing else changes
+        Q.settle()
+        self.assertEqual((d.forest.nature.currentData(), d.forest.nature_page.custom()), ("merciless", mix))
+        self.assertEqual(d.forest.nature_link.text(), "Customize your own mix, from Merciless ›")
+        done_saves(self, d, {"nature": "merciless", "nature_custom": mix})
+
+    def test_another_level_clicked_starts_from_its_own(self):
         d = self.open_dialog({"nature": "merciless", "nature_custom": {"tumbleweeds": False, "strike_after": 2}})
-        tiles = d.forest.nature.buttons
-        tiles["merciless"].click()  # the chosen one: still chosen, its own marks and numbers back
-        Q.settle()
-        self.assertEqual(d.forest.nature.currentData(), "merciless")
-        self.assertEqual(d.forest.nature_page.custom(), {})
-        self.assertEqual(d.forest.nature_link.text(), "Customize Merciless ›")
-        Q.let_save()
-        self.assertEqual(Q.current()["nature_custom"], {})
-        d.forest.nature_page.boxes["crows"].click()
-        Q.settle()
-        tiles["wild"].click()
+        d.forest.nature.buttons["wild"].click()
         Q.settle()
         self.assertEqual(d.forest.nature_page.custom(), {})
-        self.assertTrue(d.forest.nature_page.boxes["crows"].isChecked())
+        self.assertTrue(d.forest.nature_page.boxes["tumbleweeds"].isChecked())
+        self.assertEqual(d.forest.nature_link.text(), "Customize Wild ›")
         done_saves(self, d, {"nature": "wild"})
+
+    def test_one_click_on_a_level_is_one_change(self):
+        d = self.open_dialog({"nature": "merciless", "nature_custom": {"crows": False}})
+        page, picked, saves = d.forest.nature_page, [], []
+        set_level = page.set_level
+        page.set_level = lambda level: (picked.append(level), set_level(level))
+        start = d._debounce.start
+        d._debounce.start = lambda *a: (saves.append(1), start(*a))
+        d.forest.nature.buttons["wild"].click()
+        Q.settle()
+        self.assertEqual((picked, len(saves)), (["wild"], 1))
+        d.forest.nature.buttons["wild"].click()  # (the chosen one again: nothing at all)
+        Q.settle()
+        self.assertEqual((picked, len(saves)), (["wild"], 1))
+
+    def test_start_again_puts_every_row_back(self):
+        d, page = self.open_page({"nature": "merciless", "nature_custom": {"crows": False, "strike_after": 4, "grass_after": 20}})
+        self.assertEqual(page.restart.text(), "Start again from Merciless")
+        self.assertTrue(page.restart.isEnabled())
+        page.restart.on_click()
+        Q.settle()
+        self.assertEqual(page.custom(), {})
+        self.assertFalse(page.restart.isEnabled())  # (greyed out: nothing to put back)
+        self.assertEqual(page.title.text(), "Customize Merciless")
+        self.assertEqual((page.spins["strike_after"].value(), page.boxes["crows"].isChecked()), (1, True))
+        done_saves(self, d, {"nature": "merciless"})
 
     def test_reset_puts_a_row_back(self):
         d, page = self.open_page()

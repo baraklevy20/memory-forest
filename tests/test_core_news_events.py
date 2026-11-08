@@ -160,7 +160,12 @@ class JournalLineTests(unittest.TestCase):
 
     def test_a_backlog_cleared_on_peaceful_has_no_tumbleweeds_to_blow_away(self):
         cleared = {"overdue": 0, "cleared": True}
-        self.assertEqual(events_state.news_line({"nature": "peaceful", "backlog": cleared}), "You cleared your overdue reviews.")
+        # (keep_calm says so where there are no tumbleweeds: none to blow away, and the journal plain)
+        quiet = {"nature": "peaceful", "backlog": dict(cleared, cleared=False), "cleared_quietly": True}
+        self.assertEqual(events_state.news_line(quiet), "You cleared your overdue reviews.")
+        calm = events_state.keep_calm({"trees": []}, {"nature": "peaceful", "backlog": dict(cleared, hell=0.0)}, {"nature": "peaceful"})[1]
+        self.assertEqual((calm["backlog"]["cleared"], calm["cleared_quietly"]), (False, True))
+        self.assertEqual(events_state.news_line(calm), "You cleared your overdue reviews.")
         self.assertEqual(events_state.news_line({"nature": "wild", "backlog": cleared}),
                          "You cleared your overdue reviews. The tumbleweeds blew away.")
         self.assertEqual(events_state.news_line({"nature": "wild", "backlog": dict(cleared, cleared=False)}), "")

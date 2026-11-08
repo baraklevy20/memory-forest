@@ -471,10 +471,6 @@
    "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
   }
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "text": "Está subindo fumaça depois de dois dias sem revisões. Estude hoje, ou amanhã a floresta pega fogo.",
-  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
- },
  "event.fire.smoke_study_today": {
   "text": "Fumaça: estude hoje",
   "en": "Smoke: study today"
@@ -535,10 +531,6 @@
   "text": "Perdeu um dia: nada se perde. Uma semana ou mais fora deixa uma lagoa na floresta.",
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
- "events.miss_a_day_of_reviews_an": {
-  "text": "Perdeu um dia de revisões: um asteroide espera no céu e cai quando o dia do Anki termina, a menos que você revise. Uma nova floresta cresce da cratera. Maus hábitos também deixam marcas.",
-  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
- },
  "events.miss_n_days_in_a_row_smoke": {
   "text": {
    "one": "Perdeu um dia: sobe fumaça como aviso.",
@@ -569,17 +561,9 @@
    "other": "Miss one more: a fire spreads until {n} days of study put it out."
   }
  },
- "events.miss_two_days_in_a_row": {
-  "text": "Perdeu dois dias seguidos: sobe fumaça como aviso. Perdeu o terceiro: um incêndio se espalha até que sete dias de estudo o apaguem. Maus hábitos também deixam marcas.",
-  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
- },
  "events.peaceful": {
   "text": "Pacífico",
   "en": "Peaceful"
- },
- "events.smoke_is_rising_from_your_forest": {
-  "text": "Está subindo fumaça da sua floresta depois de dois dias sem revisões. Estude hoje, ou ela pega fogo.",
-  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
  },
  "events.smoke_is_rising_from_your_forest_n": {
   "text": {
@@ -2930,6 +2914,10 @@
  "settings.nature.smoke_rises_the_day_before_as": {
   "text": "Na véspera sobe fumaça, como aviso.",
   "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.start_again_from_level": {
+  "text": "Recomeçar a partir de {level}",
+  "en": "Start again from {level}"
  },
  "settings.nature.strikes_after": {
   "text": "Cai após",

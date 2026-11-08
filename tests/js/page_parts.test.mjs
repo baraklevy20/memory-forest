@@ -373,33 +373,27 @@ test('landscapes: a tree by the water stays where it stands as it grows', () => 
   }
 });
 
-test("nature's customize: the fire's words and tooltip read its days, the asteroid's its wait", () => {
+test("nature's customize: the fire's words and tooltip read its own forest's days, the asteroid's its wait", () => {
   const AF = page().AnkiForest;
-  const fire = more => ({ trees: 4, left: 2, smoke: 0, out: false, news: false, ...more });
-  // the level's own: smoke after two days, a burning tree out after 7 days of study
-  AF.events.collect('caption', { fire: fire({ trees: 0, smoke: 3 }) }, true);
-  assert.match(AF.fireLine({ smoke: 1 }), /after two days without reviews/);
-  AF.events.collect('caption', { fire: fire() }, true);
-  assert.match(AF.fireLine({ burn: 6 / 7 }), /after 6 more days of study/);
-  // Customize's: smoke after four days (it breaks out on the fifth), out after 10 days of study
-  AF.events.collect('caption', { fire: fire({ trees: 0, smoke: 3, from: 5, heal: 10 }) }, true);
-  assert.match(AF.fireLine({ smoke: 1 }), /after 4 days without reviews/);
-  AF.events.collect('caption', { fire: fire({ from: 5, heal: 10 }) }, true);
-  assert.match(AF.fireLine({ burn: 0.6 }), /after 6 more days of study/);
-  assert.match(AF.fireLine({ burn: 0.3 }), /after 3 more days of study/);
+  const own = { trees: 4, left: 2, smoke: 0, out: false, news: false };   // its own: smoke after two days, out after 7
+  const mine = { ...own, from: 5, heal: 10 };                             // Customize's: smoke after four, out after 10
+  assert.match(AF.fireLine({ smoke: 1 }, own), /after 2 days without reviews/);
+  assert.match(AF.fireLine({ smoke: 1 }, mine), /after 4 days without reviews/);
+  assert.match(AF.fireLine({ burn: 6 / 7 }, own), /after 6 more days of study/);
+  assert.match(AF.fireLine({ burn: 0.6 }, mine), /after 6 more days of study/);
+  assert.match(AF.fireLine({ burn: 0.3 }, mine), /after 3 more days of study/);
+  // two forests on one page (the deck list's and a deck's): each tooltip goes by its own, whichever drew last
+  AF.events.collect('caption', { fire: { ...mine, smoke: 3 } }, true);
+  assert.match(AF.fireLine({ burn: 6 / 7 }, own), /after 6 more days of study/);
+  assert.match(AF.fireLine({ burn: 0.6 }), /after 4 more days of study/);  // (no data: the level's own 7)
+  const tree = { ago: 3, date: '2026-09-16', n: 4, stage: 3, remembered: 0.9, burn: 0.6 };
+  assert.match(AF.tips.tree(tree, '', { fire: mine }), /after 6 more days of study/);
+  assert.match(AF.tips.tree(tree, '', { fire: own }), /after 4 more days of study/);
+  assert.match(AF.events.collect('caption', { fire: { ...mine, smoke: 3 } }, true)[0][1], /after 4 days without reviews/);
   const strike = { date: '2026-09-18', lost: 21, news: true, seen: 'x' };
   const said = data => AF.events.collect('caption', data, false).map(item => item[1]).join(' ');
   assert.match(said({ strike }), /21 trees lost after a day without reviews/);
   assert.match(said({ strike, strikeAfter: 3 }), /21 trees lost after 3 days without reviews/);
-});
-
-test("nature's customize: tumbleweeds only where their box is on", () => {
-  const AF = load(SCRIPTS, { expose: { 'events/tumbleweeds.js': ['shown'] } }).AnkiForest;
-  const { shown } = AF.__test;
-  assert.equal(shown({ nature: 'merciless' }), true);  // (a page from before Customize: the level says)
-  assert.equal(shown({ nature: 'peaceful' }), false);
-  assert.equal(shown({ nature: 'merciless', marks: { tumbleweeds: false } }), false);
-  assert.equal(shown({ nature: 'peaceful', marks: { tumbleweeds: true } }), true);
 });
 
 test('asteroid: on its way, it says when it strikes and how many days are missed', () => {

@@ -471,10 +471,6 @@
    "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
   }
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "text": "Sale humo tras dos días sin repasos. Estudia hoy, o mañana el bosque se incendiará.",
-  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
- },
  "event.fire.smoke_study_today": {
   "text": "Humo: estudia hoy",
   "en": "Smoke: study today"
@@ -535,10 +531,6 @@
   "text": "Si faltas un día, no se pierde nada. Una semana o más sin estudiar deja un estanque en el bosque.",
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
- "events.miss_a_day_of_reviews_an": {
-  "text": "Si faltas un día de repasos, un asteroide espera en el cielo e impacta cuando termina el día de Anki, a menos que repases. Un bosque nuevo crece desde su cráter. Los malos hábitos también dejan marcas.",
-  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
- },
  "events.miss_n_days_in_a_row_smoke": {
   "text": {
    "one": "Si faltas un día, sale humo como aviso.",
@@ -569,17 +561,9 @@
    "other": "Miss one more: a fire spreads until {n} days of study put it out."
   }
  },
- "events.miss_two_days_in_a_row": {
-  "text": "Si faltas dos días seguidos, sale humo como aviso. Si faltas un tercero, se extiende un incendio hasta que siete días de estudio lo apagan. Los malos hábitos también dejan marcas.",
-  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
- },
  "events.peaceful": {
   "text": "Apacible",
   "en": "Peaceful"
- },
- "events.smoke_is_rising_from_your_forest": {
-  "text": "Sale humo de tu bosque tras dos días sin repasos. Estudia hoy, o se incendiará.",
-  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
  },
  "events.smoke_is_rising_from_your_forest_n": {
   "text": {
@@ -2930,6 +2914,10 @@
  "settings.nature.smoke_rises_the_day_before_as": {
   "text": "El día anterior sale humo, como aviso.",
   "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.start_again_from_level": {
+  "text": "Empezar de nuevo desde {level}",
+  "en": "Start again from {level}"
  },
  "settings.nature.strikes_after": {
   "text": "Impacta tras",

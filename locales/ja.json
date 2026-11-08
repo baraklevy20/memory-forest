@@ -451,10 +451,6 @@
    "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
   }
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "text": "2 日間復習がなかったため、煙が上がっています。今日学習しないと、明日には森が燃え出します。",
-  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
- },
  "event.fire.smoke_study_today": {
   "text": "煙: 今日学習を",
   "en": "Smoke: study today"
@@ -511,10 +507,6 @@
   "text": "1 日休んでも何も失いません。1 週間以上離れると、森に池ができます。",
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
- "events.miss_a_day_of_reviews_an": {
-  "text": "1 日復習しないと、空に小惑星が現れ、復習しないまま Anki の 1 日が終わると落ちてきます。クレーターからは新しい森が育ちます。悪い習慣も跡を残します。",
-  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
- },
  "events.miss_n_days_in_a_row_smoke": {
   "text": {
    "other": "{n} 日続けて休むと、警告として煙が上がります。"
@@ -542,17 +534,9 @@
    "other": "Miss one more: a fire spreads until {n} days of study put it out."
   }
  },
- "events.miss_two_days_in_a_row": {
-  "text": "2 日続けて休むと、警告として煙が上がります。3 日目も休むと火事が広がり、7 日学習するまで消えません。悪い習慣も跡を残します。",
-  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
- },
  "events.peaceful": {
   "text": "穏やか",
   "en": "Peaceful"
- },
- "events.smoke_is_rising_from_your_forest": {
-  "text": "2 日間復習がなかったため、森から煙が上がっています。今日学習しないと燃え出します。",
-  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
  },
  "events.smoke_is_rising_from_your_forest_n": {
   "text": {
@@ -2836,6 +2820,10 @@
  "settings.nature.smoke_rises_the_day_before_as": {
   "text": "その前日に、警告として煙が上がります。",
   "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.start_again_from_level": {
+  "text": "{level} からやり直す",
+  "en": "Start again from {level}"
  },
  "settings.nature.strikes_after": {
   "text": "落下: 復習のない日が",

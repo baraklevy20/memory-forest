@@ -451,10 +451,6 @@
    "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
   }
  },
- "event.fire.smoke_is_rising_after_two_days": {
-  "text": "两天没有复习，森林冒起了烟。今天去学习，否则明天森林就会着火。",
-  "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
- },
  "event.fire.smoke_study_today": {
   "text": "冒烟：今天要学习",
   "en": "Smoke: study today"
@@ -511,10 +507,6 @@
   "text": "错过一天：什么都不会失去。离开一周或更久，森林里会留下一个池塘。",
   "en": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest."
  },
- "events.miss_a_day_of_reviews_an": {
-  "text": "错过一天复习：一颗小行星会悬在天空中，若您在 Anki 的这一天结束前仍未复习，它就会撞击。新的森林会从陨石坑中长出。坏习惯也会留下痕迹。",
-  "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
- },
  "events.miss_n_days_in_a_row_smoke": {
   "text": {
    "other": "连续错过 {n} 天：冒起烟雾以示警告。"
@@ -542,17 +534,9 @@
    "other": "Miss one more: a fire spreads until {n} days of study put it out."
   }
  },
- "events.miss_two_days_in_a_row": {
-  "text": "连续错过两天：冒起烟雾以示警告。错过第三天：大火蔓延，直到学习满七天才会熄灭。坏习惯也会留下痕迹。",
-  "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
- },
  "events.peaceful": {
   "text": "平和",
   "en": "Peaceful"
- },
- "events.smoke_is_rising_from_your_forest": {
-  "text": "两天没有复习，您的森林冒起了烟。今天去学习，否则它就会着火。",
-  "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
  },
  "events.smoke_is_rising_from_your_forest_n": {
   "text": {
@@ -2836,6 +2820,10 @@
  "settings.nature.smoke_rises_the_day_before_as": {
   "text": "前一天会冒起烟雾，以示警告。",
   "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.start_again_from_level": {
+  "text": "从“{level}”重新开始",
+  "en": "Start again from {level}"
  },
  "settings.nature.strikes_after": {
   "text": "撞击：连续",

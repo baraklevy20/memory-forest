@@ -166,6 +166,9 @@ def apply(forest: dict, extras: dict, cfg: dict) -> tuple:
         trees = events.calm_trees(trees)
     if not on["grass"]:
         extras["stagnation"] = 0.0
-    if not on["tumbleweeds"] and extras.get("backlog"):
-        extras["backlog"] = dict(extras["backlog"], hell=0.0)
+    if not on["tumbleweeds"] and extras.get("backlog"):  # (as events_state.keep_calm has it)
+        backlog = extras["backlog"]
+        extras["backlog"] = dict(backlog, hell=0.0, cleared=False)
+        if backlog.get("cleared"):
+            extras["cleared_quietly"] = True
     return dict(forest, trees=trees), extras

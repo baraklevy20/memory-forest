@@ -19,8 +19,9 @@ AF.fmtStrength = d => d >= DAYS_PER_YEAR ? AF.t('tooltip.n_years', { n: AF.i18n.
 AF.rememberedText = t => t.measured === false
   ? AF.t('tooltip.pct_still_going_well', { pct: Math.round(t.remembered * 100) })
   : AF.t('tooltip.pct_remembered', { pct: Math.round(t.remembered * 100) });
-/* `click`: what a click on it does, when that is not opening its cards (zooming in: picking it) */
-function tipHtml(t, click) {
+/* `click`: what a click on it does, when that is not opening its cards (zooming in: picking it);
+ * `data`, the page's data for the forest it stands in (its fire's days) */
+function tipHtml(t, click, data) {
   const when = t.ago === 0 ? AF.t('tooltip.planted_today') : t.ago === 1 ? AF.t('tooltip.planted_yesterday')
     : AF.tn('tooltip.planted_n_days_ago', t.ago, { n: t.ago });
   const lines = [`<b>${esc(fmtDate(t.date))}</b> · ${esc(when)}`, `${esc(AF.tn('tooltip.n_cards', t.n, { n: t.n }))} · ${esc(stage(t.stage))}`];
@@ -38,7 +39,7 @@ function tipHtml(t, click) {
   if (t.cured) lines.push(t.cured === 1 ? AF.t('tooltip.a_leech_here_mature_again_the')
     : AF.tn('tooltip.n_leeches_here_mature_again_the', t.cured, { n: t.cured }));
   if (t.big) lines.push(AF.tn('tooltip.a_big_learning_day_n_new', t.n, { n: t.n, usual: t.big }));
-  if ((t.burn || t.smoke) && AF.fireLine) lines.push(AF.fireLine(t));  // Wild's fire (web/events/fire.js)
+  if ((t.burn || t.smoke) && AF.fireLine) lines.push(AF.fireLine(t, data && data.fire));  // Wild's fire (web/events/fire.js)
   if (click) lines.push(`<span class="af-hint">${esc(click)}</span>`);
   else if (canBrowse()) lines.push(clickHint());
   return lines.join('<br>');

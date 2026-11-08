@@ -688,7 +688,47 @@ class CustomizeTests(unittest.TestCase):
         overdue(60)
         payload.payload()
         mw.col.db.con.execute("delete from cards where id >= 5000")
-        self.assertEqual(payload.payload()["journal"], "You cleared your overdue reviews.")
+        p = payload.payload()
+        self.assertEqual(p["journal"], "You cleared your overdue reviews.")
+        self.assertEqual((p["backlog"]["cleared"], p["backlog"]["hell"]), (False, 0))  # (none for the page to blow away)
+
+    def test_the_fire_says_its_own_days_of_study(self):
+        studied_every_day_but({1, 2, 3}, nature="wild", nature_custom={"fire_heal": 10})  # three days away, back today
+        self.assertEqual(payload.payload()["journal"],
+                         "A fire broke out while you were away: 1 tree is burning. Study on 10 days to put it out.")
+
+    def test_a_strike_there_only_because_the_setting_changed_is_no_news(self):
+        studied_every_day_but({2, 3}, nature="merciless", nature_custom={"strike_after": 3})  # two days away, back yesterday
+        self.assertEqual(payload.payload()["craters"], [])
+        mw.addonManager.config["nature_custom"] = {}  # Strikes after back to one: the old break strikes
+        p = payload.payload()
+        self.assertEqual((len(p["craters"]), p["stats"]["trees"]), (1, 0))  # the forest starts from its crater
+        self.assertEqual((p["strike"]["news"], p["strike"]["fresh"], p["strike"]["told"]), (False, False, False))
+        self.assertNotIn("before", p["strike"])  # (nothing to play)
+        self.assertNotIn("asteroid", p["journal"])
+        self.assertEqual(payload.payload()["strike"]["news"], False)  # and stays so
+
+    def test_picking_merciless_makes_no_news_of_old_breaks_either(self):
+        studied_every_day_but({3}, nature="peaceful")
+        payload.payload()
+        mw.addonManager.config["nature"] = "merciless"
+        p = payload.payload()
+        self.assertEqual((len(p["craters"]), p["strike"]["news"], p["strike"]["fresh"]), (1, False, False))
+
+    def test_a_strike_after_the_setting_changed_is_news(self):
+        studied_every_day_but({3}, nature="merciless")
+        state.save_state(dict(state.load_state(), strike_rule={"rule": "merciless:1", "since": addon.events_state.ago_date(5)}))
+        p = payload.payload()  # (the rule came in five days ago; the break three days ago struck under it)
+        self.assertEqual((p["strike"]["news"], p["strike"]["fresh"]), (True, True))
+        self.assertIn("asteroid", p["journal"])
+
+    def test_the_settings_preview_keeps_no_rule(self):
+        studied_every_day_but({2, 3}, nature="merciless", nature_custom={"strike_after": 3})
+        payload.payload()
+        mw.addonManager.config["nature_custom"] = {}
+        with mock.patch.object(addon.state, "_settings_open", True):
+            self.assertFalse(payload.payload()["strike"]["news"])
+        self.assertEqual(state.load_state()["strike_rule"]["rule"], "merciless:3")  # (only once the dialog is done)
 
     def test_what_the_level_has_no_use_for_changes_nothing(self):
         studied_every_day_but({2, 3}, nature="merciless", nature_custom={"fire_from": 9, "strike_after": 99, "tumbleweeds": "off"})

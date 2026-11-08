@@ -20,6 +20,7 @@ from .widgets import Link, hint
 BACK = N_("settings.nature.back")
 OWN_NOTE = N_("settings.customize.change_anything_here_to_make_it")  # (the scenery's Customize says it so too)
 MIX_NOTE = N_("settings.nature.reset_a_row_to_put_the")
+# (beside the note: back to the level's own marks and numbers, all at once; greyed out while they are)
 RESET_TIP = N_("settings.nature.reset_put_back_the_levels_own")
 # the level's own cost of a missed day: its title, and a line for Peaceful, which has no numbers
 COST_TITLES = {"peaceful": N_("settings.nature.ponds"), "wild": N_("settings.nature.fire"), "merciless": N_("settings.nature.asteroid")}
@@ -95,6 +96,8 @@ class NaturePage(QWidget):
         header.addWidget(self.thumb)
         header.addWidget(self.title, 1)
         self.note = hint("")
+        self.restart = Link("", self.start_again)
+        self.restart.setStyleSheet(self.restart.styleSheet() + " QLabel { font-size: 12px; }")  # (the note's size, on its line)
 
         # one grid, so every number lines up whichever rows show: [indent | words | number | words]
         grid = QGridLayout()
@@ -131,7 +134,11 @@ class NaturePage(QWidget):
         v = QVBoxLayout(self)
         v.setContentsMargins(0, 0, 0, 0)
         v.addLayout(header)
-        v.addWidget(self.note)
+        noted = QHBoxLayout()
+        noted.setSpacing(HEADER_GAP)
+        noted.addWidget(self.note, 1)
+        noted.addWidget(self.restart, 0, Qt.AlignmentFlag.AlignTop)
+        v.addLayout(noted)
         v.addSpacing(GROUP_GAP - ROW_GAP)
         v.addLayout(grid)
         v.addStretch(1)
@@ -238,6 +245,14 @@ class NaturePage(QWidget):
         if self._changed:
             self._changed()
 
+    def start_again(self) -> None:
+        """Every row back as the level has it ("Start again from <level>")."""
+        if not self.custom():
+            return
+        self.set_custom({})
+        if self._changed:
+            self._changed()
+
     def link_text(self) -> str:
         """The way here under the tiles, naming the level, or a mix made from it."""
         name = tx(NATURE_LABELS[self.level])
@@ -252,6 +267,8 @@ class NaturePage(QWidget):
         self.title.setText(t("settings.nature.customize_your_own_mix_from_level_2", level=name) if custom
                            else t("settings.nature.customize_level_2", level=name))
         self.note.setText(tx(MIX_NOTE if custom else OWN_NOTE))
+        self.restart.setText(t("settings.nature.start_again_from_level", level=name))
+        self.restart.setEnabled(bool(custom))
         for lv in COST_ROWS:
             for w in self.rows[lv]:
                 w.setVisible(lv == self.level)

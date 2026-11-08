@@ -109,7 +109,6 @@ window.AnkiForest.EN = {
   "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
   "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
  },
- "event.fire.smoke_is_rising_after_two_days": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire.",
  "event.fire.smoke_study_today": "Smoke: study today",
  "event.fire.smoking": "Smoking",
  "event.tumbleweeds.review_hell_n_reviews_overdue_clear": {

@@ -100,20 +100,22 @@ def _seen(state: dict, key: str) -> bool:
     return key == seen
 
 
-def strike_payload(out: dict, seen_key: str, date, playable: bool = True) -> dict:
+def strike_payload(out: dict, seen_key: str, date, playable: bool = True, since: str | None = None) -> dict:
     """What the page needs to show the craters (events.merciless's `out`) and play the
     latest strike. It plays by itself once, while it is news and hasn't been seen (and
     `playable`: not while the settings dialog previews it); the journal speaks of it
-    (`told`) until it has played, and for the rest of that day. The forest it took comes
-    along only to play by itself: a replay asks for it (strike_before), as it is a second
-    forest's worth of trees."""
+    (`told`) until it has played, and for the rest of that day. A strike from before `since`
+    (an ISO date: the day the strike rule last changed, strike_rule_since) is no news at all:
+    it is there only because the setting changed, so the forest just starts from its crater.
+    The forest it took comes along only to play by itself: a replay asks for it
+    (strike_before), as it is a second forest's worth of trees."""
     latest = out["latest"]
     _strikes.pop(seen_key, None)
     _strikes[seen_key] = latest
     while len(_strikes) > STRIKES_KEPT:
         del _strikes[next(iter(_strikes))]
     state = load_state()
-    news = latest["ago"] <= events.STRIKE_NEWS_DAYS
+    news = latest["ago"] <= events.STRIKE_NEWS_DAYS and (since is None or date(latest["ago"]) >= since)
     fresh = news and playable and not _seen(state, seen_key)
     return {
         "craters": [dict(c, date=date(c["ago"])) for c in out["craters"]],
@@ -121,6 +123,27 @@ def strike_payload(out: dict, seen_key: str, date, playable: bool = True) -> dic
                    "seen": seen_key, "fresh": fresh, "news": news,
                    "told": news and (fresh or state.get("strike_seen_day") == mw.col.sched.today)},
     }
+
+
+def strike_rule_since(level: str, after: int, live: bool) -> str | None:
+    """The day (an ISO date) the rule that makes strikes - the level, and on Merciless its Strikes
+    after - last changed, or None if it hasn't since this was first kept. Nature is read from the
+    days studied, so a change goes back in time: a lower Strikes after (or Merciless picked)
+    can turn a past break into a strike at once, and that strike is no news (strike_payload).
+    Remembered per profile, as what has been shown is; only once the dialog's preview is over
+    (`live`): what it previews is never news anyway."""
+    rule = f"merciless:{after}" if level == "merciless" else level
+    state = load_state()
+    kept = state.get("strike_rule") if isinstance(state.get("strike_rule"), dict) else None
+    if kept is not None and kept.get("rule") == rule:
+        since = kept.get("since")
+        return since if isinstance(since, str) else None
+    if not live:  # (the dialog's preview: not kept)
+        return None if kept is None else ago_date(0)
+    since = None if kept is None else ago_date(0)  # (the first look: nothing changed yet)
+    state["strike_rule"] = {"rule": rule, "since": since}
+    save_state(state)
+    return since
 
 
 def strike_before(seen_key: str) -> dict | None:
@@ -284,13 +307,14 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
                                                                counts_since(cfg, day_cutoff(mw.col))))
         struck = None
         live = not settings_open()  # (what the settings dialog previews is not remembered as shown)
+        strike_since = strike_rule_since(level, rules["strike_after"], live)
         if level == "merciless":
             after = rules["strike_after"]
             out = events.merciless(forest["trees"], nature_days, _held(nature_days, after), after)
             if out["hits"] and settled() and live:
                 _remember_shown("strike", ago_date(out["hits"][-1]))
             if out["latest"]:
-                extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date, live))
+                extras.update(strike_payload(out, ago_date(out["latest"]["ago"]), ago_date, live, strike_since))
             if out["hits"]:
                 # the forest now: only what grew since, its streak, reviews and animals counted
                 # from there - the animals have to be earned again, as the trees do
@@ -336,7 +360,11 @@ def keep_calm(forest: dict, extras: dict, cfg: dict) -> tuple:
     if not on["grass"] and "stagnation" in extras:
         extras["stagnation"] = 0.0
     if not on["tumbleweeds"] and extras.get("backlog"):
-        extras["backlog"] = dict(extras["backlog"], hell=0.0)
+        # none roll, and none blow away the day it is cleared: the journal says so plainly
+        backlog = extras["backlog"]
+        extras["backlog"] = dict(backlog, hell=0.0, cleared=False)
+        if backlog.get("cleared"):
+            extras["cleared_quietly"] = True
     return forest, extras
 
 
@@ -347,10 +375,7 @@ def fire_line(extras: dict) -> str:
     if not fire:
         return ""
     if fire.get("smoke"):
-        missed = fire.get("from", events.FIRE_FROM) - 1
-        if missed == events.FIRE_FROM - 1:
-            return t("events.smoke_is_rising_from_your_forest")
-        return tn("events.smoke_is_rising_from_your_forest_n", missed)
+        return tn("events.smoke_is_rising_from_your_forest_n", fire.get("from", events.FIRE_FROM) - 1)
     if fire["out"]:
         return t("events.the_last_of_the_fire_is")
     if not fire["news"]:
@@ -358,7 +383,7 @@ def fire_line(extras: dict) -> str:
     n = fire["trees"]
     # ({trees} as written so far: 1000, not 1,000)
     return tn("events.a_fire_broke_out_while_you",
-              n, trees=n, days=events.FIRE_HEAL_DAYS)
+              n, trees=n, days=fire.get("heal", events.FIRE_HEAL_DAYS))
 
 
 def strike_line(extras: dict) -> str:
@@ -378,10 +403,10 @@ def news_line(extras: dict) -> str:
     if line:
         return line
     backlog = extras.get("backlog")
-    if backlog and backlog["cleared"]:
-        if not (extras.get("marks") or {}).get("tumbleweeds", not events.calm(extras["nature"])):
-            return t("events.you_cleared_your_overdue_reviews")
+    if backlog and backlog["cleared"]:  # (only with tumbleweeds to blow away: keep_calm)
         return t("events.you_cleared_your_overdue_reviews_the")
+    if extras.get("cleared_quietly"):
+        return t("events.you_cleared_your_overdue_reviews")
     return ""
 
 
