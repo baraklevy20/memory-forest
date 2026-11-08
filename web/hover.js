@@ -79,24 +79,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     const env = current();
     drawLit(g, env);
     const p = env && linkedAgo !== null && env.placed.find(p => !p.it.pond && p.it.ago === linkedAgo);
-    if (p) {
-      // sprite() borrows a scratch canvas: keep one outlined copy until the scene changes.
-      if (!lifted || lifted.env !== env) {
-        const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
-        const [cv, cg] = AF.u.layer(spr.width + 2, spr.height + 2);
-        for (const [x, y] of [[0, 1], [2, 1], [1, 0], [1, 2]]) cg.drawImage(spr, x, y);
-        cg.globalCompositeOperation = 'source-in'; cg.fillStyle = '#fff8e0'; cg.fillRect(0, 0, cv.width, cv.height);
-        cg.globalCompositeOperation = 'source-over'; cg.drawImage(spr, 1, 1);
-        lifted = { env, cv };
-      }
-      const cv = lifted.cv, x = Math.round(p.x - (cv.width - 2) / 2) - 1, y = Math.round(p.y - (cv.height - 2) + 1) - 1;
-      g.save();
-      if (env.flipLight) { g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); }
-      else g.drawImage(cv, x, y);
-      g.restore();
-      marker(g, p.x, y);
-      return;
-    }
+    if (p) { marker(g, p.x, outlined(g, env, p)); return; }
     const deep = env && env.deep, merged = data.merged;
     if (linkedAgo !== null && merged && plantedDays.has(linkedAgo) && linkedAgo >= merged.to_ago && linkedAgo <= merged.from_ago
         && deep && deep.boxes.length && !(root.afVisits && root.afVisits.on)) {
@@ -109,7 +92,28 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       return;
     }
     if (!hover) return;
+    // a tree drawn where it stands wears the same outline as one pointed at on the heatmap (one
+    // drawn elsewhere, turned say, keeps only the arrow over the box it left)
+    if (hover.p && !hover.p.hitBox && env && env.placed.includes(hover.p)) { marker(g, hover.p.x, outlined(g, env, hover.p)); return; }
     marker(g, hover.x, hover.top);
+  }
+  // the tree drawn again with a light outline around it; returns the outline's top
+  function outlined(g, env, p) {
+    // sprite() borrows a scratch canvas: keep one outlined copy until the scene or the tree changes.
+    if (!lifted || lifted.env !== env || lifted.p !== p) {
+      const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
+      const [cv, cg] = AF.u.layer(spr.width + 2, spr.height + 2);
+      for (const [x, y] of [[0, 1], [2, 1], [1, 0], [1, 2]]) cg.drawImage(spr, x, y);
+      cg.globalCompositeOperation = 'source-in'; cg.fillStyle = '#fff8e0'; cg.fillRect(0, 0, cv.width, cv.height);
+      cg.globalCompositeOperation = 'source-over'; cg.drawImage(spr, 1, 1);
+      lifted = { env, p, cv };
+    }
+    const cv = lifted.cv, x = Math.round(p.x - (cv.width - 2) / 2) - 1, y = Math.round(p.y - (cv.height - 2) + 1) - 1;
+    g.save();
+    if (env.flipLight) { g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); }
+    else g.drawImage(cv, x, y);
+    g.restore();
+    return y;
   }
   function marker(g, cx, top) {
     const x = Math.round(cx), y = Math.round(top - 3);
@@ -176,10 +180,10 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         deepHover = hit.deep;
       }
       else {
-        hover = { x: hit.b ? (hit.b.x0 + hit.b.x1) / 2 : hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it };
+        hover = { x: hit.b ? (hit.b.x0 + hit.b.x1) / 2 : hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it, p: hit.pond ? null : hit.p };
         // zoomed in, a click picks a tree first (web/visit.js)
         const zoom = root.afVisits, picks = !hit.pond && zoom && zoom.on && zoom.picked !== hit.p.it.index;
-        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, picks ? (touched ? AF.t('hover.tap_to_select_it') : AF.t('hover.click_to_select_it')) : '');
+        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, picks ? (touched ? AF.t('hover.tap_to_select_it') : AF.t('hover.click_to_select_it')) : '', env.data);
         canvas.style.cursor = !hit.pond && (picks || (data.inAnki && !data.testForest)) ? 'pointer' : '';
       }
       // the same thing pointed at as before: the tip only follows the pointer (rewriting it, and
