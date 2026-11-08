@@ -56,12 +56,27 @@ window.AnkiForest.EN = {
  },
  "event.asteroid.a_crater": "A crater",
  "event.asteroid.an_asteroid_strikes_when_ankis_day": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater.",
+ "event.asteroid.asteroid_in_n_days": {
+  "one": "Asteroid: in {n} day",
+  "other": "Asteroid: in {n} days"
+ },
  "event.asteroid.asteroid_struck_date": "Asteroid struck {date}",
+ "event.asteroid.asteroid_tomorrow": "Asteroid: tomorrow",
  "event.asteroid.asteroid_tonight": "Asteroid: tonight",
  "event.asteroid.its_crater_can_play_it_again": "Its crater can play it again too.",
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "one": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} day, when Anki's day ends. Review today to turn it back.",
+  "other": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} days, when Anki's day ends. Review today to turn it back."
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes when Anki's day ends tomorrow. Review today to turn it back.",
+ "event.asteroid.n_of_days_strikes_tonight": "{missed} of {grace} days without reviews: an asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater.",
  "event.asteroid.n_trees_lost_after_a_day": {
   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
+  "one": "{n} tree lost after {days} days without reviews; a new forest grows from here.",
+  "other": "{n} trees lost after {days} days without reviews; a new forest grows from here."
  },
  "event.asteroid.n_trees_lost_on_date": {
   "one": "{n} tree lost on {date}",
@@ -89,6 +104,10 @@ window.AnkiForest.EN = {
  "event.fire.on_fire_it_caught_while_you": {
   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
+ },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
+  "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
  },
  "event.fire.smoke_is_rising_after_two_days": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire.",
  "event.fire.smoke_study_today": "Smoke: study today",

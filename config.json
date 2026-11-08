@@ -34,6 +34,7 @@
     "streak_week_since": "",
     "finished_decks": true,
     "nature": "peaceful",
+    "nature_custom": {},
     "excluded_decks": [],
     "ignore_before": "",
     "keep_earlier_trees": false,

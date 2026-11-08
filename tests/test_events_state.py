@@ -610,5 +610,91 @@ class DeckForestTests(unittest.TestCase):
         self.assertFalse(payload.payload(10)["strike"]["fresh"])
 
 
+class CustomizeTests(unittest.TestCase):
+    """Nature's Customize (`nature_custom`) on a real forest: what each number and mark changes, read
+    from the days studied each time, as the levels are."""
+
+    def test_the_asteroid_waits_the_days_customize_gives_it(self):
+        studied_every_day_but({2, 3}, nature="merciless")  # two days away, back yesterday
+        self.assertEqual(len(payload.payload()["craters"]), 1)
+        mw.addonManager.config["nature_custom"] = {"strike_after": 3}
+        p = payload.payload()
+        self.assertEqual((p["craters"], p["strike"], p["stats"]["trees"], p["strikeAfter"]), ([], None, 23, 3))
+        mw.addonManager.config["nature_custom"] = {"strike_after": 2}  # the second day of the two
+        p = payload.payload()
+        self.assertEqual((len(p["craters"]), p["stats"]["trees"]), (1, 0))
+
+    def test_the_asteroid_comes_closer_each_day_until_it_strikes(self):
+        studied_every_day_but({0, 1}, nature="merciless", nature_custom={"strike_after": 2})  # nothing yesterday nor yet today
+        p = payload.payload()
+        self.assertEqual((p["craters"], p["doom"]), ([], {"missed": 2, "grace": 2, "left": 0}))  # tonight
+        mw.addonManager.config["nature_custom"] = {"strike_after": 7}
+        p = payload.payload()
+        self.assertEqual((p["craters"], p["doom"], p["stats"]["trees"]), ([], {"missed": 2, "grace": 7, "left": 5}, 23))
+        mw.addonManager.config["nature_custom"] = {}  # its own one day: it struck yesterday, nothing on its way
+        p = payload.payload()
+        self.assertEqual((len(p["craters"]), p["doom"]), (1, None))
+
+    def test_the_fire_breaks_out_and_goes_out_when_customize_says(self):
+        studied_every_day_but({1, 2, 3}, nature="wild", nature_custom={"fire_from": 4})  # three days away, back today
+        p = payload.payload()
+        self.assertEqual(([t for t in p["trees"] if t.get("burn")], p["fire"]), ([], None))
+        studied_every_day_but({0, 1, 2, 3}, nature="wild", nature_custom={"fire_from": 4})  # and none yet today
+        p = payload.payload()
+        self.assertEqual((p["fire"]["smoke"] > 0, p["fire"]["from"]), (True, 4))
+        self.assertEqual(p["journal"], "Smoke is rising from your forest after 3 days without reviews. Study today, or it catches fire.")
+        studied_every_day_but({7, 8, 9}, nature="wild")  # back for seven days: its own seven put it out today
+        self.assertTrue(payload.payload()["fire"]["out"])
+        mw.addonManager.config["nature_custom"] = {"fire_heal": 10}
+        p = payload.payload()
+        self.assertEqual((p["fire"]["trees"], p["fire"]["left"], p["fire"]["heal"]), (1, 3, 10))
+        mw.addonManager.config["nature_custom"] = {"fire_heal": 3}
+        self.assertIsNone(payload.payload()["fire"])  # out four days ago
+
+    def test_the_grass_waits_the_days_customize_gives_it(self):
+        reset([(1, 10, 20)], {"nature": "wild", "nature_custom": {"grass_after": 30}})  # nothing new for twenty days
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)",
+                                  [(ms(d, 18),) for d in range(20)])
+        a_new_card()
+        self.assertEqual(payload.payload()["stagnation"], 0)
+        mw.addonManager.config["nature_custom"] = {"grass_after": 14}
+        self.assertGreater(payload.payload()["stagnation"], 0)
+
+    def test_each_mark_comes_and_goes_with_its_box(self):
+        p = PeacefulTests().coasting_with_a_leech_and_a_backlog("merciless")
+        self.assertEqual(p["marks"], {"crows": True, "grass": True, "tumbleweeds": True})
+        mw.addonManager.config["nature_custom"] = {"tumbleweeds": False}  # the issue's Merciless
+        p = payload.payload()
+        self.assertEqual((p["backlog"]["hell"], p["backlog"]["overdue"]), (0, 100))  # still counted
+        self.assertTrue(any(t.get("leeches") for t in p["trees"]))
+        self.assertGreater(p["stagnation"], 0)
+        self.assertEqual(p["marks"], {"crows": True, "grass": True, "tumbleweeds": False})
+        mw.addonManager.config["nature_custom"] = {"crows": False, "grass": False}
+        p = payload.payload()
+        self.assertFalse(any(t.get("leeches") for t in p["trees"]))
+        self.assertEqual(p["stagnation"], 0)
+        self.assertGreater(p["backlog"]["hell"], 0)
+
+    def test_peaceful_with_a_mark_turned_on(self):
+        PeacefulTests().coasting_with_a_leech_and_a_backlog("peaceful")
+        mw.addonManager.config["nature_custom"] = {"crows": True}
+        p = payload.payload()
+        self.assertTrue(any(t.get("leeches") for t in p["trees"]))
+        self.assertEqual((p["stagnation"], p["backlog"]["hell"]), (0, 0))
+
+    def test_clearing_the_backlog_without_tumbleweeds_says_nothing_of_them(self):
+        reset([(1, 10, 5)], {"nature": "wild", "nature_custom": {"tumbleweeds": False}})
+        mw.col.db.con.executemany("insert into revlog (id, cid, ease, type) values (?, 999, 3, 1)", [(ms(d, 18),) for d in range(5)])
+        overdue(60)
+        payload.payload()
+        mw.col.db.con.execute("delete from cards where id >= 5000")
+        self.assertEqual(payload.payload()["journal"], "You cleared your overdue reviews.")
+
+    def test_what_the_level_has_no_use_for_changes_nothing(self):
+        studied_every_day_but({2, 3}, nature="merciless", nature_custom={"fire_from": 9, "strike_after": 99, "tumbleweeds": "off"})
+        p = payload.payload()
+        self.assertEqual((len(p["craters"]), p["strikeAfter"], p["marks"]["tumbleweeds"]), (1, 1, True))
+
+
 if __name__ == "__main__":
     unittest.main()

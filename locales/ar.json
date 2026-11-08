@@ -361,9 +361,27 @@
   "text": "يضرب كويكب عند انتهاء يوم Anki، ما لم تُجرَ مراجعة قبل ذلك. وإن ضرب، تنمو غابة جديدة من فوهته.",
   "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
+ "event.asteroid.asteroid_in_n_days": {
+  "text": {
+   "zero": "كويكب: بعد {n} يوم",
+   "one": "كويكب: بعد يوم واحد",
+   "two": "كويكب: بعد يومين",
+   "few": "كويكب: بعد {n} أيام",
+   "many": "كويكب: بعد {n} يومًا",
+   "other": "كويكب: بعد {n} يوم"
+  },
+  "en": {
+   "one": "Asteroid: in {n} day",
+   "other": "Asteroid: in {n} days"
+  }
+ },
  "event.asteroid.asteroid_struck_date": {
   "text": "ضرب الكويكب في {date}",
   "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tomorrow": {
+  "text": "كويكب: غدًا",
+  "en": "Asteroid: tomorrow"
  },
  "event.asteroid.asteroid_tonight": {
   "text": "كويكب: الليلة",
@@ -372,6 +390,28 @@
  "event.asteroid.its_crater_can_play_it_again": {
   "text": "ويمكن إعادة عرضه بالنقر على فوهته أيضًا.",
   "en": "Its crater can play it again too."
+ },
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "text": {
+   "zero": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب بعد {n} يوم عند انتهاء يوم Anki. راجِع اليوم لإبعاده.",
+   "one": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب بعد يوم واحد عند انتهاء يوم Anki. راجِع اليوم لإبعاده.",
+   "two": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب بعد يومين عند انتهاء يوم Anki. راجِع اليوم لإبعاده.",
+   "few": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب بعد {n} أيام عند انتهاء يوم Anki. راجِع اليوم لإبعاده.",
+   "many": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب بعد {n} يومًا عند انتهاء يوم Anki. راجِع اليوم لإبعاده.",
+   "other": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب بعد {n} يوم عند انتهاء يوم Anki. راجِع اليوم لإبعاده."
+  },
+  "en": {
+   "one": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} day, when Anki's day ends. Review today to turn it back.",
+   "other": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} days, when Anki's day ends. Review today to turn it back."
+  }
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": {
+  "text": "{missed} من {grace} أيام بلا مراجعات: كويكب في طريقه، ويضرب غدًا عند انتهاء يوم Anki. راجِع اليوم لإبعاده.",
+  "en": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes when Anki's day ends tomorrow. Review today to turn it back."
+ },
+ "event.asteroid.n_of_days_strikes_tonight": {
+  "text": "{missed} من {grace} أيام بلا مراجعات: يضرب كويكب عند انتهاء يوم Anki، ما لم تُجرَ مراجعة قبل ذلك. وإن ضرب، تنمو غابة جديدة من فوهته.",
+  "en": "{missed} of {grace} days without reviews: an asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
  "event.asteroid.n_trees_lost_after_a_day": {
   "text": {
@@ -385,6 +425,20 @@
   "en": {
    "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
    "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
+  "text": {
+   "zero": "فُقدت {n} شجرة بعد {days} أيام بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "one": "فُقدت شجرة واحدة بعد {days} أيام بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "two": "فُقدت شجرتان بعد {days} أيام بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "few": "فُقدت {n} أشجار بعد {days} أيام بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "many": "فُقدت {n} شجرة بعد {days} أيام بلا مراجعات؛ من هنا تنمو غابة جديدة.",
+   "other": "فُقدت {n} شجرة بعد {days} أيام بلا مراجعات؛ من هنا تنمو غابة جديدة."
+  },
+  "en": {
+   "one": "{n} tree lost after {days} days without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after {days} days without reviews; a new forest grows from here."
   }
  },
  "event.asteroid.n_trees_lost_on_date": {
@@ -483,6 +537,20 @@
    "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
   }
  },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "text": {
+   "zero": "يتصاعد الدخان بعد {n} يوم بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
+   "one": "يتصاعد الدخان بعد يوم بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
+   "two": "يتصاعد الدخان بعد يومين بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
+   "few": "يتصاعد الدخان بعد {n} أيام بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
+   "many": "يتصاعد الدخان بعد {n} يومًا بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
+   "other": "يتصاعد الدخان بعد {n} يوم بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا."
+  },
+  "en": {
+   "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
+   "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
+  }
+ },
  "event.fire.smoke_is_rising_after_two_days": {
   "text": "يتصاعد الدخان بعد يومين بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل الغابة غدًا.",
   "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
@@ -551,6 +619,10 @@
    "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
   }
  },
+ "events.bad_habits_leave_marks_too": {
+  "text": "والعادات السيئة تترك آثارًا أيضًا.",
+  "en": "Bad habits leave marks too."
+ },
  "events.merciless": {
   "text": "بلا رحمة",
   "en": "Merciless"
@@ -563,6 +635,48 @@
   "text": "تفويت يوم من المراجعات: ينتظر كويكب في السماء، ويضرب عند انتهاء يوم Anki ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة. والعادات السيئة تترك آثارًا أيضًا.",
   "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
  },
+ "events.miss_n_days_in_a_row_smoke": {
+  "text": {
+   "zero": "تفويت {n} يوم متتالٍ: يتصاعد الدخان تحذيرًا.",
+   "one": "تفويت يوم: يتصاعد الدخان تحذيرًا.",
+   "two": "تفويت يومين متتاليين: يتصاعد الدخان تحذيرًا.",
+   "few": "تفويت {n} أيام متتالية: يتصاعد الدخان تحذيرًا.",
+   "many": "تفويت {n} يومًا متتاليًا: يتصاعد الدخان تحذيرًا.",
+   "other": "تفويت {n} يوم متتالٍ: يتصاعد الدخان تحذيرًا."
+  },
+  "en": {
+   "one": "Miss a day: smoke rises as a warning.",
+   "other": "Miss {n} days in a row: smoke rises as a warning."
+  }
+ },
+ "events.miss_n_days_of_reviews_an_asteroid": {
+  "text": {
+   "zero": "تفويت {n} يوم من المراجعات متتالية: يقترب كويكب كل يوم، ويضرب عند انتهاء آخرها ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة.",
+   "one": "تفويت يوم من المراجعات: ينتظر كويكب في السماء، ويضرب عند انتهاء يوم Anki ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة.",
+   "two": "تفويت يومين من المراجعات متتاليين: يقترب كويكب كل يوم، ويضرب عند انتهاء آخرهما ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة.",
+   "few": "تفويت {n} أيام من المراجعات متتالية: يقترب كويكب كل يوم، ويضرب عند انتهاء آخرها ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة.",
+   "many": "تفويت {n} يومًا من المراجعات متتالية: يقترب كويكب كل يوم، ويضرب عند انتهاء آخرها ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة.",
+   "other": "تفويت {n} يوم من المراجعات متتالية: يقترب كويكب كل يوم، ويضرب عند انتهاء آخرها ما لم تُجرَ مراجعة. من فوهته تنمو غابة جديدة."
+  },
+  "en": {
+   "one": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater.",
+   "other": "Miss {n} days of reviews in a row: an asteroid comes closer each day, and strikes when the last of them ends unless you review. A new forest grows from its crater."
+  }
+ },
+ "events.miss_one_more_a_fire_spreads_until": {
+  "text": {
+   "zero": "تفويت يوم آخر: ينتشر حريق حتى تُطفئه {n} يوم من الدراسة.",
+   "one": "تفويت يوم آخر: ينتشر حريق حتى يُطفئه يوم دراسة واحد.",
+   "two": "تفويت يوم آخر: ينتشر حريق حتى يُطفئه يوما دراسة.",
+   "few": "تفويت يوم آخر: ينتشر حريق حتى تُطفئه {n} أيام من الدراسة.",
+   "many": "تفويت يوم آخر: ينتشر حريق حتى تُطفئه {n} يومًا من الدراسة.",
+   "other": "تفويت يوم آخر: ينتشر حريق حتى تُطفئه {n} يوم من الدراسة."
+  },
+  "en": {
+   "one": "Miss one more: a fire spreads until a day of study puts it out.",
+   "other": "Miss one more: a fire spreads until {n} days of study put it out."
+  }
+ },
  "events.miss_two_days_in_a_row": {
   "text": "تفويت يومين متتاليين: يتصاعد الدخان تحذيرًا. تفويت يوم ثالث: ينتشر حريق حتى تُطفئه سبعة أيام من الدراسة. والعادات السيئة تترك آثارًا أيضًا.",
   "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
@@ -574,6 +688,20 @@
  "events.smoke_is_rising_from_your_forest": {
   "text": "يتصاعد الدخان من غابتك بعد يومين بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
   "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.smoke_is_rising_from_your_forest_n": {
+  "text": {
+   "zero": "يتصاعد الدخان من غابتك بعد {n} يوم بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
+   "one": "يتصاعد الدخان من غابتك بعد يوم بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
+   "two": "يتصاعد الدخان من غابتك بعد يومين بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
+   "few": "يتصاعد الدخان من غابتك بعد {n} أيام بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
+   "many": "يتصاعد الدخان من غابتك بعد {n} يومًا بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار.",
+   "other": "يتصاعد الدخان من غابتك بعد {n} يوم بلا مراجعات. إن لم تكن هناك دراسة اليوم، تشتعل فيها النار."
+  },
+  "en": {
+   "one": "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire.",
+   "other": "Smoke is rising from your forest after {n} days without reviews. Study today, or it catches fire."
+  }
  },
  "events.switch_back_any_time_and_every": {
   "text": "يمكن العودة في أي وقت، فتعود كل شجرة إلى مكانها.",
@@ -3078,6 +3206,130 @@
  "settings.layout.under_the_list": {
   "text": "تحت القائمة",
   "en": "Under the list"
+ },
+ "settings.nature.a_week_or_more_away_leaves": {
+  "text": "الغياب أسبوعًا أو أكثر يترك بركة. لا يضيع شيء.",
+  "en": "A week or more away leaves a pond. Nothing is lost."
+ },
+ "settings.nature.after": {
+  "text": "بعد",
+  "en": "After"
+ },
+ "settings.nature.ankis_leech_threshold_in_deck_options": {
+  "text": "«عتبة البطاقات المستعصية» في خيارات الرزمة في Anki هي ما يحدد متى تصبح البطاقة مستعصية.",
+  "en": "Anki's Leech threshold, in Deck Options, says when a card is a leech."
+ },
+ "settings.nature.asteroid": {
+  "text": "الكويكب",
+  "en": "Asteroid"
+ },
+ "settings.nature.back": {
+  "text": "‹ الطبيعة",
+  "en": "‹ Nature"
+ },
+ "settings.nature.breaks_out_after": {
+  "text": "يندلع بعد",
+  "en": "Breaks out after"
+ },
+ "settings.nature.crows_on_leeches": {
+  "text": "غربان على البطاقات المستعصية",
+  "en": "Crows on leeches"
+ },
+ "settings.nature.customize_level": {
+  "text": "تخصيص {level} ›",
+  "en": "Customize {level} ›"
+ },
+ "settings.nature.customize_level_2": {
+  "text": "تخصيص {level}",
+  "en": "Customize {level}"
+ },
+ "settings.nature.customize_your_own_mix_from_level": {
+  "text": "مزيجك الخاص، انطلاقًا من {level} ›",
+  "en": "Customize your own mix, from {level} ›"
+ },
+ "settings.nature.customize_your_own_mix_from_level_2": {
+  "text": "مزيجك الخاص، انطلاقًا من {level}",
+  "en": "Customize your own mix, from {level}"
+ },
+ "settings.nature.fire": {
+  "text": "الحريق",
+  "en": "Fire"
+ },
+ "settings.nature.goes_out_after": {
+  "text": "ينطفئ بعد",
+  "en": "Goes out after"
+ },
+ "settings.nature.it_comes_closer_each_day_you": {
+  "text": "يقترب مع كل يوم تفوّته، تحذيرًا. والمراجعة تُبعده.",
+  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+ },
+ "settings.nature.n_days": {
+  "text": {
+   "zero": "يوم",
+   "one": "يوم",
+   "two": "يوم",
+   "few": "أيام",
+   "many": "يومًا",
+   "other": "يوم"
+  },
+  "en": {
+   "one": "day",
+   "other": "days"
+  }
+ },
+ "settings.nature.n_days_of_study": {
+  "text": {
+   "zero": "يوم دراسة",
+   "one": "يوم دراسة",
+   "two": "يوم دراسة",
+   "few": "أيام دراسة",
+   "many": "يومًا من الدراسة",
+   "other": "يوم دراسة"
+  },
+  "en": {
+   "one": "day of study",
+   "other": "days of study"
+  }
+ },
+ "settings.nature.ponds": {
+  "text": "البرك",
+  "en": "Ponds"
+ },
+ "settings.nature.reset_a_row_to_put_the": {
+  "text": "إعادة تعيين صف تُرجع اختيار المستوى الأصلي.",
+  "en": "Reset a row to put the level's own choice back."
+ },
+ "settings.nature.reset_put_back_the_levels_own": {
+  "text": "إعادة تعيين: إرجاع اختيار المستوى الأصلي",
+  "en": "Reset: put back the level's own choice"
+ },
+ "settings.nature.smoke_rises_the_day_before_as": {
+  "text": "في اليوم السابق يتصاعد الدخان تحذيرًا.",
+  "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.strikes_after": {
+  "text": "يضرب بعد",
+  "en": "Strikes after"
+ },
+ "settings.nature.tall_grass": {
+  "text": "العشب الطويل",
+  "en": "Tall grass"
+ },
+ "settings.nature.tumbleweeds": {
+  "text": "الأعشاب المتدحرجة",
+  "en": "Tumbleweeds"
+ },
+ "settings.nature.when_overdue_reviews_pass_twice_a": {
+  "text": "عندما تتجاوز المراجعات المتأخرة ضعف ما في اليوم المعتاد.",
+  "en": "When overdue reviews pass twice a usual day's."
+ },
+ "settings.nature.without_new_cards": {
+  "text": "بلا بطاقات جديدة",
+  "en": "without new cards"
+ },
+ "settings.nature.without_reviews": {
+  "text": "بلا مراجعات",
+  "en": "without reviews"
  },
  "settings.patreon.enjoying_memory_forest": {
   "text": "هل أعجبتك Memory Forest؟",

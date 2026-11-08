@@ -31,8 +31,18 @@ from aqt.qt import (
     QWidget,
 )
 
-from ..events import DEFAULT_NATURE, NATURE_LABELS, NATURE_NOTES, NATURE_SWITCH_NOTE, calm, nature_level
-from ..i18n import N_, t, tx
+from ..events import (
+    BAD_HABITS_NOTE,
+    DEFAULT_NATURE,
+    MARKS,
+    NATURE_LABELS,
+    NATURE_NOTES,
+    NATURE_SWITCH_NOTE,
+    calm,
+    nature_level,
+    own_rules,
+)
+from ..i18n import N_, t, tn, tx
 from ..phone_note import phone_on
 from ..state import (
     ANIMATION_VALUES,
@@ -44,9 +54,10 @@ from ..state import (
     shows_on_finished,
 )
 from .layout_picker import LayoutControls
+from .nature_page import NaturePage
 from .palette import color
 from .scenery_picker import NAME_FONT, NAME_PAD, RING, TILE_RADIUS
-from .widgets import Choice, Tab, bidi, form, group, hint, leading
+from .widgets import Choice, Link, Tab, bidi, form, group, hint, leading, resize_with
 
 NATURE_ICONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nature")
 # Nature's levels as picture tiles, each what that level does to a forest over the days: the real
@@ -84,10 +95,23 @@ def shown(options) -> list:
     return [(k, tx(label)) for k, label in options]
 
 
-def nature_note(level: str) -> str:
+def nature_note(level: str, rules: dict | None = None) -> str:
     """What a Nature level does, and for a level that takes trees away, that switching back
-    brings them again (two sentences, each its own)."""
-    note = tx(NATURE_NOTES.get(level, ""))
+    brings them again (two sentences, each its own). With `rules` (events.rules) changed in
+    Customize, the numbers are its own, and the bad habits are spoken of only while one is on."""
+    if rules is None or rules == own_rules(level):
+        note = tx(NATURE_NOTES.get(level, ""))
+    else:
+        if level == "wild":
+            parts = [tn("events.miss_n_days_in_a_row_smoke", rules["fire_from"] - 1),
+                     tn("events.miss_one_more_a_fire_spreads_until", rules["fire_heal"])]
+        elif level == "merciless":
+            parts = [tn("events.miss_n_days_of_reviews_an_asteroid", rules["strike_after"])]
+        else:
+            parts = [tx(NATURE_NOTES[level])]
+        if any(rules[m] for m in MARKS):
+            parts.append(tx(BAD_HABITS_NOTE))
+        note = " ".join(parts)
     return note if calm(level) else f"{note} {tx(NATURE_SWITCH_NOTE)}"
 
 
@@ -263,8 +287,13 @@ def beside(first, *rest, top: bool = False) -> QHBoxLayout:
 class ForestTab(Tab):
     def __init__(self, cfg: dict, on_phone, phone_was: bool | None = None):
         super().__init__()
+        self._changed = None  # the dialog's, once connected
         self.on_phone = on_phone  # makes or takes away the phone's deck (actions.phone_switched)
         self.nature = NatureTiles(nature_level(cfg.get("nature")))
+        # Customize, in the tiles' place while open (as the scenery's is): what the level brings, changed
+        self.nature_page = NaturePage(self.nature.currentData(), cfg.get("nature_custom"), lambda: self.show_nature_page(False),
+                                      {k: tile.still for k, tile in self.nature.buttons.items()})
+        self.nature_link = Link("", lambda: self.show_nature_page(True))
         # what the chosen level does, under the tiles in the dialog's own text size: a hint's small
         # grey under pictures this loud reads as a footnote (SETTINGS_GUIDELINES.md: Decided)
         self.nature_note = QLabel("")
@@ -295,10 +324,17 @@ class ForestTab(Tab):
         self.phone.setChecked(phone_on())
         self.phone.toggled.connect(self.on_phone)
 
-        # the levels as picture tiles, what the chosen one does under them
+        # the levels as picture tiles, what the chosen one does under them and the way to Customize;
+        # or Customize in their place, the group as tall as the one in view
+        self.nature_tiles = QWidget()
+        tv = QVBoxLayout(self.nature_tiles)
+        tv.setContentsMargins(0, 0, 0, 0)
+        tv.addWidget(self.nature)
+        tv.addWidget(self.nature_note)
+        tv.addWidget(self.nature_link)
         nv = QVBoxLayout()
-        nv.addWidget(self.nature)
-        nv.addWidget(self.nature_note)
+        nv.addWidget(self.nature_tiles)
+        nv.addWidget(self.nature_page)
         where = form()
         # where the forest and the heatmap sit round the deck list: first, the row people look for
         # here (layout_picker.py)
@@ -331,6 +367,29 @@ class ForestTab(Tab):
         v.addWidget(group(t("settings.forest.motion_and_messages"), motion))
         v.addWidget(group(t("settings.forest.on_your_phone"), pv))
         v.addStretch(1)
+        self.nature_page.setVisible(False)  # (it always opens on the tiles; hidden once in a layout)
+
+    def show_nature_page(self, on: bool) -> None:
+        """Customize in the tiles' place, or the tiles back, the window as much taller or shorter
+        as the page is (SETTINGS_GUIDELINES.md: Size)."""
+        if self.nature_page.isVisibleTo(self) == on:
+            return
+
+        def turn() -> None:
+            self.nature_tiles.setVisible(not on)
+            self.nature_page.setVisible(on)
+        resize_with(self, turn)
+        (self.nature_page.back if on else self.nature_link).setFocus()
+
+    def customizing_nature(self) -> bool:
+        return self.nature_page.isVisibleTo(self)
+
+    def _level_picked(self, level: str) -> None:
+        """A level's tile clicked, the chosen one too: that level with its own marks and numbers,
+        whatever Customize had made of the last one."""
+        self.nature_page.set_level(level)
+        if self._changed:
+            self._changed()
 
     def put_phone_back(self) -> None:
         """Cancel puts the phone setting back as the dialog found it, as it does the add-on
@@ -344,7 +403,7 @@ class ForestTab(Tab):
                 "deck_forest_mode": (self.deck_mode, "Deck screens"), "finished_decks": (self.finished, "On finished decks too"),
                 "max_width": (self.max_width, "Forest width"), "layout": (self.layout_label, "Layout"),
                 "animations": (self.animations, "Animate the forest"), "planting_tooltip": (self.planting, "The planting message"),
-                "phone": (self.phone, "Your forest on your phone")}
+                "phone": (self.phone, "Your forest on your phone"), "nature_custom": (self.nature_link, "Customize Nature")}
 
     def connect(self, changed) -> None:
         for choice in (self.animations, self.main_forest, self.deck_mode):
@@ -354,10 +413,17 @@ class ForestTab(Tab):
         for box in (self.planting, self.phone, self.finished):
             box.toggled.connect(changed)
         self.nature.on_change(changed)
+        self._changed = changed
+        self.nature_page.connect(changed)
+        self.nature.group.buttonClicked.connect(lambda b: self._level_picked(b.key))
 
     def sync(self) -> None:
         level = self.nature.currentData()
-        self.nature_note.setText(nature_note(level))
+        if self.nature_page.level != level:  # (chosen by the keys: the arrow keys pick as a click does)
+            self.nature_page.set_level(level)
+        self.nature_page.sync()
+        self.nature_note.setText(nature_note(level, self.nature_page.rules()))
+        self.nature_link.setText(self.nature_page.link_text())
         self.nature.set_moving(nature_moves(self.animations.currentData()))
         self.fit()
 
@@ -372,7 +438,7 @@ class ForestTab(Tab):
         width = self.nature_note.width()
         if width > 0:
             metrics = self.nature_note.fontMetrics()
-            texts = [nature_note(k) for k in NATURE_NOTES]
+            texts = [nature_note(k) for k in NATURE_NOTES] + [self.nature_note.text()]
             tallest = max(metrics.boundingRect(QRect(0, 0, width, 10000), Qt.TextFlag.TextWordWrap, text).height() for text in texts)
             if tallest != self.nature_note.minimumHeight():
                 self.nature_note.setMinimumHeight(tallest)
@@ -387,6 +453,7 @@ class ForestTab(Tab):
             "animations": ANIMATION_VALUES[self.animations.currentData()],
             "planting_tooltip": self.planting.isChecked(),
             "nature": self.nature.currentData(),
+            "nature_custom": self.nature_page.custom(),
             "main_forest": self.main_forest.currentData(),
             "deck_forest_mode": self.deck_mode.currentData(),
             "finished_decks": self.finished.isChecked(),

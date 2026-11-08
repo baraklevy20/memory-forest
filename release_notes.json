@@ -2,6 +2,15 @@
   "_comment": "Every version's release notes, newest first: the one place they are written. dev/notes.py makes the AnkiWeb page's What's new from them (npm run notes), dev/release.py the GitHub release's, and the add-on reads them for the About tab and for what an update announces. See release_notes.py for what an item can hold. One short sentence each.",
   "versions": [
     {
+      "version": "1.7.0",
+      "new": [
+        "Each Nature level can be customized: turn off crows, tall grass or tumbleweeds, and choose how many missed days bring the asteroid or a fire (Forest tab, Nature)."
+      ],
+      "improved": [
+        "When the asteroid waits more than a day, it comes closer each day you miss."
+      ]
+    },
+    {
       "version": "1.6.0",
       "new": [
         {

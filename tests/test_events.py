@@ -297,3 +297,99 @@ class FireTests(unittest.TestCase):
         burning = [t["ago"] for t in out if t.get("burn")]
         self.assertEqual(len(burning), info["trees"])
         self.assertTrue(burning and all(8 <= a <= 102 for a in burning))  # the newest 100, less those planted since
+
+
+class CustomizeTests(unittest.TestCase):
+    """Nature's Customize (events.rules): the numbers behind the asteroid, the fire and the grass,
+    read against the days studied as the levels' own are - so a change goes back in time too."""
+
+    trees = staticmethod(EventTests.trees)
+
+    def test_the_asteroid_strikes_on_the_day_customize_says_and_not_before(self):
+        days = set(range(0, 60)) - {10, 11}  # two days off, 11 and 10 days ago
+        self.assertEqual(events.strikes(days), [11])  # its own: the first day
+        self.assertEqual(events.strikes(days, after=2), [10])  # the second day of the two
+        self.assertEqual(events.strikes(days, after=3), [])  # two days are no strike
+        out = events.merciless(self.trees(days), days, after=3)
+        self.assertEqual((out["hits"], out["craters"], out["latest"], len(out["trees"])), ([], [], None, 58))
+        longer = set(range(0, 60)) - set(range(10, 15))  # five days off: the third of them strikes
+        out = events.merciless(self.trees(longer), longer, after=3)
+        self.assertEqual(out["hits"], [12])
+        self.assertEqual([t["ago"] for t in out["trees"]], list(range(9, -1, -1)))
+
+    def test_the_asteroid_comes_closer_on_each_day_of_the_run(self):
+        # studied up to 8 days ago; then day by day, today counted while it has no reviews yet
+        for missed in range(1, 8):
+            days = set(range(missed, 60))
+            out = events.merciless(self.trees(days), days, after=7)
+            self.assertEqual(out["doom"], {"missed": missed, "grace": 7, "left": 7 - missed}, missed)
+            self.assertEqual(out["hits"], [])  # (it strikes only as the seventh day ends)
+        days = set(range(8, 60))  # the seventh day (yesterday) ended: it struck, and no warning is left
+        out = events.merciless(self.trees(days), days, after=7)
+        self.assertEqual((out["hits"], out["doom"]), ([1], None))
+
+    def test_a_review_today_turns_it_back(self):
+        days = set(range(3, 60)) | {0}  # two days missed, then a review today
+        self.assertIsNone(events.merciless(self.trees(days), days, after=7)["doom"])
+        self.assertIsNone(events.merciless(self.trees(set(range(0, 60))), set(range(0, 60)), after=7)["doom"])
+        self.assertIsNone(events.merciless([], set(), after=7)["doom"])  # never studied: nothing on its way
+
+    def test_strikes_after_one_is_as_it_was(self):
+        days = set(range(2, 40))  # yesterday missed, nothing yet today: it struck yesterday
+        out = events.merciless(self.trees(days), days)
+        self.assertEqual((out["hits"], out["doom"]), ([1], None))
+        today_only = set(range(1, 40))
+        self.assertEqual(events.merciless(self.trees(today_only), today_only)["doom"], {"missed": 1, "grace": 1, "left": 0})
+        self.assertEqual(events.merciless(self.trees(today_only), today_only, after=2)["doom"], {"missed": 1, "grace": 2, "left": 1})
+
+    def test_the_fire_breaks_out_on_the_day_customize_says(self):
+        away4 = set(range(5, 200))  # four days missed, nothing yet today
+        self.assertEqual(events.fire_state(away4)["share"], 0.1)  # its own: from the third, 5% a day
+        self.assertIsNone(events.fire_state(away4, fire_from=5))
+        self.assertEqual(events.smoke_state(away4, fire_from=5)["began"], 4)  # the day before: smoke
+        self.assertIsNone(events.smoke_state(away4))
+        _trees, info = events.set_fire(self.trees(away4), away4, fire_from=5)
+        self.assertEqual((info["smoke"] > 0, info["trees"], info["from"]), (True, 0, 5))
+        away5 = set(range(6, 200))
+        self.assertEqual(events.fire_state(away5, fire_from=5)["share"], 0.05)
+
+    def test_it_goes_out_after_the_days_of_study_customize_says(self):
+        days = set(range(0, 4)) | set(range(10, 200))  # away 4-9, studying the four days since
+        self.assertEqual(events.fire_state(days)["healed"], 4)  # its own seven: still burning
+        _trees, info = events.set_fire(self.trees(days), days)
+        self.assertEqual((info["left"], info["heal"]), (3, 7))
+        self.assertIsNone(events.fire_state(days, heal=3))  # out the day before yesterday
+        self.assertTrue(events.fire_state(set(range(0, 3)) | set(range(10, 200)), heal=3)["out"])  # the day it went out
+        burning, info = events.set_fire(self.trees(days), days, heal=10)
+        self.assertEqual(info["left"], 6)
+        self.assertEqual({t["burn"] for t in burning if t.get("burn")}, {0.6})
+
+    def test_the_grass_grows_after_the_days_customize_says(self):
+        trees = self.trees([40, 10])  # nothing new for ten days, reviewing today
+        self.assertGreater(events.stagnation(trees, {0}), 0)
+        self.assertEqual(events.stagnation(trees, {0}, after=14), 0)
+        self.assertGreater(events.stagnation(self.trees([40, 14]), {0}, after=14), 0)
+        # as tall after the same days past its start as its own is
+        self.assertEqual(events.stagnation(self.trees([99, 20]), {0}, after=14), events.stagnation(self.trees([99, 13]), {0}))
+
+    def test_only_a_real_change_to_the_level_is_kept(self):
+        raw = {"tumbleweeds": False, "crows": True, "strike_after": 3, "fire_from": 5, "grass_after": 7,
+               "fire_heal": 99, "made_up": 1, "grass": "no"}
+        # crows on is Merciless's own, Wild's fire is no part of it, 7 is the grass's own, 99 out of range
+        self.assertEqual(events.custom_values("merciless", raw), {"tumbleweeds": False, "strike_after": 3})
+        self.assertEqual(events.custom_values("wild", raw), {"tumbleweeds": False, "fire_from": 5})
+        self.assertEqual(events.custom_values("peaceful", raw), {"crows": True})
+        self.assertEqual(events.custom_values("merciless", [1]), {})
+        self.assertEqual(events.custom_values("merciless", {"strike_after": True}), {})  # (a bool is no number)
+        r = events.rules("merciless", raw)
+        self.assertEqual((r["tumbleweeds"], r["crows"], r["grass"], r["strike_after"], r["fire_from"]), (False, True, True, 3, 3))
+        self.assertEqual(events.rules("peaceful"), dict(events.own_rules("peaceful"), crows=False, grass=False, tumbleweeds=False))
+
+    def test_a_change_goes_back_in_time_and_back_again(self):
+        days = set(range(0, 80)) - {50, 51}  # an old two-day break
+        trees = self.trees(days)
+        struck = events.merciless(trees, days)
+        self.assertEqual(len(struck["trees"]), 50)
+        spared = events.merciless(trees, days, after=3)
+        self.assertEqual(len(spared["trees"]), 78)  # every tree, the old ones too
+        self.assertEqual(events.merciless(trees, days), struck)  # and back: as it was

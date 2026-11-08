@@ -325,9 +325,23 @@
   "text": "Um asteroide cai quando o dia do Anki termina, a menos que você revise antes. Se ele cair, uma nova floresta cresce da cratera.",
   "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
+ "event.asteroid.asteroid_in_n_days": {
+  "text": {
+   "one": "Asteroide: em {n} dia",
+   "other": "Asteroide: em {n} dias"
+  },
+  "en": {
+   "one": "Asteroid: in {n} day",
+   "other": "Asteroid: in {n} days"
+  }
+ },
  "event.asteroid.asteroid_struck_date": {
   "text": "Asteroide caiu em {date}",
   "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tomorrow": {
+  "text": "Asteroide: amanhã",
+  "en": "Asteroid: tomorrow"
  },
  "event.asteroid.asteroid_tonight": {
   "text": "Asteroide: esta noite",
@@ -337,6 +351,24 @@
   "text": "A cratera também pode mostrar de novo.",
   "en": "Its crater can play it again too."
  },
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "text": {
+   "one": "{missed} de {grace} dias sem revisões: um asteroide está a caminho e cai em {n} dia, quando o dia do Anki terminar. Revise hoje para afastá-lo.",
+   "other": "{missed} de {grace} dias sem revisões: um asteroide está a caminho e cai em {n} dias, quando o dia do Anki terminar. Revise hoje para afastá-lo."
+  },
+  "en": {
+   "one": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} day, when Anki's day ends. Review today to turn it back.",
+   "other": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} days, when Anki's day ends. Review today to turn it back."
+  }
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": {
+  "text": "{missed} de {grace} dias sem revisões: um asteroide está a caminho e cai amanhã, quando o dia do Anki terminar. Revise hoje para afastá-lo.",
+  "en": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes when Anki's day ends tomorrow. Review today to turn it back."
+ },
+ "event.asteroid.n_of_days_strikes_tonight": {
+  "text": "{missed} de {grace} dias sem revisões: um asteroide cai quando o dia do Anki termina, a menos que você revise antes. Se ele cair, uma nova floresta cresce da cratera.",
+  "en": "{missed} of {grace} days without reviews: an asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
  "event.asteroid.n_trees_lost_after_a_day": {
   "text": {
    "one": "{n} árvore perdida após um dia sem revisões; uma nova floresta cresce daqui.",
@@ -345,6 +377,16 @@
   "en": {
    "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
    "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
+  "text": {
+   "one": "{n} árvore perdida após {days} dias sem revisões; uma nova floresta cresce daqui.",
+   "other": "{n} árvores perdidas após {days} dias sem revisões; uma nova floresta cresce daqui."
+  },
+  "en": {
+   "one": "{n} tree lost after {days} days without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after {days} days without reviews; a new forest grows from here."
   }
  },
  "event.asteroid.n_trees_lost_on_date": {
@@ -419,6 +461,16 @@
    "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
   }
  },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "text": {
+   "one": "Está subindo fumaça depois de um dia sem revisões. Estude hoje, ou amanhã a floresta pega fogo.",
+   "other": "Está subindo fumaça depois de {n} dias sem revisões. Estude hoje, ou amanhã a floresta pega fogo."
+  },
+  "en": {
+   "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
+   "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
+  }
+ },
  "event.fire.smoke_is_rising_after_two_days": {
   "text": "Está subindo fumaça depois de dois dias sem revisões. Estude hoje, ou amanhã a floresta pega fogo.",
   "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
@@ -471,6 +523,10 @@
    "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
   }
  },
+ "events.bad_habits_leave_marks_too": {
+  "text": "Maus hábitos também deixam marcas.",
+  "en": "Bad habits leave marks too."
+ },
  "events.merciless": {
   "text": "Implacável",
   "en": "Merciless"
@@ -483,6 +539,36 @@
   "text": "Perdeu um dia de revisões: um asteroide espera no céu e cai quando o dia do Anki termina, a menos que você revise. Uma nova floresta cresce da cratera. Maus hábitos também deixam marcas.",
   "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
  },
+ "events.miss_n_days_in_a_row_smoke": {
+  "text": {
+   "one": "Perdeu um dia: sobe fumaça como aviso.",
+   "other": "Perdeu {n} dias seguidos: sobe fumaça como aviso."
+  },
+  "en": {
+   "one": "Miss a day: smoke rises as a warning.",
+   "other": "Miss {n} days in a row: smoke rises as a warning."
+  }
+ },
+ "events.miss_n_days_of_reviews_an_asteroid": {
+  "text": {
+   "one": "Perdeu um dia de revisões: um asteroide espera no céu e cai quando o dia do Anki termina, a menos que você revise. Uma nova floresta cresce da cratera.",
+   "other": "Perdeu {n} dias de revisões seguidos: um asteroide se aproxima a cada dia e cai quando o último termina, a menos que você revise. Uma nova floresta cresce da cratera."
+  },
+  "en": {
+   "one": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater.",
+   "other": "Miss {n} days of reviews in a row: an asteroid comes closer each day, and strikes when the last of them ends unless you review. A new forest grows from its crater."
+  }
+ },
+ "events.miss_one_more_a_fire_spreads_until": {
+  "text": {
+   "one": "Perdeu mais um: um incêndio se espalha até que um dia de estudo o apague.",
+   "other": "Perdeu mais um: um incêndio se espalha até que {n} dias de estudo o apaguem."
+  },
+  "en": {
+   "one": "Miss one more: a fire spreads until a day of study puts it out.",
+   "other": "Miss one more: a fire spreads until {n} days of study put it out."
+  }
+ },
  "events.miss_two_days_in_a_row": {
   "text": "Perdeu dois dias seguidos: sobe fumaça como aviso. Perdeu o terceiro: um incêndio se espalha até que sete dias de estudo o apaguem. Maus hábitos também deixam marcas.",
   "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
@@ -494,6 +580,16 @@
  "events.smoke_is_rising_from_your_forest": {
   "text": "Está subindo fumaça da sua floresta depois de dois dias sem revisões. Estude hoje, ou ela pega fogo.",
   "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.smoke_is_rising_from_your_forest_n": {
+  "text": {
+   "one": "Está subindo fumaça da sua floresta depois de um dia sem revisões. Estude hoje, ou ela pega fogo.",
+   "other": "Está subindo fumaça da sua floresta depois de {n} dias sem revisões. Estude hoje, ou ela pega fogo."
+  },
+  "en": {
+   "one": "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire.",
+   "other": "Smoke is rising from your forest after {n} days without reviews. Study today, or it catches fire."
+  }
  },
  "events.switch_back_any_time_and_every": {
   "text": "Volte quando quiser e todas as árvores estarão lá de novo.",
@@ -2742,6 +2838,122 @@
  "settings.layout.under_the_list": {
   "text": "Abaixo da lista",
   "en": "Under the list"
+ },
+ "settings.nature.a_week_or_more_away_leaves": {
+  "text": "Uma semana ou mais fora deixa uma lagoa. Nada se perde.",
+  "en": "A week or more away leaves a pond. Nothing is lost."
+ },
+ "settings.nature.after": {
+  "text": "Após",
+  "en": "After"
+ },
+ "settings.nature.ankis_leech_threshold_in_deck_options": {
+  "text": "O “Limite sanguessuga” do Anki, nas Opções do Baralho, decide quando um cartão é uma sanguessuga.",
+  "en": "Anki's Leech threshold, in Deck Options, says when a card is a leech."
+ },
+ "settings.nature.asteroid": {
+  "text": "Asteroide",
+  "en": "Asteroid"
+ },
+ "settings.nature.back": {
+  "text": "‹ Natureza",
+  "en": "‹ Nature"
+ },
+ "settings.nature.breaks_out_after": {
+  "text": "Começa após",
+  "en": "Breaks out after"
+ },
+ "settings.nature.crows_on_leeches": {
+  "text": "Corvos nas sanguessugas",
+  "en": "Crows on leeches"
+ },
+ "settings.nature.customize_level": {
+  "text": "Personalizar {level} ›",
+  "en": "Customize {level} ›"
+ },
+ "settings.nature.customize_level_2": {
+  "text": "Personalizar {level}",
+  "en": "Customize {level}"
+ },
+ "settings.nature.customize_your_own_mix_from_level": {
+  "text": "Personalizar sua combinação, a partir de {level} ›",
+  "en": "Customize your own mix, from {level} ›"
+ },
+ "settings.nature.customize_your_own_mix_from_level_2": {
+  "text": "Personalizar sua combinação, a partir de {level}",
+  "en": "Customize your own mix, from {level}"
+ },
+ "settings.nature.fire": {
+  "text": "Incêndio",
+  "en": "Fire"
+ },
+ "settings.nature.goes_out_after": {
+  "text": "Apaga após",
+  "en": "Goes out after"
+ },
+ "settings.nature.it_comes_closer_each_day_you": {
+  "text": "Ele se aproxima a cada dia perdido, como aviso. Uma revisão o afasta.",
+  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+ },
+ "settings.nature.n_days": {
+  "text": {
+   "one": "dia",
+   "other": "dias"
+  },
+  "en": {
+   "one": "day",
+   "other": "days"
+  }
+ },
+ "settings.nature.n_days_of_study": {
+  "text": {
+   "one": "dia de estudo",
+   "other": "dias de estudo"
+  },
+  "en": {
+   "one": "day of study",
+   "other": "days of study"
+  }
+ },
+ "settings.nature.ponds": {
+  "text": "Lagoas",
+  "en": "Ponds"
+ },
+ "settings.nature.reset_a_row_to_put_the": {
+  "text": "Redefina uma linha para voltar à escolha do próprio nível.",
+  "en": "Reset a row to put the level's own choice back."
+ },
+ "settings.nature.reset_put_back_the_levels_own": {
+  "text": "Redefinir: voltar à escolha do próprio nível",
+  "en": "Reset: put back the level's own choice"
+ },
+ "settings.nature.smoke_rises_the_day_before_as": {
+  "text": "Na véspera sobe fumaça, como aviso.",
+  "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.strikes_after": {
+  "text": "Cai após",
+  "en": "Strikes after"
+ },
+ "settings.nature.tall_grass": {
+  "text": "Mato alto",
+  "en": "Tall grass"
+ },
+ "settings.nature.tumbleweeds": {
+  "text": "Bolas de feno",
+  "en": "Tumbleweeds"
+ },
+ "settings.nature.when_overdue_reviews_pass_twice_a": {
+  "text": "Quando as revisões atrasadas passam do dobro de um dia normal.",
+  "en": "When overdue reviews pass twice a usual day's."
+ },
+ "settings.nature.without_new_cards": {
+  "text": "sem cartões novos",
+  "en": "without new cards"
+ },
+ "settings.nature.without_reviews": {
+  "text": "sem revisões",
+  "en": "without reviews"
  },
  "settings.patreon.enjoying_memory_forest": {
   "text": "Está gostando do Memory Forest?",

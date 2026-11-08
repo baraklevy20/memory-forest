@@ -843,6 +843,122 @@ class WhatsNewTests(QtCase):
         self.assertNotIn("NEW", d.heatmap.layout_group.title.text())
 
 
+class NatureCustomizeTests(QtCase):
+    """Customize for Nature: a link under the levels opens it in their place; a box per bad habit,
+    the numbers under them; the config keeps what differs from the level, and a level clicked
+    starts again from its own."""
+
+    def open_page(self, config=None):
+        d = self.open_dialog(config if config is not None else {"nature": "merciless"})
+        self.tab(d, "Forest")
+        f = d.forest
+        self.assertFalse(f.nature_page.isVisible())  # (it always opens on the tiles)
+        f.nature_link.on_click()
+        Q.settle()
+        self.assertTrue(f.nature_page.isVisible())
+        self.assertFalse(f.nature.isVisible())
+        return d, f.nature_page
+
+    def test_the_issues_merciless_without_tumbleweeds(self):
+        d = self.open_dialog({"nature": "merciless"})
+        self.assertEqual(d.forest.nature_link.text(), "Customize Merciless ›")
+        d, page = self.open_page()
+        self.assertEqual(page.title.text(), "Customize Merciless")
+        self.assertTrue(all(b.isChecked() for b in page.boxes.values()))
+        self.assertFalse(any(r.isVisible() for r in page.resets.values()))
+        page.boxes["tumbleweeds"].click()
+        Q.settle()
+        self.assertEqual(page.title.text(), "Customize your own mix, from Merciless")
+        self.assertTrue(page.resets["tumbleweeds"].isVisible())
+        Q.let_save()
+        self.assertEqual(Q.current()["nature_custom"], {"tumbleweeds": False})  # (the forest behind shows it already)
+        page.back.on_click()
+        Q.settle()
+        f = d.forest
+        self.assertTrue(f.nature.isVisible() and not page.isVisible())
+        self.assertEqual(f.nature.currentData(), "merciless")  # still ringed: a missed day costs what it did
+        self.assertEqual(f.nature_link.text(), "Customize your own mix, from Merciless ›")
+        done_saves(self, d, {"nature": "merciless", "nature_custom": {"tumbleweeds": False}})
+
+    def test_a_number_saves_and_the_level_says_it(self):
+        d, page = self.open_page()
+        spin = page.spins["strike_after"]
+        self.assertTrue(spin.isVisible())
+        self.assertFalse(page.spins["fire_from"].isVisible())  # (Wild's fire: not on Merciless)
+        self.assertEqual(spin.text(), "1 day")
+        spin.setFocus()
+        self.press(spin, Qt.Key.Key_Up)
+        self.assertEqual(spin.text(), "2 days")
+        self.assertTrue(page.resets["merciless"].isVisible())
+        self.assertTrue(d.forest.nature_note.text().startswith("Miss 2 days of reviews in a row: an asteroid comes closer each day"))
+        done_saves(self, d, {"nature": "merciless", "nature_custom": {"strike_after": 2}})
+
+    def test_wilds_numbers_and_a_mark_off_greys_its_rows(self):
+        d, page = self.open_page({"nature": "wild"})
+        self.assertEqual([k for k, s in page.spins.items() if s.isVisible()], ["fire_from", "fire_heal", "grass_after"])
+        self.assertEqual(page.spins["fire_heal"].text(), "7 days of study")
+        page.spins["fire_from"].setValue(5)
+        page.spins["fire_heal"].setValue(3)
+        page.boxes["grass"].click()
+        Q.settle()
+        self.assertFalse(page.spins["grass_after"].isEnabled())  # greyed out, still there
+        self.assertTrue(page.spins["grass_after"].isVisible())
+        self.assertEqual(d.forest.nature_note.text(), "Miss 4 days in a row: smoke rises as a warning. Miss one more: a fire spreads "
+                         "until 3 days of study put it out. Bad habits leave marks too. Switch back any time and every tree is there again.")
+        done_saves(self, d, {"nature": "wild", "nature_custom": {"fire_from": 5, "fire_heal": 3, "grass": False}})
+
+    def test_the_config_comes_back_as_it_was_saved(self):
+        custom = {"tumbleweeds": False, "crows": False, "strike_after": 3, "grass_after": 14}
+        d = self.open_dialog({"nature": "merciless", "nature_custom": custom})
+        page = d.forest.nature_page
+        self.assertEqual({k: b.isChecked() for k, b in page.boxes.items()}, {"crows": False, "grass": True, "tumbleweeds": False})
+        self.assertEqual((page.spins["strike_after"].value(), page.spins["grass_after"].value()), (3, 14))
+        self.assertEqual(d.forest.nature_link.text(), "Customize your own mix, from Merciless ›")
+        done_saves(self, d, {"nature": "merciless", "nature_custom": custom})
+
+    def test_what_the_level_has_no_use_for_is_not_kept(self):
+        d = self.open_dialog({"nature": "merciless", "nature_custom": {"fire_from": 5, "tumbleweeds": True, "strike_after": 40}})
+        self.assertEqual(d.forest.nature_link.text(), "Customize Merciless ›")
+        done_saves(self, d, {"nature": "merciless"})
+
+    def test_a_level_clicked_starts_again_from_its_own(self):
+        d = self.open_dialog({"nature": "merciless", "nature_custom": {"tumbleweeds": False, "strike_after": 2}})
+        tiles = d.forest.nature.buttons
+        tiles["merciless"].click()  # the chosen one: still chosen, its own marks and numbers back
+        Q.settle()
+        self.assertEqual(d.forest.nature.currentData(), "merciless")
+        self.assertEqual(d.forest.nature_page.custom(), {})
+        self.assertEqual(d.forest.nature_link.text(), "Customize Merciless ›")
+        Q.let_save()
+        self.assertEqual(Q.current()["nature_custom"], {})
+        d.forest.nature_page.boxes["crows"].click()
+        Q.settle()
+        tiles["wild"].click()
+        Q.settle()
+        self.assertEqual(d.forest.nature_page.custom(), {})
+        self.assertTrue(d.forest.nature_page.boxes["crows"].isChecked())
+        done_saves(self, d, {"nature": "wild"})
+
+    def test_reset_puts_a_row_back(self):
+        d, page = self.open_page()
+        page.boxes["grass"].click()
+        page.spins["grass_after"].setValue(20)
+        page.boxes["crows"].click()
+        Q.settle()
+        page.resets["grass"].click()
+        Q.settle()
+        self.assertEqual(page.custom(), {"crows": False})
+        self.assertFalse(page.resets["grass"].isVisible())
+        done_saves(self, d, {"nature": "merciless", "nature_custom": {"crows": False}})
+
+    def test_cancel_puts_the_mix_back(self):
+        d, page = self.open_page({"nature": "merciless", "nature_custom": {"crows": False}})
+        page.boxes["tumbleweeds"].click()
+        Q.settle()
+        self.cancel(d)
+        self.assertEqual(saved(), {"nature": "merciless", "nature_custom": {"crows": False}})
+
+
 if __name__ == "__main__":
     unittest.main()
 

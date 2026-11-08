@@ -9,7 +9,7 @@ import datetime as _dt
 import random
 
 from . import events, fake_forest, forest_data
-from .events_state import ago_date, strike_payload
+from .events_state import ago_date, nature_rules, strike_payload
 from .state import TEST_TREES_DEFAULT, TEST_TREES_MAX, clamp_int, load_state, save_state
 
 # the Debug tab's range for how deep the review hell (in percent); a big day's flowers on
@@ -87,9 +87,9 @@ def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
             after["gap"] = length
     _leeches(trees, happened)
     reviews = None  # all the test forest's
-    level = extras["nature"]
+    level, rules = extras["nature"], nature_rules(cfg)
     if level == "merciless":
-        out = events.merciless(trees, days)
+        out = events.merciless(trees, days, after=rules["strike_after"])
         latest = out["latest"]
         if latest:  # where each lands stays put as days pass: it is that day's, in this run
             run = load_state().get("timeline_run", 0)
@@ -102,8 +102,9 @@ def _timeline(forest: dict, cfg: dict, steps: list, extras: dict) -> dict:
         trees = out["trees"]
         extras["doom"] = out["doom"]
     elif level == "wild":
-        trees, extras["fire"] = events.set_fire(trees, days, forest_data.MAX_INDIVIDUAL_TREES)
-    extras["stagnation"] = events.stagnation(trees, days)
+        trees, extras["fire"] = events.set_fire(trees, days, forest_data.MAX_INDIVIDUAL_TREES,
+                                                rules["fire_from"], rules["fire_heal"])
+    extras["stagnation"] = events.stagnation(trees, days, rules["grass_after"])
     # (its days studied go with it, for the study calendar to show the timeline's streak)
     return forest_data.rebuild(dict(base, test=True, review_days=days), events.mark_big_days(trees), days, reviews)
 
@@ -134,9 +135,9 @@ def _leeches(trees: list, happened: list) -> None:
 
 def apply(forest: dict, extras: dict, cfg: dict) -> tuple:
     """The Debug tab's switches, on top of what events_state made of the forest. They
-    follow Nature as the real events do: Peaceful keeps the crows, the tall grass and the
-    tumbleweeds away, and the timeline's days bring the asteroid or the fire only as they
-    would."""
+    follow Nature as the real events do: Peaceful, or Customize, keeps the crows, the tall grass
+    and the tumbleweeds that are off away, and the timeline's days bring the asteroid or the fire
+    only as they would."""
     steps = events.timeline_steps(cfg.get("debug_timeline"))
     if steps and forest.get("test"):
         forest = _timeline(forest, cfg, steps, extras)
@@ -160,9 +161,11 @@ def apply(forest: dict, extras: dict, cfg: dict) -> tuple:
     if cfg.get("debug_big_days"):
         for t in trees[::DEBUG_BIG_EVERY]:
             t["big"] = max(1, round(t["n"] * DEBUG_BIG_BEAT))  # what the day "beat", for its tooltip
-    if events.calm(extras["nature"]):
+    on = events.marks(nature_rules(cfg))
+    if not on["crows"]:
         trees = events.calm_trees(trees)
+    if not on["grass"]:
         extras["stagnation"] = 0.0
-        if extras.get("backlog"):
-            extras["backlog"] = dict(extras["backlog"], hell=0.0)
+    if not on["tumbleweeds"] and extras.get("backlog"):
+        extras["backlog"] = dict(extras["backlog"], hell=0.0)
     return dict(forest, trees=trees), extras

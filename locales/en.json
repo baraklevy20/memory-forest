@@ -85,12 +85,27 @@
  "date.month_year": "{month} {year}",
  "event.asteroid.a_crater": "A crater",
  "event.asteroid.an_asteroid_strikes_when_ankis_day": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater.",
+ "event.asteroid.asteroid_in_n_days": {
+  "one": "Asteroid: in {n} day",
+  "other": "Asteroid: in {n} days"
+ },
  "event.asteroid.asteroid_struck_date": "Asteroid struck {date}",
+ "event.asteroid.asteroid_tomorrow": "Asteroid: tomorrow",
  "event.asteroid.asteroid_tonight": "Asteroid: tonight",
  "event.asteroid.its_crater_can_play_it_again": "Its crater can play it again too.",
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "one": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} day, when Anki's day ends. Review today to turn it back.",
+  "other": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} days, when Anki's day ends. Review today to turn it back."
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes when Anki's day ends tomorrow. Review today to turn it back.",
+ "event.asteroid.n_of_days_strikes_tonight": "{missed} of {grace} days without reviews: an asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater.",
  "event.asteroid.n_trees_lost_after_a_day": {
   "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
   "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
+  "one": "{n} tree lost after {days} days without reviews; a new forest grows from here.",
+  "other": "{n} trees lost after {days} days without reviews; a new forest grows from here."
  },
  "event.asteroid.n_trees_lost_on_date": {
   "one": "{n} tree lost on {date}",
@@ -119,6 +134,10 @@
   "one": "<b>On fire</b>: it caught while you were away · green again after {n} more day of study",
   "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
  },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
+  "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
+ },
  "event.fire.smoke_is_rising_after_two_days": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire.",
  "event.fire.smoke_study_today": "Smoke: study today",
  "event.fire.smoking": "Smoking",
@@ -138,12 +157,29 @@
   "one": "An asteroid took your forest of {trees} tree. A new one grows from here.",
   "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
  },
+ "events.bad_habits_leave_marks_too": "Bad habits leave marks too.",
  "events.merciless": "Merciless",
  "events.miss_a_day_nothing_is_lost": "Miss a day: nothing is lost. A week or more away leaves a pond in the forest.",
  "events.miss_a_day_of_reviews_an": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too.",
+ "events.miss_n_days_in_a_row_smoke": {
+  "one": "Miss a day: smoke rises as a warning.",
+  "other": "Miss {n} days in a row: smoke rises as a warning."
+ },
+ "events.miss_n_days_of_reviews_an_asteroid": {
+  "one": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater.",
+  "other": "Miss {n} days of reviews in a row: an asteroid comes closer each day, and strikes when the last of them ends unless you review. A new forest grows from its crater."
+ },
+ "events.miss_one_more_a_fire_spreads_until": {
+  "one": "Miss one more: a fire spreads until a day of study puts it out.",
+  "other": "Miss one more: a fire spreads until {n} days of study put it out."
+ },
  "events.miss_two_days_in_a_row": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too.",
  "events.peaceful": "Peaceful",
  "events.smoke_is_rising_from_your_forest": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire.",
+ "events.smoke_is_rising_from_your_forest_n": {
+  "one": "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire.",
+  "other": "Smoke is rising from your forest after {n} days without reviews. Study today, or it catches fire."
+ },
  "events.switch_back_any_time_and_every": "Switch back any time and every tree is there again.",
  "events.the_last_of_the_fire_is": "The last of the fire is out. Your forest is green again.",
  "events.wild": "Wild",
@@ -738,6 +774,38 @@
  "settings.layout.the_forest_as_the_window_s_background": "The forest as the window's background, and the heatmap under the deck list",
  "settings.layout.the_one_that_goes_beside_or": "The one that goes beside or above the deck list, and comes first where they stand together. Deck screens follow it too.",
  "settings.layout.under_the_list": "Under the list",
+ "settings.nature.a_week_or_more_away_leaves": "A week or more away leaves a pond. Nothing is lost.",
+ "settings.nature.after": "After",
+ "settings.nature.ankis_leech_threshold_in_deck_options": "Anki's Leech threshold, in Deck Options, says when a card is a leech.",
+ "settings.nature.asteroid": "Asteroid",
+ "settings.nature.back": "‹ Nature",
+ "settings.nature.breaks_out_after": "Breaks out after",
+ "settings.nature.crows_on_leeches": "Crows on leeches",
+ "settings.nature.customize_level": "Customize {level} ›",
+ "settings.nature.customize_level_2": "Customize {level}",
+ "settings.nature.customize_your_own_mix_from_level": "Customize your own mix, from {level} ›",
+ "settings.nature.customize_your_own_mix_from_level_2": "Customize your own mix, from {level}",
+ "settings.nature.fire": "Fire",
+ "settings.nature.goes_out_after": "Goes out after",
+ "settings.nature.it_comes_closer_each_day_you": "It comes closer each day you miss, as a warning. A review turns it back.",
+ "settings.nature.n_days": {
+  "one": "day",
+  "other": "days"
+ },
+ "settings.nature.n_days_of_study": {
+  "one": "day of study",
+  "other": "days of study"
+ },
+ "settings.nature.ponds": "Ponds",
+ "settings.nature.reset_a_row_to_put_the": "Reset a row to put the level's own choice back.",
+ "settings.nature.reset_put_back_the_levels_own": "Reset: put back the level's own choice",
+ "settings.nature.smoke_rises_the_day_before_as": "Smoke rises the day before, as a warning.",
+ "settings.nature.strikes_after": "Strikes after",
+ "settings.nature.tall_grass": "Tall grass",
+ "settings.nature.tumbleweeds": "Tumbleweeds",
+ "settings.nature.when_overdue_reviews_pass_twice_a": "When overdue reviews pass twice a usual day's.",
+ "settings.nature.without_new_cards": "without new cards",
+ "settings.nature.without_reviews": "without reviews",
  "settings.patreon.enjoying_memory_forest": "Enjoying Memory Forest?",
  "settings.patreon.every_plus_scenery_joins_this_version": "Every Plus scenery joins this version later on.",
  "settings.patreon.new_scenery_arrives_here_first_every": "New sceneries arrive here first.",

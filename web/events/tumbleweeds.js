@@ -1,7 +1,8 @@
 /* Memory Forest — tumbleweeds for review hell: more overdue reviews than about twice a usual
  * day's (events.review_hell), and tumbleweeds roll across the front of the forest, more of
  * them the deeper it goes. On Merciless, more come to rest against the trees. The day the
- * backlog is cleared, the last of them blow away on the wind. Peaceful never has them. */
+ * backlog is cleared, the last of them blow away on the wind. Peaceful never has them, nor a level
+ * whose Customize turned them off (`marks`). */
 (function () {
 'use strict';
 const AF = window.AnkiForest;
@@ -44,6 +45,9 @@ function lanes(env) {
   return land.rollRows ? land.rollRows(env) : land.grassRows ? land.grassRows(env) : [[0, env.W - 1, bot, bot + 1]];
 }
 
+// whether this forest has tumbleweeds at all: Customize's say (`marks`), else every level but Peaceful
+const shown = data => (data.marks ? Boolean(data.marks.tumbleweeds) : Boolean(data.nature) && data.nature !== 'peaceful');
+
 // how many roll at this depth of review hell
 const count = hell => 1 + Math.round(hell * (MOST_ROLLING - 1));
 
@@ -64,7 +68,7 @@ function rolling(env, t, n) {
 // (a day, or for each `replay` the Debug group asks for), as the forest opens
 function blowing(env, t) {
   const data = env.data;
-  if (env.still || !data.backlog || !data.backlog.cleared || !data.nature || data.nature === 'peaceful') return null;
+  if (env.still || !data.backlog || !data.backlog.cleared || !shown(data)) return null;
   if (env.blowFrom === undefined) {
     let seen = false;
     const key = 'memory-forest-blown-' + (data.backlog.replay || data.dayNumber);
@@ -84,7 +88,7 @@ AF.events.add('tumbleweeds', {
   // on Merciless they come to rest against the trees, the deeper the hell the more of them
   treeBase(env, lg, p, sw, x, y) {
     const b = env.data.backlog;
-    if (!b || !b.hell || env.data.nature !== 'merciless' || p.it.pond) return;
+    if (!b || !b.hell || !shown(env.data) || env.data.nature !== 'merciless' || p.it.pond) return;
     if (noise(p.it.seed, 'rest') > b.hell * MOST_RESTING / Math.max(1, env.placed.length)) return;
     weed(lg, x - sw / 2 - 2, y - 3, p.it.seed, palette(env));
   },

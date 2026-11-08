@@ -408,7 +408,19 @@
    "web/events/asteroid.js"
   ]
  },
+ "event.asteroid.asteroid_in_n_days": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
  "event.asteroid.asteroid_struck_date": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.asteroid_tomorrow": {
   "web": true,
   "where": [
    "web/events/asteroid.js"
@@ -426,7 +438,31 @@
    "web/events/asteroid.js"
   ]
  },
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.n_of_days_strikes_tonight": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
  "event.asteroid.n_trees_lost_after_a_day": {
+  "web": true,
+  "where": [
+   "web/events/asteroid.js"
+  ]
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
   "web": true,
   "where": [
    "web/events/asteroid.js"
@@ -486,6 +522,12 @@
    "web/events/fire.js"
   ]
  },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "web": true,
+  "where": [
+   "web/events/fire.js"
+  ]
+ },
  "event.fire.smoke_is_rising_after_two_days": {
   "web": true,
   "where": [
@@ -528,6 +570,12 @@
    "events_state.py"
   ]
  },
+ "events.bad_habits_leave_marks_too": {
+  "web": false,
+  "where": [
+   "events.py"
+  ]
+ },
  "events.merciless": {
   "web": false,
   "where": [
@@ -546,6 +594,24 @@
    "events.py"
   ]
  },
+ "events.miss_n_days_in_a_row_smoke": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "events.miss_n_days_of_reviews_an_asteroid": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
+ "events.miss_one_more_a_fire_spreads_until": {
+  "web": false,
+  "where": [
+   "settings/forest_tab.py"
+  ]
+ },
  "events.miss_two_days_in_a_row": {
   "web": false,
   "where": [
@@ -559,6 +625,12 @@
   ]
  },
  "events.smoke_is_rising_from_your_forest": {
+  "web": false,
+  "where": [
+   "events_state.py"
+  ]
+ },
+ "events.smoke_is_rising_from_your_forest_n": {
   "web": false,
   "where": [
    "events_state.py"
@@ -2463,7 +2535,8 @@
  "settings.customize.change_anything_here_to_make_it": {
   "web": false,
   "where": [
-   "settings/customize.py"
+   "settings/customize.py",
+   "settings/nature_page.py"
   ]
  },
  "settings.customize.customize_scenery": {
@@ -3371,6 +3444,162 @@
   "web": false,
   "where": [
    "settings/layout_picker.py"
+  ]
+ },
+ "settings.nature.a_week_or_more_away_leaves": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.after": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.ankis_leech_threshold_in_deck_options": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.asteroid": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.back": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.breaks_out_after": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.crows_on_leeches": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.customize_level": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.customize_level_2": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.customize_your_own_mix_from_level": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.customize_your_own_mix_from_level_2": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.fire": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.goes_out_after": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.it_comes_closer_each_day_you": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.n_days": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.n_days_of_study": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.ponds": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.reset_a_row_to_put_the": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.reset_put_back_the_levels_own": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.smoke_rises_the_day_before_as": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.strikes_after": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.tall_grass": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.tumbleweeds": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.when_overdue_reviews_pass_twice_a": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.without_new_cards": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
+  ]
+ },
+ "settings.nature.without_reviews": {
+  "web": false,
+  "where": [
+   "settings/nature_page.py"
   ]
  },
  "settings.patreon.enjoying_memory_forest": {

@@ -111,6 +111,17 @@ class DebugEventTests(unittest.TestCase):
         self.assertEqual(self.passed("wild", ("away", 3), ("study", 5))["fire"]["left"], 1)  # today makes six
         self.assertTrue(self.passed("wild", ("away", 3), ("study", 6))["fire"]["out"])
 
+    def test_the_timeline_brings_the_asteroid_nearer_day_by_day(self):
+        def passed(away):
+            reset(PLANTED, {"debug": True, "nature": "merciless", "nature_custom": {"strike_after": 7}, "test_forest": True,
+                            "test_trees": 40, "debug_timeline": [["study", 3], ["away", away]]})
+            return payload.payload()
+        p = passed(2)  # two days away, and today goes on as they did: the third
+        self.assertEqual((p["craters"], p["doom"], len(p["trees"])), ([], {"missed": 3, "grace": 7, "left": 4}, 43))
+        self.assertEqual(passed(6)["doom"], {"missed": 7, "grace": 7, "left": 0})  # tonight
+        p = passed(7)  # the seventh day is over: it struck
+        self.assertEqual((len(p["craters"]), p["doom"]), (1, None))
+
     def test_peaceful_lets_the_days_go_by(self):
         p = self.passed("peaceful", ("away", 30))
         self.assertEqual((p["craters"], p["doom"], len(p["trees"])), ([], None, 40))

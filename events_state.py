@@ -26,6 +26,11 @@ def nature_level(cfg: dict) -> str:
     return events.nature_level(cfg.get("nature"))
 
 
+def nature_rules(cfg: dict) -> dict:
+    """The level with what Customize changed in it (events.rules)."""
+    return events.rules(nature_level(cfg), cfg.get("nature_custom"))
+
+
 def sync_started() -> None:
     global _syncing
     _syncing = True
@@ -207,14 +212,14 @@ def _animals(forest: dict, struck: int | None, did: int | None = None, start: st
     return dict(forest, visitors=milestones.visitors(stats, arrived, today))
 
 
-def _held(days: set) -> frozenset:
+def _held(days: set, after: int = 1) -> frozenset:
     """The strikes that don't come yet: until the review log is all there (see settled),
     any newer than the last one shown - a day studied on another device looks missed until
     it syncs. The ones shown before stay, each with its own trees."""
     if settled():
         return frozenset()
     last = _last_shown("strike")
-    return frozenset(d for d in events.strikes(days) if last is None or ago_date(d) > last)
+    return frozenset(d for d in events.strikes(days, after) if last is None or ago_date(d) > last)
 
 
 def _last_shown(kind: str) -> str | None:
@@ -264,10 +269,11 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
     that deck's cards, and the rest (Nature, the ponds, the backlog) from every deck you
     study, as on the main forest. What is read from the collection is kept until `changed`
     (scope.changes) is different."""
-    level = nature_level(cfg)
+    level, rules = nature_level(cfg), nature_rules(cfg)
     days = forest.get("review_days") or set()
     dids = deck_ids(did, excluded_decks(cfg)) if did is not None and not test else None
-    extras = {"nature": level, "craters": [], "strike": None, "doom": None, "fire": None}
+    extras = {"nature": level, "craters": [], "strike": None, "doom": None, "fire": None,
+              "strikeAfter": rules["strike_after"]}
     reviewing = days
     if not test:
         # Nature goes by every deck you study, whichever the forest leaves out
@@ -279,7 +285,8 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
         struck = None
         live = not settings_open()  # (what the settings dialog previews is not remembered as shown)
         if level == "merciless":
-            out = events.merciless(forest["trees"], nature_days, _held(nature_days))
+            after = rules["strike_after"]
+            out = events.merciless(forest["trees"], nature_days, _held(nature_days, after), after)
             if out["hits"] and settled() and live:
                 _remember_shown("strike", ago_date(out["hits"][-1]))
             if out["latest"]:
@@ -295,7 +302,8 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
             if out["doom"] and _shows("doom", ago_date(0), live):
                 extras["doom"] = out["doom"]
         elif level == "wild":
-            trees, fire = events.set_fire(forest["trees"], nature_days, forest_data.MAX_INDIVIDUAL_TREES)
+            trees, fire = events.set_fire(forest["trees"], nature_days, forest_data.MAX_INDIVIDUAL_TREES,
+                                          rules["fire_from"], rules["fire_heal"])
             # smoke or a fire, only once the days it goes by are sure (the day it goes out is
             # good news: that may come any time)
             kind = "smoke" if fire and fire["smoke"] else "fire" if fire and fire["trees"] else None
@@ -308,7 +316,7 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
             start += " kept"
         forest = _animals(forest, struck, did, start)
     forest = dict(forest, trees=events.mark_big_days(forest["trees"]))
-    extras["stagnation"] = events.stagnation(forest["trees"], reviewing)
+    extras["stagnation"] = events.stagnation(forest["trees"], reviewing, rules["grass_after"])
     if extras["stagnation"] and not test and not _new_cards_left(cfg, changed, dids):
         extras["stagnation"] = 0.0  # every card learned: reviewing alone is what is left to do
     if not test:
@@ -318,15 +326,16 @@ def apply(forest: dict, cfg: dict, test: bool, changed=None, did: int | None = N
 
 
 def keep_calm(forest: dict, extras: dict, cfg: dict) -> tuple:
-    """(forest, extras) with the bad things taken out on Peaceful - the crows, the tall grass,
-    the tumbleweeds - whichever forest it is: every forest drawn goes through here."""
-    if not events.calm(nature_level(cfg)):
-        return forest, extras
-    forest = dict(forest, trees=events.calm_trees(forest["trees"]))
-    extras = dict(extras)
-    if "stagnation" in extras:
+    """(forest, extras) with the bad habits' marks that are off taken out - the crows, the tall
+    grass, the tumbleweeds: all three on Peaceful, and any Customize turned off - whichever forest
+    it is: every forest drawn goes through here. The page is told which are on (`marks`)."""
+    on = events.marks(nature_rules(cfg))
+    extras = dict(extras, marks=on)
+    if not on["crows"]:
+        forest = dict(forest, trees=events.calm_trees(forest["trees"]))
+    if not on["grass"] and "stagnation" in extras:
         extras["stagnation"] = 0.0
-    if extras.get("backlog"):
+    if not on["tumbleweeds"] and extras.get("backlog"):
         extras["backlog"] = dict(extras["backlog"], hell=0.0)
     return forest, extras
 
@@ -338,7 +347,10 @@ def fire_line(extras: dict) -> str:
     if not fire:
         return ""
     if fire.get("smoke"):
-        return t("events.smoke_is_rising_from_your_forest")
+        missed = fire.get("from", events.FIRE_FROM) - 1
+        if missed == events.FIRE_FROM - 1:
+            return t("events.smoke_is_rising_from_your_forest")
+        return tn("events.smoke_is_rising_from_your_forest_n", missed)
     if fire["out"]:
         return t("events.the_last_of_the_fire_is")
     if not fire["news"]:
@@ -367,7 +379,7 @@ def news_line(extras: dict) -> str:
         return line
     backlog = extras.get("backlog")
     if backlog and backlog["cleared"]:
-        if events.calm(extras["nature"]):
+        if not (extras.get("marks") or {}).get("tumbleweeds", not events.calm(extras["nature"])):
             return t("events.you_cleared_your_overdue_reviews")
         return t("events.you_cleared_your_overdue_reviews_the")
     return ""

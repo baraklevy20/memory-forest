@@ -325,9 +325,23 @@
   "text": "Ein Asteroid schlägt ein, wenn Ankis Tag endet, es sei denn, du wiederholst vorher. Schlägt er ein, wächst aus seinem Krater ein neuer Wald.",
   "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
+ "event.asteroid.asteroid_in_n_days": {
+  "text": {
+   "one": "Asteroid: in {n} Tag",
+   "other": "Asteroid: in {n} Tagen"
+  },
+  "en": {
+   "one": "Asteroid: in {n} day",
+   "other": "Asteroid: in {n} days"
+  }
+ },
  "event.asteroid.asteroid_struck_date": {
   "text": "Asteroideneinschlag am {date}",
   "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tomorrow": {
+  "text": "Asteroid: morgen",
+  "en": "Asteroid: tomorrow"
  },
  "event.asteroid.asteroid_tonight": {
   "text": "Asteroid: heute Nacht",
@@ -337,6 +351,24 @@
   "text": "Auch sein Krater kann es noch einmal abspielen.",
   "en": "Its crater can play it again too."
  },
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "text": {
+   "one": "{missed} von {grace} Tagen ohne Wiederholungen: Ein Asteroid ist unterwegs und schlägt in {n} Tag ein, wenn Ankis Tag endet. Wiederhole heute, um ihn zurückzuschicken.",
+   "other": "{missed} von {grace} Tagen ohne Wiederholungen: Ein Asteroid ist unterwegs und schlägt in {n} Tagen ein, wenn Ankis Tag endet. Wiederhole heute, um ihn zurückzuschicken."
+  },
+  "en": {
+   "one": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} day, when Anki's day ends. Review today to turn it back.",
+   "other": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} days, when Anki's day ends. Review today to turn it back."
+  }
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": {
+  "text": "{missed} von {grace} Tagen ohne Wiederholungen: Ein Asteroid ist unterwegs und schlägt morgen ein, wenn Ankis Tag endet. Wiederhole heute, um ihn zurückzuschicken.",
+  "en": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes when Anki's day ends tomorrow. Review today to turn it back."
+ },
+ "event.asteroid.n_of_days_strikes_tonight": {
+  "text": "{missed} von {grace} Tagen ohne Wiederholungen: Ein Asteroid schlägt ein, wenn Ankis Tag endet, es sei denn, du wiederholst vorher. Schlägt er ein, wächst aus seinem Krater ein neuer Wald.",
+  "en": "{missed} of {grace} days without reviews: an asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
  "event.asteroid.n_trees_lost_after_a_day": {
   "text": {
    "one": "Nach einem Tag ohne Wiederholungen {n} Baum verloren; hier wächst ein neuer Wald.",
@@ -345,6 +377,16 @@
   "en": {
    "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
    "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
+  "text": {
+   "one": "Nach {days} Tagen ohne Wiederholungen {n} Baum verloren; hier wächst ein neuer Wald.",
+   "other": "Nach {days} Tagen ohne Wiederholungen {n} Bäume verloren; hier wächst ein neuer Wald."
+  },
+  "en": {
+   "one": "{n} tree lost after {days} days without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after {days} days without reviews; a new forest grows from here."
   }
  },
  "event.asteroid.n_trees_lost_on_date": {
@@ -419,6 +461,16 @@
    "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
   }
  },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "text": {
+   "one": "Nach einem Tag ohne Wiederholungen steigt Rauch auf. Lerne heute, sonst fängt der Wald morgen Feuer.",
+   "other": "Nach {n} Tagen ohne Wiederholungen steigt Rauch auf. Lerne heute, sonst fängt der Wald morgen Feuer."
+  },
+  "en": {
+   "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
+   "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
+  }
+ },
  "event.fire.smoke_is_rising_after_two_days": {
   "text": "Nach zwei Tagen ohne Wiederholungen steigt Rauch auf. Lerne heute, sonst fängt der Wald morgen Feuer.",
   "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
@@ -471,6 +523,10 @@
    "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
   }
  },
+ "events.bad_habits_leave_marks_too": {
+  "text": "Schlechte Gewohnheiten hinterlassen ebenfalls Spuren.",
+  "en": "Bad habits leave marks too."
+ },
  "events.merciless": {
   "text": "Gnadenlos",
   "en": "Merciless"
@@ -483,6 +539,36 @@
   "text": "Ein Tag ohne Wiederholungen: Ein Asteroid wartet am Himmel und schlägt ein, wenn Ankis Tag endet, es sei denn, du wiederholst vorher. Aus seinem Krater wächst ein neuer Wald. Schlechte Gewohnheiten hinterlassen ebenfalls Spuren.",
   "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
  },
+ "events.miss_n_days_in_a_row_smoke": {
+  "text": {
+   "one": "Einen Tag verpasst: Rauch steigt als Warnung auf.",
+   "other": "{n} Tage hintereinander verpasst: Rauch steigt als Warnung auf."
+  },
+  "en": {
+   "one": "Miss a day: smoke rises as a warning.",
+   "other": "Miss {n} days in a row: smoke rises as a warning."
+  }
+ },
+ "events.miss_n_days_of_reviews_an_asteroid": {
+  "text": {
+   "one": "Ein Tag ohne Wiederholungen: Ein Asteroid wartet am Himmel und schlägt ein, wenn Ankis Tag endet, es sei denn, du wiederholst vorher. Aus seinem Krater wächst ein neuer Wald.",
+   "other": "{n} Tage hintereinander ohne Wiederholungen: Ein Asteroid kommt jeden Tag näher und schlägt ein, wenn der letzte endet, es sei denn, du wiederholst vorher. Aus seinem Krater wächst ein neuer Wald."
+  },
+  "en": {
+   "one": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater.",
+   "other": "Miss {n} days of reviews in a row: an asteroid comes closer each day, and strikes when the last of them ends unless you review. A new forest grows from its crater."
+  }
+ },
+ "events.miss_one_more_a_fire_spreads_until": {
+  "text": {
+   "one": "Auch den nächsten verpasst: Ein Feuer breitet sich aus, bis ein Lerntag es löscht.",
+   "other": "Auch den nächsten verpasst: Ein Feuer breitet sich aus, bis {n} Lerntage es löschen."
+  },
+  "en": {
+   "one": "Miss one more: a fire spreads until a day of study puts it out.",
+   "other": "Miss one more: a fire spreads until {n} days of study put it out."
+  }
+ },
  "events.miss_two_days_in_a_row": {
   "text": "Zwei Tage hintereinander verpasst: Rauch steigt als Warnung auf. Auch den dritten verpasst: Ein Feuer breitet sich aus, bis sieben Lerntage es löschen. Schlechte Gewohnheiten hinterlassen ebenfalls Spuren.",
   "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
@@ -494,6 +580,16 @@
  "events.smoke_is_rising_from_your_forest": {
   "text": "Nach zwei Tagen ohne Wiederholungen steigt Rauch aus deinem Wald auf. Lerne heute, sonst fängt er Feuer.",
   "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.smoke_is_rising_from_your_forest_n": {
+  "text": {
+   "one": "Nach einem Tag ohne Wiederholungen steigt Rauch aus deinem Wald auf. Lerne heute, sonst fängt er Feuer.",
+   "other": "Nach {n} Tagen ohne Wiederholungen steigt Rauch aus deinem Wald auf. Lerne heute, sonst fängt er Feuer."
+  },
+  "en": {
+   "one": "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire.",
+   "other": "Smoke is rising from your forest after {n} days without reviews. Study today, or it catches fire."
+  }
  },
  "events.switch_back_any_time_and_every": {
   "text": "Wechsle jederzeit zurück, und jeder Baum ist wieder da.",
@@ -2742,6 +2838,122 @@
  "settings.layout.under_the_list": {
   "text": "Unter der Liste",
   "en": "Under the list"
+ },
+ "settings.nature.a_week_or_more_away_leaves": {
+  "text": "Eine Woche oder länger weg hinterlässt einen Teich. Nichts geht verloren.",
+  "en": "A week or more away leaves a pond. Nothing is lost."
+ },
+ "settings.nature.after": {
+  "text": "Nach",
+  "en": "After"
+ },
+ "settings.nature.ankis_leech_threshold_in_deck_options": {
+  "text": "Wann eine Karte eine Lernbremse ist, legt der „Schwellenwert Lernbremse (Fehlversuche)“ in den Stapelprofilen fest.",
+  "en": "Anki's Leech threshold, in Deck Options, says when a card is a leech."
+ },
+ "settings.nature.asteroid": {
+  "text": "Asteroid",
+  "en": "Asteroid"
+ },
+ "settings.nature.back": {
+  "text": "‹ Natur",
+  "en": "‹ Nature"
+ },
+ "settings.nature.breaks_out_after": {
+  "text": "Bricht aus nach",
+  "en": "Breaks out after"
+ },
+ "settings.nature.crows_on_leeches": {
+  "text": "Krähen bei Lernbremsen",
+  "en": "Crows on leeches"
+ },
+ "settings.nature.customize_level": {
+  "text": "{level} anpassen ›",
+  "en": "Customize {level} ›"
+ },
+ "settings.nature.customize_level_2": {
+  "text": "{level} anpassen",
+  "en": "Customize {level}"
+ },
+ "settings.nature.customize_your_own_mix_from_level": {
+  "text": "Eigene Mischung anpassen, ausgehend von {level} ›",
+  "en": "Customize your own mix, from {level} ›"
+ },
+ "settings.nature.customize_your_own_mix_from_level_2": {
+  "text": "Eigene Mischung anpassen, ausgehend von {level}",
+  "en": "Customize your own mix, from {level}"
+ },
+ "settings.nature.fire": {
+  "text": "Feuer",
+  "en": "Fire"
+ },
+ "settings.nature.goes_out_after": {
+  "text": "Erlischt nach",
+  "en": "Goes out after"
+ },
+ "settings.nature.it_comes_closer_each_day_you": {
+  "text": "Mit jedem verpassten Tag kommt er näher, als Warnung. Eine Wiederholung schickt ihn zurück.",
+  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+ },
+ "settings.nature.n_days": {
+  "text": {
+   "one": "Tag",
+   "other": "Tagen"
+  },
+  "en": {
+   "one": "day",
+   "other": "days"
+  }
+ },
+ "settings.nature.n_days_of_study": {
+  "text": {
+   "one": "Lerntag",
+   "other": "Lerntagen"
+  },
+  "en": {
+   "one": "day of study",
+   "other": "days of study"
+  }
+ },
+ "settings.nature.ponds": {
+  "text": "Teiche",
+  "en": "Ponds"
+ },
+ "settings.nature.reset_a_row_to_put_the": {
+  "text": "Setze eine Zeile zurück, um die Vorgabe der Stufe wiederherzustellen.",
+  "en": "Reset a row to put the level's own choice back."
+ },
+ "settings.nature.reset_put_back_the_levels_own": {
+  "text": "Zurücksetzen: die Vorgabe der Stufe wiederherstellen",
+  "en": "Reset: put back the level's own choice"
+ },
+ "settings.nature.smoke_rises_the_day_before_as": {
+  "text": "Am Tag davor steigt Rauch auf, als Warnung.",
+  "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.strikes_after": {
+  "text": "Schlägt ein nach",
+  "en": "Strikes after"
+ },
+ "settings.nature.tall_grass": {
+  "text": "Hohes Gras",
+  "en": "Tall grass"
+ },
+ "settings.nature.tumbleweeds": {
+  "text": "Steppenläufer",
+  "en": "Tumbleweeds"
+ },
+ "settings.nature.when_overdue_reviews_pass_twice_a": {
+  "text": "Wenn mehr als doppelt so viele Wiederholungen überfällig sind wie an einem normalen Tag.",
+  "en": "When overdue reviews pass twice a usual day's."
+ },
+ "settings.nature.without_new_cards": {
+  "text": "ohne neue Karten",
+  "en": "without new cards"
+ },
+ "settings.nature.without_reviews": {
+  "text": "ohne Wiederholungen",
+  "en": "without reviews"
  },
  "settings.patreon.enjoying_memory_forest": {
   "text": "Gefällt dir Memory Forest?",

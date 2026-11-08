@@ -86,11 +86,11 @@ class OpeningTests(QtCase):
 
     @needs_editions
     def test_the_debug_tabs_edition_changes_whats_new_at_once(self):
-        # (What's new lists the newest version only, and 1.6.0's and 1.5.0's notes are the same in both
-        # editions: 1.4.0's, two versions back, are the ones that differ)
+        # (What's new lists the newest version only, and 1.7.0's, 1.6.0's and 1.5.0's notes are the same in both
+        # editions: 1.4.0's, three versions back, are the ones that differ)
         about = sys.modules[addon.s_dialog.AboutTab.__module__]
         was = about.NEWS_VERSIONS
-        about.NEWS_VERSIONS = 3
+        about.NEWS_VERSIONS = 4
         self.addCleanup(setattr, about, "NEWS_VERSIONS", was)
         d = self.open_dialog({"debug": True, "debug_edition": "plus"})
         def news():
@@ -351,7 +351,8 @@ class RestoreDefaultsTests(QtCase):
     SETTINGS = {"nature": "wild", "environment": "bamboo", "landscape": "river", "landmark": "pagoda", "weather": "rain",
                 "time_of_day": "day", "city": "Berlin", "planting_tooltip": False, "calendar_week_start": "monday",
                 "calendar_tiles": "round", "excluded_decks": [20], "ignore_before": "2026-09-01", "keep_suspended": False,
-                "calendar_record": False, "streak_week": 6, "streak_week_since": "2026-09-10"}
+                "calendar_record": False, "streak_week": 6, "streak_week_since": "2026-09-10",
+                "nature_custom": {"tumbleweeds": False, "fire_from": 5}}
 
     def test_restore_defaults_asks_first_and_says_what_it_keeps(self):
         d = self.open_dialog(self.SETTINGS)
@@ -371,6 +372,8 @@ class RestoreDefaultsTests(QtCase):
         again = self.dialog
         self.assertTrue(again.isVisible())
         self.assertEqual(again.forest.nature.currentData(), "peaceful")
+        self.assertEqual(again.forest.nature_page.custom(), {})  # (Nature's Customize goes with it)
+        self.assertEqual(again.forest.nature_link.text(), "Customize Peaceful ›")
         self.assertEqual(again.scenery.preset.currentData(), "golden_lake")
         self.assertEqual(again.decks.excluded, {20})
 

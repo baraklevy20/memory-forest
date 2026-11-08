@@ -316,9 +316,22 @@
   "text": "Anki の 1 日が終わるまでに復習しないと、小惑星が落ちてきます。落ちたら、そのクレーターから新しい森が育ちます。",
   "en": "An asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
  },
+ "event.asteroid.asteroid_in_n_days": {
+  "text": {
+   "other": "小惑星: あと {n} 日"
+  },
+  "en": {
+   "one": "Asteroid: in {n} day",
+   "other": "Asteroid: in {n} days"
+  }
+ },
  "event.asteroid.asteroid_struck_date": {
   "text": "{date}に小惑星が衝突",
   "en": "Asteroid struck {date}"
+ },
+ "event.asteroid.asteroid_tomorrow": {
+  "text": "小惑星: 明日",
+  "en": "Asteroid: tomorrow"
  },
  "event.asteroid.asteroid_tonight": {
   "text": "小惑星: 今夜",
@@ -328,6 +341,23 @@
   "text": "クレーターからも、もう一度再生できます。",
   "en": "Its crater can play it again too."
  },
+ "event.asteroid.n_of_days_strikes_in_n_days": {
+  "text": {
+   "other": "復習のない日が {grace} 日中 {missed} 日: 小惑星が近づいています。あと {n} 日、Anki の 1 日が終わるときに落ちてきます。今日復習すれば遠ざかります。"
+  },
+  "en": {
+   "one": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} day, when Anki's day ends. Review today to turn it back.",
+   "other": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes in {n} days, when Anki's day ends. Review today to turn it back."
+  }
+ },
+ "event.asteroid.n_of_days_strikes_tomorrow": {
+  "text": "復習のない日が {grace} 日中 {missed} 日: 小惑星が近づいています。明日、Anki の 1 日が終わるときに落ちてきます。今日復習すれば遠ざかります。",
+  "en": "{missed} of {grace} days without reviews: an asteroid is on its way, and strikes when Anki's day ends tomorrow. Review today to turn it back."
+ },
+ "event.asteroid.n_of_days_strikes_tonight": {
+  "text": "復習のない日が {grace} 日中 {missed} 日: Anki の 1 日が終わるまでに復習しないと、小惑星が落ちてきます。落ちたら、そのクレーターから新しい森が育ちます。",
+  "en": "{missed} of {grace} days without reviews: an asteroid strikes when Anki's day ends, unless you review before then. If it strikes, a new forest grows from its crater."
+ },
  "event.asteroid.n_trees_lost_after_a_day": {
   "text": {
    "other": "1 日復習しなかったため、{n} 本の木を失いました。ここから新しい森が育ちます。"
@@ -335,6 +365,15 @@
   "en": {
    "one": "{n} tree lost after a day without reviews; a new forest grows from here.",
    "other": "{n} trees lost after a day without reviews; a new forest grows from here."
+  }
+ },
+ "event.asteroid.n_trees_lost_after_n_days": {
+  "text": {
+   "other": "{days} 日復習しなかったため、{n} 本の木を失いました。ここから新しい森が育ちます。"
+  },
+  "en": {
+   "one": "{n} tree lost after {days} days without reviews; a new forest grows from here.",
+   "other": "{n} trees lost after {days} days without reviews; a new forest grows from here."
   }
  },
  "event.asteroid.n_trees_lost_on_date": {
@@ -403,6 +442,15 @@
    "other": "<b>On fire</b>: it caught while you were away · green again after {n} more days of study"
   }
  },
+ "event.fire.smoke_is_rising_after_n_days": {
+  "text": {
+   "other": "{n} 日間復習がなかったため、煙が上がっています。今日学習しないと、明日には森が燃え出します。"
+  },
+  "en": {
+   "one": "Smoke is rising after a day without reviews. Study today, or tomorrow the forest catches fire.",
+   "other": "Smoke is rising after {n} days without reviews. Study today, or tomorrow the forest catches fire."
+  }
+ },
  "event.fire.smoke_is_rising_after_two_days": {
   "text": "2 日間復習がなかったため、煙が上がっています。今日学習しないと、明日には森が燃え出します。",
   "en": "Smoke is rising after two days without reviews. Study today, or tomorrow the forest catches fire."
@@ -451,6 +499,10 @@
    "other": "An asteroid took your forest of {trees} trees. A new one grows from here."
   }
  },
+ "events.bad_habits_leave_marks_too": {
+  "text": "悪い習慣も跡を残します。",
+  "en": "Bad habits leave marks too."
+ },
  "events.merciless": {
   "text": "容赦なし",
   "en": "Merciless"
@@ -463,6 +515,33 @@
   "text": "1 日復習しないと、空に小惑星が現れ、復習しないまま Anki の 1 日が終わると落ちてきます。クレーターからは新しい森が育ちます。悪い習慣も跡を残します。",
   "en": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater. Bad habits leave marks too."
  },
+ "events.miss_n_days_in_a_row_smoke": {
+  "text": {
+   "other": "{n} 日続けて休むと、警告として煙が上がります。"
+  },
+  "en": {
+   "one": "Miss a day: smoke rises as a warning.",
+   "other": "Miss {n} days in a row: smoke rises as a warning."
+  }
+ },
+ "events.miss_n_days_of_reviews_an_asteroid": {
+  "text": {
+   "other": "{n} 日続けて復習しないと、小惑星が日ごとに近づき、その最後の日が終わると落ちてきます。クレーターからは新しい森が育ちます。"
+  },
+  "en": {
+   "one": "Miss a day of reviews: an asteroid waits in the sky, and strikes when Anki's day ends unless you review. A new forest grows from its crater.",
+   "other": "Miss {n} days of reviews in a row: an asteroid comes closer each day, and strikes when the last of them ends unless you review. A new forest grows from its crater."
+  }
+ },
+ "events.miss_one_more_a_fire_spreads_until": {
+  "text": {
+   "other": "もう 1 日休むと火事が広がり、{n} 日学習するまで消えません。"
+  },
+  "en": {
+   "one": "Miss one more: a fire spreads until a day of study puts it out.",
+   "other": "Miss one more: a fire spreads until {n} days of study put it out."
+  }
+ },
  "events.miss_two_days_in_a_row": {
   "text": "2 日続けて休むと、警告として煙が上がります。3 日目も休むと火事が広がり、7 日学習するまで消えません。悪い習慣も跡を残します。",
   "en": "Miss two days in a row: smoke rises as a warning. Miss a third: a fire spreads until seven days of study put it out. Bad habits leave marks too."
@@ -474,6 +553,15 @@
  "events.smoke_is_rising_from_your_forest": {
   "text": "2 日間復習がなかったため、森から煙が上がっています。今日学習しないと燃え出します。",
   "en": "Smoke is rising from your forest after two days without reviews. Study today, or it catches fire."
+ },
+ "events.smoke_is_rising_from_your_forest_n": {
+  "text": {
+   "other": "{n} 日間復習がなかったため、森から煙が上がっています。今日学習しないと燃え出します。"
+  },
+  "en": {
+   "one": "Smoke is rising from your forest after a day without reviews. Study today, or it catches fire.",
+   "other": "Smoke is rising from your forest after {n} days without reviews. Study today, or it catches fire."
+  }
  },
  "events.switch_back_any_time_and_every": {
   "text": "いつでも元に戻せば、すべての木がまた現れます。",
@@ -2658,6 +2746,120 @@
  "settings.layout.under_the_list": {
   "text": "一覧の下",
   "en": "Under the list"
+ },
+ "settings.nature.a_week_or_more_away_leaves": {
+  "text": "1 週間以上離れると、池ができます。何も失いません。",
+  "en": "A week or more away leaves a pond. Nothing is lost."
+ },
+ "settings.nature.after": {
+  "text": "新規カードのない日が",
+  "en": "After"
+ },
+ "settings.nature.ankis_leech_threshold_in_deck_options": {
+  "text": "カードが定着しにくいカードになるかは、Anki のデッキオプションの「苦戦カードと判定する、復習での忘却回数」で決まります。",
+  "en": "Anki's Leech threshold, in Deck Options, says when a card is a leech."
+ },
+ "settings.nature.asteroid": {
+  "text": "小惑星",
+  "en": "Asteroid"
+ },
+ "settings.nature.back": {
+  "text": "‹ 自然",
+  "en": "‹ Nature"
+ },
+ "settings.nature.breaks_out_after": {
+  "text": "発生: 復習のない日が",
+  "en": "Breaks out after"
+ },
+ "settings.nature.crows_on_leeches": {
+  "text": "定着しにくいカードにカラス",
+  "en": "Crows on leeches"
+ },
+ "settings.nature.customize_level": {
+  "text": "{level} をカスタマイズ ›",
+  "en": "Customize {level} ›"
+ },
+ "settings.nature.customize_level_2": {
+  "text": "{level} をカスタマイズ",
+  "en": "Customize {level}"
+ },
+ "settings.nature.customize_your_own_mix_from_level": {
+  "text": "{level} をもとに自分だけの組み合わせを作る ›",
+  "en": "Customize your own mix, from {level} ›"
+ },
+ "settings.nature.customize_your_own_mix_from_level_2": {
+  "text": "{level} をもとに自分だけの組み合わせを作る",
+  "en": "Customize your own mix, from {level}"
+ },
+ "settings.nature.fire": {
+  "text": "火事",
+  "en": "Fire"
+ },
+ "settings.nature.goes_out_after": {
+  "text": "鎮火に必要なのは",
+  "en": "Goes out after"
+ },
+ "settings.nature.it_comes_closer_each_day_you": {
+  "text": "休んだ日ごとに、警告として近づいてきます。復習すれば遠ざかります。",
+  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+ },
+ "settings.nature.n_days": {
+  "text": {
+   "other": "日"
+  },
+  "en": {
+   "one": "day",
+   "other": "days"
+  }
+ },
+ "settings.nature.n_days_of_study": {
+  "text": {
+   "other": "日の学習"
+  },
+  "en": {
+   "one": "day of study",
+   "other": "days of study"
+  }
+ },
+ "settings.nature.ponds": {
+  "text": "池",
+  "en": "Ponds"
+ },
+ "settings.nature.reset_a_row_to_put_the": {
+  "text": "行をリセットすると、レベルの元の設定に戻ります。",
+  "en": "Reset a row to put the level's own choice back."
+ },
+ "settings.nature.reset_put_back_the_levels_own": {
+  "text": "リセット: レベルの元の設定に戻す",
+  "en": "Reset: put back the level's own choice"
+ },
+ "settings.nature.smoke_rises_the_day_before_as": {
+  "text": "その前日に、警告として煙が上がります。",
+  "en": "Smoke rises the day before, as a warning."
+ },
+ "settings.nature.strikes_after": {
+  "text": "落下: 復習のない日が",
+  "en": "Strikes after"
+ },
+ "settings.nature.tall_grass": {
+  "text": "伸びた草",
+  "en": "Tall grass"
+ },
+ "settings.nature.tumbleweeds": {
+  "text": "タンブルウィード",
+  "en": "Tumbleweeds"
+ },
+ "settings.nature.when_overdue_reviews_pass_twice_a": {
+  "text": "延滞中の復習が普段の 1 日の 2 倍を超えたとき。",
+  "en": "When overdue reviews pass twice a usual day's."
+ },
+ "settings.nature.without_new_cards": {
+  "text": "続いたとき",
+  "en": "without new cards"
+ },
+ "settings.nature.without_reviews": {
+  "text": "続いたとき",
+  "en": "without reviews"
  },
  "settings.patreon.enjoying_memory_forest": {
   "text": "Memory Forest を楽しんでいますか？",

@@ -12,6 +12,10 @@ songbird comes when a leech is cured. Wild and Merciless add the rest - leeches 
 crows, a week without new cards (while there are some left to learn) lets the grass grow tall, and a pile of overdue reviews
 brings tumbleweeds, which blow away the day it is cleared.
 
+Customize changes a level: each of those three marks on or off, and the days behind the asteroid,
+the fire and the grass (rules). The numbers go back in time as the levels do: they are read
+against every day you studied, each time.
+
 Nothing here imports aqt, so it runs in the tests and the dev scripts. Days are counted
 as `ago` (0 today, 1 yesterday, ...), as everywhere else in the forest.
 """
@@ -39,6 +43,9 @@ NATURE_NOTES = {
 }
 # said once, on its own line under Wild's and Merciless's, rather than in each of them
 NATURE_SWITCH_NOTE = N_("events.switch_back_any_time_and_every")
+# for a level changed in Customize (settings/forest_tab.nature_note): each number its own, and the
+# bad habits spoken of only while one of them is on. (The level's own keeps NATURE_NOTES, word for word.)
+BAD_HABITS_NOTE = N_("events.bad_habits_leave_marks_too")
 
 
 def nature_level(value) -> str:
@@ -49,6 +56,7 @@ def nature_level(value) -> str:
 def calm(level: str) -> bool:
     """Whether this nature keeps the forest to the good things only (Peaceful)."""
     return level == "peaceful"
+
 
 # how many days after a strike it is still news: the journal says so, the caption offers
 # to play it again, and it plays by itself if it hasn't been seen
@@ -88,6 +96,51 @@ CURED_DAYS = 7
 # how far back a run of missed days is looked for
 LOOKBACK_DAYS = 3660
 
+# Customize (the settings dialog's page behind "Customize <level> ›"): the bad habits' marks, each
+# on or off, and the numbers behind what a missed day costs and when the grass grows. The config
+# keeps only what differs from the level's own (`nature_custom`), so a level picked is that level
+# again; nothing of it is remembered beyond the config: it all reads the days you studied afresh.
+MARKS = ("crows", "grass", "tumbleweeds")
+# key: (the level it belongs to, or None for every level's, its own value, lowest, highest)
+NUMBERS = {
+    "strike_after": ("merciless", 1, 1, 14),       # days missed in a row before the asteroid strikes
+    "fire_from": ("wild", FIRE_FROM, 2, 14),       # the day missed in a row the fire breaks out on
+    "fire_heal": ("wild", FIRE_HEAL_DAYS, 1, 30),  # days of study that put it out
+    "grass_after": (None, STAGNANT_AFTER, 3, 60),  # days without new cards before the grass grows
+}
+
+
+def own_rules(level: str) -> dict:
+    """What a level is, as Customize shows it: its marks and its numbers."""
+    out = {m: not calm(level) for m in MARKS}
+    out.update({key: own for key, (_level, own, _lo, _hi) in NUMBERS.items()})
+    return out
+
+
+def custom_values(level: str, raw) -> dict:
+    """The part of `raw` (the config's `nature_custom`) that is a real change to `level`: known
+    keys only, marks as booleans, numbers as whole numbers in their range, and none that are the
+    level's own anyway (or that the level has no use for: Wild's fire on Merciless)."""
+    own, out = own_rules(level), {}
+    if not isinstance(raw, dict):
+        return out
+    for key, value in raw.items():
+        if key in MARKS:
+            if isinstance(value, bool) and value != own[key]:
+                out[key] = value
+        elif key in NUMBERS:
+            belongs, _own, lo, hi = NUMBERS[key]
+            if belongs not in (None, level) or type(value) is not int or not lo <= value <= hi:
+                continue
+            if value != own[key]:
+                out[key] = value
+    return out
+
+
+def rules(level: str, raw=None) -> dict:
+    """The level with its Customize changes (`raw`, the config's `nature_custom`) on top."""
+    return dict(own_rules(level), **custom_values(level, raw))
+
 
 def missed_now(review_days: set) -> int:
     """Days in a row without reviews up to now, counting today while it has none yet."""
@@ -113,12 +166,14 @@ def _runs(review_days: set, oldest: int) -> list:
     return out
 
 
-def strikes(review_days: set) -> list:
-    """The days Merciless's asteroid struck, oldest first: the first day of each run of
-    days without reviews since you first studied - one strike a run, however long."""
+def strikes(review_days: set, after: int = 1) -> list:
+    """The days Merciless's asteroid struck, oldest first: the `after`-th day of each run of
+    days without reviews since you first studied (the first, unless Customize says otherwise) -
+    one strike a run, however long, and none for a run shorter than that."""
     if not review_days:
         return []
-    return [start for start, _end in _runs(review_days, min(max(review_days), LOOKBACK_DAYS))]
+    return [start - (after - 1) for start, end in _runs(review_days, min(max(review_days), LOOKBACK_DAYS))
+            if start - end + 1 >= after]
 
 
 def _streak_before(review_days: set, ago: int) -> int:
@@ -153,27 +208,32 @@ def _wipe(trees: list, hits: list, review_days: set) -> tuple:
     return craters, latest, kept
 
 
-def merciless(trees: list, review_days: set, hold: frozenset = frozenset()) -> dict:
+def merciless(trees: list, review_days: set, hold: frozenset = frozenset(), after: int = 1) -> dict:
     """What Merciless does to this forest: a strike for every run of missed days, and the
     forest starts again after the latest. Strikes on the days in `hold` don't come (yet:
     the review log may not be all there, another device's reviews still on their way).
 
     Returns `trees` (only those planted since the last strike), `craters` (every strike's
-    still to be seen, oldest first), `latest` (the last strike's crater, see _wipe, or None) and `doom` (today, with no reviews yet after a day you studied: the
-    asteroid strikes when the day ends).
+    still to be seen, oldest first), `latest` (the last strike's crater, see _wipe, or None) and `doom`
+    (the asteroid on its way: on each day of a run without reviews, today counted while it has none
+    yet, until it strikes as the `after`-th of them ends - `missed` days of `grace`, `left` days after
+    today before it strikes; the page draws it nearer as `missed` comes to `grace`).
     """
-    hits = [d for d in strikes(review_days) if d not in hold]
+    hits = [d for d in strikes(review_days, after) if d not in hold]
     craters, latest, kept = _wipe(trees, hits, review_days)
-    doom = {"missed": 1, "grace": 1, "left": 0} if 0 not in review_days and 1 in review_days else None
+    doom, missed = None, missed_now(review_days)
+    if review_days and 0 not in review_days and 1 <= missed <= after:
+        doom = {"missed": missed, "grace": after, "left": after - missed}
     return {"hits": hits, "trees": kept, "craters": craters, "latest": latest, "doom": doom}
 
 
-def fire_state(review_days: set) -> dict | None:
+def fire_state(review_days: set, fire_from: int = FIRE_FROM, heal: int = FIRE_HEAL_DAYS) -> dict | None:
     """Wild's fire as the days studied leave it (see FIRE_*): the `share` of the forest
     burning, the days studied since (`healed`), the longest run `missed` that fanned it,
     `began` (the first missed day, as `ago`) and `epoch` (how many days you had studied
     before it: the same every day, to pick the same trees by), `news` on the days you come
-    back to it, and `out` if today is the day it went out. None when nothing is burning."""
+    back to it, and `out` if today is the day it went out. None when nothing is burning.
+    `fire_from` and `heal` are FIRE_FROM and FIRE_HEAL_DAYS, or what Customize made of them."""
     if not review_days:
         return None
     share, healed, run, missed, began, epoch, out = 0.0, 0, 0, 0, None, 0, False
@@ -182,17 +242,17 @@ def fire_state(review_days: set) -> dict | None:
             run = 0
             if share:
                 healed += 1
-                if healed >= FIRE_HEAL_DAYS:
+                if healed >= heal:
                     share, out = 0.0, d == 0
         elif d:  # (today is not over: it is no day missed yet)
             run += 1
             out = False
-            if run >= FIRE_FROM:
+            if run >= fire_from:
                 if not share:  # a new fire: the forest that stood when the break began
                     began = d + run - 1
                     epoch = sum(1 for x in review_days if x > began)
                     missed = 0
-                share = min(FIRE_MAX, max(share, FIRE_PER_DAY * (run - FIRE_FROM + 1)))
+                share = min(FIRE_MAX, max(share, FIRE_PER_DAY * (run - fire_from + 1)))
                 healed, missed = 0, max(missed, run)
     if not share and not out:
         return None
@@ -201,13 +261,13 @@ def fire_state(review_days: set) -> dict | None:
     return {"share": share, "healed": healed, "missed": missed, "began": began, "epoch": epoch, "out": out, "news": news}
 
 
-def smoke_state(review_days: set) -> dict | None:
-    """Wild's warning: after FIRE_FROM - 1 days missed in a row, while today has no reviews
+def smoke_state(review_days: set, fire_from: int = FIRE_FROM, heal: int = FIRE_HEAL_DAYS) -> dict | None:
+    """Wild's warning: after fire_from - 1 days missed in a row, while today has no reviews
     yet, smoke rises from the trees that catch fire if today goes by too - `began` and `epoch` as
     fire_state has them for that fire, so it is the same trees. None when there is no fire
     to warn of (it only warns of a new one, not of one already burning fanned up)."""
     run = missed_now(review_days) - 1  # the days before today, missed in a row
-    if not review_days or run != FIRE_FROM - 1 or fire_state(review_days):
+    if not review_days or run != fire_from - 1 or fire_state(review_days, fire_from, heal):
         return None
     return {"began": run, "epoch": sum(1 for x in review_days if x > run)}
 
@@ -222,27 +282,30 @@ def _fire_lot(trees: list, share: float, began: int, epoch: int, limit: int | No
     return {id(t) for t in sorted(pool, key=lot)[:n]}
 
 
-def set_fire(trees: list, review_days: set, limit: int | None = None) -> tuple:
+def set_fire(trees: list, review_days: set, limit: int | None = None, fire_from: int = FIRE_FROM,
+             heal: int = FIRE_HEAL_DAYS) -> tuple:
     """The trees with Wild's fire on them, and what the page says of it (or None): each
     burning tree copied with `burn`, 1 while it blazes and less each day you study, down to
     nothing when it is out. The fire takes FIRE_* of the trees (see _fire_lot). The day
     before one breaks out, the trees it will take are copied with `smoke` instead, and the
-    page is told `smoke`. The trees given are left alone (they may be cached)."""
-    st = fire_state(review_days)
+    page is told `smoke`, and `from` and `heal`, the days the fire breaks out on and the days of
+    study that put it out. The trees given are left alone (they may be cached)."""
+    st = fire_state(review_days, fire_from, heal)
     if st is None:
-        warn = smoke_state(review_days)
+        warn = smoke_state(review_days, fire_from, heal)
         if warn is None:
             return trees, None
         smoking = _fire_lot(trees, FIRE_PER_DAY, warn["began"], warn["epoch"], limit)
-        info = {"left": 0, "trees": 0, "missed": FIRE_FROM - 1, "began": warn["began"], "out": False, "news": False,
-                "smoke": len(smoking)}
+        info = {"left": 0, "trees": 0, "missed": fire_from - 1, "began": warn["began"], "out": False, "news": False,
+                "smoke": len(smoking), "from": fire_from, "heal": heal}
         return [dict(t, smoke=1) if id(t) in smoking else t for t in trees], info
-    info = {"left": 0, "trees": 0, "missed": st["missed"], "began": st["began"], "out": st["out"], "news": st["news"], "smoke": 0}
+    info = {"left": 0, "trees": 0, "missed": st["missed"], "began": st["began"], "out": st["out"], "news": st["news"], "smoke": 0,
+            "from": fire_from, "heal": heal}
     if not st["share"]:
         return trees, info
     burning = _fire_lot(trees, st["share"], st["began"], st["epoch"], limit)
-    burn = round(1 - st["healed"] / FIRE_HEAL_DAYS, 3)
-    info.update(left=FIRE_HEAL_DAYS - st["healed"], trees=len(burning))
+    burn = round(1 - st["healed"] / heal, 3)
+    info.update(left=heal - st["healed"], trees=len(burning))
     return [dict(t, burn=burn) if id(t) in burning else t for t in trees], info
 
 
@@ -325,14 +388,16 @@ def mark_big_days(trees: list) -> list:
     return out
 
 
-def stagnation(trees: list, review_days: set) -> float:
-    """0, or how tall the grass has grown (up to 1) after weeks without new cards."""
+def stagnation(trees: list, review_days: set, after: int = STAGNANT_AFTER) -> float:
+    """0, or how tall the grass has grown (up to 1) after weeks without new cards: from the
+    `after`-th day (STAGNANT_AFTER, or what Customize made of it), at its tallest as many days
+    later as STAGNANT_FULL is after STAGNANT_AFTER."""
     if not trees or not any(d in review_days for d in range(STAGNANT_REVIEWING)):
         return 0.0  # not reviewing either: that is a break, not coasting
     idle = trees[-1]["ago"]
-    if idle < STAGNANT_AFTER:
+    if idle < after:
         return 0.0
-    return min(1.0, (idle - STAGNANT_AFTER + 1) / (STAGNANT_FULL - STAGNANT_AFTER + 1))
+    return min(1.0, (idle - after + 1) / (STAGNANT_FULL - STAGNANT_AFTER + 1))
 
 
 def usual_reviews(day_counts: list) -> float:
@@ -357,6 +422,11 @@ def backlog_cleared(overdue: int, today: int, hell_day: int | None, cleared_day:
         return True
     return (overdue == 0 and hell_day is not None and 0 <= today - hell_day <= BACKLOG_CLEARED_WITHIN
             and (cleared_day is None or cleared_day < hell_day))
+
+
+def marks(r: dict) -> dict:
+    """The bad habits' marks on and off, for the page (which leaves out what is off)."""
+    return {m: bool(r[m]) for m in MARKS}
 
 
 def calm_trees(trees: list) -> list:

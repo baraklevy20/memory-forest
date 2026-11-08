@@ -92,7 +92,18 @@ const craterHtml = c => `<b>${AF.t('event.asteroid.a_crater')}</b><br>`
   + (c.streak ? AF.tn('event.asteroid.n_trees_lost_on_date_after', c.lost, { n: c.lost, date: fmt(c.date), streak: c.streak })
     : AF.tn('event.asteroid.n_trees_lost_on_date', c.lost, { n: c.lost, date: fmt(c.date) }))
   + `<br>${AF.t('event.asteroid.on_peaceful_or_wild_the_trees')}`;
-const doomText = () => AF.t('event.asteroid.an_asteroid_strikes_when_ankis_day');
+// the asteroid on its way: `missed` of the `grace` days without reviews it waits for, today counted,
+// and `left` days after today before it strikes (Customize's Strikes after; one, unless changed:
+// then it is only ever tonight's)
+const doomText = d => {
+  if (!d.grace || d.grace <= 1) return AF.t('event.asteroid.an_asteroid_strikes_when_ankis_day');
+  const at = { missed: d.missed, grace: d.grace };
+  if (d.left <= 0) return AF.t('event.asteroid.n_of_days_strikes_tonight', at);
+  if (d.left === 1) return AF.t('event.asteroid.n_of_days_strikes_tomorrow', at);
+  return AF.tn('event.asteroid.n_of_days_strikes_in_n_days', d.left, Object.assign({ n: d.left }, at));
+};
+const doomWhen = d => (!d.left || d.left <= 0 ? AF.t('event.asteroid.asteroid_tonight')
+  : d.left === 1 ? AF.t('event.asteroid.asteroid_tomorrow') : AF.tn('event.asteroid.asteroid_in_n_days', d.left, { n: d.left }));
 const fmtShort = iso => AF.i18n.dayIn(iso, { day: 'numeric', month: 'short' });
 
 /* ---------- the strike: a meteor shower, then the forest blown apart ---------- */
@@ -266,14 +277,16 @@ AF.events.add('asteroid', {
     if (s && s.news) {
       const again = animate && replayable(s);
       items.push([AF.t('event.asteroid.asteroid_struck_date', { date: fmtShort(s.date) }),
-        AF.tn('event.asteroid.n_trees_lost_after_a_day', s.lost, { n: s.lost })
+        ((data.strikeAfter || 1) > 1  // (after the days Customize gave it: one, unless changed)
+          ? AF.tn('event.asteroid.n_trees_lost_after_n_days', s.lost, { n: s.lost, days: data.strikeAfter })
+          : AF.tn('event.asteroid.n_trees_lost_after_a_day', s.lost, { n: s.lost }))
         + (again ? ' ' + AF.t('event.asteroid.its_crater_can_play_it_again') : animate ? '' : data.animations === 'system'
           ? ' ' + AF.t('event.asteroid.your_system_asks_for_less_motion')
           : ' ' + AF.t('event.asteroid.turn_on_animations_in_the_forest')),
       again ? root => root.afReplay() : undefined]);
     }
     const d = data.doom;
-    if (d) items.push([AF.t('event.asteroid.asteroid_tonight'), doomText(d)]);
+    if (d) items.push([doomWhen(d), doomText(d)]);
     return items;
   },
   // Ready `root` to replay `data`'s latest strike, and play it now if it hasn't been seen

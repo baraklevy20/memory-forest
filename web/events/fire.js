@@ -9,7 +9,15 @@ const AF = window.AnkiForest;
 const { clamp } = AF.u;
 const { px, noise, crownTop } = AF.events;
 const FLAME = ['#fff3b0', '#ffc94a', '#ff8a2a', '#d9471b', '#9c2a14'];
-const HEAL_DAYS = 7;  // events.FIRE_HEAL_DAYS: a tree's `burn` loses a seventh a day studied
+// events.FIRE_FROM and FIRE_HEAL_DAYS: the day missed in a row it breaks out on, and the days of study
+// that put it out (a tree's `burn` loses a seventh a day studied) - or what Customize made of them,
+// as the fire's data says (`from`, `heal`), for the words and the tooltips
+const FIRE_FROM = 3, HEAL_DAYS = 7;
+let fireFrom = FIRE_FROM, healDays = HEAL_DAYS;
+function follow(fire) {
+  fireFrom = (fire && fire.from) || FIRE_FROM;
+  healDays = (fire && fire.heal) || HEAL_DAYS;
+}
 
 // Flames stand on the crown up to FLAME_H of the tree's height, from a blaze (burn 1) down to
 // nothing at FLAMES_UNTIL; below that it only smokes, SMOKE_PUFFS a tree. The glow reaches
@@ -96,6 +104,7 @@ AF.events.add('fire', {
   busy: env => env.placed.some(p => !p.it.pond && p.it.burn),
   /* in front of it all: the glow and the flames, then the plumes over every tree's flames */
   front(g, env, t) {
+    follow(env.data.fire);
     const f = Math.floor(t * 12), burning = env.placed.filter(p => !p.it.pond && p.it.burn);
     for (const p of burning) {
       const c = crown(env, p), k = blaze(p.it.burn);
@@ -109,6 +118,7 @@ AF.events.add('fire', {
   // the caption's item while it burns: [text, tooltip]
   caption(data) {
     const fire = data.fire;
+    follow(fire);
     if (fire && fire.smoke) return [[AF.t('event.fire.smoke_study_today'), smokeText()]];
     if (!fire || !fire.trees) return [];
     const n = fire.trees, left = fire.left;
@@ -119,12 +129,14 @@ AF.events.add('fire', {
   },
 });
 
-const smokeText = () => AF.t('event.fire.smoke_is_rising_after_two_days');
+// the smoke rises after the days missed before the one it breaks out on
+const smokeText = () => fireFrom === FIRE_FROM ? AF.t('event.fire.smoke_is_rising_after_two_days')
+  : AF.tn('event.fire.smoke_is_rising_after_n_days', fireFrom - 1, { n: fireFrom - 1 });
 
 /* what a burning (or smoking) tree's tooltip adds */
 AF.fireLine = t => {
   if (!t.burn) return `<b>${AF.t('event.fire.smoking')}</b>: ${smokeText()}`;
-  const left = Math.max(1, Math.round(t.burn * HEAL_DAYS));
+  const left = Math.max(1, Math.round(t.burn * healDays));
   return AF.tn('event.fire.on_fire_it_caught_while_you', left, { n: left });
 };
 })();
