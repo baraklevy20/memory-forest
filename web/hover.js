@@ -119,6 +119,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
   }
 
   function boxOf(env, p) {
+    if (p.hitBox) return p.hitBox;  // a scenery that draws a tree elsewhere than its place (turned, say) leaves the box it drew it in
     const h = AF.STAGE_H[p.it.stage] * env.u * p.s, w = Math.max(h * 0.8, 4 * env.u);
     return { x0: p.x - w / 2, x1: p.x + w / 2, y0: p.y - h, y1: p.y + env.u };
   }
@@ -175,7 +176,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         deepHover = hit.deep;
       }
       else {
-        hover = { x: hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it };
+        hover = { x: hit.b ? (hit.b.x0 + hit.b.x1) / 2 : hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it };
         // zoomed in, a click picks a tree first (web/visit.js)
         const zoom = root.afVisits, picks = !hit.pond && zoom && zoom.on && zoom.picked !== hit.p.it.index;
         html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, picks ? (touched ? AF.t('hover.tap_to_select_it') : AF.t('hover.click_to_select_it')) : '');
