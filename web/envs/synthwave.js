@@ -299,12 +299,5 @@ function seaGrid(g, env, t, top) {
   g.restore();
 }
 
-/* the study calendar's tiles in scanlines, every other row darker as on an old monitor */
-DEF.calendarTile = (g, pal, edge, v, T) => {
-  const n = T - 1;  // (the last row and column: the gap between tiles)
-  // (the dark rows a shade of the tile's own colour: towards one shared indigo, the shades met in the middle)
-  for (let y = 0; y < n; y++) { g.fillStyle = rgb(y % 2 ? mix(pal[0], [0, 0, 0], 0.2) : pal[0]); g.fillRect(0, y, n, 1); }
-};
-
 AF.env('synthwave', DEF);
 })();

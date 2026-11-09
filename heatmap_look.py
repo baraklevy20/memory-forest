@@ -1,7 +1,7 @@
 """The study heatmap's look (the Heatmap tab's Colours and Tiles): whose colours its days take and
 how its tiles are drawn, kept when the scenery changes. payload.py hands web/calendar/ what to
-draw with (`look`), through the route the sceneries already have: a scenery's `calendar` colours
-and its `calendarTile` (web/envs/*.js). The settings draw their pictures with the same sums as
+draw with (`look`): a scenery's `calendar` colours (web/envs/*.js) and the tile style's own file
+(web/heatmap/<key>.js). The settings draw their pictures with the same sums as
 web/calendar/ (shades, tiles), so a strip in the dialog is the heatmap's own key.
 
 Nothing here imports Qt, so the tests run it as it is."""
@@ -27,8 +27,11 @@ MATCH, MINE = "scenery", "mine"
 READY_PREFIX = "ready:"
 # the tile styles, each in a file of its own (web/heatmap/<key>.json, and .js where it draws itself:
 # calendar/tiles.js AF.heatmapTiles), in their `order`: Flat (the default), Round, Contours, and a scenery's
-# own tiles (`env`: its calendarTile), a seasonal one's only in its week (`season`: its preset). Each
-# says its `label` and `tip` for the Heatmap tab, its spaces between the days and smooth corners
+# own tiles (`env`: the scenery whose they are, which a copy must have to offer them and whose name the
+# Tiles dropdown gives them; their .js is loaded only while the heatmap is drawn in them, page_look, and
+# an edition without that scenery ships without it, dev/editions.py), a seasonal one's only in its week
+# (`season`: its preset), or one only its scenery wears (`own`: never offered, so no `label` or `tip`).
+# Each says its `label` and `tip` for the Heatmap tab, its spaces between the days and smooth corners
 # (`gaps`, `smooth`), whether it is a joined shape (`shape`) and how its sample is drawn (`sample`).
 # The styles still in the works are in web/drafts/heatmap/, which only this copy has (never a release
 # or the public repo). (Cut 2026-10-16: Plain, Flat with a light texture; Smooth, the shapes outlined
@@ -56,20 +59,21 @@ def tile_specs() -> dict:
 
 
 TILE_SPECS = tile_specs()
-TILES = tuple(TILE_SPECS)
+# the styles only their own scenery wears (`own`): never offered, nor kept as a choice
+OWN_TILES = tuple(k for k, v in TILE_SPECS.items() if v.get("own"))
+TILES = tuple(k for k in TILE_SPECS if k not in OWN_TILES)
 TILE_DEFAULT = "flat"  # (Scenery's on a scenery with none of its own)
 TILE_FOLLOW = "scenery"  # (the default, and what a style that can't be had falls back to: the scenery's own style, changing with it; web/heatmap/scenery.json)
 SHAPES = tuple(k for k, v in TILE_SPECS.items() if v.get("shape"))
 # the Heatmap tab's two kinds of style: a scenery's own tiles (its medium: in the Scenery dropdown)
 # and the basic ones beside it (Flat, Round, Contours)
-SCENERY_TILES = tuple(k for k, v in TILE_SPECS.items() if v.get("env"))
+SCENERY_TILES = tuple(k for k, v in TILE_SPECS.items() if v.get("env") and k not in OWN_TILES)
 BASIC_TILES = tuple(k for k in TILES if k != TILE_FOLLOW and k not in SCENERY_TILES)
 TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
-# the sceneries that wear a style anyone can pick as their own (its file's "sceneries": Round on Lanterns)
-TILE_WORN = {env: k for k, v in TILE_SPECS.items() for env in v.get("sceneries", ())}
-# (or its own JSON's "tiles", for a scenery whose name the style's file mustn't give: a private one)
-TILE_WORN.update({env: spec["tiles"] for env, spec in catalog.entries("envs").items() if spec.get("tiles") in TILE_SPECS})
-# (Scenery has no style of its own: it is the scenery's, tile_style)  # whose calendarTile draws them
+# the sceneries that wear as their own a style another file holds: the scenery's JSON names it,
+# "tiles" (Round on Lanterns)
+TILE_WORN = {env: spec["tiles"] for env, spec in catalog.entries("envs").items() if spec.get("tiles") in TILE_SPECS}
+# (Scenery has no style of its own: it is the scenery's, tile_style)
 TILE_SEASONS = {k: v["season"] for k, v in TILE_SPECS.items() if v.get("season")}  # by the preset whose week they come in
 # each style's spaces between the days and smooth corners (drawn at the screen's resolution):
 # neither is a setting of its own
@@ -207,14 +211,15 @@ def tile_gap(cfg: dict, here: str = "") -> int | None:
 def tile_style(cfg: dict, here: str = "") -> str:
     """The style the heatmap is drawn in for `cfg` while the scenery's environment is `here`:
     Scenery's is that scenery's own (the style its environment draws, TILE_ENVS: Brush on Starry
-    night; or one it wears, TILE_WORN: Round on Lanterns; a holiday's in its week), else Flat; any
-    other is itself if it can be had just now (tile_shown), else Scenery's."""
+    night; one only it wears, OWN_TILES; or one it wears, TILE_WORN: Round on Lanterns; a holiday's in
+    its week), else Flat; any other is itself if it can be had just now (tile_shown), else Scenery's."""
     choice = tiles_choice(cfg)
     if choice != TILE_FOLLOW and tile_shown(choice, cfg):
         return choice
     if here in TILE_WORN:
         return TILE_WORN[here]
-    return next((k for k, env in TILE_ENVS.items() if env == here and tile_shown(k, cfg)), TILE_DEFAULT)
+    return next((k for k, env in TILE_ENVS.items() if env == here and (tile_shown(k, cfg) or (k in OWN_TILES and tile_worn(k, cfg)))),
+                TILE_DEFAULT)
 
 
 def mine(cfg: dict) -> list:
@@ -270,27 +275,48 @@ def tile_shown(key: str, cfg: dict) -> bool:
     """Whether a tile style is offered just now: not a Plus one this copy lacks, a seasonal
     scenery's only in its week (today's, or the debug date's; any while debugging with no date, as
     its scenery is: seasons.offer_day), and one still in the works (a
-    draft's) not while the Debug tab pretends this is the base or Plus edition, which has none."""
-    if key in TILE_ENVS and plus_locked(TILE_ENVS[key], cfg):
-        return False
-    if TILE_SPECS.get(key, {}).get("draft") and debug_edition(cfg):
+    draft's) not while the Debug tab pretends this is the base or Plus edition, which has none.
+    One only its scenery wears (OWN_TILES) never is."""
+    if key in OWN_TILES or not tile_worn(key, cfg):
         return False
     spec = presets.by_key().get(TILE_SEASONS.get(key, ""))
     return spec is None or presets.unlocked(spec, offer_day(cfg))
 
 
+def tile_worn(key: str, cfg: dict) -> bool:
+    """Whether this copy can draw a style just now: not a Plus scenery's it lacks, nor one still in
+    the works while the Debug tab pretends this is the base or Plus edition."""
+    if key in TILE_ENVS and plus_locked(TILE_ENVS[key], cfg):
+        return False
+    return not (TILE_SPECS.get(key, {}).get("draft") and debug_edition(cfg))
+
+
 def tile_env(cfg: dict, here: str = "") -> str:
     """Whose tiles draw the heatmap (tile_style, while the scenery's environment is `here`):
     "flat", a shape (SHAPES), or the environment whose medium it is (Brush, Scanlines, a seasonal
-    scenery's)."""
+    scenery's; a style still in the works by its own key, its scenery never named here). The
+    settings' pictures draw by it (DRAWERS)."""
     style = tile_style(cfg, here)
-    return TILE_ENVS.get(style, style)
+    return style if TILE_SPECS.get(style, {}).get("draft") else TILE_ENVS.get(style, style)
+
+
+def tile_script(style: str) -> str | None:
+    """A scenery's own style's file (as "heatmap/scanlines.js", or "drafts/heatmap/slab.js" for one
+    still in the works), which the page doesn't load with its own scripts (catalog.SCRIPTS): for a
+    style with an `env` whose file this copy has, else None."""
+    if style not in TILE_ENVS:
+        return None
+    rel = f"{catalog.DRAFTS}/heatmap/{style}.js" if TILE_SPECS[style].get("draft") else f"heatmap/{style}.js"
+    return rel if rel not in catalog.SCRIPTS and os.path.exists(os.path.join(catalog.WEB, rel)) else None
 
 
 def page_look(cfg: dict, mood: dict) -> dict:
     """What web/calendar/ draws the heatmap with (data.calendar.look): `colours` (a colour, or two
-    for a ramp) in place of the scenery's own (None: the scenery's); `tile`, whose tiles ("flat", a shape such as "round", or an environment with calendarTile);
-    `files`, the scenery files they need beyond today's (the page loads them, the phone too);
+    for a ramp) in place of the scenery's own (None: the scenery's); `tile`, the tile style ("flat", a
+    shape such as "round", a scenery's own such as "scanlines");
+    `files`, the files they need beyond the page's own scripts and today's scenery: a scenery's own
+    style's (tile_script), loaded only while the heatmap is drawn in it, its scenery's or not (the
+    page loads them, the phone too);
     `exact`, colours you picked (yours, a ready ramp), shown as picked on either page (exact_steps);
     `flipLight`, a ready ramp run the other way on a light page, its deep colour the busiest (as
     Review Heatmap's light mode: its ramps run pale to deep on a dark page);
@@ -308,9 +334,9 @@ def page_look(cfg: dict, mood: dict) -> dict:
     elif choice.startswith(READY_PREFIX):
         env = scenery_ready_env(choice[len(READY_PREFIX):], cfg)
         colours = own_keys()[env] if env else None
-    tile = tile_env(cfg, here)
-    files = [f"envs/{tile}.js" for _ in [0] if tile not in ("flat", *SHAPES, here)
-             and os.path.exists(os.path.join(catalog.WEB, "envs", f"{tile}.js"))]
+    tile = tile_style(cfg, here)
+    script = tile_script(tile)
+    files = [script] if script else []
     corners = {k: v for k, v in TILE_SPECS.get(tile, {}).items() if k in ("smoothRadius", "smoothGrow")}
     return {"colours": colours, "exact": exact, "tile": tile, "files": files,
             "flipLight": flip, "darker": busier(cfg) == "darker", "gaps": gaps(cfg, here),
@@ -534,7 +560,7 @@ def faint_on(colours) -> list:
     return [page for page, bg in PAGES.items() if contrast(top, bg) < LOW_CONTRAST]
 
 
-# ---- the tiles' textures (calendar/tiles.js plainTile, and the sceneries' calendarTile) ----
+# ---- the tiles' textures (calendar/tiles.js plainTile, and the sceneries' own styles, web/heatmap/<key>.js) ----
 TILE = 9
 
 
@@ -559,7 +585,7 @@ def _plain(pal, edge, v, T):
 MOONLIGHT = (0xfa, 0xec, 0xaa)
 
 
-def _brush(pal, _edge, v, T):  # starry_night.js
+def _brush(pal, _edge, v, T):  # heatmap/brush.js
     n, tones, out = T - 1, [pal[0], pal[1], mix(pal[0], MOONLIGHT, 0.14), pal[0]], {}
     noise = lambda x, y, s: (hash_str(f"{s},{x},{y}") % 1000) / 1000  # noqa: E731
     for y in range(n):
@@ -578,7 +604,7 @@ def _brush(pal, _edge, v, T):  # starry_night.js
     return out
 
 
-def _scanlines(pal, _edge, _v, T):  # synthwave.js
+def _scanlines(pal, _edge, _v, T):  # heatmap/scanlines.js
     n = T - 1
     return {(x, y): mix(pal[0], (0, 0, 0), 0.2) if y % 2 else pal[0] for y in range(n) for x in range(n)}
 
@@ -586,7 +612,7 @@ def _scanlines(pal, _edge, _v, T):  # synthwave.js
 RIB_LIGHT = (255, 250, 235)
 
 
-def _pumpkin(pal, _edge, _v, T):  # pumpkin_patch.js
+def _pumpkin(pal, _edge, _v, T):  # heatmap/pumpkin.js
     n, out = T - 1, {}
     for y in range(n):
         for x in range(n):
@@ -599,7 +625,7 @@ def _pumpkin(pal, _edge, _v, T):  # pumpkin_patch.js
 ICE_SHINE = (255, 250, 235)
 
 
-def _ice(pal, _edge, v, T):  # frozen_market.js
+def _ice(pal, _edge, v, T):  # heatmap/ice.js
     n, out = T - 1, {}
     for y in range(n):
         for x in range(n):
@@ -612,7 +638,7 @@ def _ice(pal, _edge, v, T):  # frozen_market.js
 CHALK = (0xee, 0xf0, 0xe4)
 
 
-def _chalk(pal, _edge, v, T):  # chalkboard.js
+def _chalk(pal, _edge, v, T):  # heatmap/chalk.js
     n, out = T - 1, {}
     noise = lambda x, y, s: (hash_str(f"{s},{x},{y}") % 1000) / 1000  # noqa: E731
     gap = tuple(c * 0.72 for c in pal[0])
@@ -635,7 +661,7 @@ def _chalk(pal, _edge, v, T):  # chalkboard.js
 BAMBOO_JOINTS = ((2, 5), (4, 1), (1, 5), (5, 3))
 
 
-def _canes(pal, _edge, v, T):  # bamboo.js
+def _canes(pal, _edge, v, T):  # heatmap/canes.js
     n, s, out = T - 1, pal[0], {}
     scaled = lambda c, k: tuple(max(0, min(255, q * k)) for q in c)  # noqa: E731
     joints = BAMBOO_JOINTS[v % 4]
@@ -656,7 +682,7 @@ def _canes(pal, _edge, v, T):  # bamboo.js
 RIME = (236, 248, 246)
 
 
-def _rime(pal, _edge, v, T):  # misty_valley.js
+def _rime(pal, _edge, v, T):  # heatmap/rime.js
     n, out = T - 1, {}
     for y in range(n):
         for x in range(n):
@@ -667,7 +693,7 @@ def _rime(pal, _edge, v, T):  # misty_valley.js
     return out
 
 
-# a giraffe's hide (savanna_sundown.js hidePass, a drawn shape): each day four patches round its
+# a giraffe's hide (heatmap/giraffe.js hidePass, a drawn shape): each day four patches round its
 # middle, each point nudged by the day, parted by the coat's paler network, the hide's own edge
 # following the patches (each reaching its own way round its point: bulging out or biting in). The
 # Heatmap tab's sample is a day alone, each variant one of SAMPLE_DAYS, drawn as the heatmap draws
@@ -686,7 +712,7 @@ def coat_line(c, k: float = 1):
     return mix(c, COAT_DARK, COAT_LIFT * 0.8 * k) if pale else mix(c, COAT_LINE, COAT_LIFT * k)
 
 
-def _hide(pal, _edge, v, T):  # savanna_sundown.js
+def _hide(pal, _edge, v, T):  # heatmap/giraffe.js
     pts = []
     for k, (fx, fy) in enumerate(HIDE_POINTS):
         h = hash_str(f"hide|{k}|{SAMPLE_DAYS[v]}")
@@ -735,12 +761,12 @@ def _hide(pal, _edge, v, T):  # savanna_sundown.js
     return out
 
 
-# lagoon bubbles (coral_reef.js, calendarShaped): each day a round bubble, the sunlit ripple across
+# lagoon bubbles (heatmap/lagoon.js, `shaped`): each day a round bubble, the sunlit ripple across
 # it, its lower right rim in its edge and a glint at its upper left; a pixel bigger with no spaces
 BUBBLE_LIT, BUBBLE_GLINT = (255, 255, 255), 0.5
 
 
-def _bubbles(pal, edge, v, T):  # coral_reef.js
+def _bubbles(pal, edge, v, T):  # heatmap/lagoon.js
     S = T - 1 if T > 9 else T
     h = S / 2
     r2, lit, glint, out = h * h + 0.25, mix(pal[0], BUBBLE_LIT, 0.15), mix(pal[0], BUBBLE_LIT, BUBBLE_GLINT), {}
@@ -764,7 +790,7 @@ def _bubbles(pal, edge, v, T):  # coral_reef.js
 RINGS_DARK = (24, 8, 44)
 
 
-# heat haze (psychedelic.js hazeLive, a moving shape): the weeks seen through rippled glass. The
+# heat haze (heatmap/rings.js hazeLive, a moving shape): the weeks seen through rippled glass. The
 # Heatmap tab's sample is still: a day alone, as the heatmap draws it at its first moment with no
 # day round it (ink on all four sides), the day at column 2v, row 3 of the weeks, T pixels a day
 HAZE_RING, HAZE_INK, HAZE_BEND, HAZE_RISE = 0.2, 0.28, 0.8, 1.4
@@ -792,10 +818,72 @@ def _flat(pal, edge, _v, T):
     return {(x, y): edge if x == T - 1 or y == T - 1 else pal[0] for y in range(T) for x in range(T)}
 
 
-# each environment that draws its tiles in a medium of its own (calendarTile), and how
+# each environment whose style draws its tiles in a medium of its own (TILE_ENVS: web/heatmap/<key>.js), and how
+# the styles still in the works that draw tiles (web/drafts/heatmap/<key>.js), most worn only by their own scenery
+def _corners_off(x, y, n):
+    return x in (0, n - 1) and y in (0, n - 1)
+
+
+def _shingles(pal, _edge, v, T):  # drafts/heatmap/shingles.js
+    n, out = T - 1, {}
+    half, lite = n // 2, mix(pal[0], (255, 240, 220), 0.2)
+    for y in range(n):
+        for x in range(n):
+            if _corners_off(x, y, n):
+                continue
+            row = 0 if y < half else 1
+            yy, foot = (y - half, n - 1 - half) if row else (y, half - 1)
+            sx = (x + (n // 4 if row else 0) + (v & 1)) % max(2, half)
+            out[x, y] = mix(pal[1], (0, 0, 0), 0.15) if yy == foot else mix(pal[0], pal[1], 0.8) if sx == 0 else lite if yy == 0 else pal[0]
+    return out
+
+
+def _starlit(pal, edge, v, T):  # drafts/heatmap/starlit.js
+    n = T - 1
+    out = {(x, y): edge if y == n - 1 or x == n - 1 else pal[1 if (hash_str(f"{v},{x >> 1},{y >> 1}") & 3) == 0 else 0]
+           for y in range(n) for x in range(n) if not _corners_off(x, y, n)}
+    out[2 + (v * 3) % max(1, n - 4), 2 + (v * 5) % max(1, n - 4)] = mix(pal[0], (255, 255, 255), 0.45)
+    return out
+
+
+def _trampled(pal, _edge, v, T):  # drafts/heatmap/trampled.js
+    n = T - 1
+    out = {(x, y): pal[0] for y in range(n) for x in range(n)}
+    for x in range(1, n - 1, 2):
+        for y in range(n - (1 + (x * 7 + v * 3) % 3), n):
+            out[x, y] = mix(pal[0], (20, 14, 10), 0.18)
+    return out
+
+
+def _ripples(pal, edge, v, T):  # drafts/heatmap/ripples.js
+    n = T - 1
+    return {(x, y): pal[1] if x < n - 1 and y < n - 1 and (y + (x + v) // 3) % 4 == 1 else edge if y == n - 1 or x == n - 1 else pal[0]
+            for y in range(n) for x in range(n) if not _corners_off(x, y, n)}
+
+
+def _cactus(pal, edge, _v, T):  # drafts/heatmap/cactus.js
+    n = T - 1
+    return {(x, y): pal[1] if x % 3 == 1 and 0 < y < n - 1 and x < n - 1 else edge if y == n - 1 or x == n - 1 else pal[0]
+            for y in range(n) for x in range(n) if not _corners_off(x, y, n)}
+
+
+def _flutes(pal, _edge, _v, T):  # drafts/heatmap/flutes.js
+    n = T - 1
+    return {(x, y): mix(pal[0], (20, 10, 10), 0.16) if (x + (y >> 2)) % 3 == 2 else pal[0] for y in range(n) for x in range(n)}
+
+
+def _slab(pal, edge, _v, T):  # drafts/heatmap/slab.js
+    n, rim, side = T - 1, mix(pal[0], (255, 246, 228), 0.22), mix(pal[0], edge, 0.45)
+    return {(x, y): rim if y == 0 else pal[0] if y < n - 2 else side if y == n - 2 else edge
+            for y in range(T) for x in range(T) if not (x in (0, n) and y in (0, n))}
+
+
 DRAWERS = {"plain": _plain, "flat": _flat, "starry_night": _brush, "synthwave": _scanlines, "pumpkin_patch": _pumpkin, "frozen_market": _ice, "chalkboard": _chalk,
            "misty_valley": _rime, "bamboo": _canes, "savanna_sundown": _hide, "coral_reef": _bubbles,
-           "psychedelic": _haze}
+           "psychedelic": _haze,
+           # (a draft's by its own key: its scenery, in no edition, is never named here; tile_env)
+           "shingles": _shingles, "starlit": _starlit, "trampled": _trampled, "ripples": _ripples, "cactus": _cactus,
+           "flutes": _flutes, "slab": _slab}
 
 
 def tile_pixels(drawer: str, shade, v: int = 0) -> dict:

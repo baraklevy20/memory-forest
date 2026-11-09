@@ -61,7 +61,7 @@ function faceOf(t) {
 /* a tile's texture: two tones in 2x2 clusters and an edge, its four corners left off so it reads
  * soft and round at its size (2026-10-16: bevel, dither, a soft brush and an inset were tried; at
  * 1x only the corners showed). A scenery with a look of its own (Starry night's brushstrokes) draws
- * its tiles in it instead (`calendarTile(g, pal, edge, v, size)`: `pal` the shade and its darker
+ * its tiles in it instead (its style's `draw(g, pal, edge, v, size)`: `pal` the shade and its darker
  * tone, `v` which of the TILE_VARIANTS) */
 function plainTile(g, pal, edge, v, T) {
   // today's two-tone texture, its four corners left off, so a tile reads round at its size
@@ -110,18 +110,18 @@ function drawAnimal(g, spr, x0, y0, tint, outline) {
 /* the shades a view draws with: the scenery's for days studied, soil for days ahead: a day's
  * tile among them (or null for an empty one), the key's, and the hover's */
 function paletteOf(H, sp, paper) {
-  // the Heatmap tab's look (heatmap_look.page_look): another scenery's tiles (`tile`: "plain", a
-  // style of its own, or a scenery that draws its own, its file loaded with today's); missing, the
-  // scenery's own
+  // the Heatmap tab's look (heatmap_look.page_look): its tiles (`tile`, a style, web/heatmap/<key>.js:
+  // a scenery's own among them loaded only while it is drawn); missing, or one this page lacks, plainTile's
   const L = H.look || {};
-  const drawn = AF.heatmapTiles[L.tile], by = L.tile === 'plain' || drawn ? null : L.tile && AF.ENVS[L.tile] && AF.ENVS[L.tile].calendarTile ? L.tile : sp.mood.special;
-  const dark = paper.dark, S = shades(sp, paper, L), draw = by && (AF.ENVS[by] || {}).calendarTile;
+  const drawn = AF.heatmapTiles[L.tile];
+  const dark = paper.dark, S = shades(sp, paper, L);
   // (a shape with spaces and smooth corners whose style gives a `smoothRadius` (its .json, in the look), Round: each day a
   // tile of its own, as round as its shape cut in pixels but its edge drawn at the screen's
   // resolution, antialiased, in Flat's one colour: under sharpen with that radius)
   const gapless = L.gaps === false, roundTile = !!(drawn && L.smoothRadius && L.smooth && !gapless);
+  // (a style's `shaped`: its tiles of a shape of their own)
   const flat = { name: 'flat', draw: AF.heatmapTiles.flat.draw }, look = roundTile ? flat
-    : drawn && drawn.draw ? { name: L.tile, draw: drawn.draw } : draw && { name: by, draw };  // (a scenery's own tiles, when it draws them)
+    : drawn && drawn.draw ? { name: L.tile, draw: drawn.draw, shaped: !!drawn.shaped } : null;
   const shapes = isShape(L.tile) && !roundTile ? L.tile : null;
   // the soil faded into the page, so the days ahead sit behind the days you studied
   const fade = FADE, till = dark ? P.tillDark : P.till, edges = dark ? P.tillDarkEdge : P.tillEdge;
@@ -150,8 +150,8 @@ function paletteOf(H, sp, paper) {
   // each day keeps its square: at full strength, hatching's dropped pixels broke it up, and a ring
   // would read as a rest day's, 2026-10-19; Flat's are its plain squares)
   const blankPal = toned(blankOn(paper), dark), BLANK_TEXTURE = 0.5;
-  // (a tile of a shape of its own, `calendarShaped`: the grey only inside that shape, the same mix)
-  const shaped = !!(look && look.name === by && AF.ENVS[by] && AF.ENVS[by].calendarShaped);
+  // (a tile of a shape of its own, `shaped`: the grey only inside that shape, the same mix)
+  const shaped = !!(look && look.shaped);
   const blankLook = look && { name: look.name + '|blank', draw: (g, p, e, v, T) => {
     if (shaped) {
       look.draw(g, p, e, v, T);
@@ -217,8 +217,14 @@ function shapedRing(g, inside, c, R) {
 
 /* The heatmap's tile styles (the Heatmap tab's Tiles), each in a file of its own: web/heatmap/<key>.js
  * (and .json, what the tab says of it), or for one still in the works, web/drafts/ (this copy only).
- * A style registers itself in AF.heatmapTiles[key] as one of:
- *  - { draw(g, pal, edge, v, T) }: each day a tile of its own, drawn as plainTile is (Flat);
+ * A scenery's own style (its .json's `env`, the scenery it comes with: Brush, Scanlines, the seasonal
+ * ones; with `own`, one only that scenery wears, never offered) is not among the page's scripts
+ * (catalog.SCRIPTS): the page loads its file only while the heatmap is drawn in it
+ * (heatmap_look.page_look's `files`), and an edition without that scenery ships without it. A
+ * scenery never draws tiles itself. A style registers itself in AF.heatmapTiles[key] as one of:
+ *  - { draw(g, pal, edge, v, T), shaped }: each day a tile of its own, drawn as plainTile is (Flat;
+ *    `shaped`, Lagoon water's round tiles: its empty days, today's frame and a rest day's ring follow
+ *    its shape);
  *  - { fields, prepare(ctx), paint(ctx, c, x, y, edge, i, state) }: a joined shape (Round, Contours):
  *    the days of each field (`fields`: the days studied 'grass', the days ahead 'soil', the empty
  *    days 'blank') side by side are one shape, the gutters between them filled while there are no
@@ -228,7 +234,7 @@ function shapedRing(g, inside, c, R) {
  *    while Timeline's months, each in columns of their own, stay apart (2026-10-14);
  *  - { pass(ctx) }: draws the days itself, and gives back each pixel's day (an Int32Array, -1
  *    none) for the pointer, or null.
- * A scenery's own tiles (Brush, Scanlines, the seasonal ones) are its `calendarTile` instead. */
+ */
 AF.heatmapTiles = AF.heatmapTiles || {};
 
 const isShape = k => { const t = AF.heatmapTiles[k]; return !!t && !t.draw; };

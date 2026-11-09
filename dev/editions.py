@@ -63,6 +63,16 @@ def scenery(name: str) -> dict:
             "shown": shown}
 
 
+def style_env(key: str) -> str | None:
+    """The scenery a tile style is (web/heatmap/<key>.json's "env"), or None: a style anyone has."""
+    try:
+        with open(os.path.join(ADDON, "web", "heatmap", f"{key}.json"), encoding="utf-8") as f:
+            spec = json.load(f)
+    except (OSError, ValueError):
+        return None
+    return spec.get("env") if isinstance(spec, dict) else None
+
+
 def keeps(rel: str, keep: dict) -> bool:
     """Whether a path relative to the add-on belongs in an edition with this scenery."""
     parts = rel.replace(os.sep, "/").split("/")
@@ -71,6 +81,11 @@ def keeps(rel: str, keep: dict) -> bool:
         return False
     if len(parts) == 3 and parts[0] == "web" and parts[1] in SCENERY:
         return os.path.splitext(parts[2])[0] in keep[parts[1]]
+    # a scenery's own tile style (web/heatmap/<key>.json's "env") ships its drawing (.js) only with
+    # that scenery; its .json goes everywhere, so the Heatmap tab can show it locked
+    if len(parts) == 3 and parts[:2] == ["web", "heatmap"] and parts[2].endswith(".js"):
+        env = style_env(os.path.splitext(parts[2])[0])
+        return env is None or env in keep["envs"]
     # a preset's animated preview (docs/animated/<preset>.gif) goes wherever any edition has
     # the preset, so the public docs can show what Plus has now; only drafts stay behind
     if len(parts) == 3 and parts[:2] == ["docs", "animated"]:

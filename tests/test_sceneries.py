@@ -83,6 +83,52 @@ class EditionTests(unittest.TestCase):
                 for rel in catalog.scenery_files(mood):
                     self.assertTrue(editions.keeps(f"web/{rel}", keep), f"{name}: {p.key} draws with web/{rel}, left out")
 
+    def test_a_scenery_s_own_tile_style_ships_its_drawing_only_with_that_scenery(self):
+        # (its .json everywhere, so the base's Heatmap tab can show a Plus one locked; its .js, the
+        # drawing, only where its scenery is: a Plus style's code must not be in the base)
+        styles = {n[:-5]: editions.style_env(n[:-5]) for n in os.listdir(os.path.join(catalog.WEB, "heatmap")) if n.endswith(".json")}
+        base, plus = editions.scenery("base"), editions.scenery("plus")
+        owned = {k: env for k, env in styles.items() if env}
+        self.assertTrue(any(env in base["envs"] for env in owned.values()), "no base scenery has a style of its own")
+        self.assertTrue(any(env not in base["envs"] for env in owned.values()), "no Plus-only scenery has a style of its own")
+        for key, env in owned.items():
+            self.assertTrue(os.path.exists(os.path.join(catalog.WEB, "heatmap", f"{key}.js")), f"{key}.json names {env} but has no {key}.js")
+            self.assertNotIn(f"heatmap/{key}.js", catalog.SCRIPTS, f"{key}.js is a scenery's: loaded only while drawn in it")
+            for name, keep in (("base", base), ("plus", plus)):
+                self.assertTrue(editions.keeps(f"web/heatmap/{key}.json", keep), f"{name} leaves out {key}.json")
+                self.assertEqual(editions.keeps(f"web/heatmap/{key}.js", keep), env in keep["envs"], f"{name}: web/heatmap/{key}.js ({env})")
+        for key, env in styles.items():  # (one anyone has ships everywhere)
+            if not env and os.path.exists(os.path.join(catalog.WEB, "heatmap", f"{key}.js")):
+                self.assertTrue(editions.keeps(f"web/heatmap/{key}.js", base), key)
+
+    def test_a_draft_scenery_s_tile_style_is_a_draft_too(self):
+        # (a scenery in no edition keeps its tiles in web/drafts/heatmap/, never shipped nor exported:
+        # in web/heatmap/ its .json would go everywhere, naming it)
+        shipped = set().union(*(editions.scenery(name)["envs"] for name in self.eds))
+        for folder, draft in ((os.path.join(catalog.WEB, "heatmap"), False), (os.path.join(catalog.WEB, catalog.DRAFTS, "heatmap"), True)):
+            for n in sorted(os.listdir(folder)) if os.path.isdir(folder) else ():
+                if not n.endswith(".json"):
+                    continue
+                with open(os.path.join(folder, n), encoding="utf-8") as f:
+                    env = json.load(f).get("env")
+                if env and not draft:
+                    self.assertIn(env, shipped, f"web/heatmap/{n} names {env}, which no edition ships: web/drafts/heatmap/")
+                if env:
+                    self.assertTrue(os.path.exists(os.path.join(folder, n[:-5] + ".js")), f"{n} names {env} but has no .js")
+                if draft:
+                    for name in self.eds:
+                        self.assertFalse(editions.keeps(f"web/{catalog.DRAFTS}/heatmap/{n}", editions.scenery(name)), f"{name} ships the draft {n}")
+
+    def test_no_scenery_draws_its_own_tiles(self):
+        # (every tile style is a file of its own, web/heatmap/ or web/drafts/heatmap/)
+        for kind in editions.SCENERY:
+            for n in sorted(os.listdir(os.path.join(catalog.WEB, kind))):
+                if n.endswith(".js"):
+                    with open(os.path.join(catalog.WEB, kind, n), encoding="utf-8") as f:
+                        text = f.read()
+                    for word in ("calendarTile", "calendarShaped", "heatmapTiles"):
+                        self.assertNotIn(word, text, f"web/{kind}/{n}")
+
     def test_no_edition_ships_the_drafts(self):
         for name in self.eds:
             keep = editions.scenery(name)

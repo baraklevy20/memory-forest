@@ -186,7 +186,7 @@ let drawn = '', layouts = 0;
  * collection's media (the note names them), loaded the first time a scene needs it - the
  * one file the card loads holds everything else. */
 function scenery(mood, calendar) {
-  // (and, with the calendar shown, the files the heatmap's look borrows from another scenery: its tiles)
+  // (and, with the calendar shown, the files the heatmap's look needs: a scenery's own tile style's)
   const look = (calendar && note.calendar && note.calendar.look && note.calendar.look.files) || [];
   return [['envs', mood.special], ['landscapes', mood.landscape], ['landmarks', mood.landmark]]
     .map(([kind, key]) => key && (note.parts || {})[`${kind}/${key}.js`])

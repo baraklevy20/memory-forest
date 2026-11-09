@@ -391,33 +391,9 @@ function buildCypress(env) {
   return cv;
 }
 
-/* the study calendar's tiles laid on as the painted sky is: rows of short strokes in three tones
- * (the shade, its darker tone and a touch of moonlight), offset row to row, a stroke's end now and
- * then short of the tile's side */
-const MOONLIGHT = hex('#faecaa');
-const tileNoise = (x, y, s) => (hashStr(s + ',' + x + ',' + y) % 1000) / 1000;
-function calendarTile(g, pal, edge, v, T) {
-  // (its own darker tone and more moonlight than the page's shades give: on the paler 2026-10-14
-  // shades the strokes otherwise all but vanished)
-  const n = T - 1, tones = [pal[0], mix(pal[0], [16, 16, 16], 0.16), mix(pal[0], MOONLIGHT, 0.22), pal[0]];  // (the last row and column: the gap)
-  for (let y = 0; y < n; y++) {
-    for (let x = (y + v) % 2 ? -1 : -2 - (v & 1), k = 0; x < n; k++) {
-      const len = tileNoise(x, y, v) < 0.5 ? 3 : 4, c = tones[(y * 3 + k + v) % 4];
-      for (let i = 0; i < len; i++) {
-        const px = x + i;
-        if (px < 0 || px >= n) continue;
-        if ((px === 0 && i === 0 || px === n - 1 && i === len - 1) && tileNoise(px, y, 9 + v) < 0.5) continue;
-        g.fillStyle = rgb(c); g.fillRect(px, y, 1, 1);
-      }
-      x += len;
-    }
-  }
-}
-
 AF.env('starry_night', {
   calendar: '#3a5aa8',  // the study calendar in the painting's night blue (its cypresses' green said nothing of it)
   calendarDay: ['#3c7cc8', '#5aa88c'],  // and by day, from the daylit sky's blue to the trees' green (calendar/shades.js hourOf)
-  calendarTile,
   pals: { rounds: ROUNDS, pine: CYPRESS, bark: BARK, leaf: hex('#2f7a68'), leafL: hex('#5aa88c'), stem: hex('#1e5552') },
   flipLight: false,
   // the far forest stops at two bands, so a big forest leaves the painted sky its room

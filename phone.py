@@ -335,7 +335,7 @@ def _scripts(col, days: list, extra=()) -> tuple:
         if old:
             col.media.trash_files(old)
         _written = (here, frozenset(files))
-    # the note names only the days', and those the heatmap's look borrows (heatmap_look.page_look)
+    # the note names only the days', and those the heatmap's look needs (heatmap_look.page_look: its tiles)
     return name, {rel: names[rel] for rel in phone_data.scenery(days, web) + list(extra) if rel in names}
 
 

@@ -88,22 +88,8 @@ AF.landmark('misty_peak', {
   },
 });
 
-/* the study calendar's tiles rimed like the crowns: a broken line of frost along the top edge and
- * a few crystals of it below, on the shade's own face, its corners left off as the plain tiles' are */
-const RIME = [236, 248, 246];
-function calendarTile(g, pal, edge, v, T) {
-  const n = T - 1;  // (the last row and column: the gap between tiles)
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-    if ((x === 0 || x === n - 1) && (y === 0 || y === n - 1)) continue;
-    const frost = y === 0 ? ((x + v) % 3 === 2 ? 0.25 : 0.62) : y === 1 && (x + v) % 4 === 1 ? 0.32 : 0;
-    g.fillStyle = AF.u.rgb(frost ? AF.u.mix(pal[0], RIME, frost) : pal[0]);
-    g.fillRect(x, y, 1, 1);
-  }
-}
-
 AF.env('misty_valley', {
   // (its own peak, above)
-  calendarTile,
   deepBands: 3,  // the oldest forest stays low enough to leave the peak and the sun their sky
   prepare(env) { if (env.mood.landmark === 'peak') env.landmarkKey = 'misty_peak'; },
 

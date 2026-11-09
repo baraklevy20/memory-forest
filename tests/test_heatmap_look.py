@@ -63,8 +63,8 @@ class ChoiceTests(unittest.TestCase):
         starry, synth = {"special": "starry_night"}, {"special": "synthwave"}
         # The public/base copy lacks Starry Night: its tiles fall back to Flat.
         has_starry = os.path.isfile(os.path.join(ADDON_DIR, "web", "envs", "starry_night.js"))
-        self.assertEqual(HL.page_look({}, starry)["tile"], "starry_night" if has_starry else "flat")
-        self.assertEqual(HL.page_look({}, synth)["tile"], "synthwave")
+        self.assertEqual(HL.page_look({}, starry)["tile"], "brush" if has_starry else "flat")
+        self.assertEqual(HL.page_look({}, synth)["tile"], "scanlines")
         self.assertEqual(HL.page_look({}, GOLDEN)["tile"], "flat")  # (a scenery with no style of its own)
         self.assertEqual(HL.page_look({"calendar_tiles": "flat"}, starry)["tile"], "flat")  # (chosen: kept)
         self.assertEqual(HL.tile_style({"calendar_tiles": "scenery"}, "starry_night"), "brush" if has_starry else "flat")
@@ -77,8 +77,13 @@ class ChoiceTests(unittest.TestCase):
         self.assertIsNone(HL.page_look({"debug": True, "debug_tile_gap": 4}, GOLDEN)["gap"])  # (no debug setting)
 
     def test_tiles(self):
-        self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, GOLDEN)["files"], ["envs/synthwave.js"])
-        self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, {"special": "synthwave"})["files"], [])
+        # (a scenery's own style is its key, its file loaded only while the heatmap is drawn in it: on
+        # another scenery, never that scenery's file; on its own, followed or picked, still its file)
+        self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, GOLDEN)["tile"], "scanlines")
+        self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, GOLDEN)["files"], ["heatmap/scanlines.js"])
+        self.assertEqual(HL.page_look({"calendar_tiles": "scanlines"}, {"special": "synthwave"})["files"], ["heatmap/scanlines.js"])
+        self.assertEqual(HL.page_look({}, {"special": "synthwave"})["files"], ["heatmap/scanlines.js"])
+        self.assertEqual(HL.page_look({"calendar_tiles": "flat"}, {"special": "synthwave"})["files"], [])
         for plain in ("flat", "round", "contours"):
             look = HL.page_look({"calendar_tiles": plain}, GOLDEN)
             self.assertEqual((look["tile"], look["files"]), (plain, []))
@@ -150,16 +155,36 @@ class TileFileTests(unittest.TestCase):
         web = os.path.join(ADDON_DIR, "web")
         scripts = set(addon.catalog.SCRIPTS) | set(addon.catalog.draft_scripts())
         for key, spec in HL.TILE_SPECS.items():
-            self.assertTrue(spec.get("label") and spec.get("tip"), key)
+            # (one only its scenery wears is never offered: no words for the tab)
+            self.assertTrue(bool(spec.get("label") and spec.get("tip")) != bool(spec.get("own")), key)
             if spec.get("follow"):  # (Scenery: no drawing of its own, the scenery's)
                 continue
-            if spec.get("env"):
-                self.assertTrue(os.path.exists(os.path.join(web, "envs", f"{spec['env']}.js")) or HL.plus_locked(spec["env"], {}), key)
+            if spec.get("env"):  # (a scenery's own: its file of its own, loaded only while drawn in it, page_look)
+                rel = f"drafts/heatmap/{key}.js" if spec.get("draft") else f"heatmap/{key}.js"
+                if HL.plus_locked(spec["env"], {}) and not os.path.exists(os.path.join(web, rel)):
+                    continue  # (a copy without its scenery ships without it: dev/editions.py)
+                self.assertNotIn(rel, addon.catalog.SCRIPTS, f"{key}.js is loaded only while the heatmap is drawn in it")
+                self.assertEqual(HL.tile_script(key), rel, key)
             else:  # (a style that draws itself has its script loaded, and it registers under its key)
                 rel = next((s for s in scripts if s.endswith(f"heatmap/{key}.js")), None)
                 self.assertIsNotNone(rel, f"{key}: no web/heatmap/{key}.js")
-                with open(os.path.join(web, rel), encoding="utf-8") as f:
-                    self.assertIn(f"AF.heatmapTiles.{key} =", f.read(), key)
+            with open(os.path.join(web, rel), encoding="utf-8") as f:
+                self.assertIn(f"AF.heatmapTiles.{key} =", f.read(), key)
+
+    def test_a_style_only_its_scenery_wears_is_never_offered_and_drawn_on_it(self):
+        if not HL.OWN_TILES:
+            self.skipTest("no scenery here has tiles only it wears")
+        for key in HL.OWN_TILES:
+            env = HL.TILE_ENVS[key]
+            self.assertNotIn(key, HL.TILES + HL.SCENERY_TILES + HL.BASIC_TILES, key)
+            self.assertFalse(HL.tile_shown(key, {"debug": True}), key)
+            self.assertEqual(HL.tiles_choice({"calendar_tiles": key}), HL.TILE_FOLLOW, key)  # (never kept as a choice)
+            look = HL.page_look({"debug": True}, {"special": env})
+            self.assertEqual((look["tile"], look["files"]), (key, [HL.tile_script(key)]), key)
+            self.assertEqual(HL.page_look({"debug": True, "calendar_tiles": key}, GOLDEN)["tile"], "flat", key)
+        for env, key in HL.TILE_WORN.items():  # (and a scenery that wears another's only-its-own style)
+            if key in HL.OWN_TILES:
+                self.assertEqual(HL.page_look({"debug": True}, {"special": env})["tile"], key, env)
 
     def test_a_style_s_smooth_corners_go_to_the_page_from_its_file(self):
         # (round.json holds them alone; calendar/tiles.js reads them from the look)

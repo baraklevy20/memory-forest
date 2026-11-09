@@ -1,5 +1,6 @@
 {
   "label": "Lanterns",
+  "tiles": "round",
   "preset": {
     "label": "Lanterns at night",
     "order": 90,

@@ -71,14 +71,22 @@ def scenery(days: list, web: str = catalog.WEB) -> list:
 
 
 def all_scenery(web: str = catalog.WEB) -> list:
-    """Every scenery file this copy ships (as "envs/aurora.js")."""
+    """Every scenery file this copy ships (as "envs/aurora.js"), and every tile style's that isn't
+    in the bundle (a scenery's own, as "heatmap/scanlines.js", or "drafts/heatmap/slab.js" in this
+    copy: heatmap_look.page_look's `files`)."""
+    styles = []
+    for rel in ("heatmap", f"{catalog.DRAFTS}/heatmap"):
+        folder = os.path.join(web, rel)
+        styles += [f"{rel}/{n}" for n in sorted(os.listdir(folder)) if n.endswith(".js")
+                   and f"{rel}/{n}" not in catalog.SCRIPTS] if os.path.isdir(folder) else []
     return [f"{kind}/{key}.js" for kind in catalog.KINDS for key in catalog.entries(kind)
-            if os.path.exists(os.path.join(web, kind, f"{key}.js"))]
+            if os.path.exists(os.path.join(web, kind, f"{key}.js"))] + styles
 
 
 def part_name(rel: str, text: bytes) -> str:
     """A scenery file's name in the collection's media, named after what is in it too."""
-    kind, key = rel[:-len(".js")].split("/")
+    kind, key = rel[:-len(".js")].rsplit("/", 1)
+    kind = kind.replace("/", "-")  # (a draft's tile style: drafts/heatmap)
     return f"{SCRIPT_PREFIX}{kind}-{key}-{hashlib.sha1(text).hexdigest()[:10]}.js"
 
 
