@@ -49,7 +49,7 @@ def record(key: str) -> tuple:
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "page.html")
         with open(path, "w", encoding="utf-8") as f:
-            f.write(make_gif.page(cfg, thumbnails.TREES, frames, make_gif.HIDE))
+            f.write(make_gif.page(cfg, thumbnails.trees(key), frames, make_gif.HIDE))
         dom = subprocess.run([CHROME, "--headless=new", "--disable-gpu", f"--window-size={PANEL + 40},600",
                               "--virtual-time-budget=60000", "--dump-dom", "file://" + path],
                              capture_output=True, text=True, timeout=make_gif.CHROME_TIMEOUT_SECS).stdout

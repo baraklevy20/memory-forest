@@ -56,12 +56,12 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         const lit = litDays.has(p.it.ago);
         if (!lit && !boxes.length) continue;
         const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
-        const x = Math.round(p.x - spr.width / 2), y = Math.round(p.y - spr.height + 1), box = [x, y, x + spr.width, y + spr.height];
+        const x = Math.round(p.x - spr.width / 2), y = Math.round(p.y - spr.height + 1), hb = p.pose && p.hitBox, box = hb ? [hb.x0, hb.y0, hb.x1, hb.y1] : [x, y, x + spr.width, y + spr.height];
         if (!lit && !boxes.some(b => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) continue;
         const [cv, cg] = AF.u.layer(spr.width, spr.height);
         cg.drawImage(spr, 0, 0);
         if (!lit) { cg.globalCompositeOperation = 'source-atop'; cg.fillStyle = `rgba(0,0,0,${dim})`; cg.fillRect(0, 0, cv.width, cv.height); }
-        trees.push({ cv, x, y });
+        trees.push({ cv, x, y, p });
         if (lit) boxes.push(box);
       }
       litTrees = { env, trees, dim };
@@ -69,8 +69,9 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     g.save();
     g.fillStyle = `rgba(0,0,0,${litTrees.dim})`;
     g.fillRect(0, 0, env.W, env.H);
-    for (const { cv, x, y } of litTrees.trees) {
-      if (env.flipLight) { g.save(); g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); g.restore(); }
+    for (const { cv, x, y, p } of litTrees.trees) {
+      if (p.pose) posed(g, p, cv);  // (a tree the scenery drew turned: `pose`, its foot and turn)
+      else if (env.flipLight) { g.save(); g.translate(x + cv.width, y); g.scale(-1, 1); g.drawImage(cv, 0, 0); g.restore(); }
       else g.drawImage(cv, x, y);
     }
     g.restore();
@@ -83,7 +84,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       const p = env.placed.find(p => !p.it.pond && p.it.ago === linkedAgo);
       if (p || deepLinked(env)) return p || null;
     }
-    return hover && hover.p && !hover.p.hitBox && env.placed.includes(hover.p) ? hover.p : null;
+    return hover && hover.p && (!hover.p.hitBox || hover.p.pose) && env.placed.includes(hover.p) ? hover.p : null;  // (a tree drawn elsewhere is outlined only where its `pose` says it is)
   }
   // the heatmap points at a day merged into the distant canopy
   function deepLinked(env) {
@@ -104,7 +105,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     const env = current();
     drawLit(g, env);
     const p = marked(env);
-    if (p) { marker(g, p.x, litDays ? lift(g, env, p, env.t) : liftedTop !== null ? liftedTop : p.y); return; }
+    if (p) { marker(g, p.pose && p.hitBox ? (p.hitBox.x0 + p.hitBox.x1) / 2 : p.x, litDays ? lift(g, env, p, env.t) : liftedTop !== null ? liftedTop : p.y); return; }
     if (env && deepLinked(env)) {
       const deep = env.deep;
       g.save(); g.fillStyle = '#fff8e0'; g.globalAlpha = 0.6;
@@ -126,7 +127,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     if (!lifted || lifted.env !== env || lifted.p !== p) {
       const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
       const [tree, tg] = AF.u.layer(spr.width, spr.height);
-      if (env.flipLight) { tg.translate(spr.width, 0); tg.scale(-1, 1); }
+      if (env.flipLight && !p.pose) { tg.translate(spr.width, 0); tg.scale(-1, 1); }
       tg.drawImage(spr, 0, 0);
       lifted = { env, p, tree, x: Math.round(p.x - spr.width / 2), y: Math.round(p.y - spr.height + 1), ring: null };
     }
@@ -151,9 +152,23 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       for (let i = 3; i < d.length; i += 4) if (d[i]) { top = Math.floor(i / 4 / W); break; }
       L.ring = { cv: ring, ox, oy, top: oy + top };
     }
+    g.save();
+    if (p.pose) {  // a tree the scenery drew turned: its foot at pose.x, pose.y, turned by pose.ang, mirrored with pose.flip
+      const q = p.pose;
+      g.translate(q.x, q.y); g.rotate(q.ang); if (q.flip) g.scale(-1, 1);
+      g.translate(-Math.floor(L.tree.width / 2) - L.x, -L.tree.height + 1 - L.y);
+    }
     g.drawImage(L.tree, L.x, L.y);
     g.drawImage(L.ring.cv, L.ring.ox, L.ring.oy);
-    return L.ring.top;
+    g.restore();
+    return p.pose && p.hitBox ? p.hitBox.y0 - 1 : L.ring.top;
+  }
+  // a copy of a tree's sprite (cv, drawn upright at x, y) where the scenery drew it turned:
+  // its foot at pose.x, pose.y, turned by pose.ang, mirrored with pose.flip
+  function posed(g, p, cv) {
+    const q = p.pose;
+    g.save(); g.imageSmoothingEnabled = false; g.translate(q.x, q.y); g.rotate(q.ang); if (q.flip) g.scale(-1, 1);
+    g.drawImage(cv, -Math.floor(cv.width / 2), -cv.height + 1); g.restore();
   }
   function marker(g, cx, top) {
     const x = Math.round(cx), y = Math.round(top - 3);
@@ -181,7 +196,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         continue;
       }
       const b = boxOf(env, p);
-      if (p.hitBox || !AF.pixel.sprite) { if (inBox(b)) return { p, b }; continue; }
+      if (p.hitBox || !AF.pixel.sprite) { if (b.hit ? b.hit(mx, my) : inBox(b)) return { p, b }; continue; }  // (a turned tree's own pixels: its `hit`)
       if (drawnAt(env, p, mx, my, 0)) return { p, b };
     }
     // nothing drawn right there: a tree drawn within a pixel or two (a sapling is thin)

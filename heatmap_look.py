@@ -67,6 +67,8 @@ BASIC_TILES = tuple(k for k in TILES if k != TILE_FOLLOW and k not in SCENERY_TI
 TILE_ENVS = {k: v["env"] for k, v in TILE_SPECS.items() if v.get("env")}
 # the sceneries that wear a style anyone can pick as their own (its file's "sceneries": Round on Lanterns)
 TILE_WORN = {env: k for k, v in TILE_SPECS.items() for env in v.get("sceneries", ())}
+# (or its own JSON's "tiles", for a scenery whose name the style's file mustn't give: a private one)
+TILE_WORN.update({env: spec["tiles"] for env, spec in catalog.entries("envs").items() if spec.get("tiles") in TILE_SPECS})
 # (Scenery has no style of its own: it is the scenery's, tile_style)  # whose calendarTile draws them
 TILE_SEASONS = {k: v["season"] for k, v in TILE_SPECS.items() if v.get("season")}  # by the preset whose week they come in
 # each style's spaces between the days and smooth corners (drawn at the screen's resolution):

@@ -68,6 +68,16 @@ def framing() -> dict:
 FRAMING = framing()
 
 
+def trees(key: str) -> int:
+    """How many trees the preset's picture is drawn with: TREES, unless its JSON asks for more as
+    "pictureTrees" (a scenery whose sky is open in a young forest and closes as it grows)."""
+    for env, spec in catalog.entries("envs").items():
+        preset = spec.get("preset") or {}
+        if preset.get("key", env) == key and preset.get("pictureTrees"):
+            return int(preset["pictureTrees"])
+    return TREES
+
+
 def thumbnail(png: bytes, key: str, width: int, height: int) -> Image.Image:
     scene = Image.open(io.BytesIO(png)).convert("RGB")
     if scene.width < width or scene.height < height:
@@ -83,7 +93,7 @@ def main() -> None:
     unknown = wanted - {p.key for p in chosen}
     if unknown:
         raise SystemExit(f"no preset {', '.join(sorted(unknown))}")
-    cases = [(p.key, dict(p.values()), TREES) for p in chosen]
+    cases = [(p.key, dict(p.values()), trees(p.key)) for p in chosen]
     failed = []
     for out, width, height, panel in SIZES:
         os.makedirs(out, exist_ok=True)
