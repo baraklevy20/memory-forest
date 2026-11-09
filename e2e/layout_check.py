@@ -43,6 +43,7 @@ MID = 900  # (the deck list is held at 400 px, whatever the fonts: so MID has no
 CARDS = [(i, 10, i % 90) for i in range(1, 400)]  # (a forest, and three months of heatmap)
 FOREST_W = 800  # the Forest width (config.json's max_width)
 CARD_REACH = 36  # css px Background's heatmap card reaches past it each side (core.js CARD_REACH)
+SIDE_GAP = 32  # css px between the list's card and a side column's (core.js SIDE_GAP)
 FIXED_W = 680  # the heatmap's Fixed width (calendar/base.js FIXED_W); Follow the forest and Full width are 85% of the forest and of the room
 # Anki's deck list, in its own markup (a header, decks, the drag row), with made-up decks
 DECKS = [("Default", 0), ("German", 0), ("Verbs", 1), ("Vocabulary", 1), ("Japanese", 0), ("Kanji", 1), ("Geography", 0)]
@@ -132,7 +133,7 @@ def expect(cfg: dict, wide: bool, got: dict) -> list:
     fails, lay, on = [], state().layout(cfg), shown(cfg)
     side, first_ = lay["forest"] if lay["forest"] in ("left", "right") else lay["heatmap"], lay["first"]
     if lay["forest"] == "behind" and on["forest"]:
-        return behind(cfg, got)
+        return behind(cfg, wide, got)
     if not all(on.values()):
         return alone(cfg, wide, got)
 
@@ -177,11 +178,13 @@ def expect(cfg: dict, wide: bool, got: dict) -> list:
     return fails
 
 
-def behind(cfg: dict, got: dict) -> list:
+def behind(cfg: dict, wide: bool, got: dict) -> list:
     """What is wrong with Background: the forest the window's width, its foot on the window's foot,
     behind the page (z-index -1, under our row's stacking); the heatmap, if shown, under the deck list at
-    its Width in the window's room (as a row of its own under the list), in its middle; Anki's line
-    under the list and the heatmap (the forest stands behind them all, so not under it)."""
+    its Width in the window's room (as a row of its own under the list), in its middle - or, Heatmap:
+    Beside it in a wide window, beside the list on its side, level with it, their cards SIDE_GAP apart and
+    the two in the window's middle; Anki's line under the list and the heatmap (the forest stands behind
+    them all, so not under it)."""
     t, s, c, win = got["table"], got["scene"], got["cal"], got["window"]
     fails = []
     if not got["behind"] or not got["arranged"]:
@@ -195,7 +198,20 @@ def behind(cfg: dict, got: dict) -> list:
     if abs(s[3] - got["scrollY"] - got["viewH"]) > 1 or s[1] - got["scrollY"] > 1:
         fails.append(f"the forest's foot should be on the window's foot ({got['viewH']}), its top at or over the window's: {s}")
     lowest = t[3]
-    if shown(cfg)["heatmap"]:
+    side = state().layout(cfg)["heatmap"]
+    if shown(cfg)["heatmap"] and wide and side in ("left", "right"):
+        # (its card reaches CARD_REACH past it each side: the cards' edges, SIDE_GAP apart)
+        card = [c[0] - CARD_REACH, c[1], c[2] + CARD_REACH, c[3]]
+        gap = card[0] - t[2] if side == "right" else t[0] - card[2]
+        if abs(gap - SIDE_GAP) > 2:
+            fails.append(f"the heatmap's card should stand {side} of the deck list, {SIDE_GAP} px from it: {gap} px ({c}, the list {t})")
+        if c[1] > t[1] + 40:
+            fails.append(f"the heatmap should start level with the deck list: {c}, the list {t}")
+        both = [min(t[0], card[0]), max(t[2], card[2])]
+        if abs((both[0] + both[1]) / 2 - win / 2) > 2:
+            fails.append(f"the deck list and the heatmap should stand in the window's middle ({win / 2}): {both}")
+        lowest = max(lowest, c[3])
+    elif shown(cfg)["heatmap"]:
         if c[1] < t[3] - 1:
             fails.append(f"the heatmap should be under the deck list: {c}, the list {t}")
         # (its room the window's, less its card's reach each side: core.js CARD_REACH)
