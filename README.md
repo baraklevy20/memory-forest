@@ -45,7 +45,7 @@ click a day to open its cards.
 
 <p align="center"><img src="docs/grid/sceneries.gif" alt="The free sceneries, animated, going together through dawn, day, golden hour, dusk and night: Golden hour by the lake, Misty mountain valley, Aurora night, Lanterns at night, Rainy bamboo grove, Synthwave and Starry night"></p>
 
-### New in Memory Forest Plus
+### Early access in Memory Forest Plus
 
 <p align="center"><img src="docs/grid/plus.gif" alt="The Memory Forest Plus sceneries, animated, going together through dawn, day, golden hour, dusk and night: Cherry blossom, Chalkboard, Savanna sundown, Coral reef and 1960s psychedelia"></p>
 
