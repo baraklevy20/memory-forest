@@ -792,14 +792,15 @@ AF.swap = function (id, data, srcs) {
   const have = new Set([...document.scripts].map(s => s.src));
   // only a new scene's parts: this copy's own scripts are already running (a changed one,
   // after an update, waits for the next full redraw rather than run beside the old)
-  const part = /\/(envs|landscapes|landmarks)\//;
+  // (and a scenery's own heatmap tile style, web/heatmap/: in a file of its own since 2026-11-09)
+  const part = /\/(envs|landscapes|landmarks|heatmap)\//;
   // each as the page resolves a script's src (a link does it the same way); not new URL()
   // against location.href, which before Anki 2.1.50 is no URL at all
   const absolute = s => { const a = document.createElement('a'); a.href = s; return a.href; };
   // (and one on the page that this copy hasn't run: each of Onigiri's tiles boots a copy of its own, and
   // a scenery the forest's tile loaded on a swap is that copy's alone; the heatmap's tile, seeing its
   // tag, drew without it, in the default green)
-  const kind = /\/(envs|landscapes|landmarks)\/([^/?#]+)\.js/, REG = { envs: 'ENVS', landscapes: 'LANDSCAPES', landmarks: 'LANDMARKS' };
+  const kind = /\/(envs|landscapes|landmarks|heatmap)\/([^/?#]+)\.js/, REG = { envs: 'ENVS', landscapes: 'LANDSCAPES', landmarks: 'LANDMARKS', heatmap: 'heatmapTiles' };
   const known = s => { const m = s.match(kind); return !!(m && (AF[REG[m[1]]] || {})[m[2]]); };
   const missing = srcs.filter(s => part.test(s) && (!have.has(absolute(s)) || !known(s)));
   const mine = root.afSwaps = (root.afSwaps || 0) + 1;
