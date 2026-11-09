@@ -7,7 +7,8 @@ a small sketch of the deck list, drawn here in whole pixels in the theme's greys
 greens, mirrored for the left side, the two in the order chosen. Only the deck list follows it: a
 deck's screen, the finished-deck page, Onigiri's tile and the phone keep the two stacked under what
 they have, in the First order (web/core.js AF.arrange); but Background, which a deck's screen and
-the finished-deck page follow too."""
+the finished-deck page follow too. Background has its own Heatmap choice in First's place (First means
+nothing there): under the list, or beside it on Side, on the list's screen."""
 
 from __future__ import annotations
 
@@ -26,8 +27,10 @@ from aqt.qt import (
 
 from ..i18n import N_, t, tx
 from ..state import (
+    LAYOUT_BEHIND_HEAT_DEFAULT,
     LAYOUT_DEFAULT,
     LAYOUTS,
+    layout_behind_heatmap,
     layout_first,
     layout_key,
     layout_side,
@@ -52,6 +55,9 @@ SIDE_OPTIONS = [("right", N_("settings.layout.right")), ("left", N_("settings.la
 FIRST_LABEL = N_("settings.layout.first")
 FIRST_OPTIONS = [("forest", N_("settings.layout.forest")), ("heatmap", N_("settings.layout.heatmap"))]
 FIRST_TIP = N_("settings.layout.the_one_that_goes_beside_or")
+# Background's heatmap, in First's place: under the list or beside it (state.LAYOUT_BEHIND_HEAT)
+HEAT_LABEL = N_("settings.layout.heatmap")
+HEAT_OPTIONS = [("under", N_("settings.layout.under_the_list")), ("beside", N_("settings.layout.beside_it"))]
 # (one line: SETTINGS_GUIDELINES.md)
 LAYOUT_NOTE = N_("settings.layout.beside_the_list_while_the_window")
 TILE_GAP = 6  # points between two pictures
@@ -68,9 +74,9 @@ SHADES = (("#cfe3b8", "#9ccc6b", "#4f8f3a"), ("#3c5a2f", "#6aa04a", "#a8d67e"))
 CARD = ("#e4ece6", "#3a4148")
 
 
-def _rects(key: str, first: str = "forest") -> list:
+def _rects(key: str, first: str = "forest", heat: str = "under") -> list:
     """The sketch of `key` with its side column on the right, the forest first or the heatmap
-    (`first`): (what, x, y, w, h) in its pixels."""
+    (`first`), Background's heatmap under the list or beside it (`heat`): (what, x, y, w, h) in its pixels."""
     if key == "beside":
         if first == "heatmap":
             return [("list", 3, 3, 28, 13), ("heat", 35, 3, 22, 3), ("forest", 35, 14, 22, 13)]
@@ -79,6 +85,8 @@ def _rects(key: str, first: str = "forest") -> list:
         if first == "heatmap":
             return [("list", 3, 3, 28, 13), ("heat", 35, 3, 22, 3), ("forest", 3, 21, 54, 12)]
         return [("list", 3, 3, 28, 13), ("forest", 35, 3, 22, 13), ("heat", 3, 26, 54, 2)]
+    if key == "behind" and heat == "beside":  # (the list and the heatmap side by side on their cards over the sky)
+        return [("forest", 0, 0, PIC_W, PIC_H), ("card", 4, 2, 30, 17), ("list", 6, 4, 26, 13), ("card", 37, 2, 20, 10), ("heat", 39, 4, 17, 3)]
     if key == "behind":  # the forest the whole picture, the list on its card over the sky, the heatmap under it
         return [("forest", 0, 0, PIC_W, PIC_H), ("card", 14, 2, 32, 17), ("list", 16, 4, 28, 13), ("heat", 15, 22, 30, 2)]
     if key == "above":
@@ -90,21 +98,21 @@ def _rects(key: str, first: str = "forest") -> list:
     return [("list", 16, 2, 28, 13), ("forest", 12, 17, 36, 10), ("heat", 15, 29, 30, 2)]
 
 
-def picture(key: str, side: str = "right", first: str = "forest") -> QPixmap:
-    """The picture for layout `key`, Beside's column on `side`, the two in the order `first`, in
-    whole pixels for this screen."""
+def picture(key: str, side: str = "right", first: str = "forest", heat: str = "under") -> QPixmap:
+    """The picture for layout `key`, Beside's column on `side`, the two in the order `first`,
+    Background's heatmap at `heat`, in whole pixels for this screen."""
     dpr = max(1, round(pixel_ratio()))
     pm = QPixmap(PIC_W * dpr, PIC_H * dpr)
     pm.fill(QColor(0, 0, 0, 0))
     p = QPainter(pm)
     p.scale(dpr, dpr)  # (whole pixels: each of the sketch's is dpr device pixels, never smoothed)
-    mirror = side == "left" and "side" in LAYOUTS[key]
+    mirror = side == "left" and ("side" in LAYOUTS[key] or (key == "behind" and heat == "beside"))
     shades = readable(SHADES)
 
     def fill(x, y, w, h, colour):
         p.fillRect(PIC_W - x - w if mirror else x, y, w, h, QColor(readable(colour) if isinstance(colour, tuple) else colour))
 
-    for what, x, y, w, h in _rects(key, first):
+    for what, x, y, w, h in _rects(key, first, heat):
         if what == "list":  # the deck list: a header, then each deck's name and its numbers
             for i in range(5):
                 fill(x, y + i * 3, w - 8 if i else w, 1, INK)
@@ -169,21 +177,23 @@ class LayoutChoice(Choice):
         self.pictures[key] = pic
         return b
 
-    def draw(self, side: str, first: str = "forest") -> None:
+    def draw(self, side: str, first: str = "forest", heat: str = "under") -> None:
         for key, pic in self.pictures.items():
-            pic.setPixmap(picture(key, side, first))
+            pic.setPixmap(picture(key, side, first, heat))
 
 
 class LayoutControls:
     """The Layout row's parts: the pictures, then on one row Side, greyed out but for the layouts
-    beside the list, and First (never greyed out: every layout stacks the two somewhere, a deck's
-    screen at least), with a line of help under them."""
+    beside the list, and First (greyed out for none: every other layout stacks the two somewhere, a
+    deck's screen at least), or with Background its Heatmap in First's place (Under the list | Beside
+    it, Side then for its side), with a line of help under them."""
 
     def __init__(self, cfg: dict):
         self.choice = LayoutChoice(layout_key(cfg))
         self.side = JoinedChoice(shown(SIDE_OPTIONS), layout_side(cfg), "right")
         self.order = JoinedChoice(shown(FIRST_OPTIONS), layout_first(cfg), "forest")
         self.order.setToolTip(tx(FIRST_TIP))
+        self.heat = JoinedChoice(shown(HEAT_OPTIONS), layout_behind_heatmap(cfg), LAYOUT_BEHIND_HEAT_DEFAULT)
         self.box = QWidget()
         v = QVBoxLayout(self.box)
         v.setContentsMargins(0, 0, 0, 0)
@@ -200,6 +210,13 @@ class LayoutControls:
         first.setToolTip(tx(FIRST_TIP))
         row.addWidget(first)
         row.addWidget(self.order)
+        # (Background's own, in First's place: first, as First is, and Side after it as in every row)
+        self.heat_label = QLabel(tx(HEAT_LABEL))
+        row.insertWidget(0, self.heat)
+        row.insertWidget(0, self.heat_label)
+        self.heat_gap = QWidget()
+        self.heat_gap.setFixedWidth(18)
+        row.insertWidget(2, self.heat_gap)
         row.addStretch(1)
         v.addLayout(row)
         self.note = hint(tx(LAYOUT_NOTE))
@@ -209,6 +226,7 @@ class LayoutControls:
         v.addWidget(self.note)
         self.side.on_change(self.sync)
         self.order.on_change(self.sync)
+        self.heat.on_change(self.sync)
         self.choice.on_change(self.sync)
         self.sync()
 
@@ -216,19 +234,25 @@ class LayoutControls:
         self.choice.on_change(changed)
         self.side.on_change(changed)
         self.order.on_change(changed)
+        self.heat.on_change(changed)
 
     def sync(self) -> None:
-        """Side only matters beside the list; the pictures follow it and First."""
-        beside = "side" in LAYOUTS[self.choice.currentData()]
+        """Side only matters beside the list; the pictures follow it, First and Background's Heatmap.
+        Background shows its Heatmap in First's place, First meaning nothing there."""
+        key = self.choice.currentData()
+        behind = key == "behind"
+        heat = self.heat.currentData()
+        beside = "side" in LAYOUTS[key] or (behind and heat == "beside")
         for w in (self.side_label, self.side):
             w.setEnabled(beside)
-        # (Background: the forest behind, the heatmap under the list, on every screen it takes)
         for w in (self.first_label, self.order):
-            w.setEnabled(self.choice.currentData() != "behind")
+            w.setVisible(not behind)
+        for w in (self.heat_label, self.heat, self.heat_gap):
+            w.setVisible(behind)
         # (it says deck screens keep them under the list: Background's don't)
-        self.note.setVisible(self.choice.currentData() != "behind")
-        self.choice.draw(self.side.currentData(), self.order.currentData())
+        self.note.setVisible(not behind)
+        self.choice.draw(self.side.currentData(), self.order.currentData(), heat)
 
     def values(self) -> dict:
         return {"layout": self.choice.currentData(), "layout_side": self.side.currentData(),
-                "layout_first": self.order.currentData()}
+                "layout_first": self.order.currentData(), "layout_behind_heatmap": self.heat.currentData()}

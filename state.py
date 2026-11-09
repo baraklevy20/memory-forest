@@ -29,10 +29,15 @@ LAYOUTS = {
     "beside": ("side", "side"),
     "one_beside": ("side", "below"),
     "above": ("above", "below"),
-    # (the forest behind the deck list whichever is First, filling the window; the heatmap under the list)
+    # (the forest behind the deck list whichever is First, filling the window; the heatmap under the
+    # list, or beside it on Side: LAYOUT_BEHIND_HEAT)
     "behind": ("behind", "below"),
 }
 LAYOUT_DEFAULT, LAYOUT_SIDES, LAYOUT_FIRST = "under", ("right", "left"), ("forest", "heatmap")
+# Background's own heatmap place (layout_behind_heatmap): under the list (the default, at the window's
+# foot) or beside it on Side, the two side by side over the sky (a Patreon comment, 2026-11-09: on a
+# fullscreen window the heatmap under the list hid the forest's front rows)
+LAYOUT_BEHIND_HEAT, LAYOUT_BEHIND_HEAT_DEFAULT = ("under", "beside"), "under"
 # the heatmap's size (Heatmap tab, Layout: Width and Fill it with). Width: fixed (680 px, 85% of the
 # default Forest width), the forest's (the default), or full (all the room its place has); never wider
 # than its room. Fill it with: more days (its days one size, Timeline showing as many months as its
@@ -241,6 +246,12 @@ def layout_side(cfg: dict | None = None) -> str:
     return side if side in LAYOUT_SIDES else "right"
 
 
+def layout_behind_heatmap(cfg: dict | None = None) -> str:
+    """Background's heatmap: under the list (the default) or beside it (LAYOUT_BEHIND_HEAT)."""
+    place = (cfg if cfg is not None else config()).get("layout_behind_heatmap", LAYOUT_BEHIND_HEAT_DEFAULT)
+    return place if place in LAYOUT_BEHIND_HEAT else LAYOUT_BEHIND_HEAT_DEFAULT
+
+
 def layout_first(cfg: dict | None = None) -> str:
     """Layout's First: the forest (the default) or the heatmap, first where the two stand together,
     and the one over the deck list with Above the list."""
@@ -265,8 +276,11 @@ def layout(cfg: dict | None = None, deck_screen: bool = False) -> dict:
             return {"forest": "behind", "heatmap": "below", "first": first}
         return {"forest": "below", "heatmap": "below", "first": first}
     places = [layout_side(cfg) if p == "side" else p for p in LAYOUTS[key]]
-    # (Background: the forest is the one that can stand behind it, whichever comes first)
+    # (Background: the forest is the one that can stand behind it, whichever comes first; the
+    # heatmap under the list or beside it, on the list's screen only)
     forest, heatmap = places if first == "forest" or key == "behind" else places[::-1]
+    if key == "behind" and layout_behind_heatmap(cfg) == "beside":
+        heatmap = layout_side(cfg)
     return {"forest": forest, "heatmap": heatmap, "first": first}
 
 

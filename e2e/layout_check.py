@@ -110,6 +110,8 @@ def cases() -> list:
                                                       "layout_first": "heatmap" if key == "one_beside" and view == "by_year" else "forest"})
                 for width in st.CALENDAR_WIDTHS for fill in st.CALENDAR_FILLS for view in ("timeline", "by_year")
                 if (width, fill, view) != ("forest", "more", "timeline")]
+        if key == "behind":  # (and its heatmap beside the list, on each side)
+            out += [(f"{key}_heat_beside_{side}", {"layout": key, "layout_side": side, "layout_behind_heatmap": "beside"}) for side in ("right", "left")]
         out += [(f"{key}_{first}_no_{off}", {"layout": key, "layout_first": first, "calendar_width": "full", OFF[off]: False})
                 for first in st.LAYOUT_FIRST for off in OFF]
     return out

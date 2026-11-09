@@ -276,6 +276,26 @@ class ForestTabTests(QtCase):
         lay.order.buttons["heatmap"].click()
         done_saves(self, d, {"layout": "one_beside", "layout_side": "left", "layout_first": "heatmap"})
 
+    def test_background_puts_its_heatmap_in_firsts_place(self):
+        d = self.open_dialog()
+        lay = d.forest.layout_pick
+        self.assertTrue(not lay.order.isHidden() and lay.heat.isHidden())  # (Under the list: First, no Heatmap)
+        under = lay.choice.pictures["behind"].pixmap().toImage()
+        lay.choice.buttons["behind"].click()
+        Q.settle()
+        self.assertTrue(not lay.heat.isHidden() and lay.order.isHidden())  # (First means nothing behind the list)
+        self.assertEqual(lay.heat.currentData(), "under")
+        self.assertFalse(lay.side.isEnabled())  # (under the list: no side)
+        lay.heat.buttons["beside"].click()
+        Q.settle()
+        self.assertTrue(lay.side.isEnabled())
+        right = lay.choice.pictures["behind"].pixmap().toImage()
+        self.assertNotEqual(right, under)  # (the heatmap beside the list in its picture)
+        lay.side.buttons["left"].click()
+        Q.settle()
+        self.assertEqual(lay.choice.pictures["behind"].pixmap().toImage(), right.mirrored(True, False))
+        done_saves(self, d, {"layout": "behind", "layout_side": "left", "layout_behind_heatmap": "beside"})
+
     def test_the_layout_pictures_are_one_even_row_and_follow_the_side_and_on_top(self):
         d = self.open_dialog()
         lay = d.forest.layout_pick

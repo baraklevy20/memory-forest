@@ -331,7 +331,7 @@ const SIDE_GAP = 32, SIDE_MIN = 360, SIDE_SHARE = 0.6, HEAT_MIN = 480, EDGE = 12
  * (Starry night's swirl) isn't a lit pillar up the window; the average, and so the cards' colour,
  * stays the same. */
 const SKY_FILL_COLS = 12, SKY_FILL_ROWS = 3, SKY_FLATTEN = 0.5;
-const CARD_REACH = 36;  // css px the heatmap's card reaches past it each side (forest.css .af-slot-below.af-cal::before)
+const CARD_REACH = 36;  // css px the heatmap's card reaches past it each side (forest.css .af-heat-card::before)
 /* The cards' blur only where Chromium draws it right: Anki 2.1.45's (Chromium 77, Qt 5) drew each
  * blurred card's content upside down (e2e/old_anki_check.py, 2026-10-31). Every Qt 5 Anki is before
  * BLUR_FROM; there the cards are their tint alone, which is nearly solid anyway (forest.css af-no-blur).
@@ -474,7 +474,7 @@ AF.captionClear = root => {
   const check = () => {
     const c = caption.getBoundingClientRect();
     if (!c.height) return;
-    const parts = Array.prototype.filter.call(center ? center.children : [], el => el !== root).concat(Array.from(root.querySelectorAll('.af-slot-below')));
+    const parts = Array.prototype.filter.call(center ? center.children : [], el => el !== root).concat(Array.from(root.querySelectorAll('.af-heat-card')));
     const over = parts.some(el => { const r = el.getBoundingClientRect(); return r.height && r.bottom > c.top - CAPTION_AIR && r.top < c.bottom && r.right > c.left && r.left < c.right; });
     if (caption.classList.contains('af-caption-under') !== over) caption.classList.toggle('af-caption-under', over);
   };
@@ -643,6 +643,12 @@ AF.arrange = function (root, data) {
   root.afBehind = !!((table || finished) && forest && L && L.forest === 'behind');
   document.body.classList.toggle('af-lay-behind', root.afBehind);
   document.body.classList.toggle('af-behind-page', root.afBehind && finished);
+  // (behind the list the heatmap stands on a card of its own wherever it is, forest.css .af-heat-card;
+  // beside the list the two side by side over the sky, the list's screen a grid, af-lay-behind-side)
+  const behindSide = root.afBehind && cal && (L.heatmap === 'left' || L.heatmap === 'right');
+  if (parts[2]) parts[2].classList.toggle('af-heat-card', root.afBehind);
+  document.body.classList.toggle('af-lay-behind-side', behindSide);
+  document.body.classList.toggle('af-lay-behind-left', behindSide && L.heatmap === 'left');
   AF.pageCards(root, data);
   if (center) {
     // (and what Anki puts before the table, a deck screen's name and description, stays over it)
@@ -709,7 +715,7 @@ AF.arrange = function (root, data) {
       // on the page is (forest.css .af-slot-below, .af-slot-above))
       const lone = heatSide && !narrow;
       // (behind the list, less its card's reach each side, so the card keeps the window's gutter)
-      if (cal) size(parts[2], lone ? col - (root.afCarded ? 2 * CARD_REACH : 0) : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room) - (root.afBehind || root.afCarded ? 2 * CARD_REACH : 0)));
+      if (cal) size(parts[2], lone ? col - (root.afBehind || root.afCarded ? 2 * CARD_REACH : 0) : AF.calendarWidthIn(data.calendar, data.maxWidth, Math.min(row, room) - (root.afBehind || root.afCarded ? 2 * CARD_REACH : 0)));
     }
   };
   // a side column that fits the window stays in view while a longer deck list scrolls by (forest.css

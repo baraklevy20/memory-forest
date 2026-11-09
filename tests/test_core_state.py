@@ -56,6 +56,20 @@ class SwitchTests(unittest.TestCase):
                 self.assertEqual(got["one_beside"], {first: side, other: "below", "first": first})
                 self.assertEqual(got["behind"], {"forest": "behind", "heatmap": "below", "first": first})
 
+    def test_background_puts_its_heatmap_under_the_list_or_beside_it(self):
+        state = addon.state
+        for side in state.LAYOUT_SIDES:
+            for first in state.LAYOUT_FIRST:
+                cfg = {"layout": "behind", "layout_side": side, "layout_first": first}
+                self.assertEqual(state.layout(dict(cfg, layout_behind_heatmap="beside")), {"forest": "behind", "heatmap": side, "first": first})
+                self.assertEqual(state.layout(dict(cfg, layout_behind_heatmap="under")), {"forest": "behind", "heatmap": "below", "first": first})
+                # (a deck's screen keeps it under what it has)
+                self.assertEqual(state.layout(dict(cfg, layout_behind_heatmap="beside"), deck_screen=True), {"forest": "behind", "heatmap": "below", "first": first})
+        # (only Background has it: Under the list keeps both under it)
+        self.assertEqual(state.layout({"layout": "under", "layout_behind_heatmap": "beside"})["heatmap"], "below")
+        for bad in ("left", None, 3, "Beside"):
+            self.assertEqual(state.layout_behind_heatmap({"layout_behind_heatmap": bad}), "under", bad)
+
     def test_above_the_list_puts_the_first_over_it_and_the_other_under_it(self):
         state = addon.state
         self.assertEqual(state.layout({"layout": "above", "layout_side": "left"}), {"forest": "above", "heatmap": "below", "first": "forest"})
@@ -89,8 +103,8 @@ class SwitchTests(unittest.TestCase):
     def test_the_shipped_config_holds_the_layouts_defaults(self):
         with open(os.path.join(os.path.dirname(addon.__file__), "config.json"), encoding="utf-8") as f:
             cfg = json.load(f)
-        self.assertEqual((cfg["layout"], cfg["layout_side"], cfg["layout_first"], cfg["calendar_width"], cfg["calendar_fill"]),
-                         (addon.state.LAYOUT_DEFAULT, "right", "forest", "forest", "more"))
+        self.assertEqual((cfg["layout"], cfg["layout_side"], cfg["layout_first"], cfg["layout_behind_heatmap"], cfg["calendar_width"], cfg["calendar_fill"]),
+                         (addon.state.LAYOUT_DEFAULT, "right", "forest", addon.state.LAYOUT_BEHIND_HEAT_DEFAULT, "forest", "more"))
 
     def test_the_heatmap_shows_on_each_screen_unless_switched_off_there(self):
         self.assertTrue(state.calendar_on("main", {}) and state.calendar_on("decks", {}))

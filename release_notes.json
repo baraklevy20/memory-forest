@@ -8,7 +8,8 @@
       ],
       "improved": [
         "When the asteroid waits more than a day, it comes closer each day you miss.",
-        "The tree under the pointer is now outlined."
+        "The tree under the pointer is now outlined.",
+        "With the Background layout, the heatmap can stand beside your decks instead of under them (Forest tab, Layout)."
       ],
       "fixed": [
         "Pointing at a tree no longer sometimes picks the one next to it."

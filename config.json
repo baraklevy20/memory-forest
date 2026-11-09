@@ -12,6 +12,7 @@
     "layout": "under",
     "layout_side": "right",
     "layout_first": "forest",
+    "layout_behind_heatmap": "under",
     "deck_forest_mode": "highlight",
     "calendar": "timeline",
     "calendar_main": true,
