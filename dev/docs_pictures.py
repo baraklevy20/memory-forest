@@ -16,8 +16,8 @@ showing a feature: days Shift-selected and their trees lit, Streak view (one unb
 three years over its rows), the days shaded by pace with the shade's switch and key, the day an animal
 came, the goal's flag, and a marked exam's countdown. Always on its own made-up history
 (FEATURES_HISTORY, even with --collection): the crops need its long streak.
-heatmap_sceneries.png: under it, one heatmap in five sceneries, each beside its picker picture, with
-its current trophy and flag and no other streak markers.
+heatmap_sceneries.png: under it, one heatmap in every scenery, Plus too (tagged PLUS), two to a row,
+each beside its picker picture, with its current trophy and flag and no other streak markers.
 layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it
 on the right and the heatmap Full width under them (Layout: One beside), arranged by the add-on's own web/core.js AF.arrange, at
 twice the pixels (a Retina screen). Needs Chrome, and node with the dev packages.
@@ -65,16 +65,28 @@ HISTORY = 520
 STREAKS = ((0, 139), (150, 209), (230, 409))
 SCATTER = 0.35  # (the share of the days studied outside a streak)
 SEED = 20261016
-# each row: its scenery, the tile style (None: the scenery's own) and the view, all Timeline so the
-# rows line up and show the same days, cropped to eight months, May to December (2026-10-17). Aurora
-# shows Contours here only, in Timeline like the rest (2026-10-19), not its own tiles: By year shifted
-# and squeezed a whole year against the others, and a wider By year made a taller row.
-# (Aurora's blue apart from Starry night's). The third row shows off a Plus scenery's own heatmap
-# (2026-10-28) where this copy has it, Lanterns where it doesn't (the public repo)
-THIRD = "savanna_sundown" if os.path.exists(os.path.join(ADDON, "web", "envs", "savanna_sundown.js")) else "lanterns"
-ROWS = (("golden_lake", None, "timeline"), ("starry_night", None, "timeline"), (THIRD, None, "timeline"),
-        ("aurora", "contours", "timeline"), ("synthwave", None, "timeline"))
-SCENERIES = tuple(key for key, _tiles, _view in ROWS)
+# heatmap_sceneries.png: every scenery some edition ships, Plus too, each in its own tile style, two
+# to a row, read left to right (2026-11-09). The order is chosen to look good: the picker pictures
+# alternate light and dark like a chessboard, and no two heatmaps side by side or one above the
+# other share a hue. A new scenery takes a place that keeps both; one this copy doesn't have (the
+# public repo has no Plus scenery files) is left out, and so is a seasonal one (only there for its week)
+SCENERY_ORDER = ("golden_lake", "lanterns",
+                 "aurora", "psychedelic",
+                 "cherry_blossom", "starry_night",
+                 "savanna_sundown", "coral_reef",
+                 "misty_valley", "synthwave",
+                 "chalkboard", "bamboo")
+def _shown(key: str) -> bool:
+    p = presets.by_key()[key]
+    return not p.season and (p.environment == "natural" or os.path.exists(os.path.join(ADDON, "web", "envs", p.environment + ".js")))
+
+
+SCENERIES = tuple(k for k in SCENERY_ORDER if _shown(k))
+# the tile style a scenery shows here instead of its own: Aurora wears Contours (his call, 2026-11-09)
+SCENERY_TILES = {"aurora": "contours"}
+# each heatmap from the month three before today's, Timeline like the panel's, so the trophy and the
+# flag ahead both show
+SCENERY_MONTHS = 3
 # the animals that take years, which the panel picture leaves out (as dev/make_gif.py HIDE does)
 YEARS_AWAY = ("bear", "squirrel", "eagle", "cabin")
 
@@ -273,7 +285,7 @@ for (const j of jobs) {
   if (j.fromMonth !== undefined) {
     const clip = await el.evaluate((e, month, pad) => {
       const r = e.getBoundingClientRect();
-      const start = e.querySelector(`.af-cal-months span[data-m="${month}"]`);
+      const start = [...e.querySelectorAll(`.af-cal-months span[data-m="${month}"]`)].pop();
       if (!start) throw new Error('Comparison start month is outside the timeline');
       const x = Math.max(r.left, Math.floor(start.getBoundingClientRect().left) - pad);
       return { x, y: r.top, width: r.right - x, height: r.height };
@@ -310,22 +322,31 @@ def label_font(size: int):
 
 
 def sceneries_picture(shots: dict, out: str) -> None:
-    """Each scenery's picker picture and name beside its heatmap, one under the other."""
+    """Two to a row: each scenery's picker picture and name (a PLUS tag on those only Plus has),
+    its heatmap beside it."""
     from PIL import Image, ImageDraw
-    thumb_w, gap, pad, label_h = 192, 16, 10, 22
-    cals = [Image.open(shots[k]) for k in SCENERIES]
-    row_h = max(max(c.height for c in cals), 108 + label_h)
-    width = pad + thumb_w + gap + max(c.width for c in cals) + pad
-    sheet = Image.new("RGB", (width, pad + len(cals) * (row_h + pad)), PAGE_BG)
-    draw, font = ImageDraw.Draw(sheet), label_font(12)
+    import editions
+    base = editions.scenery("base")["presets"]
+    thumb_w, thumb_h, gap, pad, col_gap, label_h = 192, 108, 14, 12, 28, 22
+    cals = {k: Image.open(shots[k]) for k in SCENERIES}
+    cell_w = thumb_w + gap + max(c.width for c in cals.values())
+    row_h = max(max(c.height for c in cals.values()), thumb_h + label_h)
+    rows = (len(SCENERIES) + 1) // 2
+    sheet = Image.new("RGB", (pad * 2 + cell_w * 2 + col_gap, pad + rows * (row_h + pad)), PAGE_BG)
+    draw, font, tag_font = ImageDraw.Draw(sheet), label_font(12), label_font(10)
     for i, key in enumerate(SCENERIES):
-        y = pad + i * (row_h + pad)
-        thumb = Image.open(os.path.join(ADDON, "settings", "scenery", f"{key}.png")).convert("RGB").resize((thumb_w, 108), Image.NEAREST)
+        x, y = pad + (i % 2) * (cell_w + col_gap), pad + (i // 2) * (row_h + pad)
+        thumb = Image.open(os.path.join(ADDON, "settings", "scenery", f"{key}.png")).convert("RGB").resize((thumb_w, thumb_h), Image.NEAREST)
         mask = Image.new("L", thumb.size, 0)
-        ImageDraw.Draw(mask).rounded_rectangle((0, 0, thumb_w - 1, 107), radius=6, fill=255)
-        sheet.paste(thumb, (pad, y), mask)
-        draw.text((pad, y + 112), presets.by_key()[key].label, fill="#bbbbbb", font=font)
-        sheet.paste(cals[i], (pad + thumb_w + gap, y))
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, thumb_w - 1, thumb_h - 1), radius=6, fill=255)
+        sheet.paste(thumb, (x, y), mask)
+        name = presets.by_key()[key].label
+        draw.text((x, y + thumb_h + 4), name, fill="#bbbbbb", font=font)
+        if key not in base:
+            tx = x + draw.textlength(name, font=font) + 6
+            draw.rounded_rectangle((tx, y + thumb_h + 4, tx + draw.textlength("PLUS", font=tag_font) + 8, y + thumb_h + 18), radius=4, fill="#4a4335")
+            draw.text((tx + 4, y + thumb_h + 5), "PLUS", fill="#e8c872", font=tag_font)
+        sheet.paste(cals[key], (x + thumb_w + gap, y))
     sheet.save(out, optimize=True)
 
 
@@ -583,17 +604,17 @@ def main() -> None:
         jobs.append({"page": path, "width": 800, "shoot": "#p", "out": os.path.join(DOCS, "panel.png")})
         # the sceneries: the heatmap alone, with only the current trophy and flag revealed
         shots = {}
-        for key, tiles, view in ROWS:
+        first = (dt.date.today().month - 1 - SCENERY_MONTHS) % 12
+        for key in SCENERIES:
             mood = mood_of(key)
-            data = dict(forest_data(mood), calendar=calendar(mood, [], tiles, view), showForest=False, maxWidth=756)
+            tiles = SCENERY_TILES.get(key)
+            data = dict(forest_data(mood), calendar=calendar(mood, [], tiles), showForest=False, maxWidth=756)
             path = os.path.join(tmp, f"{key}.html")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(page(mood, data, 756, ".af-cal .af-cal-above { opacity: 1 } .af-cal-foot, .af-cal-notes { display: none }"))
             shots[key] = os.path.join(tmp, f"{key}.png")
-            # (from May's label, eight months; By year's January: the weekday labels left out)
-            # (Contours outlines the month before right up to the cut: none of it shown)
-            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": 0 if view == "by_year" else 4,
-                         "pad": 0 if tiles == "contours" else 2, "out": shots[key]})
+            jobs.append({"page": path, "width": 800, "shoot": ".af-cal", "fromMonth": first,
+                         "pad": 0 if tiles == "contours" else 2, "out": shots[key]})  # (Contours outlines the month before up to the cut)
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
         features_shoot(tmp)

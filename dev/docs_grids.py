@@ -4,8 +4,10 @@ and the Nature GIFs (docs/nature/).
 
     python3 dev/docs_grids.py        (npm run docs-grids; npm run docs-pictures runs it too)
 
-    docs/grid/sceneries.gif   the free edition's sceneries
-    docs/grid/plus.gif        the ones only Memory Forest Plus has (here, where editions.json is)
+    python3 dev/docs_grids.py --work /tmp/hours   (keeps the hours' recordings there, to remake faster)
+
+    docs/grid/sceneries.gif   the free edition's sceneries, going through the hours
+    docs/grid/plus.gif        the ones only Memory Forest Plus has (here, where editions.json is), likewise
     docs/grid/nature.gif      the three Nature levels in one row
 
 The sceneries come in the order they arrived in that edition (release_notes.json: the first
@@ -18,6 +20,12 @@ block, so half is the canvas exactly, one pixel a pixel, and two of them are as 
 was (three to a row would scale by two thirds and smear the pixels). The Nature row has three,
 scaled down smoothly: they show what happens to the whole forest, not its detail. Every tile
 shows the same frame at the same moment, so they loop together, seamlessly where the inputs do.
+The scenery grids go through dawn, day, golden hour, dusk and night together, at the pace of
+the Patreon hours GIFs (dev/hours_gif.py HOLD, FADE and FPS: each hour held, then crossfaded
+into the next, round to dawn again; 2026-11-09). Each scenery is recorded here (dev/make_gif.py,
+its test forest), its clock running on from one hour into the next, so whatever moves carries
+on through the fades. Each hour has a palette of its own and each fade frame one of its own
+(hours_gif.write_gif), so one hour's colours never crowd out another's.
 Each name sits on a see-through black badge in its tile's bottom-left corner (--labels under: in a
 strip under it), in Nunito (dev/fonts/).
 One palette for the whole GIF, no dithering, then gifsicle. Needs ffmpeg and gifsicle.
@@ -36,6 +44,8 @@ sys.path.insert(0, ADDON)
 sys.path.insert(0, HERE)
 
 import editions
+import hours_gif
+import make_gif
 
 import events
 import i18n
@@ -218,17 +228,111 @@ def sheet(tiles: list, per_row: int, size: tuple | None, out: str, inside: bool 
           f"({os.path.getsize(out) // 1024} KB)")
 
 
+# the hours, as the Patreon hours GIFs have them (dev/hours_gif.py), and how many of each fade's
+# FADE frames are kept (each then lasts longer, so the fade takes as long): every pixel changes in a
+# fade frame, so each costs a whole picture, ~170 KB on the Plus grid; all ten made it 10 MB
+HOURS = ("dawn", "day", "golden_hour", "dusk", "night")
+FADE_KEPT = 4
+# a scenery whose new-moon night is far from its moonlit one (hours_gif DEEP_SHARE: 1960s
+# psychedelia's) shows both in the night's hold: the moonlit night for DEEP_SPLIT frames, a fade
+# of DEEP_FADE, then the new-moon night on into dawn. The other tiles hold night as before, so
+# every tile keeps the one loop
+DEEP_SPLIT, DEEP_FADE = 13, 8
+
+
+def recorded(key: str, work: str | None) -> dict:
+    """hour -> its FADE + HOLD + FADE canvas frames (RGB, a canvas pixel a pixel): the fade in, at
+    the hour before's last moments, the hold, and the fade out. Hour k starts k * (HOLD + FADE)
+    frames into one clock. Kept in `work`, when given, and taken from it when there."""
+    import io
+
+    from PIL import Image
+    hold, fade = hours_gif.HOLD, hours_gif.FADE
+    preset = presets.by_key()[key]
+    out = {}
+    for k, hour in enumerate(HOURS + ("deep",)):  # (the new-moon night on the night's clock)
+        k = min(k, len(HOURS) - 1)
+        d = os.path.join(work, key, hour) if work else None
+        n = fade + hold + fade
+        if d and os.path.exists(os.path.join(d, f"f{n - 1:04d}.png")):
+            out[hour] = [Image.open(os.path.join(d, f"f{i:04d}.png")).convert("RGB") for i in range(n)]
+            continue
+        when = hours_gif.new_moon_night(make_gif.NOW) if hour == "deep" else None
+        r = make_gif.shots(key, dict(preset.values(), time_of_day="night" if hour == "deep" else hour), make_gif.TREES, n,
+                           make_gif.HIDE, skip=k * (hold + fade), when=when)
+        out[hour] = [Image.open(io.BytesIO(b)).convert("RGB") for b in r["shots"]]
+        if d:
+            os.makedirs(d, exist_ok=True)
+            for i, im in enumerate(out[hour]):
+                im.save(os.path.join(d, f"f{i:04d}.png"))
+        print(f"  {key}: {hour}")
+    if hours_gif.differs_images(out["night"][0], out["deep"][0]) > hours_gif.DEEP_SHARE:
+        night, deep = out["night"], out["deep"]
+        # the night's frames: moonlit, a fade into the new-moon night, then that night on (its fade to dawn too)
+        out["night"] = [night[i] if i < fade + DEEP_SPLIT else
+                        Image.blend(night[i], deep[i], (i - fade - DEEP_SPLIT + 1) / (DEEP_FADE + 1)) if i < fade + DEEP_SPLIT + DEEP_FADE else
+                        deep[i] for i in range(len(night))]
+        print(f"  {key}: a new-moon night of its own, in the night's hold")
+    return out
+
+
+def hours_sheet(keys: list, per_row: int, out: str, work: str | None) -> None:
+    """The grid GIF of these sceneries going through the hours together, each tile a canvas pixel
+    a pixel, its name on a badge in its corner, the last row centred."""
+    from PIL import Image, ImageDraw
+    hold, fade = hours_gif.HOLD, hours_gif.FADE
+    recs = [recorded(k, work) for k in keys]
+    tw, th = recs[0]["day"][0].size
+    rows = -(-len(keys) // per_row)
+    width = 2 * MARGIN + per_row * tw + (per_row - 1) * GAP
+    height = 2 * MARGIN + rows * th + (rows - 1) * GAP
+    places = []
+    for i in range(len(keys)):
+        row, col = divmod(i, per_row)
+        in_row = min(per_row, len(keys) - row * per_row)
+        places.append((MARGIN + (width - 2 * MARGIN - (in_row * tw + (in_row - 1) * GAP)) // 2 + col * (tw + GAP), MARGIN + row * (th + GAP)))
+    layers = [label_layer((tw, th), (0, 0), "ls", presets.by_key()[k].label, True) for k in keys]
+    mask = Image.new("L", (tw, th), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, tw - 1, th - 1), radius=RADIUS, fill=255)
+
+    def compose(tiles: list):
+        frame = Image.new("RGB", (width, height), BG)
+        for (x, y), tile, layer in zip(places, tiles, layers):
+            frame.paste(Image.alpha_composite(tile.convert("RGBA"), layer).convert("RGB"), (x, y), mask)
+        return frame
+
+    def held(hour, i):
+        return lambda: compose([r[hour][fade + i] for r in recs])
+
+    def faded(a, b, j):
+        return lambda: compose([Image.blend(r[a][fade + hold + j], r[b][j], (j + 1) / (fade + 1)) for r in recs])
+    segments = []
+    for k, hour in enumerate(HOURS):
+        nxt = HOURS[(k + 1) % len(HOURS)]
+        segments.append(("hold", [held(hour, i) for i in range(hold)]))
+        segments.append(("fade", [faded(hour, nxt, j) for j in range(fade)]))
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    # (every hold frame and FADE_KEPT of each fade, whatever the size: not post_gifs' steps down to Patreon's limit)
+    size, n, secs = hours_gif.write_gif(segments, out, os.path.basename(out), ((255, 1, FADE_KEPT),), float("inf"))
+    print(f"{os.path.relpath(out, ADDON) if out.startswith(ADDON) else out}: {width}x{height}, {len(keys)} tiles, {n} frames, "
+          f"{secs:g} s ({size // 1024} KB)")
+
+
 def main() -> None:
     import argparse
     ap = argparse.ArgumentParser(description="Make the docs' grid GIFs.")
     ap.add_argument("--labels", choices=("inside", "under"), default="inside",
                     help="each name on a badge in its tile's corner (the default), or in a strip under it")
     ap.add_argument("--out", default=OUT, help="the folder to write to")
+    ap.add_argument("--work", help="a folder to keep the hours' recordings in, and take them from when there")
+    ap.add_argument("--only", choices=("sceneries", "plus", "nature"), help="make one grid only")
     a = ap.parse_args()
     inside = a.labels == "inside"
     for name, tiles in groups():
-        if tiles:
-            sheet(tiles, 2, None, os.path.join(a.out, name + ".gif"), inside)
+        if tiles and a.only in (None, name):
+            hours_sheet([os.path.basename(path)[:-4] for path, _name in tiles], 2, os.path.join(a.out, name + ".gif"), a.work)
+    if a.only not in (None, "nature"):
+        return
     sheet(nature(), 3, NATURE_TILE, os.path.join(a.out, "nature.gif"), inside)
 
 

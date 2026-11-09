@@ -70,8 +70,10 @@ CLOCK_JS = ("let NOW_MS = 0, TID = 0; const Q = [], T = [];"
             " const run = Q.splice(0); run.forEach(cb => cb(ms)); }")
 
 
-def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None) -> str:
-    mood = scene.choose_mood(dict(cfg, landmark=cfg.get("landmark", "none")), NOW)
+def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None, skip: int = 0, when=None) -> str:
+    """`skip`: frames the clock runs on, unshot, before the first shot (dev/docs_grids.py's hours
+    carry one clock on from one hour into the next); `when`: the moment the sky is for (its moon), NOW unless given."""
+    mood = scene.choose_mood(dict(cfg, landmark=cfg.get("landmark", "none")), when or NOW)
     f = forest_data.merge_old(fake_forest.make(n))
     visitors = [v for v in f["visitors"] if v["key"] not in hide]
     data = {"trees": f["trees"], "stats": f["stats"], "visitors": milestones.for_page(visitors), "merged": f.get("merged"),
@@ -87,6 +89,7 @@ def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None)
     # (a loop starts on one of its own first moments, where the clock wraps: anything that does
     # not loop then jumps only where the GIF starts over, never in its middle)
     start = -(-(START_MS + WARM_MS) // round(loop * 1000)) * round(loop * 1000) if loop else START_MS + WARM_MS
+    start += skip * step
     return (f"<!doctype html><meta charset=utf-8><style>body{{margin:0}}.af-panel{{width:{PANEL_PX}px;margin:0;padding:0}}</style>"
             f"<script>{CLOCK_JS}</script>"  # (the clock is ours: CLOCK_JS)
             "<div class='af-panel' id=p></div><pre id=o></pre>"
@@ -102,11 +105,11 @@ def page(cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None)
             "</script>")
 
 
-def shots(key: str, cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None) -> dict:
+def shots(key: str, cfg: dict, n: int, frames: int, hide: tuple, loop: float | None = None, skip: int = 0, when=None) -> dict:
     """The canvas's frames, one Chrome: {"w", "h", "shots": [PNG bytes]}, a canvas pixel a pixel."""
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "page.html")
-        open(path, "w", encoding="utf-8").write(page(cfg, n, frames, hide, loop))
+        open(path, "w", encoding="utf-8").write(page(cfg, n, frames, hide, loop, skip, when))
         dom = subprocess.run([CHROME, "--headless=new", "--disable-gpu", f"--window-size={PANEL_PX + 40},600",
                               "--virtual-time-budget=60000", "--dump-dom", "file://" + path],
                              capture_output=True, text=True, timeout=CHROME_TIMEOUT_SECS).stdout

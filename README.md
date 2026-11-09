@@ -39,15 +39,15 @@ click a day to open its cards.
 - **Milestones and important days**: see when each animal joined, and right-click to mark exams and trips.
 - **Your look**: its colours and style in the Heatmap tab, and a week that starts on Monday, Sunday, Saturday or your system's setting.
 
-<p align="center"><img src="docs/heatmap_sceneries.png" width="640" alt="The same heatmap in five sceneries: green by the lake, blue brushstrokes in Starry night, round tiles in Lanterns, blue contours in Aurora night, and violet to pink scanlines in Synthwave"></p>
+<p align="center"><img src="docs/heatmap_sceneries.png" width="860" alt="The same heatmap in all twelve sceneries, two to a row, each beside its scenery's picture: green squares by the lake, round lantern tiles, blue contours in Aurora night, blue brushstrokes in Starry night, mosaic tiles in Savanna sundown and 1960s psychedelia, scanlines in Synthwave, bubbles in Coral reef and more; the Plus ones are tagged PLUS"></p>
 
 ## Pick your scenery
 
-<p align="center"><img src="docs/grid/sceneries.gif" alt="The free sceneries, animated: Golden hour by the lake, Misty mountain valley, Aurora night, Lanterns at night, Rainy bamboo grove, Synthwave and Starry night"></p>
+<p align="center"><img src="docs/grid/sceneries.gif" alt="The free sceneries, animated, going together through dawn, day, golden hour, dusk and night: Golden hour by the lake, Misty mountain valley, Aurora night, Lanterns at night, Rainy bamboo grove, Synthwave and Starry night"></p>
 
 ### New in Memory Forest Plus
 
-<p align="center"><img src="docs/grid/plus.gif" alt="The Memory Forest Plus sceneries, animated: Cherry blossom, Chalkboard, Savanna sundown, Coral reef and 1960s psychedelia"></p>
+<p align="center"><img src="docs/grid/plus.gif" alt="The Memory Forest Plus sceneries, animated, going together through dawn, day, golden hour, dusk and night: Cherry blossom, Chalkboard, Savanna sundown, Coral reef and 1960s psychedelia"></p>
 
 These arrive in Memory Forest Plus first, and come to this version later on.
 [Join on Patreon](https://www.patreon.com/BarakLevy) to get them now.
