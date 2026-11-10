@@ -195,17 +195,18 @@ const WHEEL_NOTCHES = 30;
 // a finger's second tap within DOUBLE_MS of the first, DOUBLE_PX from it, zooms DOUBLE_ROWS in
 // (a little less than half a pinch to twice as far apart), over DOUBLE_GLIDE_MS
 const DOUBLE_MS = 300, DOUBLE_PX = 30, DOUBLE_ROWS = 1, DOUBLE_GLIDE_MS = 220;
-// the bar's way to the day before or after the tree selected: the camera glides there in GLIDE_MS
-// (on the phone's full screen, just the arrows: there's no room for more)
-const DAYS = [['prev', AF.N_('zoom.previous_day'), '‹', AF.N_('zoom.the_tree_of_the_day_before')], ['next', AF.N_('zoom.next_day'), '›', AF.N_('zoom.the_tree_of_the_day_after')]];
+// the bar's way to the day before or after the tree selected: an arrow either side of its date (as a
+// date picker has them, beside what they change; words, "Previous day", sat across the panel from
+// it), or on the phone's full screen, two big ones on the right, under the thumb; the camera glides
+// there in GLIDE_MS
+const DAYS = [['prev', '‹', AF.N_('zoom.the_tree_of_the_day_before')], ['next', '›', AF.N_('zoom.the_tree_of_the_day_after')]];
 // the arrow keys walk: ↑ and ↓ KEY_ROWS in and out (a wheel's notch), ← and → KEY_SHARE of the
 // canvas's width along the rows (a key held down goes on)
 const KEY_ROWS = 0.4, KEY_SHARE = 0.1;
 const KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+// (no way out on the bar: the zoom button, lit while zoomed in, Esc or a mouse's back button leave;
+// a "Done" there read oddly)
 const BACK = AF.N_('zoom.back_to_the_whole_forest');
-// the bar's way out: "Done", as a mode is left (it showed "Back to the whole forest" while the whole
-// forest was what it showed, the moment zoom was turned on)
-const DONE = AF.N_('zoom.done');
 const GLIDE_MS = 420, LEAVE_MS = 520;
 const MONTH_ROWS = 1.5;
 // A drag past the forest's end (the rows' ends, the back row) gives, ever more stiffly, up to
@@ -313,12 +314,11 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     if (shown === now) return;
     shown = now;
     if (!on) { bar.innerHTML = ''; return; }
-    const back = always ? '' : `<button type="button" class="af-visit-btn" data-act="back">${esc(AF.tx(DONE))}</button>`;
     if (picked == null) {
       // (short: the keys are in the zoom button's tooltip; the hint was 84 characters, two lines on a phone)
       const how = touch ? AF.t('zoom.pinch_to_zoom_drag_to_move')
         : AF.t('zoom.scroll_to_zoom_drag_to_move');
-      bar.innerHTML = `<span class="af-visit-about">${month ? `<b>${esc(month)}</b> · ` : ''}${esc(how)}</span><span class="af-visit-acts">${back}</span>`;
+      bar.innerHTML = `<span class="af-visit-about">${month ? `<b>${esc(month)}</b> · ` : ''}${esc(how)}</span>`;
       return;
     }
     // as its tooltip says it (web/tooltips.js), in its words and order: the date, how long ago ("Planted"
@@ -330,14 +330,15 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     if (t.stage >= AF.STAGE.YOUNG && t.remembered != null && !(t.suspended && t.suspended >= t.n)) {
       about.push(AF.rememberedText(t));
     }
-    bar.innerHTML = `<span class="af-visit-about"><b>${AF.i18n.bdi(esc(fmtDate(t.date)))}</b> · ${esc(about.join(' · '))}</span><span class="af-visit-acts">`
-      + DAYS.map(([dir, label, ltrArrow, tip]) => {
-        // (right to left, the day before is to the right: its arrow points there, Next's to the left)
-        const arrow = AF.i18n.rtl() ? AF.i18n.arrow(ltrArrow === '‹' ? '›' : '‹') : ltrArrow;
-        const text = dir === 'prev' ? `${arrow} ${esc(AF.tx(label))}` : `${esc(AF.tx(label))} ${arrow}`;
-        return `<button type="button" class="af-visit-btn" data-day="${dir}" title="${esc(AF.tx(tip))}" aria-label="${esc(AF.tx(tip))}"${day(picked, dir) ? '' : ' disabled'}>${always ? arrow : text}</button>`;
-      }).join('')
-      + back + '</span>';
+    const [prev, next] = DAYS.map(([dir, ltrArrow, tip]) => {
+      // (right to left, the day before is to the right: its arrow points there, the day after's to the left)
+      const arrow = AF.i18n.rtl() ? AF.i18n.arrow(ltrArrow === '‹' ? '›' : '‹') : ltrArrow;
+      return `<button type="button" class="af-visit-btn${always ? '' : ' af-visit-step'}" data-day="${dir}" title="${esc(AF.tx(tip))}" aria-label="${esc(AF.tx(tip))}"${day(picked, dir) ? '' : ' disabled'}>${arrow}</button>`;
+    });
+    const date = `<b>${AF.i18n.bdi(esc(fmtDate(t.date)))}</b>`;
+    bar.innerHTML = always
+      ? `<span class="af-visit-about">${date} · ${esc(about.join(' · '))}</span><span class="af-visit-acts">${prev}${next}</span>`
+      : `<span class="af-visit-about"><span class="af-visit-day">${prev}${date}${next}</span>${esc(about.join(' · '))}</span>`;
   }
   /* the tree the camera stands before (up to MONTH_ROWS on), nearest the middle */
   function nearMiddle() {
@@ -647,7 +648,6 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     const b = e.target.closest('button');
     if (!b || b.disabled) return;
     if (b.dataset.day) step(b.dataset.day);
-    else if (b.dataset.act === 'back') leave();
   });
   // the keys, while zooming is on and nothing else on the page is being typed into (nor the
   // heatmap under the forest, whose controls the arrow keys switch: web/calendar/)

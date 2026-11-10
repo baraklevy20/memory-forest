@@ -3421,21 +3421,9 @@
   "text": "Volver a todo el bosque",
   "en": "Back to the whole forest"
  },
- "zoom.done": {
-  "text": "Listo",
-  "en": "Done"
- },
- "zoom.next_day": {
-  "text": "Día siguiente",
-  "en": "Next day"
- },
  "zoom.pinch_to_zoom_drag_to_move": {
   "text": "Pellizca para ampliar, arrastra para moverte, toca un árbol para seleccionarlo",
   "en": "Pinch to zoom, drag to move, tap a tree to select it"
- },
- "zoom.previous_day": {
-  "text": "Día anterior",
-  "en": "Previous day"
  },
  "zoom.scroll_to_zoom_drag_to_move": {
   "text": "Desplázate para ampliar, arrastra para moverte, haz clic en un árbol para seleccionarlo",

@@ -508,12 +508,12 @@ def visit():
             result["problems"].append(f"a drag did not walk about: {raw[:200] if raw else raw}")
         else:
             result["steps"].append("dragged along the rows")
-        press('.af-visit-btn[data-act="back"]', left)
+        press('.af-zoom', left)
 
     def left(raw):
         got = json.loads(raw or "{}")
         if got.get("on") or got.get("bar") or not got.get("caption"):
-            result["problems"].append(f"Back did not leave the zoomed view: {raw[:200] if raw else raw}")
+            result["problems"].append(f"the zoom button did not leave the zoomed view: {raw[:200] if raw else raw}")
         else:
             result["steps"].append("back to the whole forest")
         QTimer.singleShot(0, settings)

@@ -457,10 +457,10 @@ try {
       if (v.picked !== t.it.index) fail('a double-click\'s first click did not select the tree');
       if (sends(/:browse:/).length) fail(`a double-click on a tree opened Anki's browser: ${sent}`);
       if (!(v.state.cam.z < z1)) fail('a double-click did not walk in');
-      // done: the whole forest again, and a heatmap click opens its day once more
-      root.querySelector('.af-visit-btn[data-act="back"]').click();
+      // the zoom button: the whole forest again, and a heatmap click opens its day once more
+      root.querySelector('.af-zoom').click();
       await sleep(60);
-      if (v.on) fail('Done did not leave zooming');
+      if (v.on) fail('the zoom button did not leave zooming');
       sent.length = 0;
       click(at.near);
       if (!sends(new RegExp(`:day:-${near.ago}:`)).length) fail(`back out, a click on a day did not open it: ${sent}`);

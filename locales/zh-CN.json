@@ -3312,21 +3312,9 @@
   "text": "返回整片森林",
   "en": "Back to the whole forest"
  },
- "zoom.done": {
-  "text": "完成",
-  "en": "Done"
- },
- "zoom.next_day": {
-  "text": "后一天",
-  "en": "Next day"
- },
  "zoom.pinch_to_zoom_drag_to_move": {
   "text": "双指缩放，拖动来移动，轻点一棵树来选中它",
   "en": "Pinch to zoom, drag to move, tap a tree to select it"
- },
- "zoom.previous_day": {
-  "text": "前一天",
-  "en": "Previous day"
  },
  "zoom.scroll_to_zoom_drag_to_move": {
   "text": "滚动来缩放，拖动来移动，点击一棵树来选中它",

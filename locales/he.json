@@ -3530,21 +3530,9 @@
   "text": "חזרה לכל היער",
   "en": "Back to the whole forest"
  },
- "zoom.done": {
-  "text": "סיום",
-  "en": "Done"
- },
- "zoom.next_day": {
-  "text": "היום הבא",
-  "en": "Next day"
- },
  "zoom.pinch_to_zoom_drag_to_move": {
   "text": "צביטה להגדלה והקטנה, גרירה כדי לזוז, הקשה על עץ כדי לבחור אותו",
   "en": "Pinch to zoom, drag to move, tap a tree to select it"
- },
- "zoom.previous_day": {
-  "text": "היום הקודם",
-  "en": "Previous day"
  },
  "zoom.scroll_to_zoom_drag_to_move": {
   "text": "גלילה להגדלה והקטנה, גרירה כדי לזוז, לחיצה על עץ כדי לבחור אותו",

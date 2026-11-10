@@ -3312,21 +3312,9 @@
   "text": "森全体に戻る",
   "en": "Back to the whole forest"
  },
- "zoom.done": {
-  "text": "完了",
-  "en": "Done"
- },
- "zoom.next_day": {
-  "text": "次の日",
-  "en": "Next day"
- },
  "zoom.pinch_to_zoom_drag_to_move": {
   "text": "ピンチでズーム、ドラッグで移動、木をタップして選択",
   "en": "Pinch to zoom, drag to move, tap a tree to select it"
- },
- "zoom.previous_day": {
-  "text": "前の日",
-  "en": "Previous day"
  },
  "zoom.scroll_to_zoom_drag_to_move": {
   "text": "スクロールでズーム、ドラッグで移動、木をクリックして選択",

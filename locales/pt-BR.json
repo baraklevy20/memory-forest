@@ -3421,21 +3421,9 @@
   "text": "Voltar à floresta inteira",
   "en": "Back to the whole forest"
  },
- "zoom.done": {
-  "text": "Concluído",
-  "en": "Done"
- },
- "zoom.next_day": {
-  "text": "Dia seguinte",
-  "en": "Next day"
- },
  "zoom.pinch_to_zoom_drag_to_move": {
   "text": "Faça pinça para dar zoom, arraste para mover, toque numa árvore para selecioná-la",
   "en": "Pinch to zoom, drag to move, tap a tree to select it"
- },
- "zoom.previous_day": {
-  "text": "Dia anterior",
-  "en": "Previous day"
  },
  "zoom.scroll_to_zoom_drag_to_move": {
   "text": "Role para dar zoom, arraste para mover, clique numa árvore para selecioná-la",

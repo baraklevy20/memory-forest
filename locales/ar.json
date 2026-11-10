@@ -3857,21 +3857,9 @@
   "text": "العودة إلى الغابة كلها",
   "en": "Back to the whole forest"
  },
- "zoom.done": {
-  "text": "تم",
-  "en": "Done"
- },
- "zoom.next_day": {
-  "text": "اليوم التالي",
-  "en": "Next day"
- },
  "zoom.pinch_to_zoom_drag_to_move": {
   "text": "القرص للتكبير، والسحب للتحريك، ولمس شجرة لتحديدها",
   "en": "Pinch to zoom, drag to move, tap a tree to select it"
- },
- "zoom.previous_day": {
-  "text": "اليوم السابق",
-  "en": "Previous day"
  },
  "zoom.scroll_to_zoom_drag_to_move": {
   "text": "التمرير للتكبير، والسحب للتحريك، والنقر على شجرة لتحديدها",

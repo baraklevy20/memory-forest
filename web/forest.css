@@ -119,6 +119,12 @@
 .af-visit-btn[disabled] { opacity: 0.35; cursor: default; }
 .af-visit-btn:focus { outline: 2px solid currentColor; outline-offset: 1px; }
 .af-visit-btn:focus:not(:focus-visible) { outline: none; }
+/* the arrows either side of the selected tree's date (visit.js): a little larger than the words, on
+   the same line height, the bar no taller; padded to be easier to hit, the first one's glyph on the
+   bar's edge */
+.af-visit-day { margin: 0 10px 0 0; }
+.af-visit-step { margin: 0 !important; padding: 0 6px !important; font-size: 19px; line-height: 0; vertical-align: -1px; }
+.af-visit-step:first-child { margin: 0 0 0 -6px !important; }
 /* the buttons on the forest, the zoom and the settings cog in its top right corner: round,
    translucent, darker on hover (Anki's own button styles are more specific: see .af-cog) */
 .af-zoom {
@@ -671,6 +677,9 @@ body.af-behind-zooming > center > :not(.af-panel), body.af-behind-zooming .af-he
 .af-rtl .af-journal, .af-rtl .af-cal-journal { font-style: normal; }
 .af-rtl .af-visit-about { margin: 0 0 0 16px; }
 .af-rtl .af-visit-btn { margin: 0 16px 0 0 !important; }
+.af-rtl .af-visit-day { margin: 0 0 0 10px; }
+.af-rtl .af-visit-step { margin: 0 !important; }
+.af-rtl .af-visit-step:first-child { margin: 0 -6px 0 0 !important; }
 .af-rtl .af-news { text-align: right; }
 .af-rtl .af-news-acts button + button { margin-left: 0; margin-right: 14px; }
 .af-rtl .af-cal { text-align: right; }

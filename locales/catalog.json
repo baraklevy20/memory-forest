@@ -4174,25 +4174,7 @@
    "web/visit.js"
   ]
  },
- "zoom.done": {
-  "web": true,
-  "where": [
-   "web/visit.js"
-  ]
- },
- "zoom.next_day": {
-  "web": true,
-  "where": [
-   "web/visit.js"
-  ]
- },
  "zoom.pinch_to_zoom_drag_to_move": {
-  "web": true,
-  "where": [
-   "web/visit.js"
-  ]
- },
- "zoom.previous_day": {
   "web": true,
   "where": [
    "web/visit.js"
