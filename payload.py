@@ -49,10 +49,9 @@ from .state import (
 
 # what each tree holds that the page never reads (it goes to the phone as well, at every sync)
 PAGE_LEAVES_OUT = ("mature", "day")
-# zooming in among the trees (web/visit.js): held back from release for now, so on only while
-# debugging as this copy itself (not while the Debug tab pretends to be the base or Plus
-# edition, which show it as a release does); True lets everyone have it
-ZOOM_RELEASED = False
+# zooming in among the trees (web/visit.js): released in 1.7.0 (release_notes.json, its note
+# "zoom-1.7"); False holds it back again, on only while debugging as this copy itself
+ZOOM_RELEASED = True
 # the study calendar shows the cards due this many days ahead (today first)
 CALENDAR_DUE_DAYS = 800  # (time enough for the next whole year)
 NEW_TREE_GLOW_DAYS = 7  # how long from its first tree a forest's new trees glow on their day

@@ -169,8 +169,8 @@ AF.mount = function (root, data, opts) {
     AF.events.run('grass', g, env, t);  // tall grass, which the animals stand in
     AF.drawVisitors(g, env, t);
     drawGlow(g, t);
-    if (root.afVisits && root.afVisits.picked != null) AF.drawVisitMarker(g, env, root.afVisits.picked);
-    pointer.drawLifted(g, t);  // the tree pointed at, outlined: under its crows and flames
+    pointer.drawLifted(g, t);  // the tree pointed at, outlined: under its crows and flames (and the tree selected, zoomed in)
+    if (root.afVisits && root.afVisits.picked != null) AF.drawVisitMarker(g, env, root.afVisits.picked, pointer.pickedRing());
     AF.events.run('front', g, env, t);  // crows, a fresh crater's smoke, the fire
     if (env.fx) AF.fx.front(g, env, t);
     if (env.quantize) env.quantize(g, env.W, env.H);
@@ -217,7 +217,10 @@ AF.mount = function (root, data, opts) {
   // (`opts.zoom`: false, none here; 'always', simply on, as in the phone's full screen; none
   // at all while the add-on holds zooming back, data.zoom false: payload.ZOOM_RELEASED)
   const zoom = data.zoom ? opts && opts.zoom : false;
-  root.afVisits = zoom !== false && AF.canVisit({ mood: data.mood }) && base.items.some(it => !it.pond) ? AF.visits({ root, data, base, animate, current, xOf, warm, always: zoom === 'always', go: (cam, behind) => {
+  // (a young forest, a row or three, already shows every tree whole and drawn larger: zooming in only
+  // walked past them onto an empty meadow; the phone's full screen keeps it)
+  const roomy = zoom === 'always' || base.rows >= ZOOM_MIN_ROWS;
+  root.afVisits = zoom !== false && roomy && AF.canVisit({ mood: data.mood }) && base.items.some(it => !it.pond) ? AF.visits({ root, data, base, animate, current, xOf, warm, always: zoom === 'always', go: (cam, behind) => {
     layout = cam ? AF.visitLayout(base, cam, xOf, behind) : base;
     pointer.clear();
     build();
@@ -822,6 +825,8 @@ const IDLE_FALLBACK_MS = 30, IDLE_TIMEOUT_MS = 300;
 // zoomed in: trees that stood in at another size are drawn again REFINE_MS after; sprites are
 // drawn ahead WARM_MS at a time
 const REFINE_MS = 40, WARM_MS = 8;
+// the zoom button shows on a forest of this many rows or more (about 30 trees)
+const ZOOM_MIN_ROWS = 4;
 // the settings cog (in Anki only), and what clicking it does; with what's new: its dot, and a
 // note on the forest (web/news.js)
 const cogHtml = data => data.inAnki

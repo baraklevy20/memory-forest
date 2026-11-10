@@ -703,6 +703,10 @@
   "text": "Por año",
   "en": "By year"
  },
+ "heatmap.click_to_go_to_its_tree": {
+  "text": "Haz clic para ir a su árbol",
+  "en": "Click to go to its tree"
+ },
  "heatmap.date_name": {
   "text": "<i>{date}:</i> {name}",
   "en": "<i>{date}:</i> {name}"
@@ -1605,10 +1609,6 @@
   "text": "Usa el estilo de casillas del escenario actual y se actualiza cuando cambias de escenario",
   "en": "Uses the current scenery's own tile style and updates when you change scenery"
  },
- "hover.click_to_select_it": {
-  "text": "Haz clic para seleccionarlo",
-  "en": "Click to select it"
- },
  "hover.click_to_watch_it_again": {
   "text": "Haz clic para volver a verlo",
   "en": "Click to watch it again"
@@ -1616,10 +1616,6 @@
  "hover.tap_again_to_watch_it_again": {
   "text": "Toca otra vez para volver a verlo",
   "en": "Tap again to watch it again"
- },
- "hover.tap_to_select_it": {
-  "text": "Toca para seleccionarlo",
-  "en": "Tap to select it"
  },
  "journal.a_harvest_moon_rises_over_your": {
   "text": "Una luna de cosecha sale sobre el aniversario de tu bosque.",
@@ -3425,25 +3421,25 @@
   "text": "Volver a todo el bosque",
   "en": "Back to the whole forest"
  },
+ "zoom.done": {
+  "text": "Listo",
+  "en": "Done"
+ },
  "zoom.next_day": {
   "text": "Día siguiente",
   "en": "Next day"
  },
- "zoom.pinch_or_double_tap_to_zoom": {
-  "text": "Pellizca o toca dos veces para ampliar, arrastra para moverte, toca un árbol para seleccionarlo",
-  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
- },
- "zoom.planted_date": {
-  "text": "Plantado el {date}",
-  "en": "Planted {date}"
+ "zoom.pinch_to_zoom_drag_to_move": {
+  "text": "Pellizca para ampliar, arrastra para moverte, toca un árbol para seleccionarlo",
+  "en": "Pinch to zoom, drag to move, tap a tree to select it"
  },
  "zoom.previous_day": {
   "text": "Día anterior",
   "en": "Previous day"
  },
- "zoom.scroll_or_press_to_zoom_drag": {
-  "text": "Desplázate o presiona ↑ ↓ para ampliar, arrastra o presiona ← → para moverte, haz clic en un árbol para seleccionarlo",
-  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ "zoom.scroll_to_zoom_drag_to_move": {
+  "text": "Desplázate para ampliar, arrastra para moverte, haz clic en un árbol para seleccionarlo",
+  "en": "Scroll to zoom, drag to move, click a tree to select it"
  },
  "zoom.the_tree_of_the_day_after": {
   "text": "El árbol del día siguiente",

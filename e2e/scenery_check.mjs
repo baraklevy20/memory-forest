@@ -16,8 +16,9 @@ const LOAD_MS = 20000;
 // an animated scene: how long the forest gets to draw a frame once its clock has moved on
 // (core.js draws one each 66-100ms, from a timer)
 const TICK_MS = 260;
-// zoomed in: a move is drawn MOVE_MS after it (web/visit.js), a fade takes FADE_MS
+// zoomed in: a move is drawn MOVE_MS after it (web/visit.js)
 const MOVE_WAIT_MS = 10, ZOOM_WAIT_MS = 120;
+const WHEEL_NOTCHES = 3;  // (the wheel's notches over a tree: zoomed in, it stays under the pointer)
 const RESIZE_WAIT_MS = 600;
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
@@ -58,13 +59,34 @@ async function shoot(page, scene, seed) {
   return shot;
 }
 
-// zoomed in (web/visit.js): its button, the arrow keys in and along, a click on the tree in the
-// middle and its day before; then back out. { in, out: hashes, picked: a tree was }, or null
-// with no zoom button
+// zoomed in (web/visit.js): its button, the wheel over a tree right of the middle, the arrow keys in
+// and along, a click on the tree in the middle and its day before; then back out. { in, out: hashes,
+// picked: a tree was, drift: how far across (a share of the width) the tree the wheel pointed at went,
+// null with none to point at }, or null with no zoom button
 async function zoom(p) {
   const button = await p.$('#p .af-zoom');
   if (!button) return null;
   await button.click();
+  // the wheel keeps the spot under the pointer where it is: the ground at a tree's foot halfway back,
+  // right of the middle, pointed at, is there still (AF.visitGroundAt: where that spot of the whole
+  // forest's view is on the pointer's row); on a lake's or a river's scenery, whose foot stands higher,
+  // it flew off the side
+  const aim = await p.evaluate(() => {
+    const root = document.getElementById('p'), env = root.afEnv, r = root.querySelector('canvas').getBoundingClientRect(), k = r.width / env.W;
+    const q = env.placed.filter(q => !q.it.pond && q.it.depth > 0.3 && q.it.depth < 0.6 && q.x > 0.75 * env.W && q.x < 0.9 * env.W)
+      .sort((a, b) => Math.abs(a.x - 0.85 * env.W) - Math.abs(b.x - 0.85 * env.W))[0];
+    return q ? { f: q.x / env.W, y: q.y, at: [r.left + q.x * k, r.top + q.y * k] } : null;
+  });
+  let drift = null;
+  if (aim) {
+    await p.mouse.move(aim.at[0], aim.at[1]);
+    for (let i = 0; i < WHEEL_NOTCHES; i++) { await p.mouse.wheel({ deltaY: -100 }); await wait(MOVE_WAIT_MS); }
+    await wait(ZOOM_WAIT_MS);
+    drift = await p.evaluate(({ f, y }) => {
+      const env = document.getElementById('p').afEnv, g = AnkiForest.visitGroundAt(env, y);
+      return g ? Math.abs(g.toX(f) / env.W - f) : null;
+    }, aim);
+  }
   for (const key of ['ArrowUp', 'ArrowUp', 'ArrowUp', 'ArrowUp', 'ArrowUp', 'ArrowUp', 'ArrowLeft', 'ArrowLeft', 'ArrowRight']) {
     await p.keyboard.press(key);
     await wait(MOVE_WAIT_MS);
@@ -79,12 +101,16 @@ async function zoom(p) {
   });
   if (at) { await p.mouse.click(at[0], at[1]); await wait(ZOOM_WAIT_MS); }
   const picked = await p.evaluate(() => { const v = document.getElementById('p').afVisits; return v && v.picked != null; });
+  // (the pointer off the forest first: its tree's tooltip, shown again under a still pointer once the
+  // scene is drawn afresh, stands in the page's flow here, with no forest.css, and went as the pointer
+  // left for the button, which moved up from under the click)
+  await p.mouse.move(0, 0); await wait(MOVE_WAIT_MS);
   const prev = await p.$('#p .af-visit-btn[data-day="prev"]:not([disabled])');
   if (prev) { await prev.click(); await wait(ZOOM_WAIT_MS); }
   const inside = await p.evaluate(() => window.__snap().hash);
   await (await p.$('#p .af-zoom')).click();
   await wait(ZOOM_WAIT_MS);
-  return { in: inside, out: await p.evaluate(() => window.__snap().hash), picked };
+  return { in: inside, out: await p.evaluate(() => window.__snap().hash), picked, drift };
 }
 
 const out = { first: {}, again: {}, swapped: {} };

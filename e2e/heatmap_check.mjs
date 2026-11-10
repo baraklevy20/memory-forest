@@ -336,6 +336,138 @@ try {
     if (rtl) out.states['by year, right to left'] = await look();
   }
   if (deep) {
+    // zoomed in (web/visit.js): a heatmap day clicked goes to its tree and selects it, the deep
+    // forest's too once Anki has sent its trees; the arrow keys, Enter and a double-click on the trees
+    await p.goto('file://' + deep);
+    await p.waitForSelector('.af-cal-canvas');
+    const goChecks = await p.evaluate(async () => {
+      const failures = [], fail = m => failures.push(m);
+      try { return await (async () => {
+      const root = document.getElementById('p'), AF = window.AnkiForest, v = root.afVisits;
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      const weeks = () => root.querySelector('.af-cal-canvas:not(.af-cal-past-weeks)');
+      const ring = root.querySelector('.af-cal-hover'), tipEl = root.querySelector('.af-cal-tip'), cv = root.querySelector('.af-canvas');
+      ring.style.transition = 'none';
+      const text = () => tipEl.textContent.replace(/[⁦-⁩]/g, '');
+      const key = (k, on = weeks(), extra = {}) => on.dispatchEvent(new KeyboardEvent('keydown', Object.assign({ key: k, bubbles: true }, extra)));
+      // the heatmap's day `ago` days back, the keyboard taking it there (← a week, ↑ a day), and where its ring is
+      const dayAt = ago => {
+        weeks().focus(); key('Home');
+        for (let i = 0; i < Math.floor(ago / 7); i++) key('ArrowLeft');
+        for (let i = 0; i < ago % 7; i++) key('ArrowUp');
+        const b = ring.getBoundingClientRect(), at = [b.left + b.width / 2, b.top + b.height / 2];
+        weeks().blur(); weeks().parentElement.dispatchEvent(new MouseEvent('mouseleave'));
+        return at;
+      };
+      const click = ([x, y], on = weeks(), detail = 1) => on.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y, detail }));
+      const move = ([x, y]) => weeks().dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+      // Anki's bridge: what is sent, and the deep forest's trees held back until let go
+      const sent = [];
+      let held = null;
+      window.pycmd = (msg, cb) => { if (msg.includes(':deep:')) held = cb; else sent.push(msg); return false; };
+      const sends = re => sent.filter(m => re.test(m));
+      const base = AF.layout(root.afEnv.data.trees);
+      const near = base.items.filter(it => !it.pond && it.ago >= 3 && it.ago <= 90 && it.x > 0.35 && it.x < 0.65).sort((a, b) => a.ago - b.ago)[0];
+      const deepT = window.TEST_BEHIND[window.TEST_BEHIND.length - 1];
+      const planted = new Set(window.TEST_BEHIND.map(t => t.ago).concat(root.afEnv.data.trees.map(t => t.ago)));
+      let rest = 1;
+      while (planted.has(rest)) rest++;
+      const placed = ago => root.afEnv.placed.find(q => !q.it.pond && q.it.ago === ago);
+      const centred = (ago, what) => {
+        const q = placed(ago);
+        if (!q) return fail(`${what}: its tree is not in the scene`);
+        // (before it, in the middle; or, one near a row's end, as far as the camera goes along the rows: on screen)
+        const f = q.x / root.afEnv.W, end = q.it.x < 0.25 || q.it.x > 0.75;
+        if (end ? f < 0.02 || f > 0.98 : Math.abs(f - 0.5) > 0.2) fail(`${what}: the camera did not glide to its tree (at ${(q.x / root.afEnv.W).toFixed(2)} across)`);
+      };
+      // (a day's spot taken just before it is clicked: the keyboard may have paged the heatmap to its year)
+      const at = { get near() { return dayAt(near.ago); }, get deep() { return dayAt(deepT.ago); }, get rest() { return dayAt(rest); } };
+      // zooming off: a click opens the day's cards, as ever, and the tooltip says nothing of trees
+      click(at.near);
+      if (!sends(new RegExp(`:day:-${near.ago}:`)).length) fail(`zoom off, a click on a day did not open it: ${sent}`);
+      move(at.near);
+      if (/go to its tree/.test(text())) fail(`zoom off, the day's tooltip says a click goes to its tree: "${text()}"`);
+      root.querySelector('.af-zoom').click();
+      if (!v.on || !held) fail('the zoom button did not turn zooming on and ask for the deep forest');
+      // a day with a tree: no browser, its tree selected and the camera before it
+      sent.length = 0;
+      weeks().parentElement.dispatchEvent(new MouseEvent('mouseleave'));
+      move(at.near);
+      if (!/Click to go to its tree/.test(text())) fail(`zoomed in, the day's tooltip does not say a click goes to its tree: "${text()}"`);
+      click(at.near);
+      await sleep(120);
+      if (sends(/:day:/).length) fail(`zoomed in, a click on a day with a tree opened the browser: ${sent}`);
+      if (v.picked == null || !placed(near.ago) || placed(near.ago).it.index !== v.picked) fail(`zoomed in, a click on a day did not select its tree (picked ${v.picked})`);
+      else centred(near.ago, 'a recent day clicked');
+      // the deep forest's day, before its trees have come: once they do
+      click(at.deep);
+      await sleep(60);
+      if (sends(/:day:/).length) fail(`a deep forest's day, its trees not yet sent, opened the browser: ${sent}`);
+      if (!held) fail('a deep forest\'s day clicked did not wait for its trees');
+      else { const cb = held; held = null; cb(window.TEST_BEHIND); }
+      await sleep(120);
+      const dq = placed(deepT.ago);
+      if (!dq || !dq.it.behind || dq.it.index !== v.picked) fail(`a deep forest's day clicked: its tree was not selected once the trees came (picked ${v.picked})`);
+      else centred(deepT.ago, 'a deep forest\'s day clicked');
+      // a day without a tree: as ever (nothing, with no reviews), the tree selected kept
+      const was = v.picked;
+      click(at.rest);
+      await sleep(60);
+      if (v.picked !== was || sent.length) fail(`a day without a tree, zoomed in, changed the selection or sent ${sent}`);
+      // the keys: ← → step through the days with a tree selected, Enter opens it; none: Enter selects one
+      root.querySelector('.af-zoom').focus();
+      key('ArrowRight', document);
+      await sleep(60);
+      const after = v.picked != null && root.afEnv.placed.find(q => !q.it.pond && q.it.index === v.picked);
+      if (!after || after.it.ago >= deepT.ago) fail(`→ with a tree selected did not step to the day after (${after && after.it.ago} from ${deepT.ago})`);
+      key('ArrowLeft', document);
+      await sleep(60);
+      if (!dq || v.picked !== dq.it.index) fail('← did not step back to the day before');
+      sent.length = 0;
+      key('Enter', document);
+      if (!sends(new RegExp(`:browse:${deepT.ago}:`)).length) fail(`Enter on the tree selected did not open its cards: ${sent}`);
+      key('Escape', document);
+      if (v.picked != null) fail('Esc did not let the tree selected go');
+      const x0 = v.state.cam.x;
+      key('ArrowLeft', document);
+      await sleep(40);
+      if (v.picked != null || v.state.cam.x === x0) fail('← with no tree selected did not walk along the rows');
+      key('Enter', document);
+      await sleep(40);
+      if (v.picked == null) fail('Enter with no tree selected did not select the one before the camera');
+      // the forest neither pointed at nor focused: the arrows are the page's
+      document.activeElement.blur();
+      const z0 = v.state.cam.z;
+      key('ArrowUp', document);
+      await sleep(40);
+      if (v.state.cam.z !== z0) fail('↑ walked in with neither the pointer nor the focus on the forest');
+      // a double-click on a tree: selects it and walks in, never opens Anki's browser
+      key('Escape', document);
+      await sleep(40);
+      const env = root.afEnv, mid = q => q.y - AF.STAGE_H[q.it.stage] * env.u * q.s / 2;
+      const t = [...env.placed].reverse().find(q => !q.it.pond && Math.abs(q.x / env.W - 0.5) < 0.35 && mid(q) > 0 && mid(q) < env.H && (q.it.view ? q.it.view.alpha : 1) >= 1);
+      if (!t) { fail(`no tree to double-click among ${env.placed.length}`); return failures; }
+      const r = cv.getBoundingClientRect(), k = r.width / env.W, h = AF.STAGE_H[t.it.stage] * env.u * t.s;
+      const spot = [r.left + t.x * k, r.top + (t.y - h / 2) * k], z1 = v.state.cam.z;
+      sent.length = 0;
+      cv.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: spot[0], clientY: spot[1] }));
+      click(spot, cv, 1); click(spot, cv, 2);
+      cv.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, clientX: spot[0], clientY: spot[1], detail: 2 }));
+      await sleep(400);
+      if (v.picked !== t.it.index) fail('a double-click\'s first click did not select the tree');
+      if (sends(/:browse:/).length) fail(`a double-click on a tree opened Anki's browser: ${sent}`);
+      if (!(v.state.cam.z < z1)) fail('a double-click did not walk in');
+      // done: the whole forest again, and a heatmap click opens its day once more
+      root.querySelector('.af-visit-btn[data-act="back"]').click();
+      await sleep(60);
+      if (v.on) fail('Done did not leave zooming');
+      sent.length = 0;
+      click(at.near);
+      if (!sends(new RegExp(`:day:-${near.ago}:`)).length) fail(`back out, a click on a day did not open it: ${sent}`);
+      return failures;
+    })(); } catch (e) { return failures.concat([String(e.stack || e)]); } });
+    out.errors.push(...goChecks.map(m => 'zoomed heatmap click: ' + m));
+    if (!goChecks.length) out.states['zoomed in: a heatmap day goes to its tree, the keys and a double-click'] = [{ name: 'zoom', off: '' }];
     await p.goto('file://' + deep);
     await p.waitForSelector('.af-cal-canvas');
     const checks = await p.evaluate(() => {

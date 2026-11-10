@@ -219,6 +219,20 @@ class PayloadTests(unittest.TestCase):
         reset(CARDS, {"debug": True, "debug_edition": "base"})  # the Debug tab pretending to be a release
         self.assertEqual(payload.payload()["zoom"], payload.ZOOM_RELEASED)
 
+    def test_zooming_is_released_with_its_note(self):
+        # (1.7.0: on for everyone, no debugging needed, and an update says so: its note "zoom-1.7")
+        import release_notes
+        self.assertIs(payload.ZOOM_RELEASED, True)
+        reset(CARDS, {"debug": False})
+        self.assertIs(payload.payload()["zoom"], True)
+        reset(CARDS, {"debug": True, "debug_edition": "plus"})
+        self.assertIs(payload.payload()["zoom"], True)
+        notes = {e["announce"]["id"]: (v["version"], e) for v in release_notes.load() for e in release_notes.items(v) if "announce" in e}
+        self.assertIn("zoom-1.7", notes)
+        version, item = notes["zoom-1.7"]
+        self.assertEqual(version, "1.7.0")
+        self.assertIn("heatmap", item["text"])  # (a heatmap day clicked, zoomed in, goes to its tree)
+
     def test_a_left_out_deck_plants_nothing(self):
         reset(CARDS, {"excluded_decks": [10]})
         self.assertEqual([(t["ago"], t["n"]) for t in payload.payload()["trees"]], [(3, 1)])

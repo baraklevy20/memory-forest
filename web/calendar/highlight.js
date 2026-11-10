@@ -265,6 +265,6 @@ Cal.highlighting = ui => {
   // one kept its heatmap and forest alive, one more at every swap)
   if (root.afOffSel) { document.removeEventListener('keydown', root.afOffSel, true); document.removeEventListener('mousedown', root.afOffSel, true); root.afOffSel = null; }
   if (!swiped) { document.addEventListener('keydown', offSel, true); document.addEventListener('mousedown', offSel, true); root.afOffSel = offSel; }
-  Object.assign(ui, { inSel, showPickDim, spot, ring, reveal, pointTree, unpoint, can, runsOf, selSummary, dueToday, selOpens, showSel, placeSel, pick, unpick });
+  Object.assign(ui, { forestRoot, inSel, showPickDim, spot, ring, reveal, pointTree, unpoint, can, runsOf, selSummary, dueToday, selOpens, showSel, placeSel, pick, unpick });
 };
 })();

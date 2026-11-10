@@ -667,6 +667,10 @@
   "text": "按年",
   "en": "By year"
  },
+ "heatmap.click_to_go_to_its_tree": {
+  "text": "点击前往这一天的树",
+  "en": "Click to go to its tree"
+ },
  "heatmap.date_name": {
   "text": "<i>{date}：</i>{name}",
   "en": "<i>{date}:</i> {name}"
@@ -1522,10 +1526,6 @@
   "text": "使用当前场景自己的色块样式，更换场景时随之改变",
   "en": "Uses the current scenery's own tile style and updates when you change scenery"
  },
- "hover.click_to_select_it": {
-  "text": "点击选中",
-  "en": "Click to select it"
- },
  "hover.click_to_watch_it_again": {
   "text": "点击再看一次",
   "en": "Click to watch it again"
@@ -1533,10 +1533,6 @@
  "hover.tap_again_to_watch_it_again": {
   "text": "再次轻点即可再看一次",
   "en": "Tap again to watch it again"
- },
- "hover.tap_to_select_it": {
-  "text": "轻点选中",
-  "en": "Tap to select it"
  },
  "journal.a_harvest_moon_rises_over_your": {
   "text": "一轮丰收月升起在您森林的周年纪念日上空。",
@@ -3316,25 +3312,25 @@
   "text": "返回整片森林",
   "en": "Back to the whole forest"
  },
+ "zoom.done": {
+  "text": "完成",
+  "en": "Done"
+ },
  "zoom.next_day": {
   "text": "后一天",
   "en": "Next day"
  },
- "zoom.pinch_or_double_tap_to_zoom": {
-  "text": "双指缩放或轻点两下来缩放，拖动来四处走走，轻点一棵树来选中它",
-  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
- },
- "zoom.planted_date": {
-  "text": "种于{date}",
-  "en": "Planted {date}"
+ "zoom.pinch_to_zoom_drag_to_move": {
+  "text": "双指缩放，拖动来移动，轻点一棵树来选中它",
+  "en": "Pinch to zoom, drag to move, tap a tree to select it"
  },
  "zoom.previous_day": {
   "text": "前一天",
   "en": "Previous day"
  },
- "zoom.scroll_or_press_to_zoom_drag": {
-  "text": "滚动或按 ↑ ↓ 缩放，拖动或按 ← → 四处走走，点击一棵树来选中它",
-  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ "zoom.scroll_to_zoom_drag_to_move": {
+  "text": "滚动来缩放，拖动来移动，点击一棵树来选中它",
+  "en": "Scroll to zoom, drag to move, click a tree to select it"
  },
  "zoom.the_tree_of_the_day_after": {
   "text": "后一天的树",

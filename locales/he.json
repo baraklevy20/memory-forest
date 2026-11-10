@@ -739,6 +739,10 @@
   "text": "לפי שנה",
   "en": "By year"
  },
+ "heatmap.click_to_go_to_its_tree": {
+  "text": "לחיצה תוביל אל העץ שלו",
+  "en": "Click to go to its tree"
+ },
  "heatmap.date_name": {
   "text": "<i>{date}:</i> {name}",
   "en": "<i>{date}:</i> {name}"
@@ -1688,10 +1692,6 @@
   "text": "משתמש בסגנון המשבצות של הנוף הנוכחי ומתעדכן כשמחליפים נוף",
   "en": "Uses the current scenery's own tile style and updates when you change scenery"
  },
- "hover.click_to_select_it": {
-  "text": "לחיצה לבחירה",
-  "en": "Click to select it"
- },
  "hover.click_to_watch_it_again": {
   "text": "לחיצה לצפייה חוזרת",
   "en": "Click to watch it again"
@@ -1699,10 +1699,6 @@
  "hover.tap_again_to_watch_it_again": {
   "text": "הקשה נוספת לצפייה חוזרת",
   "en": "Tap again to watch it again"
- },
- "hover.tap_to_select_it": {
-  "text": "הקשה לבחירה",
-  "en": "Tap to select it"
  },
  "journal.a_harvest_moon_rises_over_your": {
   "text": "ירח קציר זורח ביום השנה של היער שלך.",
@@ -3534,25 +3530,25 @@
   "text": "חזרה לכל היער",
   "en": "Back to the whole forest"
  },
+ "zoom.done": {
+  "text": "סיום",
+  "en": "Done"
+ },
  "zoom.next_day": {
   "text": "היום הבא",
   "en": "Next day"
  },
- "zoom.pinch_or_double_tap_to_zoom": {
-  "text": "צביטה או הקשה כפולה להגדלה והקטנה, גרירה כדי להסתובב, הקשה על עץ כדי לבחור אותו",
-  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
- },
- "zoom.planted_date": {
-  "text": "נשתל ב־ {date}",
-  "en": "Planted {date}"
+ "zoom.pinch_to_zoom_drag_to_move": {
+  "text": "צביטה להגדלה והקטנה, גרירה כדי לזוז, הקשה על עץ כדי לבחור אותו",
+  "en": "Pinch to zoom, drag to move, tap a tree to select it"
  },
  "zoom.previous_day": {
   "text": "היום הקודם",
   "en": "Previous day"
  },
- "zoom.scroll_or_press_to_zoom_drag": {
-  "text": "גלילה או ↑ ↓ להגדלה והקטנה, גרירה או → ← כדי להסתובב, לחיצה על עץ כדי לבחור אותו",
-  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ "zoom.scroll_to_zoom_drag_to_move": {
+  "text": "גלילה להגדלה והקטנה, גרירה כדי לזוז, לחיצה על עץ כדי לבחור אותו",
+  "en": "Scroll to zoom, drag to move, click a tree to select it"
  },
  "zoom.the_tree_of_the_day_after": {
   "text": "העץ של היום שאחרי",

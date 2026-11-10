@@ -4,6 +4,15 @@
     {
       "version": "1.7.0",
       "new": [
+        {
+          "text": "Zoom into your forest: press the button on its corner, then scroll to walk in among the trees, or click a heatmap day to go to its tree.",
+          "announce": {
+            "id": "zoom-1.7",
+            "kind": "note",
+            "title": "New: zoom into your forest",
+            "text": "Press the button on the forest's corner, then scroll to walk in among your trees."
+          }
+        },
         "Each Nature level can be customized: turn off crows, tall grass or tumbleweeds, and choose how many missed days bring the asteroid or a fire (Forest tab, Nature)."
       ],
       "improved": [

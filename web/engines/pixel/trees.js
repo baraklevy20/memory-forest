@@ -60,6 +60,11 @@ function crownShade(tone, W, H, w, cx) {
 }
 /* ---------- tree sprites ---------- */
 const SEEDLING_W = 7;  // a seedling is the same small sprite at any size
+// zoomed in (web/visit.js), as many times bigger, in whole pixels, as it stands taller than
+// SEEDLING_PX: today's seedling at the front was a speck among trees drawn five times their size
+const SEEDLING_PX = 6;
+const seedK = (h, env) => (env.layout && env.layout.visiting ? Math.max(1, Math.round(h / SEEDLING_PX)) : 1);
+const big = layer(1, 1);
 // a crown's width as a share of the tree's height, by crown size (small, medium, large)
 const PINE_W = [0.46, 0.54, 0.62], BROAD_W = [0.66, 0.8, 0.94], ANCIENT_W = [0.9, 0.98, 1.04];
 const ANCIENT_PINE_W = 1.1;  // an ancient conifer is this much wider again
@@ -78,6 +83,7 @@ const HAZE_STEPS = 4, FADED_HZQ = 6;
 const DYING_HOLES = 0.18;  // a crown at the worst health is this full of holes
 // the share of a crown that yellows, by health
 const SICK_SHARE = [0, 0.38, 0.62, 0.85];
+const SICK_BIG = 60;
 
 /* A tree Wild's fire has caught (`burn`, 1 while it blazes, less for each day studied
  * since; web/events/fire.js draws the flames): the fire has taken one side of it (AF.burnSide),
@@ -143,7 +149,13 @@ function sprite(t, h, hzq, env) {
     put(cx - 1, base - 4, leaf); put(cx - 2, base - 5, leaf); put(cx - 1, base - 5, leafL);
     put(cx + 1, base - 5, leaf); put(cx + 2, base - 6, leafL); put(cx + 1, base - 6, leafL);
     if (burn) scorch(d, W, H, burn, t.seed);
-    g.putImageData(img, 0, 0); return cv;
+    g.putImageData(img, 0, 0);
+    const k = seedK(h, env);
+    if (k === 1) return cv;
+    const [bc, bg] = big;
+    bc.width = W * k; bc.height = H * k; bg.imageSmoothingEnabled = false;
+    bg.drawImage(cv, 0, 0, W * k, H * k);
+    return bc;
   }
   const tone = new Int8Array(W * H).fill(-1), inside = (x, y) => x >= 0 && y >= 0 && x < W && y < H && tone[y * W + x] >= 0;
   const hole = t.health === 3 ? DYING_HOLES : 0, pick = l => l > 0.5 ? 4 : l > 0.15 ? 3 : l > -0.3 ? 2 : 1;
@@ -175,9 +187,12 @@ function sprite(t, h, hzq, env) {
     else if (pine) pineCrown(tone, W, w, top, ch, cx, t.stage >= OLD ? 4 : t.stage >= MATURE ? 3 : 2, R, hole, pick);
     else { roundCrown(tone, W, H, w, top, ch, cx, ancient ? 7 : t.stage >= MATURE ? 5 : 3, R, hole, pick); crownShade(tone, W, H, w, cx); }
   }
-  // yellowing comes in 2x2 clusters so it reads as yellow branches, not speckle
+  // yellowing comes in 2x2 clusters so it reads as yellow branches, not speckle; zoomed in (web/visit.js),
+  // a tree SICK_BIG pixels tall and up gets 3x3 clusters (2x2 on a crown five times its size read as noise,
+  // 8x8 as squares pasted on)
   const pSick = SICK_SHARE[t.health], sr = hashStr(t.variant + '|' + t.size + '|' + t.seed);
-  const sick = (x, y) => hashStr((x >> 1) + ',' + (y >> 1) + ',' + sr) / 4294967296 < pSick;
+  const cl = env.layout && env.layout.visiting && h >= SICK_BIG ? 3 : 2;
+  const sick = (x, y) => hashStr(Math.floor(x / cl) + ',' + Math.floor(y / cl) + ',' + sr) / 4294967296 < pSick;
   let roundPal = EP.rounds ? EP.rounds[t.seed % EP.rounds.length] : EP.round || (ancient ? PXT.ancient : P.round);
   let pinePal = EP.pine || (ancient ? PXT.ancientPine : P.pine);
   const pals = tree.palette && tree.palette(c);
@@ -216,8 +231,8 @@ AF.spriteCache = function () {
   const kept = new Map(), byTree = new Map();  // key -> { cv, h, tree, key }, the least lately used first; tree -> its keys
   let px = 0;
   // a seedling is the same sprite at any height
-  const height = (t, h) => t.stage === SEEDLING ? 0 : h, shape = env => env.layout && env.layout.visiting ? 'v' : 'f';
-  const keyOf = (t, h, hzq, env) => `${t.index}|${height(t, h)}|${hzq}|${shape(env)}`;
+  const height = (t, h, env) => t.stage === SEEDLING ? -seedK(h, env) : h, shape = env => env.layout && env.layout.visiting ? 'v' : 'f';
+  const keyOf = (t, h, hzq, env) => `${t.index}|${height(t, h, env)}|${hzq}|${shape(env)}`;
   function find(t, h, hzq, env) {
     const k = keyOf(t, h, hzq, env), s = kept.get(k);
     if (s) { kept.delete(k); kept.set(k, s); }
@@ -238,7 +253,7 @@ AF.spriteCache = function () {
     if (old) return old;
     const spr = sprite(t, h, hzq, env), [cv, g] = layer(spr.width, spr.height);
     g.drawImage(spr, 0, 0);
-    const s = { cv, h: height(t, h), tree: t.index, key: k };
+    const s = { cv, h: t.stage === SEEDLING ? 0 : h, tree: t.index, key: k };
     kept.set(k, s); px += cv.width * cv.height;
     if (!byTree.has(t.index)) byTree.set(t.index, new Set());
     byTree.get(t.index).add(k);

@@ -100,7 +100,7 @@ ZOOM_STATE = """(() => {
     caption: !root.querySelector('.af-caption').hidden, trees: env.placed.filter(q => !q.it.pond).length,
     xs: env.placed.map(q => Math.round(q.x)).join(), mid: (r => [r.left + r.width / 2, r.top + r.height * 0.6])(root.querySelector('canvas').getBoundingClientRect()) });
 })()"""
-VISIT_MS = 800  # past the zoom's fade (web/visit.js FADE_MS) and the rebuild
+VISIT_MS = 800  # past the walk back out of zoom (web/visit.js LEAVE_MS) and the rebuild
 MARK = "(() => { const e = [...document.querySelectorAll('*')].find(e => e.afEnv); if (e) e.afEnv.checkMark = 1; })()"
 # measured on a finished deck's page (Anki's congratulations page, panel.on_page_loaded): that
 # it is that page, that the panel was put on it (.af-finished), built, and how much of its

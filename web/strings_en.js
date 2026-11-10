@@ -158,6 +158,7 @@ window.AnkiForest.EN = {
  "heatmap.birthday": "Birthday",
  "heatmap.both_of_its_cards_have_since": "Both of its cards have since been deleted",
  "heatmap.by_year": "By year",
+ "heatmap.click_to_go_to_its_tree": "Click to go to its tree",
  "heatmap.date_name": "<i>{date}:</i> {name}",
  "heatmap.day_day_of_a_n_day": {
   "one": "Day {day} of a {n}-day streak",
@@ -419,10 +420,8 @@ window.AnkiForest.EN = {
   "one": "Your third-longest streak: {n} day",
   "other": "Your third-longest streak: {n} days"
  },
- "hover.click_to_select_it": "Click to select it",
  "hover.click_to_watch_it_again": "Click to watch it again",
  "hover.tap_again_to_watch_it_again": "Tap again to watch it again",
- "hover.tap_to_select_it": "Tap to select it",
  "news.change_scenery_and_settings_new_scenery": "Change scenery and settings (new scenery)",
  "news.change_scenery_and_settings_something_new": "Change scenery and settings (something new)",
  "news.got_it": "Got it",
@@ -527,11 +526,11 @@ window.AnkiForest.EN = {
  "tooltip.the_deep_forest": "The deep forest",
  "tooltip.young": "young",
  "zoom.back_to_the_whole_forest": "Back to the whole forest",
+ "zoom.done": "Done",
  "zoom.next_day": "Next day",
- "zoom.pinch_or_double_tap_to_zoom": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it",
- "zoom.planted_date": "Planted {date}",
+ "zoom.pinch_to_zoom_drag_to_move": "Pinch to zoom, drag to move, tap a tree to select it",
  "zoom.previous_day": "Previous day",
- "zoom.scroll_or_press_to_zoom_drag": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it",
+ "zoom.scroll_to_zoom_drag_to_move": "Scroll to zoom, drag to move, click a tree to select it",
  "zoom.the_tree_of_the_day_after": "The tree of the day after",
  "zoom.the_tree_of_the_day_before": "The tree of the day before",
  "zoom.zoom_in_among_the_trees": "Zoom in among the trees"

@@ -23,6 +23,12 @@ So its size is how much you have learned, and its colour is how well you remembe
 tree to see its day. Take a week off and a pond appears where the missing days would be; keep
 studying and animals move in, and after a year a little cabin appears at the edge of the woods.
 
+## Zoom into your forest
+
+<p align="center"><img src="docs/zoom.png" width="640" alt="The forest by the lake zoomed in among its trees, one tree picked, with its day, its cards and how well you remember them under the forest"></p>
+
+Press the zoom button on the forest's corner and scroll to walk in among the trees. Click a tree to see its day.
+
 ## Your study heatmap
 
 Your study days, streaks and upcoming reviews, in your scenery's colours. Hover for details;

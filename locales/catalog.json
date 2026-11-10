@@ -735,6 +735,12 @@
    "web/calendar/calendar.js"
   ]
  },
+ "heatmap.click_to_go_to_its_tree": {
+  "web": true,
+  "where": [
+   "web/calendar/tooltips.js"
+  ]
+ },
  "heatmap.date_name": {
   "web": true,
   "where": [
@@ -1673,12 +1679,6 @@
    "web/heatmap/scenery.json"
   ]
  },
- "hover.click_to_select_it": {
-  "web": true,
-  "where": [
-   "web/hover.js"
-  ]
- },
  "hover.click_to_watch_it_again": {
   "web": true,
   "where": [
@@ -1686,12 +1686,6 @@
   ]
  },
  "hover.tap_again_to_watch_it_again": {
-  "web": true,
-  "where": [
-   "web/hover.js"
-  ]
- },
- "hover.tap_to_select_it": {
   "web": true,
   "where": [
    "web/hover.js"
@@ -3892,19 +3886,22 @@
  "tooltip.planted_n_days_ago": {
   "web": true,
   "where": [
-   "web/tooltips.js"
+   "web/tooltips.js",
+   "web/visit.js"
   ]
  },
  "tooltip.planted_today": {
   "web": true,
   "where": [
-   "web/tooltips.js"
+   "web/tooltips.js",
+   "web/visit.js"
   ]
  },
  "tooltip.planted_yesterday": {
   "web": true,
   "where": [
-   "web/tooltips.js"
+   "web/tooltips.js",
+   "web/visit.js"
   ]
  },
  "tooltip.sapling": {
@@ -4177,19 +4174,19 @@
    "web/visit.js"
   ]
  },
+ "zoom.done": {
+  "web": true,
+  "where": [
+   "web/visit.js"
+  ]
+ },
  "zoom.next_day": {
   "web": true,
   "where": [
    "web/visit.js"
   ]
  },
- "zoom.pinch_or_double_tap_to_zoom": {
-  "web": true,
-  "where": [
-   "web/visit.js"
-  ]
- },
- "zoom.planted_date": {
+ "zoom.pinch_to_zoom_drag_to_move": {
   "web": true,
   "where": [
    "web/visit.js"
@@ -4201,7 +4198,7 @@
    "web/visit.js"
   ]
  },
- "zoom.scroll_or_press_to_zoom_drag": {
+ "zoom.scroll_to_zoom_drag_to_move": {
   "web": true,
   "where": [
    "web/visit.js"

@@ -17,11 +17,11 @@ AF.watchHint = touched => `<br><span class="af-hint">${touched ? AF.t('hover.tap
  * draws of it each frame. */
 AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, redraw }) {
   let hover = null, deepHover = null, eventHover = null, touched = false, armed = null, shown = null;  // armed: what one more tap replays; shown: the tip as written
-  let linkedAgo = null, lifted = null;
+  let linkedAgo = null, liftedMine = null;
   const plantedDays = new Set((data.calendar && data.calendar.planted || []).map(t => t[0]));
   root.afPointTreeDay = ago => {
     if (linkedAgo === ago) return;
-    linkedAgo = ago; lifted = null; redraw();
+    linkedAgo = ago; liftedMine = null; redraw();
   };
   // the days selected on the heatmap, as `ago`s (null: none): their trees stand out, the rest of the
   // forest dimmed under them
@@ -96,11 +96,21 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
    * before it, with a light outline round it and the birds on it, which then perch on it as ever.
    * With days selected on the heatmap it all goes on top at the end instead (drawMarker), over the
    * dimmed forest. */
-  let liftedTop = null;
-  function drawLifted(g, t) {
-    const env = current(), p = !litDays && marked(env);
-    liftedTop = p ? lift(g, env, p, t) : null;
+  let liftedTop = null, pickedTop = null;
+  // zoomed in, the tree selected (web/visit.js) keeps its outline, the pointer elsewhere or not
+  const pickCache = { lifted: null };
+  function pickedOf(env) {
+    const zoom = root.afVisits, i = zoom && zoom.on ? zoom.picked : null;
+    return i == null || !env ? null : env.placed.find(q => !q.it.pond && q.it.index === i) || null;
   }
+  function drawLifted(g, t) {
+    const env = current(), p = !litDays && marked(env), q = !litDays && pickedOf(env);
+    pickedTop = q && q !== p ? lift(g, env, q, t, pickCache) : null;
+    liftedTop = p ? lift(g, env, p, t) : null;
+    if (q && q === p) pickedTop = liftedTop;  // (pointed at as well: one outline, its arrow over it)
+  }
+  /* the outline's top over the tree selected, for its arrow (null: not outlined now) */
+  const pickedRing = () => pickedTop;
   function drawMarker(g) {
     const env = current();
     drawLit(g, env);
@@ -122,7 +132,8 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
   // the birds a tree's outline goes round, as events draw them on it
   const BIRDS = ['crows', 'robins'], BIRD_ROOM = 8;  // (the room they take above and beside the crown)
   /* the tree and its outline drawn; returns the outline's top, for the arrow */
-  function lift(g, env, p, t) {
+  function lift(g, env, p, t, cache) {
+    let lifted = cache ? cache.lifted : liftedMine;
     // sprite() borrows a scratch canvas: keep a copy of the tree until the scene or the tree changes
     if (!lifted || lifted.env !== env || lifted.p !== p) {
       const { h, hzq } = AF.pixel.sizeOf(p, env), spr = AF.pixel.sprite(p.it, h, hzq, env);
@@ -130,6 +141,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       if (env.flipLight && !p.pose) { tg.translate(spr.width, 0); tg.scale(-1, 1); }
       tg.drawImage(spr, 0, 0);
       lifted = { env, p, tree, x: Math.round(p.x - spr.width / 2), y: Math.round(p.y - spr.height + 1), ring: null };
+      if (cache) cache.lifted = lifted; else liftedMine = lifted;
     }
     const L = lifted, birds = p.it.leeches || p.it.cured, R = BIRD_ROOM + 1;
     // the outline: round the tree and (drawn on a copy of the scene holding this tree alone) its
@@ -246,9 +258,13 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     const scale = env.W / (canvas.clientWidth || env.W), [x, y] = AF.u.pointIn(e, canvas);
     return pick(env, x * scale, y * scale);
   }
+  // where the mouse last was over the forest, to point again from there once the scene is drawn afresh
+  // under it (zooming in: the wheel moves no mouse, and the tree under it lost its outline and tooltip)
+  let lastAt = null, again = 0;
   if (data.tooltips) {
     canvas.addEventListener('pointerdown', e => { touched = e.pointerType !== 'mouse'; });
     canvas.addEventListener('mousemove', e => {
+      lastAt = e.isTrusted || !e.afAgain ? { clientX: e.clientX, clientY: e.clientY } : lastAt;
       const env = current();
       if (!env) return;
       const hit = hitAt(env, e);
@@ -272,7 +288,8 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         hover = { x: hit.b ? (hit.b.x0 + hit.b.x1) / 2 : hit.p.x, top: hit.b ? hit.b.y0 : hit.p.y - 4 * env.u, tree: hit.pond ? null : hit.p.it, p: hit.pond ? null : hit.p };
         // zoomed in, a click picks a tree first (web/visit.js)
         const zoom = root.afVisits, picks = !hit.pond && zoom && zoom.on && zoom.picked !== hit.p.it.index;
-        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, picks ? (touched ? AF.t('hover.tap_to_select_it') : AF.t('hover.click_to_select_it')) : '', env.data);
+        // (selecting is the bar's to say, under the forest: false, no hint; the tree selected says its click opens its cards)
+        html = hit.pond ? AF.tips.pond(hit.p.it) : AF.tips.tree(hit.p.it, picks ? false : '', env.data);
         canvas.style.cursor = !hit.pond && (picks || (data.inAnki && !data.testForest)) ? 'pointer' : '';
       }
       // the same thing pointed at as before: the tip only follows the pointer (rewriting it, and
@@ -291,7 +308,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       tip.style.left = Math.max(minX, left) + 'px'; tip.style.top = Math.max(minY, top) + 'px';
       if (changed) redraw();  // a still forest redraws the same moment, only the marker moves
     });
-    canvas.addEventListener('mouseleave', () => { hover = null; deepHover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
+    canvas.addEventListener('mouseleave', () => { lastAt = null; hover = null; deepHover = null; shown = null; tip.hidden = true; canvas.style.cursor = ''; redraw(); });
     canvas.addEventListener('click', e => {
       if (eventHover && eventHover.replay) {
         if (touched && armed !== eventHover.html) { armed = eventHover.html; return; }  // the first tap: its tooltip
@@ -304,13 +321,28 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       let tree = hover && hover.tree, deep = deepHover;
       if (zoom && zoom.on && env) { const hit = hitAt(env, e); tree = hit && hit.p && !hit.pond ? hit.p.it : null; deep = hit && hit.deep; }
       if (zoom && zoom.on && tree && zoom.picked !== tree.index) { tip.hidden = true; zoom.pick(tree.index); return; }
+      // (zoomed in, a double-click's second click is not a click on the tree it just selected: it
+      // walks in, web/visit.js, rather than open Anki's browser)
+      if (zoom && zoom.on && e.detail > 1) return;
+      // (and a click on the ground, with a tree selected, lets it go, as Esc does)
+      if (zoom && zoom.on && !tree && !deep && zoom.picked != null) { zoom.pick(null); return; }
       if (data.testForest) return;
       if (deep) send(`${data.channel}:browse:${deep.from_ago}:${AF.deckFor(data)}:${deep.to_ago}`);
       else if (tree) send(`${data.channel}:browse:` + tree.ago + ':' + (data.deckId && !tree.dim ? data.deckId : ''));
     });
   }
   /* the scene was rebuilt under the pointer (zooming in): what it pointed at is gone */
-  function clear() { linkedAgo = null; lifted = null; litTrees = null; hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = ''; }
-  return { drawLifted, drawMarker, clear };
+  function clear() {
+    linkedAgo = null; liftedMine = null; pickCache.lifted = null; litTrees = null; hover = null; deepHover = null; eventHover = null; shown = null; armed = null; tip.hidden = true; canvas.style.cursor = '';
+    if (!lastAt || touched || canvas.closest('.af-dragging')) return;
+    clearTimeout(again);
+    again = setTimeout(() => {
+      if (!lastAt || !canvas.isConnected) return;
+      const e = new MouseEvent('mousemove', Object.assign({ bubbles: true }, lastAt));
+      e.afAgain = true;
+      canvas.dispatchEvent(e);
+    }, 0);
+  }
+  return { drawLifted, drawMarker, clear, pickedRing };
 };
 })();

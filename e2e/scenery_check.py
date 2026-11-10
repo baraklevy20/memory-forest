@@ -22,8 +22,8 @@ mounted in turn on one page of one headless Chrome (e2e/scenery_check.mjs). For 
 - each weather, the night, the trees, the fire, the smoke, the craters and the crows each
   change the picture: a scenery that draws over one of them hides it;
 - animated, it keeps drawing (and something in it keeps moving) an hour on;
-- zoomed in among the old trees, walked along and a tree picked, it draws, and back out it is the
-  forest it was.
+- zoomed in among the old trees (the wheel over a tree keeping it under the pointer), walked along
+  and a tree picked, it draws, and back out it is the forest it was.
 
 Only the sceneries an edition ships, on the landscapes and with the landmarks it ships (editions.json;
 every one here in the public repo), never the drafts. Needs Chrome, and node with the dev packages (npm install)."""
@@ -55,6 +55,10 @@ FRAMES = (0, 1.5, 4, 3600, 3602.5)
 QUICK_FRAMES = (0, 4, 3600)
 # a painted canvas: (nearly) every pixel opaque, and more colours than a blank or a flat fill
 MIN_OPAQUE, MIN_COLOURS = 0.98, 12
+# zoomed in by the wheel over a tree, it may go this far across (a share of the width) at most: the
+# spot under the pointer stays where it is (web/visit.js slotAt; measured from the wrong foot on a lake,
+# a tree at 0.85 went to 1.01 in three notches)
+MAX_DRIFT = 0.05
 # Nature's timelines (the Debug tab's, events.timeline_steps), each against the same days on
 # Peaceful, where none of it happens: the picture must differ
 NATURE = {
@@ -234,7 +238,8 @@ def scenes(envs: list, quick: bool) -> list:
         # day before it, then back out to the forest as it was
         add(f"{env}-zoomed-in", base, zoom=True, trees=800 if quick else 1500)
         if not quick:
-            add(f"{env}-zoomed-in-small", dict(base, weather="snow", time_of_day="night"), zoom=True, trees=30)
+            # (the smallest forest with a zoom button: 4 rows, core.js ZOOM_MIN_ROWS; 30 trees are 3)
+            add(f"{env}-zoomed-in-small", dict(base, weather="snow", time_of_day="night"), zoom=True, trees=40)
         if not quick:
             # the panel at its narrowest and widest, and made narrower once drawn (core.js rebuilds it)
             add(f"{env}-narrow", base, _width=250)
@@ -330,6 +335,8 @@ def check(cases: list, got: dict) -> list:
                 fail(name, "zooms", "back out, the forest is not as it was")
             elif not zoom.get("picked"):
                 fail(name, "zooms", "a click among the trees picked none")
+            elif zoom.get("drift") is not None and zoom["drift"] > MAX_DRIFT:
+                fail(name, "zooms", f"the spot under the pointer went {100 * zoom['drift']:.1f}% of the width across as the wheel zoomed in")
     # the trees stand where they stood, whatever the hour and the weather
     groups: dict = {}
     for c in cases:

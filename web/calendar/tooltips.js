@@ -30,7 +30,7 @@ const placeLine = (rank, n) => [AF.tn('heatmap.your_longest_streak_n_days', n),
   AF.tn('heatmap.your_third_longest_streak_n_days', n)][rank];
 
 Cal.tooltips = ui => {
-  const { root, data, cal, box, H, treesByDay, swiped, grid, tip } = ui;
+  const { data, cal, box, H, treesByDay, swiped, grid, tip } = ui;
   // a number of reviews, and the time they took where the review log kept it: "103 reviews in 19 min"
   // a stretch's reviews and time together, the time first where the days are shaded by it, as a day's
   // own tooltip has them: "8 hr 24 min, 3,432 reviews"
@@ -106,6 +106,9 @@ Cal.tooltips = ui => {
   // (not a day whose cards have all since been deleted: the browser would open on none)
   const allGone = o => { const g = H.gone.get(o); return !!g && g[0] >= g[1]; };
   const opens = c => cal.browse && (c.n > 0 || dueNow(c)) && c.o <= H.ahead && c.o >= H.first && !allGone(c.o);
+  // zoomed in (web/visit.js), a day with a tree: a click goes to its tree instead (the deep forest's too)
+  const treeOf = c => (data.showForest === false || c.o < H.first ? null : treesByDay.get(c.o) || null);
+  const goesTo = c => { const zoom = ui.forestRoot().afVisits, t = c && treeOf(c); return !!(t && zoom && zoom.reach && zoom.reach(t.ago)); };
   // a month in a few words, on its label: its days studied; and for the days ahead in it, the cards
   // due. January's label shows its year, so it tells the year's days studied first
   const monthSummary = (y, m) => {
@@ -239,7 +242,7 @@ Cal.tooltips = ui => {
     }
     ui.pointTree(c);
     ui.ring(c);
-    grid.classList.toggle('af-click', !!c && (ui.sel ? ui.inSel(c) && ui.selOpens() : opens(c)));
+    grid.classList.toggle('af-click', !!c && (ui.sel ? ui.inSel(c) && ui.selOpens() : opens(c) || goesTo(c)));
     if (!c) { tip.hidden = true; if (ui.hit && ui.hit.run) streak(ui.hit); else if (ui.sel) ui.showSel(); return; }
     const off = c.o <= 0 && !c.n && H.free.has(c.o);  // (a day with nothing due)
     const run = c.o <= 0 && (c.n || off) ? H.runOf(c.o) : null;
@@ -287,12 +290,14 @@ Cal.tooltips = ui => {
     const head = `<b>${esc(near ? AF.t('heatmap.near_date', { near: AF.i18n.nearDay(c.o), date: withWeekday(c.ms, false) }) : withWeekday(c.ms, true))}</b>`;
     // (a trophy pointed at: its day and its streak, no more; the day's own numbers are on its tile)
     const trophy = ui.hit && ui.hit.trophy >= 0 && run && H.podium.has(run);
-    const tree = data.showForest === false || c.o < H.first ? null : treesByDay.get(c.o);
+    const tree = treeOf(c);
     // (its cards always "cards", as before)
     const planted = tree ? `<br>${AF.tn('heatmap.planted_tree_n_new_cards', tree.n)}` : '';
-    const zoom = root.afVisits, scene = root.afEnv;
+    const forest = ui.forestRoot(), zoom = forest.afVisits, scene = forest.afEnv;
     const inView = tree && scene && scene.placed.some(p => !p.it.pond && p.it.ago === tree.ago);
-    const location = !tree || data.showForest === false || inView ? '' : zoom && zoom.on
+    // (zoomed in, the click goes to its tree: said, since with zooming off it opens the day's cards)
+    const location = goesTo(c) && !ui.sel ? `<br><span class="af-hint">${AF.t('heatmap.click_to_go_to_its_tree')}</span>`
+      : !tree || data.showForest === false || inView ? '' : zoom && zoom.on
       ? `<br><i>${AF.t('heatmap.this_tree_is_outside_your_current')}</i>`
       : data.merged && tree.ago >= data.merged.to_ago && tree.ago <= data.merged.from_ago
         ? `<br><i>${AF.t('heatmap.this_day_s_tree_is_part')}</i>` : '';
@@ -312,6 +317,6 @@ Cal.tooltips = ui => {
     tip.style.top = (above ? top - tip.offsetHeight - TIP_GAP : bottom + TIP_GAP) + 'px';
   };
   grid.addEventListener('mousemove', point);
-  Object.assign(ui, { totals, reviewsIn, due, perDay, studiedOf, studiedLines, cellAt, dueNow, allGone, opens, notesOf, point, tell });
+  Object.assign(ui, { totals, reviewsIn, due, perDay, studiedOf, studiedLines, cellAt, dueNow, allGone, opens, goesTo, notesOf, point, tell });
 };
 })();

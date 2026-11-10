@@ -9,7 +9,7 @@
 (function () {
 'use strict';
 const AF = window.AnkiForest;
-const { esc, fmtDate, cap, clamp } = AF.u;
+const { esc, fmtDate, clamp } = AF.u;
 const { HORIZON, GROUND_BOTTOM, ROWS_TOP, SLOT_MARGIN, SLOT_SPAN, FAR_SCALE, NEAR_GAIN, DIM_HAZE } = AF.GEOM;
 
 // The camera stands CAM in front of the depth it looks at, and each row behind that is ROW_D
@@ -23,11 +23,16 @@ const CAM = 1, ROW_D = 0.42, SPREAD = 4.2, S = 2.4, LENS_ROWS = 3;
 // a tree this far off centre (a share of the width) is out of sight; one nearer than the depth
 // looked at fades as the camera walks past it, gone PASS_ROWS rows on
 const SIDE = 0.8, PASS_ROWS = 0.2;
+// a tree the camera walks past keeps coming closer and sinks out of the foot of the scene, SINK
+// times the scene's ground a row (deeper for a bigger tree), gone PASS_OUT rows on and fading
+// only over the last PASS_FADE of that (one left where it stood while it faded read as a ghost:
+// a see-through crown, a lone trunk, its shadow still dark on the grass)
+const SINK = 3.4, PASS_OUT = 0.42, PASS_FADE = 0.12;
 // the camera sees this much of the way back to itself (times CAM) behind the depth it looks at
 const BEHIND_MOST = 0.8;
 // the deep forest's trees are drawn one by one this many rows ahead at most, fading in over the
-// last SIGHT_FADE of them; its bands fade out as the camera walks in, gone as its first trees
-// come into sight (at least a row in)
+// last SIGHT_FADE of them; its bands stay until its first trees come into sight, and fade out as
+// they fade in (gone before them, the horizon stood bare for rows: only the back rows' small trees)
 const BEHIND_SIGHT = 14, SIGHT_FADE = 2;
 // zooming in from the whole forest: the camera starts START_ROWS in front of the front row and
 // eases from the whole forest's view into its own (the same but for the haze) over BLEND_ROWS
@@ -35,8 +40,6 @@ const START_ROWS = 0.6, BLEND_ROWS = 0.1;
 // the haze deepens this much a row back, up to this much; a faded tree on a deck screen
 // (it.dim) stays as faded as it is there (DIM_HAZE)
 const HAZE_PER_ROW = 0.07, MAX_HAZE = 0.85;
-// the fade between one view and the next, in ms
-const FADE_MS = 180;
 const ease = k => k * k * (3 - 2 * k), lerp = (a, b, k) => a + (b - a) * k;
 // a slot (as the camera counts them, `per` to a row) at the share `f` across the whole forest's
 // view; how wide one is on the canvas (a share of it), dd rows past the depth looked at
@@ -49,12 +52,14 @@ const visitStart = base => Math.max(...base.items.filter(it => !it.pond).map(it 
  * top of the ground (ROWS_TOP) down to its foot, and as wide as there (`edge`: its rows'
  * spacing, scale, and how far down a row at each rel stands, gA + gB * rel); then over
  * LENS_ROWS it comes, k of the way, to see as from among the trees. */
-function visitLens(base, z) {
+function visitLens(base, z, keep = 0) {
   const start = visitStart(base), back = Math.min(...base.items.filter(it => !it.pond).map(it => it.row + it.jy));
   const deep = Math.max(1 + START_ROWS, start - back);  // (a lone row stands one row deep)
   const rowD = (1 / FAR_SCALE - 1) / (deep - START_ROWS / FAR_SCALE), front = CAM / (CAM + START_ROWS * rowD);
   const gB = (1 - ROWS_TOP / (GROUND_BOTTOM - HORIZON)) / (front * (1 - FAR_SCALE));
-  return { k: ease(clamp((start - z) / LENS_ROWS, 0, 1)), edge: { rowD, S: base.zoom / front, gA: 1 - gB * front, gB } };
+  // (`keep`: a camera that glided to a tree, a day's step, sees it as from among the trees however
+  // near the front it stands: the newest rows were never seen closer than the whole forest's view)
+  return { k: Math.max(keep, ease(clamp((start - z) / LENS_ROWS, 0, 1))), edge: { rowD, S: base.zoom / front, gA: 1 - gB * front, gB } };
 }
 /* How the camera sees the ground dd rows past the depth it looks at (behind it, if less than
  * 0): `g`, how far down from the horizon to the scene's foot it is; `w`, how many times the
@@ -78,24 +83,26 @@ function ddAt(lens, g) {
  * deep forest's bands still shows. `xOf(it)`: where a tree stands across the forest (a share
  * of it), the landscape's squeeze of the rows (a river's banks, say) included. */
 AF.visitLayout = function (base, cam, xOf = it => it.x, behind = []) {
-  const per = base.perRow + 0.5, b = ease(cam.b), items = [], lens = visitLens(base, cam.z);
+  const per = base.perRow + 0.5, b = ease(cam.b), items = [], lens = visitLens(base, cam.z, cam.lens || 0);
   const deep = cam.b >= 1 ? behind : [];
   for (const it of deep.length ? base.items.concat(deep) : base.items) {
     const dd = cam.z - (it.row + it.jy);
     if (it.behind && dd > BEHIND_SIGHT) continue;  // further than the camera draws one by one
     // a pond stays until the camera has walked over its near shore
-    if (dd <= (it.pond ? -AF.POND.ROWS * (1 - AF.POND.BACK) : -PASS_ROWS)) continue;
-    const sg = sight(lens, Math.max(0, dd)), slotW = SLOT_SPAN / per * sg.w, dx = (xOf(it) * per - cam.x) * slotW;
+    if (dd <= (it.pond ? -AF.POND.ROWS * (1 - AF.POND.BACK) : b >= 1 ? -PASS_OUT : -PASS_ROWS)) continue;
+    const passing = !it.pond && b >= 1 && dd < 0, sg = sight(lens, passing ? dd : Math.max(0, dd));
+    if (passing) sg.g = sight(lens, 0).g - dd * SINK * (0.6 + 0.4 * it.stage / 5);
+    const slotW = SLOT_SPAN / per * sg.w, dx = (xOf(it) * per - cam.x) * slotW;
     if (b >= 1 && Math.abs(dx) > SIDE + (it.pond ? it.slots * slotW : 0)) continue;  // (while it eases, every tree is on its way somewhere)
-    const alpha = (dd < 0 ? 1 + dd / PASS_ROWS : 1) * (it.behind ? Math.min(1, (BEHIND_SIGHT - dd) / SIGHT_FADE) : 1);
+    const alpha = (dd < 0 ? (passing ? clamp((dd + PASS_OUT) / PASS_FADE, 0, 1) : 1 + dd / PASS_ROWS) : 1) * (it.behind ? Math.min(1, (BEHIND_SIGHT - dd) / SIGHT_FADE) : 1);
     items.push(Object.assign({}, it, { view: { dx, g: sg.g, dd: Math.max(0, dd), at: dd, s: sg.s, b, alpha, slotW } }));
   }
   let deepAlpha = 1;
   if (deep.length) {
-    const start = visitStart(base), newest = deep[deep.length - 1], fadeRows = Math.max(1, start - (newest.row + newest.jy) - BEHIND_SIGHT);
-    deepAlpha = 1 - ease(clamp((start - cam.z) / fadeRows, 0, 1));
+    const newest = deep[deep.length - 1];
+    deepAlpha = 1 - ease(clamp((BEHIND_SIGHT - (cam.z - (newest.row + newest.jy))) / SIGHT_FADE, 0, 1));
   }
-  return Object.assign({}, base, { items, zoom: lerp(base.zoom, 1, b), flatZoom: base.zoom, visiting: b >= 1, cam, lens, deepAlpha });
+  return Object.assign({}, base, { items, zoom: lerp(base.zoom, 1, b), flatZoom: base.zoom, visiting: b >= 1, cam, lens, deepAlpha, flat: base });
 };
 
 /* Where a spot of the whole forest's view (`x`, `y`, as there) stands as the camera sees it:
@@ -166,11 +173,12 @@ AF.visitPlace = function (it, W, H, env) {
 /* An environment that draws the forest somewhere else entirely (a room's window) says `noVisit`. */
 AF.canVisit = env => !AF.envOf(env).noVisit;
 
-/* the little arrow over the tree picked (the hover marker's shape, a size up) */
-AF.drawVisitMarker = function (g, env, index) {
+/* the little arrow over the tree picked (the hover marker's shape, a size up), over its outline's
+ * top `top` when it has one (web/hover.js) */
+AF.drawVisitMarker = function (g, env, index, top) {
   const p = env.placed.find(q => !q.it.pond && q.it.index === index);
   if (!p) return;
-  const h = AF.STAGE_H[p.it.stage] * env.u * p.s, x = Math.round(p.x), y = Math.max(2, Math.round(p.y - h - 5));
+  const h = AF.STAGE_H[p.it.stage] * env.u * p.s, x = Math.round(p.x), y = Math.max(2, Math.round((top != null ? top : p.y - h) - 5));
   g.fillStyle = 'rgba(20,20,20,.7)'; g.fillRect(x - 4, y - 1, 9, 1);
   g.fillStyle = '#fff8e0';
   for (let r = 0; r < 4; r++) g.fillRect(x - (3 - r), y + r, 7 - 2 * r, 1);
@@ -181,6 +189,9 @@ AF.drawVisitMarker = function (g, env, index) {
 // a wheel's notch (~100) WHEEL_ROWS * 100 (a trackpad's pinch, a wheel with ctrl, PINCH_GAIN
 // times that), and two fingers spread to twice as far apart PINCH_ROWS
 const DRAG_PX = 4, WALK_ROWS = 3, WHEEL_ROWS = 0.004, PINCH_GAIN = 8, PINCH_ROWS = 2.5;
+// a forest deeper than this many notches of the wheel walks faster, so its whole depth (the deep
+// forest's rows too) is this many notches: two years and more took 65, a dozen turns of the wheel
+const WHEEL_NOTCHES = 30;
 // a finger's second tap within DOUBLE_MS of the first, DOUBLE_PX from it, zooms DOUBLE_ROWS in
 // (a little less than half a pinch to twice as far apart), over DOUBLE_GLIDE_MS
 const DOUBLE_MS = 300, DOUBLE_PX = 30, DOUBLE_ROWS = 1, DOUBLE_GLIDE_MS = 220;
@@ -192,7 +203,11 @@ const DAYS = [['prev', AF.N_('zoom.previous_day'), '‹', AF.N_('zoom.the_tree_o
 const KEY_ROWS = 0.4, KEY_SHARE = 0.1;
 const KEYS = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
 const BACK = AF.N_('zoom.back_to_the_whole_forest');
-const GLIDE_MS = 420;
+// the bar's way out: "Done", as a mode is left (it showed "Back to the whole forest" while the whole
+// forest was what it showed, the moment zoom was turned on)
+const DONE = AF.N_('zoom.done');
+const GLIDE_MS = 420, LEAVE_MS = 520;
+const MONTH_ROWS = 1.5;
 // A drag past the forest's end (the rows' ends, the back row) gives, ever more stiffly, up to
 // BAND_SHARE of the canvas's width along the rows or BAND_ROWS deeper in, and springs back in
 // SETTLE_MS when let go.
@@ -206,9 +221,11 @@ const MOVE_MS = 16;  // moves this close together are drawn as one
 // the camera goes no further back than this in front of the back row, which stays in sight
 const EDGE_ROWS = 0.3;
 const BACK_BUTTON = 3;  // a mouse's back button
-// the zoom button: two corners of a frame opening out, in a ring
+// the zoom button: a viewfinder's four corners, in a ring: look closer (a magnifying glass read as
+// search; two corners of a frame opening out read as Full screen: the phone card's own Full screen
+// button is that shape, web/phone.js EXPAND)
 const ZOOM_ICON = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true">'
-  + '<path d="M8.5 3.5h4v4M3.5 8.5v4h4"/></svg>';
+  + '<path d="M2.5 5.5v-3h3M10.5 2.5h3v3M13.5 10.5v3h-3M5.5 13.5h-3v-3"/></svg>';
 
 /* Wire zooming up for one mounted forest. It is off until the zoom button on the forest turns
  * it on (a wheel or a finger over the forest scrolls the page, as ever); then the wheel and two
@@ -220,8 +237,8 @@ const ZOOM_ICON = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" s
  * behind)` rebuilds the scene as camera `cam` sees it (null: the whole forest); `current()`
  * says whether this forest is still the one on the page; `xOf(it)`, where a tree stands
  * across the forest; `warm()`, turned on, gets the trees ready to be drawn up close. Returns
- * `on`, `picked` (the tree selected, or null), pick(index), `state` (the view as it is) and
- * resume(state), which takes the view back there at once (the phone's forest, drawn afresh).
+ * `on`, `picked` (the tree selected, or null), pick(index), reach(ago) and goTo(ago, otherwise)
+ * (the heatmap's day clicked: to its tree), `state` (the view as it is) and resume(state), which takes the view back there at once (the phone's forest, drawn afresh).
  * `always`: zooming is simply on, with no button to turn it on or off and nothing that leads
  * back out but zooming out (the phone's full screen, where the forest is all there is). */
 AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, always }) {
@@ -230,37 +247,49 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   // where zooming in starts (in front of the front row), and the furthest back it goes; the
   // camera where the whole forest's view is centred, blended `b` of the way into its own
   const start = visitStart(base), backOf = list => Math.max(...list.filter(it => it.row === list[0].row).map(it => it.row + it.jy)) + EDGE_ROWS;
-  const home = b => ({ x: slotOf(0.5, per), z: start, b });
+  const home = b => ({ x: slotOf(0.5, per), z: start, b, lens: 0 });
   let furthest = backOf(trees);
   // the deep forest's trees, once Anki has sent them (and every tree, to step through the days)
   let behind = [], every = trees, asked = false;
+  // a heatmap day's tree in the deep forest, asked for before its trees came: gone to once they
+  // come ({ ago, otherwise }: what the heatmap's click does without it, should they never come)
+  let wanted = null;
+  const canAsk = () => !!(data.merged && data.channel && typeof window.pycmd === 'function');  // (the phone has no Anki to ask)
   function askDeep() {
-    if (asked || !data.merged || !data.channel || typeof window.pycmd !== 'function') return;  // (the phone has no Anki to ask)
+    if (asked || !canAsk()) return;
     asked = true;
     const m = data.merged;
     window.pycmd(`${data.channel}:deep:${data.deckId == null ? '' : data.deckId}`, got => {
       if (!current()) return;
       // only the trees of the deep forest drawn here: Anki may have built the forest afresh
       // since (or sent nothing); asked again the next time, rather than never
+      const want = wanted;
+      wanted = null;
       if (!Array.isArray(got) || !got.length || got.length !== m.count || got[0].ago !== m.from_ago || got[got.length - 1].ago !== m.to_ago) {
         asked = false;
+        if (want && on && !leaving) want.otherwise();  // (zooming left since: nothing)
         return;
       }
       behind = AF.layoutBehind(got, base); every = behind.concat(trees); furthest = backOf(behind);
       shown = undefined;  // (the bar's Previous day may lead somewhere now)
       if (cam) redraw(); else show();
+      if (want && on && !leaving && !goTo(want.ago)) want.otherwise();
     });
   }
   const touch = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
   const button = document.createElement('button');
   button.type = 'button'; button.className = 'af-zoom'; button.innerHTML = ZOOM_ICON;
-  if (!always) scene.appendChild(button);
-  let on = !!always, cam = null, picked = null, fading = 0, gliding = 0, shown;
-  // the tree of the day before ('prev') or after ('next') tree `index`'s, if there is one
+  // (first in the scene, so the Tab key reaches it before the cog on its right, as the eye does)
+  if (!always) scene.insertBefore(button, scene.firstChild);
+  let on = !!always, cam = null, picked = null, gliding = 0, shown, leaving = false;
+  // the tree of the day before ('prev') or after ('next') tree `index`'s, if there is one; on a
+  // deck's screen, from one of its trees, the deck's day before or after (its trees are the ones
+  // lit: a step landed on the faded trees of other decks, whose cards it could not open there)
   function day(index, dir) {
-    const t = every.find(it => it.index === index);
+    const t = every.find(it => it.index === index), lit = data.deckId != null && !t.dim;
     let best = null;
     for (const it of every) {
+      if (lit && it.dim) continue;
       if (dir === 'next' ? it.ago < t.ago && (!best || it.ago > best.ago) : it.ago > t.ago && (!best || it.ago < best.ago)) best = it;
     }
     return best;
@@ -270,27 +299,38 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     root.classList.toggle('af-visiting', on);
     // (behind the deck list, the list and the heatmap fade away while you walk among the trees: forest.css)
     document.body.classList.toggle('af-behind-zooming', on && !!root.afBehind);
-    button.classList.toggle('af-zoom-on', on);
+    button.classList.toggle('af-zoom-on', on && !leaving);
     button.setAttribute('aria-pressed', on ? 'true' : 'false');
-    button.title = on ? AF.tx(BACK) : AF.t('zoom.zoom_in_among_the_trees');
-    button.setAttribute('aria-label', button.title);
-    const now = on ? picked : undefined;
+    // (a toggle's name stays the same, aria-pressed says whether it is on: renamed as well, a screen
+    // reader said "Back to the whole forest, pressed")
+    button.setAttribute('aria-label', AF.t('zoom.zoom_in_among_the_trees'));
+    button.title = on ? AF.tx(BACK) : AF.t('zoom.zoom_in_among_the_trees') + (touch ? '' : ' (↑ ↓ ← →)');
+    // zoomed in with nothing selected: the month of the trees in front, nearest the middle, so a walk
+    // through two years of trees says where in them it is
+    const here = on && picked == null && cam && cam.b >= 1 ? nearMiddle() : null;
+    const month = here ? AF.i18n.dayIn(here.date, { month: 'long', year: 'numeric' }) : '';
+    const now = on ? (picked == null ? 'm' + month : picked) : undefined;
     if (shown === now) return;
     shown = now;
     if (!on) { bar.innerHTML = ''; return; }
-    const back = always ? '' : `<button type="button" class="af-visit-btn" data-act="back">${esc(AF.tx(BACK))}</button>`;
+    const back = always ? '' : `<button type="button" class="af-visit-btn" data-act="back">${esc(AF.tx(DONE))}</button>`;
     if (picked == null) {
-      const how = touch ? AF.t('zoom.pinch_or_double_tap_to_zoom')
-        : AF.t('zoom.scroll_or_press_to_zoom_drag');
-      bar.innerHTML = `<span class="af-visit-about">${esc(how)}</span><span class="af-visit-acts">${back}</span>`;
+      // (short: the keys are in the zoom button's tooltip; the hint was 84 characters, two lines on a phone)
+      const how = touch ? AF.t('zoom.pinch_to_zoom_drag_to_move')
+        : AF.t('zoom.scroll_to_zoom_drag_to_move');
+      bar.innerHTML = `<span class="af-visit-about">${month ? `<b>${esc(month)}</b> · ` : ''}${esc(how)}</span><span class="af-visit-acts">${back}</span>`;
       return;
     }
-    // as its tooltip says it (web/tooltips.js)
-    const t = every.find(it => it.index === picked), about = [cap(AF.tips.stage(t.stage)), AF.tn('tooltip.n_cards', t.n)];
+    // as its tooltip says it (web/tooltips.js), in its words and order: the date, how long ago ("Planted"
+    // before the date said nothing a date doesn't, and nothing of where in the years it stands), its
+    // cards (its stage is the tree itself, drawn above: left out, the line fits beside the buttons)
+    const t = every.find(it => it.index === picked);
+    const when = t.ago === 0 ? AF.t('tooltip.planted_today') : t.ago === 1 ? AF.t('tooltip.planted_yesterday') : AF.tn('tooltip.planted_n_days_ago', t.ago, { n: t.ago });
+    const about = [when, AF.tn('tooltip.n_cards', t.n)];
     if (t.stage >= AF.STAGE.YOUNG && t.remembered != null && !(t.suspended && t.suspended >= t.n)) {
       about.push(AF.rememberedText(t));
     }
-    bar.innerHTML = `<span class="af-visit-about"><b>${AF.t('zoom.planted_date', { date: AF.i18n.bdi(esc(fmtDate(t.date))) })}</b> · ${esc(about.join(' · '))}</span><span class="af-visit-acts">`
+    bar.innerHTML = `<span class="af-visit-about"><b>${AF.i18n.bdi(esc(fmtDate(t.date)))}</b> · ${esc(about.join(' · '))}</span><span class="af-visit-acts">`
       + DAYS.map(([dir, label, ltrArrow, tip]) => {
         // (right to left, the day before is to the right: its arrow points there, Next's to the left)
         const arrow = AF.i18n.rtl() ? AF.i18n.arrow(ltrArrow === '‹' ? '›' : '‹') : ltrArrow;
@@ -299,23 +339,35 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
       }).join('')
       + back + '</span>';
   }
+  /* the tree the camera stands before (up to MONTH_ROWS on), nearest the middle */
+  function nearMiddle() {
+    let best = null, bd = Infinity;
+    for (const it of every) {
+      const dd = cam.z - (it.row + it.jy);
+      if (dd < 0 || dd > MONTH_ROWS) continue;
+      const d = Math.abs(xOf(it) * per - cam.x) + dd;
+      if (d < bd) { bd = d; best = it; }
+    }
+    return best;
+  }
   show();
   if (always) warm();
   function enter() {
     if (!current() || on) return;
     on = true;
-    clearTimeout(fading); canvas.style.opacity = '';  // (left a moment ago, and still fading out)
     show(); askDeep(); warm();
   }
-  // off: back to the whole forest (fading across)
+  // off: back to the whole forest, walking back out to it as zooming out does (fading out and in
+  // through the page's colour, it blinked, and left no sense of where the camera had been)
   function leave() {
-    if (!current() || !on || always) return;
-    on = false; picked = null;
-    clearTimeout(fading); clearTimeout(gliding);
-    const swap = () => { cam = null; go(null); show(); canvas.style.opacity = ''; };
+    if (!current() || !on || always || leaving) return;
+    picked = null;
+    clearTimeout(gliding);
+    wanted = null;
+    const swap = () => { on = false; leaving = false; picked = null; cam = null; go(null); show(); };
     if (!animate || !cam) { swap(); return; }
-    canvas.style.opacity = '0';
-    fading = setTimeout(swap, FADE_MS);
+    leaving = true; show();
+    glide(home(0), LEAVE_MS, ease, swap);
   }
   button.addEventListener('click', () => { if (on) leave(); else enter(); });
   button.addEventListener('pointerenter', askDeep);  // (likely to be pressed: its answer is on its way)
@@ -333,51 +385,80 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     }, MOVE_MS);
   }
   /* pick tree `index` (null: none), the camera staying where it is */
-  function pick(index) { if (!on || picked === index) return; picked = index; redraw(); }
+  function pick(index) { if (!on || leaving || picked === index) return; wanted = null; picked = index; redraw(); }
   /* to the day before or after the tree picked: the camera glides to stand before it */
   function step(dir) {
-    if (!on || picked == null) return;
+    if (!on || leaving || picked == null) return;
+    wanted = null;
     const t = day(picked, dir);
-    if (!t) return;
+    if (t) glideTo(t);
+  }
+  /* tree `t` selected, the camera gliding to stand before it */
+  function glideTo(t) {
     picked = t.index;
     if (!cam) cam = home(0);
     const z = Math.max(furthest, t.row + t.jy);
-    glide({ x: clampX(xOf(t) * per, z), z, b: 1 }, GLIDE_MS, ease);
+    glide({ x: clampX(xOf(t) * per, z, 1), z, b: 1, lens: 1 }, GLIDE_MS, ease);
   }
-  /* the camera glides to `to` in `ms`, along `curve` */
-  function glide(to, ms, curve) {
+  /* Where a click on the heatmap's day `ago` goes, zoomed in: its tree ('tree'), the deep forest's
+   * trees asked for first ('deep'), or nowhere (null: the click does as it does with zooming off).
+   * On a deck's screen, never to the faded tree of another deck's day (its cards could not open
+   * there, as with the day steps). */
+  function reach(ago) {
+    if (!on || leaving) return null;
+    const t = every.find(it => it.ago === ago);
+    if (t) return data.deckId != null && t.dim ? null : 'tree';
+    const m = data.merged;
+    return !behind.length && m && ago >= m.to_ago && ago <= m.from_ago && canAsk() ? 'deep' : null;
+  }
+  /* the heatmap's day `ago` clicked, zoomed in: to its tree, as a day's step goes; once the deep
+   * forest's trees come, if it is one of them (`otherwise()` if they never do). False: nowhere. */
+  function goTo(ago, otherwise = () => {}) {
+    const how = reach(ago);
+    if (how === 'tree') { glideTo(every.find(it => it.ago === ago)); return true; }
+    if (how !== 'deep') return false;
+    wanted = { ago, otherwise };
+    askDeep();
+    return true;
+  }
+  /* the camera glides to `to` in `ms`, along `curve`, then `done()` */
+  function glide(to, ms, curve, done) {
     const from = Object.assign({}, cam), t0 = Date.now();
     clearTimeout(gliding);
     const tick = () => {
       if (!on || !cam || !current()) return;
       const k = animate ? Math.min(1, (Date.now() - t0) / ms) : 1, e = curve(k);
       cam.x = lerp(from.x, to.x, e); cam.z = lerp(from.z, to.z, e); cam.b = lerp(from.b, to.b, e);
+      cam.lens = lerp(from.lens || 0, to.lens == null ? from.lens || 0 : to.lens, e);
       redraw();
       if (k < 1) gliding = setTimeout(tick, MOVE_MS);
+      else if (done) setTimeout(() => { leaving = false; if (current()) done(); }, MOVE_MS);
     };
     tick();
   }
   /* a drag let go past the forest's end: back to it, slowing as it comes */
   function settle() {
-    if (!on || !cam) return;
+    if (!on || !cam || leaving) return;
     const to = { z: Math.max(furthest, cam.z), b: cam.b };
-    to.x = clampX(cam.x, to.z);
+    to.x = clampX(cam.x, to.z, cam.lens);
     if (to.x !== cam.x || to.z !== cam.z) glide(to, SETTLE_MS, k => 1 - Math.pow(1 - k, 3));
   }
   // how far along the rows the camera at depth z goes either way, and x kept to that (a forest
   // narrower than the room it would leave stays in the middle)
   let span = null;
-  function ends(z) {
+  function ends(z, keep) {
     // the camera stands mid-canvas: the end, 1 - END_GAP across, is half the width less that
     // on, along the nearest row ahead
     const ahead = z - Math.min(base.rows - 1, Math.floor(z));
-    const gap = (0.5 - END_GAP) / slotWidth(visitLens(base, z), per, ahead);
+    const gap = (0.5 - END_GAP) / slotWidth(visitLens(base, z, keep || 0), per, ahead);
     // the outermost trees, where the landscape squeezes the rows
     if (!span) { const xs = trees.map(it => xOf(it) * per); span = [Math.min(...xs), Math.max(...xs)]; }
     const [lo, hi] = span;
     return lo + gap < hi - gap ? [lo + gap, hi - gap] : [(lo + hi) / 2, (lo + hi) / 2];
   }
-  const clampX = (x, z) => { const [lo, hi] = ends(z); return Math.max(lo, Math.min(hi, x)); };
+  // how much faster than a notch's WHEEL_ROWS * 100 rows the wheel walks here
+  const pace = () => Math.max(1, (start - furthest) / (WHEEL_NOTCHES * 100 * WHEEL_ROWS));
+  const clampX = (x, z, keep) => { const [lo, hi] = ends(z, keep); return Math.max(lo, Math.min(hi, x)); };
   // the pointer's spot on the canvas, as shares of its width and height
   const spot = ([x, y]) => canvas.offsetWidth && canvas.offsetHeight ? [x / canvas.offsetWidth, y / canvas.offsetHeight] : [0.5, 0.5];
   // where a pointer is on the canvas, in CSS pixels of its own: the phone's full screen turns
@@ -387,9 +468,14 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     const r = canvas.getBoundingClientRect();
     return canvas.closest('.af-sideways') ? [e.clientY - r.top, r.right - e.clientX] : [e.clientX - r.left, e.clientY - r.top];
   };
+  // the scene's foot, as a share of its height: a lake's or a river's stands higher (env.bot, 0.74 on a
+  // lake), and measured from GROUND_BOTTOM the spot under the pointer was a row or two off, so on Golden
+  // lake, Starry night, Aurora, Lanterns, Cherry blossom, Frozen market and the Bamboo grove a tree
+  // pointed at flew off the side as the wheel zoomed in
+  const foot = () => (root.afEnv && root.afEnv.bot) || GROUND_BOTTOM;
   // the slot (as cam.x counts) the camera sees at the spot (fx, fy) of the canvas
   const slotAt = (fx, fy) => {
-    const lens = visitLens(base, cam.z), dd = ddAt(lens, clamp((fy - HORIZON) / (GROUND_BOTTOM - HORIZON), 0.02, 1));
+    const lens = visitLens(base, cam.z, cam.lens || 0), dd = ddAt(lens, clamp((fy - HORIZON) / (foot() - HORIZON), 0.02, 1));
     return (fx - 0.5) / slotWidth(lens, per, Math.max(0, dd == null ? 200 : dd));
   };
   /* Zoom `d` rows in (- out) about the spot `f` ([across, down] the canvas), which stays where
@@ -398,11 +484,10 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
    * and eases back into the whole forest (zooming still on). False if there is nowhere further
    * to go. */
   function zoom(d, [fx, fy]) {
-    if (!on) return false;
+    if (!on || leaving) return false;
     clearTimeout(gliding);
     if (!cam) {
       if (d <= 0) return false;
-      clearTimeout(fading); canvas.style.opacity = '';
       cam = home(0);
     }
     const was = [cam.x, cam.z, cam.b];
@@ -412,13 +497,15 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
       if (rest > 0) {
         const at = cam.x + slotAt(fx, fy);
         cam.z = Math.max(furthest, cam.z - rest);
-        cam.x = clampX(at - slotAt(fx, fy), cam.z);
+        cam.x = clampX(at - slotAt(fx, fy), cam.z, cam.lens);
       }
     } else {
       if (cam.z < start) {
         const at = cam.x + slotAt(fx, fy), k = Math.min(start - cam.z, rest);
+        // (a close-up kept from a day's step eases back to the whole forest's view on the way out)
+        if (cam.lens) cam.lens *= (start - cam.z - k) / (start - cam.z);
         cam.z += k; rest -= k;
-        cam.x = clampX(at - slotAt(fx, fy), cam.z);
+        cam.x = clampX(at - slotAt(fx, fy), cam.z, cam.lens);
       }
       if (rest > 0) cam.b = Math.max(0, cam.b - rest / BLEND_ROWS);
       if (cam.b <= 0) { cam = null; redraw(); return true; }  // the whole forest again
@@ -429,19 +516,21 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   }
   /* along the rows, `slots` further; a drag (`drag`, its press) gives past the rows' ends */
   function pan(slots, drag) {
+    if (leaving) return;
     clearTimeout(gliding);
     let x = cam.x + slots;
     if (drag) {
-      const most = BAND_SHARE / slotWidth(visitLens(base, cam.z), per, 0);
+      const most = BAND_SHARE / slotWidth(visitLens(base, cam.z, cam.lens || 0), per, 0);
       x = drag.rawX = (drag.rawX == null ? cam.x : drag.rawX) + slots;
-      const [lo, hi] = ends(cam.z);
+      const [lo, hi] = ends(cam.z, cam.lens);
       if (x < lo) x = lo - band(lo - x, most);
       else if (x > hi) x = hi + band(x - hi, most);
-    } else x = clampX(x, cam.z);
+    } else x = clampX(x, cam.z, cam.lens);
     if (x !== cam.x) { cam.x = x; redraw(); }
   }
   /* deeper in, `rows` further, as a drag (`drag`, its press) walks: past the back row it gives */
   function walk(rows, drag) {
+    if (leaving) return;
     const z = drag.rawZ = (drag.rawZ == null ? cam.z : drag.rawZ) - rows;
     if (z >= furthest) { zoom(cam.z - z, [0.5, 1]); return; }
     clearTimeout(gliding);
@@ -494,14 +583,14 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
       // (one finger only ever goes along the rows: two pinch to walk in)
       press.axis = press.touch || Math.abs(dx) >= Math.abs(dy) ? 'x' : 'z';
       // from the whole forest: the camera at its edge, which sees it just as the whole forest's view does
-      if (!cam) { clearTimeout(fading); canvas.style.opacity = ''; cam = home(1); }
+      if (!cam) { cam = home(1); }
       root.classList.add('af-dragging');
       if (root.afTipLayer) root.afTipLayer.classList.add('af-dragging');  // (its tooltip, behind the list, on a layer of its own)
       try { canvas.setPointerCapture(e.pointerId); } catch { /* the pointer is gone */ }
     }
     press.x = x; press.y = y;
     if (!cam) return;  // walked back out to the whole forest
-    if (press.axis === 'x') pan(-dx / ((canvas.clientWidth || 1) * slotWidth(visitLens(base, cam.z), per, 0)), press);
+    if (press.axis === 'x') pan(-dx / ((canvas.clientWidth || 1) * slotWidth(visitLens(base, cam.z, cam.lens || 0), per, 0)), press);
     else walk(-dy / (canvas.clientHeight || 1) * WALK_ROWS, press);
   });
   const release = e => {
@@ -513,7 +602,7 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
         const now = performance.now();
         if (tapped && now - tapped.t < DOUBLE_MS && Math.hypot(press.x - tapped.x, press.y - tapped.y) < DOUBLE_PX) {
           tapped = null; dragged = true;  // (its click is not a tap on a tree)
-          doubleTap([press.x, press.y]);
+          doubleTap([press.x, press.y]); tappedTwice = now;
         } else tapped = { t: now, x: press.x, y: press.y };
       }
       press = null;
@@ -524,12 +613,31 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
+  // a mouse's double-click walks in about where it was, as a finger's double tap does (its second
+  // click opened the tree's cards: the first had just selected it)
+  let tappedTwice = -Infinity;
+  canvas.addEventListener('dblclick', e => {
+    if (!on || performance.now() - tappedTwice < DOUBLE_MS * 2) return;  // (a finger's, done already)
+    e.preventDefault();
+    doubleTap(local(e));
+  });
   // the click that ends a drag is not a click on a tree
   scene.addEventListener('click', e => { if (dragged) { e.stopPropagation(); e.preventDefault(); } }, true);
   // the wheel zooms in (away from you) and back out, while zooming is on; out past the whole
   // forest the page scrolls
   canvas.addEventListener('wheel', e => {
-    const rows = -e.deltaY * (e.deltaMode === 1 ? 30 : 1) * WHEEL_ROWS * (e.ctrlKey ? PINCH_GAIN : 1);
+    // a trackpad's two fingers sideways (a mouse's wheel with shift) go along the rows, as a drag
+    // does: zoomed in, a sideways swipe did nothing, and the page took it
+    if (on && !e.ctrlKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      if (!cam) { cam = home(1); }  // (as a drag sets off)
+      pan(e.deltaX * (e.deltaMode === 1 ? 30 : 1) / ((canvas.clientWidth || 1) * slotWidth(visitLens(base, cam.z, cam.lens || 0), per, 0)));
+      e.preventDefault();
+      return;
+    }
+    const rows = -e.deltaY * (e.deltaMode === 1 ? 30 : 1) * WHEEL_ROWS * (e.ctrlKey ? PINCH_GAIN : 1) * pace();
+    // a trackpad's pinch out over the forest (ctrl with the wheel) turns zooming on: it always means
+    // "zoom in here", and with zooming off it zoomed the whole of Anki's page instead
+    if (!on && !always && e.ctrlKey && rows > 0) enter();
     // zoomed in, at the back row it is still the forest's (rather than scroll the page away
     // from it), and so is a trackpad's pinch in (a wheel with ctrl): passed on, it would zoom
     // the whole window
@@ -546,19 +654,35 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   const onKey = e => {
     if (!current()) { document.removeEventListener('keydown', onKey); return; }
     if (!on || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '')) return;
+    // the arrows walk only while the forest has the pointer or the focus (its button, its bar): else
+    // they are the page's, which could not be scrolled by them while zooming was on
+    if (KEYS[e.key] && !pointing && !root.contains(document.activeElement)) return;
     if (e.target && e.target.closest && e.target.closest('.af-cal')) return;
     if (e.key === 'Escape') { if (picked != null) pick(null); else leave(); }
+    // a tree selected: ← and → step through the days, as the bar's buttons do (right to left, ← is
+    // the day after), and Enter opens its cards; none: Enter selects the tree before the camera
+    else if (picked != null && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) step((e.key === 'ArrowLeft') !== AF.i18n.rtl() ? 'prev' : 'next');
+    else if (e.key === 'Enter' && !(e.target && e.target.closest && e.target.closest('button, a'))) {
+      if (picked == null) { const t = cam && cam.b >= 1 ? nearMiddle() : null; if (!t) return; pick(t.index); }
+      else {
+        const t = every.find(it => it.index === picked);
+        if (t && !data.testForest) AF.u.send(`${data.channel}:browse:${t.ago}:${data.deckId && !t.dim ? data.deckId : ''}`);
+      }
+    }
     else if (KEYS[e.key]) {
       const [along, rows] = KEYS[e.key];
-      if (rows) zoom(rows * KEY_ROWS, [0.5, 0.6]);
+      if (rows) zoom(rows * KEY_ROWS * pace(), [0.5, 0.6]);
       else {
-        if (!cam) { clearTimeout(fading); canvas.style.opacity = ''; cam = home(1); }  // (as a drag sets off)
-        pan(along * KEY_SHARE / slotWidth(visitLens(base, cam.z), per, 0));
+        if (!cam) { cam = home(1); }  // (as a drag sets off)
+        pan(along * KEY_SHARE / slotWidth(visitLens(base, cam.z, cam.lens || 0), per, 0));
       }
     }
     else return;
     e.preventDefault();
   };
+  let pointing = false;
+  scene.addEventListener('pointerenter', () => { pointing = true; });
+  scene.addEventListener('pointerleave', () => { pointing = false; });
   if (root.afVisitKeys) document.removeEventListener('keydown', root.afVisitKeys);  // a forest before this one's
   root.afVisitKeys = onKey;
   document.addEventListener('keydown', onKey);
@@ -566,7 +690,9 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   const onPress = e => {
     if (!current()) { document.removeEventListener('pointerdown', onPress, true); return; }
     // (the phone card's own buttons, such as Full screen, keep the view)
-    if (on && !root.contains(e.target) && !(e.target.closest && e.target.closest('.af-phone-shell'))) leave();
+    // (nor the heatmap in a tile of its own, Onigiri's, panel.CALENDAR_ROOT: a click on its day goes to the tree)
+    const tile = root.id && document.getElementById(root.id + '-calendar');
+    if (on && !root.contains(e.target) && !(tile && tile.contains(e.target)) && !(e.target.closest && e.target.closest('.af-phone-shell'))) leave();
   };
   if (root.afVisitPress) document.removeEventListener('pointerdown', root.afVisitPress, true);
   root.afVisitPress = onPress;
@@ -578,6 +704,8 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
     get on() { return on; },
     get picked() { return picked; },
     pick,
+    reach,
+    goTo,
     get state() { return on ? { cam: cam && Object.assign({}, cam), picked } : null; },
     resume(st) { if (!current() || !st) return; on = true; cam = st.cam && Object.assign({}, st.cam); picked = st.picked; go(cam, behind); show(); }
   };

@@ -41,7 +41,7 @@ function tipHtml(t, click, data) {
   if (t.big) lines.push(AF.tn('tooltip.a_big_learning_day_n_new', t.n, { n: t.n, usual: t.big }));
   if ((t.burn || t.smoke) && AF.fireLine) lines.push(AF.fireLine(t, data && data.fire));  // Wild's fire (web/events/fire.js)
   if (click) lines.push(`<span class="af-hint">${esc(click)}</span>`);
-  else if (canBrowse()) lines.push(clickHint());
+  else if (click !== false && canBrowse()) lines.push(clickHint());
   return lines.join('<br>');
 }
 const clickHint = () => `<span class="af-hint">${AF.t('tooltip.click_to_see_these_cards')}</span>`;

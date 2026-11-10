@@ -175,6 +175,18 @@ AF.placeFlat = function (it, W, H, env) {
  * stragglers may poke higher; the line follows the bulk of the canopy. Environments hang
  * their big sky pieces (a sun, a gem, a bust) clear of it. */
 AF.treeLine = function (env) {
+  // zoomed in (web/visit.js): the whole forest's line, so what hangs clear of it (a town, a peak,
+  // the moon) stays put as the camera walks in, rather than rising and swelling with every step
+  const flat = env.layout && env.layout.cam && env.layout.flat;
+  if (flat) {
+    if (env.flatLine == null) {
+      const fe = Object.assign({}, env, { layout: flat });
+      fe.placed = flat.items.map(it => Object.assign({ it }, AF.placeFlat(it, env.W, env.H, fe)));
+      fe.deep = env.data && env.data.merged ? AF.deepForest(env.data.merged, fe) : null;
+      env.flatLine = AF.treeLine(fe);
+    }
+    return env.flatLine;
+  }
   const u = env.u, tops = [];
   for (const p of env.placed || []) if (!p.it.pond) tops.push(p.y - AF.STAGE_H[p.it.stage] * u * p.s);
   tops.sort((a, b) => a - b);

@@ -102,17 +102,20 @@
   color: var(--fg-subtle, #8a8f8c);
 }
 .af-visit[hidden] { display: none; }
-.af-visit-about { margin: 3px 16px 3px 0; }
+.af-visit-about { margin: 0 16px 0 0; }
 .af-visit-about b { color: var(--fg, inherit); font-weight: 600; }
 .af-visit-acts { display: flex; flex-wrap: wrap; }
-/* Anki's own button styles are more specific than these (see .af-cog) */
+/* Anki's own button styles are more specific than these (see .af-cog). Text-weight, as the panel's
+   other secondary controls are (UI_GUIDELINES.md, Controls): words in the caption's grey on its own
+   line height, so the bar is exactly as tall as the caption it stands in for (outlined 26px boxes
+   pushed the heatmap down 14px each time zoom was turned on or off) */
 .af-visit-btn {
-  box-sizing: border-box; height: 26px; min-width: 30px; margin: 3px 0 3px 6px !important; padding: 0 9px !important;
-  border: 1px solid rgba(128, 128, 128, 0.45) !important; border-radius: 6px !important;
+  box-sizing: border-box; height: auto; min-width: 0; margin: 0 0 0 16px !important; padding: 0 !important;
+  border: 0 !important; border-radius: 3px !important;
   background: transparent !important; color: inherit !important; box-shadow: none !important;
-  font: inherit; cursor: pointer;
+  font: inherit; line-height: inherit; cursor: pointer;
 }
-.af-visit-btn:hover:not([disabled]) { background: rgba(128, 128, 128, 0.18) !important; color: var(--fg, inherit) !important; }
+.af-visit-btn:hover:not([disabled]) { background: transparent !important; color: var(--fg, inherit) !important; }
 .af-visit-btn[disabled] { opacity: 0.35; cursor: default; }
 .af-visit-btn:focus { outline: 2px solid currentColor; outline-offset: 1px; }
 .af-visit-btn:focus:not(:focus-visible) { outline: none; }
@@ -131,8 +134,11 @@
 .af-zoom svg { flex: none; }
 /* on: the same, the other way round (a light ring with dark corners) */
 .af-zoom.af-zoom-on, .af-zoom.af-zoom-on:hover { background: rgba(255, 255, 255, 0.92) !important; color: #141615 !important; box-shadow: inset 0 0 0 2px #141615 !important; }
-.af-zoom:focus { outline: 2px solid #fff; outline-offset: 1px; }
-.af-zoom:focus:not(:focus-visible) { outline: none; }
+/* (a white ring with a dark one round it: white alone was lost on a pale sky, Misty valley's, the snow) */
+.af-zoom:focus { outline: 2px solid #fff; outline-offset: 1px; box-shadow: 0 0 0 5px rgba(20, 22, 21, 0.75) !important; }
+.af-zoom.af-zoom-on:focus { box-shadow: inset 0 0 0 2px #141615, 0 0 0 5px rgba(20, 22, 21, 0.75) !important; }
+.af-zoom:focus:not(:focus-visible) { outline: none; box-shadow: none !important; }
+.af-zoom.af-zoom-on:focus:not(:focus-visible) { box-shadow: inset 0 0 0 2px #141615 !important; }
 /* zoomed in: a drag walks about (a phone's finger too, rather than scrolling the page) */
 .af-visiting .af-canvas { cursor: grab; touch-action: none; }
 .af-dragging .af-canvas { cursor: grabbing !important; }
@@ -663,8 +669,8 @@ body.af-behind-zooming > center > :not(.af-panel), body.af-behind-zooming .af-he
 /* (Hebrew and Arabic have no italics: the browser slants them, which reads as a smudge; the journal
    and the heatmap's notes stand upright, set apart by their grey alone) */
 .af-rtl .af-journal, .af-rtl .af-cal-journal { font-style: normal; }
-.af-rtl .af-visit-about { margin: 3px 0 3px 16px; }
-.af-rtl .af-visit-btn { margin: 3px 6px 3px 0 !important; }
+.af-rtl .af-visit-about { margin: 0 0 0 16px; }
+.af-rtl .af-visit-btn { margin: 0 16px 0 0 !important; }
 .af-rtl .af-news { text-align: right; }
 .af-rtl .af-news-acts button + button { margin-left: 0; margin-right: 14px; }
 .af-rtl .af-cal { text-align: right; }

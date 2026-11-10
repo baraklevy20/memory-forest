@@ -847,6 +847,10 @@
   "text": "حسب السنة",
   "en": "By year"
  },
+ "heatmap.click_to_go_to_its_tree": {
+  "text": "النقر ينقلك إلى شجرته",
+  "en": "Click to go to its tree"
+ },
  "heatmap.date_name": {
   "text": "<i>{date}:</i> {name}",
   "en": "<i>{date}:</i> {name}"
@@ -1937,10 +1941,6 @@
   "text": "يستخدم نمط خانات المنظر الحالي ويتغير عند تغيير المنظر",
   "en": "Uses the current scenery's own tile style and updates when you change scenery"
  },
- "hover.click_to_select_it": {
-  "text": "النقر للتحديد",
-  "en": "Click to select it"
- },
  "hover.click_to_watch_it_again": {
   "text": "النقر للمشاهدة مجددًا",
   "en": "Click to watch it again"
@@ -1948,10 +1948,6 @@
  "hover.tap_again_to_watch_it_again": {
   "text": "لمسة أخرى للمشاهدة مجددًا",
   "en": "Tap again to watch it again"
- },
- "hover.tap_to_select_it": {
-  "text": "اللمس للتحديد",
-  "en": "Tap to select it"
  },
  "journal.a_harvest_moon_rises_over_your": {
   "text": "يطلع قمر الحصاد في الذكرى السنوية لغابتك.",
@@ -3861,25 +3857,25 @@
   "text": "العودة إلى الغابة كلها",
   "en": "Back to the whole forest"
  },
+ "zoom.done": {
+  "text": "تم",
+  "en": "Done"
+ },
  "zoom.next_day": {
   "text": "اليوم التالي",
   "en": "Next day"
  },
- "zoom.pinch_or_double_tap_to_zoom": {
-  "text": "القرص أو اللمس المزدوج للتكبير، والسحب للتجوّل، ولمس شجرة لتحديدها",
-  "en": "Pinch or double tap to zoom, drag to walk around, tap a tree to select it"
- },
- "zoom.planted_date": {
-  "text": "غُرست في {date}",
-  "en": "Planted {date}"
+ "zoom.pinch_to_zoom_drag_to_move": {
+  "text": "القرص للتكبير، والسحب للتحريك، ولمس شجرة لتحديدها",
+  "en": "Pinch to zoom, drag to move, tap a tree to select it"
  },
  "zoom.previous_day": {
   "text": "اليوم السابق",
   "en": "Previous day"
  },
- "zoom.scroll_or_press_to_zoom_drag": {
-  "text": "التمرير أو ↑ ↓ للتكبير، والسحب أو → ← للتجوّل، والنقر على شجرة لتحديدها",
-  "en": "Scroll or press ↑ ↓ to zoom, drag or press ← → to walk around, click a tree to select it"
+ "zoom.scroll_to_zoom_drag_to_move": {
+  "text": "التمرير للتكبير، والسحب للتحريك، والنقر على شجرة لتحديدها",
+  "en": "Scroll to zoom, drag to move, click a tree to select it"
  },
  "zoom.the_tree_of_the_day_after": {
   "text": "شجرة اليوم التالي",

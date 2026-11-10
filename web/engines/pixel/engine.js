@@ -72,10 +72,10 @@ AF.engines.pixel = {
         // a kept sprite, drawn for another height, is scaled to this one
         const spr = got ? got.cv : sprite(p.it, h, hzq, env), k = got && got.h && got.h !== h ? h / got.h : 1;
         const sw = Math.round(spr.width * k), sh = Math.round(spr.height * k);
-        groundDetails(env, lg, p, sw - 4);
         const x0 = Math.round(p.x - sw / 2), y0 = Math.round(p.y - sh + 1);
         const fade = p.it.view && p.it.view.alpha < 1;  // a visit's tree being walked past (web/visit.js)
-        if (fade) lg.globalAlpha = p.it.view.alpha;
+        if (fade) lg.globalAlpha = p.it.view.alpha;  // (its shadow and what lies at its foot too: a dark line was left on the grass)
+        groundDetails(env, lg, p, sw - 4);
         if (k !== 1) lg.imageSmoothingEnabled = false;  // (scaled, its pixels stay hard; back on for what follows)
         if (env.flipLight) { lg.save(); lg.translate(x0 + sw, y0); lg.scale(-1, 1); lg.drawImage(spr, 0, 0, sw, sh); lg.restore(); } else lg.drawImage(spr, x0, y0, sw, sh);
         if (k !== 1) lg.imageSmoothingEnabled = true;

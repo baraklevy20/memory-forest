@@ -107,15 +107,16 @@ const FALLEN_LEAVES = [0, 0, 4, 8];  // by health
 /* shadows, fallen leaves, petals, snow shade and environment props at a tree's foot */
 function groundDetails(env, lg, p, sw) {
   const th = env.theme, t = p.it, h = AF.STAGE_H[t.stage] * env.u * p.s, R = rng(t.seed ^ 99), x = Math.round(p.x), y = Math.round(p.y);
+  // what lies at its foot is drawn up close (a visit) as much bigger as the tree, about its foot;
+  // its shadow half as many pixels thick (one pixel under a tree five times its size read as a stray line)
+  const k = AF.visitK(p), sk = Math.ceil(k / 2);
   if (th.shadow && t.stage > SEEDLING) {
     const len = Math.round(h * th.shadow), dir = env.flipLight ? -1 : 1;
     lg.fillStyle = `rgba(20,24,30,${(SHADOW_ALPHA * (1 - p.hz * SHADOW_HAZE_FADE)).toFixed(3)})`;
-    lg.fillRect(dir > 0 ? x + 1 : x - len, y, len, 1);
+    lg.fillRect(dir > 0 ? x + 1 : x - len, y - (sk - 1), len, sk);
   }
-  if (th.snow && t.stage > SAPLING) { lg.fillStyle = 'rgba(160,178,205,.55)'; const hw = Math.round(sw * SNOW_SHADE); lg.fillRect(x - hw, y + 1, hw * 2 + 1, 1); }
+  if (th.snow && t.stage > SAPLING) { lg.fillStyle = 'rgba(160,178,205,.55)'; const hw = Math.round(sw * SNOW_SHADE); lg.fillRect(x - hw, y + 1, hw * 2 + 1, sk); }
   const spec = AF.envOf(env);
-  // what lies at its foot is drawn up close (a visit) as much bigger as the tree, about its foot
-  const k = AF.visitK(p);
   AF.scaledAt(lg, k, x, y, () => {
     const w = Math.round(sw / k);
     if (t.health >= 2 && !th.snow) {

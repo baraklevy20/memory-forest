@@ -121,10 +121,14 @@ test('tooltips: a tree\'s lines say what is known, and no more', () => {
   assert.match(AF.tips.tree(Object.assign({}, tree, { leeches: 2 })), /2 leeches here/);
   assert.match(AF.tips.tree(Object.assign({}, tree, { cured: 1 })), /A leech here mature again/);
   assert.match(AF.tips.tree(Object.assign({}, tree, { struggling: 3 })), /3 of 12 relearning/);
-  // a click that picks it, zoomed in, says so in place of the cards
+  // a hint of the caller's own in place of the cards'
   html = AF.tips.tree(tree, 'Click to select it');
   assert.match(html, /Click to select it/);
   assert.doesNotMatch(html, /see these cards/);
+  // zoomed in, a tree not selected (web/hover.js): no hint at all, the bar under the forest says a click selects it
+  html = AF.tips.tree(tree, false);
+  assert.doesNotMatch(html, /af-hint|Click/);
+  assert.match(AF.tips.tree(tree, ''), /see these cards/);
   // on the phone (no bridge), no click hint
   assert.doesNotMatch(page().AnkiForest.tips.tree(tree), /Click/);
   // the date escaped as text

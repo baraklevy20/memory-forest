@@ -1,10 +1,11 @@
 """Draw the docs' panel, heatmap and layout pictures, docs/panel.png, docs/heatmap_features.png,
-docs/heatmap_sceneries.png and docs/layout.png, from this copy's scripts in headless Chrome, then the grid GIFs (dev/docs_grids.py).
+docs/heatmap_sceneries.png, docs/layout.png and docs/zoom.png, from this copy's scripts in headless Chrome, then the grid GIFs (dev/docs_grids.py).
 Uses made-up history unless --collection is supplied.
 
     python3 dev/docs_pictures.py      (npm run docs-pictures)
     python3 dev/docs_pictures.py --only layout
     python3 dev/docs_pictures.py --only features
+    python3 dev/docs_pictures.py --only zoom
     python3 dev/docs_pictures.py --collection /path/to/collection.anki2
 
 panel.png: the pages' first picture, the panel as Anki shows it, kept basic: the forest by the lake,
@@ -20,7 +21,10 @@ heatmap_sceneries.png: under it, one heatmap in every scenery, Plus too (tagged 
 each beside its picker picture, with its current trophy and flag and no other streak markers.
 layout.png: Anki's deck list with a made-up Japanese deck (made up with --collection too), Chalkboard beside it
 on the right and the heatmap Full width under them (Layout: One beside), arranged by the add-on's own web/core.js AF.arrange, at
-twice the pixels (a Retina screen). Needs Chrome, and node with the dev packages.
+twice the pixels (a Retina screen).
+zoom.png: the zoom section's picture, the layout picture's forest by the lake zoomed in (ZOOM_NOTCHES of
+the wheel over its middle) with the tree nearest the middle in front picked: its outline, and its day
+under the forest with the arrows; at twice the pixels. Needs Chrome, and node with the dev packages.
 """
 
 from __future__ import annotations
@@ -324,8 +328,8 @@ def label_font(size: int):
 def sceneries_picture(shots: dict, out: str) -> None:
     """Two to a row: each scenery's picker picture and name (a PLUS tag on those only Plus has),
     its heatmap beside it."""
-    from PIL import Image, ImageDraw
     import editions
+    from PIL import Image, ImageDraw
     base = editions.scenery("base")["presets"]
     thumb_w, thumb_h, gap, pad, col_gap, label_h = 192, 108, 14, 12, 28, 22
     cals = {k: Image.open(shots[k]) for k in SCENERIES}
@@ -559,17 +563,78 @@ def features_shoot(tmp: str) -> None:
         raise SystemExit(run.returncode)
     features_picture(tmp, os.path.join(DOCS, "heatmap_features.png"))
 
+# the zoom picture: the wheel's notches in, over the forest's middle (ZOOM_AIM, a share of its
+# width and height): in among the trees, every one whole, and the ones behind still showing
+ZOOM_NOTCHES, ZOOM_AIM = 7, (0.5, 0.55)
+ZOOM_SHOOT = r"""
+import puppeteer from '%(puppeteer)s';
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const b = await puppeteer.launch({ executablePath: %(chrome)s, headless: 'new', args: ['--disable-gpu', '--allow-file-access-from-files'] });
+const p = await b.newPage();
+p.on('pageerror', e => console.log('ERR', e.message));
+await p.setViewport({ width: 800, height: 1000, deviceScaleFactor: 2 });
+await p.goto('file://' + %(page)s);
+await wait(1500);
+await (await p.$('#p .af-zoom')).click();
+await wait(300);
+const r = await p.evaluate(() => { const c = document.querySelector('#p canvas').getBoundingClientRect(); return [c.left, c.top, c.width, c.height]; });
+await p.mouse.move(r[0] + r[2] * %(fx)s, r[1] + r[3] * %(fy)s);
+for (let i = 0; i < %(notches)s; i++) { await p.mouse.wheel({ deltaY: -100 }); await wait(40); }
+await wait(600);
+// the front tree nearest the middle, clicked at the middle of its tap box (as web/hover.js has it)
+const at = await p.evaluate(() => {
+  const root = document.getElementById('p'), env = root.afEnv, c = root.querySelector('canvas').getBoundingClientRect(), k = c.width / env.W;
+  const q = env.placed.filter(q => !q.it.pond && q.x > 0.2 * env.W && q.x < 0.8 * env.W && q.y < env.H)
+    .sort((a, b) => Math.abs(a.x - env.W / 2) - Math.abs(b.x - env.W / 2) + (b.y - a.y) * 0.5)[0];
+  return q && [c.left + q.x * k, c.top + (q.y - AnkiForest.STAGE_H[q.it.stage] * env.u * q.s / 2) * k];
+});
+if (!at) throw new Error('No tree to pick');
+await p.mouse.click(at[0], at[1]);
+await wait(900);
+if (!(await p.evaluate(() => document.getElementById('p').afVisits.picked != null))) throw new Error('The tree was not picked');
+await p.mouse.move(0, 0);
+await wait(300);
+await (await p.$('#p')).screenshot({ path: %(out)s });
+await b.close();
+"""
+
+
+def zoom_shoot(tmp: str) -> None:
+    """docs/zoom.png: the layout picture's forest (layout_forest) by the lake, zoomed in, a tree picked."""
+    lake = mood_of("golden_lake")
+    trees = layout_forest() if REAL_DATA is None else {}
+    data = dict(forest_data(lake), **trees, calendar=calendar(lake, []), showForest=True, zoom=True)
+    path = os.path.join(tmp, "zoom.html")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(page(lake, data, 756, SHOWN_CSS + " .af-cal { display: none }"))
+    js = ZOOM_SHOOT % {"puppeteer": PUPPETEER, "chrome": json.dumps(CHROME), "page": json.dumps(path), "out": json.dumps(os.path.join(DOCS, "zoom.png")),
+                       "fx": ZOOM_AIM[0], "fy": ZOOM_AIM[1], "notches": ZOOM_NOTCHES}
+    with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False, encoding="utf-8") as f:
+        f.write(js)
+    try:
+        run = subprocess.run(["node", f.name], capture_output=True, text=True, timeout=600)
+    finally:
+        os.unlink(f.name)
+    print(run.stdout + run.stderr, end="")
+    if run.returncode:
+        raise SystemExit(run.returncode)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--collection", help="Use your own review history and forest (read-only)")
-    parser.add_argument("--only", choices=("heatmap", "features", "layout"),
-                        help="Draw only the panel and the heatmap pictures, only the feature sheet, or only the layout picture")
+    parser.add_argument("--only", choices=("heatmap", "features", "layout", "zoom"),
+                        help="Draw only the panel and the heatmap pictures, only the feature sheet, only the layout picture, or only the zoom picture")
     args = parser.parse_args()
     if args.collection:
         collection_data(args.collection)
     lake = mood_of("golden_lake")
     with tempfile.TemporaryDirectory() as tmp:
         jobs = []
+        if args.only == "zoom":
+            zoom_shoot(tmp)
+            print("docs/zoom.png")
+            return
         if args.only == "features":
             features_shoot(tmp)
             print("docs/heatmap_features.png")
@@ -618,7 +683,9 @@ def main() -> None:
         shoot(jobs)
         sceneries_picture(shots, os.path.join(DOCS, "heatmap_sceneries.png"))
         features_shoot(tmp)
-    print("docs/panel.png, docs/heatmap_features.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png"))
+        if not args.only:
+            zoom_shoot(tmp)
+    print("docs/panel.png, docs/heatmap_features.png, docs/heatmap_sceneries.png" + ("" if args.only else ", docs/layout.png, docs/zoom.png"))
     if not args.only:
         subprocess.run([sys.executable, os.path.join(HERE, "docs_grids.py")], check=True)
 
