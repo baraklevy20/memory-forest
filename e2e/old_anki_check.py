@@ -89,9 +89,13 @@ ZOOM_TREE = """(() => {
   const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root.afEnv;
   const trees = env.placed.filter(q => !q.it.pond), near = Math.max(...trees.map(q => q.y));
   const p = trees.filter(q => q.y > near - 3 * env.u).sort((a, b) => Math.abs(a.x - env.W / 2) - Math.abs(b.x - env.W / 2))[0];
-  const c = root.querySelector('canvas'), r = c.getBoundingClientRect(), k = r.width / env.W;
-  // just above its foot (the page keeps no AnkiForest to measure its height by)
-  return JSON.stringify({ x: r.left + p.x * k, y: r.top + (p.y - 3 * env.u * p.s) * k });
+  const c = root.querySelector('canvas');
+  // just above its foot (the page keeps no AnkiForest to measure its height by), scrolled to the
+  // middle of the window, as you would: off the page, a click is a press elsewhere, which leaves zoom
+  const at = () => { const r = c.getBoundingClientRect(), k = r.width / env.W; return [r.left + p.x * k, r.top + (p.y - 3 * env.u * p.s) * k]; };
+  (document.scrollingElement || document.documentElement).scrollBy(0, at()[1] - innerHeight / 2);
+  const [x, y] = at();
+  return JSON.stringify({ x, y });
 })()"""
 ZOOM_STATE = """(() => {
   const root = [...document.querySelectorAll('*')].find(e => e.afEnv), env = root.afEnv;
@@ -100,6 +104,7 @@ ZOOM_STATE = """(() => {
     caption: !root.querySelector('.af-caption').hidden, trees: env.placed.filter(q => !q.it.pond).length,
     xs: env.placed.map(q => Math.round(q.x)).join(), mid: (r => [r.left + r.width / 2, r.top + r.height * 0.6])(root.querySelector('canvas').getBoundingClientRect()) });
 })()"""
+ZOOM_WINDOW = (667, 454)  # the zoom's window: small, the forest running past its foot (visit)
 VISIT_MS = 800  # past the walk back out of zoom (web/visit.js LEAVE_MS) and the rebuild
 MARK = "(() => { const e = [...document.querySelectorAll('*')].find(e => e.afEnv); if (e) e.afEnv.checkMark = 1; })()"
 # measured on a finished deck's page (Anki's congratulations page, panel.on_page_loaded): that
@@ -524,7 +529,10 @@ def visit():
         result["steps"].append("zoom held back (payload.ZOOM_RELEASED): not checked")
         QTimer.singleShot(0, settings)
         return
-    press(".af-zoom", turned_on)
+    # (in a small window, as the Background step leaves it on Windows (667x454): the forest runs past
+    # its foot, and a click on a tree off the page turned zooming off)
+    mw.resize(*ZOOM_WINDOW)
+    QTimer.singleShot(RESIZE_MS, lambda: press(".af-zoom", turned_on))
 
 
 def settings():

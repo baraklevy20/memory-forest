@@ -404,11 +404,12 @@ AF.visits = function ({ root, data, base, animate, current, go, xOf, warm, alway
   /* Where a click on the heatmap's day `ago` goes, zoomed in: its tree ('tree'), the deep forest's
    * trees asked for first ('deep'), or nowhere (null: the click does as it does with zooming off).
    * On a deck's screen, never to the faded tree of another deck's day (its cards could not open
-   * there, as with the day steps). */
+   * there, as with the day steps). Its tree already selected: nowhere, so a second click opens its
+   * cards, as a click on the tree does. */
   function reach(ago) {
     if (!on || leaving) return null;
     const t = every.find(it => it.ago === ago);
-    if (t) return data.deckId != null && t.dim ? null : 'tree';
+    if (t) return (data.deckId != null && t.dim) || t.index === picked ? null : 'tree';
     const m = data.merged;
     return !behind.length && m && ago >= m.to_ago && ago <= m.from_ago && canAsk() ? 'deep' : null;
   }

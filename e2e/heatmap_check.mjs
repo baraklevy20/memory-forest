@@ -399,6 +399,12 @@ try {
       if (sends(/:day:/).length) fail(`zoomed in, a click on a day with a tree opened the browser: ${sent}`);
       if (v.picked == null || !placed(near.ago) || placed(near.ago).it.index !== v.picked) fail(`zoomed in, a click on a day did not select its tree (picked ${v.picked})`);
       else centred(near.ago, 'a recent day clicked');
+      // a second click on that day: its cards, as a click on its tree selected opens them
+      if (/Click to go to its tree/.test(text())) fail(`its tree selected, the day's tooltip still says a click goes to it: "${text()}"`);
+      click(at.near);
+      await sleep(60);
+      if (!sends(new RegExp(`:day:-${near.ago}:`)).length) fail(`a second click on a day, its tree selected, did not open its cards: ${sent}`);
+      sent.length = 0;
       // the deep forest's day, before its trees have come: once they do
       click(at.deep);
       await sleep(60);

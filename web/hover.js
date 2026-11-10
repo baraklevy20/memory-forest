@@ -115,6 +115,8 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     const env = current();
     drawLit(g, env);
     const p = marked(env);
+    // (zoomed in, the tree selected has its own arrow already, a size up: web/visit.js drawVisitMarker)
+    if (p && !litDays && p === pickedOf(env)) return;
     if (p) { marker(g, p.pose && p.hitBox ? (p.hitBox.x0 + p.hitBox.x1) / 2 : p.x, litDays ? lift(g, env, p, env.t) : liftedTop !== null ? liftedTop : p.y); return; }
     if (env && deepLinked(env)) {
       const deep = env.deep;

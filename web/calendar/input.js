@@ -133,8 +133,8 @@ Cal.input = ui => {
     anchorAt(c);
     // zoomed in, a day with a tree: the camera glides to it and selects it, as a day's step does
     // (web/visit.js goTo; the deep forest's once Anki has sent its trees); its cards open from there,
-    // a click on the tree selected
-    if (ui.goesTo(c) && ui.forestRoot().afVisits.goTo(-c.o, () => open(c))) return;
+    // a click on the tree selected, or a second on its day (reach: nowhere then); the tooltip says so
+    if (ui.goesTo(c) && ui.forestRoot().afVisits.goTo(-c.o, () => open(c))) { ui.tell(c); return; }
     open(c);
   };
   const open = c => {
