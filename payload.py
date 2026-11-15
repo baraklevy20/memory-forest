@@ -49,9 +49,10 @@ from .state import (
 
 # what each tree holds that the page never reads (it goes to the phone as well, at every sync)
 PAGE_LEAVES_OUT = ("mature", "day")
-# zooming in among the trees (web/visit.js): released in 1.7.0 (release_notes.json, its note
-# "zoom-1.7"); False holds it back again, on only while debugging as this copy itself
-ZOOM_RELEASED = True
+# zooming in among the trees (web/visit.js): held back for 1.8.0 (False: on only while debugging as
+# this copy itself); True releases it, with its release note and the docs' zoom section (in git at
+# 2dd582a: release_notes.json "zoom-1.7", README.md and docs/ankiweb.html "Zoom into your forest")
+ZOOM_RELEASED = False
 # the study calendar shows the cards due this many days ahead (today first)
 CALENDAR_DUE_DAYS = 800  # (time enough for the next whole year)
 NEW_TREE_GLOW_DAYS = 7  # how long from its first tree a forest's new trees glow on their day

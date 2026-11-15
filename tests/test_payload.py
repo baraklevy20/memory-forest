@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import unittest
 from unittest import mock
 
@@ -219,19 +220,21 @@ class PayloadTests(unittest.TestCase):
         reset(CARDS, {"debug": True, "debug_edition": "base"})  # the Debug tab pretending to be a release
         self.assertEqual(payload.payload()["zoom"], payload.ZOOM_RELEASED)
 
-    def test_zooming_is_released_with_its_note(self):
-        # (1.7.0: on for everyone, no debugging needed, and an update says so: its note "zoom-1.7")
+    def test_zooming_waits_for_1_8_and_nothing_tells_of_it(self):
+        # (held back for 1.8.0: off for everyone but while debugging, and no release note nor the
+        # docs tell of it yet)
         import release_notes
-        self.assertIs(payload.ZOOM_RELEASED, True)
+        self.assertIs(payload.ZOOM_RELEASED, False)
         reset(CARDS, {"debug": False})
-        self.assertIs(payload.payload()["zoom"], True)
+        self.assertIs(payload.payload()["zoom"], False)
         reset(CARDS, {"debug": True, "debug_edition": "plus"})
-        self.assertIs(payload.payload()["zoom"], True)
-        notes = {e["announce"]["id"]: (v["version"], e) for v in release_notes.load() for e in release_notes.items(v) if "announce" in e}
-        self.assertIn("zoom-1.7", notes)
-        version, item = notes["zoom-1.7"]
-        self.assertEqual(version, "1.7.0")
-        self.assertIn("heatmap", item["text"])  # (a heatmap day clicked, zoomed in, goes to its tree)
+        self.assertIs(payload.payload()["zoom"], False)
+        lines = [e if isinstance(e, str) else e["text"] for v in release_notes.load() for e in release_notes.items(v)]
+        self.assertFalse([t for t in lines if "zoom" in t.lower()])
+        here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        for doc in ("README.md", os.path.join("docs", "ankiweb.html")):
+            with open(os.path.join(here, doc), encoding="utf-8") as f:
+                self.assertNotIn("Zoom into your forest", f.read(), doc)
 
     def test_a_left_out_deck_plants_nothing(self):
         reset(CARDS, {"excluded_decks": [10]})
