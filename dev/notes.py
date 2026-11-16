@@ -3,7 +3,7 @@
     python3 dev/notes.py           rewrite it in docs/ankiweb.html (npm run notes)
     python3 dev/notes.py --check   only say whether it is up to date (exit 1 if not)
 
-The page is the public one, so it lists what the base edition has: an item that `needs` a
+It lists the newest PAGE_VERSIONS versions. The page is the public one, so it lists what the base edition has: an item that `needs` a
 Plus scenery is left out of it, as it is of the base edition's own copy of
 release_notes.json (dev/export_public.py, dev/package.py: edition_json).
 """
@@ -20,6 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ADDON = os.path.dirname(HERE)
 PAGE = os.path.join(ADDON, "docs", "ankiweb.html")
 PUBLIC = "base"
+# the page lists the newest versions alone: the rest are in the add-on's About tab and on GitHub's releases
+PAGE_VERSIONS = 2
 sys.path.insert(0, ADDON)
 import release_notes
 
@@ -47,7 +49,7 @@ def edition_json(edition: str | None, text: str) -> str:
 def page() -> str:
     """docs/ankiweb.html with its What's new made afresh."""
     with open(PAGE, encoding="utf-8") as f:
-        return release_notes.in_page(f.read(), versions())
+        return release_notes.in_page(f.read(), versions()[:PAGE_VERSIONS])
 
 
 def main() -> None:
