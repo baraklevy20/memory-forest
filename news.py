@@ -200,6 +200,14 @@ def cog_dot(cfg: dict) -> str:
     return "settings" if found else ""
 
 
+def cog_opens(cfg: dict) -> str:
+    """Where the cog opens the settings while its dot is for something new in them: the first
+    setting that dot names (a news_targets key, there wearing NEW), or "" (the tab last used)."""
+    if cog_dot(cfg) != "settings":
+        return ""
+    return next((e["settings"][0] for e in _dots(cfg) if e.get("settings")), "")
+
+
 def settings_opened(cfg: dict) -> list:
     """The settings are open: the cog's dot is answered. The sceneries it was for wear their
     NEW tag (returned; tile_tags keeps it on later visits)."""

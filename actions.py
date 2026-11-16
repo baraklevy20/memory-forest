@@ -181,8 +181,8 @@ def on_js_message(handled, message, context):
         return handled
     cmd = message.split(":")[1:]
     try:
-        if cmd[0] == "settings":
-            open_settings()
+        if cmd[0] == "settings":  # (at what's new in them, while the cog's dot is for that)
+            open_settings(news.cog_opens(config()))
         elif cmd[0] == "news" and len(cmd) > 2:  # a note answered: hidden for good, or followed
             news.mark_seen([cmd[2]])
             if cmd[1] == "open":

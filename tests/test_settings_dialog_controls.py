@@ -6,6 +6,7 @@ the NEW tags a note puts on them. Skipped without PyQt6: see settings_qt.py."""
 from __future__ import annotations
 
 import datetime
+import os
 import unittest
 
 import settings_qt as Q
@@ -810,6 +811,15 @@ class WhatsNewTests(QtCase):
         self.assertTrue(d.forest.finished.property("af_new"))
         self.assertTrue(d.forest.animations.property("af_new"))
         self.assertEqual(pills(d.heatmap), [])
+
+    def test_the_cogs_dot_opens_customize_nature_wearing_new(self):
+        self.tags(settings=["nature_custom"])
+        d = self.open_dialog(focus="nature_custom")
+        self.assertIs(d.tabs.currentWidget(), d.pages[d.forest])
+        self.assertTrue(d.forest.nature_link.property("af_new"))
+        self.assertEqual(len(pills(d.forest)), 1)  # (tagged by both, worn once)
+        if os.environ.get("AF_SHOT"):
+            d.grab().save(os.environ["AF_SHOT"])
 
     def test_a_new_group_wears_new_on_its_title(self):
         self.tags(settings=["calendar_colours"])

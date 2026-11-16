@@ -133,6 +133,26 @@ class DotTests(unittest.TestCase):
             self.assertEqual(news.settings_opened({}), [])
             self.assertEqual(news.cog_dot({}), "")
 
+    def test_a_dot_for_new_settings_opens_them_there_wearing_new(self):
+        named = {"text": "Customize Nature.", "announce": {"id": "nature_dot", "kind": "dot", "settings": ["nature_custom"]}}
+        day = dt.date(2026, 11, 16)
+        with notes(named):
+            self.assertEqual(news.cog_dot({}), "settings")
+            self.assertEqual(news.cog_opens({}), "nature_custom")
+            self.assertEqual(news.setting_tags({}, day), ["nature_custom"])
+            news.settings_opened({})
+            self.assertEqual((news.cog_dot({}), news.cog_opens({})), ("", ""))  # answered: the last tab again
+            self.assertEqual(news.setting_tags({}, day + dt.timedelta(days=3)), ["nature_custom"])  # NEW stays a while
+        with notes(SETTINGS):
+            self.assertEqual(news.cog_opens({}), "")  # (a dot naming no setting)
+        with notes(named, SCENERY):
+            self.assertEqual(news.cog_opens({}), "")  # (a new scenery's dot: the last tab, as ever)
+
+    def test_the_1_7_update_dots_the_cog_for_customizing_nature(self):
+        entry = next(e for e in news._items() if e["announce"]["id"] == "nature-custom-1.7")
+        self.assertEqual(entry["announce"]["kind"], "dot")
+        self.assertEqual(entry["announce"]["settings"], ["nature_custom"])
+
     def test_a_new_scenery_names_the_dot_even_beside_new_settings(self):
         with notes(SETTINGS, SCENERY):
             self.assertEqual(news.cog_dot({}), "scenery")

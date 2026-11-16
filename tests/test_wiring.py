@@ -253,7 +253,7 @@ class HooksCalledTests(unittest.TestCase):
         self.assertEqual(hooks.webview_did_receive_js_message((False, None), "someone:else", context), (False, None))
         with mock.patch.object(actions, "open_settings") as opened:
             self.assertEqual(hooks.webview_did_receive_js_message((False, None), f"{PACKAGE}:settings", context), (True, None))
-        opened.assert_called_once_with()
+        opened.assert_called_once_with('')  # (no dot for new settings: the last tab)
 
     def test_a_sync_holds_back_the_strike_until_it_has_finished(self):
         events_state._syncing = False
