@@ -1665,6 +1665,16 @@
   "text": "O mato está crescendo: nenhum cartão novo há uma semana.",
   "en": "The grass is growing tall: no new cards for a week."
  },
+ "journal.the_grass_is_growing_tall_no_new_cards_days": {
+  "text": {
+   "one": "O mato está crescendo: nenhum cartão novo há {n} dia.",
+   "other": "O mato está crescendo: nenhum cartão novo há {n} dias."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} day.",
+   "other": "The grass is growing tall: no new cards for {n} days."
+  }
+ },
  "journal.the_tree_you_planted_on_date": {
   "text": {
    "one": "A árvore que você plantou em {date} fez {n} ano hoje.",
@@ -2872,8 +2882,8 @@
   "en": "Goes out after"
  },
  "settings.nature.it_comes_closer_each_day_you": {
-  "text": "Ele se aproxima a cada dia perdido, como aviso. Uma revisão o afasta.",
-  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+  "text": "Ele espera no céu como aviso, mais perto a cada dia perdido. Uma revisão o afasta.",
+  "en": "It waits in the sky as a warning, closer each day you miss. A review turns it back."
  },
  "settings.nature.n_days": {
   "text": {
@@ -2928,8 +2938,8 @@
   "en": "Tumbleweeds"
  },
  "settings.nature.when_overdue_reviews_pass_twice_a": {
-  "text": "Quando as revisões atrasadas passam do dobro de um dia normal.",
-  "en": "When overdue reviews pass twice a usual day's."
+  "text": "Quando suas revisões atrasadas chegam ao dobro do que você costuma fazer em um dia.",
+  "en": "When your overdue reviews reach twice what you usually do in a day."
  },
  "settings.nature.without_new_cards": {
   "text": "sem cartões novos",

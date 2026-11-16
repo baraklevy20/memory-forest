@@ -441,7 +441,9 @@ def publish() -> None:
             page = dict(page, strike=dict(strike, **(events_state.strike_before(strike["seen"]) or {})))
         scene_name = (lambda date: name(cfg, date)) if name else (lambda _date: {})
         days = phone_data.schedule(cfg, now, real, place, scene_name)
-        script, parts = _scripts(col, days, ((page.get("calendar") or {}).get("look") or {}).get("files") or ())
+        # (each day's heatmap in that day's scenery's tiles, and the files they all need)
+        looks = phone_data.day_looks(days, (page.get("calendar") or {}).get("look"), lambda mood: heatmap_look.page_look(cfg, mood))
+        script, parts = _scripts(col, days, looks)
         data = phone_data.phone_payload(page, cfg, now, script, real, place, scene_name, parts, days)
         fresh = not phone_data.same_forest(note["Forest"], data)
         if fresh:

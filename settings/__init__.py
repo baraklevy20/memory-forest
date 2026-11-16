@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from aqt.qt import Qt
 
-from ..state import set_settings_open
+from ..events_state import keep_strike_rule
+from ..state import config, set_settings_open
 from .dialog import SettingsDialog
 
 _open: SettingsDialog | None = None
@@ -18,6 +19,7 @@ def _closed(dialog: SettingsDialog) -> None:
     if _open is dialog:  # Restore defaults opens the next one before this one is gone
         _open = None
         set_settings_open(False)
+        keep_strike_rule(config())  # (the rule it leaves, dated today: events_state.strike_rule_since)
 
 
 def open_settings(module: str, on_change, on_phone, focus: str = "", carry: dict | None = None) -> None:

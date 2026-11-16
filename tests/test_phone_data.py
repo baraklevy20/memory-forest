@@ -162,5 +162,27 @@ class SameForestTests(unittest.TestCase):
             self.assertFalse(phone_data.same_forest(old, new))
 
 
+
+class DayLookTests(unittest.TestCase):
+    """Each day the phone draws wears its own scenery's heatmap tiles (phone_data.day_looks)."""
+
+    def look_of(self, mood):
+        own = {"starry_night": "brush", "synthwave": "scanlines"}.get(mood["special"])
+        return {"tile": own or "flat", "files": [f"heatmap/{own}.js"] if own else []}
+
+    def test_a_day_in_another_scenery_wears_its_own_tiles(self):
+        # (synced on a Starry night day, "Surprise me daily": the next day's Synthwave kept the brushstrokes)
+        days = [{"mood": {"special": "starry_night"}}, {"mood": {"special": "synthwave"}}, {"mood": {"special": "natural"}}]
+        files = phone_data.day_looks(days, self.look_of({"special": "starry_night"}), self.look_of)
+        self.assertNotIn("look", days[0])  # (the sync day's is the calendar's own)
+        self.assertEqual((days[1]["look"]["tile"], days[2]["look"]["tile"]), ("scanlines", "flat"))
+        self.assertEqual(files, ["heatmap/brush.js", "heatmap/scanlines.js"])
+
+    def test_no_calendar_no_looks(self):
+        days = [{"mood": {"special": "synthwave"}}]
+        self.assertEqual(phone_data.day_looks(days, None, self.look_of), [])
+        self.assertNotIn("look", days[0])
+
+
 if __name__ == "__main__":
     unittest.main()

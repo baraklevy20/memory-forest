@@ -146,6 +146,13 @@ def strike_rule_since(level: str, after: int, live: bool) -> str | None:
     return since
 
 
+def keep_strike_rule(cfg: dict) -> None:
+    """The settings dialog closed: the strike rule it leaves is kept, dated today if it changed
+    (strike_rule_since). Left to the next redraw, a quit before one dated the change a day late,
+    and a strike on the day it changed lost its news."""
+    strike_rule_since(nature_level(cfg), nature_rules(cfg)["strike_after"], True)
+
+
 def strike_before(seen_key: str) -> dict | None:
     """The forest the strike `seen_key` took, to play it: None if the page asks for one it
     is no longer the latest of."""

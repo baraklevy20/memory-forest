@@ -158,8 +158,15 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
         mg.restore();
       }
       const [ring, rg] = AF.u.layer(W, H);
-      for (const [x, y] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) rg.drawImage(m, x, y);
-      rg.globalCompositeOperation = 'source-in'; rg.fillStyle = '#fff8e0'; rg.fillRect(0, 0, W, H);
+      // a light ring, and a dark one round it: the light alone was lost on snow, fog and a pale sky
+      // (as the zoom button's focus ring, forest.css .af-zoom:focus)
+      const [lit, lg] = AF.u.layer(W, H);
+      for (const [x, y] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) lg.drawImage(m, x, y);
+      for (const [x, y] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1]]) rg.drawImage(m, x, y);
+      rg.globalCompositeOperation = 'source-in'; rg.fillStyle = 'rgba(20,22,21,0.8)'; rg.fillRect(0, 0, W, H);
+      lg.globalCompositeOperation = 'source-in'; lg.fillStyle = '#fff8e0'; lg.fillRect(0, 0, W, H);
+      rg.globalCompositeOperation = 'destination-out'; rg.drawImage(lit, 0, 0);
+      rg.globalCompositeOperation = 'source-over'; rg.drawImage(lit, 0, 0);
       rg.globalCompositeOperation = 'destination-out'; rg.drawImage(m, 0, 0);
       let top = H;
       const d = rg.getImageData(0, 0, W, H).data;
@@ -196,7 +203,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
     const h = AF.STAGE_H[p.it.stage] * env.u * p.s, w = Math.max(h * 0.8, 4 * env.u);
     return { x0: p.x - w / 2, x1: p.x + w / 2, y0: p.y - h, y1: p.y + env.u };
   }
-  function pick(env, mx, my) {
+  function pick(env, mx, my, near = NEAR) {
     const inBox = b => b && mx >= b.x0 && mx <= b.x1 && my >= b.y0 && my <= b.y1;
     for (const b of env.visitorBoxes || []) if (inBox(b)) return { visitor: b.v };
     const event = AF.events.first('pick', env, data, mx, my, animate);  // the asteroid, a crater
@@ -213,17 +220,19 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
       if (p.hitBox || !AF.pixel.sprite) { if (b.hit ? b.hit(mx, my) : inBox(b)) return { p, b }; continue; }  // (a turned tree's own pixels: its `hit`)
       if (drawnAt(env, p, mx, my, 0)) return { p, b };
     }
-    // nothing drawn right there: a tree drawn within a pixel or two (a sapling is thin)
+    // nothing drawn right there: a tree drawn within a pixel or two (a sapling is thin), or a finger's width
     for (let i = env.placed.length - 1; i >= 0; i--) {
       const p = env.placed[i];
-      if (!p.it.pond && !p.hitBox && AF.pixel.sprite && drawnAt(env, p, mx, my, NEAR)) return { p, b: boxOf(env, p) };
+      if (!p.it.pond && !p.hitBox && AF.pixel.sprite && drawnAt(env, p, mx, my, near)) return { p, b: boxOf(env, p) };
     }
     return deepPick(env, mx, my);
   }
   /* Is tree p drawn at (mx, my), or within `near` pixels of it? What its sprite covers, not a box
    * round it: a box had the pointer on one tree pick another in front of it, one point in seven
    * across a full forest, and bare ground pick a tree half the time. */
-  const NEAR = 2, masks = new WeakMap();  // placed tree -> its sprite's drawn pixels
+  // (a finger: TOUCH_NEAR CSS pixels, as a tap lands less exactly than a mouse; the phone card's
+  // canvas has two pixels to each, so NEAR alone was a finger within 4 of a seedling's 9)
+  const NEAR = 2, TOUCH_NEAR = 10, masks = new WeakMap();  // placed tree -> its sprite's drawn pixels
   function drawnAt(env, p, mx, my, near) {
     const { h, hzq } = AF.pixel.sizeOf(p, env);
     // (far from it, its sprite isn't read: no scenery's tree is as wide as one and a half times its
@@ -258,7 +267,7 @@ AF.hover = function ({ root, canvas, tip, sceneEl, data, animate, env: current, 
   // phone card's sideways view) is pointed at the same as an upright one
   function hitAt(env, e) {
     const scale = env.W / (canvas.clientWidth || env.W), [x, y] = AF.u.pointIn(e, canvas);
-    return pick(env, x * scale, y * scale);
+    return pick(env, x * scale, y * scale, touched ? Math.max(NEAR, Math.round(TOUCH_NEAR * scale)) : NEAR);
   }
   // where the mouse last was over the forest, to point again from there once the scene is drawn afresh
   // under it (zooming in: the wheel moves no mouse, and the tree under it lost its outline and tooltip)

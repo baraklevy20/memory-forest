@@ -121,6 +121,24 @@ def schedule(cfg: dict, now: _dt.datetime, real: dict | None = None, place: dict
     return out
 
 
+def day_looks(days: list, look: dict | None, look_of) -> list:
+    """The heatmap's look for each day of the schedule (`days`): `look_of(mood)` for each day's
+    scene (heatmap_look.page_look), kept as that day's `look` where it isn't the sync day's own
+    (`look`): a Surprise me day in another scenery, a seasonal week coming or going, wears its own
+    tiles, as the computer would draw them that day (with the sync day's alone, a Synthwave day
+    wore Starry night's brushstrokes). Returns every file those looks need, the sync day's first.
+    No calendar (`look` None): nothing."""
+    if look is None:
+        return []
+    files = list(look.get("files") or ())
+    for day in days:
+        own = look_of(day["mood"])
+        if own != look:
+            day["look"] = own
+        files += [f for f in own.get("files") or () if f not in files]
+    return files
+
+
 def phone_payload(page: dict, cfg: dict, now: _dt.datetime, script: str, real: dict | None = None,
                   place: dict | None = None, scene_name=lambda _date: {}, parts: dict | None = None,
                   days: list | None = None) -> dict:

@@ -730,6 +730,14 @@ class CustomizeTests(unittest.TestCase):
             self.assertFalse(payload.payload()["strike"]["news"])
         self.assertEqual(state.load_state()["strike_rule"]["rule"], "merciless:3")  # (only once the dialog is done)
 
+    def test_the_rule_is_kept_as_the_dialog_closes_dated_that_day(self):
+        # (not at the next redraw: a quit before one dated it a day late, and that day's strike was no news)
+        studied_every_day_but({2, 3}, nature="merciless", nature_custom={"strike_after": 3})
+        payload.payload()
+        mw.addonManager.config["nature_custom"] = {}
+        addon.events_state.keep_strike_rule(mw.addonManager.config)
+        self.assertEqual(state.load_state()["strike_rule"], {"rule": "merciless:1", "since": addon.events_state.ago_date(0)})
+
     def test_what_the_level_has_no_use_for_changes_nothing(self):
         studied_every_day_but({2, 3}, nature="merciless", nature_custom={"fire_from": 9, "strike_after": 99, "tumbleweeds": "off"})
         p = payload.payload()

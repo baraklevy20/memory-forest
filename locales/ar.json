@@ -2005,6 +2005,20 @@
   "text": "العشب يطول: لا بطاقات جديدة منذ أسبوع.",
   "en": "The grass is growing tall: no new cards for a week."
  },
+ "journal.the_grass_is_growing_tall_no_new_cards_days": {
+  "text": {
+   "zero": "العشب يطول: لا بطاقات جديدة منذ {n} يوم.",
+   "one": "العشب يطول: لا بطاقات جديدة منذ يوم.",
+   "two": "العشب يطول: لا بطاقات جديدة منذ يومين.",
+   "few": "العشب يطول: لا بطاقات جديدة منذ {n} أيام.",
+   "many": "العشب يطول: لا بطاقات جديدة منذ {n} يومًا.",
+   "other": "العشب يطول: لا بطاقات جديدة منذ {n} يوم."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} day.",
+   "other": "The grass is growing tall: no new cards for {n} days."
+  }
+ },
  "journal.the_tree_you_planted_on_date": {
   "text": {
    "zero": "بلغت الشجرة التي غرستها في {date} من العمر {n} سنة اليوم.",
@@ -3240,8 +3254,8 @@
   "en": "Goes out after"
  },
  "settings.nature.it_comes_closer_each_day_you": {
-  "text": "يقترب مع كل يوم تفوّته، تحذيرًا. والمراجعة تُبعده.",
-  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+  "text": "ينتظر في السماء تحذيرًا، ويقترب مع كل يوم تفوّته. والمراجعة تُبعده.",
+  "en": "It waits in the sky as a warning, closer each day you miss. A review turns it back."
  },
  "settings.nature.n_days": {
   "text": {
@@ -3304,8 +3318,8 @@
   "en": "Tumbleweeds"
  },
  "settings.nature.when_overdue_reviews_pass_twice_a": {
-  "text": "عندما تتجاوز المراجعات المتأخرة ضعف ما في اليوم المعتاد.",
-  "en": "When overdue reviews pass twice a usual day's."
+  "text": "عندما تبلغ مراجعاتك المتأخرة ضعف ما تنجزه عادةً في اليوم.",
+  "en": "When your overdue reviews reach twice what you usually do in a day."
  },
  "settings.nature.without_new_cards": {
   "text": "بلا بطاقات جديدة",

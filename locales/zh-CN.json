@@ -1580,6 +1580,15 @@
   "text": "草长高了：已经一周没有新卡片。",
   "en": "The grass is growing tall: no new cards for a week."
  },
+ "journal.the_grass_is_growing_tall_no_new_cards_days": {
+  "text": {
+   "other": "草长高了：已经 {n} 天没有新卡片。"
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} day.",
+   "other": "The grass is growing tall: no new cards for {n} days."
+  }
+ },
  "journal.the_tree_you_planted_on_date": {
   "text": {
    "other": "您在{date}种下的树今天满 {n} 岁了。"
@@ -2780,8 +2789,8 @@
   "en": "Goes out after"
  },
  "settings.nature.it_comes_closer_each_day_you": {
-  "text": "每错过一天，它就更近一些，以示警告。复习一次就能让它远离。",
-  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+  "text": "它在空中等待，以示警告，每错过一天就更近一些。复习一次就能让它远离。",
+  "en": "It waits in the sky as a warning, closer each day you miss. A review turns it back."
  },
  "settings.nature.n_days": {
   "text": {
@@ -2834,8 +2843,8 @@
   "en": "Tumbleweeds"
  },
  "settings.nature.when_overdue_reviews_pass_twice_a": {
-  "text": "当逾期的复习超过平常一天的两倍时。",
-  "en": "When overdue reviews pass twice a usual day's."
+  "text": "当你逾期的复习达到平常一天所做的两倍时。",
+  "en": "When your overdue reviews reach twice what you usually do in a day."
  },
  "settings.nature.without_new_cards": {
   "text": "没有新卡片",

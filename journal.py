@@ -77,7 +77,11 @@ def journal(forest: dict, mood: dict, today: _dt.date, anniversary_idx: list, ev
     # the tall grass (`stagnation`, as the page draws it: events_state's, or the Debug tab's)
     # says why it is there for as long as it stands, when there is nothing newer to say
     if stagnation:
-        weeks = trees[-1]["ago"] // 7
+        # (under a week, its days: Customize lets the grass grow after 3)
+        days = trees[-1]["ago"]
+        if days < 7:
+            return tn("journal.the_grass_is_growing_tall_no_new_cards_days", days)
+        weeks = days // 7
         if weeks < 2:
             return t("journal.the_grass_is_growing_tall_no_2")
         return tn("journal.the_grass_is_growing_tall_no", weeks)

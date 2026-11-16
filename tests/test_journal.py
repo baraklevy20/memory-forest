@@ -65,7 +65,8 @@ class JournalTests(unittest.TestCase):
     def test_the_tall_grass_says_why_it_is_there(self):
         stats = {"trees": 40, "streak": 12, "planted_today": False, "today_cards": 0}
         mood = {"weather": "clear", "special": "none", "time": "day"}
-        for ago, line in ((9, "a week"), (20, "2 weeks"), (30, "4 weeks")):
+        # (under a week, its days: Customize lets the grass grow after 3)
+        for ago, line in ((3, "3 days"), (6, "6 days"), (7, "a week"), (9, "a week"), (20, "2 weeks"), (30, "4 weeks")):
             forest = {"trees": [{"date": "2025-09-19", "n": 30, "ago": ago}], "visitors": [], "stats": stats}
             self.assertEqual(journal.journal(forest, mood, dt.date(2026, 9, 19), [], stagnation=0.5),
                              f"The grass is growing tall: no new cards for {line}.")

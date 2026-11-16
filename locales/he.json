@@ -1750,6 +1750,17 @@
   "text": "העשב צומח לגובה: אין כרטיסים חדשים כבר שבוע.",
   "en": "The grass is growing tall: no new cards for a week."
  },
+ "journal.the_grass_is_growing_tall_no_new_cards_days": {
+  "text": {
+   "one": "העשב צומח לגובה: אין כרטיסים חדשים כבר יום.",
+   "two": "העשב צומח לגובה: אין כרטיסים חדשים כבר יומיים.",
+   "other": "העשב צומח לגובה: אין כרטיסים חדשים כבר {n} ימים."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} day.",
+   "other": "The grass is growing tall: no new cards for {n} days."
+  }
+ },
  "journal.the_tree_you_planted_on_date": {
   "text": {
    "one": "העץ ששתלת ב־ {date} בן שנה היום.",
@@ -2964,8 +2975,8 @@
   "en": "Goes out after"
  },
  "settings.nature.it_comes_closer_each_day_you": {
-  "text": "הוא מתקרב בכל יום שמפספסים, כאזהרה. חזרה אחת מרחיקה אותו.",
-  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+  "text": "הוא מחכה בשמיים כאזהרה, ומתקרב בכל יום שמפספסים. חזרה אחת מרחיקה אותו.",
+  "en": "It waits in the sky as a warning, closer each day you miss. A review turns it back."
  },
  "settings.nature.n_days": {
   "text": {
@@ -3022,8 +3033,8 @@
   "en": "Tumbleweeds"
  },
  "settings.nature.when_overdue_reviews_pass_twice_a": {
-  "text": "כשיש באיחור יותר מפי שניים מהחזרות של יום רגיל.",
-  "en": "When overdue reviews pass twice a usual day's."
+  "text": "כשהחזרות שבאיחור מגיעות לפי שניים ממה שעושים ביום רגיל.",
+  "en": "When your overdue reviews reach twice what you usually do in a day."
  },
  "settings.nature.without_new_cards": {
   "text": "בלי כרטיסים חדשים",

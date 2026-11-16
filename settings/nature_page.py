@@ -15,7 +15,8 @@ from .. import events
 from ..events import NATURE_LABELS, NUMBERS
 from ..i18n import N_, t, tn, tx
 from .customize import HEADER_GAP, RESET_GAP, RESET_STYLE
-from .widgets import Link, hint
+from .palette import color
+from .widgets import Link, hint, hint_style
 
 BACK = N_("settings.nature.back")
 OWN_NOTE = N_("settings.customize.change_anything_here_to_make_it")  # (the scenery's Customize says it so too)
@@ -180,6 +181,8 @@ class NaturePage(QWidget):
 
     def _hint(self, text: str) -> QLabel:
         label = hint(text)
+        # (greyed with its box, as the numbers beside it are: the hint's own grey stays put otherwise)
+        label.setStyleSheet(f"QLabel {{ {hint_style()} }} QLabel:disabled {{ color: {color('FG_DISABLED')}; }}")
         self.grid.addWidget(label, self._row, 1, 1, 4)
         self._row += 1
         return label

@@ -42,6 +42,8 @@ function forNow(note, now) {
     credit = false;
   }
   const data = Object.assign({}, note, { mood, credit, dayNumber: day.dayNumber, sceneName: day.sceneName, sceneTip: day.sceneTip });
+  // (a day in another scenery than the sync day's: its heatmap in that scenery's tiles, phone_data.day_looks)
+  if (day.look && note.calendar) data.calendar = Object.assign({}, note.calendar, { look: day.look });
   if (!sent) {  // what happened on the day the computer sent this is old news by now
     Object.assign(data, { journal: '', anniversaries: [], events: [] });
     // and its warnings were for that day only: the asteroid due that night, the smoke that
@@ -162,7 +164,7 @@ function layout() {
   const zoom = isFull && mode === 'forest' ? 'always' : false;
   const key = JSON.stringify([data.maxWidth, data.mood, data.dayNumber, data.journal, zoom, data.showForest, !!data.calendar, data.swipedK]), mine = ++layouts;
   if (key === drawn && root.afEnv) return Promise.resolve();
-  return AF.loadScripts(scenery(data.mood, !!data.calendar)).then(() => {
+  return AF.loadScripts(scenery(data.mood, data.calendar)).then(() => {
     if (mine !== layouts) return;
     drawn = key;
     root.classList.remove('af-phone-wait');  // (drawn after all, once a line had taken its place)
@@ -186,8 +188,8 @@ let drawn = '', layouts = 0;
  * collection's media (the note names them), loaded the first time a scene needs it - the
  * one file the card loads holds everything else. */
 function scenery(mood, calendar) {
-  // (and, with the calendar shown, the files the heatmap's look needs: a scenery's own tile style's)
-  const look = (calendar && note.calendar && note.calendar.look && note.calendar.look.files) || [];
+  // (and, with the calendar shown, the files the day's heatmap look needs: a scenery's own tile style's)
+  const look = (calendar && calendar.look && calendar.look.files) || [];
   return [['envs', mood.special], ['landscapes', mood.landscape], ['landmarks', mood.landmark]]
     .map(([kind, key]) => key && (note.parts || {})[`${kind}/${key}.js`])
     .concat(look.map(rel => (note.parts || {})[rel])).filter((f, i, all) => f && all.indexOf(f) === i);

@@ -215,7 +215,9 @@ class LayoutControls:
         row.insertWidget(0, self.heat)
         row.insertWidget(0, self.heat_label)
         self.heat_gap = QWidget()
-        self.heat_gap.setFixedWidth(18)
+        # (Side's 18 points after it, as First has them: a widget, unlike a spacing, takes the row's
+        # spacing on its far side too)
+        self.heat_gap.setFixedWidth(18 - row.spacing())
         row.insertWidget(2, self.heat_gap)
         row.addStretch(1)
         v.addLayout(row)

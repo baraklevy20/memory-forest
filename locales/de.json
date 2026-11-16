@@ -1665,6 +1665,16 @@
   "text": "Das Gras steht hoch: seit einer Woche keine neuen Karten.",
   "en": "The grass is growing tall: no new cards for a week."
  },
+ "journal.the_grass_is_growing_tall_no_new_cards_days": {
+  "text": {
+   "one": "Das Gras steht hoch: seit {n} Tag keine neuen Karten.",
+   "other": "Das Gras steht hoch: seit {n} Tagen keine neuen Karten."
+  },
+  "en": {
+   "one": "The grass is growing tall: no new cards for {n} day.",
+   "other": "The grass is growing tall: no new cards for {n} days."
+  }
+ },
  "journal.the_tree_you_planted_on_date": {
   "text": {
    "one": "Der Baum, den du am {date} gepflanzt hast, ist heute {n} Jahr alt geworden.",
@@ -2872,8 +2882,8 @@
   "en": "Goes out after"
  },
  "settings.nature.it_comes_closer_each_day_you": {
-  "text": "Mit jedem verpassten Tag kommt er näher, als Warnung. Eine Wiederholung schickt ihn zurück.",
-  "en": "It comes closer each day you miss, as a warning. A review turns it back."
+  "text": "Er wartet als Warnung am Himmel und kommt mit jedem verpassten Tag näher. Eine Wiederholung schickt ihn zurück.",
+  "en": "It waits in the sky as a warning, closer each day you miss. A review turns it back."
  },
  "settings.nature.n_days": {
   "text": {
@@ -2928,8 +2938,8 @@
   "en": "Tumbleweeds"
  },
  "settings.nature.when_overdue_reviews_pass_twice_a": {
-  "text": "Wenn mehr als doppelt so viele Wiederholungen überfällig sind wie an einem normalen Tag.",
-  "en": "When overdue reviews pass twice a usual day's."
+  "text": "Wenn deine überfälligen Wiederholungen doppelt so viele sind wie an einem normalen Tag.",
+  "en": "When your overdue reviews reach twice what you usually do in a day."
  },
  "settings.nature.without_new_cards": {
   "text": "ohne neue Karten",
