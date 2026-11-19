@@ -593,15 +593,25 @@ def days_ago(ts_seconds: float, day_cutoff: int) -> int:
     return int((day_cutoff - 1 - ts_seconds) // DAY_SECS)
 
 
-def load_deck_firsts(db, excluded: Iterable | None = None) -> list:
+def load_deck_firsts(db, excluded: Iterable | None = None, since: int | None = None) -> list:
     """Each deck's own cards (by home deck): (deck id, cards, new cards left, the newest of their
     first answers as a revlog id, or None). A suspended card never studied is left out: put aside,
-    not waiting to be learned."""
+    not waiting to be learned. `since` (a revlog id): only first answers from then on, a card first
+    answered before it as one never answered: all a year's finished decks ask (whether the newest is
+    in the year), read from that part of the log alone (by its id) and each such card's first entry,
+    not the whole log grouped by card (1M reviews: 2 s, against 0.3)."""
     in_decks, _only = _filters(None, excluded)
+    if since is None:
+        firsts, args = f"select cid, min(id) as first from revlog where {ANSWERED} group by cid", ()
+    else:
+        # (in the inner query `ease` and `type` are its own rows': o's)
+        firsts = (f"select cid, min(id) as first from revlog r where id >= ? and {ANSWERED} group by cid "
+                  f"having not exists (select 1 from revlog o where o.cid = r.cid and o.id < ? and {ANSWERED})")
+        args = (int(since), int(since))
     return db.all(
         "select coalesce(nullif(c.odid, 0), c.did), count(), sum(c.type = 0), max(f.first) from cards c "
-        f"left join (select cid, min(id) as first from revlog where {ANSWERED} group by cid) f on f.cid = c.id "
-        f"where not (c.type = 0 and c.queue = -1){in_decks} group by 1")
+        f"left join ({firsts}) f on f.cid = c.id "
+        f"where not (c.type = 0 and c.queue = -1){in_decks} group by 1", *args)
 
 
 def day_date(days: int, day_cutoff: int) -> _dt.date:

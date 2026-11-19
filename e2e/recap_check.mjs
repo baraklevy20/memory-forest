@@ -21,10 +21,10 @@ try {
     p.on('console', m => { if (m.type() === 'error') errors.push(`${name}: console: ${m.text()}`); });
     await p.goto('file://' + pages[name]);
     if (name === 'heatmap_only') {
-      // the forest off: a link under the heatmap, and the recap opens with its own forest drawn
-      await p.waitForSelector('.af-recap-foot .af-recap-link', { timeout: 15000 });
+      // the forest off: a link in the heatmap's footer, under it, and the recap opens with its own forest drawn
+      await p.waitForSelector('.af-cal-foot .af-recap-link', { timeout: 15000 });
       expect(!(await p.$('.af-recap-entry')), `${name}: no card where there's no forest`);
-      await p.click('.af-recap-foot .af-recap-link');
+      await p.click('.af-cal-foot .af-recap-link');
       await p.waitForSelector('.af-recap-dlg');
       await wait(1500);
       expect(await p.evaluate(() => { const c = document.querySelector('.af-recap-forest canvas.af-canvas'); return !!c && c.width > 0; }), `${name}: the recap's forest is drawn`);
@@ -93,10 +93,10 @@ try {
     await p.keyboard.press('Escape');
     expect(!(await p.$('.af-recap')), `${name}: Esc closes it`);
     expect((await sent(p)).indexOf('forest:typing:0') >= 0, `${name}: closing gives Anki its shortcuts back`);
-    expect(!!(await p.$('.af-caption .af-recap-link')), `${name}: the caption keeps a way back in`);
+    expect(!!(await p.$('.af-recap-row .af-recap-link')), `${name}: a line under the caption keeps a way back in`);
     expect(!(await p.$('.af-recap-entry [data-recap]')), `${name}: the card is gone`);
-    await p.click('.af-caption .af-recap-link');
-    expect(await onCard(p) === 'title', `${name}: the caption's link opens it again`);
+    await p.click('.af-recap-row .af-recap-link');
+    expect(await onCard(p) === 'title', `${name}: its link opens it again`);
     await p.keyboard.press('Escape');
     failures.push(...errors);
     await p.close();

@@ -60,7 +60,7 @@ def recap_data(reviews: dict, trees: list, animals: list, mood: dict, finished: 
            "look": heatmap_look.page_look({}, mood), "size": {"width": "forest", "fill": "more"}}
     # the decks learned to their last card (recap.finished), made up
     out["finished"] = [{"name": n.split("::")[-1], "full": n, "date": d} for n, d in finished]
-    return dict(out, calendar=cal, entry="card", openNow=False)
+    return dict(out, calendar=cal, entry="card")
 
 
 def data(light: bool) -> dict:

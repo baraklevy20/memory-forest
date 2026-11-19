@@ -98,7 +98,7 @@ function paint(H, win, sp, paper) {
   // the view's edges (with no end mark there)
   const by = band + ROWS * STATE.CELL + 3, brackets = [];
   for (const r of H.runs) {
-    const len = r.days, live = r === H.current;
+    const len = r.days, live = r === (H.gold !== undefined ? H.gold : H.current);
     if (len < SHOWN_STREAK && !live) continue;
     if (len < 2) continue;  // (a bracket round one day is a stray orange tick under today)
     const fo = Math.max(r.from, win.from), to = Math.min(r.to, win.to);

@@ -2179,6 +2179,17 @@
   "text": "רשת הניאון שנמתחת עד האופק, והשמש המפוספסת שעומדת עליה.",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.and_n_more": {
+  "text": {
+   "one": "ועוד אחת",
+   "two": "ועוד שתיים",
+   "other": "ועוד {n}"
+  },
+  "en": {
+   "one": "and {n} more",
+   "other": "and {n} more"
+  }
+ },
  "recap.best_day": {
   "text": "היום הטוב ביותר",
   "en": "Best day"
@@ -2409,6 +2420,10 @@
   "text": "פתיחה",
   "en": "Open"
  },
+ "recap.replace_file": {
+  "text": "{name} כבר קיים. להחליף אותו?",
+  "en": "{name} is already there. Replace it?"
+ },
  "recap.save_image": {
   "text": "שמירת התמונה",
   "en": "Save image"
@@ -2419,7 +2434,7 @@
  },
  "recap.saved": {
   "text": "התמונה נשמרה",
-  "en": "Picture saved"
+  "en": "Image saved"
  },
  "recap.share_say": {
   "text": "היער, מפת החום והשיאים שלך בתמונה אחת, לשמור או לשתף.",
@@ -2503,6 +2518,10 @@
  "recap.your_year_in_the_forest": {
   "text": "השנה שלך ביער",
   "en": "Your year in the forest"
+ },
+ "recap.your_year_so_far": {
+  "text": "שנת {year} שלך עד עכשיו",
+  "en": "Your {year} so far"
  },
  "scene.after_the_rain": {
   "text": "אחרי הגשם",

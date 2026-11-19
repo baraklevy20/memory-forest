@@ -177,6 +177,8 @@
 /* the year's look back in the caption (web/recap.js), from the deck list's first drawing: in the recap's own
    stylesheet, put on at its first open, it was a bare grey button every day after the card was answered */
 .af-recap-foot { margin-top: 8px; font: 12.5px/1.4 var(--af-font); color: var(--fg-subtle, #8a8f8c); }
+.af-recap-row { margin-top: 2px; font: 12.5px/1.4 var(--af-font); color: var(--fg-subtle, #8a8f8c); }
+.af-cal-journal > .af-recap-link { font-style: normal; }  /* (the heatmap's footer: upright, as the caption's, not the journal's italic) */
 .af-recap-link { font: inherit; color: inherit; background: none !important; border: 0 !important; border-bottom: 1px dotted currentColor !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0; cursor: pointer; }
 .af-credit { opacity: 0.75; }
 

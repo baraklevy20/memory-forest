@@ -173,7 +173,7 @@ class DebugTab(QWidget):
         hf.addRow("Current streak", self.streak_days)
         hv = QVBoxLayout(); hv.addLayout(hf); hv.addWidget(hint(STREAKS_NOTE))
         dv.addWidget(group("Heatmap", hv))
-        dv.addWidget(recap_group(lambda: self._changed and self._changed()))
+        dv.addWidget(recap_group(lambda: self._changed and self._changed(), self._date()))
         dv.addWidget(group("What's new", ntv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))

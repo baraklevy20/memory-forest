@@ -242,6 +242,11 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     evs = scene.events(forest["stats"], today, new_ancient)
     calendar = _calendar(forest, all_trees, cfg, test, changed, did, highlight)
 
+    # the year's look back, from Dec 7 to Jan 15 (recap.py, web/recap.js): on the deck list only (its
+    # forest's corner, or under its heatmap when the forest is off), never the test forest's. Before
+    # what's new: while its card has the corner, a note waits behind it, uncounted
+    look_back = None if did or test else _recap(dict(forest, trees=all_trees), cfg, day, mood, changed, planted)
+
     # (a new install's first day on years of history: nothing else says where all these trees came from)
     if not did and len(all_trees) > 1 and news.settling_in(1):
         welcome = i18n.t("journal.grown_from_your_reviews_since", date=i18n.day_month_year(_dt.date.fromisoformat(all_trees[0]["date"])))
@@ -283,11 +288,11 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         "litCount": forest.get("lit_count"),
         # what's new: a note on the deck list's forest only (never counted as shown while that
         # screen has the heatmap alone, web/news.js), and the cog's dot on every one
-        "news": None if did or not show_forest else news.note(cfg, day),
+        "news": None if did or not show_forest else news.note(cfg, day, held=bool(look_back and look_back.get("entry") == "card")),
         "newDot": news.cog_dot(cfg),
-        # the year's look back, from Dec 15 to Jan 15 (recap.py, web/recap.js): on the
-        # deck list only (its forest's corner, or under its heatmap when the forest is off), never the test forest's
-        "recap": None if did or test else _recap(dict(forest, trees=all_trees), cfg, day, mood, changed, planted),
+        # the year's look back, from Dec 7 to Jan 15 (recap.py, web/recap.js): on the deck list only (its forest's
+        # corner, or under its heatmap when the forest is off), never the test forest's; worked out above
+        "recap": look_back,
         # the forest itself may be switched off on this screen while the study calendar is on
         "showForest": show_forest,
         # the study calendar (web/calendar/): the whole collection's on the main screen, the
@@ -526,7 +531,7 @@ def _recap(forest: dict, cfg: dict, day: _dt.date, mood: dict, changed, planted:
         off = _days_off(cfg, cutoff, set(forest.get("day_reviews") or ()), free)
         today = anki_today(cutoff)
         # (its window by Anki's day, as its numbers are: at 1 am on Jan 16 Anki's day is still Jan 15, and
-        # at 1 am on Dec 15 still Dec 14; the Debug tab's date, when one is set, as it is)
+        # at 1 am on Dec 7 still Dec 6; the Debug tab's date, when one is set, as it is)
         when = today if day == _dt.date.today() else day
         record = None
         if since(cfg) is not None and counts_since(cfg, cutoff) is None and shows_record(cfg):
@@ -543,8 +548,10 @@ def _recap(forest: dict, cfg: dict, day: _dt.date, mood: dict, changed, planted:
         return None
 
 
-# the year's finished decks, worked out once for each state of the review log and the decks (the
-# deck list draws often; this reads every card)
+# the year's finished decks, worked out once for each state of the decks and their new cards (the
+# deck list draws often; this reads every card and the year's reviews): a review of a card already
+# learned changes nothing of it, and had it read again at every return to the deck list (2 s on a
+# collection of 1M reviews, all through the study of the window's month)
 _finished_cache: dict = {}
 
 
@@ -552,12 +559,16 @@ def _finished_decks(year: int, cutoff: int, excluded: set) -> list:
     """The decks learned to their last card in `year` (recap.finished), from the collection."""
     db = mw.col.db
     names = {d.id: d.name for d in mw.col.decks.all_names_and_ids(include_filtered=False)}
-    key = (year, cutoff, db.scalar("select max(id) from revlog") or 0, db.scalar("select max(mod) from cards") or 0,
-           tuple(sorted(names.items())), tuple(sorted(excluded)))
+    # (each deck's cards, new ones and those put aside, by the scheduler's index: a new card's first answer,
+    # one suspended or unsuspended, reset, moved, deleted or added, and nothing else, moves it. The cards'
+    # newest mod moved with every review, and missed a card deleted)
+    cards = tuple(db.all("select did, count(), sum(queue = 0), sum(queue < 0) from cards group by did"))
+    key = (year, cutoff, cards, tuple(sorted(names.items())), tuple(sorted(excluded)))
     if _finished_cache.get("key") != key:
-        rows = study_log.load_deck_firsts(db, excluded)
+        # (only the first answers from the year's first day on: whether a deck's newest is in it)
+        rows = study_log.load_deck_firsts(db, excluded, study_log.day_start(_dt.date(year, 1, 1), cutoff) * 1000)
         day = lambda ms: study_log.day_date((cutoff - 1 - ms // 1000) // study_log.DAY_SECS, cutoff)  # noqa: E731
-        _finished_cache.update(key=key, value=finished_decks(rows, names, year, day))
+        _finished_cache.update(key=key, value=finished_decks(rows, names, year, day, frozenset(excluded)))
     return _finished_cache["value"]
 
 

@@ -1,4 +1,4 @@
-/* Memory Forest — your year in the forest (recap.py): from Dec 15 to Jan 15, a
+/* Memory Forest — your year in the forest (recap.py): from Dec 7 to Jan 15, a
  * card on the deck list's forest (or, once answered, a link in its caption) opens a look back at the year,
  * a few cards over the deck list, one at a time: the year and its forest; the days studied, the year's
  * heatmap filling in day by day; the year's bests; the animals it brought walking in; a word for its
@@ -22,12 +22,10 @@ const HEAT_W = 740;
 const STEP_MS = 800, FIRST_MS = 600, ALL_IN_MS = 5600, CHIPS_MOST = 10;  // the animals: one after another (many: all in by ALL_IN_MS)
 const stepFor = n => Math.min(STEP_MS, Math.max(250, (ALL_IN_MS - FIRST_MS) / Math.max(1, n)));
 const WHOLE_NEAR = 0.9;  // (a drawn-once heatmap style kept at whole pixels when that's at least this share of the size asked for)
-const TILE_MOST = 44;  // (a short year's heatmap is drawn bigger, its tiles up to this many px)
-const TILE_DLG = 26;  // (in the dialog, at most this: a year begun in the autumn pushed its reviews' line off the card)
 const AWAY_STEP = 1 / 3;  // (the fill: a day not studied, against a day studied)
 const LAND_MS = 500;  // (the streak's bracket, coming in)
 const DOUBLE_MS = 500;  // (a click this soon after it opened is the second of a double click)
-const SHARE_TILE_MOST = 24;  // (and on the picture, at most this: the bests must fit under it)
+const SAVE_AGAIN_MS = 1000;  // (a second click on Save image this soon is the same one)
 
 const num = n => AF.i18n.num(Math.round(n));
 const msOf = iso => Date.parse(iso + 'T00:00:00Z');
@@ -82,9 +80,18 @@ AF.recap = function (root, data) {
   if (!R || !data.inAnki || data.deckId) return;
   const scene = root.querySelector('.af-scene');
   const link = () => {
-    let meta = root.querySelector('.af-caption .af-meta');
+    // (a line of its own, right under the caption's: in the caption's own line it ran on after the weather's credit)
+    const caption = scene && root.querySelector('.af-caption');
+    let meta = caption ? root.querySelector('.af-recap-row') : null;
+    if (caption && !meta) {
+      meta = document.createElement('div'); meta.className = 'af-recap-row'; meta.dir = 'auto';
+      caption.parentNode.insertBefore(meta, caption.nextSibling);
+    }
+    // (the forest switched off on the deck list, the heatmap alone: in its footer, where the journal
+    // goes, under its first week; put first, before the heatmap was drawn, it stood over it at the
+    // panel's edge. A line of its own under the panel only if there is no heatmap after all)
+    if (!meta && !scene) meta = root.querySelector('.af-cal-foot .af-cal-journal');
     if (!meta && !scene) {
-      // (the forest switched off on the deck list, the heatmap alone: a line of its own under it)
       meta = root.querySelector('.af-recap-foot');
       if (!meta) { meta = document.createElement('div'); meta.className = 'af-recap-foot'; meta.dir = 'auto'; root.appendChild(meta); }
     }
@@ -109,12 +116,14 @@ AF.recap = function (root, data) {
       if (!b) return;
       card.remove();
       if (b.dataset.recap === 'open') open(root, data);
-      else send(`${data.channel}:recap:dismissed:${R.year}`);
+      else send(`${data.channel}:recap:dismissed:${R.year}${R.early ? ':early' : ''}`);
       link();
+      // (a note of what's new that waited behind it has the corner now, web/news.js)
+      if (AF.newsNote) AF.newsNote(root, data);
     });
     (root.afTipLayer || scene).append(card);
+    if (AF.cornerClear) AF.cornerClear(root, card);  // (Background, a narrow window: not over the deck list, web/news.js)
   } else if (R.entry !== 'none') link();
-  if (R.openNow) setTimeout(() => open(root, data, true), 0);
 };
 
 /* ---------- the dialog ---------- */
@@ -124,17 +133,19 @@ let current = null;  // the open recap, if any
 AF.recapSaved = function (name) {
   const b = current && current.box.querySelector('.af-recap-save');
   if (!b) return;
+  // (null: it couldn't be saved, Anki's tooltip says so; an earlier "Picture saved" and its name taken back)
+  if (name === null) { b.textContent = AF.t('recap.save_image'); const old = current.box.querySelector('.af-recap-file'); if (old) old.remove(); return; }
   b.textContent = AF.t('recap.saved');
   let f = current.box.querySelector('.af-recap-file');
   if (!f) { f = document.createElement('p'); f.className = 'af-recap-file'; f.dir = 'auto'; b.parentNode.parentNode.appendChild(f); }
   f.textContent = name;
 };
 
-function open(root, data, debug) {
+function open(root, data) {
   if (current) return;
   const R = data.recap, rtl = AF.i18n.rtl();
   // (the Debug tab's open answers nothing: the year's card still shows on its days, as it will for everyone)
-  send(`${data.channel}:recap:${debug ? 'debug_opened' : 'opened'}:${R.year}`);
+  send(`${data.channel}:recap:opened:${R.year}${R.early ? ':early' : ''}`);
   send(`${data.channel}:typing:1`);  // (Anki's one-key shortcuts wait while it is open: actions.hold_shortcuts)
   style();
   const order = R.short ? ['title', 'summary'] : ['title', 'days', 'best'].concat(R.animals.length ? ['animals'] : []).concat(['label', 'summary']);
@@ -175,10 +186,15 @@ function open(root, data, debug) {
   // the year's heatmap, twice, out of sight: with its days, and with none (the days not yet filled in)
   const calData = cal => ({ calendar: cal, showForest: false, inAnki: true, maxWidth: HEAT_W, mood: data.mood, trees: [], stats: data.stats,
     animations: false, channel: data.channel, i18n: data.i18n, journal: '', events: [] });
-  // (no today's frame: the year's last day, which isn't today in January, ringed ahead of the fill)
-  const blank = Object.assign({}, R.calendar, { days: R.calendar.days.map(() => 0), noToday: true });
+  // (no today's frame: the year's last day, which isn't today in January, ringed ahead of the fill;
+  // and a day of nothing due for it: with no days ahead (due: []) the heatmap counts none ahead
+  // of the day before it, and left the year's last day studied blank, under its streak's bracket)
+  // (and the gold bracket the year's best streak's, as its bests say, not the one still going on its last day)
+  const best = R.bestStreak && R.bestStreak[0] >= 2 ? R.bestStreak.slice(1) : null;
+  const year = Object.assign({}, R.calendar, { noToday: true, due: [0], goldRun: best });
+  const blank = Object.assign({}, year, { days: R.calendar.days.map(() => 0) });
   S.calFull = q('[data-cal="full"]'); S.calEmpty = q('[data-cal="empty"]');
-  AF.mount(S.calFull, calData(Object.assign({}, R.calendar, { noToday: true })));
+  AF.mount(S.calFull, calData(year));
   AF.mount(S.calEmpty, calData(blank));
 
   fill(S);
@@ -215,7 +231,10 @@ function open(root, data, debug) {
   q('.af-recap-scrim').addEventListener('click', () => { if (settled()) close(S); });
   q('.af-recap-body').addEventListener('click', e => {
     if (e.target.closest('button') || !settled()) return;
-    go(S, S.at + (e.target.closest('.af-recap-back') ? -1 : 1));
+    // (its left third back, by where the click is: the finished decks' line and the chips, which take
+    // the pointer for their tooltips, lie over the back strip)
+    const r = e.currentTarget.getBoundingClientRect(), x = (e.clientX - r.left) / (r.width || 1);
+    go(S, S.at + (S.at > 0 && (S.rtl ? x > 0.7 : x < 0.3) ? -1 : 1));  // (the first card: on, anywhere)
   });
   dlg.focus();
   go(S, 0);
@@ -259,6 +278,10 @@ function scrim(S) {
   // (an old Anki has no --canvas: the dialog in the page's own colour, not a light grey round a dark picture)
   const page = cssVar('--canvas') ? null : AF.u.pageBg([document.body, document.documentElement]) || AF.u.appBg();
   S.dlg.style.background = page ? `rgb(${page.join(', ')})` : '';
+  // (nor --fg: the words in the page's own colour, not the stylesheet's near black, on its dark grey)
+  const fg = cssVar('--fg') ? '' : window.getComputedStyle(document.body).color;
+  S.dlg.style.setProperty('--fg', fg);
+  S.dlg.style.setProperty('--fg-subtle', fg && !cssVar('--fg-subtle') ? fg.replace(/rgba?\(([^,]+),([^,]+),([^,)]+).*/, 'rgba($1,$2,$3, 0.62)') : '');
 }
 
 /* each card's words, once */
@@ -290,23 +313,49 @@ function fill(S) {
   card('label', `<p class="af-recap-kick">${esc(AF.t('recap.your_rhythm'))}</p><p class="af-recap-title">${esc(AF.tx(title))}</p>`
     + `<p class="af-recap-line">${esc(L.key === 'season' && L.days ? AF.tn('recap.label_season_line_days', L.days, v) : AF.tx(lineOne && L.days === 1 ? lineOne : line, v))}</p>`);
   card('summary', '<canvas class="af-recap-share" width="1080" height="1350"></canvas><div class="af-recap-side">'
-    + `<p class="af-recap-kick2">${esc(AF.t('recap.that_was_your_year', { year: R.year }))}</p><p class="af-recap-say">${esc(AF.t('recap.share_say'))}</p>`
+    // (in December, the year so far: "That was your 2026" with two weeks of it left was not so)
+    + `<p class="af-recap-kick2">${esc((R.early ? AF.t('recap.your_year_so_far', { year: R.year }) : AF.t('recap.that_was_your_year', { year: R.year })))}</p><p class="af-recap-say">${esc(AF.t('recap.share_say'))}</p>`
     + `<div class="af-recap-acts"><button type="button" class="af-recap-save">${esc(AF.t('recap.save_image'))}</button>`
     + `<button type="button" class="af-recap-again">${esc(AF.t('recap.watch_again'))}</button></div></div>`);
   const save = S.box.querySelector('.af-recap-save');
-  if (save) save.addEventListener('click', e => { e.stopPropagation(); send(`${S.data.channel}:recap:save:${R.year}:${picture(S).toDataURL('image/png')}`); });
+  // (as wide as the wider of its two wordings: "Picture saved" pushed Watch again 15px along)
+  if (save) S.fitSave = () => {
+    if (!save.offsetWidth) return;
+    const was = save.textContent; save.style.minWidth = '';
+    const a = save.offsetWidth; save.textContent = AF.t('recap.saved');
+    const b = save.offsetWidth; save.textContent = was;
+    save.style.minWidth = Math.max(a, b) + 'px';
+  };
+  // (drawn again on the summary's own canvas, in the dialog: a canvas out of the page writes left to right,
+  // and Hebrew's "1,032 חזרות" came out "חזרות 1,032" in the file while the preview had it right)
+  // (a double click on it opened Anki's save dialog twice, one after the other)
+  if (save) save.addEventListener('click', e => { e.stopPropagation(); if (performance.now() - (S.savedAt || -1e9) < SAVE_AGAIN_MS) return; S.savedAt = performance.now(); send(`${S.data.channel}:recap:save:${R.year}:${picture(S, S.box.querySelector('.af-recap-share')).toDataURL('image/png')}`); });
   const again = S.box.querySelector('.af-recap-again');
   if (again) again.addEventListener('click', e => { e.stopPropagation(); go(S, 0); });
 }
 
 /* the decks learned to their last card that year, under the bests (recap.finished): their own names,
- * three at most, the rest counted; nothing when there were none. Never on the picture: no deck names there */
+ * three at most, the rest counted ("and 4 more": the chips' "+4 more" read as a fourth deck's name in
+ * a sentence); nothing when there were none. Never on the picture: no deck names there */
 function finishedLine(R) {
-  const F = R.finished || [];
+  // (a name two of them share, as Japanese::Vocab and German::Vocab do, with its parent's: "Vocab, Vocab")
+  const F = (R.finished || []).map((f, i, all) => (all.some((g, j) => j !== i && g.name === f.name)
+    ? Object.assign({}, f, { name: (f.full || f.name).split('::').slice(-2).join('::') }) : f));
   if (!F.length) return '';
-  const names = F.slice(0, 3).map(f => f.name).concat(F.length > 3 ? [AF.tn('recap.n_more', F.length - 3)] : []);
+  // (each name, and the count of the rest, isolated in its own direction, and the list in the page's: the
+  // words set it apart as one piece (AF.t's isolates) whose direction its first name decides, so in Hebrew
+  // a list opening on "German A1" ran left to right, its order turned round, "and one more" first)
+  const own = s => '\u2068' + s + '\u2069';
+  // (four: the fourth's own name, in the room "and 1 more" took)
+  const shown = F.length === 4 ? 4 : 3;
+  // (past that, the biggest by name, in the year's order, the rest counted: the year's first few were
+  // often its smallest, a 2,000-card deck left among "and 5 more")
+  const big = F.length > shown ? F.slice().sort((a, b) => (b.cards || 0) - (a.cards || 0)).slice(0, shown) : F;
+  // (the rest's count after a space, not the list's comma: "A, B, C and 4 more", German's "C und 4 weitere")
+  const rest = F.length > shown ? ' ' + own(AF.tn('recap.and_n_more', F.length - shown)) : '';
+  const names = F.filter(f => big.indexOf(f) >= 0).map(f => own(f.name)).join(AF.t('recap.list_sep')) + rest;
   const text = F.length === 1 ? AF.t('recap.finished_one', { deck: F[0].name })
-    : AF.tn('recap.finished_many', F.length, { decks: names.join(AF.t('recap.list_sep')) });
+    : AF.tn('recap.finished_many', F.length, { decks: (AF.i18n.rtl() ? '\u2067' : '\u2066') + names + '\u2069' });
   return `<p class="af-recap-fin" dir="auto" title="${esc(F.map(f => f.full).join('\n'))}">${esc(text)}</p>`;
 }
 
@@ -349,6 +398,7 @@ function go(S, i) {
   if (before >= 0 && i > before && (!S.arrived || S.fdata.visitors.length < S.before.length + S.arriving.length)) arrive(S, 'all');
   S.box.querySelectorAll('.af-recap-card').forEach(c => c.classList.toggle('af-recap-on', c.dataset.card === k));
   S.box.querySelector('.af-recap-forest').classList.toggle('af-recap-on', !!FOREST_ON[k]);
+  S.box.classList.toggle('af-recap-at-end', i === S.order.length - 1);  // (nothing past the summary: no hand over it)
   // (none on the summary, nor just before it, where the next card is the summary: a short year's title)
   S.box.querySelector('.af-recap-skip').hidden = i >= S.order.length - 2;
   bars(S, 0);
@@ -414,23 +464,26 @@ const PLAY = {
     // (held at the finished line's width and started from its first letter, so it doesn't slide as it grows)
     sub.innerHTML = `<span class="af-recap-subline">${esc(say(R.reviews))}</span>`;
     const subW = Math.ceil(sub.firstChild.getBoundingClientRect().width / ((sub.getBoundingClientRect().width / sub.offsetWidth) || 1));
-    const line = reviews => { sub.innerHTML = `<span class="af-recap-subline" style="min-width: ${subW}px">${esc(say(reviews))}</span>`; };
+    // (unseen till the first day fills in: "0 reviews in 0 minutes" stood there through the card's first half second)
+    const line = reviews => { sub.innerHTML = `<span class="af-recap-subline" style="min-width: ${subW}px">${esc(say(reviews))}</span>`; sub.style.opacity = reviews ? '' : '0'; };
     const show = (n, reviews) => { big.innerHTML = withBig(AF.tn('recap.n_days_studied', n), n, wide); line(reviews); };
-    const h = heatFor(S, HEAT_W, 0, TILE_DLG);
+    const h = heatFor(S, HEAT_W);
     if (!h) { show(R.studied, R.reviews); bars(S, 1); return; }
     const cv = S.box.querySelector('.af-recap-heat');
     const from = msOf(R.first || R.calendar.start);
     const cells = h.cells.filter(c => c.o <= 0 && c.ms >= from).sort((a, b) => a.o - b.o);
     let shown = 0, studied = 0, reviews = 0;
     heatTo(cv, h, S, cells.slice(0, 0));
+    sub.style.transition = 'none';  // (hidden at once, not faded out as the card comes in)
     show(0, 0);
+    void sub.offsetWidth; sub.style.transition = '';
     // (its pace: a day studied a step, a day away a third of one, so the count never stalls over
     // the weeks away, March's empty months took a second and a half of nothing)
     const acc = [];
     cells.reduce((a, c, i) => (acc[i] = a + (c.n ? 1 : AWAY_STEP)), 0);
     const total = acc.length ? acc[acc.length - 1] : 0;
     // (the heatmap asked for again each frame: Anki's theme switched halfway, it goes on in the new colours)
-    const now = () => heatFor(S, HEAT_W, 0, TILE_DLG) || h;
+    const now = () => heatFor(S, HEAT_W) || h;
     later(S, 350, () => play(S, Math.max(1400, Math.min(4400, total * 13)), q => {
       let upto = shown;
       while (upto < cells.length && acc[upto] <= q * total + 1e-9) upto++;
@@ -439,7 +492,8 @@ const PLAY = {
       show(studied, reviews);
     }, () => {
       show(R.studied, R.reviews);
-      // (the streak's bracket and trophies come in over the filled year, not all at once)
+      // (the streaks' brackets and their lengths come in over the filled year, not all at once; the
+      // trophies are the heatmap's hover layer's, never on these copies)
       const run = S.run, t0 = performance.now();
       const land = () => {
         if (run !== S.run) return;
@@ -497,6 +551,7 @@ const PLAY = {
   summary(S) {
     const cv = S.box.querySelector('.af-recap-share'), g = cv.getContext('2d'), run = S.run;
     picture(S, cv);
+    if (S.fitSave) S.fitSave();
     // (the forest on it keeps moving: its part of the picture drawn again each frame while in view, not
     // the whole picture a few times a second, which stepped)
     const tick = () => { if (run !== S.run) return; forestOnto(g, S); requestAnimationFrame(tick); };
@@ -508,27 +563,27 @@ const PLAY = {
 /* what a theme switch draws again: the card in view's pictures */
 function redrawStill(S) {
   const k = S.order[S.at];
-  if (k === 'days') { const h = heatFor(S, HEAT_W, 0, TILE_DLG), cv = S.box.querySelector('.af-recap-heat'); if (h && cv) heatTo(cv, h, S, null); }
+  if (k === 'days') { const h = heatFor(S, HEAT_W), cv = S.box.querySelector('.af-recap-heat'); if (h && cv) heatTo(cv, h, S, null); }
   if (k === 'summary') picture(S, S.box.querySelector('.af-recap-share'));
 }
 
 /* ---------- the year's heatmap, drawn again at a size ---------- */
 const drawnOf = r => { const b = r && r.querySelector('.af-cal'); return b && b.afDrawn; };
 
-/* the heatmap as its own code draws it, `width` css px across (at the screen's resolution, or `px`
- * pixels a css px; its tiles at most `most` px): the days from the first month studied when the year began after January, bigger,
- * its tiles at most TILE_MOST px. Its days (`cells`), where each is on it, and the same with no days */
-function heatFor(S, width, px, most, tall) {
-  const key = width + ':' + (px || 0) + ':' + (most || TILE_MOST) + ':' + (tall || 0);
+/* the heatmap as its own code draws it, the whole year `width` css px across (at the screen's resolution,
+ * or `px` pixels a css px). Its days (`cells`), where each is on it, and the same with no days */
+function heatFor(S, width, px) {
+  const key = width + ':' + (px || 0);
   if (S.heat[key]) return S.heat[key];
   const full = drawnOf(S.calFull), empty = drawnOf(S.calEmpty);
   if (!full || !empty) return null;
-  const C = AF.cal.STATE.CELL, R = S.R, from = R.cropFrom ? msOf(R.cropFrom) : null;
-  const inView = full.cells.filter(c => from === null || c.ms >= from);
-  const x0 = from === null ? 0 : Math.min.apply(null, inView.map(c => c.x)) - 1;
-  const x1 = from === null ? full.W : Math.max.apply(null, inView.map(c => c.x)) + C;
+  // (the whole year, January to December, however late it began: the card says the year, and an empty
+  // spring is the year's too)
+  const C = AF.cal.STATE.CELL, x0 = 0, x1 = full.W;
+  // (in December, the days still to come left off: drawn as empty days, they read as days missed)
+  const ahead = full.cells.filter(c => c.o > 0);
   const dp = px || window.devicePixelRatio || 1;
-  let k = Math.min(width / (x1 - x0), (most || TILE_MOST) / C, (tall || Infinity) / full.Hh) * dp;
+  let k = width / (x1 - x0) * dp;
   const shot = d => {
     let cv;
     if (d.sharpen) {
@@ -543,20 +598,17 @@ function heatFor(S, width, px, most, tall) {
       // scale down, alone, left the year at 0.6 of its width on the picture)
       const n = Math.floor(k);
       if (n >= 1 && n >= WHOLE_NEAR * k) k = n;
-      const at = Math.max(n >= 1 && n === k ? n : Math.ceil(k), 1);
-      const big = document.createElement('canvas'); big.width = (x1 - x0) * at; big.height = d.Hh * at;
-      const gb = big.getContext('2d'); gb.imageSmoothingEnabled = false;
-      gb.drawImage(d.cv, x0, 0, x1 - x0, d.Hh, 0, 0, big.width, big.height);
-      if (at === k) cv = big;
-      else {
-        cv = document.createElement('canvas'); cv.width = Math.round((x1 - x0) * k); cv.height = Math.round(d.Hh * k);
-        const g = cv.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-        g.drawImage(big, 0, 0, cv.width, cv.height);
-      }
+      // (between whole scales its own pixels, each 1 or 2 of the picture's: made smaller smoothly from
+      // the next scale up, Giraffe's patches and Contours' bands came out soft on a sharp picture)
+      cv = document.createElement('canvas'); cv.width = Math.round((x1 - x0) * k); cv.height = Math.round(d.Hh * k);
+      const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+      g.drawImage(d.cv, x0, 0, x1 - x0, d.Hh, 0, 0, cv.width, cv.height);
     }
+    const g = cv.getContext('2d'), at = v => Math.round(v * k);
+    ahead.forEach(c => { const x = at(c.x - 0.5 - x0), y = at(c.y - 0.5); g.clearRect(x, y, at(c.x - 0.5 - x0 + C) - x, at(c.y - 0.5 + C) - y); });
     return cv;
   };
-  const h = { full: shot(full), empty: shot(empty), brackets: full.brackets || [], by: full.band + AF.cal.ROWS * C + 3, cells: full.cells.filter(c => from === null || c.ms >= from), x0, k, C, dp, band: TOP_BAND * dp };
+  const h = { full: shot(full), empty: shot(empty), brackets: full.brackets || [], by: full.band + AF.cal.ROWS * C + 3, cells: full.cells.filter(c => !(c.o > 0)), x0, k, C, dp, band: TOP_BAND * dp };
   S.heat[key] = h;
   return h;
 }
@@ -565,13 +617,14 @@ const TOP_BAND = 22;  // (the months' names over the weeks, css px)
 /* onto `cv`: the months over the weeks, and the days `upto` (a list) filled in over the empty year, or
  * all of it with its streak's bracket and trophies (null) */
 function heatTo(cv, h, S, upto, alpha) {
-  // (room under the year for the streaks' counts: drawn small, its brackets' lane is shorter than their words)
-  const foot = Math.max(0, Math.ceil(h.band + h.by * h.k + 17 * h.dp - (h.full.height + h.band)));
-  const w = h.full.width, ht = h.full.height + h.band + foot;
+  // (the year ends under the streaks' counts, whatever its tiles' size: the brackets' lane under them is
+  // empty here (its trophies are the heatmap's hover layer's), and with big tiles, a year begun in the
+  // autumn, it left twice the room over the reviews' line)
+  const w = h.full.width, ht = Math.ceil(h.band + h.by * h.k + 17 * h.dp);
   if (cv.width !== w || cv.height !== ht) { cv.width = w; cv.height = ht; cv.style.width = w / h.dp + 'px'; cv.style.height = ht / h.dp + 'px'; }
   const g = cv.getContext('2d');
   g.clearRect(0, 0, w, ht);
-  months(g, h, h.band - 6 * h.dp, 11 * h.dp, cssVar('--fg-subtle') || '#888', S.rtl, 0);
+  months(g, h, h.band - 6 * h.dp, 11 * h.dp, cssVar('--fg-subtle') || '#888', S.rtl, 0, window.getComputedStyle(S.box).fontFamily);
   if (upto === null) { g.drawImage(h.full, 0, h.band); notes(g, h, S, 1); return; }
   g.drawImage(h.empty, 0, h.band);
   for (const c of upto) {
@@ -586,15 +639,15 @@ function notes(g, h, S, alpha) {
   const kc = h.k / h.dp, size = 11 * h.dp;
   g.save();
   g.globalAlpha = alpha; g.fillStyle = cssVar('--fg-subtle') || '#888';
-  g.font = `${size}px ${window.getComputedStyle(document.body).fontFamily}`;
+  g.font = `${size}px ${window.getComputedStyle(S.box).fontFamily}`;  // (the dialog's type: Anki's page is Helvetica on a Mac)
   g.textAlign = 'center'; g.textBaseline = 'top';
   h.brackets.filter(b => (b.x1 - b.x0) * kc >= AF.cal.NOTE_ROOM + 2 * (7 * kc + 4))
     .forEach(b => g.fillText(AF.tn('heatmap.n_days', b.len), ((b.x0 + b.x1) / 2 - h.x0) * h.k, h.band + h.by * h.k + 4 * h.dp));
   g.restore();
 }
 /* each month's short name over its first week, as the heatmap writes them */
-function months(g, h, y, size, colour, rtl, left) {
-  g.fillStyle = colour; g.font = `${size}px ${window.getComputedStyle(document.body).fontFamily}`;
+function months(g, h, y, size, colour, rtl, left, font) {
+  g.fillStyle = colour; g.font = `${size}px ${font || window.getComputedStyle(document.body).fontFamily}`;
   g.textBaseline = 'alphabetic'; g.textAlign = rtl ? 'right' : 'left';
   const first = {};
   h.cells.forEach(c => { const m = new Date(c.ms).getUTCMonth(); if (!(m in first) || c.o < first[m].o) first[m] = c; });
@@ -609,9 +662,10 @@ function picture(S, onto) {
   const R = S.R, cv = onto || document.createElement('canvas');
   cv.width = W; cv.height = H;
   const g = cv.getContext('2d'), rtl = S.rtl, font = window.getComputedStyle(document.body).fontFamily;
+  g.direction = rtl ? 'rtl' : 'ltr';
   // (Anki's colours. An old Anki has none of these variables, and in day mode no page colour at all:
   // the picture came out see-through, its words black on whatever shows it, its labels as dark as its numbers)
-  const page = AF.u.pageBg([document.body, document.documentElement]) || AF.u.appBg(), bg = `rgb(${page.join(', ')})`;
+  const page = AF.u.pageBg([document.body, document.documentElement]) || AF.u.appBg(), bg = S.pictureBg = `rgb(${page.join(', ')})`;
   const fg = cssVar('--fg') || window.getComputedStyle(document.body).color;
   const sub = cssVar('--fg-subtle') || fg.replace(/rgba?\(([^,]+),([^,]+),([^,)]+).*/, 'rgba($1,$2,$3, 0.55)');
   // (right to left, the picture mirrors: what stands at the left stands at the right)
@@ -647,13 +701,15 @@ function picture(S, onto) {
   }
   // the numbers, the heatmap and the bests spread down to the name in the corner: the room left
   // over shared out between their gaps, so none stands out (an empty band over the name did)
-  const h = heatFor(S, CW, 1, SHARE_TILE_MOST);
+  const h = heatFor(S, CW, 1);
   const used = 96 + 130 + (h ? h.full.height : 0) + 64 + 80, extra = Math.max(-12, (H - BOTTOM - 64 - (fy + fh) - used) / 4);
   // the year's numbers
   const y = fy + fh + 96 + extra, hours = R.seconds >= 90 * 60;
+  // (as the days card counts them, timeIn: none recorded is 0, not "1 minute")
+  const mins = R.seconds > 0 ? Math.max(1, Math.round(R.seconds / 60)) : 0;
   const stats = [[R.studied, AF.tn('recap.unit_days_studied', R.studied)], [R.reviews, AF.tn('recap.unit_reviews', R.reviews)],
     [R.newCards, AF.tn('recap.unit_new_cards', R.newCards)],
-    hours ? [Math.round(R.seconds / 3600), AF.tn('recap.unit_hours', Math.round(R.seconds / 3600))] : [Math.max(1, Math.round(R.seconds / 60)), AF.tn('recap.unit_minutes', Math.max(1, Math.round(R.seconds / 60)))]];
+    hours ? [Math.round(R.seconds / 3600), AF.tn('recap.unit_hours', Math.round(R.seconds / 3600))] : [mins, AF.tn('recap.unit_minutes', mins)]];
   const sx = spread(stats.map(st => Math.max(wide(num(st[0]), 54, 600), wide(st[1], 26))));
   stats.forEach((st, i) => {
     const x = sx[i];
@@ -672,8 +728,10 @@ function picture(S, onto) {
   const ry = hy + 64 + extra, recs = [];
   if (R.bestDay) recs.push([AF.t('recap.best_day'), AF.tn('heatmap.n_reviews', R.bestDay[1]), shortDate(R.bestDay[0])]);
   if (!R.short && R.bestStreak && R.bestStreak[0] >= 2) recs.push([AF.t('recap.best_streak'), AF.tn('recap.n_days', R.bestStreak[0]), AF.t('recap.from_to', { first: shortDate(R.bestStreak[1]), last: shortDate(R.bestStreak[2]) })]);
-  if (!R.short && R.bestMonth) recs.push([AF.t('recap.best_month'), monthLong(R.bestMonth[0]), AF.tn('heatmap.n_reviews', R.bestMonth[1])]);
-  if (R.short && R.first) recs.push([AF.t('recap.first_day'), shortDate(R.first), AF.tn('caption.n_trees', R.trees)]);
+  // (a year studied in one month alone: "Best month: November, 36 reviews" said the year's own total again)
+  const oneMonth = R.bestMonth && R.bestMonth[1] === R.reviews;
+  if (!R.short && R.bestMonth && !oneMonth) recs.push([AF.t('recap.best_month'), monthLong(R.bestMonth[0]), AF.tn('heatmap.n_reviews', R.bestMonth[1])]);
+  if ((R.short || oneMonth) && R.first) recs.push([AF.t('recap.first_day'), shortDate(R.first), AF.tn('caption.n_trees', R.trees)]);
   // (three spread like the numbers over them, a size smaller where they'd crowd: German's "1.032 Wiederholungen";
   // a short year's two in the first two thirds)
   const rw = (r, k) => Math.max(wide(r[0], 24 * k), wide(r[1], 34 * k, 600), wide(r[2], 24 * k));
@@ -695,6 +753,8 @@ function picture(S, onto) {
 function forestOnto(g, S) {
   const fc = S.forestRoot.querySelector('canvas.af-canvas'), a = S.forestAt;
   if (!fc || !a) return;
+  // (the page's colour first: drawn again each frame over itself, the corners' soft edge went hard)
+  g.fillStyle = S.pictureBg; g.fillRect(a.x, a.y, a.w, a.h);
   g.save(); round(g, a.x, a.y, a.w, a.h, 14); g.clip();
   g.imageSmoothingEnabled = false; g.drawImage(fc, a.x, a.y, a.w, a.h); g.restore();
 }
@@ -725,8 +785,8 @@ const CSS = `
 /* (a row: the bars end where Skip begins, however long its words: German's ran under them) */
 .af-recap-top { position: relative; height: 44px; display: flex; align-items: flex-start; padding: 0 12px 0 20px; }
 .af-rtl .af-recap-top { padding: 0 20px 0 12px; }
-.af-recap-bars { flex: 1; display: flex; margin: 21px 26px 0 0; }
-.af-rtl .af-recap-bars { margin: 21px 0 0 26px; }
+.af-recap-bars { flex: 1; display: flex; margin: 23px 26px 0 0; }  /* (on Skip's and the x's middle: 2px over it at 21px) */
+.af-rtl .af-recap-bars { margin: 23px 0 0 26px; }
 .af-recap-bars i { flex: 1; height: 3px; border-radius: 1.5px; background: rgba(128, 128, 128, 0.25); margin: 0 2px; overflow: hidden; position: relative; }
 .af-recap-bars b { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--fg, #020202); opacity: 0.6; }
 .af-rtl .af-recap-bars b { left: auto; right: 0; }
@@ -740,11 +800,15 @@ const CSS = `
 .af-recap-save:focus-visible { outline-color: var(--fg, #020202); }  /* (its own colour on the button filled with the text's; Chromium 77 skips it, keeping the plain one) */
 .af-recap-body { position: relative; height: ${DLG_H - 44}px; cursor: pointer; }
 .af-recap-back { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; z-index: 1; }
+.af-recap-at-end .af-recap-body { cursor: default; } .af-recap-at-end .af-recap-back { cursor: pointer; }
 .af-rtl .af-recap-back { left: auto; right: 0; }
 .af-recap-card { position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0; visibility: hidden; text-align: center; z-index: 2; pointer-events: none;
   transform: translateY(6px); transition: opacity 0.15s, transform 0s 0.15s, visibility 0.15s; }
 .af-recap-card.af-recap-on { opacity: 1; visibility: visible; transform: none; transition: opacity 0.3s 0.12s, transform 0.3s 0.12s, visibility 0s; }
 .af-recap-card button { pointer-events: auto; }
+/* (the finished decks' full names and each animal's how-it-came, in their tooltips: under the card's
+   pointer-events: none, they never came up) */
+.af-recap-fin, .af-recap-chip[title] { pointer-events: auto; }
 .af-recap-card p { margin: 0; }
 .af-recap-kick { font-size: 15px; color: var(--fg-subtle, #707070); }
 .af-recap-num { font-size: 44px; font-weight: 600; color: var(--fg, #020202); display: inline-block; text-align: end; }
@@ -782,7 +846,7 @@ const CSS = `
 .af-recap-animals .af-recap-num { font-size: 36px; }
 .af-recap-animals .af-recap-big { opacity: 0; transition: opacity 0.35s; }
 .af-recap-animals .af-recap-big.af-recap-on { opacity: 1; }
-.af-recap-chips { position: absolute; left: 12px; right: 12px; top: 438px; display: flex; flex-wrap: wrap; justify-content: center; }
+.af-recap-chips { position: absolute; left: ${(DLG_W - FOREST_W) / 2 - 30}px; right: ${(DLG_W - FOREST_W) / 2 - 30}px; top: 438px; display: flex; flex-wrap: wrap; justify-content: center; }
 .af-recap-chip { display: inline-flex; align-items: center; height: 28px; padding: 0 9px 0 7px; margin: 0 3px 5px; border-radius: 999px; background: rgba(128, 128, 128, 0.12);
   font-size: 12px; opacity: 0; transform: translateY(6px); transition: opacity 0.35s, transform 0.35s; white-space: nowrap; }
 .af-recap-chip.af-recap-on { opacity: 1; transform: none; }
@@ -796,14 +860,17 @@ const CSS = `
 .af-recap-line { position: absolute; left: 0; right: 0; top: 446px; font-size: 18px; }
 .af-recap-share { position: absolute; left: 44px; top: 20px; width: 400px; height: 500px; border-radius: 10px; box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.35), 0 10px 30px rgba(0, 0, 0, 0.22); }
 .af-rtl .af-recap-share { left: auto; right: 44px; }
-.af-recap-side { position: absolute; left: 488px; top: 150px; width: 290px; text-align: start; }
+.af-recap-side { position: absolute; left: 488px; top: 194px; width: 290px; text-align: start; }  /* (its middle on the picture's) */
 .af-rtl .af-recap-side { left: auto; right: 488px; }
 .af-recap-kick2 { font-size: 22px; }
 .af-recap-say { font-size: 14px; color: var(--fg-subtle, #707070); margin-top: 8px !important; }
-.af-recap-acts { display: flex; align-items: center; margin-top: 22px; }
-.af-recap-acts button { margin: 0 !important; }
-.af-recap-acts .af-recap-again { margin: 0 0 0 18px !important; }
-.af-rtl .af-recap-acts .af-recap-again { margin: 0 18px 0 0 !important; }
+/* (each on one line, Watch again under Save image where the two don't fit: German's "Bild gespeichert" and
+   "Noch einmal ansehen" took two lines each; the space after Save image, so a Watch again below starts flush) */
+.af-recap-acts { display: flex; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.af-recap-acts button { margin: 10px 18px 0 0 !important; white-space: nowrap; }
+.af-rtl .af-recap-acts button { margin: 10px 0 0 18px !important; }
+.af-recap-acts .af-recap-again { margin: 10px 0 0 0 !important; }
+.af-rtl .af-recap-acts .af-recap-again { margin: 10px 0 0 0 !important; }
 .af-recap-save { font-family: inherit; font-size: 15px; line-height: 1; color: var(--canvas, #fff) !important; background: var(--fg, #020202) !important; border: 0 !important; border-radius: 999px; padding: 11px 20px; cursor: pointer; }
 .af-recap-save:hover { opacity: 0.9; }
 .af-recap-file { font-size: 12.5px; color: var(--fg-subtle, #707070); margin-top: 8px !important; word-break: break-all; }

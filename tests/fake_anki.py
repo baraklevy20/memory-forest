@@ -260,7 +260,7 @@ def _install() -> None:
     module("aqt.colors")
     module("aqt.props")
     module("aqt.theme", theme_manager=types.SimpleNamespace(var=lambda v: "", themed_icon=lambda p: p))
-    module("aqt.utils", tooltip=lambda text, period=None: tooltips.append(text))
+    module("aqt.utils", tooltip=lambda text, period=None: tooltips.append(text), askUser=lambda text, *a, **kw: True)
     qt = module("aqt.qt")
     qt.__getattr__ = lambda name: QtStub(name, (), {})
 

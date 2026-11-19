@@ -2321,6 +2321,12 @@
    "presets"
   ]
  },
+ "recap.and_n_more": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
  "recap.best_day": {
   "web": true,
   "where": [
@@ -2561,6 +2567,12 @@
    "web/recap.js"
   ]
  },
+ "recap.replace_file": {
+  "web": false,
+  "where": [
+   "recap_actions.py"
+  ]
+ },
  "recap.save_image": {
   "web": true,
   "where": [
@@ -2647,6 +2659,12 @@
   ]
  },
  "recap.your_year_in_the_forest": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.your_year_so_far": {
   "web": true,
   "where": [
    "web/recap.js"

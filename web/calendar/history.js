@@ -134,6 +134,8 @@ function history(cal) {
     gone: new Map((cal.gone || []).map(([ago, count, of]) => [-ago, [count, of || count]])),
     dueShade, dueToday: cal.due[0] || 0,
     noToday: !!cal.noToday,  // (the year's recap: no today's frame)
+    // (the year's recap: its best streak's [first, last] day gets the gold bracket, in place of the current one's)
+    gold: cal.goldRun ? runs.find(r => r.to === (utc(cal.goldRun[1]) - today) / DAY_MS) || null : undefined,
     look: cal.look || null,  // the Heatmap tab's colours and tiles (paletteOf)
     ahead: cal.due.length - 1,  // the last day ahead counted
     // (and the last with cards due: Streak view pages on that far, no further into rows of nothing)

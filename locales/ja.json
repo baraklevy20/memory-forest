@@ -1995,6 +1995,15 @@
   "text": "地平線まで続くネオンのグリッドと、その上に立つ縞模様の太陽。",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.and_n_more": {
+  "text": {
+   "other": "ほか {n} 個"
+  },
+  "en": {
+   "one": "and {n} more",
+   "other": "and {n} more"
+  }
+ },
  "recap.best_day": {
   "text": "いちばんの日",
   "en": "Best day"
@@ -2205,6 +2214,10 @@
   "text": "開く",
   "en": "Open"
  },
+ "recap.replace_file": {
+  "text": "{name} はすでにあります。置き換えますか？",
+  "en": "{name} is already there. Replace it?"
+ },
  "recap.save_image": {
   "text": "画像を保存",
   "en": "Save image"
@@ -2215,7 +2228,7 @@
  },
  "recap.saved": {
   "text": "画像を保存しました",
-  "en": "Picture saved"
+  "en": "Image saved"
  },
  "recap.share_say": {
   "text": "森、ヒートマップ、ベスト記録を1枚の画像に。保存やシェアに。",
@@ -2231,7 +2244,7 @@
  },
  "recap.unit_days_studied": {
   "text": {
-   "other": "日 学習"
+   "other": "学習日数"
   },
   "en": {
    "one": "day studied",
@@ -2258,7 +2271,7 @@
  },
  "recap.unit_new_cards": {
   "text": {
-   "other": "枚 新規カード"
+   "other": "新規カード"
   },
   "en": {
    "one": "new card",
@@ -2267,7 +2280,7 @@
  },
  "recap.unit_reviews": {
   "text": {
-   "other": "回 復習"
+   "other": "復習回数"
   },
   "en": {
    "one": "review",
@@ -2289,6 +2302,10 @@
  "recap.your_year_in_the_forest": {
   "text": "森で過ごした 1 年",
   "en": "Your year in the forest"
+ },
+ "recap.your_year_so_far": {
+  "text": "ここまでの {year} 年",
+  "en": "Your {year} so far"
  },
  "scene.after_the_rain": {
   "text": "雨上がり",

@@ -2087,6 +2087,16 @@
   "text": "La cuadrícula de neón que se extiende hasta el horizonte, y el sol a franjas que se alza sobre ella.",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.and_n_more": {
+  "text": {
+   "one": "y {n} más",
+   "other": "y {n} más"
+  },
+  "en": {
+   "one": "and {n} more",
+   "other": "and {n} more"
+  }
+ },
  "recap.best_day": {
   "text": "Mejor día",
   "en": "Best day"
@@ -2307,6 +2317,10 @@
   "text": "Abrir",
   "en": "Open"
  },
+ "recap.replace_file": {
+  "text": "{name} ya existe. ¿Reemplazarlo?",
+  "en": "{name} is already there. Replace it?"
+ },
  "recap.save_image": {
   "text": "Guardar imagen",
   "en": "Save image"
@@ -2317,7 +2331,7 @@
  },
  "recap.saved": {
   "text": "Imagen guardada",
-  "en": "Picture saved"
+  "en": "Image saved"
  },
  "recap.share_say": {
   "text": "Tu bosque, tu mapa de calor y tus récords en una imagen para guardar o compartir.",
@@ -2396,6 +2410,10 @@
  "recap.your_year_in_the_forest": {
   "text": "Tu año en el bosque",
   "en": "Your year in the forest"
+ },
+ "recap.your_year_so_far": {
+  "text": "Tu {year} hasta ahora",
+  "en": "Your {year} so far"
  },
  "scene.after_the_rain": {
   "text": "Después de la lluvia",

@@ -1995,6 +1995,15 @@
   "text": "霓虹网格一直延伸到地平线，条纹太阳立在上面。",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.and_n_more": {
+  "text": {
+   "other": "等另外 {n} 个"
+  },
+  "en": {
+   "one": "and {n} more",
+   "other": "and {n} more"
+  }
+ },
  "recap.best_day": {
   "text": "最佳一天",
   "en": "Best day"
@@ -2205,6 +2214,10 @@
   "text": "打开",
   "en": "Open"
  },
+ "recap.replace_file": {
+  "text": "{name} 已存在。要替换吗？",
+  "en": "{name} is already there. Replace it?"
+ },
  "recap.save_image": {
   "text": "保存图片",
   "en": "Save image"
@@ -2215,7 +2228,7 @@
  },
  "recap.saved": {
   "text": "图片已保存",
-  "en": "Picture saved"
+  "en": "Image saved"
  },
  "recap.share_say": {
   "text": "您的森林、热力图和最佳记录，合成一张图片，可保存或分享。",
@@ -2231,7 +2244,7 @@
  },
  "recap.unit_days_studied": {
   "text": {
-   "other": "天学习"
+   "other": "学习天数"
   },
   "en": {
    "one": "day studied",
@@ -2258,7 +2271,7 @@
  },
  "recap.unit_new_cards": {
   "text": {
-   "other": "张新卡片"
+   "other": "新卡片"
   },
   "en": {
    "one": "new card",
@@ -2267,7 +2280,7 @@
  },
  "recap.unit_reviews": {
   "text": {
-   "other": "次复习"
+   "other": "复习次数"
   },
   "en": {
    "one": "review",
@@ -2289,6 +2302,10 @@
  "recap.your_year_in_the_forest": {
   "text": "您在森林里的一年",
   "en": "Your year in the forest"
+ },
+ "recap.your_year_so_far": {
+  "text": "您的 {year} 年至今",
+  "en": "Your {year} so far"
  },
  "scene.after_the_rain": {
   "text": "雨后",

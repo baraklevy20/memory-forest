@@ -147,10 +147,11 @@ def mark_seen(ids) -> None:
         _save(record)
 
 
-def note(cfg: dict, day: _dt.date) -> dict | None:
+def note(cfg: dict, day: _dt.date, held: bool = False) -> dict | None:
     """The note for the forest on the deck list: the newest one not yet seen, or None. Only
     one at a time; one nobody answers goes after NOTE_DAYS, and an older one waiting behind a
-    newer one is only ever listed in the About tab."""
+    newer one is only ever listed in the About tab. `held`: the forest's corner is the year's
+    recap card's (recap.py), the note waits behind it: sent, but its days not counted until it shows."""
     notes = [e for e in offered(cfg) if e["kind"] == NOTE]
     record = _load()
     entry = next((e for e in notes if e["id"] != DEBUG_NOTE), None)
@@ -162,7 +163,9 @@ def note(cfg: dict, day: _dt.date) -> dict | None:
         first = _dt.date.fromisoformat(record["shown"].get(entry["id"]) or "")
     except (TypeError, ValueError):
         first = None
-    if first is None or first > day:  # (a debug date moved back starts it over)
+    if held:
+        pass  # (its NOTE_DAYS start the day it can show: behind the year's card three days went by unseen)
+    elif first is None or first > day:  # (a debug date moved back starts it over)
         record["shown"][entry["id"]] = day.isoformat()
         _save(record)
     elif (day - first).days >= NOTE_DAYS:

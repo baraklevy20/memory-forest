@@ -8,7 +8,7 @@ import os
 
 from aqt import mw
 from aqt.qt import QFileDialog, QStandardPaths
-from aqt.utils import tooltip
+from aqt.utils import askUser, tooltip
 
 from . import recap
 from .i18n import t
@@ -18,18 +18,18 @@ PNG_HEAD = "data:image/png;base64,"
 
 
 def handle(message: str) -> None:
-    """`message` as the page sent it: "<channel>:recap:opened:2026", ":dismissed:2026", or
+    """`message` as the page sent it: "<channel>:recap:opened:2026", ":dismissed:2026" (either with
+    ":early" after it in December), or
     ":save:2026:data:image/png;base64,..." (the picture, after the year)."""
     parts = message.split(":", 4)
     if len(parts) < 4 or not parts[3].isdigit():
         return
     what, year = parts[2], int(parts[3])
+    early = len(parts) == 5 and parts[4] == "early"  # (answered in December, on the year so far)
     if what == "opened":
-        recap.answer(year, recap.OPENED)
+        recap.answer(year, recap.OPENED, early)
     elif what == "dismissed":
-        recap.answer(year, recap.DISMISSED)
-    elif what == "debug_opened":
-        recap.asked_done()
+        recap.answer(year, recap.DISMISSED, early)
     elif what == "save" and len(parts) == 5 and parts[4].startswith(PNG_HEAD):
         save(year, base64.b64decode(parts[4][len(PNG_HEAD):]))
 
@@ -49,12 +49,19 @@ def save(year: int, png: bytes) -> str:
         return ""
     if not path.lower().endswith(".png"):
         path += ".png"
+        # (the dialog asked about the name as typed: one already there under the name with .png on it was
+        # put over without a word, in Qt's own dialog, Linux's)
+        if os.path.exists(path) and not askUser(t("recap.replace_file", name=os.path.basename(path))):
+            return ""
     try:
         with open(path, "wb") as f:
             f.write(png)
     except OSError:
         log(f"could not save the year's picture to {path}")
         tooltip(t("recap.could_not_save"))
+        web = getattr(getattr(mw, "deckBrowser", None), "web", None)
+        if web is not None and hasattr(web, "eval"):
+            web.eval("window.AnkiForest && AnkiForest.recapSaved && AnkiForest.recapSaved(null)")
         return ""
     # (the page's button says so, the file's name under it; a tooltip had it in the window's corner)
     web = getattr(getattr(mw, "deckBrowser", None), "web", None)

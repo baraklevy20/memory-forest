@@ -8,7 +8,9 @@ const { esc, send } = AF.u;
 
 AF.news = function (root, data) {
   if (!data.inAnki) return;
-  if (AF.recap) AF.recap(root, data);  // (the year's look back, web/recap.js: its card, or its caption's link)
+  // (the year's look back, web/recap.js: its card, or its caption's link; with the forest off, core.js
+  // asks once the heatmap is drawn, for its link in the heatmap's footer)
+  if (AF.recap && data.showForest !== false) AF.recap(root, data);
   const cog = root.querySelector('.af-cog');
   if (cog && data.newDot) {
     cog.classList.add('af-cog-new');
@@ -17,11 +19,17 @@ AF.news = function (root, data) {
     // opening the settings answers it (news.settings_opened); the forest redraws later
     cog.addEventListener('click', () => cog.classList.remove('af-cog-new'));
   }
+  AF.newsNote(root, data);
+};
+
+/* the note on the forest, if there is one and the corner is free: called again once the year's recap
+ * card that had it is answered (web/recap.js), so the note shows then, not at the next drawing */
+AF.newsNote = function (root, data) {
   const n = data.news, scene = root.querySelector('.af-scene');
   if (!n || !scene) return;  // (the calendar alone: no forest to put a note on)
   // (the year's recap has the corner: the note waits till it's answered)
   const corner = root.afTipLayer || scene;
-  if (corner.querySelector && corner.querySelector('.af-recap-entry')) return;
+  if (corner.querySelector && corner.querySelector('.af-recap-entry, .af-news')) return;
   const card = document.createElement('div');
   card.className = 'af-news';
   // (its title and text in their own direction: a note is English, as the release notes are, and in
@@ -38,5 +46,24 @@ AF.news = function (root, data) {
   // (Layout's Background: on the layer over the page, at the window's corner: in the scene it was cut
   // off by the window's side, gone over its top in a wide window, and under the cards in a narrow one)
   (root.afTipLayer || scene).append(card);
+  AF.cornerClear(root, card);
+};
+
+/* Layout's Background: a card in the window's corner (a note, the year's recap card) steps down under the
+ * deck list where the window is too narrow for it beside the list: at the corner it covered the decks'
+ * names, for the month the year's card is out. Again as the window is resized. */
+AF.cornerClear = function (root, card) {
+  if (root.afCornerFit) { window.removeEventListener('resize', root.afCornerFit); root.afCornerFit = null; }
+  const table = root.afTipLayer && card.parentNode === root.afTipLayer && document.querySelector('center > table');
+  if (!table) return;
+  const fit = () => {
+    if (!card.isConnected) { window.removeEventListener('resize', fit); return; }
+    card.style.top = '';
+    const a = card.getBoundingClientRect(), b = table.getBoundingClientRect();
+    if (a.right > b.left && a.left < b.right && a.top < b.bottom && a.bottom > b.top) card.style.top = Math.round(b.bottom + 10) + 'px';
+  };
+  root.afCornerFit = fit;
+  window.addEventListener('resize', fit);
+  fit();
 };
 })();

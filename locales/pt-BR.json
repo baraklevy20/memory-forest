@@ -2087,6 +2087,16 @@
   "text": "A grade de neon correndo até o horizonte e o sol listrado pousado sobre ela.",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.and_n_more": {
+  "text": {
+   "one": "e mais {n}",
+   "other": "e mais {n}"
+  },
+  "en": {
+   "one": "and {n} more",
+   "other": "and {n} more"
+  }
+ },
  "recap.best_day": {
   "text": "Melhor dia",
   "en": "Best day"
@@ -2307,6 +2317,10 @@
   "text": "Abrir",
   "en": "Open"
  },
+ "recap.replace_file": {
+  "text": "{name} já existe. Substituir?",
+  "en": "{name} is already there. Replace it?"
+ },
  "recap.save_image": {
   "text": "Salvar imagem",
   "en": "Save image"
@@ -2317,7 +2331,7 @@
  },
  "recap.saved": {
   "text": "Imagem salva",
-  "en": "Picture saved"
+  "en": "Image saved"
  },
  "recap.share_say": {
   "text": "Sua floresta, seu mapa de calor e seus recordes em uma imagem, para guardar ou compartilhar.",
@@ -2396,6 +2410,10 @@
  "recap.your_year_in_the_forest": {
   "text": "Seu ano na floresta",
   "en": "Your year in the forest"
+ },
+ "recap.your_year_so_far": {
+  "text": "Seu {year} até agora",
+  "en": "Your {year} so far"
  },
  "scene.after_the_rain": {
   "text": "Depois da chuva",

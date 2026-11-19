@@ -31,9 +31,9 @@ def days(first: D, last: D):
 
 
 class WindowTests(unittest.TestCase):
-    def test_the_year_is_offered_from_mid_december_to_mid_january(self):
-        self.assertIsNone(recap.year_for(D(2026, 12, 14)))
-        self.assertEqual(recap.year_for(D(2026, 12, 15)), 2026)
+    def test_the_year_is_offered_from_december_7_to_january_15(self):
+        self.assertIsNone(recap.year_for(D(2026, 12, 6)))
+        self.assertEqual(recap.year_for(D(2026, 12, 7)), 2026)
         self.assertEqual(recap.year_for(D(2026, 12, 31)), 2026)
         self.assertEqual(recap.year_for(D(2027, 1, 1)), 2026)
         self.assertEqual(recap.year_for(D(2027, 1, 15)), 2026)
@@ -95,10 +95,9 @@ class NumbersTests(unittest.TestCase):
 
     def test_a_short_year_and_a_year_begun_after_january(self):
         self.assertTrue(self.n["short"])
-        self.assertIsNone(self.n["cropFrom"])
         late = recap.numbers(2026, {D(2026, 11, 24) + dt.timedelta(days=i): 30 for i in range(9)}, {}, [], set(), D(2026, 12, 31))
         self.assertFalse(late["short"])
-        self.assertEqual(late["cropFrom"], "2026-11-01")
+        self.assertNotIn("cropFrom", late)  # (the whole year, however late it began: web/recap.js heatFor)
 
     def test_only_the_days_up_to_the_last_one(self):
         n = recap.numbers(2026, {D(2026, 5, 1): 3, D(2026, 5, 9): 8}, {}, [], set(), D(2026, 5, 5))
@@ -182,16 +181,30 @@ class AnsweredTests(unittest.TestCase):
     def setUp(self):
         reset()
 
-    def test_opened_stays_opened_and_the_debug_open_is_done_with(self):
-        recap.ask_open(2026)
-        self.assertEqual(recap.asked_open(), 2026)
+    def test_opened_stays_opened(self):
         recap.answer(2026, recap.OPENED)
         recap.answer(2026, recap.DISMISSED)
         self.assertEqual(recap.answered(2026), recap.OPENED)
-        self.assertIsNone(recap.asked_open())
         self.assertEqual(recap.answered(2025), "")
         recap.forget()
         self.assertEqual(recap.answered(2026), "")
+
+    def test_answered_in_december_its_card_comes_back_once_in_january(self):
+        self.assertEqual(recap.entry(2026, 2026, True), "card")
+        actions.on_js_message((False, None), f"{MODULE}:recap:dismissed:2026:early", actions.DeckBrowser())
+        self.assertEqual(recap.entry(2026, 2026, True), "link")  # (the rest of December: the caption's link)
+        self.assertEqual(recap.entry(2026, 2026, False), "card")  # (January: the whole year, its card again)
+        actions.on_js_message((False, None), f"{MODULE}:recap:opened:2026", actions.DeckBrowser())
+        self.assertEqual(recap.entry(2026, 2026, False), "link")
+        self.assertEqual(recap.entry(2026, None, False), "none")
+
+    def test_opened_in_december_stays_opened_early_till_january(self):
+        recap.answer(2026, recap.OPENED, early=True)
+        recap.answer(2026, recap.DISMISSED, early=True)
+        self.assertEqual(recap.answered(2026), recap.OPENED + recap.EARLY)
+        recap.answer(2026, recap.OPENED)
+        recap.answer(2026, recap.DISMISSED, early=True)
+        self.assertEqual(recap.answered(2026), recap.OPENED)
 
 
 def forest_cards(days_ago):
@@ -211,10 +224,10 @@ class PageTests(unittest.TestCase):
     def test_nothing_outside_its_window(self):
         self.assertIsNone(self.page()["recap"])
 
-    def test_the_debug_open_brings_it_any_day_with_the_heatmaps_numbers(self):
-        recap.ask_open(2026)
-        r = self.page()["recap"]
-        self.assertEqual((r["year"], r["studied"], r["reviews"], r["entry"], r["openNow"]), (2026, 42, 42, "none", True))
+    def test_in_its_window_the_heatmaps_numbers(self):
+        with mock.patch.object(recap, "year_for", return_value=2026):
+            r = self.page()["recap"]
+        self.assertEqual((r["year"], r["studied"], r["reviews"], r["entry"]), (2026, 42, 42, "card"))
         # (the days between with nothing due pass, as on the heatmap: one streak from Mar 2 to today)
         self.assertEqual(r["bestStreak"], [42, "2026-03-02", "2026-09-19"])
         cal = r["calendar"]
@@ -233,8 +246,8 @@ class PageTests(unittest.TestCase):
 
     def test_with_a_start_date_the_years_days_are_the_heatmaps(self):
         reset(forest_cards(list(range(0, 40)) + [200, 201, 400]), {"ignore_before": "2026-09-01"})
-        recap.ask_open(2026)
-        page = self.page()
+        with mock.patch.object(recap, "year_for", return_value=2026):
+            page = self.page()
         r, cal = page["recap"], page["calendar"]
         start = D.fromisoformat(cal["start"])
         shown = sum(1 for i, n in enumerate(cal["days"]) if n and (start + dt.timedelta(days=i)).year == 2026)
@@ -242,19 +255,12 @@ class PageTests(unittest.TestCase):
         self.assertNotEqual(r["label"]["key"], "new")  # (studied since 2025: the forest is new, not you)
 
     def test_a_year_with_no_day_studied_has_none(self):
-        recap.ask_open(2024)
-        self.assertIsNone(self.page()["recap"])
-
-    def test_a_debug_year_with_nothing_studied_never_hides_the_real_one(self):
-        recap.ask_open(2024)
-        with mock.patch.object(recap, "year_for", return_value=2026):
-            r = self.page()["recap"]
-        self.assertEqual((r["year"], r["entry"], r["openNow"]), (2026, "card", False))
-        self.assertIsNone(recap.asked_open())
+        with mock.patch.object(recap, "year_for", return_value=2024):
+            self.assertIsNone(self.page()["recap"])
 
     def test_never_on_a_decks_screen(self):
-        recap.ask_open(2026)
-        self.assertIsNone(self.page(did=10)["recap"])
+        with mock.patch.object(recap, "year_for", return_value=2026):
+            self.assertIsNone(self.page(did=10)["recap"])
 
 
 class SaveTests(unittest.TestCase):
@@ -274,6 +280,19 @@ class SaveTests(unittest.TestCase):
             with open(where + ".png", "rb") as f:
                 self.assertEqual(f.read(), png)
 
+    def test_a_name_typed_without_png_asks_before_replacing_one_with_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            where = os.path.join(tmp, "my year")
+            with open(where + ".png", "wb") as f:
+                f.write(b"old")
+            dialog = mock.Mock(getSaveFileName=mock.Mock(return_value=(where, "PNG (*.png)")))
+            with mock.patch.object(recap_actions, "QFileDialog", dialog), mock.patch.object(recap_actions, "default_path", return_value="x.png"), \
+                    mock.patch.object(recap_actions, "askUser", return_value=False) as ask:
+                self.assertEqual(recap_actions.save(2026, b"new"), "")
+            self.assertTrue(ask.called)
+            with open(where + ".png", "rb") as f:
+                self.assertEqual(f.read(), b"old")
+
     def test_cancelled_saves_nothing(self):
         dialog = mock.Mock(getSaveFileName=mock.Mock(return_value=("", "")))
         with mock.patch.object(recap_actions, "QFileDialog", dialog), mock.patch.object(recap_actions, "default_path", return_value="x.png"):
@@ -284,11 +303,6 @@ class SaveTests(unittest.TestCase):
         self.assertEqual(recap.answered(2026), recap.OPENED)
         actions.on_js_message((False, None), f"{MODULE}:recap:opened:nope", actions.DeckBrowser())  # (ignored)
 
-    def test_the_debug_tabs_open_leaves_the_card_unanswered(self):
-        recap.ask_open(2026)
-        actions.on_js_message((False, None), f"{MODULE}:recap:debug_opened:2026", actions.DeckBrowser())
-        self.assertIsNone(recap.asked_open())
-        self.assertEqual(recap.answered(2026), "")
 
 
 if __name__ == "__main__":
@@ -307,7 +321,7 @@ class FinishedDecksTests(unittest.TestCase):
     def test_a_whole_deck_with_its_subdecks_is_said_once(self):
         rows = [(2, 30, 0, 2), (3, 30, 0, 3), (5, 5, 0, 5), (6, 40, 0, 4), (7, 40, 3, 3)]
         # German (its two subdecks, the later one in August) once; Tiny too small; Old in 2025; Spanish has new cards left
-        self.assertEqual(self.finished(rows), [{"name": "German", "full": "German", "date": "2026-08-03"}])
+        self.assertEqual(self.finished(rows), [{"name": "German", "full": "German", "date": "2026-08-03", "cards": 60}])
 
     def test_a_subdeck_alone_when_its_parent_still_has_new_cards(self):
         rows = [(2, 30, 0, 2), (3, 30, 4, 3)]

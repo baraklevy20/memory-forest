@@ -450,6 +450,10 @@ window.AnkiForest.EN = {
  "phone.yesterday": "yesterday",
  "phone.your_forest_arrives_with_the_next": "Your forest arrives with the next sync from Anki on your computer.",
  "phone.your_forest_is_on_its_way": "Your forest is on its way: sync once more to fetch its drawing.",
+ "recap.and_n_more": {
+  "one": "and {n} more",
+  "other": "and {n} more"
+ },
  "recap.best_day": "Best day",
  "recap.best_month": "Best month",
  "recap.best_streak": "Best streak",
@@ -520,7 +524,7 @@ window.AnkiForest.EN = {
  "recap.not_now": "Not now",
  "recap.open": "Open",
  "recap.save_image": "Save image",
- "recap.saved": "Picture saved",
+ "recap.saved": "Image saved",
  "recap.share_say": "Your forest, your heatmap and your bests in one picture, to keep or share.",
  "recap.skip": "Skip to summary",
  "recap.that_was_your_year": "That was your {year}",
@@ -548,6 +552,7 @@ window.AnkiForest.EN = {
  "recap.your_best_of_year": "Your best of {year}",
  "recap.your_rhythm": "Your rhythm this year",
  "recap.your_year_in_the_forest": "Your year in the forest",
+ "recap.your_year_so_far": "Your {year} so far",
  "tooltip.a_big_learning_day_n_new": {
   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"

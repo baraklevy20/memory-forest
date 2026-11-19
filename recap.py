@@ -1,5 +1,5 @@
-"""Your year in the forest: a look back at a year of study, offered for a month round the new
-year, Dec 15 to Jan 15 (web/recap.js draws it, over the deck list).
+"""Your year in the forest: a look back at a year of study, offered from Dec 7 (the year
+so far) through Jan 15 (web/recap.js draws it, over the deck list).
 
 The numbers are the heatmap's own: its days and their reviews (the forest's, read with it), its
 streak rules (a day with nothing due, and a 5 or 6 days a week streak's days off, never break one),
@@ -9,7 +9,7 @@ saw one come, which for a forest updated to new milestones is the update's, not 
 animals: no building or plant (NOT_ANIMALS).
 
 What was answered is kept per profile in user_files/state.json ("recap": {year: "opened" or
-"dismissed"}); the Debug tab's "open it now" asks for one there too ("recap_open": year)."""
+"dismissed"}). The Debug tab's date shows it on any day of its window."""
 
 from __future__ import annotations
 
@@ -18,8 +18,9 @@ import datetime as _dt
 from . import milestones
 from .state import load_state, save_state
 
-# the year's recap is offered for a month round the new year: from Dec 15 through Jan 15
-WINDOW_FROM, WINDOW_TO = 15, 15
+# the year's recap is offered from Dec 7 (as the other apps' look backs come out: the year so far)
+# through Jan 15; answered in December, its card comes back once in January, for the whole year
+WINDOW_FROM, WINDOW_TO = 7, 15
 # fewer days studied than this: the short version, the title and the summary card alone, with no
 # claims of a streak or a best month
 SHORT_UNDER = 7
@@ -31,29 +32,70 @@ OPENED, DISMISSED = "opened", "dismissed"
 FINISHED_LEAST_CARDS = 20
 
 
-def finished(rows: list, names: dict, year: int, date_of_ms) -> list:
+def finished(rows: list, names: dict, year: int, date_of_ms, excluded=frozenset()) -> list:
     """The decks whose every card was learned in `year`: those with no new card left whose last new
     card was first studied that year (study_log.load_deck_firsts' `rows`, `names` {deck id: name},
     `date_of_ms` a revlog id's date). A deck counts with its subdecks; one whose parent is finished
-    too is said once, as the parent. Oldest first: [{"name", "date"}]."""
-    own = {did: (n, left, last) for did, n, left, last in rows}
-    out = []
+    too is said once, as the parent, and a parent only when all of its subdecks (and its own cards) were
+    learned to the end that year. One with a subdeck left out of the forest (`excluded`, whose cards
+    `rows` hasn't) is never said as a whole. Oldest first: [{"name", "full", "date", "cards"}]."""
+    # (each deck's cards added up into it and every deck over it, in one pass: deck by deck against every
+    # other name, a collection of 3,000 subdecks took 2 s)
+    whole: dict = {}  # name -> [cards, new cards left, the newest first answer, a subdeck left out]
     for did, name in names.items():
-        sub = [d for d, other in names.items() if other == name or other.startswith(name + "::")]
-        cards = sum(own[d][0] for d in sub if d in own)
-        left = sum(own[d][1] or 0 for d in sub if d in own)
-        lasts = [own[d][2] for d in sub if d in own and own[d][2]]
-        if cards < FINISHED_LEAST_CARDS or left or not lasts:
+        parts = name.split("::")
+        for k in range(1, len(parts) + 1):
+            w = whole.setdefault("::".join(parts[:k]), [0, 0, None, False])
+            if did in excluded:
+                w[3] = True
+    own = {did: (n, left, last) for did, n, left, last in rows}
+    for did, (n, left, last) in own.items():
+        name = names.get(did)
+        if name is None:
             continue
-        when = date_of_ms(max(lasts))
-        if when.year == year:
-            out.append((name, when))
-    kept = [(n, d) for n, d in out if not any(n.startswith(p + "::") for p, _ in out)]
-    return [{"name": n.split("::")[-1], "full": n, "date": d.isoformat()} for n, d in sorted(kept, key=lambda x: (x[1], x[0]))]
+        parts = name.split("::")
+        for k in range(1, len(parts) + 1):
+            w = whole["::".join(parts[:k])]
+            w[0] += n
+            w[1] += left or 0
+            if last and (w[2] is None or last > w[2]):
+                w[2] = last
+    done = {n: date_of_ms(w[2]) for n, w in whole.items() if w[0] and not w[1] and w[2]}
+    ids = {name: did for did, name in names.items()}
+
+    kids: dict = {}  # name -> its subdecks one level down, those with cards
+    for n, w in whole.items():
+        if "::" in n and w[0]:
+            kids.setdefault(n.rsplit("::", 1)[0], []).append(n)
+
+    def said_whole(name):
+        # (Languages, its German learned this year and its Spanish two years ago, is German's: a part
+        # learned before the year has no first answer in it, read from the year on, study_log.load_deck_firsts)
+        mine = own.get(ids[name])
+        parts = kids.get(name, [])
+        return (all(d in done and done[d].year == year for d in parts)
+                and not (parts and mine and mine[0] and not (mine[2] and date_of_ms(mine[2]).year == year)))
+    out = [(n, done[n], whole[n][0]) for n in names.values()
+           if n in done and done[n].year == year and whole[n][0] >= FINISHED_LEAST_CARDS and not whole[n][3] and said_whole(n)]
+    said = {n for n, _, _ in out}
+    kept = [x for x in out if not any("::".join(x[0].split("::")[:k]) in said for k in range(1, x[0].count("::") + 1))]
+
+    # (each by its own name, but where two would read the same, "A1, A1": by as much of its path as tells them apart)
+    tails = {}  # (each end of a name said, one part, two, ...: how many said end so)
+    for x in kept:
+        parts = x[0].split("::")
+        for k in range(1, len(parts) + 1):
+            tails["::".join(parts[-k:])] = tails.get("::".join(parts[-k:]), 0) + 1
+
+    def short(n):
+        parts = n.split("::")
+        return next(("::".join(parts[-k:]) for k in range(1, len(parts) + 1) if tails["::".join(parts[-k:])] == 1), n)
+    # (with its cards: the line names the biggest, web/recap.js)
+    return [{"name": short(n), "full": n, "date": d.isoformat(), "cards": c} for n, d, c in sorted(kept, key=lambda x: (x[1], x[0]))]
 
 
 def year_for(day: _dt.date) -> int | None:
-    """The year whose recap is offered on `day`: Y from Dec 15 of Y through Jan 15 of Y+1, else None.
+    """The year whose recap is offered on `day`: Y from Dec 7 of Y through Jan 15 of Y+1, else None.
     In December it is the year so far."""
     if day.month == 12 and day.day >= WINDOW_FROM:
         return day.year
@@ -157,8 +199,6 @@ def numbers(year: int, reviews: dict, seconds: dict, trees: list, skip: set, las
         "bestStreak": [best[0], best[1].isoformat(), best[2].isoformat()] if best else None,
         "months": months,
         "short": len(studied) < SHORT_UNDER,
-        # (a year begun after January: its heatmap starts at the first month studied)
-        "cropFrom": _dt.date(studied[0].year, studied[0].month, 1).isoformat() if studied and studied[0].month > 1 else None,
         # (the comeback goes by the streak still going at the year's end, not the best: a long spring
         # streak, then a summer away and an autumn back every day, is a comeback)
         "label": label(year, studied, end, first_ever, streaks[-1] if streaks else None, set(skip), set(off)),
@@ -183,35 +223,30 @@ def answered(year: int) -> str:
     return rec.get(str(year), "") if isinstance(rec, dict) else ""
 
 
-def answer(year: int, how: str) -> None:
-    """The year's card answered: opened (the recap seen) or dismissed ("Not now"). An open asked
-    for by the Debug tab is done with too."""
+EARLY = ":early"  # (answered in December, on the year so far: its card comes back in January)
+
+
+def answer(year: int, how: str, early: bool = False) -> None:
+    """The year's card answered: opened (the recap seen) or dismissed ("Not now"), in December
+    (`early`, the year so far) or once it was over."""
     s = load_state()
     rec = s.get("recap") if isinstance(s.get("recap"), dict) else {}
-    if rec.get(str(year)) != OPENED:  # (opened stays opened)
-        rec[str(year)] = how
+    was = rec.get(str(year))
+    # (opened stays opened: once the year is over for good, in December till January)
+    if was != OPENED and not (early and was == OPENED + EARLY):
+        rec[str(year)] = how + (EARLY if early else "")
     s["recap"] = rec
-    s.pop("recap_open", None)
     save_state(s)
 
 
-def ask_open(year: int) -> None:
-    """The Debug tab's "open it now": the deck list opens that year's recap when it is next drawn."""
-    s = load_state()
-    s["recap_open"] = int(year)
-    save_state(s)
-
-
-def asked_done() -> None:
-    """The Debug tab's open done with, and nothing answered: the year's card still shows in its window."""
-    s = load_state()
-    s.pop("recap_open", None)
-    save_state(s)
-
-
-def asked_open() -> int | None:
-    v = load_state().get("recap_open")
-    return v if isinstance(v, int) else None
+def entry(year: int, offered: int | None, early: bool) -> str:
+    """How the deck list offers the year's recap: "card" (in the forest's corner) until it is answered,
+    then "link" (in the caption), or "none" outside its window. Answered in December, on the year so
+    far, its card comes back once in January, for the whole year."""
+    if offered != year:
+        return "none"
+    was = answered(year)
+    return "card" if not was or (was.endswith(EARLY) and not early) else "link"
 
 
 def forget(year: int | None = None) -> None:
@@ -231,7 +266,7 @@ def forget(year: int | None = None) -> None:
 def for_page(forest: dict, day: _dt.date, today: _dt.date, today_number: int, date_of, free: set, off: set,
              week_start: int, look, planted: list | None = None, record: tuple | None = None, decks=None) -> dict | None:
     """What the deck list's page needs for the recap, or None when there is none to offer: outside
-    its window (unless the Debug tab asked to open one), or for a year with no day studied.
+    its window, or for a year with no day studied.
     `forest` as payload.py has it (its days and their time as days ago, its trees and animals),
     `day` the date the scenery is chosen for (the Debug tab may move it), `today` Anki's, with its
     scheduler `today_number`, `date_of(ago)` an Anki day's date, `free` and `off` the days (ago) a
@@ -239,21 +274,12 @@ def for_page(forest: dict, day: _dt.date, today: _dt.date, today_number: int, da
     trees as the study grew them, before an asteroid took any (the year's trees and new cards count them).
     `record`: the heatmap's ({ago: reviews}, {ago: seconds}) where they are not the forest's (a start date,
     the reviews from before it shown): the year's days go by them; its animals by the forest's own."""
-    asked = asked_open()
-    offered = year_for(day)
-    year = asked or offered
+    year = offered = year_for(day)
     if year is None:
         return None
     day_reviews = forest.get("day_reviews") or {}
     shown, times = record if record is not None else (day_reviews, forest.get("day_time") or {})
     reviews = {date_of(a): n for a, n in shown.items() if n}
-    if asked and not any(d.year == asked for d in reviews):
-        # (the Debug tab asked for a year with nothing studied: nothing opens, so nothing ever said it
-        # was done with, and it stood in the way of the real year's card ever after)
-        asked_done()
-        asked, year = None, offered
-        if year is None:
-            return None
     if not any(d.year == year for d in reviews):
         return None  # (a fresh install with nothing studied that year: nothing to look back on)
     seconds = {date_of(a): s for a, s in times.items()}
@@ -276,6 +302,6 @@ def for_page(forest: dict, day: _dt.date, today: _dt.date, today_number: int, da
         "daysOff": sorted(a - shift for a in off if 0 <= a - shift <= span)})
     # the decks learned to their last card that year (`decks(year)`, payload.py: only asked for here)
     out["finished"] = decks(year) if decks else []
-    out["entry"] = "none" if offered != year else ("link" if answered(year) else "card")
-    out["openNow"] = asked == year
+    out["early"] = year == day.year  # (in December, the year so far)
+    out["entry"] = entry(year, offered, out["early"])
     return out

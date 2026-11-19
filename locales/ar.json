@@ -2455,6 +2455,20 @@
   "text": "شبكة النيون الممتدة حتى الأفق، والشمس المخطّطة واقفة عليها.",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.and_n_more": {
+  "text": {
+   "zero": "و{n} أخرى",
+   "one": "ورزمة أخرى",
+   "two": "ورزمتان أخريان",
+   "few": "و{n} رزم أخرى",
+   "many": "و{n} رزمة أخرى",
+   "other": "و{n} رزمة أخرى"
+  },
+  "en": {
+   "one": "and {n} more",
+   "other": "and {n} more"
+  }
+ },
  "recap.best_day": {
   "text": "أفضل يوم",
   "en": "Best day"
@@ -2715,6 +2729,10 @@
   "text": "فتح",
   "en": "Open"
  },
+ "recap.replace_file": {
+  "text": "{name} موجود بالفعل. هل تريد استبداله؟",
+  "en": "{name} is already there. Replace it?"
+ },
  "recap.save_image": {
   "text": "حفظ الصورة",
   "en": "Save image"
@@ -2725,7 +2743,7 @@
  },
  "recap.saved": {
   "text": "تم حفظ الصورة",
-  "en": "Picture saved"
+  "en": "Image saved"
  },
  "recap.share_say": {
   "text": "غابتك وخريطة الحرارة وأفضل أرقامك في صورة واحدة، للاحتفاظ بها أو مشاركتها.",
@@ -2824,6 +2842,10 @@
  "recap.your_year_in_the_forest": {
   "text": "عامك في الغابة",
   "en": "Your year in the forest"
+ },
+ "recap.your_year_so_far": {
+  "text": "عامك {year} حتى الآن",
+  "en": "Your {year} so far"
  },
  "scene.after_the_rain": {
   "text": "بعد المطر",

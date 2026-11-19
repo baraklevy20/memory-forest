@@ -81,8 +81,10 @@ def _info(did: int | None, highlight: bool, show_forest: bool, share: bool) -> d
         info = payload(did, highlight, show_forest or share)
         if share:
             _shared[(did, highlight)] = (time.monotonic(), info)
-    # (as payload() has it for the heatmap alone: no forest, and no what's-new note on it)
-    return info if show_forest or info.get("showForest") is False else dict(info, showForest=False, news=None)
+    # (as payload() has it for the heatmap alone: no forest, and no what's-new note on it; and, with the
+    # forest in the tile beside it, no way into the year's recap either: the forest's corner has its card,
+    # and a second link here stayed after the card was answered, and opened a second dialog over the first)
+    return info if show_forest or info.get("showForest") is False else dict(info, showForest=False, news=None, recap=None)
 
 
 def _panel_parts(did: int | None = None, highlight: bool = False, show_forest: bool = True,
