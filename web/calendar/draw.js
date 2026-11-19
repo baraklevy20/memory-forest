@@ -30,6 +30,7 @@ Cal.drawing = ui => {
     }
     const d = paint(H, win, sp, ui.paper);
     ui.drawn = Object.assign(d, { win, count });
+    ui.box.afDrawn = ui.drawn;  // (the year's recap draws it again, web/recap.js)
     ui.last = undefined;
     // (a page's slide is for paging alone: go starts it again after this; any other drawing, a day
     // marked say, must not replay it, the new canvas taking the class still on the grid)

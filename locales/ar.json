@@ -2455,6 +2455,376 @@
   "text": "شبكة النيون الممتدة حتى الأفق، والشمس المخطّطة واقفة عليها.",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.best_day": {
+  "text": "أفضل يوم",
+  "en": "Best day"
+ },
+ "recap.best_month": {
+  "text": "أفضل شهر",
+  "en": "Best month"
+ },
+ "recap.best_streak": {
+  "text": "أطول سلسلة",
+  "en": "Best streak"
+ },
+ "recap.card_text": {
+  "text": "نظرة إلى عامك: غابتك وخريطتك الحرارية والحيوانات التي جاءت.",
+  "en": "A look back at your year: your forest, your heatmap and the animals that came."
+ },
+ "recap.card_text_no_animals": {
+  "text": "نظرة إلى عامك: غابتك وخريطة الحرارة وأفضل أيامك.",
+  "en": "A look back at your year: your forest, your heatmap and your best days."
+ },
+ "recap.card_title": {
+  "text": "عام {year} في غابتك",
+  "en": "Your {year} in the forest"
+ },
+ "recap.close": {
+  "text": "إغلاق",
+  "en": "Close"
+ },
+ "recap.could_not_save": {
+  "text": "تعذّر حفظ الصورة هناك.",
+  "en": "The picture could not be saved there."
+ },
+ "recap.finished_many": {
+  "text": {
+   "zero": "تعلّمت كل البطاقات في {n} رزمة: {decks}.",
+   "one": "تعلّمت كل البطاقات في رزمة واحدة: {decks}.",
+   "two": "تعلّمت كل البطاقات في رزمتين: {decks}.",
+   "few": "تعلّمت كل البطاقات في {n} رزم: {decks}.",
+   "many": "تعلّمت كل البطاقات في {n} رزمة: {decks}.",
+   "other": "تعلّمت كل البطاقات في {n} رزمة: {decks}."
+  },
+  "en": {
+   "one": "You learned every card in {n} deck: {decks}.",
+   "other": "You learned every card in {n} decks: {decks}."
+  }
+ },
+ "recap.finished_one": {
+  "text": "تعلّمت كل البطاقات في {deck}.",
+  "en": "You learned every card in {deck}."
+ },
+ "recap.first_day": {
+  "text": "اليوم الأول",
+  "en": "First day"
+ },
+ "recap.from_to": {
+  "text": "من {first} إلى {last}",
+  "en": "{first} to {last}"
+ },
+ "recap.hint": {
+  "text": "انقر للمتابعة",
+  "en": "Click to continue"
+ },
+ "recap.label_comeback": {
+  "text": "العودة إلى الغابة",
+  "en": "The comeback gardener"
+ },
+ "recap.label_comeback_line": {
+  "text": "عدت في {month} وواصلت.",
+  "en": "You came back in {month} and kept going."
+ },
+ "recap.label_new": {
+  "text": "غابة جديدة",
+  "en": "The new gardener"
+ },
+ "recap.label_new_line": {
+  "text": "زرعتَ شجرتك الأولى في {date}، وواصلت العودة.",
+  "en": "You planted your first tree on {date}, and kept coming back."
+ },
+ "recap.label_new_line_one": {
+  "text": "زرعتَ شجرتك الأولى في {date}.",
+  "en": "You planted your first tree on {date}."
+ },
+ "recap.label_patient": {
+  "text": "غابة صبورة",
+  "en": "The patient gardener"
+ },
+ "recap.label_patient_line": {
+  "text": "عدتَ إلى غابتك مرة بعد مرة.",
+  "en": "You came back to your forest again and again."
+ },
+ "recap.label_quiet": {
+  "text": "غابة هادئة",
+  "en": "The quiet gardener"
+ },
+ "recap.label_quiet_line": {
+  "text": "انتظرتك غابتك، وعدتَ إليها.",
+  "en": "Your forest waited for you, and you came back."
+ },
+ "recap.label_season": {
+  "text": "موسم الغابة",
+  "en": "The seasonal gardener"
+ },
+ "recap.label_season_line": {
+  "text": "كان {month} موسم غابتك.",
+  "en": "{month} was your forest's season."
+ },
+ "recap.label_season_line_days": {
+  "text": {
+   "zero": "كان {month} موسم غابتك.",
+   "one": "كان {month} موسم غابتك: درست في يوم واحد منه.",
+   "two": "كان {month} موسم غابتك: درست في يومين منه.",
+   "few": "كان {month} موسم غابتك: درست في {n} أيام منه.",
+   "many": "كان {month} موسم غابتك: درست في {n} يومًا منه.",
+   "other": "كان {month} موسم غابتك: درست في {n} يوم منه."
+  },
+  "en": {
+   "one": "{month} was your forest's season: you studied {n} of its days.",
+   "other": "{month} was your forest's season: you studied {n} of its days."
+  }
+ },
+ "recap.label_steady": {
+  "text": "يومًا بعد يوم",
+  "en": "The steady gardener"
+ },
+ "recap.label_steady_line": {
+  "text": "كانت غابتك تنمو كل يوم.",
+  "en": "Day in, day out, your forest grew."
+ },
+ "recap.label_weekly": {
+  "text": "كل أسبوع",
+  "en": "The weekly gardener"
+ },
+ "recap.label_weekly_line": {
+  "text": "أسبوعًا بعد أسبوع، في الأيام القليلة نفسها، نمت غابتك.",
+  "en": "Week after week, on the same few days, your forest grew."
+ },
+ "recap.list_sep": {
+  "text": "، ",
+  "en": ", "
+ },
+ "recap.n_animals_moved_in": {
+  "text": {
+   "zero": "{n} حيوان سكن الغابة",
+   "one": "حيوان واحد سكن الغابة",
+   "two": "حيوانان سكنا الغابة",
+   "few": "{n} حيوانات سكنت الغابة",
+   "many": "{n} حيوانًا سكن الغابة",
+   "other": "{n} حيوان سكن الغابة"
+  },
+  "en": {
+   "one": "{n} animal moved in",
+   "other": "{n} animals moved in"
+  }
+ },
+ "recap.n_days": {
+  "text": {
+   "zero": "{n} يوم",
+   "one": "يوم واحد",
+   "two": "يومان",
+   "few": "{n} أيام",
+   "many": "{n} يومًا",
+   "other": "{n} يوم"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "recap.n_days_studied": {
+  "text": {
+   "zero": "{n} يوم دراسة",
+   "one": "يوم دراسة واحد",
+   "two": "يوما دراسة",
+   "few": "{n} أيام دراسة",
+   "many": "{n} يوم دراسة",
+   "other": "{n} يوم دراسة"
+  },
+  "en": {
+   "one": "{n} day studied",
+   "other": "{n} days studied"
+  }
+ },
+ "recap.n_hours": {
+  "text": {
+   "zero": "{n} ساعة",
+   "one": "ساعة واحدة",
+   "two": "ساعتين",
+   "few": "{n} ساعات",
+   "many": "{n} ساعة",
+   "other": "{n} ساعة"
+  },
+  "en": {
+   "one": "{n} hour",
+   "other": "{n} hours"
+  }
+ },
+ "recap.n_minutes": {
+  "text": {
+   "zero": "{n} دقيقة",
+   "one": "دقيقة واحدة",
+   "two": "دقيقتين",
+   "few": "{n} دقائق",
+   "many": "{n} دقيقة",
+   "other": "{n} دقيقة"
+  },
+  "en": {
+   "one": "{n} minute",
+   "other": "{n} minutes"
+  }
+ },
+ "recap.n_more": {
+  "text": {
+   "zero": "+{n}",
+   "one": "+واحد آخر",
+   "two": "+اثنان آخران",
+   "few": "+{n} أخرى",
+   "many": "+{n} أخرى",
+   "other": "+{n} أخرى"
+  },
+  "en": {
+   "one": "+{n} more",
+   "other": "+{n} more"
+  }
+ },
+ "recap.n_new_cards": {
+  "text": {
+   "zero": "{n} بطاقة جديدة",
+   "one": "بطاقة جديدة واحدة",
+   "two": "بطاقتان جديدتان",
+   "few": "{n} بطاقات جديدة",
+   "many": "{n} بطاقة جديدة",
+   "other": "{n} بطاقة جديدة"
+  },
+  "en": {
+   "one": "{n} new card",
+   "other": "{n} new cards"
+  }
+ },
+ "recap.n_reviews_in_time": {
+  "text": {
+   "zero": "{n} مراجعة في {time}",
+   "one": "مراجعة واحدة في {time}",
+   "two": "مراجعتان في {time}",
+   "few": "{n} مراجعات في {time}",
+   "many": "{n} مراجعة في {time}",
+   "other": "{n} مراجعة في {time}"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "recap.not_now": {
+  "text": "ليس الآن",
+  "en": "Not now"
+ },
+ "recap.open": {
+  "text": "فتح",
+  "en": "Open"
+ },
+ "recap.save_image": {
+  "text": "حفظ الصورة",
+  "en": "Save image"
+ },
+ "recap.save_title": {
+  "text": "حفظ عامك في الغابة",
+  "en": "Save your year in the forest"
+ },
+ "recap.saved": {
+  "text": "تم حفظ الصورة",
+  "en": "Picture saved"
+ },
+ "recap.share_say": {
+  "text": "غابتك وخريطة الحرارة وأفضل أرقامك في صورة واحدة، للاحتفاظ بها أو مشاركتها.",
+  "en": "Your forest, your heatmap and your bests in one picture, to keep or share."
+ },
+ "recap.skip": {
+  "text": "انتقل إلى الملخص",
+  "en": "Skip to summary"
+ },
+ "recap.that_was_your_year": {
+  "text": "هكذا كان عامك {year}",
+  "en": "That was your {year}"
+ },
+ "recap.unit_days_studied": {
+  "text": {
+   "zero": "يوم دراسة",
+   "one": "يوم دراسة",
+   "two": "يوما دراسة",
+   "few": "أيام دراسة",
+   "many": "يوم دراسة",
+   "other": "يوم دراسة"
+  },
+  "en": {
+   "one": "day studied",
+   "other": "days studied"
+  }
+ },
+ "recap.unit_hours": {
+  "text": {
+   "zero": "ساعة",
+   "one": "ساعة",
+   "two": "ساعتان",
+   "few": "ساعات",
+   "many": "ساعة",
+   "other": "ساعة"
+  },
+  "en": {
+   "one": "hour",
+   "other": "hours"
+  }
+ },
+ "recap.unit_minutes": {
+  "text": {
+   "zero": "دقيقة",
+   "one": "دقيقة",
+   "two": "دقيقتان",
+   "few": "دقائق",
+   "many": "دقيقة",
+   "other": "دقيقة"
+  },
+  "en": {
+   "one": "minute",
+   "other": "minutes"
+  }
+ },
+ "recap.unit_new_cards": {
+  "text": {
+   "zero": "بطاقة جديدة",
+   "one": "بطاقة جديدة",
+   "two": "بطاقتان جديدتان",
+   "few": "بطاقات جديدة",
+   "many": "بطاقة جديدة",
+   "other": "بطاقة جديدة"
+  },
+  "en": {
+   "one": "new card",
+   "other": "new cards"
+  }
+ },
+ "recap.unit_reviews": {
+  "text": {
+   "zero": "مراجعة",
+   "one": "مراجعة",
+   "two": "مراجعتان",
+   "few": "مراجعات",
+   "many": "مراجعة",
+   "other": "مراجعة"
+  },
+  "en": {
+   "one": "review",
+   "other": "reviews"
+  }
+ },
+ "recap.watch_again": {
+  "text": "شاهد مرة أخرى",
+  "en": "Watch again"
+ },
+ "recap.your_best_of_year": {
+  "text": "أفضل ما في عامك {year}",
+  "en": "Your best of {year}"
+ },
+ "recap.your_rhythm": {
+  "text": "إيقاعك هذا العام",
+  "en": "Your rhythm this year"
+ },
+ "recap.your_year_in_the_forest": {
+  "text": "عامك في الغابة",
+  "en": "Your year in the forest"
+ },
  "scene.after_the_rain": {
   "text": "بعد المطر",
   "en": "After the rain"

@@ -225,6 +225,7 @@
   "web": true,
   "where": [
    "web/caption.js",
+   "web/recap.js",
    "settings/decks.py"
   ]
  },
@@ -938,6 +939,7 @@
  "heatmap.n_days": {
   "web": true,
   "where": [
+   "web/recap.js",
    "web/tooltips.js",
    "web/calendar/draw.js"
   ]
@@ -993,6 +995,7 @@
  "heatmap.n_reviews": {
   "web": true,
   "where": [
+   "web/recap.js",
    "web/calendar/tooltips.js"
   ]
  },
@@ -2316,6 +2319,337 @@
   "web": false,
   "where": [
    "presets"
+  ]
+ },
+ "recap.best_day": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.best_month": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.best_streak": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.card_text": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.card_text_no_animals": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.card_title": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.close": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.could_not_save": {
+  "web": false,
+  "where": [
+   "recap_actions.py"
+  ]
+ },
+ "recap.finished_many": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.finished_one": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.first_day": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.from_to": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.hint": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_comeback": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_comeback_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_new": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_new_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_new_line_one": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_patient": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_patient_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_quiet": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_quiet_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_season": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_season_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_season_line_days": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_steady": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_steady_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_weekly": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.label_weekly_line": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.list_sep": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_animals_moved_in": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_days": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_days_studied": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_hours": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_minutes": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_more": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_new_cards": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.n_reviews_in_time": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.not_now": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.open": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.save_image": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.save_title": {
+  "web": false,
+  "where": [
+   "recap_actions.py"
+  ]
+ },
+ "recap.saved": {
+  "web": true,
+  "where": [
+   "web/recap.js",
+   "recap_actions.py"
+  ]
+ },
+ "recap.share_say": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.skip": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.that_was_your_year": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.unit_days_studied": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.unit_hours": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.unit_minutes": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.unit_new_cards": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.unit_reviews": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.watch_again": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.your_best_of_year": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.your_rhythm": {
+  "web": true,
+  "where": [
+   "web/recap.js"
+  ]
+ },
+ "recap.your_year_in_the_forest": {
+  "web": true,
+  "where": [
+   "web/recap.js"
   ]
  },
  "scene.after_the_rain": {

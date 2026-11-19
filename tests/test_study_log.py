@@ -654,3 +654,29 @@ class PreviewTests(unittest.TestCase):
         self.card(1, did=30, odid=10, ctype=0, queue=2, due=-100000, odue=TODAY + 5)
         self.assertEqual(study_log.load_due(self.db, TODAY, 6)[5], 0)
         self.assertEqual(study_log.calendar_search(self.db, 5, TODAY), ["prop:due=5", "-cid:1"])
+
+
+class DeckFirstsTests(unittest.TestCase):
+    """Each deck's cards, the new ones left and its last first answer: what the year's finished
+    decks are worked out from (recap.finished)."""
+
+    def test_a_decks_cards_new_ones_left_and_last_first_answer(self):
+        import sqlite3
+        con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
+        con.executescript("""
+            create table cards (id integer, did integer, odid integer, type integer, queue integer);
+            create table revlog (id integer, cid integer, ease integer, type integer, lastIvl integer default 0, factor integer default 2500);
+        """)
+        # deck 10: two learned (one borrowed by filtered deck 99), deck 20: one learned, one new, one
+        # suspended never studied (left out), deck 30: excluded
+        for cid, did, odid, ctype, queue in ((1, 10, 0, 2, 2), (2, 99, 10, 2, 2), (3, 20, 0, 2, 2), (4, 20, 0, 0, 0), (5, 20, 0, 0, -1), (6, 30, 0, 2, 2)):
+            con.execute("insert into cards values (?, ?, ?, ?, ?)", (cid, did, odid, ctype, queue))
+        for rid, cid in ((100, 1), (300, 1), (200, 2), (150, 3), (400, 6)):
+            con.execute("insert into revlog (id, cid, ease, type) values (?, ?, 3, 1)", (rid, cid))
+
+        class DB:
+            def all(self, q, *a): return con.execute(q, a).fetchall()
+
+        got = sorted(study_log.load_deck_firsts(DB(), {30}))
+        self.assertEqual(got, [(10, 2, 0, 200), (20, 2, 1, 150)])

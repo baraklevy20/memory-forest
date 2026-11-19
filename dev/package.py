@@ -48,7 +48,7 @@ INCLUDE_FILES = tuple(sorted(n for n in os.listdir(ADDON) if n.endswith(".py")))
 INCLUDE_DIRS = ("settings", "web", "locales")  # walked, so web/envs, web/landscapes and web/landmarks come too
 # The developer's debug tools: the add-on runs without them (payload.debug_tools and the
 # settings' debug_tab stand in), and a release ships with debug off.
-DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py")
+DEBUG_ONLY = ("debug_events.py", "fake_forest.py", "settings/debug.py", "settings/recap_debug.py")
 
 # The page's scripts ship minified: half the size, both in the add-on and in the script the
 # phone card loads from the collection's media, which is put together from them at each sync

@@ -15,6 +15,7 @@ from ..events import TIMELINE_HAPPENINGS, TIMELINE_MAX_DAYS, timeline_days, time
 from ..seasons import forget_seasons
 from ..state import TEST_TREES_DEFAULT, TEST_TREES_MAX, config
 from .decks import DATE_FORMAT
+from .recap_debug import make as recap_group
 from .widgets import date_field, group, hint
 
 TREES_STEP, TREES_PAGE = 10, 250
@@ -172,6 +173,7 @@ class DebugTab(QWidget):
         hf.addRow("Current streak", self.streak_days)
         hv = QVBoxLayout(); hv.addLayout(hf); hv.addWidget(hint(STREAKS_NOTE))
         dv.addWidget(group("Heatmap", hv))
+        dv.addWidget(recap_group(lambda: self._changed and self._changed()))
         dv.addWidget(group("What's new", ntv))
         dv.addWidget(group("Date", dtv))
         dv.addWidget(group("Test forest", tv))

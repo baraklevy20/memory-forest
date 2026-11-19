@@ -366,7 +366,7 @@ function sharpen(hi, lo, cells, H, dark, paper, s, F, R, G = 0) {
     rounded(g, c.x + 1 - G, c.y + 1 - G, F + 2 * G - 2, F + 2 * G - 2, Math.max(0.6, R + G - 1)); g.fillStyle = rgb(blankOn(paper)); g.fill();
   }
   g.globalAlpha = 1;
-  const today = cells.find(c => c.o === 0);
+  const today = H.noToday ? null : cells.find(c => c.o === 0);
   if (today) {
     // (as frame: a light ring in the gaps all round, a line of the page's colour just inside it)
     rounded(g, today.x - 1 - G, today.y - 1 - G, F + 2 + 2 * G, F + 2 + 2 * G, R + 1 + G); g.fillStyle = rgb(dark ? P.today : P.todayOnLight); g.fill();

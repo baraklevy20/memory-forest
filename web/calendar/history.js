@@ -133,6 +133,7 @@ function history(cal) {
     // each day's cards since deleted: still counted in its reviews, but its click can't list them
     gone: new Map((cal.gone || []).map(([ago, count, of]) => [-ago, [count, of || count]])),
     dueShade, dueToday: cal.due[0] || 0,
+    noToday: !!cal.noToday,  // (the year's recap: no today's frame)
     look: cal.look || null,  // the Heatmap tab's colours and tiles (paletteOf)
     ahead: cal.due.length - 1,  // the last day ahead counted
     // (and the last with cards due: Streak view pages on that far, no further into rows of nothing)

@@ -593,6 +593,17 @@ def days_ago(ts_seconds: float, day_cutoff: int) -> int:
     return int((day_cutoff - 1 - ts_seconds) // DAY_SECS)
 
 
+def load_deck_firsts(db, excluded: Iterable | None = None) -> list:
+    """Each deck's own cards (by home deck): (deck id, cards, new cards left, the newest of their
+    first answers as a revlog id, or None). A suspended card never studied is left out: put aside,
+    not waiting to be learned."""
+    in_decks, _only = _filters(None, excluded)
+    return db.all(
+        "select coalesce(nullif(c.odid, 0), c.did), count(), sum(c.type = 0), max(f.first) from cards c "
+        f"left join (select cid, min(id) as first from revlog where {ANSWERED} group by cid) f on f.cid = c.id "
+        f"where not (c.type = 0 and c.queue = -1){in_decks} group by 1")
+
+
 def day_date(days: int, day_cutoff: int) -> _dt.date:
     """Calendar date of an Anki day (the day that ends at the matching cutoff)."""
     return _dt.datetime.fromtimestamp(day_cutoff - days * DAY_SECS - DAY_SECS // 2).date()

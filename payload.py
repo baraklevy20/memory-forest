@@ -12,6 +12,8 @@ from aqt import mw
 from . import events_state, forest_data, heatmap_look, i18n, journal, live_weather, marks, milestones, news, presets, scene, study_log
 from .edition import debug_available, debug_edition, language
 from .phone_note import phone_cards
+from .recap import finished as finished_decks
+from .recap import for_page as recap_for_page
 from .scope import anki_today, changes, counts_since, day_cutoff, deck_ids, excluded_decks, since, trees_since
 from .seasons import follow_season, season_returns
 from .seasons import today as scenery_day
@@ -210,6 +212,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     first = forest["trees"]
     first_week = bool(first) and first[0]["ago"] < NEW_TREE_GLOW_DAYS
     # Nature and the other study events, on every forest: a deck's screen acts as the main one
+    planted = forest["trees"]  # (every tree the year's study planted, before Merciless takes any: the year's recap counts them)
     forest, extras = events_state.apply(forest, cfg, test, changed, did if did and not highlight else None)
     if tools:
         forest, extras = tools.debug_events.apply(forest, extras, cfg)
@@ -282,6 +285,9 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
         # screen has the heatmap alone, web/news.js), and the cog's dot on every one
         "news": None if did or not show_forest else news.note(cfg, day),
         "newDot": news.cog_dot(cfg),
+        # the year's look back, from Dec 15 to Jan 15 (recap.py, web/recap.js): on the
+        # deck list only (its forest's corner, or under its heatmap when the forest is off), never the test forest's
+        "recap": None if did or test else _recap(dict(forest, trees=all_trees), cfg, day, mood, changed, planted),
         # the forest itself may be switched off on this screen while the study calendar is on
         "showForest": show_forest,
         # the study calendar (web/calendar/): the whole collection's on the main screen, the
@@ -510,6 +516,49 @@ def _calendar(forest: dict, trees: list, cfg: dict, test: bool, changed=None, di
                 cfg, cutoff, {a for a, n in (own if (forest_start or counts_from) and streak_from_start(cfg) else day_reviews).items() if n},
                 _free_days(cutoff, dids, excluded, skip, changed))),
             "browse": not test}  # a day's tile opens its cards (actions.browse_reviews), but not a made-up day
+
+
+def _recap(forest: dict, cfg: dict, day: _dt.date, mood: dict, changed, planted: list | None = None) -> dict | None:
+    """The year's look back for the deck list's page (recap.py), or None: never in the forest's way."""
+    try:
+        cutoff, excluded = day_cutoff(mw.col), excluded_decks(cfg)
+        free = _free_days(cutoff, None, excluded, phone_cards(), changed)
+        off = _days_off(cfg, cutoff, set(forest.get("day_reviews") or ()), free)
+        today = anki_today(cutoff)
+        # (its window by Anki's day, as its numbers are: at 1 am on Jan 16 Anki's day is still Jan 15, and
+        # at 1 am on Dec 15 still Dec 14; the Debug tab's date, when one is set, as it is)
+        when = today if day == _dt.date.today() else day
+        record = None
+        if since(cfg) is not None and counts_since(cfg, cutoff) is None and shows_record(cfg):
+            # (a start date, with the heatmap showing the reviews from before it: the year's days are the
+            # heatmap's, as _calendar has them, not the young forest's alone)
+            days = _day_reviews(cutoff, None, excluded, None, phone_cards(), changed)
+            oldest = max(days, default=0)
+            record = (days, dict(enumerate(reversed(_day_time(cutoff, None, excluded, phone_cards(), changed, oldest)))))
+        return recap_for_page(forest, when, today, mw.col.sched.today, lambda ago: study_log.day_date(ago, cutoff),
+                              free, off, week_start_day(cfg), lambda cal: _with_look(cal, cfg, mood), planted, record,
+                              lambda year: _finished_decks(year, cutoff, excluded))
+    except Exception as e:  # (the deck list draws all the same)
+        log(f"could not work out the year's recap: {e!r}")
+        return None
+
+
+# the year's finished decks, worked out once for each state of the review log and the decks (the
+# deck list draws often; this reads every card)
+_finished_cache: dict = {}
+
+
+def _finished_decks(year: int, cutoff: int, excluded: set) -> list:
+    """The decks learned to their last card in `year` (recap.finished), from the collection."""
+    db = mw.col.db
+    names = {d.id: d.name for d in mw.col.decks.all_names_and_ids(include_filtered=False)}
+    key = (year, cutoff, db.scalar("select max(id) from revlog") or 0, db.scalar("select max(mod) from cards") or 0,
+           tuple(sorted(names.items())), tuple(sorted(excluded)))
+    if _finished_cache.get("key") != key:
+        rows = study_log.load_deck_firsts(db, excluded)
+        day = lambda ms: study_log.day_date((cutoff - 1 - ms // 1000) // study_log.DAY_SECS, cutoff)  # noqa: E731
+        _finished_cache.update(key=key, value=finished_decks(rows, names, year, day))
+    return _finished_cache["value"]
 
 
 def _with_look(cal: dict | None, cfg: dict, mood: dict) -> dict | None:

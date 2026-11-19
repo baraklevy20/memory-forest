@@ -1995,6 +1995,301 @@
   "text": "地平線まで続くネオンのグリッドと、その上に立つ縞模様の太陽。",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.best_day": {
+  "text": "いちばんの日",
+  "en": "Best day"
+ },
+ "recap.best_month": {
+  "text": "いちばんの月",
+  "en": "Best month"
+ },
+ "recap.best_streak": {
+  "text": "最長連続記録",
+  "en": "Best streak"
+ },
+ "recap.card_text": {
+  "text": "1 年をふり返ります。森、ヒートマップ、やって来た動物たち。",
+  "en": "A look back at your year: your forest, your heatmap and the animals that came."
+ },
+ "recap.card_text_no_animals": {
+  "text": "1年をふり返ります：あなたの森、ヒートマップ、そしていちばんの日々。",
+  "en": "A look back at your year: your forest, your heatmap and your best days."
+ },
+ "recap.card_title": {
+  "text": "森で過ごした {year} 年",
+  "en": "Your {year} in the forest"
+ },
+ "recap.close": {
+  "text": "閉じる",
+  "en": "Close"
+ },
+ "recap.could_not_save": {
+  "text": "その場所には画像を保存できませんでした。",
+  "en": "The picture could not be saved there."
+ },
+ "recap.finished_many": {
+  "text": {
+   "other": "{n} 個のデッキのカードをすべて学習しました：{decks}。"
+  },
+  "en": {
+   "one": "You learned every card in {n} deck: {decks}.",
+   "other": "You learned every card in {n} decks: {decks}."
+  }
+ },
+ "recap.finished_one": {
+  "text": "{deck} のカードをすべて学習しました。",
+  "en": "You learned every card in {deck}."
+ },
+ "recap.first_day": {
+  "text": "最初の日",
+  "en": "First day"
+ },
+ "recap.from_to": {
+  "text": "{first}〜{last}",
+  "en": "{first} to {last}"
+ },
+ "recap.hint": {
+  "text": "クリックで次へ",
+  "en": "Click to continue"
+ },
+ "recap.label_comeback": {
+  "text": "戻ってきた庭師",
+  "en": "The comeback gardener"
+ },
+ "recap.label_comeback_line": {
+  "text": "{month}に戻ってきて、そのまま続けました。",
+  "en": "You came back in {month} and kept going."
+ },
+ "recap.label_new": {
+  "text": "新しい庭師",
+  "en": "The new gardener"
+ },
+ "recap.label_new_line": {
+  "text": "{date}に最初の木を植えて、それから何度も戻ってきました。",
+  "en": "You planted your first tree on {date}, and kept coming back."
+ },
+ "recap.label_new_line_one": {
+  "text": "{date}に最初の木を植えました。",
+  "en": "You planted your first tree on {date}."
+ },
+ "recap.label_patient": {
+  "text": "辛抱強い庭師",
+  "en": "The patient gardener"
+ },
+ "recap.label_patient_line": {
+  "text": "何度も森に戻ってきました。",
+  "en": "You came back to your forest again and again."
+ },
+ "recap.label_quiet": {
+  "text": "静かな庭師",
+  "en": "The quiet gardener"
+ },
+ "recap.label_quiet_line": {
+  "text": "森はあなたを待っていて、あなたは戻ってきました。",
+  "en": "Your forest waited for you, and you came back."
+ },
+ "recap.label_season": {
+  "text": "季節の庭師",
+  "en": "The seasonal gardener"
+ },
+ "recap.label_season_line": {
+  "text": "{month}はあなたの森の季節でした。",
+  "en": "{month} was your forest's season."
+ },
+ "recap.label_season_line_days": {
+  "text": {
+   "other": "{month}はあなたの森の季節でした：{n} 日学習しました。"
+  },
+  "en": {
+   "one": "{month} was your forest's season: you studied {n} of its days.",
+   "other": "{month} was your forest's season: you studied {n} of its days."
+  }
+ },
+ "recap.label_steady": {
+  "text": "コツコツ続けた庭師",
+  "en": "The steady gardener"
+ },
+ "recap.label_steady_line": {
+  "text": "毎日少しずつ、森が育ちました。",
+  "en": "Day in, day out, your forest grew."
+ },
+ "recap.label_weekly": {
+  "text": "毎週の庭師",
+  "en": "The weekly gardener"
+ },
+ "recap.label_weekly_line": {
+  "text": "毎週、同じ数日に、森が育ちました。",
+  "en": "Week after week, on the same few days, your forest grew."
+ },
+ "recap.list_sep": {
+  "text": "、",
+  "en": ", "
+ },
+ "recap.n_animals_moved_in": {
+  "text": {
+   "other": "{n} 匹の動物がやって来ました"
+  },
+  "en": {
+   "one": "{n} animal moved in",
+   "other": "{n} animals moved in"
+  }
+ },
+ "recap.n_days": {
+  "text": {
+   "other": "{n} 日"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "recap.n_days_studied": {
+  "text": {
+   "other": "学習した日 {n} 日"
+  },
+  "en": {
+   "one": "{n} day studied",
+   "other": "{n} days studied"
+  }
+ },
+ "recap.n_hours": {
+  "text": {
+   "other": "{n} 時間"
+  },
+  "en": {
+   "one": "{n} hour",
+   "other": "{n} hours"
+  }
+ },
+ "recap.n_minutes": {
+  "text": {
+   "other": "{n} 分"
+  },
+  "en": {
+   "one": "{n} minute",
+   "other": "{n} minutes"
+  }
+ },
+ "recap.n_more": {
+  "text": {
+   "other": "ほか {n}"
+  },
+  "en": {
+   "one": "+{n} more",
+   "other": "+{n} more"
+  }
+ },
+ "recap.n_new_cards": {
+  "text": {
+   "other": "新規カード {n} 枚"
+  },
+  "en": {
+   "one": "{n} new card",
+   "other": "{n} new cards"
+  }
+ },
+ "recap.n_reviews_in_time": {
+  "text": {
+   "other": "{time}で復習 {n} 回"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "recap.not_now": {
+  "text": "あとで",
+  "en": "Not now"
+ },
+ "recap.open": {
+  "text": "開く",
+  "en": "Open"
+ },
+ "recap.save_image": {
+  "text": "画像を保存",
+  "en": "Save image"
+ },
+ "recap.save_title": {
+  "text": "森で過ごした 1 年を保存",
+  "en": "Save your year in the forest"
+ },
+ "recap.saved": {
+  "text": "画像を保存しました",
+  "en": "Picture saved"
+ },
+ "recap.share_say": {
+  "text": "森、ヒートマップ、ベスト記録を1枚の画像に。保存やシェアに。",
+  "en": "Your forest, your heatmap and your bests in one picture, to keep or share."
+ },
+ "recap.skip": {
+  "text": "まとめへ",
+  "en": "Skip to summary"
+ },
+ "recap.that_was_your_year": {
+  "text": "これがあなたの {year} 年でした",
+  "en": "That was your {year}"
+ },
+ "recap.unit_days_studied": {
+  "text": {
+   "other": "日 学習"
+  },
+  "en": {
+   "one": "day studied",
+   "other": "days studied"
+  }
+ },
+ "recap.unit_hours": {
+  "text": {
+   "other": "時間"
+  },
+  "en": {
+   "one": "hour",
+   "other": "hours"
+  }
+ },
+ "recap.unit_minutes": {
+  "text": {
+   "other": "分"
+  },
+  "en": {
+   "one": "minute",
+   "other": "minutes"
+  }
+ },
+ "recap.unit_new_cards": {
+  "text": {
+   "other": "枚 新規カード"
+  },
+  "en": {
+   "one": "new card",
+   "other": "new cards"
+  }
+ },
+ "recap.unit_reviews": {
+  "text": {
+   "other": "回 復習"
+  },
+  "en": {
+   "one": "review",
+   "other": "reviews"
+  }
+ },
+ "recap.watch_again": {
+  "text": "もう一度見る",
+  "en": "Watch again"
+ },
+ "recap.your_best_of_year": {
+  "text": "{year} 年のベスト",
+  "en": "Your best of {year}"
+ },
+ "recap.your_rhythm": {
+  "text": "今年のあなたのリズム",
+  "en": "Your rhythm this year"
+ },
+ "recap.your_year_in_the_forest": {
+  "text": "森で過ごした 1 年",
+  "en": "Your year in the forest"
+ },
  "scene.after_the_rain": {
   "text": "雨上がり",
   "en": "After the rain"

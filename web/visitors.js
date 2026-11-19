@@ -281,8 +281,13 @@ AF.drawVisitors = function (g, env, t) {
     const spot = n => { const s = home + (rng((daySeed(env) + n * 7919 + i * 104729) >>> 0)() - 0.5) * 2 * roam; return aside(land.dryX ? land.dryX(env, s, baseY, home, roam) : s); };
     // (two spots the same, or all but, and it stays put rather than walking on the spot)
     const from = spot(k - 1), to = spot(k), dist = Math.abs(to - from), walk = dist / (WALK_SPEED * env.u);
-    const moving = !env.still && !AF.LOOP && ph < walk && dist >= 1, q = moving ? ph / walk : 1;
-    const x = from + (to - from) * q, gone = dist * q, dir = to >= from ? 1 : -1;
+    // eslint-disable-next-line prefer-const -- (the year's recap's walk-in sets it, below)
+    let moving = !env.still && !AF.LOOP && ph < walk && dist >= 1, q = moving ? ph / walk : 1;
+    let x = from + (to - from) * q, gone = dist * q, dir = to >= from ? 1 : -1;
+    // (the year's recap: an animal of that year walking in from the scene's edge, web/recap.js)
+    const walking = AF.recapWalk && AF.recapWalk(env, v, x, t);
+    if (walking && walking.hide) return;
+    if (walking) { x = walking.x; gone = walking.gone; dir = walking.dir; moving = true; }
     const stride = Math.max(1, spr.frames[0][0].length * STRIDE);
     let frame = spr.frames[moving ? Math.floor(gone / stride) % spr.frames.length : (Math.sin(t * AF.u.cyc(0.7) + i * 2.1) > IDLE_GLANCE ? spr.frames.length - 1 : 0)], dy = 0;
     // a rabbit hops rather than walks: each hop a fixed length of ground, the last one shorter

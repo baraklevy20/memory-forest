@@ -11,7 +11,7 @@ from aqt.deckbrowser import DeckBrowser
 from aqt.overview import Overview
 from aqt.utils import tooltip
 
-from . import answer_column, bars, events_state, marks, news, payload, study_log
+from . import answer_column, bars, events_state, marks, news, payload, recap_actions, study_log
 from .i18n import N_, t, tn, tx
 from .panel import hold_shortcuts, refresh
 from .phone import publish as publish_for_phone
@@ -187,6 +187,8 @@ def on_js_message(handled, message, context):
             news.mark_seen([cmd[2]])
             if cmd[1] == "open":
                 open_settings(news.opens(cmd[2]))
+        elif cmd[0] == "recap":  # the year's look back (web/recap.js): its card answered, its picture saved
+            recap_actions.handle(message)
         elif cmd[0] == "struck" and len(cmd) > 1:
             events_state.mark_seen(":".join(cmd[1:]))
         elif cmd[0] == "strike" and len(cmd) > 1:  # a replay asks for the forest it took

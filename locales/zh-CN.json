@@ -1995,6 +1995,301 @@
   "text": "霓虹网格一直延伸到地平线，条纹太阳立在上面。",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.best_day": {
+  "text": "最佳一天",
+  "en": "Best day"
+ },
+ "recap.best_month": {
+  "text": "最佳月份",
+  "en": "Best month"
+ },
+ "recap.best_streak": {
+  "text": "最长连续学习",
+  "en": "Best streak"
+ },
+ "recap.card_text": {
+  "text": "回顾您的一年：您的森林、热力图，还有来过的动物。",
+  "en": "A look back at your year: your forest, your heatmap and the animals that came."
+ },
+ "recap.card_text_no_animals": {
+  "text": "回顾您的一年：您的森林、热力图和最好的日子。",
+  "en": "A look back at your year: your forest, your heatmap and your best days."
+ },
+ "recap.card_title": {
+  "text": "您在森林里的 {year} 年",
+  "en": "Your {year} in the forest"
+ },
+ "recap.close": {
+  "text": "关闭",
+  "en": "Close"
+ },
+ "recap.could_not_save": {
+  "text": "无法将图片保存到那里。",
+  "en": "The picture could not be saved there."
+ },
+ "recap.finished_many": {
+  "text": {
+   "other": "您学完了 {n} 个牌组中的所有卡片：{decks}。"
+  },
+  "en": {
+   "one": "You learned every card in {n} deck: {decks}.",
+   "other": "You learned every card in {n} decks: {decks}."
+  }
+ },
+ "recap.finished_one": {
+  "text": "您学完了 {deck} 中的所有卡片。",
+  "en": "You learned every card in {deck}."
+ },
+ "recap.first_day": {
+  "text": "第一天",
+  "en": "First day"
+ },
+ "recap.from_to": {
+  "text": "{first} 至 {last}",
+  "en": "{first} to {last}"
+ },
+ "recap.hint": {
+  "text": "点击继续",
+  "en": "Click to continue"
+ },
+ "recap.label_comeback": {
+  "text": "回归的园丁",
+  "en": "The comeback gardener"
+ },
+ "recap.label_comeback_line": {
+  "text": "您在{month}回来了，并一直坚持下去。",
+  "en": "You came back in {month} and kept going."
+ },
+ "recap.label_new": {
+  "text": "新园丁",
+  "en": "The new gardener"
+ },
+ "recap.label_new_line": {
+  "text": "您在{date}种下第一棵树，之后一次次回来。",
+  "en": "You planted your first tree on {date}, and kept coming back."
+ },
+ "recap.label_new_line_one": {
+  "text": "您在{date}种下了第一棵树。",
+  "en": "You planted your first tree on {date}."
+ },
+ "recap.label_patient": {
+  "text": "耐心的园丁",
+  "en": "The patient gardener"
+ },
+ "recap.label_patient_line": {
+  "text": "您一次又一次回到您的森林。",
+  "en": "You came back to your forest again and again."
+ },
+ "recap.label_quiet": {
+  "text": "安静的园丁",
+  "en": "The quiet gardener"
+ },
+ "recap.label_quiet_line": {
+  "text": "您的森林一直在等您，您回来了。",
+  "en": "Your forest waited for you, and you came back."
+ },
+ "recap.label_season": {
+  "text": "季节园丁",
+  "en": "The seasonal gardener"
+ },
+ "recap.label_season_line": {
+  "text": "{month}是您森林的季节。",
+  "en": "{month} was your forest's season."
+ },
+ "recap.label_season_line_days": {
+  "text": {
+   "other": "{month}是您森林的季节：您学习了其中 {n} 天。"
+  },
+  "en": {
+   "one": "{month} was your forest's season: you studied {n} of its days.",
+   "other": "{month} was your forest's season: you studied {n} of its days."
+  }
+ },
+ "recap.label_steady": {
+  "text": "稳定的园丁",
+  "en": "The steady gardener"
+ },
+ "recap.label_steady_line": {
+  "text": "日复一日，您的森林不断生长。",
+  "en": "Day in, day out, your forest grew."
+ },
+ "recap.label_weekly": {
+  "text": "每周园丁",
+  "en": "The weekly gardener"
+ },
+ "recap.label_weekly_line": {
+  "text": "一周又一周，在同样的几天里，您的森林不断生长。",
+  "en": "Week after week, on the same few days, your forest grew."
+ },
+ "recap.list_sep": {
+  "text": "、",
+  "en": ", "
+ },
+ "recap.n_animals_moved_in": {
+  "text": {
+   "other": "{n} 只动物住了进来"
+  },
+  "en": {
+   "one": "{n} animal moved in",
+   "other": "{n} animals moved in"
+  }
+ },
+ "recap.n_days": {
+  "text": {
+   "other": "{n} 天"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "recap.n_days_studied": {
+  "text": {
+   "other": "学习了 {n} 天"
+  },
+  "en": {
+   "one": "{n} day studied",
+   "other": "{n} days studied"
+  }
+ },
+ "recap.n_hours": {
+  "text": {
+   "other": "{n} 小时"
+  },
+  "en": {
+   "one": "{n} hour",
+   "other": "{n} hours"
+  }
+ },
+ "recap.n_minutes": {
+  "text": {
+   "other": "{n} 分钟"
+  },
+  "en": {
+   "one": "{n} minute",
+   "other": "{n} minutes"
+  }
+ },
+ "recap.n_more": {
+  "text": {
+   "other": "还有 {n} 个"
+  },
+  "en": {
+   "one": "+{n} more",
+   "other": "+{n} more"
+  }
+ },
+ "recap.n_new_cards": {
+  "text": {
+   "other": "{n} 张新卡片"
+  },
+  "en": {
+   "one": "{n} new card",
+   "other": "{n} new cards"
+  }
+ },
+ "recap.n_reviews_in_time": {
+  "text": {
+   "other": "{time}内复习 {n} 次"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "recap.not_now": {
+  "text": "以后再说",
+  "en": "Not now"
+ },
+ "recap.open": {
+  "text": "打开",
+  "en": "Open"
+ },
+ "recap.save_image": {
+  "text": "保存图片",
+  "en": "Save image"
+ },
+ "recap.save_title": {
+  "text": "保存您在森林里的一年",
+  "en": "Save your year in the forest"
+ },
+ "recap.saved": {
+  "text": "图片已保存",
+  "en": "Picture saved"
+ },
+ "recap.share_say": {
+  "text": "您的森林、热力图和最佳记录，合成一张图片，可保存或分享。",
+  "en": "Your forest, your heatmap and your bests in one picture, to keep or share."
+ },
+ "recap.skip": {
+  "text": "跳到总结",
+  "en": "Skip to summary"
+ },
+ "recap.that_was_your_year": {
+  "text": "这就是您的 {year} 年",
+  "en": "That was your {year}"
+ },
+ "recap.unit_days_studied": {
+  "text": {
+   "other": "天学习"
+  },
+  "en": {
+   "one": "day studied",
+   "other": "days studied"
+  }
+ },
+ "recap.unit_hours": {
+  "text": {
+   "other": "小时"
+  },
+  "en": {
+   "one": "hour",
+   "other": "hours"
+  }
+ },
+ "recap.unit_minutes": {
+  "text": {
+   "other": "分钟"
+  },
+  "en": {
+   "one": "minute",
+   "other": "minutes"
+  }
+ },
+ "recap.unit_new_cards": {
+  "text": {
+   "other": "张新卡片"
+  },
+  "en": {
+   "one": "new card",
+   "other": "new cards"
+  }
+ },
+ "recap.unit_reviews": {
+  "text": {
+   "other": "次复习"
+  },
+  "en": {
+   "one": "review",
+   "other": "reviews"
+  }
+ },
+ "recap.watch_again": {
+  "text": "再看一遍",
+  "en": "Watch again"
+ },
+ "recap.your_best_of_year": {
+  "text": "您 {year} 年的最佳",
+  "en": "Your best of {year}"
+ },
+ "recap.your_rhythm": {
+  "text": "您今年的节奏",
+  "en": "Your rhythm this year"
+ },
+ "recap.your_year_in_the_forest": {
+  "text": "您在森林里的一年",
+  "en": "Your year in the forest"
+ },
  "scene.after_the_rain": {
   "text": "雨后",
   "en": "After the rain"

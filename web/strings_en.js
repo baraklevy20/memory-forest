@@ -450,6 +450,104 @@ window.AnkiForest.EN = {
  "phone.yesterday": "yesterday",
  "phone.your_forest_arrives_with_the_next": "Your forest arrives with the next sync from Anki on your computer.",
  "phone.your_forest_is_on_its_way": "Your forest is on its way: sync once more to fetch its drawing.",
+ "recap.best_day": "Best day",
+ "recap.best_month": "Best month",
+ "recap.best_streak": "Best streak",
+ "recap.card_text": "A look back at your year: your forest, your heatmap and the animals that came.",
+ "recap.card_text_no_animals": "A look back at your year: your forest, your heatmap and your best days.",
+ "recap.card_title": "Your {year} in the forest",
+ "recap.close": "Close",
+ "recap.finished_many": {
+  "one": "You learned every card in {n} deck: {decks}.",
+  "other": "You learned every card in {n} decks: {decks}."
+ },
+ "recap.finished_one": "You learned every card in {deck}.",
+ "recap.first_day": "First day",
+ "recap.from_to": "{first} to {last}",
+ "recap.hint": "Click to continue",
+ "recap.label_comeback": "The comeback gardener",
+ "recap.label_comeback_line": "You came back in {month} and kept going.",
+ "recap.label_new": "The new gardener",
+ "recap.label_new_line": "You planted your first tree on {date}, and kept coming back.",
+ "recap.label_new_line_one": "You planted your first tree on {date}.",
+ "recap.label_patient": "The patient gardener",
+ "recap.label_patient_line": "You came back to your forest again and again.",
+ "recap.label_quiet": "The quiet gardener",
+ "recap.label_quiet_line": "Your forest waited for you, and you came back.",
+ "recap.label_season": "The seasonal gardener",
+ "recap.label_season_line": "{month} was your forest's season.",
+ "recap.label_season_line_days": {
+  "one": "{month} was your forest's season: you studied {n} of its days.",
+  "other": "{month} was your forest's season: you studied {n} of its days."
+ },
+ "recap.label_steady": "The steady gardener",
+ "recap.label_steady_line": "Day in, day out, your forest grew.",
+ "recap.label_weekly": "The weekly gardener",
+ "recap.label_weekly_line": "Week after week, on the same few days, your forest grew.",
+ "recap.list_sep": ", ",
+ "recap.n_animals_moved_in": {
+  "one": "{n} animal moved in",
+  "other": "{n} animals moved in"
+ },
+ "recap.n_days": {
+  "one": "{n} day",
+  "other": "{n} days"
+ },
+ "recap.n_days_studied": {
+  "one": "{n} day studied",
+  "other": "{n} days studied"
+ },
+ "recap.n_hours": {
+  "one": "{n} hour",
+  "other": "{n} hours"
+ },
+ "recap.n_minutes": {
+  "one": "{n} minute",
+  "other": "{n} minutes"
+ },
+ "recap.n_more": {
+  "one": "+{n} more",
+  "other": "+{n} more"
+ },
+ "recap.n_new_cards": {
+  "one": "{n} new card",
+  "other": "{n} new cards"
+ },
+ "recap.n_reviews_in_time": {
+  "one": "{n} review in {time}",
+  "other": "{n} reviews in {time}"
+ },
+ "recap.not_now": "Not now",
+ "recap.open": "Open",
+ "recap.save_image": "Save image",
+ "recap.saved": "Picture saved",
+ "recap.share_say": "Your forest, your heatmap and your bests in one picture, to keep or share.",
+ "recap.skip": "Skip to summary",
+ "recap.that_was_your_year": "That was your {year}",
+ "recap.unit_days_studied": {
+  "one": "day studied",
+  "other": "days studied"
+ },
+ "recap.unit_hours": {
+  "one": "hour",
+  "other": "hours"
+ },
+ "recap.unit_minutes": {
+  "one": "minute",
+  "other": "minutes"
+ },
+ "recap.unit_new_cards": {
+  "one": "new card",
+  "other": "new cards"
+ },
+ "recap.unit_reviews": {
+  "one": "review",
+  "other": "reviews"
+ },
+ "recap.watch_again": "Watch again",
+ "recap.your_best_of_year": "Your best of {year}",
+ "recap.your_rhythm": "Your rhythm this year",
+ "recap.your_year_in_the_forest": "Your year in the forest",
  "tooltip.a_big_learning_day_n_new": {
   "one": "<b>A big learning day</b>: {n} new card, up from {usual}",
   "other": "<b>A big learning day</b>: {n} new cards, up from {usual}"

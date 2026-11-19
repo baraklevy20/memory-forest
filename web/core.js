@@ -36,6 +36,7 @@ AF.mount = function (root, data, opts) {
     AF.panelWidth(root, data);
     AF.arrange(root, data);
     AF.calendar(root, data, null);
+    if (AF.recap) AF.recap(root, data);  // (the year's look back: its link under the heatmap, web/recap.js)
     return;
   }
   const animate = animates(data);
@@ -282,6 +283,8 @@ AF.mount = function (root, data, opts) {
   };
   root.afOnWindow = onWindow;
   window.addEventListener('resize', onWindow);
+  // (drawn again at once, on the page's own change: the year's recap's animals coming in)
+  root.afRebuild = () => { if (current() && env) { build(); frame(animate ? performance.now() : stillAt); } };
   // build after the deck list has painted, so the forest never delays it - unless this is a
   // swap, where the old forest was just cleared and waiting would show an empty panel
   if (opts && opts.now) { lastW = sceneEl.clientWidth; start(); return; }

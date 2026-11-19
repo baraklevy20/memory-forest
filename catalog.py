@@ -20,7 +20,7 @@ KINDS = ("envs", "landscapes", "landmarks")
 # engine uses the parts before it. The panel, the render checks and the gallery all load these.
 SCRIPTS = (
     "util.js", "i18n.js", "strings_en.js", "layout.js", "scenery.js", "theme.js", "visitors.js", "ponds.js", "tooltips.js",
-    "caption.js", "news.js", "hover.js", "visit.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
+    "caption.js", "news.js", "recap.js", "hover.js", "visit.js", "core.js", "effects.js", "effects/weather.js", "effects/ambience.js",
     "engines/pixel/trees.js", "engines/pixel/sky.js", "engines/pixel/ground.js",
     "engines/pixel/water.js", "engines/pixel/engine.js",
     # the study heatmap, each part using the ones before it; the last, AF.calendar, puts them together

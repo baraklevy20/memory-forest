@@ -8,6 +8,7 @@ const { esc, send } = AF.u;
 
 AF.news = function (root, data) {
   if (!data.inAnki) return;
+  if (AF.recap) AF.recap(root, data);  // (the year's look back, web/recap.js: its card, or its caption's link)
   const cog = root.querySelector('.af-cog');
   if (cog && data.newDot) {
     cog.classList.add('af-cog-new');
@@ -18,6 +19,9 @@ AF.news = function (root, data) {
   }
   const n = data.news, scene = root.querySelector('.af-scene');
   if (!n || !scene) return;  // (the calendar alone: no forest to put a note on)
+  // (the year's recap has the corner: the note waits till it's answered)
+  const corner = root.afTipLayer || scene;
+  if (corner.querySelector && corner.querySelector('.af-recap-entry')) return;
   const card = document.createElement('div');
   card.className = 'af-news';
   // (its title and text in their own direction: a note is English, as the release notes are, and in

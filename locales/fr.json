@@ -2087,6 +2087,316 @@
   "text": "La grille de néon qui file jusqu’à l’horizon, et le soleil rayé posé dessus.",
   "en": "The neon grid running to the horizon, and the banded sun standing on it."
  },
+ "recap.best_day": {
+  "text": "Meilleur jour",
+  "en": "Best day"
+ },
+ "recap.best_month": {
+  "text": "Meilleur mois",
+  "en": "Best month"
+ },
+ "recap.best_streak": {
+  "text": "Meilleure série",
+  "en": "Best streak"
+ },
+ "recap.card_text": {
+  "text": "Un regard sur votre année : votre forêt, votre carte de chaleur et les animaux venus.",
+  "en": "A look back at your year: your forest, your heatmap and the animals that came."
+ },
+ "recap.card_text_no_animals": {
+  "text": "Un regard sur votre année : votre forêt, votre carte de chaleur et vos meilleurs jours.",
+  "en": "A look back at your year: your forest, your heatmap and your best days."
+ },
+ "recap.card_title": {
+  "text": "Votre année {year} dans la forêt",
+  "en": "Your {year} in the forest"
+ },
+ "recap.close": {
+  "text": "Fermer",
+  "en": "Close"
+ },
+ "recap.could_not_save": {
+  "text": "L’image n’a pas pu être enregistrée à cet endroit.",
+  "en": "The picture could not be saved there."
+ },
+ "recap.finished_many": {
+  "text": {
+   "one": "Vous avez appris toutes les cartes de {n} paquet : {decks}.",
+   "other": "Vous avez appris toutes les cartes de {n} paquets : {decks}."
+  },
+  "en": {
+   "one": "You learned every card in {n} deck: {decks}.",
+   "other": "You learned every card in {n} decks: {decks}."
+  }
+ },
+ "recap.finished_one": {
+  "text": "Vous avez appris toutes les cartes de {deck}.",
+  "en": "You learned every card in {deck}."
+ },
+ "recap.first_day": {
+  "text": "Premier jour",
+  "en": "First day"
+ },
+ "recap.from_to": {
+  "text": "Du {first} au {last}",
+  "en": "{first} to {last}"
+ },
+ "recap.hint": {
+  "text": "Cliquez pour continuer",
+  "en": "Click to continue"
+ },
+ "recap.label_comeback": {
+  "text": "Le retour au jardin",
+  "en": "The comeback gardener"
+ },
+ "recap.label_comeback_line": {
+  "text": "Vous êtes revenu en {month}, et vous avez continué.",
+  "en": "You came back in {month} and kept going."
+ },
+ "recap.label_new": {
+  "text": "Un nouveau jardin",
+  "en": "The new gardener"
+ },
+ "recap.label_new_line": {
+  "text": "Votre premier arbre a poussé le {date}, et d’autres ont suivi.",
+  "en": "You planted your first tree on {date}, and kept coming back."
+ },
+ "recap.label_new_line_one": {
+  "text": "Votre premier arbre a poussé le {date}.",
+  "en": "You planted your first tree on {date}."
+ },
+ "recap.label_patient": {
+  "text": "Le jardin patient",
+  "en": "The patient gardener"
+ },
+ "recap.label_patient_line": {
+  "text": "Votre forêt vous a revu, encore et encore.",
+  "en": "You came back to your forest again and again."
+ },
+ "recap.label_quiet": {
+  "text": "Le jardin tranquille",
+  "en": "The quiet gardener"
+ },
+ "recap.label_quiet_line": {
+  "text": "Votre forêt a attendu votre retour, et il est venu.",
+  "en": "Your forest waited for you, and you came back."
+ },
+ "recap.label_season": {
+  "text": "Le jardin d’une saison",
+  "en": "The seasonal gardener"
+ },
+ "recap.label_season_line": {
+  "text": "La saison de votre forêt : {month}.",
+  "en": "{month} was your forest's season."
+ },
+ "recap.label_season_line_days": {
+  "text": {
+   "one": "La saison de votre forêt : {month}, avec {n} jour d’étude.",
+   "other": "La saison de votre forêt : {month}, avec {n} jours d’étude."
+  },
+  "en": {
+   "one": "{month} was your forest's season: you studied {n} of its days.",
+   "other": "{month} was your forest's season: you studied {n} of its days."
+  }
+ },
+ "recap.label_steady": {
+  "text": "Le jardin de tous les jours",
+  "en": "The steady gardener"
+ },
+ "recap.label_steady_line": {
+  "text": "Jour après jour, votre forêt a grandi.",
+  "en": "Day in, day out, your forest grew."
+ },
+ "recap.label_weekly": {
+  "text": "Le jardin de chaque semaine",
+  "en": "The weekly gardener"
+ },
+ "recap.label_weekly_line": {
+  "text": "Semaine après semaine, les mêmes quelques jours, votre forêt a grandi.",
+  "en": "Week after week, on the same few days, your forest grew."
+ },
+ "recap.list_sep": {
+  "text": ", ",
+  "en": ", "
+ },
+ "recap.n_animals_moved_in": {
+  "text": {
+   "one": "{n} animal s’est installé",
+   "other": "{n} animaux se sont installés"
+  },
+  "en": {
+   "one": "{n} animal moved in",
+   "other": "{n} animals moved in"
+  }
+ },
+ "recap.n_days": {
+  "text": {
+   "one": "{n} jour",
+   "other": "{n} jours"
+  },
+  "en": {
+   "one": "{n} day",
+   "other": "{n} days"
+  }
+ },
+ "recap.n_days_studied": {
+  "text": {
+   "one": "{n} jour d’étude",
+   "other": "{n} jours d’étude"
+  },
+  "en": {
+   "one": "{n} day studied",
+   "other": "{n} days studied"
+  }
+ },
+ "recap.n_hours": {
+  "text": {
+   "one": "{n} heure",
+   "other": "{n} heures"
+  },
+  "en": {
+   "one": "{n} hour",
+   "other": "{n} hours"
+  }
+ },
+ "recap.n_minutes": {
+  "text": {
+   "one": "{n} minute",
+   "other": "{n} minutes"
+  },
+  "en": {
+   "one": "{n} minute",
+   "other": "{n} minutes"
+  }
+ },
+ "recap.n_more": {
+  "text": {
+   "one": "+{n} autre",
+   "other": "+{n} autres"
+  },
+  "en": {
+   "one": "+{n} more",
+   "other": "+{n} more"
+  }
+ },
+ "recap.n_new_cards": {
+  "text": {
+   "one": "{n} nouvelle carte",
+   "other": "{n} nouvelles cartes"
+  },
+  "en": {
+   "one": "{n} new card",
+   "other": "{n} new cards"
+  }
+ },
+ "recap.n_reviews_in_time": {
+  "text": {
+   "one": "{n} révision en {time}",
+   "other": "{n} révisions en {time}"
+  },
+  "en": {
+   "one": "{n} review in {time}",
+   "other": "{n} reviews in {time}"
+  }
+ },
+ "recap.not_now": {
+  "text": "Plus tard",
+  "en": "Not now"
+ },
+ "recap.open": {
+  "text": "Ouvrir",
+  "en": "Open"
+ },
+ "recap.save_image": {
+  "text": "Enregistrer l’image",
+  "en": "Save image"
+ },
+ "recap.save_title": {
+  "text": "Enregistrer votre année dans la forêt",
+  "en": "Save your year in the forest"
+ },
+ "recap.saved": {
+  "text": "Image enregistrée",
+  "en": "Picture saved"
+ },
+ "recap.share_say": {
+  "text": "Votre forêt, votre carte de chaleur et vos records en une image, à garder ou à partager.",
+  "en": "Your forest, your heatmap and your bests in one picture, to keep or share."
+ },
+ "recap.skip": {
+  "text": "Aller au résumé",
+  "en": "Skip to summary"
+ },
+ "recap.that_was_your_year": {
+  "text": "Voilà votre année {year}",
+  "en": "That was your {year}"
+ },
+ "recap.unit_days_studied": {
+  "text": {
+   "one": "jour d’étude",
+   "other": "jours d’étude"
+  },
+  "en": {
+   "one": "day studied",
+   "other": "days studied"
+  }
+ },
+ "recap.unit_hours": {
+  "text": {
+   "one": "heure",
+   "other": "heures"
+  },
+  "en": {
+   "one": "hour",
+   "other": "hours"
+  }
+ },
+ "recap.unit_minutes": {
+  "text": {
+   "one": "minute",
+   "other": "minutes"
+  },
+  "en": {
+   "one": "minute",
+   "other": "minutes"
+  }
+ },
+ "recap.unit_new_cards": {
+  "text": {
+   "one": "nouvelle carte",
+   "other": "nouvelles cartes"
+  },
+  "en": {
+   "one": "new card",
+   "other": "new cards"
+  }
+ },
+ "recap.unit_reviews": {
+  "text": {
+   "one": "révision",
+   "other": "révisions"
+  },
+  "en": {
+   "one": "review",
+   "other": "reviews"
+  }
+ },
+ "recap.watch_again": {
+  "text": "Revoir",
+  "en": "Watch again"
+ },
+ "recap.your_best_of_year": {
+  "text": "Vos meilleurs moments de {year}",
+  "en": "Your best of {year}"
+ },
+ "recap.your_rhythm": {
+  "text": "Votre rythme cette année",
+  "en": "Your rhythm this year"
+ },
+ "recap.your_year_in_the_forest": {
+  "text": "Votre année dans la forêt",
+  "en": "Your year in the forest"
+ },
  "scene.after_the_rain": {
   "text": "Après la pluie",
   "en": "After the rain"

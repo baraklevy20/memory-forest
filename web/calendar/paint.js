@@ -90,7 +90,7 @@ function paint(H, win, sp, paper) {
     // Cherry blossom's tiles was lost)
     drawAnimal(g, Object.assign({}, spr, { pal: markPalOf(sp, H.look) }), x0, y0, null, paper.bg);
   }
-  const today = cells.find(c => c.o === 0);
+  const today = H.noToday ? null : cells.find(c => c.o === 0);
   const todayIn = today && !smooth ? shapeIn(today) : null;
   if (todayIn) shapedFrame(g, todayIn, today, STATE.CELL, dark, paper.bg);
   else if (today && !smooth) frame(g, today.x, today.y, TILE, dark, paper.bg);
