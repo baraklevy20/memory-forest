@@ -11,6 +11,7 @@ checks that the pixels have not changed.
     python3 e2e/render_check.py compare        # ... and check them later
     python3 e2e/render_check.py compare --quick  # a subset, when you are in a hurry
     python3 e2e/render_check.py baseline --only bamboo  # just the scenes that use it
+    python3 e2e/render_check.py smoke --shard 2/4  # every fourth scene, from the second (CI)
 
 --only takes one or more environments, landscapes or landmarks, or heatmap (comma-separated), and keeps
 the scenes that use any of them: `--only bamboo` is its preset and every hour,
@@ -22,6 +23,10 @@ view, By year with its earlier years hidden, shown and all, on a dark and a ligh
 drawing, each one checks what broke in October 2026 without a picture changing: the room kept
 before it draws is the room it takes (else the panel jumps), and a day, a shade in the key and a
 trophy each answer the pointer with their tooltip.
+
+--shard K/N keeps every Nth scene starting at the Kth, so N runners can split a sweep; neighbouring
+scenes share a preset, so dealing them out like cards keeps the shards about as slow as each other.
+A sharded baseline would drop the other shards' hashes, so --shard is for smoke and compare only.
 
 Needs Chrome. Scenes render three at a time; the full sweep takes a few minutes.
 """
@@ -97,6 +102,13 @@ def main() -> None:
                  or ("heatmap" in only and "heatmap" in c[1])]
         if not cases:
             sys.exit(f"no scene uses {', '.join(sorted(only))}")
+    if "--shard" in sys.argv:
+        k, n = map(int, sys.argv[sys.argv.index("--shard") + 1].split("/"))
+        if not 1 <= k <= n:
+            sys.exit(f"--shard {k}/{n}: K runs from 1 to N")
+        if what == "baseline":
+            sys.exit("--shard would drop the other shards' hashes from the baseline")
+        cases = cases[k - 1::n]
     print(f"{len(cases)} scenes\n")
     results = run(cases)
     bad = {k: v for k, v in results.items() if failed(v)}

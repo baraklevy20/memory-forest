@@ -74,11 +74,33 @@ jobs:
           timeout_minutes: 30
           command: python3 -m unittest discover -s tests -p 'test_settings_dialog*.py' -v
 
-  # the render checks, and the phone, heatmap, page, Onigiri and layout checks (e2e/phone_check.py,
-  # e2e/heatmap_check.py, e2e/page_check.py, e2e/onigiri_check.py, e2e/layout_check.py),
-  # which drive the runner's Chrome through node: `npm test` runs those only when their files
-  # changed, which a fresh checkout cannot tell, so here they always run
+  # the render sweep, dealt out to four runners (e2e/render_check.py --shard): on one it took 20 minutes
   render:
+    name: Render ${{ matrix.shard }}/4
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      CHROME: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60  # v4.0.0
+        with:
+          max_attempts: 3
+          timeout_minutes: 60
+          command: npm run ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'render' || 'render:quick' }} -- --shard ${{ matrix.shard }}/4
+
+  # the phone, heatmap, page, Onigiri and layout checks (e2e/phone_check.py, e2e/heatmap_check.py,
+  # e2e/page_check.py, e2e/onigiri_check.py, e2e/layout_check.py), which drive the runner's Chrome
+  # through node: `npm test` runs those only when their files changed, which a fresh checkout
+  # cannot tell, so here they always run
+  browser:
+    name: Browser checks
     runs-on: ubuntu-24.04
     env:
       CHROME: /usr/bin/google-chrome
@@ -91,11 +113,6 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60  # v4.0.0
-        with:
-          max_attempts: 3
-          timeout_minutes: 60
-          command: npm run ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && 'render' || 'render:quick' }}
       - uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60  # v4.0.0
         with:
           max_attempts: 3
