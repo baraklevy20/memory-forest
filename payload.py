@@ -9,7 +9,21 @@ from types import SimpleNamespace
 
 from aqt import mw
 
-from . import events_state, forest_data, heatmap_look, i18n, journal, live_weather, marks, milestones, news, presets, scene, study_log
+from . import (
+    events_state,
+    forest_data,
+    heatmap_look,
+    i18n,
+    journal,
+    live_weather,
+    marks,
+    milestones,
+    news,
+    presets,
+    scene,
+    study_log,
+    year_log,
+)
 from .edition import debug_available, debug_edition, language
 from .phone_note import phone_cards
 from .recap import finished as finished_decks
@@ -240,6 +254,7 @@ def payload(did: int | None = None, highlight: bool = False, show_forest: bool =
     day = scenery_day(cfg)  # today, or the debug date: the scenery is chosen for it
     mood = scene.choose_mood(cfg, _dt.datetime.combine(day, now.time()), real, place)
     evs = scene.events(forest["stats"], today, new_ancient)
+    _log_day(cfg, day, today, mood, forest, test, did)
     calendar = _calendar(forest, all_trees, cfg, test, changed, did, highlight)
 
     # the year's look back, from Dec 7 to Jan 15 (recap.py, web/recap.js): on the deck list only (its
@@ -570,6 +585,17 @@ def _finished_decks(year: int, cutoff: int, excluded: set) -> list:
         day = lambda ms: study_log.day_date((cutoff - 1 - ms // 1000) // study_log.DAY_SECS, cutoff)  # noqa: E731
         _finished_cache.update(key=key, value=finished_decks(rows, names, year, day, frozenset(excluded)))
     return _finished_cache["value"]
+
+
+def _log_day(cfg: dict, day: _dt.date, today: _dt.date, mood: dict, forest: dict, test: bool, did) -> None:
+    """Today's scenery and real weather kept for next year's recap (year_log.py): the deck list's
+    forest only, on a day you studied, never the test forest's or a debug date's."""
+    if test or did or not forest["stats"].get("today_reviews") or day != _dt.date.today():
+        return
+    try:
+        year_log.record(mw.col, cfg, today, mood, shown=day)  # (Anki's day; the scenery chosen for the date)
+    except Exception as e:  # (never in the way of drawing the forest)
+        log(f"could not keep the day for next year's recap: {e}")
 
 
 def _with_look(cal: dict | None, cfg: dict, mood: dict) -> dict | None:
