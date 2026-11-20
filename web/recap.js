@@ -129,7 +129,10 @@ AF.recap = function (root, data) {
 /* ---------- the dialog ---------- */
 let current = null;  // the open recap, if any
 
-/* Anki saved the picture (recap_actions.save): its button says so, the file's name under it */
+/* Anki saved the picture (recap_actions.save): its button says so, the file's name under it.
+   (Anki tells the page with a "memory-forest-recap-saved" event on the document, the name in its detail:
+   window.AnkiForest is let go once the page has loaded, web/forest.js, so a call on it never arrived) */
+document.addEventListener('memory-forest-recap-saved', e => AF.recapSaved(e.detail));
 AF.recapSaved = function (name) {
   const b = current && current.box.querySelector('.af-recap-save');
   if (!b) return;

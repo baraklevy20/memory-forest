@@ -37,9 +37,16 @@ def handle(message: str) -> None:
 def default_path(year: int) -> str:
     """Where the save dialog starts: the Pictures folder (else home), memory-forest-2026.png."""
     # (an older PyQt5 has no StandardLocation scope: QStandardPaths.PicturesLocation there)
-    where = getattr(getattr(QStandardPaths, "StandardLocation", QStandardPaths), "PicturesLocation")
+    where = getattr(QStandardPaths, "StandardLocation", QStandardPaths).PicturesLocation
     folder = QStandardPaths.writableLocation(where) or os.path.expanduser("~")
     return os.path.join(folder, f"memory-forest-{year}.png")
+
+
+def saved_js(name: str | None) -> str:
+    """What tells the page the picture was saved under `name` (None: it couldn't be): an event on the
+    document, which web/recap.js listens for (window.AnkiForest is gone once the page has loaded)."""
+    return ("document.dispatchEvent(new CustomEvent('memory-forest-recap-saved', "
+            f"{{detail: {json.dumps(name)}}}))")
 
 
 def save(year: int, png: bytes) -> str:
@@ -61,12 +68,12 @@ def save(year: int, png: bytes) -> str:
         tooltip(t("recap.could_not_save"))
         web = getattr(getattr(mw, "deckBrowser", None), "web", None)
         if web is not None and hasattr(web, "eval"):
-            web.eval("window.AnkiForest && AnkiForest.recapSaved && AnkiForest.recapSaved(null)")
+            web.eval(saved_js(None))
         return ""
     # (the page's button says so, the file's name under it; a tooltip had it in the window's corner)
     web = getattr(getattr(mw, "deckBrowser", None), "web", None)
     if web is not None and hasattr(web, "eval"):
-        web.eval(f"window.AnkiForest && AnkiForest.recapSaved && AnkiForest.recapSaved({json.dumps(os.path.basename(path))})")
+        web.eval(saved_js(os.path.basename(path)))
     else:
         tooltip(t("recap.saved"))
     return path

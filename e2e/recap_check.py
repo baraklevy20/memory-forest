@@ -29,7 +29,8 @@ from phone_check import CHROME, forest_page, phone_changed
 
 recap = importlib.import_module(fake_anki.PACKAGE + ".recap")
 heatmap_look = importlib.import_module(fake_anki.PACKAGE + ".heatmap_look")
-RECAP_FILES = ("web/recap.js", "recap.py", "web/news.js", "web/visitors.js", "web/calendar/draw.js", "e2e/recap_check.py", "e2e/recap_check.mjs")
+recap_actions = importlib.import_module(fake_anki.PACKAGE + ".recap_actions")
+RECAP_FILES = ("web/recap.js", "recap.py", "recap_actions.py", "web/news.js", "web/visitors.js", "web/calendar/draw.js", "e2e/recap_check.py", "e2e/recap_check.mjs")
 END = dt.date(2026, 12, 31)
 
 
@@ -99,7 +100,9 @@ def main() -> int:
                 f.write(html)
         manifest = os.path.join(tmp, "pages.json")
         with open(manifest, "w", encoding="utf-8") as f:
-            json.dump({"pages": files, "shots": opts.shots or ""}, f)
+            # (Anki's own words to the page once the picture is saved, and once it couldn't be)
+            json.dump({"pages": files, "shots": opts.shots or "",
+                       "saved": recap_actions.saved_js("memory-forest-2026.png"), "unsaved": recap_actions.saved_js(None)}, f)
         run = subprocess.run(["node", os.path.join(HERE, "recap_check.mjs"), manifest, CHROME], capture_output=True, text=True, cwd=ROOT, timeout=600)
     print(run.stdout + run.stderr)
     return 0 if run.returncode == 0 else 1

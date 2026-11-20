@@ -4,7 +4,7 @@ import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 
 const [manifest, chrome] = process.argv.slice(2);
-const { pages, shots } = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+const { pages, shots, saved: savedJs, unsaved: unsavedJs } = JSON.parse(fs.readFileSync(manifest, 'utf8'));
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const failures = [];
 const expect = (ok, what) => { if (!ok) failures.push(what); };
@@ -90,6 +90,12 @@ try {
       expect(png.readUInt32BE(16) === 1080 && png.readUInt32BE(20) === 1350, `${name}: the picture is 1080 x 1350`);
       if (shots) fs.writeFileSync(path.join(shots, `${name}_share.png`), png);
     }
+    // (Anki's own script, recap_actions.saved_js, as it runs in the page once the file is written)
+    await p.evaluate(savedJs);
+    expect(await p.evaluate(() => document.querySelector('.af-recap-save').textContent) === 'Image saved', `${name}: the button says the picture is saved`);
+    expect(await p.evaluate(() => (document.querySelector('.af-recap-file') || {}).textContent) === 'memory-forest-2026.png', `${name}: the file's name under it`);
+    await p.evaluate(unsavedJs);
+    expect(await p.evaluate(() => document.querySelector('.af-recap-save').textContent === 'Save image' && !document.querySelector('.af-recap-file')), `${name}: a failed save takes it back`);
     await p.keyboard.press('Escape');
     expect(!(await p.$('.af-recap')), `${name}: Esc closes it`);
     expect((await sent(p)).indexOf('forest:typing:0') >= 0, `${name}: closing gives Anki its shortcuts back`);
